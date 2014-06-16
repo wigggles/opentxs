@@ -1,0 +1,3 @@
+[submodule "deps/lucre"]
+	path = deps/lucre
+	url = https://github.com/benlaurie/lucre.git
