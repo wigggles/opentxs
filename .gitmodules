@@ -1,3 +1,6 @@
 [submodule "deps/lucre"]
 	path = deps/lucre
 	url = https://github.com/benlaurie/lucre.git
+[submodule "deps/simpleini"]
+	path = deps/simpleini
+	url = https://github.com/brofield/simpleini.git
