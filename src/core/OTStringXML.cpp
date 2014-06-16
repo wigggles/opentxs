@@ -157,19 +157,19 @@ public:
 };
 
 
-OTStringXML::OTStringXML() : pvt(new OTStringXMLPvt(this)), OTString()
+OTStringXML::OTStringXML() : OTString(), pvt(new OTStringXMLPvt(this))
 {
 	
 }
 
 
-OTStringXML::OTStringXML(const OTString & strValue) : pvt(new OTStringXMLPvt(this)), OTString(strValue)
+OTStringXML::OTStringXML(const OTString & strValue) : OTString(strValue), pvt(new OTStringXMLPvt(this))
 {
 	
 }
 
 
-OTStringXML::OTStringXML(const OTStringXML & strValue) : pvt(new OTStringXMLPvt(this)), OTString(strValue)
+OTStringXML::OTStringXML(const OTStringXML & strValue) : OTString(strValue), pvt(new OTStringXMLPvt(this))
 {
 	
 }

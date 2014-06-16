@@ -229,7 +229,7 @@ bool	OTSettings::LogChange_bool(const OTString & strSection,const OTString & str
 	return true;
 }
 
-OTSettings::OTSettings(const OTString & strConfigFilePath) : pvt(new OTSettingsPvt()), m_strConfigurationFileExactPath(strConfigFilePath), b_Loaded(false)
+OTSettings::OTSettings(const OTString & strConfigFilePath) : pvt(new OTSettingsPvt()), b_Loaded(false), m_strConfigurationFileExactPath(strConfigFilePath)
 {
 	if (! m_strConfigurationFileExactPath.Exists())	{ OTLog::vError("%s: Error: %s is Empty!\n", __FUNCTION__, "m_strConfigurationFileExactPath"); OT_FAIL; }
 }

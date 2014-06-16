@@ -179,7 +179,7 @@ bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID, char c
 
 
 OTSignatureMetadata::OTSignatureMetadata() :
-    m_cMetaKeyType(0), m_cMetaNymID(0), m_cMetaMasterCredID(0), m_cMetaSubCredID(0), m_bHasMetadata(false)
+    m_bHasMetadata(false), m_cMetaKeyType(0), m_cMetaNymID(0), m_cMetaMasterCredID(0), m_cMetaSubCredID(0)
 {
 	
 }
