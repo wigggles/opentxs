@@ -7,3 +7,6 @@
 [submodule "deps/bigint"]
 	path = deps/bigint
 	url = https://mattmccutchen.net/bigint/bigint.git
+[submodule "deps/gtest"]
+	path = deps/gtest
+	url = https://github.com/monetas/gtest.git
