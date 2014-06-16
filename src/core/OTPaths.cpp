@@ -972,7 +972,6 @@ bool OTPaths::ToReal(const OTString & strExactPath, OTString & out_strCanonicalP
 
     char actualpath [path_max+1];
     actualpath[0] = '\0';
-    char *ptr=NULL;
 
     if (NULL ==  realpath(strExactPath.Get(), actualpath)) {
 
@@ -1008,7 +1007,6 @@ bool GetExecutable(OTString & strExecutablePath)
 #ifdef TARGET_OS_MAC
     char bufPath[PATH_MAX + 1]="";
     uint32_t size = sizeof(bufPath);
-    int32_t  bufsize = sizeof(bufPath);
     if (_NSGetExecutablePath(bufPath, &size) == 0)
         strExecutablePath.Set(bufPath);
     else return false;
