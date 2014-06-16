@@ -4,3 +4,6 @@
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
+[submodule "deps/bigint"]
+	path = deps/bigint
+	url = https://mattmccutchen.net/bigint/bigint.git
