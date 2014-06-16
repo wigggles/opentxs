@@ -496,7 +496,6 @@ bool OTMarket::GetOfferList(OTASCIIArmor & ascOutput, int64_t lDepth, int32_t & 
 //	mapOfOffers			m_mapBids;		// The buyers, ordered by price limit
 //	mapOfOffers			m_mapAsks;		// The sellers, ordered by price limit
 
-	OTOffer * pOffer	= NULL;
 	int32_t nTempDepth		= 0;
 	
 	FOR_EACH(mapOfOffers, m_mapBids)
@@ -534,7 +533,6 @@ bool OTMarket::GetOfferList(OTASCIIArmor & ascOutput, int64_t lDepth, int32_t & 
         nOfferCount++;
 	}		
 	
-	pOffer		= NULL;
 	nTempDepth	= 0;
 	
 	FOR_EACH(mapOfOffers, m_mapAsks)

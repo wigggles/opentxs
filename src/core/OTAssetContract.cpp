@@ -651,7 +651,6 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops 
                 OTAccount * pAccount = NULL;
                 OTCleanup<OTAccount> theAcctAngel;
                 
-                bool  bAlreadyLoaded = false;
                 const OTIdentifier theAccountID(str_acct_id.c_str());
                 
                 // Before loading it from local storage, let's first make sure it's not already loaded.
@@ -665,14 +664,12 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops 
                     
                     if (pLoadedAccounts->end() != found_it) // FOUND IT.
                     {
-                        bAlreadyLoaded = true;
                         pAccount = (*found_it).second;
                         OT_ASSERT(NULL != pAccount);
                         
                         if (theAccountID != pAccount->GetPurportedAccountID())
                         {
                             OTLog::Error("Error: the actual account didn't have the ID that the std::map SAID it had! (Should never happen.)\n");
-                            bAlreadyLoaded = false;
                             pAccount       = NULL;
                         }
                     }

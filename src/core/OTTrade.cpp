@@ -936,8 +936,6 @@ void OTTrade::onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t & lNewT
 
     const OTString strOrigCronItem(theOrigCronItem);
 
-    bool bDroppedReceiptAssetAcct       = false;
-    bool bDroppedReceiptCurrencyAcct    = false;
     // -----------------------------------------------------------------
     OTPseudonym *   pActualNym   = NULL; // use this. DON'T use theActualNym.
     OTPseudonym     theActualNym;        // unused unless it's really not already loaded. (use pActualNym.)
@@ -1016,13 +1014,13 @@ void OTTrade::onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t & lNewT
         theOriginator.VerifyIssuedNum(strServerID, lClosingAssetNumber)
         )
     {
-        bDroppedReceiptAssetAcct = this->DropFinalReceiptToInbox(GetSenderUserID(),
-                                                                 GetSenderAcctID(),
-                                                                 lNewTransactionNumber,
-                                                                 lClosingAssetNumber, // The closing transaction number to put on the receipt.
-                                                                 strOrigCronItem,
-                                                                 pstrNote,
-                                                                 pstrAttachment);
+        this->DropFinalReceiptToInbox(GetSenderUserID(),
+                                      GetSenderAcctID(),
+                                      lNewTransactionNumber,
+                                      lClosingAssetNumber, // The closing transaction number to put on the receipt.
+                                      strOrigCronItem,
+                                      pstrNote,
+                                      pstrAttachment);
     }
     else
     {
@@ -1036,13 +1034,13 @@ void OTTrade::onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t & lNewT
         theOriginator.VerifyIssuedNum(strServerID, lClosingCurrencyNumber)
         )
     {
-        bDroppedReceiptCurrencyAcct = this->DropFinalReceiptToInbox(GetSenderUserID(),
-                                                                    GetCurrencyAcctID(),
-                                                                    lNewTransactionNumber,
-                                                                    lClosingCurrencyNumber, // closing transaction number for the receipt.
-                                                                    strOrigCronItem,
-                                                                    pstrNote,
-                                                                    pstrAttachment);
+        this->DropFinalReceiptToInbox(GetSenderUserID(),
+                                      GetCurrencyAcctID(),
+                                      lNewTransactionNumber,
+                                      lClosingCurrencyNumber, // closing transaction number for the receipt.
+                                      strOrigCronItem,
+                                      pstrNote,
+                                      pstrAttachment);
     }
     else
     {

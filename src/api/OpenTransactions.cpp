@@ -10341,7 +10341,6 @@ int32_t OT_API::activateSmartContract(const OTIdentifier & SERVER_ID,
                                   const OTIdentifier & USER_ID,
                                   const OTString     & THE_SMART_CONTRACT)
 {
-    bool bCancelling = false;
 	// -----------------------------------------------------
 	OTPseudonym * pNym = this->GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
 	if (NULL == pNym) return (-1);
@@ -10402,7 +10401,6 @@ int32_t OT_API::activateSmartContract(const OTIdentifier & SERVER_ID,
 
             OTLog::vOutput(0, "Not all parties to smart contract are confirmed. Treating this as a request for cancelation...\n");
 
-            bCancelling = true;
             // ----------------------------
             if (theContract.IsCanceled())
             {

@@ -8488,8 +8488,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
 
             OTString strAssetTypeID;
 
-            bool bUseThePurseInStorage = false; // deposit the purse stored in local storage, versus one supplied on stdin.
-
             // If no asset contract was passed in, then --mypurse was not specified. Therefore,
             // we can get the purse from the user, and verify that it has the same asset type ID
             // as pAccount does. (No need to ask for the type.)
@@ -8499,7 +8497,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
             //
             if (NULL == pMyAssetContract)
             {
-                bUseThePurseInStorage = false;
                 OTString strSourcePurse;
 
                 OTLog::Output(0, "Please enter a plaintext purse (of the same asset type as the account), \n"
@@ -8534,7 +8531,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
             }
             else
             {
-                bUseThePurseInStorage = true;
                 pMyAssetContract->GetIdentifier(strAssetTypeID);
 
                 bool bLoadedSourcePurse = theSourcePurse.LoadPurse(strServerID.Get(), strNymID.Get(), strAssetTypeID.Get());
