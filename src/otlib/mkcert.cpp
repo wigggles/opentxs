@@ -2,7 +2,7 @@
 * operations.
 */
 
-#include <stdafx.hpp>
+//#include <stdafx.hpp>
 
 #include <OTString.hpp>
 
