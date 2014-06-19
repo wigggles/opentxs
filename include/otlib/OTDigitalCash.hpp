@@ -138,7 +138,7 @@
 
 
 #ifdef OT_CASH_USING_LUCRE
-#include "lucre/bank.hpp"  // Lucre
+#include "lucre/bank.h"  // Lucre
 #endif
 
 #ifdef OT_CASH_USING_MAGIC_MONEY

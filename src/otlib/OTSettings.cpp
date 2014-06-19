@@ -137,7 +137,7 @@
 #include "OTLog.hpp"
 #include "OTPaths.hpp"
 
-#include "simpleini/SimpleIni.hpp"
+#include "simpleini/SimpleIni.h"
 
 
 namespace opentxs {

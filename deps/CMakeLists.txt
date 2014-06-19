@@ -8,15 +8,17 @@ add_subdirectory(irrxml)
 
 
 ### Build libzmq as static library
-execute_process(COMMAND sed "s/add_library(libzmq SHARED/add_library(libzmq STATIC/" "-i" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq/CMakeLists.txt")
-add_subdirectory(libzmq)
+execute_process(COMMAND sed "s/add_library(libzmq SHARED/add_library(libzmq STATIC/" "-i" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
+execute_process(COMMAND sed "s|set(LIBRARY_OUTPUT_PATH  \${CMAKE_CURRENT_BINARY_DIR}/lib)| |" "-i" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
+
+add_subdirectory(libzmq_4)
 
 ### Build lucre as library
 set(lucre-sources
 	${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/bankimp.cpp
    )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/)
 
 add_library(lucre
 	    STATIC

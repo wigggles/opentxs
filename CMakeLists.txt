@@ -54,7 +54,7 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
   CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_STD11)
   if (HAVE_STD11)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
   else()
     message(FATAL_ERROR "No advanced standard C++ support (-std=c++11 not defined).")
   endif()
@@ -189,8 +189,8 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive")
 
 #-----------------------------------------------------------------------------
 add_subdirectory(deps)
-#add_subdirectory(src)  lclc
-#add_subdirectory(tests)
+add_subdirectory(src)
+#add_subdirectory(tests)  lclc
 
 
 ############################################################################

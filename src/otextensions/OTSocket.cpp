@@ -151,7 +151,7 @@
 #endif // OT_ZMQ_2_MODE
 
 #ifdef OT_ZMQ_4_MODE
-#include <zmq/zmq.hpp>
+#include <zmq.hpp>
 #endif // OT_ZMQ_2_MODE
 
 namespace opentxs {

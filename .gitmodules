@@ -1,21 +1,22 @@
 [submodule "deps/lucre"]
 	path = deps/lucre
-	url = https://github.com/benlaurie/lucre.git
+	url = https://github.com/monetas/lucre.git
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
-[submodule "deps/bigint"]
-	path = deps/bigint
-	url = https://mattmccutchen.net/bigint/bigint.git
 [submodule "deps/gtest"]
 	path = deps/gtest
 	url = https://github.com/monetas/gtest.git
+[submodule "deps/bigint"]
+	path = deps/bigint
+	url = https://github.com/monetas/BigInt.git
 [submodule "deps/ChaiScript"]
 	path = deps/ChaiScript
 	url = https://github.com/ChaiScript/ChaiScript.git
-[submodule "deps/libzmq"]
-	path = deps/libzmq
+[submodule "deps/libzmq_4"]
+	path = deps/libzmq_4
 	url = https://github.com/zeromq/libzmq.git
 [submodule "deps/cppzmq"]
 	path = deps/cppzmq
 	url = https://github.com/zeromq/cppzmq
+
