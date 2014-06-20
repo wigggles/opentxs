@@ -126,36 +126,19 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 
-############################################################################
-## Build Unit tests
-#
-# if(BUILD_TESTS)
-#   enable_testing()
-#   if(MSVC11)
-#     add_definitions(-D_VARIADIC_MAX=10)
-#   endif(MSVC11)
-# 
-#   if(MSVC)
-#     set(gtest_force_shared_crt ON CACHE BOOL "Override gtest option.")
-#   endif(MSVC)
-# 
-#   # gmock automatically searches for gtest
-#   add_subdirectory(deps/gmock)
-# 
-#   set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
-#   set(GTEST_FOUND ON)
-#   set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
-#   set(GTEST_LIBRARY gtest)
-#   set(GTEST_MAIN_LIBRARY gtest_main)
-#   set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
-# 
-#   set(GMOCK_ROOT ${opentxs_SOURCE_DI}/deps/gmock)
-#   set(GMOCK_FOUND ON)
-#   set(GMOCK_INCLUDE_DIRS ${GTEST_INCLUDE_DIRS} ${GMOCK_ROOT}/include)
-#   set(GMOCK_LIBRARY ${GTEST_LIBRARIES} gmock)
-#   set(GMOCK_MAIN_LIBRARY gmock_main)
-#   set(GMOCK_BOTH_LIBRARIES ${GMOCK_LIBRARY} ${GMOCK_MAIN_LIBRARY})
-# endif()
+#-----------------------------------------------------------------------------
+# Build Unit tests
+
+if(BUILD_TESTS)
+  set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
+  set(GTEST_FOUND ON)
+  set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
+  set(GTEST_LIBRARY gtest)
+  set(GTEST_MAIN_LIBRARY gtest_main)
+  set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
+
+  enable_testing()
+endif(BUILD_TESTS)
 
 
 ############################################################################
@@ -176,32 +159,33 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Get submodules
+
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive")
 
 
 #-----------------------------------------------------------------------------
+# OpenSSL workaround for OSX brew
+
+if(APPLE)
+  include_directories(/usr/local/Cellar/openssl/1.0.1e/include)
+  link_directories(/usr/local/Cellar/openssl/1.0.1e/lib)
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Build source
+
 add_subdirectory(deps)
 add_subdirectory(src)
-
-if(BUILD_TESTS)
-  set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
-  set(GTEST_FOUND ON)
-  set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
-  set(GTEST_LIBRARY gtest)
-  set(GTEST_MAIN_LIBRARY gtest_main)
-  set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
-
-  enable_testing()
-  add_subdirectory(tests)
-endif(BUILD_TESTS)
+add_subdirectory(tests)
 
 
-############################################################################
-### Install
+#-----------------------------------------------------------------------------
+# Install
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs ${CMAKE_CURRENT_BINARY_DIR}/bin/createmint
         DESTINATION bin)
 
-###Packaging
+# Packaging
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_NAME "opentxs")
 set(CPACK_PACKAGE_RELEASE 1)
@@ -210,7 +194,7 @@ set(CPACK_PACKAGE_VENDOR "Monetas AG")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
 
-#RPM
+# RPM
 if(RPM)
   set(CPACK_GENERATOR "RPM")
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/opentxs.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec" @ONLY IMMEDIATE)

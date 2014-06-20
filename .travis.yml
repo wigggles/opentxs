@@ -7,7 +7,7 @@ compiler:
 - clang
 install: ./scripts/travis/install-deps.sh "${TRAVIS_OS_NAME}"
 script:
-- ./scripts/travis/cppcheck_wrapper.sh ./src
+#- ./scripts/travis/cppcheck_wrapper.sh ./src
 - mkdir build && cd build && cmake .. && make -j 2
 branches:
   only:
