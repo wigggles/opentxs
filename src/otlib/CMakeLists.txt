@@ -1,7 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-cmake_minimum_required(VERSION 2.8)
-
 add_subdirectory(otprotob)
 
 set(cxx-sources
@@ -94,11 +92,6 @@ set(cxx-sources
   OTWallet.cpp
 )
 
-add_library(opentxs-core
-  STATIC
-  ${cxx-sources}
-)
-
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )
@@ -112,6 +105,11 @@ include_directories(
   ${dependency_include_dir}/simpleini/
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otlib
   ${CMAKE_BINARY_DIR}/src/otlib/otprotob
+)
+
+add_library(opentxs-core
+  STATIC
+  ${cxx-sources}
 )
 
 target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z)

@@ -1,7 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-cmake_minimum_required(VERSION 2.8)
-
 set(cxx-sources
   OpenTransactions.cpp
   ot_commands_ot.cpp
@@ -37,4 +35,4 @@ add_library(opentxs-api
   ${cxx-sources}
 )
 
-target_link_libraries(opentxs-api opentxs-ext)
+target_link_libraries(opentxs-api opentxs-ext opentxs-core)

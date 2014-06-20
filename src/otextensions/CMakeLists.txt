@@ -1,7 +1,5 @@
 # Copyright (c) Monetas AG, 2014
 
-cmake_minimum_required(VERSION 2.8)
-
 set(cxx-sources
   OTSocket.cpp
 )
@@ -16,6 +14,10 @@ include_directories(
   ${dependency_include_dir}/cppzmq
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otlib
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otextensions
+)
+
+link_directories(
+  ${CMAKE_BINARY_DIR}/lib
 )
 
 add_library(opentxs-ext

@@ -175,6 +175,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Build source
 
+add_definitions(-DCHAISCRIPT_NO_THREADS)
+
 add_subdirectory(deps)
 add_subdirectory(src)
 add_subdirectory(tests)
