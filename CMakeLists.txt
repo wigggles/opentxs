@@ -4,16 +4,17 @@ cmake_minimum_required(VERSION 2.8)
 project(opentxs)
 
 set (VERSION_MAJOR  0)
-set (VERSION_MINOR  0)
-set (VERSION_BUGFIX 92)
-set (VERSION "0.0.92")
+set (VERSION_MINOR  92)
+set (VERSION_BUGFIX 0)
+set (VERSION "0.92.0")
+
 
 #-----------------------------------------------------------------------------
 # Options for building
 
 option(BUILD_VERBOSE       "Verbose build output." ON)
 option(BUILD_TESTS         "Build the unit tests." ON)
-option(DISABLE_LIBCXX      "Disable using libc++ when compiling with clang." OFF )
+
 option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
 option(KEYRING_MAC         "Build with Mac Keyring" OFF)
 option(KEYRING_GNOME       "Build with Gnome OSX Keyring" OFF)
@@ -62,19 +63,16 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   INCLUDE(CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_STD11)
   if (HAVE_STD11)
-    if (DISABLE_LIBCXX)
-      #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    else()
-      #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall")
+    if (APPLE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
       set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -stdlib=libc++")
+    else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
   else()
     message(FATAL_ERROR "No C++11 support for Clang version. Please upgrade Clang to a version supporting C++11.")
   endif()
 endif()
-
 
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
@@ -85,8 +83,8 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 # System libraries used for linking.
 
 if(UNIX AND NOT APPLE)
-  list(APPEND OPENTXS_AUDITOR_SYSTEM_LIBRARIES rt)
-  list(APPEND OPENTXS_AUDITOR_SYSTEM_LIBRARIES dl)
+  list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
+  list(APPEND OPENTXS_SYSTEM_LIBRARIES dl)
 endif()
 
 if (MSVC)
@@ -100,8 +98,8 @@ endif(WIN32)
 #-----------------------------------------------------------------------------
 # Third party libraries
 
-find_package( OpenSSL )
-find_package( Protobuf )
+find_package(OpenSSL)
+find_package(Protobuf)
 
 #-----------------------------------------------------------------------------
 # Force out-of-source build
@@ -176,12 +174,6 @@ endif()
 # endif(BUILD_DOCUMENTATION)
 
 
-# if(BUILD_TESTS)
-#   enable_testing()
-#   add_subdirectory(tests)
-# endif(BUILD_TESTS)
-
-
 #-----------------------------------------------------------------------------
 # Get submodules
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive")
@@ -190,7 +182,18 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive")
 #-----------------------------------------------------------------------------
 add_subdirectory(deps)
 add_subdirectory(src)
-#add_subdirectory(tests)  lclc
+
+if(BUILD_TESTS)
+  set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
+  set(GTEST_FOUND ON)
+  set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
+  set(GTEST_LIBRARY gtest)
+  set(GTEST_MAIN_LIBRARY gtest_main)
+  set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
+
+  enable_testing()
+  add_subdirectory(tests)
+endif(BUILD_TESTS)
 
 
 ############################################################################
@@ -213,6 +216,5 @@ if(RPM)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/opentxs.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec" @ONLY IMMEDIATE)
   set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec")
 endif(RPM)
-
 
 include(CPack)
