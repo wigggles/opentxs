@@ -112,4 +112,4 @@ add_library(opentxs-core
   ${cxx-sources}
 )
 
-target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z)
+target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z dl)

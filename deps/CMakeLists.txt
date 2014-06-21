@@ -33,7 +33,7 @@ add_library(bigint
 )
 
 ### Build libzmq as static library
-execute_process(COMMAND sed "s/add_library(libzmq SHARED/add_library(libzmq STATIC/" "-i" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
-execute_process(COMMAND sed "s|set(LIBRARY_OUTPUT_PATH  \${CMAKE_CURRENT_BINARY_DIR}/lib)| |" "-i" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
+execute_process(COMMAND sed "-i" "" "s|add_library(libzmq SHARED|add_library(libzmq STATIC|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
+execute_process(COMMAND sed "-i" "" "s|set(LIBRARY_OUTPUT_PATH  \${CMAKE_CURRENT_BINARY_DIR}/lib)| |" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
 
 add_subdirectory(libzmq_4)

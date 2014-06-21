@@ -25,4 +25,8 @@ add_library(opentxs-ext
   ${cxx-sources}
 )
 
-target_link_libraries(opentxs-ext opentxs-core zmq)
+if(APPLE)
+  target_link_libraries(opentxs-ext opentxs-core ZeroMQ)
+else()
+  target_link_libraries(opentxs-ext opentxs-core zmq)
+endif()
