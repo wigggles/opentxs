@@ -31,7 +31,6 @@ include_directories(
 )
 
 add_library(opentxs-api
-  STATIC
   ${cxx-sources}
 )
 

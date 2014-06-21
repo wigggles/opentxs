@@ -108,8 +108,7 @@ include_directories(
 )
 
 add_library(opentxs-core
-  STATIC
   ${cxx-sources}
 )
 
-target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z dl)
+target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
