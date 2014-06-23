@@ -12,8 +12,10 @@ include_directories(
   ${dependency_include_dir}
   ${dependency_include_dir}/libzmq_4/include
   ${dependency_include_dir}/cppzmq
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otlib
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otextensions
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otlib
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otextensions
 )
 
 link_directories(

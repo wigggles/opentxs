@@ -103,7 +103,7 @@ include_directories(
   ${dependency_include_dir}/irrxml/
   ${dependency_include_dir}/lucre/include/
   ${dependency_include_dir}/simpleini/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/otlib
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otlib
   ${CMAKE_BINARY_DIR}/src/otlib/otprotob
 )
 

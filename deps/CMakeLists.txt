@@ -12,7 +12,6 @@ set(lucre-sources
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/)
 
 add_library(lucre
-  STATIC
   ${lucre-sources}
 )
 
@@ -28,12 +27,11 @@ set(bigint-sources
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/bigint/)
 
 add_library(bigint
-  STATIC
   ${bigint-sources}
 )
 
 ### Build libzmq as static library
-execute_process(COMMAND sed "-i" "" "s|add_library(libzmq SHARED|add_library(libzmq STATIC|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
+#execute_process(COMMAND sed "-i" "" "s|add_library(libzmq SHARED|add_library(libzmq STATIC|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
 execute_process(COMMAND sed "-i" "" "s|set(LIBRARY_OUTPUT_PATH  \${CMAKE_CURRENT_BINARY_DIR}/lib)| |" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
 
 add_subdirectory(libzmq_4)

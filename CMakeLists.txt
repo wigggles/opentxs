@@ -79,6 +79,8 @@ message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 
+## lclc Remove that when we moved to ZMQ 4 only
+add_definitions(-DOT_ZMQ_4_MODE)
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
@@ -185,9 +187,38 @@ add_subdirectory(tests)
 
 #-----------------------------------------------------------------------------
 # Install
-INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs ${CMAKE_CURRENT_BINARY_DIR}/bin/createmint
-        DESTINATION bin)
 
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs
+	DESTINATION bin)
+
+IF (NOT WIN32)
+  include(GNUInstallDirs)
+
+  install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.so
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.so
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.so
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.so
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.so
+  ${CMAKE_CURRENT_BINARY_DIR}/lib/libgtest.so
+  DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/opentxs)
+ENDIF()
+
+install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+         DESTINATION include)
+
+install (FILES
+	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.hpp
+	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/containers_fixes.hpp
+	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/exceptions.hpp
+	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/copy_functors.hpp
+	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.tpp
+         DESTINATION include/opentxs/otlib/containers)
+
+install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
+         DESTINATION include/opentxs/irrxml
+	 FILES_MATCHING PATTERN "*.hpp")
+         
 # Packaging
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_NAME "opentxs")
