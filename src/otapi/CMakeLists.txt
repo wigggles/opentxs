@@ -30,6 +30,10 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/deps/ChaiScript/include
 )
 
+link_directories(
+  ${CMAKE_BINARY_DIR}/lib
+)
+
 add_library(opentxs-api
   ${cxx-sources}
 )
