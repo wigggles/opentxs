@@ -151,7 +151,7 @@
 
 extern "C"
 {
-#if defined (OPENTXS_HAVE_NETINET_IN_H)
+#ifndef _WIN32
 #include <netinet/in.h>
 #endif
 }

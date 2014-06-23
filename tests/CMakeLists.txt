@@ -1,0 +1,3 @@
+# Copyright (c) Monetas AG, 2014
+
+add_subdirectory(otlib)
