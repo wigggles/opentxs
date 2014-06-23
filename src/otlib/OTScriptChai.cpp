@@ -493,7 +493,6 @@ OTScriptChai::~OTScriptChai()
     if (NULL != this->chai) delete this->chai;
 }
 
+} // namespace opentxs
 
 #endif // OT_USE_SCRIPT_CHAI
-
-} // namespace opentxs
