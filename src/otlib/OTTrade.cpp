@@ -133,24 +133,17 @@
 #include "stdafx.hpp"
 
 #include "OTTrade.hpp"
-
 #include "OTAccount.hpp"
 #include "OTLog.hpp"
 #include "OTMarket.hpp"
 #include "OTOffer.hpp"
 #include "OTPseudonym.hpp"
 
-#include "irrxml/irrXML.hpp"
-
+#include <irrxml/irrXML.hpp>
 
 namespace opentxs {
 
-#ifndef TRADE_PROCESS_INTERVAL
-
-#define TRADE_PROCESS_INTERVAL		10		// 10 seconds
-
-#endif
-
+enum { TradeProcessIntervalSeconds = 10 };
 
 // This class is like: you are placing an order to do a trade.
 // Your order will continue processing until it is complete.
@@ -1253,7 +1246,6 @@ bool OTTrade::IssueTrade(OTOffer & theOffer, char cStopSign/*=0*/, int64_t lStop
 	return true;
 }
 
-
 OTTrade::OTTrade() : ot_super(), m_pOffer(NULL),
     m_bHasTradeActivated(false),
     m_lStopPrice(0),
@@ -1267,7 +1259,6 @@ OTTrade::OTTrade() : ot_super(), m_pOffer(NULL),
 
 	InitTrade();
 }
-
 
 OTTrade::OTTrade(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) :
 			ot_super(SERVER_ID, ASSET_ID), m_pOffer(NULL),
@@ -1283,7 +1274,6 @@ OTTrade::OTTrade(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) 
 
 	InitTrade();
 }
-
 
 OTTrade::OTTrade(const OTIdentifier & SERVER_ID,
 				 const OTIdentifier & ASSET_ID, const OTIdentifier & ASSET_ACCT_ID,
@@ -1306,12 +1296,10 @@ OTTrade::OTTrade(const OTIdentifier & SERVER_ID,
 	SetCurrencyAcctID(CURRENCY_ACCT_ID);
 }
 
-
 OTTrade::~OTTrade()
 {
 	Release_Trade();
 }
-
 
 // the framework will call this at the right time.
 void OTTrade::Release_Trade()
@@ -1322,7 +1310,6 @@ void OTTrade::Release_Trade()
 
 	m_strOffer.Release();
 }
-
 
 // the framework will call this at the right time.
 void OTTrade::Release()
@@ -1336,14 +1323,13 @@ void OTTrade::Release()
 	InitTrade();
 }
 
-
 // This CAN have values that are reset
 void OTTrade::InitTrade()
 {
 	// initialization here. Sometimes also called during cleanup to zero values.
 	m_strContractType	= "TRADE";
 
-	SetProcessInterval(TRADE_PROCESS_INTERVAL);	// Trades default to processing every 10 seconds.
+	SetProcessInterval(TradeProcessIntervalSeconds);	// Trades default to processing every 10 seconds.
 												// (vs 1 second for Cron items and 1 hour for payment plans)
 
 	m_nTradesAlreadyDone= 0;
@@ -1354,7 +1340,6 @@ void OTTrade::InitTrade()
 								// I'll put a "HasOrderOnMarket()" bool method that answers this for u.
 	m_bHasTradeActivated = false;// I want to keep track of general activations as well, not just stop orders.
 }
-
 
 bool OTTrade::SaveContractWallet(std::ofstream & ofs)
 {
