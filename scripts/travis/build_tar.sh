@@ -9,34 +9,34 @@ fi
 mkdir opentxs
 
 # opentxs
-cp -rf include opentxs/
+cp -r include opentxs/
 if [[ "$os" == "linux" ]] ; then
-    cp -rf src/otlib/.libs/libot.so opentxs/
-    cp -rf src/otlib/.libs/libot.so.0 opentxs/
-    cp -rf src/otlib/.libs/libot.so.0.0.0 opentxs/
-    cp -rf src/otextensions/.libs/libotextensions.so opentxs/
-    cp -rf src/otextensions/.libs/libotextensions.so.0 opentxs/
-    cp -rf src/otextensions/.libs/libotextensions.so.0.0.0 opentxs/
-    cp -rf src/otapi/.libs/libotapi.so opentxs/
-    cp -rf src/otapi/.libs/libotapi.so.0 opentxs/
-    cp -rf src/otapi/.libs/libotapi.so.0.0.0 opentxs/
+    cp src/otlib/.libs/libot.so opentxs/
+    cp src/otlib/.libs/libot.so.0 opentxs/
+    cp src/otlib/.libs/libot.so.0.0.0 opentxs/
+    cp src/otextensions/.libs/libotextensions.so opentxs/
+    cp src/otextensions/.libs/libotextensions.so.0 opentxs/
+    cp src/otextensions/.libs/libotextensions.so.0.0.0 opentxs/
+    cp src/otapi/.libs/libotapi.so opentxs/
+    cp src/otapi/.libs/libotapi.so.0 opentxs/
+    cp src/otapi/.libs/libotapi.so.0.0.0 opentxs/
 else
-    cp -rf src/otlib/.libs/libot.0.dylib opentxs/
-    cp -rf src/otlib/.libs/libot.dylib opentxs/
-    cp -rf src/otextensions/.libs/libotextensions.0.dylib opentxs/
-    cp -rf src/otextensions/.libs/libotextensions.dylib opentxs/
-    cp -rf src/otapi/.libs/libotapi.0.dylib opentxs/
-    cp -rf src/otapi/.libs/libotapi.dylib opentxs/
+    cp src/otlib/.libs/libot.0.dylib opentxs/
+    cp src/otlib/.libs/libot.dylib opentxs/
+    cp src/otextensions/.libs/libotextensions.0.dylib opentxs/
+    cp src/otextensions/.libs/libotextensions.dylib opentxs/
+    cp src/otapi/.libs/libotapi.0.dylib opentxs/
+    cp src/otapi/.libs/libotapi.dylib opentxs/
 fi
-cp -rf src/.libs/opentxs opentxs/
+cp -r src/.libs/opentxs opentxs/
 
 # deps
 mkdir opentxs/include/misc
-cp -rf deps/include/misc/Timer.hpp opentxs/include/misc/
-cp -rf deps/include/misc/tinythread.hpp opentxs/include/misc/
-cp -rf deps/include/containers opentxs/include/
-cp -rf deps/include/irrxml opentxs/include/
-cp -rf deps/src/irrxml/.libs/libirrxml.a opentxs/
+cp deps/include/misc/Timer.hpp opentxs/include/misc/
+cp deps/include/misc/tinythread.hpp opentxs/include/misc/
+cp -r deps/include/containers opentxs/include/
+cp -r deps/include/irrxml opentxs/include/
+cp deps/src/irrxml/.libs/libirrxml.a opentxs/
 
 version=`cat VERSION`
 compiler=${CXX}

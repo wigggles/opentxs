@@ -144,7 +144,7 @@
 #include "OTPayload.hpp"
 #include "OTPseudonym.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 #include <fstream>
 
@@ -155,7 +155,6 @@
 
 using namespace irr;
 using namespace io;
-
 
 namespace opentxs {
 

@@ -148,8 +148,7 @@
 #include "OTStorage.hpp"
 #include "OTSymmetricKey.hpp"
 
-#include "irrxml/irrXML.hpp"
-
+#include <irrxml/irrXML.hpp>
 
 namespace opentxs {
 
@@ -158,20 +157,16 @@ OTWallet::OTWallet() : m_strDataFolder(OTDataFolder::Get())
 	m_pWithdrawalPurse = NULL;
 }
 
-
 OTWallet::~OTWallet()
 {	
 	Release_Wallet();
 }
 
-
 void OTWallet::Release()
 {   
 	Release_Wallet();
-    
-    // no call to ot_super here since there are no child classes.
+  // no call to ot_super here since there are no child classes.
 }
-
 
 void OTWallet::Release_Wallet()
 {	
@@ -232,7 +227,6 @@ void OTWallet::Release_Wallet()
     m_mapExtraKeys.clear();
 }
 
-
 // While waiting on server response to a withdrawal, we keep the private coin
 // data here so we can unblind the response.
 // This information is so important (as important as the digital cash token
@@ -249,7 +243,6 @@ void OTWallet::AddPendingWithdrawal(const OTPurse & thePurse)
 	// the user will be unable to unblind his tokens and make them spendable.
 	// So this data MUST be SAVED until the successful withdrawal is verified!
 
-
 void OTWallet::RemovePendingWithdrawal()
 {
 	if (m_pWithdrawalPurse)
@@ -257,7 +250,6 @@ void OTWallet::RemovePendingWithdrawal()
 	
 	m_pWithdrawalPurse = NULL;
 }
-
 
 bool OTWallet::SignContractWithFirstNymOnList(OTContract & theContract)
 {
@@ -282,7 +274,6 @@ bool OTWallet::SignContractWithFirstNymOnList(OTContract & theContract)
 	return false;
 }
 
-
 // The wallet presumably has multiple Nyms listed within.
 // I should be able to pass in a Nym ID and, if the Nym is there,
 // the wallet returns a pointer to that nym.
@@ -302,7 +293,6 @@ OTPseudonym * OTWallet::GetNymByID(const OTIdentifier & NYM_ID)
 	
 	return NULL;
 }
-
 
 OTPseudonym * OTWallet::GetNymByIDPartialMatch(const std::string PARTIAL_ID) // works with name as well.
 {
@@ -337,7 +327,6 @@ OTPseudonym * OTWallet::GetNymByIDPartialMatch(const std::string PARTIAL_ID) // 
     // ----------------------------------
 	return NULL;
 }
-
 
 // used by high-level wrapper.
 int32_t OTWallet::GetNymCount()
