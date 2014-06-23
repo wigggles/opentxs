@@ -151,8 +151,11 @@ public:
     EVP_PKEY     *  m_pKey;    // Instantiated form of key. (For private keys especially, we don't want it instantiated for any longer than absolutely necessary.)
 };
 
+} // namespace opentxs
+
 #endif
 
+namespace opentxs {
 
 OTLowLevelKeyData::~OTLowLevelKeyData()
 {

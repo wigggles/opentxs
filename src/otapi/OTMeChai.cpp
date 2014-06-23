@@ -937,6 +937,6 @@ std::string OTMeChai::adjust_usage_credits( const std::string & SERVER_ID,
     return ExecuteScript_ReturnString(code, __FUNCTION__);
 }
 
-#endif // OT_USE_SCRIPT_CHAI
-
 } // namespace opentxs
+
+#endif // OT_USE_SCRIPT_CHAI
