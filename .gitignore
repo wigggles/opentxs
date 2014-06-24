@@ -50,7 +50,6 @@ src/cmake_install.cmake
 src/createmint/CMakeFiles/
 src/createmint/cmake_install.cmake
 src/createmint/createmint
-src/opentxs-server
 Makefile
 
 
@@ -109,7 +108,6 @@ src/otlib/protobOT/.deps/
 .dirstamp
 .libs
 *.pb.cc
-src/opentxs
 src/createmint
 src/ot
 src/otserver

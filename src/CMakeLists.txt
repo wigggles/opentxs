@@ -1,6 +1,6 @@
 # Copyright (c) Monetas AG, 2014
 
-add_subdirectory(otlib)
-add_subdirectory(otextensions)
-add_subdirectory(otapi)
-add_subdirectory(otc)
+add_subdirectory(core)
+add_subdirectory(ext)
+add_subdirectory(api)
+add_subdirectory(opentxs)
