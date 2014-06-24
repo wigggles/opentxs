@@ -176,7 +176,7 @@
 #include <OTTrade.hpp>
 #include <OTWallet.hpp>
 
-#include <OTSocket.hpp>
+#include <Socket_ZMQ4.hpp>
 
 #include <cassert>
 #include <fstream>
@@ -360,14 +360,7 @@ OT_API::OT_API() :
     m_pPid(new Pid()),
 	m_bInitialized(false),
 	m_pTransportCallback(NULL),
-
-#ifdef OT_ZMQ_2_MODE
-    m_pSocket(new OTSocket_ZMQ_2()),
-#endif
-
-#ifdef OT_ZMQ_4_MODE
-    m_pSocket(new OTSocket_ZMQ_4()),
-#endif
+	m_pSocket(new OTSocket_ZMQ_4()),
 
 	m_pWallet(NULL),
 	m_pClient(NULL)

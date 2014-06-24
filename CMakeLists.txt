@@ -83,8 +83,6 @@ message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 
-## lclc Remove that when we moved to ZMQ 4 only
-add_definitions(-DOT_ZMQ_4_MODE)
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.

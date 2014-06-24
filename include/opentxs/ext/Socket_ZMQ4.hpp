@@ -1,7 +1,7 @@
 /*************************************************************
  *
- * OTSocket.hpp
- *
+ * zmq4.hpp
+ * OTSocket with zmq4
  */
 
 /************************************************************
@@ -130,11 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SOCKET_HPP__
-#define __OT_SOCKET_HPP__
+#ifndef __SOCKET_ZMQ4_HPP__
+#define __SOCKET_ZMQ4_HPP__
 
-#include "opentxs/core/OTASCIIArmor.hpp"
-#include "opentxs/core/OTString.hpp"
+#include "OTSocket.hpp"
 
 namespace tthread {
     class mutex;
@@ -142,101 +141,42 @@ namespace tthread {
 
 namespace opentxs {
 
-class OTSettings;
-
-
-// Server and Client Side.
-class OTSocket
+class OTSocket_ZMQ_4 : public OTSocket
 {
-public:
-    class Defaults
-    {
-    public:
-        EXPORT Defaults(
-        int64_t lLatencySendMs,
-        int32_t nLatencySendNoTries,
-        int64_t lLatencyReceiveMs,
-        int32_t nLatencyReceiveNoTries,
-        int64_t lLatencyDelayAfter,
-        bool bIsBlocking);
+private:
+    class ZMQ4; // defined in C++ file.
+    ZMQ4 * const m_pzmq;
 
-        const int64_t m_lLatencySendMs;
-        const int32_t  m_nLatencySendNoTries;
-        const int64_t m_lLatencyReceiveMs;
-        const int32_t  m_nLatencyReceiveNoTries;
-        const int64_t m_lLatencyDelayAfter;
-        const bool m_bIsBlocking;
-    };
+public:
+    EXPORT OTSocket_ZMQ_4();
+    EXPORT ~OTSocket_ZMQ_4();
 
 private:
-    class Mutex
-    {
-    private:
-        tthread::mutex * m_pMutex;
-
-    public:
-        EXPORT Mutex();
-        EXPORT ~Mutex();
-
-        EXPORT tthread::mutex * Get();
-    };
-
-    Mutex m_Mutex;
-
-protected:
-    OTSocket();
-
-    int64_t m_lLatencySendMs;
-    int32_t  m_nLatencySendNoTries;
-    int64_t m_lLatencyReceiveMs;
-    int32_t  m_nLatencyReceiveNoTries;
-    int64_t m_lLatencyDelayAfter;
-    bool m_bIsBlocking;
-
-    bool m_bInitialized;
-    bool m_HasContext;
-    bool m_bConnected;
-    bool m_bListening;
-
-    OTString m_strConnectPath;
-    OTString m_strBindingPath;
-
-    OTASCIIArmor m_ascLastMsgSent;
-
-    virtual bool HandlePollingError() = 0;
-    virtual bool HandleSendingError() = 0;
-    virtual bool HandleReceivingError() = 0;
+    bool CloseSocket(const bool bNewContext = false);
+    bool NewSocket(const bool bIsRequest);
 
 public:
-    virtual ~OTSocket() {};
+    EXPORT bool NewContext();
+    EXPORT bool RemakeSocket(const bool bNewContext = false);
 
-    EXPORT tthread::mutex * GetMutex();
+    EXPORT bool Connect();
+    EXPORT bool Listen();
 
-    EXPORT bool Init(const Defaults & defaults);
-    EXPORT bool Init(const Defaults & defaults, OTSettings * pSettings);
+    EXPORT bool Connect(const OTString & strConnectPath);
+    EXPORT bool Listen(const OTString & strBindingPath);
 
-    EXPORT bool IsInitialized() const;
-    EXPORT bool HasContext() const;
-    EXPORT bool IsConnected() const;
-    EXPORT bool IsListening() const;
+    EXPORT bool Send(const OTASCIIArmor & ascEnvelope);
+    EXPORT bool Send(const OTASCIIArmor & ascEnvelope, const OTString & strConnectPath);
+    EXPORT bool Receive(OTString & strServerReply);
 
-    EXPORT const OTString & GetConnectPath() const;
-    EXPORT const OTString & GetBindingPath() const;
+private:
+    bool HandlePollingError();
+    bool HandleSendingError();
+    bool HandleReceivingError();
 
-    EXPORT virtual bool NewContext() = 0;
-    EXPORT virtual bool RemakeSocket(const bool bNewContext = false) = 0;
-
-    EXPORT virtual bool Connect() = 0;
-    EXPORT virtual bool Listen() = 0;
-
-    EXPORT virtual bool Connect(const OTString & strConnectPath) = 0;
-    EXPORT virtual bool Listen(const OTString & strBindingPath) = 0;
-
-    EXPORT virtual bool Send(const OTASCIIArmor & ascEnvelope) = 0;
-    EXPORT virtual bool Send(const OTASCIIArmor & ascEnvelope, const OTString & strConnectPath) = 0;
-    EXPORT virtual bool Receive(OTString & strServerReply) = 0;
 };
+
 
 } // namespace opentxs
 
-#endif // __OT_SOCKET_HPP__ 
+#endif // __SOCKET_ZMQ4_HPP__ 
