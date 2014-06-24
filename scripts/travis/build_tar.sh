@@ -21,9 +21,6 @@ else
 fi
 
 # deps
-mkdir -p opentxs/include/misc
-cp deps/include/misc/Timer.hpp opentxs/include/misc/
-cp deps/include/misc/tinythread.hpp opentxs/include/misc/
 cp -r deps/include/containers opentxs/include/
 cp -r deps/include/irrxml opentxs/include/
 
