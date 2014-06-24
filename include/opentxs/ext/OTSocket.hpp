@@ -133,8 +133,8 @@
 #ifndef __OT_SOCKET_HPP__
 #define __OT_SOCKET_HPP__
 
-#include "opentxs/otlib/OTASCIIArmor.hpp"
-#include "opentxs/otlib/OTString.hpp"
+#include "opentxs/core/OTASCIIArmor.hpp"
+#include "opentxs/core/OTString.hpp"
 
 namespace tthread {
     class mutex;

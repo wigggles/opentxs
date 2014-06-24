@@ -103,8 +103,8 @@ include_directories(
   ${dependency_include_dir}/irrxml/
   ${dependency_include_dir}/lucre/include/
   ${dependency_include_dir}/simpleini/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otlib
-  ${CMAKE_BINARY_DIR}/src/otlib/otprotob
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
+  ${CMAKE_BINARY_DIR}/src/core/otprotob
 )
 
 add_library(opentxs-core

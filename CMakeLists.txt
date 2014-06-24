@@ -213,7 +213,7 @@ install (FILES
 	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/exceptions.hpp
 	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/copy_functors.hpp
 	 ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.tpp
-         DESTINATION include/opentxs/otlib/containers)
+         DESTINATION include/opentxs/core/containers)
 
 install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
          DESTINATION include/opentxs/irrxml
