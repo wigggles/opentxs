@@ -21,8 +21,8 @@ else
 fi
 
 # deps
-cp -r deps/containers opentxs/include/
-cp -r deps/irrxml opentxs/include/
+cp -r deps/containers opentxs/include/opentxs/
+cp -r deps/irrxml opentxs/include/opentxs/
 
 # tests
 mkdir -p opentxs/tests
