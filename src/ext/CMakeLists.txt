@@ -2,6 +2,7 @@
 
 set(cxx-sources
   OTSocket.cpp
+  Socket_ZMQ4.cpp
 )
 
 set(dependency_include_dir
