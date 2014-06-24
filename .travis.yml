@@ -6,9 +6,12 @@ compiler:
 - gcc
 - clang
 install: ./scripts/travis/install-deps.sh "${TRAVIS_OS_NAME}"
+#before_script: ./scripts/travis/cppcheck_wrapper.sh ./src
 script:
-#- ./scripts/travis/cppcheck_wrapper.sh ./src
-- mkdir build && cd build && cmake .. && make -j 2
+- mkdir build
+- cd build
+- cmake .. && make -j 2
+- cd ..
 branches:
   only:
   - master
