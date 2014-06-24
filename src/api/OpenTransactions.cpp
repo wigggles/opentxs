@@ -358,6 +358,7 @@ bool OT_API::CleanupOTApp()
 // The API begins here...
 OT_API::OT_API() :
     m_pPid(new Pid()),
+	m_bInitialized(false),
 	m_pTransportCallback(NULL),
 
 #ifdef OT_ZMQ_2_MODE
@@ -369,8 +370,7 @@ OT_API::OT_API() :
 #endif
 
 	m_pWallet(NULL),
-	m_pClient(NULL),
-	m_bInitialized(false)
+	m_pClient(NULL)
 {
 
 	m_strDataPath = "";

@@ -173,11 +173,11 @@ private:
     // ---------------------------------------
 	OTIdentifier        m_SERVER_ID;        // Always store this in any object that's associated with a specific server.
 
-	OTPseudonym *       m_pServerNym;       // I'll need this for later.
-
 	listOfLongNumbers	m_listTransactionNumbers; // I can't put receipts in people's inboxes without a supply of these.
 
 	bool                m_bIsActivated;     // I don't want to start Cron processing until everything else is all loaded up and ready to go.
+
+    OTPseudonym *       m_pServerNym;       // I'll need this for later.
 	// ---------------------------------------
 	static int32_t  __trans_refill_amount;		// Number of transaction numbers Cron will grab for itself, when it gets low, before each round.
 	static int32_t  __cron_ms_between_process;	// Number of milliseconds (ideally) between each "Cron Process" event.

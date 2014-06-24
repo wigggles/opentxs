@@ -187,7 +187,7 @@ OTInstrument::OTInstrument()
 
 
 OTInstrument::OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
-: ot_super(), m_ServerID(SERVER_ID), m_AssetTypeID(ASSET_ID), m_VALID_FROM(OT_TIME_ZERO), m_VALID_TO(OT_TIME_ZERO)
+: ot_super(), m_AssetTypeID(ASSET_ID), m_ServerID(SERVER_ID), m_VALID_FROM(OT_TIME_ZERO), m_VALID_TO(OT_TIME_ZERO)
 {
 	InitInstrument();
 //
