@@ -6,37 +6,30 @@ if [[ -z "$1" ]] ; then
     os="linux"
 fi
 
+# opentxs
 mkdir opentxs
 
-# opentxs
 cp -r include opentxs/
+
+cp build/bin/opentxs opentxs/
 if [[ "$os" == "linux" ]] ; then
-    cp src/otlib/.libs/libot.so opentxs/
-    cp src/otlib/.libs/libot.so.0 opentxs/
-    cp src/otlib/.libs/libot.so.0.0.0 opentxs/
-    cp src/otextensions/.libs/libotextensions.so opentxs/
-    cp src/otextensions/.libs/libotextensions.so.0 opentxs/
-    cp src/otextensions/.libs/libotextensions.so.0.0.0 opentxs/
-    cp src/otapi/.libs/libotapi.so opentxs/
-    cp src/otapi/.libs/libotapi.so.0 opentxs/
-    cp src/otapi/.libs/libotapi.so.0.0.0 opentxs/
+    cp build/lib/*.a opentxs/
+    cp build/lib/*.so opentxs/
 else
-    cp src/otlib/.libs/libot.0.dylib opentxs/
-    cp src/otlib/.libs/libot.dylib opentxs/
-    cp src/otextensions/.libs/libotextensions.0.dylib opentxs/
-    cp src/otextensions/.libs/libotextensions.dylib opentxs/
-    cp src/otapi/.libs/libotapi.0.dylib opentxs/
-    cp src/otapi/.libs/libotapi.dylib opentxs/
+    cp build/lib/*.a opentxs/
+    cp build/lib/*.dylib opentxs/
 fi
-cp -r src/.libs/opentxs opentxs/
 
 # deps
-mkdir opentxs/include/misc
+mkdir -p opentxs/include/misc
 cp deps/include/misc/Timer.hpp opentxs/include/misc/
 cp deps/include/misc/tinythread.hpp opentxs/include/misc/
 cp -r deps/include/containers opentxs/include/
 cp -r deps/include/irrxml opentxs/include/
-cp deps/src/irrxml/.libs/libirrxml.a opentxs/
+
+# tests
+mkdir -p opentxs/tests
+cp scripts/tests/ot_test.opentxs opentxs/tests/
 
 version=`cat VERSION`
 compiler=${CXX}
