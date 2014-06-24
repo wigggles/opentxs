@@ -217,9 +217,9 @@ extern "C"
 //  /usr/lib/qt-3.3/include
 // This plugin must link to lkwalletclient.
 // When compiling, use the following flags (for example):
-//  CC=g++ \
-//  CFLAGS="-I/usr/include/kde -I/usr/lib/qt-3.3/include" \
-//  LDFLAGS="-lkwalletclient" \
+//  CC=g++
+//  CFLAGS="-I/usr/include/kde -I/usr/lib/qt-3.3/include"
+//  LDFLAGS="-lkwalletclient"
 //  kwallet_password.so
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

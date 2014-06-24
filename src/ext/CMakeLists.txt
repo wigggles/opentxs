@@ -8,10 +8,13 @@ set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )
 
-include_directories(
+include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/libzmq_4/include
   ${dependency_include_dir}/cppzmq
+)
+
+include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core

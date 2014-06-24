@@ -22,14 +22,17 @@ set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )
 
-include_directories(
+include_directories(SYSTEM
   ${dependency_include_dir}
+  ${dependency_include_dir}/ChaiScript/include
+)
+
+include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api
-  ${PROJECT_SOURCE_DIR}/deps/ChaiScript/include
 )
 
 link_directories(

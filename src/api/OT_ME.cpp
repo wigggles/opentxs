@@ -1560,9 +1560,9 @@ bool OT_ME::Register_OTDB_With_Script_Chai(OTScriptChai & theScript)
 //      theScript.chai->add(fun(&OTDB::MarketList::Remove##name),   "Remove" #name);
 //      theScript.chai->add(fun(&OTDB::MarketList::Add##name),      "Add" #name);
 //
-//      EXPORT size_t Get##name##Count(); \
-//      EXPORT name * Get##name(size_t nIndex); \
-//      EXPORT bool Remove##name(size_t nIndex##name); \
+//      EXPORT size_t Get##name##Count();
+//      EXPORT name * Get##name(size_t nIndex);
+//      EXPORT bool Remove##name(size_t nIndex##name);
 //      EXPORT bool Add##name(name & disownObject)
 
 #define OT_CHAI_CONTAINER(container, name) \
