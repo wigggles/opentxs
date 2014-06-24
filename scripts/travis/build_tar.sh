@@ -7,22 +7,23 @@ if [[ -z "$1" ]] ; then
 fi
 
 # opentxs
-mkdir opentxs
-
 cp -r include opentxs/
 
-cp build/bin/opentxs opentxs/
+mkdir -p opentxs/bin
+cp build/bin/opentxs opentxs/bin/
+
+mkdir -p opentxs/lib
 if [[ "$os" == "linux" ]] ; then
-    cp build/lib/*.a opentxs/
-    cp build/lib/*.so opentxs/
+    cp build/lib/*.a opentxs/lib/
+    cp build/lib/*.so opentxs/lib/
 else
-    cp build/lib/*.a opentxs/
-    cp build/lib/*.dylib opentxs/
+    cp build/lib/*.a opentxs/lib/
+    cp build/lib/*.dylib opentxs/lib/
 fi
 
 # deps
-cp -r deps/containers opentxs/include/opentxs/
-cp -r deps/irrxml opentxs/include/opentxs/
+cp -r deps/containers opentxs/include/
+cp -r deps/irrxml opentxs/include/
 
 # tests
 mkdir -p opentxs/tests
@@ -37,3 +38,4 @@ tar -vpczf ${package} opentxs/
 
 mkdir s3
 cp ${package} s3/
+cp VERSION s3/
