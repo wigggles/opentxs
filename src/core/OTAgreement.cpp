@@ -931,7 +931,7 @@ int64_t OTAgreement::GetRecipientClosingNum() const
 
 int64_t OTAgreement::GetRecipientClosingTransactionNoAt(uint32_t nIndex) const
 {
-    OT_ASSERT_MSG((nIndex < m_dequeRecipientClosingNumbers.size()) && (nIndex >= 0),
+    OT_ASSERT_MSG((nIndex < m_dequeRecipientClosingNumbers.size()),
                   "OTAgreement::GetClosingTransactionNoAt: index out of bounds.");
     
     return m_dequeRecipientClosingNumbers.at(nIndex);
