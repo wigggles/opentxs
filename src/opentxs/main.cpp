@@ -161,14 +161,14 @@ kamH0Y/n11lCvo1oQxM+
 
 using namespace opentxs;
 
-static string str_Args;
-static string str_HisAcct;
-static string str_HisNym;
-static string str_HisPurse;
-static string str_MyAcct;
-static string str_MyNym;
-static string str_MyPurse;
-static string str_Server;
+static std::string str_Args;
+static std::string str_HisAcct;
+static std::string str_HisNym;
+static std::string str_HisPurse;
+static std::string str_MyAcct;
+static std::string str_MyNym;
+static std::string str_MyPurse;
+static std::string str_Server;
 
 namespace {
 
@@ -262,7 +262,7 @@ const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * 
     return "";
 }
 
-OTVariable * SetGlobalVariable(OT_ME & madeEasy, const string & name, const string & value)
+OTVariable * SetGlobalVariable(OT_ME & madeEasy, const std::string & name, const std::string & value)
 {
     if (value.size() == 0)
     {
@@ -542,9 +542,9 @@ int main(int argc, char* argv[])
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
-    std::map<string, string> macros;
+    std::map<std::string, std::string> macros;
     std::vector<int> errorLineNumbers;
-    std::vector<string> errorCommands;
+    std::vector<std::string> errorCommands;
 
     OT_ME madeEasy;
 
@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
         {
             std::cout << "\nopentxs> ";
         }
-        string cmd;
+        std::string cmd;
         getline(std::cin, cmd);
 
         // end of file stops processing commands
@@ -598,7 +598,7 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        string originalCmd = cmd;
+        std::string originalCmd = cmd;
 
         // lines starting with a dollar sign character denote the definition of a macro of the form:
         // $macroName = macroValue
@@ -620,7 +620,7 @@ int main(int argc, char* argv[])
             {
                 nameLength++;
             }
-            string macroName = cmd.substr(0, nameLength);
+            std::string macroName = cmd.substr(0, nameLength);
 
             // skip whitespace
             size_t i = nameLength;
@@ -638,7 +638,7 @@ int main(int argc, char* argv[])
             }
 
             // remainder of line after trimming whitespace is macro value
-            string macroValue = cmd.substr(i + 1);
+            std::string macroValue = cmd.substr(i + 1);
             macros[macroName] = trim(macroValue);
             continue;
         }
@@ -647,7 +647,7 @@ int main(int argc, char* argv[])
         // unknown macro names will cause an error message instead of command execution
         // note that all macro names are 'maximum munch'
         int expansions = 0;
-        for (size_t macro = cmd.find_first_of("$"); macro != string::npos; macro = cmd.find_first_of("$", macro + 1))
+        for (size_t macro = cmd.find_first_of("$"); macro != std::string::npos; macro = cmd.find_first_of("$", macro + 1))
         {
             // first see if this is an escaped literal
             if (macro > 0 && cmd[macro - 1] == '\\')
@@ -663,8 +663,8 @@ int main(int argc, char* argv[])
             }
             
             // has this macro been defined?
-            string macroName = cmd.substr(macro, macroEnd - macro);
-            std::map<string, string>::iterator found = macros.find(macroName);
+            std::string macroName = cmd.substr(macro, macroEnd - macro);
+            std::map<std::string, std::string>::iterator found = macros.find(macroName);
             if (found == macros.end())
             {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
                 break;
             }
 
-            string & macroValue = found->second;
+            std::string & macroValue = found->second;
 
             // limit to 100 expansions to avoid endless recusion loop
             expansions++;
@@ -725,7 +725,7 @@ int main(int argc, char* argv[])
         // An unterminated double-quoted arg will auto-terminate at end of line
         // All characters are taken literal except for: double quote, dollar sign, and backslash
         // To take any character literal, precede it with a backslash
-        std::vector<string> arguments;
+        std::vector<std::string> arguments;
 
         // add original command name
         arguments.push_back(argv[0]);
