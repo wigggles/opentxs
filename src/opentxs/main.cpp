@@ -157,8 +157,6 @@ kamH0Y/n11lCvo1oQxM+
 
 #include "ot_otapi_ot.hpp"
 
-#define OT_OPTIONS_FILE_DEFAULT	"command-line-ot.opt"
-
 using namespace opentxs;
 
 static std::string str_Args;
@@ -232,7 +230,7 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
 
     /* read options from a option/resource file with ':' separated options or flags, one per line */
 
-    OTString strOptionsFile(OT_OPTIONS_FILE_DEFAULT), strIniFileExact;
+    OTString strOptionsFile("command-line-ot.opt"), strIniFileExact;
     bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(strIniFileExact, strConfigPath, strOptionsFile);
     OT_ASSERT_MSG(bBuildFullPathSuccess, "Unalbe to set Full Path");
 
