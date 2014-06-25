@@ -326,7 +326,7 @@ void OTToken::ReleasePrototokens()
 
 
 // TODO: save the private request tokens to the wallet here...
-bool OTToken::SaveContractWallet(std::ofstream & ofs)
+bool OTToken::SaveContractWallet(std::ofstream &)
 {
 	// mapOfPrototokens	m_mapPrivate;	// The elements are accessed [0..N]. mapPublic[2] corresponds to map_Private[2], etc.
 

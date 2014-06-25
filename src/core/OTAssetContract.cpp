@@ -508,7 +508,7 @@ bool OTAssetContract::StringToAmount(OTAmount & theOutput, const std::string & s
 
 // Given input of 545, GetDollarsOnly returns 5
 //
-int64_t OTAssetContract::GetDollarsOnly(const OTAmount & theInput) const
+int64_t OTAssetContract::GetDollarsOnly(const OTAmount &) const
 {
     return 0; // TODO
 }
@@ -516,7 +516,7 @@ int64_t OTAssetContract::GetDollarsOnly(const OTAmount & theInput) const
 
 // Given input of 545, GetCentsOnly returns 45.
 
-int64_t OTAssetContract::CentsOnly(const OTAmount & theInput) const
+int64_t OTAssetContract::CentsOnly(const OTAmount &) const
 {
     return 0; // TODO
 }

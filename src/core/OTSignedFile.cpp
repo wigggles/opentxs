@@ -355,7 +355,7 @@ void OTSignedFile::Release()
 }
 
 
-bool OTSignedFile::SaveContractWallet(std::ofstream & ofs)
+bool OTSignedFile::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

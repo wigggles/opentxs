@@ -1192,7 +1192,7 @@ bool OT_ME::HaveWorkingScript()
 
 // used in otd/main.cpp
 //
-void OT_ME::AddVariable(const std::string & str_var_name, OTVariable & theVar)
+void OT_ME::AddVariable(const std::string &, OTVariable & theVar)
 {
     if (HaveWorkingScript())
     {

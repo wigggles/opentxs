@@ -804,7 +804,7 @@ void OTServerConnection::ProcessMessageOut(OTMessage & theMessage)
 // This function interprets test input (so should have been in test client?)
 // then it uses that to send a message to server.
 // The buf passed in is simply data collected by fgets from stdin.
-void OTServerConnection::ProcessMessageOut(char *buf, int32_t * pnExpectReply)
+void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
 {
 
 	OT_ASSERT(NULL != buf);

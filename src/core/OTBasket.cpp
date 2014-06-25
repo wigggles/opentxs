@@ -529,7 +529,7 @@ void OTBasket::Release()
 }
 
 
-bool OTBasket::SaveContractWallet(std::ofstream & ofs)
+bool OTBasket::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

@@ -158,7 +158,7 @@ OTAcctFunctor::~OTAcctFunctor()
 }
 
 
-bool OTAcctFunctor::Trigger(OTAccount & theAccount)
+bool OTAcctFunctor::Trigger(OTAccount &)
 {
     OT_FAIL_MSG("OTAcctFunctor::Trigger: You need to override the Trigger method in your subclass. (It's missing.)");
 }

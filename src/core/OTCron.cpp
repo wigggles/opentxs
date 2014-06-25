@@ -1288,7 +1288,7 @@ void OTCron::Release_Cron()
 }
 
 
-bool OTCron::SaveContractWallet(std::ofstream & ofs)
+bool OTCron::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

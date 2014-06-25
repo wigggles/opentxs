@@ -223,7 +223,7 @@ void OTInstrument::Release()
 }
 
 
-bool OTInstrument::SaveContractWallet(std::ofstream & ofs)
+bool OTInstrument::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

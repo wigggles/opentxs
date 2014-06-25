@@ -1277,7 +1277,7 @@ namespace OTDB
 	//	return makeTStorablePB(*this).getPBMessage();
 	//}
 
-	bool IStorablePB::onPack(PackedBuffer& theBuffer, Storable& inObj)  // buffer is OUTPUT.
+	bool IStorablePB::onPack(PackedBuffer& theBuffer, Storable&)  // buffer is OUTPUT.
 	{
 		// check here to make sure theBuffer is the right TYPE.
 		BufferPB * pBuffer = dynamic_cast<BufferPB *> (&theBuffer);
@@ -1296,7 +1296,7 @@ namespace OTDB
 		return true;
 	}
 
-	bool IStorablePB::onUnpack(PackedBuffer& theBuffer, Storable& outObj) // buffer is INPUT.
+	bool IStorablePB::onUnpack(PackedBuffer& theBuffer, Storable&) // buffer is INPUT.
 	{
 		// check here to make sure theBuffer is the right TYPE.
 		BufferPB * pBuffer = dynamic_cast<BufferPB *> (&theBuffer);
@@ -2504,7 +2504,7 @@ namespace OTDB
 	// folder creation will definitely fail on the sub-folder call (if the primary folder wasn't
 	// already there, that is.)
 	//
-	bool StorageFS::ConfirmOrCreateFolder(const char * szFolderName, struct stat * pst/*=NULL*/)
+	bool StorageFS::ConfirmOrCreateFolder(const char * szFolderName, struct stat * /*=NULL*/)
 	{
 		bool bConfirmOrCreateSuccess=false, bFolderAlreadyExist=false;
         OTString strFolderName(szFolderName);
@@ -2516,7 +2516,7 @@ namespace OTDB
 	// Returns true or false whether a specific file exists.
 	// Adds the main path prior to checking.
     //
-	bool StorageFS::ConfirmFile(const char * szFileName, struct stat * pst/*=NULL*/)
+	bool StorageFS::ConfirmFile(const char * szFileName, struct stat * /*=NULL*/)
 	{
 		OTString strFilePath("");
 		OTPaths::AppendFile(strFilePath, m_strDataPath, szFileName);

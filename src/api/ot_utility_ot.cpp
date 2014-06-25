@@ -155,7 +155,7 @@ OT_UTILITY_OT bool VerifyNotNull(const void * theObjectRef)
 }
 
 
-OT_UTILITY_OT bool VerifyType(const void * theObjectRef, const string & strType)
+OT_UTILITY_OT bool VerifyType(const void * theObjectRef, const string &)
 {
     if (VerifyNotNull(theObjectRef))
     {
@@ -2626,7 +2626,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(const string & serverID, const 
 
 // NOTE: This is a new version that uses the new server message, getAccountFiles
 // (Which combines getAccount, getInbox, and getOutbox into a single message.)
-OT_UTILITY_OT int32_t Utility::getInboxAccount(const string & serverID, const string & nymID, const string & accountID, bool & bWasSentInbox, bool & bWasSentAccount, const bool bForceDownload) //bForceDownload=false
+OT_UTILITY_OT int32_t Utility::getInboxAccount(const string & serverID, const string & nymID, const string & accountID, bool & bWasSentInbox, bool & bWasSentAccount, const bool)
 {
     string strLocation = "Utility::getInboxAccount";
 

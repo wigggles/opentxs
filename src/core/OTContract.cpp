@@ -1119,7 +1119,7 @@ bool OTContract::DisplayStatistics(OTString & strContents) const
 }
 
 
-bool OTContract::SaveContractWallet(OTString & strContents) const
+bool OTContract::SaveContractWallet(OTString &) const
 {
 	// Subclasses may use this.
 

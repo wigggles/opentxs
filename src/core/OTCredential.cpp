@@ -699,7 +699,7 @@ bool OTCredential::GenerateMasterkey(int32_t nBits/*=1024*/) // CreateMaster is 
 bool OTCredential::Load_MasterFromString(const OTString & strInput,
                                          const OTString & strNymID,
                                          const OTString & strMasterCredID,
-                                         OTPasswordData * pPWData/*=NULL*/,
+                                         OTPasswordData * /*=NULL*/,
                                          OTPassword     * pImportPassword/*=NULL*/)
 {
     m_strNymID          = strNymID;

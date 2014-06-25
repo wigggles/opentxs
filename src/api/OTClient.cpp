@@ -931,7 +931,7 @@ bool OTClient::AcceptEntireInbox(OTLedger			& theInbox,
                                  const OTIdentifier	& theServerID,
                                  OTServerContract	& theServerContract, 
                                  OTPseudonym		& theNym,
-                                 OTMessage			& theMessage,
+                                 OTMessage			&,
                                  OTAccount			& theAccount)
 {
     bool bSuccess = false;

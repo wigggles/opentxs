@@ -499,8 +499,8 @@ void OTAgreement::GetAllTransactionNumbers(OTNumList & numlistOutput) const
 // from the OTScriptable / OTSmartContract version, which verifies parties and agents, etc.
 //
 bool OTAgreement::VerifyNymAsAgent(OTPseudonym & theNym,
-                                   OTPseudonym & theSignerNym, // Not needed in this override.
-                                   mapOfNyms	 * pmap_ALREADY_LOADED/*=NULL*/)
+                                   OTPseudonym &, // Not needed in this override.
+                                   mapOfNyms	 * /*=NULL*/)
 {
 	return this->VerifySignature(theNym);
 }
@@ -1546,7 +1546,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 
-bool OTAgreement::SaveContractWallet(std::ofstream & ofs)
+bool OTAgreement::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

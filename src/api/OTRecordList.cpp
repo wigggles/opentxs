@@ -205,7 +205,7 @@ OTNameLookup::~OTNameLookup()
 
 //virtual
 std::string OTNameLookup::GetNymName(const std::string & str_id,
-                                     const std::string * p_server_id/*=NULL*/) const
+                                     const std::string * /*=NULL*/) const
 {
     if (str_id.empty())
         return "";
@@ -215,9 +215,9 @@ std::string OTNameLookup::GetNymName(const std::string & str_id,
 
 //virtual
 std::string OTNameLookup::GetAcctName(const std::string & str_id,
-                                      const std::string * p_nym_id/*=NULL*/,
-                                      const std::string * p_server_id/*=NULL*/,
-                                      const std::string * p_asset_id/*=NULL*/) const
+                                      const std::string * /*=NULL*/,
+                                      const std::string * /*=NULL*/,
+                                      const std::string * /*=NULL*/) const
 {
     if (str_id.empty())
         return "";
@@ -226,7 +226,7 @@ std::string OTNameLookup::GetAcctName(const std::string & str_id,
 }
 
 //virtual
-std::string OTNameLookup::GetAddressName(const std::string & str_address) const
+std::string OTNameLookup::GetAddressName(const std::string &) const
 {
     return ""; // There are no native OT lookups for a Bitmessage address. (Only useful when overriding.)
 }

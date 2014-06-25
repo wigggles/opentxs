@@ -1284,7 +1284,7 @@ int32_t OTPurse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 
-bool OTPurse::SaveContractWallet(std::ofstream & ofs)	
+bool OTPurse::SaveContractWallet(std::ofstream &)	
 {
 	return true;
 }

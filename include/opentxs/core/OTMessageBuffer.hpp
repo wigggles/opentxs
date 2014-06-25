@@ -158,8 +158,8 @@ class OTMessageBuffer
 	listOfMessages m_listMessages;
     // --------------------------------
     // Just to keep you out of trouble.
-    OTMessageBuffer  (const OTMessageBuffer & rhs) {}
-    OTMessageBuffer & operator=(const OTMessageBuffer & rhs) { return *this; }
+    OTMessageBuffer  (const OTMessageBuffer &) {}
+    OTMessageBuffer & operator=(const OTMessageBuffer &) { return *this; }
 public:
 	OTMessageBuffer() {}
 EXPORT	~OTMessageBuffer();

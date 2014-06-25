@@ -1955,7 +1955,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
 // the serverID must be found on the instrument, or must be provided as Server, or we must ask
 // the user to enter it.
 //
-OT_COMMANDS_OT int32_t OT_Command::details_confirm_plan(const string & strPlan, const int32_t nIndex)
+OT_COMMANDS_OT int32_t OT_Command::details_confirm_plan(const string & strPlan, const int32_t)
 {
     string strLocation = "details_confirm_plan";
 
@@ -8019,7 +8019,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_purse()
 //const char * OTAPI_Wrap::Instrmnt_GetRecipientAcctID(const char * SERVER_ID, const char * THE_INSTRUMENT);
 //
 
-OT_COMMANDS_OT int32_t OT_Command::details_deposit_cheque(const string & strServerID, const string & strMyAcct, const string & strMyNymID, const string & strInstrument, const string & strType)
+OT_COMMANDS_OT int32_t OT_Command::details_deposit_cheque(const string & strServerID, const string & strMyAcct, const string & strMyNymID, const string & strInstrument, const string &)
 {
     string strAssetTypeID = OTAPI_Wrap::Instrmnt_GetAssetID(strInstrument);
 
@@ -9144,7 +9144,7 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(const string & strMyAcctI
     return false;
 }
 
-OT_COMMANDS_OT int32_t OT_Command::details_send_cash(string & strResponse, const string & strServerID, const string & strAssetTypeID, const string & strMyNymID, const string & strMyAcctID, string & strHisNymID, const string & strMemo, const string & strAmount, string & strIndices, const bool bPasswordProtected)
+OT_COMMANDS_OT int32_t OT_Command::details_send_cash(string & strResponse, const string & strServerID, const string & strAssetTypeID, const string & strMyNymID, const string & strMyAcctID, string & strHisNymID, const string &, const string & strAmount, string & strIndices, const bool bPasswordProtected)
 {
 
     string strLocation = "\n details_send_cash";

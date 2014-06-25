@@ -564,7 +564,7 @@ void OTOffer::InitOffer()
 }
 
 
-bool OTOffer::SaveContractWallet(std::ofstream & ofs)
+bool OTOffer::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

@@ -554,7 +554,7 @@ namespace OTDB
 	protected:
 		Storage() : m_pPacker(NULL) {}
 
-		Storage(const Storage & rhs) : m_pPacker(NULL) { } // We don't want to copy the pointer. Let it create its own.
+		Storage(const Storage &) : m_pPacker(NULL) { } // We don't want to copy the pointer. Let it create its own.
 
 		// This is called once, in the factory.
 		void SetPacker(OTPacker & thePacker) { OT_ASSERT(NULL == m_pPacker); m_pPacker =  &thePacker; }

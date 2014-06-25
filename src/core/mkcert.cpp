@@ -79,7 +79,7 @@ int32_t main(int32_t argc, char **argv)
 
 
 
-static void callback(int32_t p, int32_t n, void *arg)
+static void callback(int32_t p, int32_t, void *)
         {
         char c='B';
 

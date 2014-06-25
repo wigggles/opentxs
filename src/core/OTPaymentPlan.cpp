@@ -1566,7 +1566,7 @@ void OTPaymentPlan::Release()
 }
 
 
-bool OTPaymentPlan::SaveContractWallet(std::ofstream & ofs)
+bool OTPaymentPlan::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }
