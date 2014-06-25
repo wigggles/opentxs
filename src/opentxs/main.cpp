@@ -157,43 +157,35 @@ kamH0Y/n11lCvo1oQxM+
 
 #include "ot_otapi_ot.hpp"
 
-
-#define OT_OPTIONS_FILE_DEFAULT	"command-line-ot.opt"
-
 using namespace opentxs;
 
-static string str_Args;
-static string str_HisAcct;
-static string str_HisNym;
-static string str_HisPurse;
-static string str_MyAcct;
-static string str_MyNym;
-static string str_MyPurse;
-static string str_Server;
+static std::string str_Args;
+static std::string str_HisAcct;
+static std::string str_HisNym;
+static std::string str_HisPurse;
+static std::string str_MyAcct;
+static std::string str_MyNym;
+static std::string str_MyPurse;
+static std::string str_Server;
 
+namespace {
 
-// trim from start
-static inline std::string &ltrim(std::string &s)
+inline std::string &ltrim(std::string &s)
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
     return s;
 }
 
-
-// trim from end
-static inline std::string &rtrim(std::string &s)
+inline std::string &rtrim(std::string &s)
 {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     return s;
 }
 
-
-// trim from both ends
-static inline std::string &trim(std::string &s)
+inline std::string &trim(std::string &s)
 {
     return ltrim(rtrim(s));
 }
-
 
 void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
 {
@@ -235,14 +227,13 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
 
     /* read options from a option/resource file with ':' separated options or flags, one per line */
 
-    OTString strOptionsFile(OT_OPTIONS_FILE_DEFAULT), strIniFileExact;
+    OTString strOptionsFile("command-line-ot.opt"), strIniFileExact;
     bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(strIniFileExact, strConfigPath, strOptionsFile);
     OT_ASSERT_MSG(bBuildFullPathSuccess, "Unalbe to set Full Path");
 
     opt.processFile(strIniFileExact.Get());
     opt.processCommandArgs(argc, argv);
 }
-
 
 const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * pOptionName)
 {
@@ -266,8 +257,7 @@ const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * 
     return "";
 }
 
-
-OTVariable * SetGlobalVariable(OT_ME & madeEasy, const string & name, const string & value)
+OTVariable * SetGlobalVariable(OT_ME & madeEasy, const std::string & name, const std::string & value)
 {
     if (value.size() == 0)
     {
@@ -282,7 +272,6 @@ OTVariable * SetGlobalVariable(OT_ME & madeEasy, const string & name, const stri
     madeEasy.AddVariable(name, *pVar);
     return pVar;
 }
-
 
 int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
 {
@@ -521,40 +510,36 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
     return opt.getArgc() == 1 ? result : -2;
 }
 
+class __OTclient_RAII
+{
+public:
+  __OTclient_RAII()
+  {
+      OTAPI_Wrap::AppInit(); 
+  }
+  ~__OTclient_RAII()
+  {
+      OTAPI_Wrap::AppCleanup();
+  }
+};
+
+} // namespace
 
 int main(int argc, char* argv[])
 {
-    class __OTclient_RAII
-    {
-    public:
-        __OTclient_RAII()
-        {
-             OTAPI_Wrap::AppInit(); 
-        }
-        ~__OTclient_RAII()
-        {
-            OTAPI_Wrap::AppCleanup();
-        }
-    };
-
-    //
     // This makes SURE that AppCleanup() gets called before main() exits (without any
     // twisted logic being necessary below, for that to happen.)
-    //
     __OTclient_RAII the_client_cleanup;
-
-    //
 
     if (NULL == OTAPI_Wrap::OTAPI()) return -1;  // error out if we don't have the API.
 
     // COMMAND-LINE OPTIONS (and default values from files.)
-    //
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
-    std::map<string, string> macros;
+    std::map<std::string, std::string> macros;
     std::vector<int> errorLineNumbers;
-    std::vector<string> errorCommands;
+    std::vector<std::string> errorCommands;
 
     OT_ME madeEasy;
 
@@ -579,8 +564,8 @@ int main(int argc, char* argv[])
         {
             std::cout << "\nopentxs> ";
         }
-        string cmd;
-        getline(std::cin, cmd);
+        std::string cmd;
+        std::getline(std::cin, cmd);
 
         // end of file stops processing commands
         if (std::cin.eof())
@@ -608,7 +593,7 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        string originalCmd = cmd;
+        std::string originalCmd = cmd;
 
         // lines starting with a dollar sign character denote the definition of a macro of the form:
         // $macroName = macroValue
@@ -630,7 +615,7 @@ int main(int argc, char* argv[])
             {
                 nameLength++;
             }
-            string macroName = cmd.substr(0, nameLength);
+            std::string macroName = cmd.substr(0, nameLength);
 
             // skip whitespace
             size_t i = nameLength;
@@ -648,7 +633,7 @@ int main(int argc, char* argv[])
             }
 
             // remainder of line after trimming whitespace is macro value
-            string macroValue = cmd.substr(i + 1);
+            std::string macroValue = cmd.substr(i + 1);
             macros[macroName] = trim(macroValue);
             continue;
         }
@@ -657,7 +642,7 @@ int main(int argc, char* argv[])
         // unknown macro names will cause an error message instead of command execution
         // note that all macro names are 'maximum munch'
         int expansions = 0;
-        for (size_t macro = cmd.find_first_of("$"); macro != string::npos; macro = cmd.find_first_of("$", macro + 1))
+        for (size_t macro = cmd.find_first_of("$"); macro != std::string::npos; macro = cmd.find_first_of("$", macro + 1))
         {
             // first see if this is an escaped literal
             if (macro > 0 && cmd[macro - 1] == '\\')
@@ -673,8 +658,8 @@ int main(int argc, char* argv[])
             }
             
             // has this macro been defined?
-            string macroName = cmd.substr(macro, macroEnd - macro);
-            std::map<string, string>::iterator found = macros.find(macroName);
+            std::string macroName = cmd.substr(macro, macroEnd - macro);
+            std::map<std::string, std::string>::iterator found = macros.find(macroName);
             if (found == macros.end())
             {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
@@ -685,7 +670,7 @@ int main(int argc, char* argv[])
                 break;
             }
 
-            string & macroValue = found->second;
+            std::string & macroValue = found->second;
 
             // limit to 100 expansions to avoid endless recusion loop
             expansions++;
@@ -735,7 +720,7 @@ int main(int argc, char* argv[])
         // An unterminated double-quoted arg will auto-terminate at end of line
         // All characters are taken literal except for: double quote, dollar sign, and backslash
         // To take any character literal, precede it with a backslash
-        std::vector<string> arguments;
+        std::vector<std::string> arguments;
 
         // add original command name
         arguments.push_back(argv[0]);
@@ -867,5 +852,5 @@ int main(int argc, char* argv[])
         }
     }
 
-    return 0;
+    return failed;
 }

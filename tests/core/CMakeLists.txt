@@ -1,5 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
+set(name unittests-opentxs)
+
 set(cxx-sources
   Test_OTData.cpp
 )
@@ -9,5 +11,7 @@ include_directories(
   ${GTEST_INCLUDE_DIRS}
 )
 
-add_executable(unittests-opentxs ${cxx-sources})
-target_link_libraries(unittests-opentxs opentxs-core ${GTEST_BOTH_LIBRARIES})
+add_executable(${name} ${cxx-sources})
+target_link_libraries(${name} opentxs-core ${GTEST_BOTH_LIBRARIES})
+set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
+add_test(${name} ${PROJECT_BINARY_DIR}/tests/${name} --gtest_output=xml:gtestresults.xml)
