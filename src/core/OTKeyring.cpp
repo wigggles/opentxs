@@ -147,6 +147,7 @@
 
 #include <fstream>
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #if defined(OT_KEYRING_WINDOWS) && defined(_WIN32)
 //
