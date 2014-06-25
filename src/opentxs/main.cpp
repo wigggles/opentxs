@@ -157,7 +157,6 @@ kamH0Y/n11lCvo1oQxM+
 
 #include "ot_otapi_ot.hpp"
 
-
 #define OT_OPTIONS_FILE_DEFAULT	"command-line-ot.opt"
 
 using namespace opentxs;
@@ -171,6 +170,7 @@ static string str_MyNym;
 static string str_MyPurse;
 static string str_Server;
 
+namespace {
 
 // trim from start
 static inline std::string &ltrim(std::string &s)
@@ -179,7 +179,6 @@ static inline std::string &ltrim(std::string &s)
     return s;
 }
 
-
 // trim from end
 static inline std::string &rtrim(std::string &s)
 {
@@ -187,13 +186,11 @@ static inline std::string &rtrim(std::string &s)
     return s;
 }
 
-
 // trim from both ends
 static inline std::string &trim(std::string &s)
 {
     return ltrim(rtrim(s));
 }
-
 
 void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
 {
@@ -243,7 +240,6 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
     opt.processCommandArgs(argc, argv);
 }
 
-
 const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * pOptionName)
 {
     // can we get the default value from the command line?
@@ -266,7 +262,6 @@ const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * 
     return "";
 }
 
-
 OTVariable * SetGlobalVariable(OT_ME & madeEasy, const string & name, const string & value)
 {
     if (value.size() == 0)
@@ -282,7 +277,6 @@ OTVariable * SetGlobalVariable(OT_ME & madeEasy, const string & name, const stri
     madeEasy.AddVariable(name, *pVar);
     return pVar;
 }
-
 
 int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
 {
@@ -521,34 +515,30 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
     return opt.getArgc() == 1 ? result : -2;
 }
 
+class __OTclient_RAII
+{
+public:
+  __OTclient_RAII()
+  {
+      OTAPI_Wrap::AppInit(); 
+  }
+  ~__OTclient_RAII()
+  {
+      OTAPI_Wrap::AppCleanup();
+  }
+};
+
+} // namespace
 
 int main(int argc, char* argv[])
 {
-    class __OTclient_RAII
-    {
-    public:
-        __OTclient_RAII()
-        {
-             OTAPI_Wrap::AppInit(); 
-        }
-        ~__OTclient_RAII()
-        {
-            OTAPI_Wrap::AppCleanup();
-        }
-    };
-
-    //
     // This makes SURE that AppCleanup() gets called before main() exits (without any
     // twisted logic being necessary below, for that to happen.)
-    //
     __OTclient_RAII the_client_cleanup;
-
-    //
 
     if (NULL == OTAPI_Wrap::OTAPI()) return -1;  // error out if we don't have the API.
 
     // COMMAND-LINE OPTIONS (and default values from files.)
-    //
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
