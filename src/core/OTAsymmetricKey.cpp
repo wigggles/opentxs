@@ -343,15 +343,11 @@ bool OT_API_Set_PasswordCallback(OTCaller & theCaller) // Caller must have Callb
  {
  typedef int32_t OT_OPENSSL_CALLBACK(char *buf, int32_t size, int32_t rwflag, void *u); // <== Callback type, used for declaring.
  }
- 
- // Used for the actual function definition (in the .cpp file).
- #define OPENSSL_CALLBACK_FUNC(name) extern \"C\" int32_t (name)(char *buf, int32_t size, int32_t rwflag, void *u)
- */
+*/
 
 // If the password callback isn't set, then it uses the default ("test") password.
-// #define OPENSSL_CALLBACK_FUNC(name) extern "C" int32_t (name)(char *buf, int32_t size, int32_t rwflag, void *userdata)
 //
-OPENSSL_CALLBACK_FUNC(default_pass_cb)
+extern "C" int32_t default_pass_cb(char *buf, int32_t size, int32_t, void *userdata)
 {
 	int32_t len = 0;
     const uint32_t theSize = uint32_t(size);
@@ -375,7 +371,7 @@ OPENSSL_CALLBACK_FUNC(default_pass_cb)
         str_userdata = "";
     // -------------------------------------
 
-//	OTLog::vOutput(1, "OPENSSL_CALLBACK_FUNC: (Password callback hasn't been set yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
+//	OTLog::vOutput(1, "OT_OPENSSL_CALLBACK: (Password callback hasn't been set yet...) Using 'test' pass phrase for \"%s\"\n", (char *)u);
     
 	OTLog::vOutput(1, "%s: Using DEFAULT TEST PASSWORD: "
                    "'test' (for \"%s\")\n", __FUNCTION__, str_userdata.c_str());
@@ -432,10 +428,7 @@ OPENSSL_CALLBACK_FUNC(default_pass_cb)
 // This is the function that OpenSSL calls when it wants to ask the user for his password.
 // If we return 0, that's bad, that means the password caller and callback failed somehow.
 //
-//typedef
-//int32_t OT_OPENSSL_CALLBACK (char *buf, int32_t size, int32_t rwflag, void *userdata); // <== Callback type, used for declaring.
-//
-OPENSSL_CALLBACK_FUNC(souped_up_pass_cb)
+extern "C" int32_t souped_up_pass_cb(char *buf, int32_t size, int32_t rwflag, void *userdata)
 {
 //  OT_ASSERT(NULL != buf); // apparently it CAN be NULL sometimes.
     OT_ASSERT(NULL != userdata);
@@ -511,7 +504,7 @@ OPENSSL_CALLBACK_FUNC(souped_up_pass_cb)
 //                                     bool         bVerifyTwice=false);
 
         
-//      OTLog::vOutput(0, "OPENSSL_CALLBACK_FUNC (souped_up_pass_cb): Finished calling GetMasterPassword(). Result: %s\n",
+//      OTLog::vOutput(0, "OT_OPENSSL_CALLBACK (souped_up_pass_cb): Finished calling GetMasterPassword(). Result: %s\n",
 //                     bGotPassword ? "SUCCESS" : "FAILURE");
     }
     // -----------------------------------------------------
@@ -523,7 +516,7 @@ OPENSSL_CALLBACK_FUNC(souped_up_pass_cb)
         
 //      if (NULL == pCaller)
 //      {
-//          OTLog::Error("OPENSSL_CALLBACK_FUNC (souped_up_pass_cb): OTCaller is NULL. Try calling OT_API_Set_PasswordCallback() first.\n");
+//          OTLog::Error("OT_OPENSSL_CALLBACK (souped_up_pass_cb): OTCaller is NULL. Try calling OT_API_Set_PasswordCallback() first.\n");
 //          OT_ASSERT(0); // This will never actually happen, since SetPasswordCaller() and souped_up_pass_cb are activated in same place.
 //      }
         // ---------------------------------------
