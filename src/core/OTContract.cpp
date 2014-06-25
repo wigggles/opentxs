@@ -1595,8 +1595,7 @@ bool OTContract::ParseRawFile()
 				return false;
 			}
 			// d. It is an escaped dash, and therefore kosher, so I merely remove the escape and add it.
-			else
-				; // I've decided not to remove the dashes but to keep them as part of the signed content.
+			// I've decided not to remove the dashes but to keep them as part of the signed content.
 			// It's just much easier to deal with that way. The input code will insert the extra dashes.
 			//pBuf += 2;
 		}
