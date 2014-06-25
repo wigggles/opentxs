@@ -958,7 +958,7 @@ void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTStr
 
 void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive, const OTString & strSix, const OTString & strSeven)
 	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSeven.Get());
+		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSix.Get(),strSeven.Get());
 	}
 
 
