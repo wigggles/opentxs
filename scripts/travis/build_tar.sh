@@ -28,6 +28,7 @@ cp -r deps/irrxml opentxs/include/
 
 # tests
 cp scripts/tests/ot_test.opentxs opentxs/tests/
+cp scripts/ot/*.ot opentxs/tests/
 
 version=`cat VERSION`
 compiler=${CXX}
