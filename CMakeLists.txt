@@ -77,7 +77,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   set(WARN_CXX_FLAGS "-Wno-vla-extension -Wno-overloaded-virtual")
 endif()
 
-set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wno-format -Wno-stack-protector -Wno-error=unused-variable ${WARN_CXX_FLAGS} -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers -pedantic -Wno-vla")
+set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wno-format -Wno-stack-protector -Wno-error=unused-variable ${WARN_CXX_FLAGS} -Wextra -Wno-unused-parameter -pedantic -Wno-vla")
 
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")

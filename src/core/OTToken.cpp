@@ -172,7 +172,7 @@ namespace opentxs {
 const int32_t OTToken__nMinimumPrototokenCount = 1;
 
 
-const int32_t OTToken::GetMinimumPrototokenCount()
+int32_t OTToken::GetMinimumPrototokenCount()
 {
 	return OTToken__nMinimumPrototokenCount;
 }

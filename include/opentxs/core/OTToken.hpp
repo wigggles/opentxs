@@ -200,7 +200,7 @@ public:
 	// needs more security.  Another 1000.  These provide more security but they also cost more in terms of
 	// resources to process all those prototokens.
 
-    EXPORT	static const int32_t GetMinimumPrototokenCount();
+    EXPORT	static int32_t GetMinimumPrototokenCount();
 // ---------------------------------------------------------------------
 protected:
     bool                m_bPasswordProtected;  // this token might be encrypted to a passphrase, instead of a Nym.
