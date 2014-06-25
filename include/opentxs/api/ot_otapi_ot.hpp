@@ -19,9 +19,6 @@
 #define OT_OTAPI_OT
 
 
-#pragma warning(disable: 4503)
-
-
 using std::string;
 
 
