@@ -276,7 +276,7 @@ void OTBasket::AddSubContract(const OTIdentifier & SUB_CONTRACT_ID,
 //
 int64_t OTBasket::GetClosingTransactionNoAt(uint32_t nIndex)
 {
-    OT_ASSERT_MSG((nIndex < m_dequeItems.size()) && (nIndex >= 0), 
+    OT_ASSERT_MSG((nIndex < m_dequeItems.size()), 
                   "OTBasket::GetClosingTransactionNoAt: index out of bounds.");
 
     BasketItem * pItem = m_dequeItems.at(nIndex);

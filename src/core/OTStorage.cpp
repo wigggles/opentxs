@@ -978,11 +978,11 @@ namespace OTDB
 	size_t  scope Get##name##Count() { return list_##name##s.size(); } \
 	\
 	name * scope Get##name(size_t nIndex) \
-	{ if ((nIndex >= 0) && (nIndex < list_##name##s.size())) \
+	{ if (nIndex < list_##name##s.size()) \
 	{ PointerTo##name theP = list_##name##s.at(nIndex); return theP.pointer(); } return NULL; } \
 	\
 	bool scope Remove##name(size_t nIndex##name) \
-	{ if ((nIndex##name >= 0) && (nIndex##name < list_##name##s.size())) \
+	{ if (nIndex##name < list_##name##s.size()) \
 	{ list_##name##s.erase(list_##name##s.begin() + nIndex##name); return true; } else return false; } \
 	\
 	bool scope Add##name(name & disownObject) \
