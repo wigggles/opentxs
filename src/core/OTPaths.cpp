@@ -1005,7 +1005,7 @@ bool OTPaths::ToReal(const OTString & strExactPath, OTString & out_strCanonicalP
 }
 
 
-const bool GetExecutable(OTString & strExecutablePath)
+bool GetExecutable(OTString & strExecutablePath)
 {
 #ifdef TARGET_OS_MAC
     char bufPath[PATH_MAX + 1]="";
@@ -1049,7 +1049,7 @@ const bool GetExecutable(OTString & strExecutablePath)
 }
 
 
-const bool GetCurrentWorking(OTString & strCurrentWorkingPath)
+bool GetCurrentWorking(OTString & strCurrentWorkingPath)
 {
 
 #ifdef _WIN32
