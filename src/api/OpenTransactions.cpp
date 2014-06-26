@@ -4509,7 +4509,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(      OTMessage      & theMsg,
 
 
 
-bool OT_API::HarvestClosingNumbers(const OTIdentifier & SERVER_ID,
+bool OT_API::HarvestClosingNumbers(const OTIdentifier &,
 								   const OTIdentifier & NYM_ID,
 								   const OTString     & THE_CRON_ITEM)
 {
@@ -4546,7 +4546,7 @@ bool OT_API::HarvestClosingNumbers(const OTIdentifier & SERVER_ID,
 // when the contract simply never got signed or activated by one of the other parties, and so you want to claw ALL your
 // #'s back, and since in that case your opening number is still good, you would use the below function to get it back.
 //
-bool OT_API::HarvestAllNumbers(const OTIdentifier & SERVER_ID,
+bool OT_API::HarvestAllNumbers(const OTIdentifier &,
 							   const OTIdentifier & NYM_ID,
 							   const OTString     & THE_CRON_ITEM)
 {

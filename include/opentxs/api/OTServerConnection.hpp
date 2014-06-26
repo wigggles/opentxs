@@ -190,15 +190,15 @@ public:
 	bool SetFocus(OTPseudonym & theNym, OTServerContract & theServerContract, TransportCallback * pCallback);
 
 	// Connect() is for TCP / SSL mode.
-EXPORT	bool Connect(OTPseudonym & theNym, OTServerContract & theServerContract,
-	OTString & strCA_FILE, OTString & strKEY_FILE, OTString & strKEY_PASSWORD) {return false;}
+EXPORT	bool Connect(OTPseudonym &, OTServerContract &,
+	OTString &, OTString &, OTString &) {return false;}
 
 	void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber);
 
 	void ProcessMessageOut(char *buf, int32_t * pnExpectReply);
 	void ProcessMessageOut(OTMessage & theMessage);
 
-	EXPORT	bool ProcessInBuffer(OTMessage & theServerReply) {return false;}
+	EXPORT	bool ProcessInBuffer(OTMessage &) {return false;}
 	bool ProcessReply(u_header & theCMD, OTMessage & theServerReply);
 	bool ProcessType1Cmd(u_header & theCMD, OTMessage & theServerReply);
 

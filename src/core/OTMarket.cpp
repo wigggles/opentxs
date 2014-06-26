@@ -2455,7 +2455,7 @@ void OTMarket::Release()
 }
 
 
-bool OTMarket::SaveContractWallet(std::ofstream & ofs)
+bool OTMarket::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

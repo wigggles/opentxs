@@ -955,7 +955,7 @@ void OTMint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM, time64_t VALI
 }
 
 
-bool OTMint::SaveContractWallet(std::ofstream & ofs)
+bool OTMint::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

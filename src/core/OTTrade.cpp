@@ -158,8 +158,8 @@ enum { TradeProcessIntervalSeconds = 10 };
 // from the OTScriptable / OTSmartContract version, which verifies parties and agents, etc.
 //
 bool OTTrade::VerifyNymAsAgent(OTPseudonym & theNym,
-                               OTPseudonym & theSignerNym, // Not needed in this version of the override.
-                               mapOfNyms	* pmap_ALREADY_LOADED/*=NULL*/)
+                               OTPseudonym &, // Not needed in this version of the override.
+                               mapOfNyms	* /*=NULL*/)
 {
 	return this->VerifySignature(theNym);
 }
@@ -1341,7 +1341,7 @@ void OTTrade::InitTrade()
 	m_bHasTradeActivated = false;// I want to keep track of general activations as well, not just stop orders.
 }
 
-bool OTTrade::SaveContractWallet(std::ofstream & ofs)
+bool OTTrade::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

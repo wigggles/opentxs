@@ -2460,7 +2460,7 @@ void OTLedger::Release()
 }
 
 
-bool OTLedger::SaveContractWallet(std::ofstream & ofs)
+bool OTLedger::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

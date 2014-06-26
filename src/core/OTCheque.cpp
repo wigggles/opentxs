@@ -422,7 +422,7 @@ OTCheque::~OTCheque()
 }
 
 
-bool OTCheque::SaveContractWallet(std::ofstream & ofs)
+bool OTCheque::SaveContractWallet(std::ofstream &)
 {
 	
 	return true;

@@ -1083,7 +1083,7 @@ void ot_openssl_thread_id(CRYPTO_THREADID * id)
  debugging.
  */
 
-void ot_openssl_locking_callback(int32_t mode, int32_t type, const char *file, int32_t line)
+void ot_openssl_locking_callback(int32_t mode, int32_t type, const char *, int32_t)
 {
 	if (mode & CRYPTO_LOCK)
     {
@@ -3476,7 +3476,7 @@ prog_end:
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(const OTString    & strContractUnsigned,
                                                                    const EVP_PKEY    * pkey,
                                                                    OTSignature       & theSignature,
-                                                                   OTPasswordData    * pPWData/*=NULL*/) const
+                                                                   OTPasswordData    * /*=NULL*/) const
 {
     const char * szFunc = "OTCrypto_OpenSSL::SignContractDefaultHash";
     // -------------------------------
@@ -3699,7 +3699,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(const OTStrin
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(const OTString    & strContractToVerify,
                                                                      const EVP_PKEY    * pkey,
                                                                      const OTSignature & theSignature,
-                                                                     OTPasswordData    * pPWData/*=NULL*/) const
+                                                                     OTPasswordData    * /*=NULL*/) const
 {
     const char * szFunc = "OTCrypto_OpenSSL::VerifyContractDefaultHash";
     // ----------------------------

@@ -1682,7 +1682,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 
-bool OTPayment::SaveContractWallet(std::ofstream & ofs)	
+bool OTPayment::SaveContractWallet(std::ofstream &)	
 {
 	return true;
 }

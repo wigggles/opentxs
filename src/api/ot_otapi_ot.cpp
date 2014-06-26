@@ -1366,7 +1366,7 @@ OT_OTAPI_OT MapOfMaps * convert_offerlist_to_maps(OTDB::OfferListNym & offerList
 }
 
 
-OT_OTAPI_OT int32_t output_nymoffer_data(OTDB::OfferDataNym & offer_data, const int32_t nIndex, MapOfMaps & map_of_maps, SubMap & sub_map, the_lambda_struct & extra_vals) // if 10 offers are printed for the SAME market, nIndex will be 0..9
+OT_OTAPI_OT int32_t output_nymoffer_data(OTDB::OfferDataNym & offer_data, const int32_t nIndex, MapOfMaps &, SubMap &, the_lambda_struct &) // if 10 offers are printed for the SAME market, nIndex will be 0..9
 { // extra_vals unused in this function, but not in others that share this parameter profile.
     // (It's used as a lambda.)
 
@@ -1418,7 +1418,7 @@ OT_OTAPI_OT int32_t output_nymoffer_data(OTDB::OfferDataNym & offer_data, const 
 
 // RETURN VALUE: extra_vals will contain a list of offers that need to be removed AFTER
 
-OT_OTAPI_OT int32_t find_strange_offers(OTDB::OfferDataNym & offer_data, const int32_t nIndex, MapOfMaps & map_of_maps, SubMap & sub_map, the_lambda_struct & extra_vals) // if 10 offers are printed for the SAME market, nIndex will be 0..9
+OT_OTAPI_OT int32_t find_strange_offers(OTDB::OfferDataNym & offer_data, const int32_t, MapOfMaps &, SubMap &, the_lambda_struct & extra_vals) // if 10 offers are printed for the SAME market, nIndex will be 0..9
 {
     string strLocation = "find_strange_offers";
     /*

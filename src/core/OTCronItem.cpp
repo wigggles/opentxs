@@ -1501,7 +1501,7 @@ bool OTCronItem::ProcessCron()
 // activated for the very first time. (Versus being re-added
 // to cron after a server reboot.)
 //
-void OTCronItem::HookActivationOnCron(OTPseudonym * pActivator, // sometimes NULL.
+void OTCronItem::HookActivationOnCron(OTPseudonym *, // sometimes NULL.
 									  bool bForTheFirstTime/*=false*/)
 {
     OTCron * pCron  = GetCron();

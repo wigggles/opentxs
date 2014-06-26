@@ -417,7 +417,7 @@ void OTScript::RemoveVariable (OTVariable & theVar)
 }
 
 
-bool OTScript::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
+bool OTScript::ExecuteScript(OTVariable * /*=NULL*/)
 {
     OTLog::vError("OTScript::ExecuteScript: Scripting has been disabled.\n");
     return true;

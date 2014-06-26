@@ -3159,7 +3159,7 @@ OTScriptable::~OTScriptable()
 }
 
 
-bool OTScriptable::SaveContractWallet(std::ofstream & ofs)
+bool OTScriptable::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

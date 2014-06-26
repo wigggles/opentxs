@@ -268,7 +268,7 @@ void OTTrackable::UpdateContents()
 }
 
 
-bool OTTrackable::SaveContractWallet(std::ofstream & ofs)
+bool OTTrackable::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

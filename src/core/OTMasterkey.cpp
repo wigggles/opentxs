@@ -369,7 +369,7 @@ bool OTMasterkey::VerifyAgainstSource() const
 }
 
 
-bool OTMasterkey::VerifySource_HTTP(const OTString strSource) const
+bool OTMasterkey::VerifySource_HTTP(const OTString) const
 {
     /*
      The source is a URL, http://blah.com/folder
@@ -389,7 +389,7 @@ bool OTMasterkey::VerifySource_HTTP(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_HTTPS(const OTString strSource) const
+bool OTMasterkey::VerifySource_HTTPS(const OTString) const
 {
     /*
      The source is a URL, https://blah.com/folder
@@ -409,7 +409,7 @@ bool OTMasterkey::VerifySource_HTTPS(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_Bitcoin(const OTString strSource) const
+bool OTMasterkey::VerifySource_Bitcoin(const OTString) const
 {
     /*
      The source is a Bitcoin address
@@ -432,7 +432,7 @@ bool OTMasterkey::VerifySource_Bitcoin(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_Namecoin(const OTString strSource) const
+bool OTMasterkey::VerifySource_Namecoin(const OTString) const
 {
     /*
      The source is a URL, http://blah.bit/folder
@@ -452,7 +452,7 @@ bool OTMasterkey::VerifySource_Namecoin(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_Freenet(const OTString strSource) const
+bool OTMasterkey::VerifySource_Freenet(const OTString) const
 {
     OTLog::vError("%s: Failure: this function has not yet been written, so this Freenet source cannot be verified.\n",
                   __FUNCTION__);
@@ -460,7 +460,7 @@ bool OTMasterkey::VerifySource_Freenet(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_TOR(const OTString strSource) const
+bool OTMasterkey::VerifySource_TOR(const OTString) const
 {
     OTLog::vError("%s: Failure: this function has not yet been written, so this Tor source cannot be verified.\n",
                   __FUNCTION__);
@@ -468,7 +468,7 @@ bool OTMasterkey::VerifySource_TOR(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_I2P(const OTString strSource) const
+bool OTMasterkey::VerifySource_I2P(const OTString) const
 {
     OTLog::vError("%s: Failure: this function has not yet been written, so this I2P source cannot be verified.\n",
                   __FUNCTION__);
@@ -476,7 +476,7 @@ bool OTMasterkey::VerifySource_I2P(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_CA(const OTString strSource) const
+bool OTMasterkey::VerifySource_CA(const OTString) const
 {
     
     /*
@@ -492,7 +492,7 @@ bool OTMasterkey::VerifySource_CA(const OTString strSource) const
 }
 
 
-bool OTMasterkey::VerifySource_Pubkey(const OTString strSource) const
+bool OTMasterkey::VerifySource_Pubkey(const OTString) const
 {
     // Verify signed by self.
     //

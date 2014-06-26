@@ -358,7 +358,7 @@ void OTTransactionType::SetReferenceString(const OTString & theStr)
 }
 
 
-bool OTTransactionType::SaveContractWallet(std::ofstream & ofs)
+bool OTTransactionType::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }

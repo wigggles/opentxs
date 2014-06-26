@@ -165,8 +165,8 @@ class OTMessageOutbuffer
 	mapOfMessages m_mapMessages;
     // --------------------------------
     // Just to keep you out of trouble.
-    OTMessageOutbuffer  (const OTMessageOutbuffer & rhs) {}
-    OTMessageOutbuffer & operator=(const OTMessageOutbuffer & rhs) { return *this; }
+    OTMessageOutbuffer  (const OTMessageOutbuffer &) {}
+    OTMessageOutbuffer & operator=(const OTMessageOutbuffer &) { return *this; }
 
 	OTString m_strDataFolder;
 

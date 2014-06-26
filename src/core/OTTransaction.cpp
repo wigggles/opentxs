@@ -3641,7 +3641,7 @@ bool OTTransaction::GenerateTransaction(const OTIdentifier & theAccountID, const
 }
 
 
-bool OTTransaction::SaveContractWallet(std::ofstream & ofs)
+bool OTTransaction::SaveContractWallet(std::ofstream &)
 {
 	return true;
 }
