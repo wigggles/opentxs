@@ -641,7 +641,6 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword & theExportPassword, bool bImport
 
 void OTKeyCredential::SetMetadata()
 {
-    bool bMetadata         = false;
 	char cMetaKeyType;            // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
 	char cMetaNymID        = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
 	char cMetaMasterCredID = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
@@ -666,15 +665,15 @@ void OTKeyCredential::SetMetadata()
     OTSignatureMetadata theMetadata;
     // ----------------------------------------------------
     cMetaKeyType   = 'A';
-    bMetadata = theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
+    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
     m_AuthentKey.SetMetadata(theMetadata);
     // ----------------------------------------------------
     cMetaKeyType   = 'E';
-    bMetadata = theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
+    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
     m_EncryptKey.SetMetadata(theMetadata);
     // ----------------------------------------------------
     cMetaKeyType   = 'S';
-    bMetadata = theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
+    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID, cMetaSubCredID);
     m_SigningKey.SetMetadata(theMetadata);
     // ----------------------------------------------------
 }

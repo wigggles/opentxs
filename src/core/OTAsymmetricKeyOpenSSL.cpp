@@ -887,7 +887,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(const OTASCIIArmor & strKe
 	 * or FITNESS FOR A PARTICULAR PURPOSE.
 	 * 
 	 */
-	int32_t iRet =-1, len;
+	int32_t len;
 	uint8_t buffer[520]; // Making it a bit bigger than 512 for safety reasons.
 	BUF_MEM *bptr;
 	PgpKeys pgpKeys;
@@ -963,8 +963,6 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(const OTASCIIArmor & strKe
 		CRYPTO_free(szGHex);
 		CRYPTO_free(szYHex);
 	}
-	
-	iRet = 0;
 	
 	/*
 	if (pgpKeys.pRsa)

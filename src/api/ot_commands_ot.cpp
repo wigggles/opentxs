@@ -9167,7 +9167,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_send_cash(string & strResponse, const
     //
 
     bool bAmountFromIndices = VerifyStringVal(strIndices);
-    bool bIndicesFromAmount = VerifyIntVal(lAmount);
+    VerifyIntVal(lAmount);
 
     bool bGotData = purse_get_indices_or_amount(strServerID, strAssetTypeID, strMyNymID, lAmount, strIndices); // If strIndices is input, lAmount is output. (And vice-versa.)
 
@@ -9471,7 +9471,7 @@ OT_COMMANDS_OT int32_t OT_Command::handle_payment_index(const string & strMyAcct
         //
         if ((nIndex != -1) && (1 == nDepositPurse))
         {
-            int32_t nRecorded = OTAPI_Wrap::RecordPayment(strServerID, strMyNymID, true, //bIsInbox=true
+            OTAPI_Wrap::RecordPayment(strServerID, strMyNymID, true, //bIsInbox=true
                 nIndex, true); // bSaveCopy=true.
         }
 
@@ -9564,7 +9564,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_from_paymentbox(const string & strMyAc
 
         else if (!bContinue)
         {
-            int32_t nHandled = handle_payment_index(strMyAcctID, nIndex, strPaymentType, strInbox);
+            handle_payment_index(strMyAcctID, nIndex, strPaymentType, strInbox);
         }
     }
 
@@ -10034,7 +10034,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
                 string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(Server, MyNym, MyNym, strInbox, nIndex);
                 int64_t lTransNumber = OTAPI_Wrap::Ledger_GetTransactionIDByIndex(Server, MyNym, MyNym, strInbox, nIndex);
 
-                int64_t lRefNum = OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(Server, MyNym, MyNym, strTrans);
+                OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(Server, MyNym, MyNym, strTrans);
 
                 int64_t lAmount = OTAPI_Wrap::Instrmnt_GetAmount(strInstrument);
                 string strType = OTAPI_Wrap::Instrmnt_GetType(strInstrument);
@@ -10246,7 +10246,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payments_inbox()
 
                         string strTransID = VerifyIntVal(lTransNumber) ? to_string(lTransNumber) : "UNKNOWN_TRANS_NUM";
 
-                        int64_t lRefNum = OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(Server, MyNym, MyNym, strTrans);
+                        OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(Server, MyNym, MyNym, strTrans);
                         //                      string strAmount          = OTAPI_Wrap::Transaction_GetAmount(Server, MyNym, MyNym, strTrans)
                         //                      string strType            = OTAPI_Wrap::Transaction_GetType(Server, MyNym, MyNym, strTrans)
                         //                      string strSenderUserID    = OTAPI_Wrap::Transaction_GetSenderUserID(Server, MyNym, MyNym, strTrans)
@@ -10271,8 +10271,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payments_inbox()
 
                         string strAmount = (bHasAmount && bHasAsset) ? OTAPI_Wrap::FormatAmount(strAssetType, lAmount) : "UNKNOWN_AMOUNT";
 
-                        bool bUserIDExists = VerifyStringVal(strUserID);
-                        bool bAcctIDExists = VerifyStringVal(strAcctID);
+                        VerifyStringVal(strUserID);
+                        VerifyStringVal(strAcctID);
                         bool bAssetIDExists = VerifyStringVal(strAssetType);
 
                         string strAssetDenoter = (bAssetIDExists ? " - " : "");

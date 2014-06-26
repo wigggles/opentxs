@@ -343,7 +343,6 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
     const
     OTString * pstrSourceToUse  = NULL;
     OTString   strTempSource; // Used sometimes.
-    bool       bCreatedKeypair = false;
     // -----------------------------------------------------------------------
     const mapOfStrings * pmapActualPrivate = NULL;
     const mapOfStrings * pmapActualPublic  = NULL;
@@ -410,7 +409,6 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
             OT_ASSERT (bCreateKeySigning);
             // ----------------------------------------------
             m_pkeypair->SaveAndReloadBothKeysFromTempFile();  // Keys won't be right until this happens. (Necessary evil until better fix.) Todo: eliminate need to do this.
-            bCreatedKeypair = true;
             // ----------------------------------------------
             strReason      .Set("Generating signing key for new master credential.");
             strPublicError .Set("In %s, line %d: Failed creating public signing key in OTPseudonym::%s.\n");

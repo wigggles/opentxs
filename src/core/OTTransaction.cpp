@@ -1680,7 +1680,6 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	
 	// CHECK IF IT'S NEWER AND SET A POINTER BASED ON THIS.
 	
-	OTTransaction	* pTranWithIssuedList = this; // the transaction that actually has the issued list we'll be using. (Might be balance receipt or transaction receipt, whichever is newer)
 	OTItem			* pItemWithIssuedList = NULL; // the item from that transaction that actually has the issued list we'll be using.
 	
 	OTItem * pResponseTransactionItem	= NULL; // only if it's new than balance receipt does this get set, to: tranOut.GetItem(OTItem::atTransactionStatement);
@@ -1689,8 +1688,6 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	
 	if (tranOut.GetDateSigned() > this->GetDateSigned()) // it's newer.
 	{
-		pTranWithIssuedList = &tranOut;
-		
 		// GET THE "AT TRANSACTION STATEMENT" ITEM
 		pResponseTransactionItem = tranOut.GetItem(OTItem::atTransactionStatement);
 		
@@ -1747,9 +1744,6 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		pItemWithIssuedList = pTransactionItem;
 	}
 	
-	// Now use pTranWithIssuedList and pItemWithIssuedList for checking issued numbers.
-	// (Even though I'll continue to use *this for all other data being verified.)
-		
 	// -------------------------------------------------------
 	
 	// LOAD THE ACCOUNT 

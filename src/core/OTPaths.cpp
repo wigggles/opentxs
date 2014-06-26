@@ -780,7 +780,6 @@ bool OTPaths::FileExists(const OTString & strFilePath, int64_t & nFileLength)
 
     if ('/' != *l_strPath.rbegin())
     {
-        int32_t status=0; // todo security (this whole block)
 #ifdef _WIN32
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
@@ -788,11 +787,11 @@ bool OTPaths::FileExists(const OTString & strFilePath, int64_t & nFileLength)
         // on windows paths cannot be longer than 4086,
         // so it should be fine... needs more research.
         strcpy_s(filename,l_strPath_stat.c_str());
-        status = _stat(filename, &st_buf );
+        _stat(filename, &st_buf );
 #else
         struct stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
-        status = stat (l_strPath.c_str(), &st_buf);
+        stat (l_strPath.c_str(), &st_buf);
 #endif
 
         // check for file
@@ -828,7 +827,6 @@ bool OTPaths::FolderExists(const OTString & strFolderPath)
     if ('/' == *l_strPath.rbegin())
     {
 
-        int32_t status=0; // todo security (this whole block)
 #ifdef _WIN32
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
@@ -836,11 +834,11 @@ bool OTPaths::FolderExists(const OTString & strFolderPath)
         // on windows paths cannot be longer than 4086,
         // so it should be fine... needs more research.
         strcpy_s(filename,l_strPath_stat.c_str());
-        status = _stat(filename, &st_buf );
+        _stat(filename, &st_buf );
 #else
         struct stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
-        status = stat (l_strPath.c_str(), &st_buf);
+        stat (l_strPath.c_str(), &st_buf);
 #endif
 
         if (S_ISDIR(st_buf.st_mode))
@@ -974,7 +972,6 @@ bool OTPaths::ToReal(const OTString & strExactPath, OTString & out_strCanonicalP
 
     char actualpath [path_max+1];
     actualpath[0] = '\0';
-    char *ptr=NULL;
 
     if (NULL ==  realpath(strExactPath.Get(), actualpath)) {
 
@@ -1010,7 +1007,6 @@ bool GetExecutable(OTString & strExecutablePath)
 #ifdef TARGET_OS_MAC
     char bufPath[PATH_MAX + 1]="";
     uint32_t size = sizeof(bufPath);
-    int32_t  bufsize = sizeof(bufPath);
     if (_NSGetExecutablePath(bufPath, &size) == 0)
         strExecutablePath.Set(bufPath);
     else return false;

@@ -184,19 +184,6 @@ namespace opentxs {
 #define OT_BOOL int32_t
 #endif
 
-#ifndef OT_FALSE
-const int32_t OT_FALSE = 0;
-#endif
-
-#ifndef OT_TRUE
-const int32_t OT_TRUE = 1;
-#endif
-
-
-#ifndef OT_ERROR
-const int32_t OT_ERROR = (-1);
-#endif
-
 // ---------------------------------------------------------------
 
 // singleton object !!!

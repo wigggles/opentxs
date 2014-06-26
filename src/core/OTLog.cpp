@@ -1496,38 +1496,27 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 
 	OT_ASSERT(NULL != v);
 
-	int32_t read = 0;
-
 #ifdef _LP64
 	typedef uint64_t ot_ulong;
 #else
 	typedef uint32_t ot_ulong;
 #endif // lp64
 
-	ot_ulong addr=0,
-		eip=0,
-		esp=0;
+	ot_ulong eip = 0;
 	ucontext_t *uc = (ucontext_t *)v;
 
 #if defined(__APPLE__)
 #ifdef __arm__
 	_STRUCT_MCONTEXT *mc; // mcontext_t seems to be missing from arm/_structs.h
 	mc = uc->uc_mcontext;
-	addr = (ot_ulong)info->si_addr;
-	read = !(mc->__es.__exception&2);
 	//eip = mc->__ss.__eip; // arm doesn't have eip
-	esp = mc->__ss.__sp;
 #else
 	mcontext_t mc;
 	mc = uc->uc_mcontext;
-	addr = (ot_ulong)info->si_addr;
-	read = !(mc->__es.__err&2);
 #ifdef _LP64
 	eip = mc->__ss.__rip;
-	esp = mc->__ss.__rsp;
 #else
 	eip = mc->__ss.__eip;
-	esp = mc->__ss.__esp;
 #endif
 #endif // __arm__
 #elif defined(__linux__)
@@ -1535,26 +1524,20 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 	struct sigcontext *ctx;
 	mc = &uc->uc_mcontext;
 	ctx = (struct sigcontext*)mc;
-	addr = (ot_ulong)info->si_addr;
-	read = !(ctx->err&2);
 #ifdef __i386__
 	eip = ctx->eip;
-	esp = ctx->esp;
 #else
 	eip = ctx->rip;
-	esp = ctx->rsp;
 #endif
 #elif defined(__FreeBSD__)
 	mcontext_t *mc;
 	mc = &uc->uc_mcontext;
 #ifdef __i386__
 	eip = mc->mc_eip;
-	esp = mc->mc_esp;
 #elif defined(__amd64__)
 	eip = mc->mc_rip;
-	esp = mc->mc_rsp;
 #endif
-	addr = (ot_ulong)info->si_addr;
+	ot_ulong addr = (ot_ulong)info->si_addr;
 	if(__FreeBSD__ < 7){
 		/*
 		* FreeBSD /usr/src/sys/i386/i386/trap.c kludgily reuses
@@ -1580,7 +1563,6 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 		else
 			mc->mc_err = 2; /* write fault */
 	}
-	read = !(mc->mc_err&2);
 #else
 #       error   "Unknown OS in sigsegv"
 #endif

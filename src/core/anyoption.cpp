@@ -1028,8 +1028,6 @@ AnyOption::consumeFile( char *buffer )
     int32_t linelength = 0;
     bool newline   = true;
     
-    bool bFirstLine = true;
-    
     for( uint32_t i = 0 ; i < strlen( buffer ) ; i++ )
     {
        	if( *cursor == endofline ) // end of line
@@ -1038,7 +1036,6 @@ AnyOption::consumeFile( char *buffer )
                 processLine( pline, linelength );
             pline      = NULL;
             newline    = true;
-            bFirstLine = false;
         }
         else if( newline ) // start of line
         {

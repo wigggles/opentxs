@@ -836,11 +836,6 @@ bool OTRecordList::PerformAutoAccept()
         const std::string    str_server_id (strServerID.Get());
         const std::string    str_asset_id  (strAssetID .Get());
         // ------------------------------------------------
-        const std::string  * pstr_nym_id     = &OTRecordList::s_blank;
-        const std::string  * pstr_server_id  = &OTRecordList::s_blank;
-        const std::string  * pstr_asset_id   = &OTRecordList::s_blank;
-        const std::string  * pstr_asset_name = &OTRecordList::s_blank;
-        // ------------------------------------------------
         // NOTE: Since this account is already on my "care about" list for accounts,
         // I wouldn't bother double-checking my "care about" lists for servers, nyms,
         // and asset types. But I still look up the appropriate string for each, since
@@ -859,13 +854,6 @@ bool OTRecordList::PerformAutoAccept()
                            str_account_id.c_str());
             continue;
         }
-        // ------------------------------------------------
-        // These pointers are what we'll use to construct each OTRecord.
-        //
-        pstr_nym_id     = &(*it_nym);
-        pstr_server_id  = &(*it_server);
-        pstr_asset_id   = &(it_asset->first);
-        pstr_asset_name = &(it_asset->second);
         // ------------------------------------------------
         // Loop through asset account INBOX.
         //

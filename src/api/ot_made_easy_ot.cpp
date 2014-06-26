@@ -59,7 +59,7 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded, c
     {
         OTAPI_Wrap::Output(0, "insure_enough_nums: I don't have enough transaction numbers. Grabbing more now...\n");
 
-        bool bGotten = MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
+        MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
 
         bool bWasMsgSent = false;
         bool bForceDownload = false;
