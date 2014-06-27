@@ -185,10 +185,10 @@ private:
     const std::string  m_strDisplay;
 
 public:
-    // --------------------------------
+
     bool            isForCachedKey()   const;
     const char *    GetDisplayString() const;
-    // --------------------------------
+
     OTPasswordData(const char        *   szDisplay, OTPassword * pMasterPW=NULL);
     OTPasswordData(const std::string & str_Display, OTPassword * pMasterPW=NULL);
     OTPasswordData(const OTString    &  strDisplay, OTPassword * pMasterPW=NULL);

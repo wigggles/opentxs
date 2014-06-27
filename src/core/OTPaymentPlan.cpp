@@ -140,7 +140,7 @@
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -187,17 +187,14 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         
 		SetNoInitialFailures(			atoi(xml->getAttributeValue("numberOfAttempts")));
 		SetInitialPaymentAmount(		atol(xml->getAttributeValue("amount")));
-		// --------------------------------------------------------------------------
+
 		OTString strCompleted(xml->getAttributeValue("completed"));
         m_bInitialPaymentDone = strCompleted.Compare("true");
-		// --------------------------------------------------------------------------
-		OTLog::vOutput(1,
-					   "\n\nInitial Payment. Amount: %lld.   Date: %" PRId64".   Completed Date: %" PRId64"\n"
-					   " Number of failed attempts: %d.   Date of last failed attempt: %" PRId64"\n"
-					   " Payment %s.\n",
-					   m_lInitialPaymentAmount, tDate, tDateCompleted,
-					   m_nNumberInitialFailures, tDateLastAttempt,
-					   (m_bInitialPaymentDone ? "COMPLETED" : "NOT completed"));
+
+		otWarn << 
+			"\n\nInitial Payment. Amount: " << m_lInitialPaymentAmount << ".   Date: " << tDate << ".   Completed Date: " << tDateCompleted << "\n"
+			" Number of failed attempts: " << m_nNumberInitialFailures << ".   Date of last failed attempt: " << tDateLastAttempt << "\n"
+			" Payment " << (m_bInitialPaymentDone ? "COMPLETED" : "NOT completed") << ".\n";
 		
 		nReturnVal = 1;
 	}
@@ -206,12 +203,12 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{
 		// Yes, there IS apparently a payment plan. We can set the bool to true.
 		m_bPaymentPlan	= true; 
-		// ---------------------------------------------------------------
+
 		SetPaymentPlanAmount(atol(xml->getAttributeValue("amountPerPayment")));
         SetMaximumNoPayments(atoi(xml->getAttributeValue("maxNoPayments")));
 		SetNoPaymentsDone   (atoi(xml->getAttributeValue("completedNoPayments")));
 		SetNoFailedPayments (atoi(xml->getAttributeValue("failedNoPayments")));
-		// ---------------------------------------------------------------
+
         const OTString str_between      = xml->getAttributeValue("timeBetweenPayments");
         const OTString str_start        = xml->getAttributeValue("planStartDate");
         const OTString str_length       = xml->getAttributeValue("planLength");
@@ -229,16 +226,12 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		SetPaymentPlanLength(OTTimeGetTimeFromSeconds(tLength));
         SetDateOfLastPayment(OTTimeGetTimeFromSeconds(tLast));
         SetDateOfLastFailedPayment(OTTimeGetTimeFromSeconds(tLastAttempt));
-		// ---------------------------------------------------------------
-		OTLog::vOutput(1,
-					   "\n\nPayment Plan. Amount per payment: %lld.  Time between payments: %" PRId64".\n"
-					   " Payment plan Start Date: %" PRId64".  Length: %" PRId64".   Maximum No. of Payments: %d.\n"
-					   " Completed No. of Payments: %d.  Failed No. of Payments: %d\n"
-					   " Date of last payment: %" PRId64"        Date of last failed payment: %" PRId64"\n",
-					   m_lPaymentPlanAmount,	tBetween,
-					   tStart,	tLength, m_nMaximumNoPayments,
-					   m_nNoPaymentsDone,		m_nNoFailedPayments,
-					   tLast,	tLastAttempt);
+
+		otWarn << 
+			"\n\nPayment Plan. Amount per payment: " << m_lPaymentPlanAmount << ".  Time between payments: " <<	tBetween << ".\n"
+			" Payment plan Start Date: " << tStart << ".  Length: " << tLength << ".   Maximum No. of Payments: " << m_nMaximumNoPayments << ".\n"
+			" Completed No. of Payments: " << m_nNoPaymentsDone << ".  Failed No. of Payments: " << m_nNoFailedPayments << "\n"
+			" Date of last payment: " << tLast << "        Date of last failed payment: " <<	tLastAttempt << "\n";
 		
 		nReturnVal = 1;
 	}
@@ -253,13 +246,13 @@ void OTPaymentPlan::UpdateContents()
 	m_xmlUnsigned.Release();
 	
 	m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
-	// -------------------------------------------------------------
+
 	const OTString  SERVER_ID(GetServerID()),                ASSET_TYPE_ID(GetAssetID()),
                     SENDER_ACCT_ID(GetSenderAcctID()),       SENDER_USER_ID(GetSenderUserID()),
                     RECIPIENT_ACCT_ID(GetRecipientAcctID()), RECIPIENT_USER_ID(GetRecipientUserID());
 	
     OT_ASSERT(NULL != m_pCancelerNymID);
-    // -------------------------------------------------------------
+
     OTString strCanceler;
     
     if (m_bCanceled)
@@ -294,7 +287,7 @@ void OTPaymentPlan::UpdateContents()
                               OTTimeGetSecondsFromTime(GetValidFrom()),
                               OTTimeGetSecondsFromTime(GetValidTo()));
     
-	// -------------------------------------------------------------
+
     
     // There are "closing" transaction numbers, used to CLOSE a transaction.
     // Often where Cron items are involved such as this payment plan, or in baskets,
@@ -325,7 +318,7 @@ void OTPaymentPlan::UpdateContents()
         
     }
     
-	// -------------------------------------------------------------
+
     // OTPaymentPlan
     
 	if (HasInitialPayment())
@@ -353,7 +346,7 @@ void OTPaymentPlan::UpdateContents()
 	}
 	
 	
-	// -------------------------------------------------------------
+
     // OTPaymentPlan
 		
 	if (HasPaymentPlan())
@@ -391,7 +384,7 @@ void OTPaymentPlan::UpdateContents()
 								  lDateOfLastFailedPayment
 								  );
 	}
-	// -------------------------------------------------------------
+
     // OTAgreement
 	
     if (m_strConsideration.Exists())
@@ -400,7 +393,7 @@ void OTPaymentPlan::UpdateContents()
 		m_xmlUnsigned.Concatenate("<consideration>\n%s</consideration>\n\n", ascTemp.Get());
 	}
 	
-	// -------------------------------------------------------------
+
 	// OTAgreement
     
     if (m_strMerchantSignedCopy.Exists())
@@ -409,7 +402,7 @@ void OTPaymentPlan::UpdateContents()
 		m_xmlUnsigned.Concatenate("<merchantSignedCopy>\n%s</merchantSignedCopy>\n\n", ascTemp.Get());
 	}
 	
-	// -------------------------------------------------------------
+
 
 	m_xmlUnsigned.Concatenate("</agreement>\n");					
 }
@@ -444,11 +437,11 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement & rhs) const
   
     if (
         (NULL != pPlan) &&
-        // --------------------------------------------------------------------
+
         (HasInitialPayment()        == pPlan->HasInitialPayment())          &&
         (GetInitialPaymentDate()    == pPlan->GetInitialPaymentDate())      &&
         (GetInitialPaymentAmount()  == pPlan->GetInitialPaymentAmount())    &&
-        // --------------------------------------------------------------------
+
         (HasPaymentPlan()           == pPlan->HasPaymentPlan())             &&
         (GetPaymentPlanAmount()     == pPlan->GetPaymentPlanAmount())       &&
         (GetTimeBetweenPayments()   == pPlan->GetTimeBetweenPayments())     &&
@@ -471,16 +464,15 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym & RECIPIENT_NYM, OTPseudonym & S
     OTPaymentPlan theMerchantCopy;
     if (!m_strMerchantSignedCopy.Exists() || !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy))
     {
-        OTLog::vError("OTPaymentPlan::%s: Expected Merchant's signed copy to be inside the "
-                      "payment plan, but unable to load.\n", __FUNCTION__);
+		otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Expected Merchant's signed copy to be inside the "
+                      "payment plan, but unable to load.\n";
         return false;
     }
     
     // Compare this against the merchant's copy using Compare function.
     if (!this->Compare(theMerchantCopy))
     {
-        OTLog::vOutput(0, "OTPaymentPlan::%s: Merchant's copy of payment plan isn't equal to Customer's copy.\n",
-                       __FUNCTION__);
+		otOut << "OTPaymentPlan::" << __FUNCTION__ << ": Merchant's copy of payment plan isn't equal to Customer's copy.\n";
         return false;
     }
 
@@ -489,48 +481,46 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym & RECIPIENT_NYM, OTPseudonym & S
     // Verify Transaction Num and Closing Nums against SENDER's issued list
     if ((GetCountClosingNumbers() < 1) || !SENDER_NYM.VerifyIssuedNum(strServerID, GetTransactionNum()))
     {
-        OTLog::vError("OTPaymentPlan::%s: Transaction number %lld isn't on sender's issued list, "
-                      "OR there weren't enough closing numbers.\n", __FUNCTION__, GetTransactionNum());
+		otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Transaction number " << GetTransactionNum() << " isn't on sender's issued list, "
+                      "OR there weren't enough closing numbers.\n";
         return false;
     }
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
         if (!SENDER_NYM.VerifyIssuedNum(strServerID, GetClosingTransactionNoAt(i)))
         {
-            OTLog::vError("OTPaymentPlan::%s: Closing transaction number %lld isn't on sender's issued list.\n",
-                          __FUNCTION__, GetClosingTransactionNoAt(i));
+			otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Closing transaction number " << GetClosingTransactionNoAt(i) << " isn't on sender's issued list.\n";
             return false;
         }
-    // --------------------------------------------------------------------------
+
     // Verify Recipient closing numbers against RECIPIENT's issued list.
     if (GetRecipientCountClosingNumbers() < 2)
     {
-        OTLog::vError("OTPaymentPlan::%s: Failed verifying: "
-                      "Expected opening and closing transaction numbers for recipient. (2 total.)\n",
-                      __FUNCTION__);
+		otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Failed verifying: "
+                      "Expected opening and closing transaction numbers for recipient. (2 total.)\n";
         return false;
     }
     for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
         if (!RECIPIENT_NYM.VerifyIssuedNum(strServerID, GetRecipientClosingTransactionNoAt(i)))
         {
-            OTLog::vError("OTPaymentPlan::%s: Recipient's Closing transaction number %lld isn't on recipient's issued list.\n",
-                          __FUNCTION__, GetRecipientClosingTransactionNoAt(i));
+			otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Recipient's Closing transaction number " 
+				<< GetRecipientClosingTransactionNoAt(i) << " isn't on recipient's issued list.\n";
             return false;
         }
-    // --------------------------------------------------------------------------
+
     // Verify sender's signature on this.
     //
     if (!this->VerifySignature(SENDER_NYM))
     {
-        OTLog::vOutput(0, "OTPaymentPlan::%s: Sender's signature failed to verify.\n", __FUNCTION__);
+		otOut << "OTPaymentPlan::" << __FUNCTION__ << ": Sender's signature failed to verify.\n";
         return false;
     }
-    // --------------------------------------------------------------------------
+
     // Verify recipient's signature on merchant's copy.
     //
     if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM))
     {
-        OTLog::vOutput(0, "OTPaymentPlan::%s: Recipient's signature failed to verify on "
-                       "internal merchant copy of agreement.\n", __FUNCTION__);
+		otOut << "OTPaymentPlan::" << __FUNCTION__ << ": Recipient's signature failed to verify on "
+                       "internal merchant copy of agreement.\n";
         return false;
     }
     
@@ -544,15 +534,15 @@ bool OTPaymentPlan::SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTim
 								   time64_t tBetweenPayments/*=2592000*/, // Default: 30 days.
 								   time64_t tPlanLength/*=0*/, int32_t nMaxPayments/*=0*/)
 {		
-	// -----------------------------------------
+
 	if (lPaymentAmount <= 0 )
 	{
-		OTLog::Error("Payment Amount less than zero in OTPaymentPlan::SetPaymentPlan\n");
+		otErr << "Payment Amount less than zero in OTPaymentPlan::SetPaymentPlan\n";
 		return false;
 	}
 	
 	SetPaymentPlanAmount(lPaymentAmount);
-	// -----------------------------------------
+
 	
 	// Note: this is just a safety mechanism. And while it should be turned back ON at some point,
 	//       I need it off for testing at the moment. So if you're reading this now, go ahead and
@@ -565,29 +555,29 @@ bool OTPaymentPlan::SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTim
 	// TODO possible make it possible to configure this in the currency contract itself.
 	
 	SetTimeBetweenPayments(tBetweenPayments);
-	// -----------------------------------------
+
 	// Assuming no need to check a time64_t for <0 since it's probably unsigned...
     const time64_t PAYMENT_PLAN_START = OTTimeAddTimeInterval(GetCreationDate(), OTTimeGetSecondsFromTime(tTimeUntilPlanStart));
 	
 	SetPaymentPlanStartDate(PAYMENT_PLAN_START);
-	// -----------------------------------------
+
 	// Is this even a problem? todo: verify that time64_t is unisigned.
     if (OT_TIME_ZERO > tPlanLength) // if it's a negative number...
 	{
-		OTLog::Error("Attempt to use negative number for plan length.\n");
+		otErr << "Attempt to use negative number for plan length.\n";
 		return false;
 	}
 	
 	SetPaymentPlanLength(tPlanLength); // any zero (no expiry) or above-zero value will do.
-	// -----------------------------------------
+
 	if (0 > nMaxPayments) // if it's a negative number...
 	{
-		OTLog::Error("Attempt to use negative number for plan max payments.\n");
+		otErr << "Attempt to use negative number for plan max payments.\n";
 		return false;
 	}
 	
 	SetMaximumNoPayments(nMaxPayments); // any zero (no expiry) or above-zero value will do.
-	// -----------------------------------------
+
 	// Set these to zero, they will be incremented later at the right times.
     m_tDateOfLastPayment = OT_TIME_ZERO;
 	m_nNoPaymentsDone		= 0;
@@ -670,7 +660,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 	// (Instead I just disallow it entirely.)
 	if (SOURCE_ACCT_ID == RECIPIENT_ACCT_ID)
 	{
-		OTLog::Output(0, "Failed to process payment: both account IDs were identical.\n");
+		otOut << "Failed to process payment: both account IDs were identical.\n";
 		FlagForRemoval(); // Remove from Cron
 		return false; // TODO: should have a "Verify Payment Plan" function that weeds this crap out before we even get here.
 	}
@@ -678,7 +668,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 	// the asset types to make sure they were what we expected them to be.
 	
 	
-	// -----------------------------------------------------------------
+
 	
 	// Need to load up the ORIGINAL PAYMENT PLAN (with BOTH users' original SIGNATURES on it!)
 	// Will need to verify those signatures as well as attach a copy of it to the receipt.
@@ -739,8 +729,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 		if (false == theSenderNym.LoadPublicKey())
 		{
 			OTString strNymID(SENDER_USER_ID);
-			OTLog::vError("Failure loading Sender Nym public key in OTPaymentPlan::ProcessPayment: %s\n", 
-						  strNymID.Get());
+			otErr << "Failure loading Sender Nym public key in OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
 			FlagForRemoval(); // Remove it from future Cron processing, please.
 			return false;
 		}
@@ -753,8 +742,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 		else 
 		{
 			OTString strNymID(SENDER_USER_ID);
-			OTLog::vError("Failure loading or verifying Sender Nym public key in OTPaymentPlan::ProcessPayment: %s\n", 
-						  strNymID.Get());
+			otErr << "Failure loading or verifying Sender Nym public key in OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
 			FlagForRemoval(); // Remove it from future Cron processing, please.
 			return false;			
 		}
@@ -778,8 +766,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 		if (false == theRecipientNym.LoadPublicKey())
 		{
 			OTString strNymID(RECIPIENT_USER_ID);
-			OTLog::vError("Failure loading Recipient Nym public key in OTPaymentPlan::ProcessPayment: %s\n", 
-						  strNymID.Get());
+			otErr << "Failure loading Recipient Nym public key in OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
 			FlagForRemoval(); // Remove it from future Cron processing, please.
 			return false;
 		}
@@ -792,15 +779,12 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 		else 
 		{
 			OTString strNymID(RECIPIENT_USER_ID);
-			OTLog::vError("Failure loading or verifying Recipient Nym public key in OTPaymentPlan::ProcessPayment: %s\n", 
-						  strNymID.Get());
+			otErr << "Failure loading or verifying Recipient Nym public key in OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
 			FlagForRemoval(); // Remove it from future Cron processing, please.
 			return false;			
 		}
 	}
 	
-	
-	// -----------------------------------------------------------------
 
 	
 	// Now that I have the original Payment Plan loaded, and all the Nyms ready to go,
@@ -810,7 +794,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 	
 	if (!pOrigCronItem->VerifySignature(*pSenderNym) || !pOrigCronItem->VerifySignature(*pRecipientNym))
 	{
-		OTLog::Error("Failed authorization: Payment plan (while attempting to process...)\n");
+		otErr << "Failed authorization: Payment plan (while attempting to process...)\n";
 		FlagForRemoval(); // Remove it from Cron.
 		return false;			
 	}
@@ -830,47 +814,44 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 	// Cron Receipt for this Payment Plan. (And I don't need to worry about deleting it, either.)
 	// I know for a fact they have both signed pOrigCronItem...
 
-	// -----------------------------------------------------------------
+
 	
 	OTAccount * pSourceAcct		= OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
 	
 	if (NULL == pSourceAcct)
 	{
-		OTLog::Output(0, "ERROR verifying existence of source account during attempted payment plan processing.\n");
+		otOut << "ERROR verifying existence of source account during attempted payment plan processing.\n";
 		FlagForRemoval(); // Remove it from future Cron processing, please.
 		return false;
 	}
 	// Past this point we know pSourceAcct is good and will clean itself up.
 	OTCleanup<OTAccount>	theSourceAcctSmrtPtr(*pSourceAcct);
-	// -----------------------------------------------------------------
+
 
 	OTAccount * pRecipientAcct	= OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID,	SERVER_ID);
 
 	if (NULL == pRecipientAcct)
 	{
-		OTLog::Output(0, "ERROR verifying existence of recipient account during attempted payment plan processing.\n");
+		otOut << "ERROR verifying existence of recipient account during attempted payment plan processing.\n";
 		FlagForRemoval(); // Remove it from future Cron processing, please.
 		return false;
 	}
 	// Past this point we know pRecipientAcct is good and will clean itself up.
 	OTCleanup<OTAccount>	theRecipAcctSmrtPtr(*pRecipientAcct);
-	// -----------------------------------------------------------------
-	
-	
+
+
 	// BY THIS POINT, both accounts are successfully loaded, and I don't have to worry about
 	// cleaning either one of them up, either. But I can now use pSourceAcct and pRecipientAcct...
-	//
-	//
-	// -----------------------------------------------------------------------------------
-	
+
+
 	// A few verification if/elses...
 	
 	// Are both accounts of the same Asset Type?
 	if (pSourceAcct->GetAssetTypeID() != pRecipientAcct->GetAssetTypeID())
 	{	// We already know the SUPPOSED Asset IDs of these accounts... But only once
 		// the accounts THEMSELVES have been loaded can we VERIFY this to be true.
-		OTLog::Output(0, "ERROR - attempted payment between accounts of different "
-					  "asset types in OTPaymentPlan::ProcessPayment\n");
+		otOut << "ERROR - attempted payment between accounts of different "
+					  "asset types in OTPaymentPlan::ProcessPayment\n";
 		FlagForRemoval(); // Remove it from future Cron processing, please.
 		return false;
 	}
@@ -880,14 +861,14 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 	// I call VerifySignature here since VerifyContractID was already called in LoadExistingAccount().
 	else if (!pSourceAcct->VerifyOwner(*pSenderNym) || !pSourceAcct->VerifySignature(*pServerNym) )
 	{
-		OTLog::Output(0, "ERROR verifying ownership or signature on source account in OTPaymentPlan::ProcessPayment\n");
+		otOut << "ERROR verifying ownership or signature on source account in OTPaymentPlan::ProcessPayment\n";
 		FlagForRemoval(); // Remove it from future Cron processing, please.
 		return false;
 	}
 	
 	else if (!pRecipientAcct->VerifyOwner(*pRecipientNym) || !pRecipientAcct->VerifySignature(*pServerNym) )
 	{
-		OTLog::Output(0, "ERROR verifying ownership or signature on recipient account in OTPaymentPlan::ProcessPayment\n");
+		otOut << "ERROR verifying ownership or signature on recipient account in OTPaymentPlan::ProcessPayment\n";
 		FlagForRemoval(); // Remove it from future Cron processing, please.
 		return false;
 	}
@@ -909,23 +890,23 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 		// ALL inboxes -- no outboxes. All will receive notification of something ALREADY DONE.
 		bool bSuccessLoadingSenderInbox		= theSenderInbox.LoadInbox();
 		bool bSuccessLoadingRecipientInbox	= theRecipientInbox.LoadInbox();
-		// --------------------------------------------------------------------
+
 		// ...or generate them otherwise...
         //
 		if (true == bSuccessLoadingSenderInbox)
 			bSuccessLoadingSenderInbox		= theSenderInbox.VerifyAccount(*pServerNym);
 		else
 			bSuccessLoadingSenderInbox		= theSenderInbox.GenerateLedger(SOURCE_ACCT_ID, SERVER_ID, OTLedger::inbox, true); // bGenerateFile=true
-        // --------------------------------------------------------------------
+
 		if (true == bSuccessLoadingRecipientInbox)
 			bSuccessLoadingRecipientInbox		= theRecipientInbox.VerifyAccount(*pServerNym);
 		else
 			bSuccessLoadingRecipientInbox		= theRecipientInbox.GenerateLedger(RECIPIENT_ACCT_ID, SERVER_ID, OTLedger::inbox, true); // bGenerateFile=true
-		// --------------------------------------------------------------------
+
 		if ((false == bSuccessLoadingSenderInbox)  ||
 			(false == bSuccessLoadingRecipientInbox))
 		{
-			OTLog::vError("%s: ERROR loading or generating inbox ledger.\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": ERROR loading or generating inbox ledger.\n";
 		}
 		else 
 		{
@@ -935,7 +916,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 //			OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.			
 			if (0 == lNewTransactionNumber)
 			{
-				OTLog::Output(0, "WARNING: Payment plan is unable to process because there are no more transaction numbers available.\n");
+				otOut << "WARNING: Payment plan is unable to process because there are no more transaction numbers available.\n";
 				// (Here I do NOT flag for removal.)
 				return false; 			
 			}
@@ -987,7 +968,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			//
 			pTransSend ->SetReferenceString(strOrigPlan);
 			pTransRecip->SetReferenceString(strOrigPlan);
-			// --------------------------------------------------------------------------
+
 			// MOVE THE DIGITAL ASSETS FROM ONE ACCOUNT TO ANOTHER...
 			
 			// Calculate the amount and debit/ credit the accounts
@@ -1020,7 +1001,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 				// If ANY of these failed, then roll them all back and break.
 				if (!bMoveSender || !bMoveRecipient)
 				{
-					OTLog::Error("Very strange! Funds were available but debit or credit failed while performing payment.\n");
+					otErr << "Very strange! Funds were available but debit or credit failed while performing payment.\n";
 					// We won't save the files anyway, if this failed. 					
 					bSuccess = false;
 				}				
@@ -1043,13 +1024,13 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 				if (m_bProcessingInitialPayment) // if this is a success for an initial payment
 				{
 					SetInitialPaymentDone();	
-					OTLog::Output(3, "Initial payment performed in OTPaymentPlan::ProcessPayment\n");
+					otLog3 << "Initial payment performed in OTPaymentPlan::ProcessPayment\n";
 				}
 				else if (m_bProcessingPaymentPlan) // if this is a success for payment plan payment.
 				{
 					IncrementNoPaymentsDone();	
 					SetDateOfLastPayment(OTTimeGetCurrentTime());
-					OTLog::Output(3, "Payment plan payment performed in OTPaymentPlan::ProcessPayment\n");
+					otLog3 << "Payment plan payment performed in OTPaymentPlan::ProcessPayment\n";
 				}
 				
 				// (I do NOT save m_pCron here, since that already occurs after this function is called.)
@@ -1066,13 +1047,13 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 				{
 					IncrementNoInitialFailures();
 					SetLastFailedInitialPaymentDate(OTTimeGetCurrentTime());
-					OTLog::Output(3, "Initial payment failed in OTPaymentPlan::ProcessPayment\n");
+					otLog3 << "Initial payment failed in OTPaymentPlan::ProcessPayment\n";
 				}
 				else if (m_bProcessingPaymentPlan)
 				{
 					IncrementNoFailedPayments();
 					SetDateOfLastFailedPayment(OTTimeGetCurrentTime());
-					OTLog::Output(3, "Payment plan payment failed in OTPaymentPlan::ProcessPayment\n");
+					otLog3 << "Payment plan payment failed in OTPaymentPlan::ProcessPayment\n";
 				}
 			}
 			
@@ -1098,7 +1079,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			// success or failure, rain or shine.
 			//m_pCron->SaveCron(); // Cron is where I am serialized, so if Cron's not saved, I'm not saved.
 			
-			// -----------------------------------------------------------------
+
 			//
 			// EVERYTHING BELOW is just about notifying the users, by dropping the receipt in their
 			// inboxes. The rest is done.  The accounts and inboxes will all be saved at the same time.
@@ -1106,7 +1087,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			// The Payment Plan is entirely updated and saved by this point, and Cron will
 			// also be saved in the calling function once we return (no matter what.)
 			//
-			// -----------------------------------------------------------------
+
 			
 			
 			// Basically I load up both INBOXES, which are actually LEDGERS, and then I create
@@ -1116,7 +1097,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			
 			
 			
-			// -----------------------------------------------------------------
+
 			
 			// The TRANSACTION will be sent with "In Reference To" information containing the
 			// ORIGINAL SIGNED PLAN. (With both of the users' original signatures on it.)
@@ -1145,7 +1126,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			// (As a receipt for each trader, so they can see their offer updating.)
 			pItemSend->SetAttachment(strUpdatedPlan);
 			pItemRecip->SetAttachment(strUpdatedPlan);			
-			// -----------------------------------------------------------------
+
 			// Success OR failure, either way I want a receipt in both inboxes.
 			// But if FAILURE, I do NOT want to save the Accounts, JUST the inboxes.
 			// So the inboxes happen either way, but the accounts are saved only on success.
@@ -1166,13 +1147,13 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			
 			pTransSend->SaveContract();
 			pTransRecip->SaveContract();
-			// -------------------------------------------
+
 			// Here, the transactions we just created are actually added to the ledgers.
 			// This happens either way, success or fail.
 			
 			theSenderInbox.		AddTransaction(*pTransSend);
 			theRecipientInbox.	AddTransaction(*pTransRecip);
-			// -------------------------------------------
+
 			// Release any signatures that were there before (They won't
 			// verify anymore anyway, since the content has changed.)
 			theSenderInbox.		ReleaseSignatures();
@@ -1200,7 +1181,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t & lAmount)
 			// and the receipts will contain a rejection or acknowledgment stamped by the Server Nym.)
 			if (true == bSuccess)
 			{					
-				// -------------------------------------------
+
 				// Release any signatures that were there before (They won't
 				// verify anymore anyway, since the content has changed.)
 				pSourceAcct->	ReleaseSignatures();	
@@ -1278,11 +1259,11 @@ void OTPaymentPlan::onFinalReceipt()
     
     OTAgreement::onFinalReceipt();
     
-    // -----------------------------------------------------------
+
     
     // Not much done in this one.
     
-    // -----------------------------------------------------------
+
     
 
     
@@ -1297,11 +1278,11 @@ void OTPaymentPlan::onRemovalFromCron()
     
     OTAgreement::onRemovalFromCron();
     
-    // -----------------------------------------------------------
+
 
     // Not much done in this one.
     
-    // -----------------------------------------------------------
+
 
 }
 */
@@ -1330,7 +1311,7 @@ void OTPaymentPlan::ProcessPaymentPlan()
 	
 	GetCron()->SaveCron();
 	
-	// -----------------------------------------------------
+
 }
 
 
@@ -1341,12 +1322,12 @@ bool OTPaymentPlan::ProcessCron()
 {
 	OT_ASSERT(NULL != GetCron());
 	
-	// -----------------------------------------------------------------
+
 	// Right now Cron is called 10 times per second.
 	// I'm going to slow down all trades so they are once every GetProcessInterval()
     if (GetLastProcessDate() > OT_TIME_ZERO)
 	{
-//		OTLog::vOutput(3, "DEBUG: time: %d  Last process date: %d   Time since last: %d    Interval: %d\n",
+//		otLog3 << "DEBUG: time: %d  Last process date: %d   Time since last: %d    Interval: %d\n",
 //					   OTTimeGetCurrentTime(), GetLastProcessDate(), (OTTimeGetCurrentTime() - GetLastProcessDate()),
 //					   GetProcessInterval());
 		
@@ -1359,8 +1340,8 @@ bool OTPaymentPlan::ProcessCron()
 	// (NOT saved to storage, only used while the software is running.)
 	// (Thus no need to release signatures, sign contract, save contract, etc.)
 	SetLastProcessDate(OTTimeGetCurrentTime());
-	// -----------------------------------------------------------------
-			
+
+
 	// END DATE --------------------------------
 	// First call the parent's version (which this overrides) so it has
 	// a chance to check its stuff. 
@@ -1368,7 +1349,7 @@ bool OTPaymentPlan::ProcessCron()
     //
 	if (false == ot_super::ProcessCron())
 	{
-		OTLog::Output(3, "Cron job has expired.\n");
+		otLog3 << "Cron job has expired.\n";
 		return false;	// It's expired or flagged for removal--remove it from Cron.
 	}
 
@@ -1377,18 +1358,15 @@ bool OTPaymentPlan::ProcessCron()
 	if (!VerifyCurrentDate())
 		return true;	// The Payment Plan is not yet valid, so we return. BUT, we also 
 						// return TRUE, so it will STAY on Cron until it BECOMES valid.
-	
-	
-	// -----------------------------------------------------------------------------
+
 
 	if (GetCron()->GetTransactionCount() < 1)
 	{
-		OTLog::Output(0, "Failed to process payment: Out of transaction numbers!\n");
+		otOut << "Failed to process payment: Out of transaction numbers!\n";
 		return true;	// If there aren't enough transaction numbers, this won't log
 						// 10 times per second, but instead every hour or every day, 
 	}					// since plans don't process any more often than that anyway.
-	
-	// -----------------------------------------------------------------------------
+
 
 	// First process the initial payment...
 	
@@ -1398,22 +1376,21 @@ bool OTPaymentPlan::ProcessCron()
 		(OTTimeGetTimeInterval(OTTimeGetCurrentTime(), GetLastFailedInitialPaymentDate()) > OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS))) // and it's been more than a day since I last failed attmpting this...
 	{	// THEN we're due for the initial payment! Process it!
 
-		OTLog::Output(3, "Cron: Processing initial payment...\n");
+		otLog3 << "Cron: Processing initial payment...\n";
 
 		ProcessInitialPayment();
 	}
-	
-	// -----------------------------------------------------------------------------
+
 
 	// Next, process the payment plan...
-	OTLog::vOutput(3, "(payment plan): Flagged/Removal: %s Has Plan: %s Current time: %" PRId64" Start Date: %" PRId64"\n",
-				   (IsFlaggedForRemoval() ? "TRUE" : "FALSE"), (HasPaymentPlan() ? "TRUE" : "FALSE"), 
-                   OTTimeGetSecondsFromTime(OTTimeGetCurrentTime()), OTTimeGetSecondsFromTime(GetPaymentPlanStartDate()));
+	otLog3 << "(payment plan): Flagged/Removal: " << (IsFlaggedForRemoval() ? "TRUE" : "FALSE") << " Has Plan: "
+		<< (HasPaymentPlan() ? "TRUE" : "FALSE") << " Current time: " << OTTimeGetSecondsFromTime(OTTimeGetCurrentTime()) <<
+		" Start Date: " << OTTimeGetSecondsFromTime(GetPaymentPlanStartDate()) << "\n";
     
 	if (!IsFlaggedForRemoval() && HasPaymentPlan() &&		// This object COULD have gotten flagged for removal during the ProcessInitialPayment()
 		(OTTimeGetCurrentTime() > GetPaymentPlanStartDate()))		// call. Therefore, I am sure to check that it's NOT IsFlaggedForRemoval() before calling
 	{														// this block of code.
-//		OTLog::Error("DEBUG: Payment Plan -------------\n");
+//		otErr << "DEBUG: Payment Plan -------------\n";
 		
 		// First I'll calculate whether the next payment would be due, based on start date,
 		// time between payments, and date of last payment.
@@ -1441,42 +1418,42 @@ bool OTPaymentPlan::ProcessCron()
         const int64_t nNoPaymentsThatShouldHaveHappenedByNow = DURATION_SINCE_START / OTTimeGetSecondsFromTime(GetTimeBetweenPayments()) + 1;
 		// The +1 is because it charges on the 1st day of the plan. So 14 days, which is 7 times 2, equals *3* payments, not 2.
 
-//		OTLog::vOutput(3, "Payments that should have happened by now: %d\n"
+//		otLog3 << "Payments that should have happened by now: %d\n"
 //					   "Number payments done: %d      date of last payment: %d\n"
 //					   "Date of last failed payment: %d   Time Between: %d", 
 //					   nNoPaymentsThatShouldHaveHappenedByNow, GetNoPaymentsDone(), GetDateOfLastPayment(),
 //					   GetDateOfLastFailedPayment(), GetTimeBetweenPayments());
-		// -------------------------------------------------------
+
 		
 		// It's expired, remove it. (I check >0 because this one is an optional field.)
 		if ((GetMaximumNoPayments() > 0) && (GetNoPaymentsDone() >= GetMaximumNoPayments()))
 		{
-			OTLog::Output(1, "Payment plan has expired by reaching max number of payments allowed.\n");
+			otWarn << "Payment plan has expired by reaching max number of payments allowed.\n";
 			return false; // This payment plan will be removed from Cron by returning false.
 		}
 		// Again, I check >0 because the plan length is optional and might just be 0.
         else if ((GetPaymentPlanLength() > OT_TIME_ZERO) && (OTTimeGetCurrentTime() >= OTTimeAddTimeInterval(GetPaymentPlanStartDate(), OTTimeGetSecondsFromTime(GetPaymentPlanLength()))))
 		{
-			OTLog::Output(1, "Payment plan has expired by reaching its maximum length of time.\n");
+			otWarn << "Payment plan has expired by reaching its maximum length of time.\n";
 			return false; // This payment plan will be removed from Cron by returning false.
 		}
 		else if (nNoPaymentsThatShouldHaveHappenedByNow	<=	GetNoPaymentsDone())	// if not enough payments have happened...
 		{
-//			OTLog::Output(3, "DEBUG: Enough payments have already been made.\n");
+//			otLog3 << "DEBUG: Enough payments have already been made.\n");
 		}
         else if (OTTimeGetTimeInterval(OTTimeGetCurrentTime(), GetDateOfLastPayment()) < OTTimeGetSecondsFromTime(GetTimeBetweenPayments())) // and the time since last payment is more than the payment period...
 		{
-//			OTLog::Output(3, "DEBUG: Not enough time has elapsed.\n");	
+//			otLog3 << "DEBUG: Not enough time has elapsed.\n");	
 		}
 		else if (OTTimeGetTimeInterval(OTTimeGetCurrentTime(), GetDateOfLastFailedPayment()) < OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS)) // and it's been at least 24 hrs since the last failed payment...
 		{
-			OTLog::Output(3, "Cron (processing payment plan): Not enough time since last failed payment.\n");
+			otLog3 << "Cron (processing payment plan): Not enough time since last failed payment.\n";
 		}
 		// Okay -- PROCESS IT!
 		else					// The above 3 end-comments have opposite logic from their if(), since they used to be here.
 		{						// I reversed the operators so they could be failures, resulting in this else block for success.
 			
-			OTLog::Output(3, "Cron: Processing payment...\n");
+			otLog3 << "Cron: Processing payment...\n";
 			
 			// This function assumes the payment is due, and it only fails in the case of 
 			// the payer's account having insufficient funds.
@@ -1501,7 +1478,7 @@ bool OTPaymentPlan::ProcessCron()
 	if (IsFlaggedForRemoval() ||
 		(HasInitialPayment() && IsInitialPaymentDone() && !HasPaymentPlan()))
 	{
-		OTLog::Output(3, "OTPaymentPlan::ProcessCron: Removing payment plan from cron processing...\n");
+		otLog3 << "OTPaymentPlan::ProcessCron: Removing payment plan from cron processing...\n";
 		return false; // if there's no plan, and initial payment is done, nothing left to do. Remove!
 	}	
 

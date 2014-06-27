@@ -197,10 +197,10 @@ OTAgent * OTPartyAccount::GetAuthorizedAgent()
 
 	if (!m_strAgentName.Exists())
 	{
-		OTLog::Error("OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent name (for this account) is blank!\n");
+		otErr << "OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent name (for this account) is blank!\n";
 		return NULL;
 	}
-	// -------------------------------------
+
 	const std::string str_agent_name = m_strAgentName.Get();
 
 	OTAgent * pAgent = m_pForParty->GetAgent(str_agent_name);
@@ -230,25 +230,25 @@ bool OTPartyAccount::IsAccountByID(const OTIdentifier & theAcctID) const
 {
 	if (!m_strAcctID.Exists())
 	{
-//		OTLog::Error("OTPartyAccount::IsAccountByID: Error: Empty m_strAcctID.\n");
+//		otErr << "OTPartyAccount::IsAccountByID: Error: Empty m_strAcctID.\n";
 		return false;
 	}
 
 	if (!m_strAssetTypeID.Exists())
 	{
-//		OTLog::Error("OTPartyAccount::IsAccountByID: Error: Empty m_strAssetTypeID.\n");
+//		otErr << "OTPartyAccount::IsAccountByID: Error: Empty m_strAssetTypeID.\n";
 		return false;
 	}
-	// --------------------------------------------------------
+
 	const OTIdentifier theMemberAcctID(m_strAcctID);
 	if (!(theAcctID == theMemberAcctID))
 	{
 		OTString strRHS(theAcctID);
-		OTLog::vOutput(4, "OTPartyAccount::IsAccountByID: Account IDs don't match: %s / %s \n",
-					   m_strAcctID.Get(), strRHS.Get()); // I set output to 4 because it's normal to call IsAccountByID() even when they don't match.
+		otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: " << m_strAcctID << " / " << strRHS << " \n";
+		// I set output to 4 because it's normal to call IsAccountByID() even when they don't match.
 		return false;
 	}
-	// --------------------------------------------------------
+
 	// They  match!
 
 	return true;
@@ -259,34 +259,34 @@ bool OTPartyAccount::IsAccount(OTAccount & theAccount)
 {
 	if (!m_strAcctID.Exists())
 	{
-		OTLog::Error("OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n");
+		otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n";
 		return false;
 	}
 
 	if (!m_strAssetTypeID.Exists())
 	{
-		OTLog::Error("OTPartyAccount::IsAccount: Error: Empty m_strAssetTypeID.\n");
+		otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAssetTypeID.\n";
 		return false;
 	}
-	// --------------------------------------------------------
+
 	const OTIdentifier theAcctID(m_strAcctID);
 	if (!(theAccount.GetRealAccountID() == theAcctID))
 	{
 		OTString strRHS(theAccount.GetRealAccountID());
-		OTLog::vOutput(4, "OTPartyAccount::IsAccount: Account IDs don't match: %s / %s \n", // I set output to 4 because it's normal to call IsAccount() even when they don't match.
-					   m_strAcctID.Get(), strRHS.Get());
+		otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: " << m_strAcctID << " / "
+			<< strRHS << " \n"; // I set output to 4 because it's normal to call IsAccount() even when they don't match.
 		return false;
 	}
-	// --------------------------------------------------------
+
 	const OTIdentifier theAssetTypeID(m_strAssetTypeID);
 	if (!(theAccount.GetAssetTypeID() == theAssetTypeID))
 	{
 		OTString strRHS(theAccount.GetAssetTypeID());
-		OTLog::vOutput(0, "OTPartyAccount::IsAccount: Asset Type IDs don't match ( %s / %s ) for Acct ID: %s \n",
-					   m_strAssetTypeID.Get(), strRHS.Get(), m_strAcctID.Get());
+		otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( " << m_strAssetTypeID << " / " 
+			<< strRHS << " ) for Acct ID: " << m_strAcctID << " \n";
 		return false;
 	}
-	// --------------------------------------------------------
+
 
 	m_pAccount = &theAccount;
 	return true;
@@ -299,23 +299,22 @@ bool OTPartyAccount::VerifyOwnership() const
 {
 //	OTParty		* m_pForParty;
 //	OTAccount	* m_pAccount;
-	// -------------------------
+
 	if (NULL == m_pForParty)
 	{
-		OTLog::Error("OTPartyAccount::VerifyOwnership: Error: NULL pointer to owner party. \n");
+		otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to owner party. \n";
 		return false;
 	}
 	if (NULL == m_pAccount)
 	{
-		OTLog::Error("OTPartyAccount::VerifyOwnership: Error: NULL pointer to account. (This function expects account to already be loaded.) \n");
+		otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to account. (This function expects account to already be loaded.) \n";
 		return false;
 	} // todo maybe turn the above into OT_ASSERT()s.
-	// -------------------------
+
 
 	if (false == m_pForParty->VerifyOwnershipOfAccount(*m_pAccount))
 	{
-		OTLog::vOutput(0, "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as the ACTUAL owner of account: %s \n",
-					   m_strName.Get());
+		otOut << "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as the ACTUAL owner of account: " << m_strName << " \n";
 		return false;
 	}
 
@@ -329,26 +328,26 @@ bool OTPartyAccount::VerifyAgency()
 {
 	if (NULL == m_pAccount)
 	{
-		OTLog::Error("OTPartyAccount::VerifyAgency: Error: NULL pointer to account. (This function expects account to already be loaded.) \n");
+		otErr << "OTPartyAccount::VerifyAgency: Error: NULL pointer to account. (This function expects account to already be loaded.) \n";
 		return false;
 	} // todo maybe turn the above into OT_ASSERT()s.
-	// -------------------------
+
 	OTAgent * pAgent = this->GetAuthorizedAgent();
 
 	if (NULL == pAgent)
 	{
-		OTLog::vOutput(0, "OTPartyAccount::VerifyAgency: Unable to find authorized agent (%s) for this account: %s \n",
-					   GetAgentName().Get(), GetName().Get());
+		otOut << "OTPartyAccount::VerifyAgency: Unable to find authorized agent (" << GetAgentName() <<
+			") for this account: " << GetName() << " \n";
 		return false;
 	}
-	// -------------------------
+
 	if (false == pAgent->VerifyAgencyOfAccount(*m_pAccount))
 	{
-		OTLog::vOutput(0, "OTPartyAccount::VerifyAgency: Agent %s doesn't verify as ACTUALLY having rights over account %s with ID: %s \n",
-					   GetAgentName().Get(), GetName().Get(), GetAcctID().Get());
+		otOut << "OTPartyAccount::VerifyAgency: Agent " << GetAgentName() <<
+			" doesn't verify as ACTUALLY having rights over account " << GetName() << " with ID: " << GetAcctID() << " \n";
 		return false;
 	}
-	// -------------------------
+
 
 	return true;
 }
@@ -364,34 +363,34 @@ bool OTPartyAccount::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
 											 OTString * pstrAttachment/*=NULL*/)
 {
     const char * szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
-    // -----------------------------
+
 	if (NULL == m_pForParty)
 	{
-		OTLog::vError("%s: NULL m_pForParty.\n", szFunc);
+		otErr << szFunc << ": NULL m_pForParty.\n";
 		return false;
 	}
 	else if (!m_strAcctID.Exists())
 	{
-		OTLog::vError("%s: Empty Acct ID.\n", szFunc);
+		otErr << szFunc << ": Empty Acct ID.\n";
 		return false;
 	}
 	else if (!m_strAgentName.Exists())
 	{
-		OTLog::vError("%s: No agent named for this account.\n", szFunc);
+		otErr << szFunc << ": No agent named for this account.\n";
 		return false;
 	}
-	// ----------------------------------------
+
 
 	// TODO: When entites and roles are added, this function may change a bit to accommodate them.
 
-	// ----------------------------------------
+
 
 	const std::string str_agent_name(m_strAgentName.Get());
 
 	OTAgent * pAgent = m_pForParty->GetAgent(str_agent_name);
 
 	if (NULL == pAgent)
-		OTLog::vError("%s: named agent wasn't found on party.\n", szFunc);
+		otErr << szFunc << ": named agent wasn't found on party.\n";
 	else
 	{
 		const OTIdentifier theAccountID(m_strAcctID);
@@ -405,7 +404,6 @@ bool OTPartyAccount::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
 											   strOrigCronItem, pstrNote, pstrAttachment);
 	}
 
-	// ------------------------------------------
 
 	return false;
 }
@@ -419,8 +417,7 @@ OTAccount * OTPartyAccount::LoadAccount(OTPseudonym & theSignerNym, const OTStri
 {
 	if (!m_strAcctID.Exists())
 	{
-		OTLog::vOutput(0, "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for account: %s \n",
-					   m_strName.Get());
+		otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for account: " << m_strName << " \n";
 		return NULL;
 	}
 
@@ -430,20 +427,20 @@ OTAccount * OTPartyAccount::LoadAccount(OTPseudonym & theSignerNym, const OTStri
 
 	if (NULL == pAccount)
 	{
-		OTLog::vOutput(0, "OTPartyAccount::LoadAccount: Failed trying to load account: %s, with AcctID: %s \n",
-					   m_strName.Get(), m_strAcctID.Get());
+		otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: " << m_strName <<
+			", with AcctID: " << m_strAcctID << " \n";
 		return NULL;
 	}
 	// BELOW THIS POINT, You must delete pAccount if you don't return it!!
 	//
 	else if (!pAccount->VerifyAccount(theSignerNym))
 	{
-		OTLog::vOutput(0, "OTPartyAccount::LoadAccount: Failed trying to verify account: %s, with AcctID: %s \n",
-					   m_strName.Get(), m_strAcctID.Get());
+		otOut << "OTPartyAccount::LoadAccount: Failed trying to verify account: " << m_strName << 
+			", with AcctID: " << m_strAcctID << " \n";
 		delete pAccount;
 		return NULL;
 	}
-	// -----------------------------------------
+
 	// This compares asset type ID, AND account ID on the actual loaded account, to what is expected.
 	else if (!this->IsAccount(*pAccount)) // It also sets the internal pointer m_pAccount... FYI.
 	{
@@ -487,7 +484,7 @@ void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 {
 	const std::string str_acct_name	= m_strName.Get();
 //	const std::string str_acct_id	= m_strAcctID.Get();
-	// -------------------------------------------------------------------------
+
 	theScript.AddAccount (str_acct_name, *this);
 }
 
@@ -497,18 +494,16 @@ bool OTPartyAccount::Compare(const OTPartyAccount & rhs) const
 {
 	if (!(this->GetName().Compare(rhs.GetName())))
 	{
-		OTLog::vOutput(0, "OTPartyAccount::Compare: Names don't match: %s / %s \n",
-					   this->GetName().Get(), rhs.GetName().Get());
+		otOut << "OTPartyAccount::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
 		return false;
 	}
-	// --------------------------------------------------
+
 	if ( (this->GetClosingTransNo() > 0) &&
 		 (rhs.	GetClosingTransNo() > 0) &&
 		 (this->GetClosingTransNo() != rhs.GetClosingTransNo())
 	   )
 	{
-		OTLog::vOutput(0, "OTPartyAccount::Compare: Closing transaction numbers don't match: %s \n",
-					   this->GetName().Get());
+		otOut << "OTPartyAccount::Compare: Closing transaction numbers don't match: " << this->GetName() << " \n";
 		return false;
 	}
 
@@ -517,8 +512,8 @@ bool OTPartyAccount::Compare(const OTPartyAccount & rhs) const
 		 (!this->GetAcctID().Compare(rhs.GetAcctID()))
 	   )
 	{
-		OTLog::vOutput(0, "OTPartyAccount::Compare: Asset account numbers don't match for party account %s.\n( %s  /  %s ) \n",
-					   this->GetName().Get(), this->GetAcctID().Get(), rhs.GetAcctID().Get());
+		otOut << "OTPartyAccount::Compare: Asset account numbers don't match for party account " << this->GetName() << ".\n( "
+			<< this->GetAcctID() << "  /  " << rhs.GetAcctID() << " ) \n";
 		return false;
 	}
 
@@ -527,21 +522,21 @@ bool OTPartyAccount::Compare(const OTPartyAccount & rhs) const
 		 (!this->GetAgentName().Compare(rhs.GetAgentName()))
 	   )
 	{
-		OTLog::vOutput(0, "OTPartyAccount::Compare: Agent names don't match for party account %s.\n( %s  /  %s ) \n",
-					   this->GetName().Get(), this->GetAgentName().Get(), rhs.GetAgentName().Get());
+		otOut << "OTPartyAccount::Compare: Agent names don't match for party account " << this->GetName() << ".\n( "
+			<< this->GetAgentName() << "  /  " << rhs.GetAgentName() << " ) \n";
 		return false;
 	}
-	// --------------------------------------------------
+
 	if (!(this->GetAssetTypeID().Exists()) ||
 		!(rhs.	GetAssetTypeID().Exists()) ||
 		!(this->GetAssetTypeID().Compare(rhs.GetAssetTypeID()))
 	   )
 	{
-		OTLog::vOutput(0, "OTPartyAccount::Compare: Asset Type IDs don't exist, or don't match ( %s / %s ) for party's account: %s \n",
-					   this->GetAssetTypeID().Get(), rhs.GetAssetTypeID().Get(), this->GetName().Get());
+		otOut << "OTPartyAccount::Compare: Asset Type IDs don't exist, or don't match ( " << this->GetAssetTypeID() <<
+			" / " << rhs.GetAssetTypeID() << " ) for party's account: " << this->GetName() << " \n";
 		return false;
 	}
-	// --------------------------------------------------
+
 
 	return true;
 }

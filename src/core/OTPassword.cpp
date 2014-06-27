@@ -235,8 +235,8 @@ bool ot_lockPage(void* addr, size_t len)
 	if (mlock(addr, len) && !bWarned)
     {
         bWarned = true;
-        OTLog::Error("ot_lockPage: WARNING: unable to lock memory. \n"
-                     "   (Passwords / secret keys may be swapped to disk!)\n");
+        otErr << "ot_lockPage: WARNING: unable to lock memory. \n"
+                     "   (Passwords / secret keys may be swapped to disk!)\n";
     }
     return true;
 #else
@@ -260,7 +260,7 @@ bool ot_unlockPage(void* addr, size_t len)
 	if (munlock(addr, len) && !bWarned)
     {
         bWarned = true;
-        OTLog::Error("ot_unlockPage: WARNING: unable to unlock memory used for storing secrets.\n");
+        otErr << "ot_unlockPage: WARNING: unable to unlock memory used for storing secrets.\n";
     }
     return true;
 #else
@@ -279,9 +279,9 @@ bool ot_unlockPage(void* addr, size_t len)
 void OTPassword::zeroMemory()
 {
 	m_nPasswordSize = 0;
-    // -------------------
+
     OTPassword::zeroMemory(static_cast<void *>(&(m_szPassword[0])), static_cast<uint32_t>(getBlockSize()));
-    // -------------------
+
     //
 #ifndef _WIN32
     // UNLOCK the page, now that we're AFTER the point where
@@ -294,10 +294,10 @@ void OTPassword::zeroMemory()
             m_bIsPageLocked = false;
         }
         else
-            OTLog::Error("OTPassword::zeroMemory: Error: Memory page was locked, but then failed to unlock it.\n");
+            otErr << "OTPassword::zeroMemory: Error: Memory page was locked, but then failed to unlock it.\n";
     }
 #endif
-    // -------------------
+
 }
 
 
@@ -318,7 +318,7 @@ void OTPassword::zeroMemory(void * vMemory, uint32_t theSize)
 void OTPassword::zeroMemory(uint8_t * szMemory, uint32_t theSize)
 {
 #ifdef _WIN32
-	// ------
+
 	//
 	SecureZeroMemory(szMemory, theSize);
 
@@ -328,7 +328,7 @@ void OTPassword::zeroMemory(uint8_t * szMemory, uint32_t theSize)
 //#pragma optimize("", off)
 //	memset(szMemory, 0, theSize);
 //#pragma optimize("", on)
-	// -------------------------
+
 	// Dr. UNIX, I presume? So, we meet again...
 #else
 	ot_secure_memset(szMemory, static_cast<uint8_t>(0), theSize);
@@ -402,7 +402,7 @@ void * OTPassword::safe_memcpy(void   * dest,
         {
             OTPassword::zeroMemory(const_cast<void *>(src), src_length);
         }
-        // ------------------------
+
         return dest;
     }
 
@@ -422,7 +422,7 @@ void * OTPassword::safe_memcpy(void   * dest,
 OTPassword * OTPassword::CreateTextBuffer() // asserts already.
 {
     // Caller MUST delete!
-    // ---------------------------------------------------
+
     char  throwaway_text[OT_DEFAULT_BLOCKSIZE];
     for (int32_t tt = 0; tt < OT_DEFAULT_BLOCKSIZE; ++tt)
     {
@@ -436,7 +436,7 @@ OTPassword * OTPassword::CreateTextBuffer() // asserts already.
     OTPassword * pPassUserInput = new OTPassword(&(throwaway_text[0]), OT_DEFAULT_BLOCKSIZE-1); // text mode.
     OT_ASSERT_MSG(NULL != pPassUserInput, "OTPassword::CreateTextBuffer: ASSERT: OTPassword * pPassUserInput = new OTPassword(&(throwaway_text[0]), OT_DEFAULT_BLOCKSIZE-1);");
     // Below this point, pPassUserInput must be returned, or deleted. (Or it will leak.)
-    // -----------------------------------------------
+
     return pPassUserInput;
 }
 
@@ -689,36 +689,36 @@ int32_t OTPassword::setPassword_uint8(const uint8_t * szInput, uint32_t nInputSi
     OT_ASSERT(NULL != szInput);
 
     const char * szFunc = "OTPassword::setPassword";
-    // ---------------------------------
-	// Wipe whatever was in there before.
-    //
-	if (m_nPasswordSize > 0)
-		zeroMemory();
-	// ---------------------------------
-    m_bIsBinary = false;
-    m_bIsText   = true;
-	// ---------------------------------
-	if (0 == nInputSize)
-		return 0;
-	// ---------------------------------
 
-	// Make sure no input size is larger than our block size
-	//
-	if (nInputSize > getBlockSize())
-		nInputSize = getBlockSize(); // Truncated password beyond max size.
-	// ---------------------------------
-	// The szInput string passed into this function should never
-	// be a different size than what is passed in. For example it shouldn't
-	// be SMALLER than what the user claims either. If it is, we error out.
-	//
-	if (OTString::safe_strlen(reinterpret_cast<const char *>(szInput), static_cast<size_t>(nInputSize)) < static_cast<size_t>(nInputSize))
-	{
-        OTLog::vError("%s: ERROR: string length of szInput did not match nInputSize.\n", szFunc);
-		return (-1);
-	}
+    // Wipe whatever was in there before.
+    //
+    if (m_nPasswordSize > 0)
+        zeroMemory();
+
+    m_bIsBinary = false;
+    m_bIsText = true;
+
+    if (0 == nInputSize)
+        return 0;
+
+
+    // Make sure no input size is larger than our block size
+    //
+    if (nInputSize > getBlockSize())
+        nInputSize = getBlockSize(); // Truncated password beyond max size.
+
+    // The szInput string passed into this function should never
+    // be a different size than what is passed in. For example it shouldn't
+    // be SMALLER than what the user claims either. If it is, we error out.
+    //
+    if (OTString::safe_strlen(reinterpret_cast<const char *>(szInput), static_cast<size_t>(nInputSize)) < static_cast<size_t>(nInputSize))
+    {
+        otErr << szFunc << ": ERROR: string length of szInput did not match nInputSize.\n";
+        return (-1);
+    }
 
 #ifndef _WIN32
-	// ---------------------------------
+
     //
     // Lock the memory page, before we copy the data over.
     // (If it's not already locked, which I doubt it will be.)
@@ -730,23 +730,25 @@ int32_t OTPassword::setPassword_uint8(const uint8_t * szInput, uint32_t nInputSi
             m_bIsPageLocked = true;
         }
         else
-            OTLog::vError("%s: Error: Failed attempting to lock memory page.\n", szFunc);
+        {
+            otErr << szFunc << ": Error: Failed attempting to lock memory page.\n";
+        }
     }
 #endif
-	// ---------------------------------
+
 #ifdef _WIN32
 	strncpy_s(reinterpret_cast<char *>(m_szPassword), (1 + nInputSize), reinterpret_cast<const char *>(szInput), nInputSize);
 #else
 	strncpy(reinterpret_cast<char *>(m_szPassword), reinterpret_cast<const char *>(szInput), nInputSize);
 #endif
 
-	// ---------------------------------
+
 	// force a null terminator in the 129th byte (at index 128.)
 	// (Or at the 6th byte (at index 5), if the size is 5 bytes int64_t.)
 	//
 	m_szPassword[nInputSize] = '\0';
     m_nPasswordSize          = nInputSize;
-	// ---------------------------------
+
 
 	return m_nPasswordSize;
 }
@@ -780,7 +782,7 @@ bool OTPassword::SetSize(uint32_t uSize)
         m_nPasswordSize     = uSize;  // If size is 3, the terminator is at m_szPassword[3] (which is the 4th byte.)
         return true;
     }
-    OTLog::vError("%s: Error: m_bIsBinary and m_bIsText are both false. (Should never happen.)\n", __FUNCTION__);
+	otErr << __FUNCTION__ << ": Error: m_bIsBinary and m_bIsText are both false. (Should never happen.)\n";
     return false;
 }
 
@@ -797,12 +799,12 @@ bool OTPassword::randomizePassword_uint8(uint8_t * szDestination, uint32_t nNewS
 {
     OT_ASSERT(NULL != szDestination);
     OT_ASSERT(nNewSize > 0);
-	// ---------------------------------
+
 //  const char * szFunc = "OTPassword::randomizePassword(static)";
-	// ---------------------------------
+
     if (OTPassword::randomizeMemory_uint8(szDestination, nNewSize))
     {
-        // --------------------------------------------------
+
         // This loop converts an array of binary bytes into the
         // same array, where each byte is translated to a byte
         // between the values of 33 and 122 (visible ASCII.)
@@ -812,7 +814,7 @@ bool OTPassword::randomizePassword_uint8(uint8_t * szDestination, uint32_t nNewS
             uint8_t temp     =  (( (szDestination[i]) % 89 ) + 33);
             szDestination[i] = temp;
         }
-        // --------------------------------------------------
+
         // Add the NULL terminator...
         //
         szDestination[nNewSize-1] = '\0';
@@ -829,22 +831,22 @@ bool OTPassword::randomizePassword_uint8(uint8_t * szDestination, uint32_t nNewS
 int32_t OTPassword::randomizePassword(uint32_t nNewSize/*=DEFAULT_SIZE*/)
 {
     uint32_t nSize = nNewSize;
-    // ---------------------------------
-	// Wipe whatever was in there before.
+
+    // Wipe whatever was in there before.
     //
-	if (m_nPasswordSize > 0)
-		zeroMemory();
-	// ---------------------------------
+    if (m_nPasswordSize > 0)
+        zeroMemory();
+
     m_bIsBinary = false;
-    m_bIsText   = true;
-	// ---------------------------------
-	if (0 == nSize)
-		return 0;
-	// ---------------------------------
-	// Make sure no input size is larger than our block size
-	//
-	if (nSize > getBlockSize())
-		nSize = getBlockSize(); // Truncated password beyond max size.
+    m_bIsText = true;
+
+    if (0 == nSize)
+        return 0;
+
+    // Make sure no input size is larger than our block size
+    //
+    if (nSize > getBlockSize())
+        nSize = getBlockSize(); // Truncated password beyond max size.
 #ifndef _WIN32
     //
     // Lock the memory page, before we randomize 'size bytes' of the data.
@@ -857,10 +859,12 @@ int32_t OTPassword::randomizePassword(uint32_t nNewSize/*=DEFAULT_SIZE*/)
             m_bIsPageLocked = true;
         }
         else
-            OTLog::vError("%s: Error: Failed attempting to lock memory page.\n", __FUNCTION__);
+        {
+            otErr << __FUNCTION__ << ": Error: Failed attempting to lock memory page.\n";
+        }
     }
 #endif
-	// ---------------------------------
+
     //
 	if (!OTPassword::randomizePassword_uint8(&(m_szPassword[0]), static_cast<int32_t>(nSize+1)))
     {
@@ -869,7 +873,7 @@ int32_t OTPassword::randomizePassword(uint32_t nNewSize/*=DEFAULT_SIZE*/)
         zeroMemory();
 		return -1;
 	}
-	// --------------------------------------------------
+
 	m_nPasswordSize = nSize;
 
 	return m_nPasswordSize;
@@ -896,22 +900,22 @@ bool OTPassword::randomizeMemory_uint8(uint8_t * szDestination, uint32_t nNewSiz
 int32_t OTPassword::randomizeMemory(uint32_t nNewSize/*=DEFAULT_SIZE*/)
 {
     uint32_t nSize = nNewSize;
-    // ---------------------------------
-	// Wipe whatever was in there before.
+
+    // Wipe whatever was in there before.
     //
-	if (m_nPasswordSize > 0)
-		zeroMemory();
-	// ---------------------------------
+    if (m_nPasswordSize > 0)
+        zeroMemory();
+
     m_bIsBinary = true;
-    m_bIsText   = false;
-	// ---------------------------------
-	if (0 == nSize)
-		return 0;
-	// ---------------------------------
-	// Make sure no input size is larger than our block size
-	//
-	if (nSize > getBlockSize())
-		nSize = getBlockSize(); // Truncated password beyond max size.
+    m_bIsText = false;
+
+    if (0 == nSize)
+        return 0;
+
+    // Make sure no input size is larger than our block size
+    //
+    if (nSize > getBlockSize())
+        nSize = getBlockSize(); // Truncated password beyond max size.
 
 #ifndef _WIN32
     //
@@ -925,10 +929,12 @@ int32_t OTPassword::randomizeMemory(uint32_t nNewSize/*=DEFAULT_SIZE*/)
             m_bIsPageLocked = true;
         }
         else
-            OTLog::vError("%s: Error: Failed attempting to lock memory page.\n", __FUNCTION__);
+        {
+            otErr << __FUNCTION__ << ": Error: Failed attempting to lock memory page.\n";
+        }
     }
 #endif
-	// ---------------------------------
+
     //
 	if (!OTPassword::randomizeMemory_uint8(&(m_szPassword[0]), nSize))
     {
@@ -937,7 +943,7 @@ int32_t OTPassword::randomizeMemory(uint32_t nNewSize/*=DEFAULT_SIZE*/)
         zeroMemory();
 		return -1;
 	}
-	// --------------------------------------------------
+
 	m_nPasswordSize = nSize;
 
 	return m_nPasswordSize;
@@ -952,10 +958,10 @@ int32_t OTPassword::addMemory(const void * vAppend, uint32_t nAppendSize)
     OT_ASSERT(NULL != vAppend);
 
 //  const char * szFunc = "OTPassword::addMemory";
-    // ---------------------------------
+
 	if (0 == nAppendSize)
 		return 0;
-	// ---------------------------------
+
 	// If I'm currently at a 0 size, then call setMemory instead.
     //
 	if (m_nPasswordSize == 0)
@@ -966,31 +972,31 @@ int32_t OTPassword::addMemory(const void * vAppend, uint32_t nAppendSize)
     // and I'm actually appending some other memory onto the end of it.
     //
     OT_ASSERT(m_bIsBinary); // Should already be set from the above setMemory call.
-	// ---------------------------------
+
 	// Make sure total new size isn't larger than our block size
 	//
 	if ((nAppendSize + m_nPasswordSize) > getBlockSize())
 		nAppendSize = (getBlockSize() - m_nPasswordSize); // Truncated password beyond max size.
-	// ---------------------------------
+
 //  OT_ASSERT(nAppendSize >= 0);
 
     if (0 == nAppendSize)
         return 0;
-    // ------------------------------------
+
     // By this point, I know nAppendSize is larger than 0, AND that appending it onto the
     // existing memory of this object will not exceed the total allowed block size.
     //
     // Because we use setMemory when empty, and only use addMemory when we KNOW something
     // is already there, therefore we know the page is already locked, so no need to go
     // trying to lock it again.
-	// ---------------------------------
+
     OTPassword::safe_memcpy(static_cast<void *>(&(m_szPassword[m_nPasswordSize])),
                             static_cast<uint32_t>(nAppendSize), // dest size is based on the source size, but guaranteed to be >0 and <=getBlockSize
                             vAppend,
                             static_cast<uint32_t>(nAppendSize)); // Since dest size is known to be src size or less (and >0) we use it as src size. (We may have truncated... and we certainly don't want to copy beyond our own truncation.)
-	// ---------------------------------
+
     m_nPasswordSize += nAppendSize;
-	// ---------------------------------
+
 	return nAppendSize;
 }
 
@@ -1001,23 +1007,23 @@ int32_t OTPassword::addMemory(const void * vAppend, uint32_t nAppendSize)
 int32_t OTPassword::setMemory(const void * vInput, uint32_t nInputSize)
 {
     OT_ASSERT(NULL != vInput);
-    // ---------------------------------
-	// Wipe whatever was in there before.
+
+    // Wipe whatever was in there before.
     //
-	if (m_nPasswordSize > 0)
-		zeroMemory();
-	// ---------------------------------
+    if (m_nPasswordSize > 0)
+        zeroMemory();
+
     m_bIsBinary = true;
-    m_bIsText   = false;
-	// ---------------------------------
-	if (0 == nInputSize)
-		return 0;
-	// ---------------------------------
-	// Make sure no input size is larger than our block size
-	//
-	if (nInputSize > getBlockSize())
-		nInputSize = getBlockSize(); // Truncated password beyond max size.
-	// ---------------------------------
+    m_bIsText = false;
+
+    if (0 == nInputSize)
+        return 0;
+
+    // Make sure no input size is larger than our block size
+    //
+    if (nInputSize > getBlockSize())
+        nInputSize = getBlockSize(); // Truncated password beyond max size.
+
 
 #ifndef _WIN32
     //
@@ -1031,18 +1037,20 @@ int32_t OTPassword::setMemory(const void * vInput, uint32_t nInputSize)
             m_bIsPageLocked = true;
         }
         else
-            OTLog::vError("%s: Error: Failed attempting to lock memory page.\n", __FUNCTION__);
+        {
+            otErr << __FUNCTION__<< ": Error: Failed attempting to lock memory page.\n";
+        }
     }
 #endif
 
-	// ---------------------------------
+
     OTPassword::safe_memcpy(static_cast<void *>(&(m_szPassword[0])),
                             static_cast<uint32_t>(nInputSize), // dest size is based on the source size, but guaranteed to be >0 and <=getBlockSize
                             vInput,
                             static_cast<uint32_t>(nInputSize)); // Since dest size is known to be src size or less (and >0) we use it as src size. (We may have truncated... and we certainly don't want to copy beyond our own truncation.)
-	// ---------------------------------
+
     m_nPasswordSize = nInputSize;
-	// ---------------------------------
+
 	return m_nPasswordSize;
 }
 

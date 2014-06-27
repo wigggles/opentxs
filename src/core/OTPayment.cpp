@@ -140,26 +140,26 @@
 #include "OTPurse.hpp"
 #include "OTSmartContract.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {
 
 char const * const __TypeStrings[] = 
 {
-    // ------------------
+
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument, which is
     // derived from OTScriptable, which is derived from OTContract.
-    // ------------------
+
     "CHEQUE",         // A cheque drawn on a user's account.
     "VOUCHER",        // A cheque drawn on a server account (cashier's cheque aka banker's cheque)
     "INVOICE",        // A cheque with a negative amount. (Depositing this causes a payment out, instead of a deposit in.)
-    // ------------------
+
     "PAYMENT PLAN",   // An OTCronItem-derived OTPaymentPlan, related to a recurring payment plan.
     "SMARTCONTRACT",  // An OTCronItem-derived OTSmartContract, related to a smart contract.
-    // ------------------
+
     "PURSE",          // An OTContract-derived OTPurse containing a list of cash OTTokens.
-    // ------------------
+
     "ERROR_STATE"
 };
 
@@ -200,28 +200,27 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types EXCEP
         
         if (NULL == pPurse)
         {
-            OTLog::vError("OTPayment::SetTempValues: Error: Failed instantiating OTPayment (purported purse) contents:\n\n%s\n\n",
-                          m_strPayment.Get());
+			otErr << "OTPayment::SetTempValues: Error: Failed instantiating OTPayment (purported purse) contents:\n\n"
+				<< m_strPayment << "\n\n";
             return false;
         }
         OTCleanup<OTPurse> thePurseAngel(*pPurse); // (This automates the deletion.)
-        // ----------------------------
+
         return this->SetTempValuesFromPurse(*pPurse);
     }
-    // ----------------------------
+
     else
     {
         OTTrackable * pTrackable = this->Instantiate();
         
         if (NULL == pTrackable)
         {
-            OTLog::vError("OTPayment::SetTempValues: Error: Failed instantiating OTPayment contents:\n\n%s\n\n",
-                          m_strPayment.Get());
+			otErr << "OTPayment::SetTempValues: Error: Failed instantiating OTPayment contents:\n\n" << m_strPayment << "\n\n";
             return false;
         }
         // BELOW THIS POINT, MUST DELETE pTrackable!
         OTCleanup<OTTrackable> theTrackableAngel(*pTrackable); // (This automates the deletion.)
-        // ----------------------------
+
         OTCheque        *   pCheque         = NULL;
         OTPaymentPlan   *   pPaymentPlan    = NULL;
         OTSmartContract *   pSmartContract  = NULL;    
@@ -233,8 +232,8 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types EXCEP
             case INVOICE:
                 pCheque = dynamic_cast<OTCheque *>(pTrackable);
                 if (NULL == pCheque)
-                    OTLog::vError("OTPayment::SetTempValues: Failure: dynamic_cast<OTCheque *>(pTrackable). Contents:\n\n%s\n\n",
-                                  m_strPayment.Get());
+					otErr << "OTPayment::SetTempValues: Failure: dynamic_cast<OTCheque *>(pTrackable). Contents:\n\n"
+					<< m_strPayment << "\n\n";
                 // Let's grab all the temp values from the cheque!!
                 //
                 else // success
@@ -244,8 +243,8 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types EXCEP
             case PAYMENT_PLAN:
                 pPaymentPlan = dynamic_cast<OTPaymentPlan *>(pTrackable);
                 if (NULL == pPaymentPlan)
-                    OTLog::vError("OTPayment::SetTempValues: Failure: dynamic_cast<OTPaymentPlan *>(pTrackable). Contents:\n\n%s\n\n",
-                                  m_strPayment.Get());
+					otErr << "OTPayment::SetTempValues: Failure: dynamic_cast<OTPaymentPlan *>(pTrackable). Contents:\n\n"
+					<< m_strPayment << "\n\n";
                 // Let's grab all the temp values from the payment plan!!
                 //
                 else // success
@@ -255,8 +254,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types EXCEP
             case SMART_CONTRACT:
                 pSmartContract = dynamic_cast<OTSmartContract *>(pTrackable);
                 if (NULL == pSmartContract)
-                    OTLog::vError("OTPayment::SetTempValues: Failure: dynamic_cast<OTSmartContract *>(pTrackable). Contents:\n\n%s\n\n",
-                                  m_strPayment.Get());
+					otErr << "OTPayment::SetTempValues: Failure: dynamic_cast<OTSmartContract *>(pTrackable). Contents:\n\n" << m_strPayment << "\n\n";
                 // Let's grab all the temp values from the smart contract!!
                 //
                 else // success
@@ -264,8 +262,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types EXCEP
                 break;
                 
             default:
-                OTLog::vError("OTPayment::SetTempValues: Failure: Wrong m_Type. Contents:\n\n%s\n\n",
-                              m_strPayment.Get());            
+				otErr << "OTPayment::SetTempValues: Failure: Wrong m_Type. Contents:\n\n" << m_strPayment << "\n\n";            
                 return false;
         }
     }
@@ -281,23 +278,23 @@ bool OTPayment::SetTempValuesFromCheque(const OTCheque & theInput)
         case OTPayment::CHEQUE:
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
-            // -------------------------
+
             m_bAreTempValuesSet = true;
-            // -------------------------
+
             m_lAmount           = theInput.GetAmount();         
             m_lTransactionNum   = theInput.GetTransactionNum();                
-            // -------------------------
+
             if (theInput.GetMemo().Exists())
                 m_strMemo.Set(theInput.GetMemo());
             else
                 m_strMemo.Release();
-            // -------------------------
+
             m_AssetTypeID   = theInput.GetAssetID();     
             m_ServerID      = theInput.GetServerID();     
-            // ----------------------------
+
             m_SenderUserID  = theInput.GetSenderUserID();
             m_SenderAcctID  = theInput.GetSenderAcctID();    
-            // ----------------------------        
+
             if (theInput.HasRecipient())
             {
                 m_bHasRecipient   = true;
@@ -308,7 +305,7 @@ bool OTPayment::SetTempValuesFromCheque(const OTCheque & theInput)
                 m_bHasRecipient   = false;
                 m_RecipientUserID.Release();
             }
-            // ----------------------------
+
             if (theInput.HasRemitter())
             {
                 m_bHasRemitter   = true;
@@ -321,20 +318,20 @@ bool OTPayment::SetTempValuesFromCheque(const OTCheque & theInput)
                 m_RemitterUserID.Release();
                 m_RemitterAcctID.Release();
             }
-            // ----------------------------
+
             // NOTE: the "Recipient Acct" is NOT KNOWN when cheque is written, but only
             // once the cheque gets deposited. Therefore if type is CHEQUE, then Recipient
             // Acct ID is not set, and attempts to read it will result in failure.
             //
             m_RecipientAcctID.Release(); 
-            // --------------------------------
+
             m_VALID_FROM    = theInput.GetValidFrom();      
             m_VALID_TO      = theInput.GetValidTo();
-            // --------------------------------
+
             return true;
             
         default:
-            OTLog::Error("OTPayment::SetTempValuesFromCheque: Error: Wrong type. (Returning false.)\n");
+            otErr << "OTPayment::SetTempValuesFromCheque: Error: Wrong type. (Returning false.)\n";
             break;
     }
 
@@ -349,36 +346,36 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan & theInput)
         m_bAreTempValuesSet = true;
         m_bHasRecipient     = true;
         m_bHasRemitter      = false;
-        // -------------------------
+
         m_lAmount           = theInput.GetInitialPaymentAmount();  // There're also regular payments of GetPaymentPlanAmount(). Can't fit 'em all.        
         m_lTransactionNum   = theInput.GetTransactionNum();                
-        // -------------------------
+
         // const OTString &  OTPaymentPlan::GetConsideration() const 
         //                  { return m_strConsideration; }
         if (theInput.GetConsideration().Exists())
             m_strMemo.Set(theInput.GetConsideration());
         else
             m_strMemo.Release();
-        // -------------------------
+
         m_AssetTypeID      = theInput.GetAssetID();     
         m_ServerID         = theInput.GetServerID();     
-        // ----------------------------
+
         m_SenderUserID     = theInput.GetSenderUserID();    
         m_SenderAcctID     = theInput.GetSenderAcctID();    
-        // ----------------------------        
+
         m_RecipientUserID  = theInput.GetRecipientUserID();
         m_RecipientAcctID  = theInput.GetRecipientAcctID();
-        // ----------------------------
+
         m_RemitterUserID.Release();
         m_RemitterAcctID.Release();
-        // ----------------------------
+
         m_VALID_FROM    = theInput.GetValidFrom();
         m_VALID_TO      = theInput.GetValidTo();
-        // --------------------------------
+
         return true;
     }
     else
-        OTLog::Error("OTPayment::SetTempValuesFromPaymentPlan: Error: Wrong type. (Returning false.)\n");
+        otErr << "OTPayment::SetTempValuesFromPaymentPlan: Error: Wrong type. (Returning false.)\n";
 
     return false;    
 }
@@ -391,34 +388,34 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract & theInput)
         m_bAreTempValuesSet = true;
         m_bHasRecipient     = false;
         m_bHasRemitter      = false;
-        // -------------------------
+
         m_lAmount           = 0; // not used here.
         m_lTransactionNum   = theInput.GetTransactionNum();                
-        // -------------------------
+
         // Note: Maybe later, store the Smart Contract's temporary name, or ID, in the memo field. 
         // Or something.
         //
         m_strMemo.Release(); // not used here.
-        // -------------------------
+
         m_ServerID      = theInput.GetServerID();     
         m_AssetTypeID.Release(); // not used here.
-        // ----------------------------
+
         m_SenderUserID  = theInput.GetSenderUserID();    
         m_SenderAcctID.Release();    
-        // ----------------------------        
+   
         m_RecipientUserID.Release(); // not used here.
         m_RecipientAcctID.Release(); // not used here.
-        // ----------------------------
+
         m_RemitterUserID.Release();
         m_RemitterAcctID.Release();
-        // ----------------------------
+
         m_VALID_FROM    = theInput.GetValidFrom();
         m_VALID_TO      = theInput.GetValidTo();
-        // --------------------------------
+
         return true;
     }
     else
-        OTLog::vError("%s: Error: Wrong type. (Returning false.)\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error: Wrong type. (Returning false.)\n";
 
     return false;    
 }
@@ -431,36 +428,36 @@ bool OTPayment::SetTempValuesFromPurse(const OTPurse & theInput)
         m_bAreTempValuesSet = true;
         m_bHasRecipient     = theInput.IsNymIDIncluded();
         m_bHasRemitter      = false;
-        // -------------------------
+
         m_lAmount           = theInput.GetTotalValue();         
         m_lTransactionNum   = 0; // (A purse has no transaction number.)
-        // -------------------------
+
         m_strMemo.Release(); // So far there's no purse memo (could add it, though.)
-        // -------------------------
+
         m_AssetTypeID   = theInput.GetAssetID();     
         m_ServerID      = theInput.GetServerID();     
-        // ----------------------------
+
         m_SenderUserID.Release();    
         m_SenderAcctID.Release();    
-        // ----------------------------        
+      
         if (!m_bHasRecipient || !theInput.GetNymID(m_RecipientUserID))
         {
             m_bHasRecipient = false;
             m_RecipientUserID.Release();
         }
-        // ----------------------------
+
         m_RecipientAcctID.Release();
-        // --------------------------------
+
         m_RemitterUserID.Release();
         m_RemitterAcctID.Release();
-        // ----------------------------
+
         m_VALID_FROM = theInput.GetLatestValidFrom();
         m_VALID_TO   = theInput.GetEarliestValidTo();
-        // --------------------------------
+
         return true;
     }
     else
-        OTLog::Error("OTPayment::SetTempValuesFromPurse: Error: Wrong type. (Returning false.)\n");
+        otErr << "OTPayment::SetTempValuesFromPurse: Error: Wrong type. (Returning false.)\n";
     
     return false;    
 }
@@ -469,7 +466,7 @@ bool OTPayment::SetTempValuesFromPurse(const OTPurse & theInput)
 bool OTPayment::GetMemo(OTString & strOutput) const
 {
     strOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -496,7 +493,7 @@ bool OTPayment::GetMemo(OTString & strOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetMemo: Bad payment type!\n");
+            otErr << "OTPayment::GetMemo: Bad payment type!\n";
             break;
     }
     
@@ -507,7 +504,7 @@ bool OTPayment::GetMemo(OTString & strOutput) const
 bool OTPayment::GetAmount(int64_t & lOutput) const
 {
     lOutput = 0;
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -530,7 +527,7 @@ bool OTPayment::GetAmount(int64_t & lOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetAmount: Bad payment type!\n");
+            otErr << "OTPayment::GetAmount: Bad payment type!\n";
             break;
     }
     
@@ -550,18 +547,17 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList & numlistOutput) const
         OTTrackable * pTrackable = this->Instantiate();
         if ( NULL  == pTrackable )
         {
-            OTLog::vError("%s: Failed instantiating OTPayment containing:\n%s\n",
-                          __FUNCTION__, m_strPayment.Get());
+			otErr << __FUNCTION__ << ": Failed instantiating OTPayment containing:\n" << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
         OTCleanup<OTTrackable> theTrackableAngel(*pTrackable); // (This automates the DELETION.)
-        // ----------------------------
+
         OTPaymentPlan   * pPlan          = NULL;
         OTSmartContract * pSmartContract = NULL;
-        // ----------------------------
+
         pPlan          = dynamic_cast<OTPaymentPlan *>(pTrackable);
         pSmartContract = dynamic_cast<OTSmartContract *>(pTrackable);
-        // ----------------------------
+
         if (NULL != pPlan)
         {
             pPlan->GetAllTransactionNumbers(numlistOutput);
@@ -573,10 +569,10 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList & numlistOutput) const
             return true;
         }
     }
-    // -------------------------------------------
+
     if (!m_bAreTempValuesSet)  // (This function normally fails, if temp values aren't set,
         return false;          //  for all payment types except the recurring ones above.)
-    // -------------------------------------------
+
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -598,7 +594,7 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList & numlistOutput) const
         default:
         case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already above.)
         case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already above.)
-            OTLog::vError("OTPayment::%s: Bad payment type!\n", __FUNCTION__);
+			otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
             break;
     }
     
@@ -620,18 +616,17 @@ bool OTPayment::HasTransactionNum(const int64_t & lInput) const
         OTTrackable * pTrackable = this->Instantiate();
         if ( NULL  == pTrackable )
         {
-            OTLog::vError("%s: Failed instantiating OTPayment containing:\n%s\n",
-                          __FUNCTION__, m_strPayment.Get());
+			otErr << __FUNCTION__ << ": Failed instantiating OTPayment containing:\n" << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
         OTCleanup<OTTrackable> theTrackableAngel(*pTrackable); // (This automates the DELETION.)
-        // ----------------------------
+
         OTPaymentPlan   * pPlan          = NULL;
         OTSmartContract * pSmartContract = NULL;
-        // ----------------------------
+
         pPlan          = dynamic_cast<OTPaymentPlan *>(pTrackable);
         pSmartContract = dynamic_cast<OTSmartContract *>(pTrackable);
-        // ----------------------------
+
         if (NULL != pPlan)
         {
             if (pPlan->HasTransactionNum(lInput))
@@ -645,10 +640,10 @@ bool OTPayment::HasTransactionNum(const int64_t & lInput) const
             return false;
         }
     }
-    // -------------------------------------------
+
     if (!m_bAreTempValuesSet)  // (This function normally fails, if temp values aren't set,
         return false;          //  for all payment types except the recurring ones above.)
-    // -------------------------------------------
+
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
@@ -669,7 +664,7 @@ bool OTPayment::HasTransactionNum(const int64_t & lInput) const
         default:
         case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already above.)
         case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already above.)
-            OTLog::vError("OTPayment::%s: Bad payment type!\n", __FUNCTION__);
+			otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
             break;
     }
     
@@ -681,7 +676,7 @@ bool OTPayment::GetClosingNum(      int64_t         & lOutput,
                               const OTIdentifier & theAcctID)   const
 {
     lOutput = 0;
-    // ----------------------
+
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
@@ -692,18 +687,17 @@ bool OTPayment::GetClosingNum(      int64_t         & lOutput,
         OTTrackable * pTrackable = this->Instantiate();
         if ( NULL  == pTrackable )
         {
-            OTLog::vError("%s: Failed instantiating OTPayment containing:\n%s\n",
-                          __FUNCTION__, m_strPayment.Get());
+			otErr << __FUNCTION__ << ": Failed instantiating OTPayment containing:\n" << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
         OTCleanup<OTTrackable> theTrackableAngel(*pTrackable); // (This automates the DELETION.)
-        // ----------------------------
+
         OTSmartContract * pSmartContract = NULL;
         pSmartContract = dynamic_cast<OTSmartContract *>(pTrackable);
-        // ----------------------------
+
         OTPaymentPlan * pPlan = NULL;
         pPlan = dynamic_cast<OTPaymentPlan *>(pTrackable);
-        // ----------------------------
+
         if (NULL != pSmartContract)
         {
             lOutput = pSmartContract->GetClosingNumber(theAcctID);
@@ -719,17 +713,17 @@ bool OTPayment::GetClosingNum(      int64_t         & lOutput,
             return false;
         }
     }
-    // -------------------------------------------
+
     if (!m_bAreTempValuesSet)
         return false;
-    // -------------------------------------------
+
     // Next: ALL OTHER payment types...
     //
     bool bSuccess = false;
     
     switch (m_Type)
     {
-        // ------------------------
+
         case OTPayment::CHEQUE:
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
@@ -737,13 +731,13 @@ bool OTPayment::GetClosingNum(      int64_t         & lOutput,
             lOutput  = 0; // Redundant, but just making sure.
             bSuccess = false;
             break;
-        // ------------------------
+
         default:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::SMART_CONTRACT:
-            OTLog::vError("%s: Bad payment type!\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Bad payment type!\n";
             break;
-        // ------------------------
+
     }
     
     return bSuccess;
@@ -754,7 +748,7 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
                               const OTIdentifier & theNymID)   const
 {
     lOutput = 0;
-    // ----------------------
+
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.
     //
@@ -765,18 +759,17 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
         OTTrackable * pTrackable = this->Instantiate();
         if ( NULL  == pTrackable )
         {
-            OTLog::vError("%s: Failed instantiating OTPayment containing:\n%s\n",
-                          __FUNCTION__, m_strPayment.Get());
+			otErr << __FUNCTION__ << ": Failed instantiating OTPayment containing:\n" << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
         OTCleanup<OTTrackable> theTrackableAngel(*pTrackable); // (This automates the DELETION.)
-        // ----------------------------
+
         OTSmartContract * pSmartContract = NULL;
         pSmartContract = dynamic_cast<OTSmartContract *>(pTrackable);
-        // ----------------------------
+
         OTPaymentPlan * pPlan = NULL;
         pPlan = dynamic_cast<OTPaymentPlan *>(pTrackable);
-        // ----------------------------
+
         if (NULL != pSmartContract)
         {
             lOutput = pSmartContract->GetOpeningNumber(theNymID);
@@ -792,10 +785,10 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
             return false;
         }
     }
-    // -------------------------------------------
+
     if (!m_bAreTempValuesSet)
         return false;
-    // -------------------------------------------
+
     //
     // Next: ALL OTHER payment types...
     //
@@ -803,7 +796,7 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
     
     switch (m_Type)
     {
-        // ------------------------
+
         case OTPayment::CHEQUE:
         case OTPayment::INVOICE:
             if (theNymID == m_SenderUserID)
@@ -817,7 +810,7 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
                 bSuccess = false;
             }
             break;
-        // ------------------------
+
         case OTPayment::VOUCHER:
             if (theNymID == m_RemitterUserID)
             {
@@ -830,18 +823,18 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
                 bSuccess = false;
             }
             break;
-        // ------------------------
+
         case OTPayment::PURSE:
             lOutput  = 0; // Redundant, but just making sure.
             bSuccess = false;
             break;
-        // ------------------------
+
         default:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::SMART_CONTRACT:
-            OTLog::vError("%s: Bad payment type!\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Bad payment type!\n";
             break;
-        // ------------------------
+
     }
     
     return bSuccess;
@@ -851,7 +844,7 @@ bool OTPayment::GetOpeningNum(      int64_t         & lOutput,
 bool OTPayment::GetTransactionNum(int64_t & lOutput) const
 {
     lOutput = 0;
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -874,7 +867,7 @@ bool OTPayment::GetTransactionNum(int64_t & lOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetTransactionNum: Bad payment type!\n");
+            otErr << "OTPayment::GetTransactionNum: Bad payment type!\n";
             break;
     }
     
@@ -885,7 +878,7 @@ bool OTPayment::GetTransactionNum(int64_t & lOutput) const
 bool OTPayment::GetValidFrom(time64_t & tOutput) const
 {
     tOutput = OT_TIME_ZERO;
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -904,7 +897,7 @@ bool OTPayment::GetValidFrom(time64_t & tOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetValidFrom: Bad payment type!\n");
+            otErr << "OTPayment::GetValidFrom: Bad payment type!\n";
             break;
     }
     
@@ -915,7 +908,7 @@ bool OTPayment::GetValidFrom(time64_t & tOutput) const
 bool OTPayment::GetValidTo(time64_t & tOutput) const
 {
     tOutput = OT_TIME_ZERO;
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -934,7 +927,7 @@ bool OTPayment::GetValidTo(time64_t & tOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetValidTo: Bad payment type!\n");
+            otErr << "OTPayment::GetValidTo: Bad payment type!\n";
             break;
     }
     
@@ -953,9 +946,9 @@ bool OTPayment::IsExpired(bool & bExpired)
 {
     if (!m_bAreTempValuesSet)
         return false;
-    // ---------------------------------
+
 	const time64_t CURRENT_TIME =	OTTimeGetCurrentTime();
-    // ---------------------------------
+
 	// If the current time is AFTER the valid-TO date,
 	// AND the valid_to is a nonzero number (0 means "doesn't expire")
 	// THEN return true (it's expired.)
@@ -964,7 +957,7 @@ bool OTPayment::IsExpired(bool & bExpired)
 		bExpired = true;
 	else
 		bExpired = false;
-    // ---------------------------------
+
     return true;
 }
 
@@ -975,15 +968,15 @@ bool OTPayment::VerifyCurrentDate(bool & bVerified)
 {
     if (!m_bAreTempValuesSet)
         return false;
-    // ---------------------------------
+
 	const time64_t CURRENT_TIME =	OTTimeGetCurrentTime();
-    // ---------------------------------
+
 	if ((CURRENT_TIME >= m_VALID_FROM) &&
         ((CURRENT_TIME <= m_VALID_TO) || (OT_TIME_ZERO == m_VALID_TO)))
 		bVerified = true;
 	else
 		bVerified = false;
-    // ---------------------------------
+
     return true;
 }
 
@@ -991,7 +984,7 @@ bool OTPayment::VerifyCurrentDate(bool & bVerified)
 bool OTPayment::GetAssetTypeID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1013,7 +1006,7 @@ bool OTPayment::GetAssetTypeID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetAssetTypeID: Bad payment type!\n");
+            otErr << "OTPayment::GetAssetTypeID: Bad payment type!\n";
             break;
     }
     
@@ -1024,7 +1017,7 @@ bool OTPayment::GetAssetTypeID(OTIdentifier & theOutput) const
 bool OTPayment::GetServerID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1043,7 +1036,7 @@ bool OTPayment::GetServerID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetServerID: Bad payment type!\n");
+            otErr << "OTPayment::GetServerID: Bad payment type!\n";
             break;
     }
     
@@ -1057,7 +1050,7 @@ bool OTPayment::GetServerID(OTIdentifier & theOutput) const
 bool OTPayment::GetRemitterUserID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1071,7 +1064,7 @@ bool OTPayment::GetRemitterUserID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetRemitterUserID: Bad payment type! Expected a voucher cheque.\n");
+            otErr << "OTPayment::GetRemitterUserID: Bad payment type! Expected a voucher cheque.\n";
             break;
     }
     
@@ -1085,7 +1078,7 @@ bool OTPayment::GetRemitterUserID(OTIdentifier & theOutput) const
 bool OTPayment::GetRemitterAcctID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1099,7 +1092,7 @@ bool OTPayment::GetRemitterAcctID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetRemitterAcctID: Bad payment type! Expected a voucher cheque.\n");
+            otErr << "OTPayment::GetRemitterAcctID: Bad payment type! Expected a voucher cheque.\n";
             break;
     }
     
@@ -1128,7 +1121,7 @@ bool OTPayment::GetSenderAcctIDForDisplay(OTIdentifier & theOutput) const
 bool OTPayment::GetSenderUserID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1150,7 +1143,7 @@ bool OTPayment::GetSenderUserID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetSenderUserID: Bad payment type!\n");
+            otErr << "OTPayment::GetSenderUserID: Bad payment type!\n";
             break;
     }
     
@@ -1161,7 +1154,7 @@ bool OTPayment::GetSenderUserID(OTIdentifier & theOutput) const
 bool OTPayment::GetSenderAcctID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1183,7 +1176,7 @@ bool OTPayment::GetSenderAcctID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetSenderAcctID: Bad payment type!\n");
+            otErr << "OTPayment::GetSenderAcctID: Bad payment type!\n";
             break;
     }
     
@@ -1194,7 +1187,7 @@ bool OTPayment::GetSenderAcctID(OTIdentifier & theOutput) const
 bool OTPayment::GetRecipientUserID(OTIdentifier & theOutput) const
 {
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1222,7 +1215,7 @@ bool OTPayment::GetRecipientUserID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetRecipientUserID: Bad payment type!\n");
+            otErr << "OTPayment::GetRecipientUserID: Bad payment type!\n";
             break;
     }
     
@@ -1238,7 +1231,7 @@ bool OTPayment::GetRecipientAcctID(OTIdentifier & theOutput) const
     // that the cheque is written...
 
     theOutput.Release();
-    // ----------------------
+
     if (!m_bAreTempValuesSet)
         return false;
     
@@ -1266,7 +1259,7 @@ bool OTPayment::GetRecipientAcctID(OTIdentifier & theOutput) const
             break;
             
         default:
-            OTLog::Error("OTPayment::GetRecipientAcctID: Bad payment type!\n");
+            otErr << "OTPayment::GetRecipientAcctID: Bad payment type!\n";
             break;
     }
     
@@ -1329,16 +1322,14 @@ OTTrackable * OTPayment::Instantiate() const
             
                 if (NULL == pCheque)
                 {
-                    OTLog::vError("OTPayment::Instantiate: Tried to instantiate cheque, but factory returned non-cheque:\n\n%s\n\n",
-                                  m_strPayment.Get());
+					otErr << "OTPayment::Instantiate: Tried to instantiate cheque, but factory returned non-cheque:\n\n" << m_strPayment << "\n\n";
                     delete pContract; pContract = NULL;
                 }
                 else
                     pTrackable = pCheque;
             }
             else
-                OTLog::vError("OTPayment::Instantiate: Tried to instantiate cheque, but factory returned NULL:\n\n%s\n\n",
-                              m_strPayment.Get());
+				otErr << "OTPayment::Instantiate: Tried to instantiate cheque, but factory returned NULL:\n\n" << m_strPayment << "\n\n";
             break;
             
         case PAYMENT_PLAN:
@@ -1350,16 +1341,14 @@ OTTrackable * OTPayment::Instantiate() const
                 
                 if (NULL == pPaymentPlan)
                 {
-                    OTLog::vError("OTPayment::Instantiate: Tried to instantiate payment plan, but factory returned non-payment-plan:\n\n%s\n\n",
-                                  m_strPayment.Get());
+					otErr << "OTPayment::Instantiate: Tried to instantiate payment plan, but factory returned non-payment-plan:\n\n" << m_strPayment << "\n\n";
                     delete pContract; pContract = NULL;
                 }
                 else
                     pTrackable = pPaymentPlan;
             }
             else
-                OTLog::vError("OTPayment::Instantiate: Tried to instantiate payment plan, but factory returned NULL:\n\n%s\n\n",
-                              m_strPayment.Get());
+				otErr << "OTPayment::Instantiate: Tried to instantiate payment plan, but factory returned NULL:\n\n" << m_strPayment << "\n\n";
             break;
             
         case SMART_CONTRACT:
@@ -1371,24 +1360,21 @@ OTTrackable * OTPayment::Instantiate() const
                 
                 if (NULL == pSmartContract)
                 {
-                    OTLog::vError("%s: Tried to instantiate smart contract, but factory "
-                                  "returned non-smart-contract:\n\n%s\n\n", __FUNCTION__,
-                                  m_strPayment.Get());
+					otErr << __FUNCTION__ << ": Tried to instantiate smart contract, but factory "
+						"returned non-smart-contract:\n\n" << m_strPayment << "\n\n";
                     delete pContract; pContract = NULL;
                 }
                 else
                     pTrackable = pSmartContract;
             }
             else
-                OTLog::vError("OTPayment::Instantiate: Tried to instantiate smart contract, but factory returned NULL:\n\n%s\n\n",
-                              m_strPayment.Get());
+				otErr << "OTPayment::Instantiate: Tried to instantiate smart contract, but factory returned NULL:\n\n" << m_strPayment << "\n\n";
             break;
         case PURSE:
-            OTLog::Error("OTPayment::Instantiate: ERROR: Tried to instantiate purse, but should have called OTPayment::InstantiatePurse.\n");
+            otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate purse, but should have called OTPayment::InstantiatePurse.\n";
             return NULL;
         default:
-            OTLog::vError("OTPayment::Instantiate: ERROR: Tried to instantiate payment object, but had a bad type. Contents:\n\n%s\n\n",
-                          m_strPayment.Get());
+			otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate payment object, but had a bad type. Contents:\n\n" << m_strPayment << "\n\n";
             return NULL;
     }
     
@@ -1417,8 +1403,8 @@ OTPurse * OTPayment::InstantiatePurse() const
         return OTPurse::PurseFactory(m_strPayment);
    	}
     else
-        OTLog::vError("OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
-                      "Contents:\n\n%s\n\n", m_strPayment.Get());
+        otErr << "OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
+		"Contents:\n\n" << m_strPayment << "\n\n";
     
     return NULL;
 }
@@ -1432,7 +1418,7 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID) const
         return OTPurse::PurseFactory(m_strPayment, SERVER_ID);
    	}
     else
-        OTLog::vError("OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
+        otErr << "OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
                       "Contents:\n\n%s\n\n", m_strPayment.Get());
     
     return NULL;
@@ -1445,7 +1431,7 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTId
         return OTPurse::PurseFactory(m_strPayment, SERVER_ID, ASSET_ID);
    	}
     else
-        OTLog::vError("OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
+        otErr << "OTPayment::InstantiatePurse: Failure: This payment object does NOT contain a purse. "
                       "Contents:\n\n%s\n\n", m_strPayment.Get());
     
     return NULL;
@@ -1455,11 +1441,11 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTId
 OTPurse * OTPayment::InstantiatePurse(const OTString & strPayment)
 {
     if (false == this->SetPayment(strPayment))
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
-                      "what was passed in:\n\n%s\n\n", strPayment.Get());
+        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
+		"what was passed in:\n\n" << strPayment << "\n\n";
     else if (OTPayment::PURSE != m_Type)
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: No purse was found in the "
-                      "payment string:\n\n%s\n\n", strPayment.Get());
+        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in the "
+		"payment string:\n\n" << strPayment << "\n\n";
     else
         return this->InstantiatePurse();
     
@@ -1471,10 +1457,10 @@ OTPurse * OTPayment::InstantiatePurse(const OTString & strPayment)
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTString & strPayment)
 {
     if (false == this->SetPayment(strPayment))
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
+        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
     else if (OTPayment::PURSE != m_Type)
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: No purse was found in the "
+        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
         return this->InstantiatePurse(SERVER_ID);
@@ -1487,10 +1473,10 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTSt
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID, const OTString & strPayment)
 {
     if (false == this->SetPayment(strPayment))
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
+        otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
     else if (OTPayment::PURSE != m_Type)
-        OTLog::vError("OTPayment::InstantiatePurse: WARNING: No purse was found in the "
+        otErr << "OTPayment::InstantiatePurse: WARNING: No purse was found in the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
         return this->InstantiatePurse(SERVER_ID, ASSET_ID);
@@ -1503,18 +1489,17 @@ bool OTPayment::SetPayment(const OTString & strPayment)
 {
     if (!strPayment.Exists())
 		return false;
-    // --------------------------------------------------------------------
+
     OTString strContract(strPayment);
     
     if (false == strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true by default.
     {
-        OTLog::vError("%s: Input string apparently was encoded and then failed decoding. Contents: \n%s\n",
-                      __FUNCTION__, strPayment.Get());
+		otErr << __FUNCTION__ << ": Input string apparently was encoded and then failed decoding. Contents: \n" << strPayment << "\n";
         return false;
     }
-    // ------------------------------------------
+
     m_strPayment.Release();
-    // ----------------------
+
     // todo: should be "starts with" and perhaps with a trim first
     //
     if (strContract.Contains("-----BEGIN SIGNED CHEQUE-----"))
@@ -1523,31 +1508,28 @@ bool OTPayment::SetPayment(const OTString & strPayment)
         m_Type  = OTPayment::VOUCHER;
     else if (strContract.Contains("-----BEGIN SIGNED INVOICE-----"))
         m_Type  = OTPayment::INVOICE;
-    // -------------------
+
     else if (strContract.Contains("-----BEGIN SIGNED PAYMENT PLAN-----"))
         m_Type  = OTPayment::PAYMENT_PLAN;
     else if (strContract.Contains("-----BEGIN SIGNED SMARTCONTRACT-----"))
         m_Type  = OTPayment::SMART_CONTRACT;
-    // -------------------
+
     else if (strContract.Contains("-----BEGIN SIGNED PURSE-----"))
         m_Type  = OTPayment::PURSE;
     else
     {
         m_Type  = OTPayment::ERROR_STATE;
         
-        OTLog::vError("%s: Failure: Unable to determine payment type, from input:\n\n%s\n\n",
-                      __FUNCTION__, strContract.Get());
+		otErr << __FUNCTION__ << ": Failure: Unable to determine payment type, from input:\n\n" << strContract << "\n\n";
     }
-    // ----------------------
+
     if (OTPayment::ERROR_STATE == m_Type)
         return false;
 
-    // *********************************
-    
+
     m_strPayment.Set(strContract);
     
-    // *********************************
-    
+
     return true;
 }
 
@@ -1579,33 +1561,33 @@ void OTPayment::Release_Payment()
     m_lTransactionNum   = 0;
     m_VALID_FROM        = OT_TIME_ZERO;
     m_VALID_TO          = OT_TIME_ZERO;
-    // --------------------------------
+
     m_strPayment.Release();
-    // --------------------------------
+
     m_bAreTempValuesSet = false;
     m_bHasRecipient     = false;
     m_bHasRemitter      = false;
-    // --------------------------------
+
     m_strMemo.Release();
-    // --------------------------------
+
     m_AssetTypeID.Release();
     m_ServerID.Release();
-    // --------------------------------    
+
     m_SenderUserID.Release();
     m_SenderAcctID.Release();
     m_RecipientUserID.Release();
     m_RecipientAcctID.Release();
-    // --------------------------------
+
     m_RemitterUserID.Release();
     m_RemitterAcctID.Release();
-    // --------------------------------
+
 }
 
 
 void OTPayment::Release()
 {
     Release_Payment();
-    // --------------------------------
+
     // Finally, we call the method we overrode:
     //
 	ot_super::Release();
@@ -1651,8 +1633,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_Type = OTPayment::ERROR_STATE;
         
-		OTLog::vOutput(4, "Loaded payment... Type: %s\n----------\n",
-                       this->GetTypeString());
+		otLog4 << "Loaded payment... Type: " << this->GetTypeString() << "\n----------\n";
 		
 		return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
 	}
@@ -1663,11 +1644,11 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		
 		if (!OTContract::LoadEncodedTextField(xml, strContents) || 
             !strContents.Exists() ||
-            // -------------------------------
+
             !this->SetPayment(strContents))
 		{
-			OTLog::vError("OTPayment::ProcessXMLNode: ERROR: \"contents\" field without a value, OR error setting that "
-                          "value onto this object. Raw:\n\n%s\n\n", strContents.Get());
+			otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field without a value, OR error setting that "
+				"value onto this object. Raw:\n\n" << strContents << "\n\n";
 			
 			return (-1); // error condition
 		}
