@@ -195,28 +195,27 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym & theNotary, int64_t lDenominatio
 	if (GetPublic(theArmor, lDenomination))
 	{
 		// it already exists.
-		OTLog::Error("Error: Denomination public already exists in OTMint::AddDenomination\n");
+		otErr << "Error: Denomination public already exists in OTMint::AddDenomination\n";
 		return false;
 	}
 	if (GetPrivate(theArmor, lDenomination))
 	{
 		// it already exists.
-		OTLog::Error("Error: Denomination private already exists in OTMint::AddDenomination\n");
+		otErr << "Error: Denomination private already exists in OTMint::AddDenomination\n";
 		return false;
 	}
 	
-	//		OTLog::Error("%s <size of bank prime in bits> <bank data file> <bank public data file>\n",
+	//		otErr << "%s <size of bank prime in bits> <bank data file> <bank public data file>\n",
 	
     if ((nPrimeLength/8) < (MIN_COIN_LENGTH+DIGEST_LENGTH))
 	{
-		OTLog::vError("Prime must be at least %d bits\n",
-				(MIN_COIN_LENGTH+DIGEST_LENGTH)*8);
+		otErr << "Prime must be at least " << (MIN_COIN_LENGTH+DIGEST_LENGTH)*8 << " bits\n";
 		return false;
 	}
 	
     if (nPrimeLength%8)
 	{
-		OTLog::Error("Prime length must be a multiple of 8\n");
+		otErr << "Prime length must be a multiple of 8\n";
 		return false;
 	}
 	
@@ -269,18 +268,18 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym & theNotary, int64_t lDenominatio
 		
 		// Grab the Server Nym ID and save it with this Mint
 		theNotary.GetIdentifier(m_ServerNymID);
-        // ---------------------------
+
 		// Grab the Server's public key and save it with this Mint
         //
         const OTAsymmetricKey & theNotaryPubKey = theNotary.GetPublicSignKey();
         delete m_pKeyPublic;
         m_pKeyPublic = theNotaryPubKey.ClonePubKey();
-        // ---------------------------
+
 		m_nDenominationCount++;
         // ---------------------------		
 		// Success!
 		bReturnValue = true;
-		OTLog::vOutput(1, "Successfully added denomination: %lld\n", lDenomination);
+		otWarn << "Successfully added denomination: " << lDenomination << "\n";
 	}
 	
 	return bReturnValue;
@@ -334,10 +333,10 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 {
 	bool bReturnValue = false;
 	
-	//OTLog::Error("%s <bank file> <coin request> <coin signature> [<signature repeats>]\n",
+	//otErr << "%s <bank file> <coin request> <coin signature> [<signature repeats>]\n",
     _OT_Lucre_Dumper setDumper;
 	
-//	OTLog::vError("OTMint::SignToken!!\nnTokenIndex: %d\n Denomination: %lld\n", nTokenIndex, theToken.GetDenomination());
+//	otErr << "OTMint::SignToken!!\nnTokenIndex: %d\n Denomination: %lld\n", nTokenIndex, theToken.GetDenomination());
 	
     OpenSSL_BIO bioBank		= BIO_new(BIO_s_mem()); // input
     OpenSSL_BIO bioRequest		= BIO_new(BIO_s_mem()); // input
@@ -358,11 +357,11 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 	// copy strContents to a BIO
 	BIO_puts(bioBank, strContents.Get());
 	
-//	OTLog::vError("BANK CONTENTS:\n%s--------------------------------------\n", strContents.Get());
+//	otErr << "BANK CONTENTS:\n%s--------------------------------------\n", strContents.Get());
 	
 	// Instantiate the Bank with its private key
     Bank bank(bioBank);
-//	OTLog::vError("BANK INSTANTIATED.--------------------------------------\n");
+//	otErr << "BANK INSTANTIATED.--------------------------------------\n";
 
 	// I need the request. the prototoken.
 	OTASCIIArmor ascPrototoken;
@@ -373,7 +372,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 		// base64-Decode the prototoken
 		OTString strPrototoken(ascPrototoken);
 		
-//		OTLog::vError("\n--------------------------------------\nDEBUG:  PROTOTOKEN CONTENTS:\n"
+//		otErr << "\n--------------------------------------\nDEBUG:  PROTOTOKEN CONTENTS:\n"
 //				"-----------------%s---------------------\n", strPrototoken.Get() );
 		
 		// copy strPrototoken to a BIO
@@ -381,7 +380,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 
 		// Load up the coin request from the bio (the prototoken)
 		PublicCoinRequest req(bioRequest);
-//		OTLog::Error("PROTOTOKEN INSTANTIATED.--------------------------------------\n");
+//		otErr << "PROTOTOKEN INSTANTIATED.--------------------------------------\n";
 
 		// Sign it with the bank we previously instantiated.
 		// results will be in bnSignature (BIGNUM)
@@ -389,12 +388,12 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 
 		if (NULL == bnSignature)
 		{
-			OTLog::Error("MAJOR ERROR!: Bank.SignRequest failed in OTMint_Lucre::SignToken\n");
+			otErr << "MAJOR ERROR!: Bank.SignRequest failed in OTMint_Lucre::SignToken\n";
 		}
 		
 		else 
 		{
-//			OTLog::Error("BANK.SIGNREQUEST SUCCESSFUL.--------------------------------------\n");
+//			otErr << "BANK.SIGNREQUEST SUCCESSFUL.--------------------------------------\n";
 
 			// Write the request contents, followed by the signature contents,
 			// to the Signature bio. Then free the BIGNUM.
@@ -414,7 +413,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 			
 			if (sig_len)
 			{ // ***********************************************
-//				OTLog::vError("\n--------------------------------------\n"
+//				otErr << "\n--------------------------------------\n"
 //						"*** Siglen is %d. sig_str_len is %d.\nsig buf:\n------------%s------------\nLAST "
 //						"CHARACTER IS '%c'  SECOND TO LAST CHARACTER IS '%c'\n", 
 //						sig_len, sig_str_len, sig_buf, sig_buf[sig_str_len-1], sig_buf[sig_str_len-2]);
@@ -423,14 +422,14 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 				// (It won't actually be spendable until the client processes it, though.)
 				theToken.SetSpendable(ascPrototoken);
 				
-//				OTLog::vError("*** SPENDABLE:\n-----------%s---------------------\n", ascPrototoken.Get());
+//				otErr << "*** SPENDABLE:\n-----------%s---------------------\n", ascPrototoken.Get());
 						
 						
 				// Base64-encode the signature contents into theToken.m_Signature.
 				OTString	strSignature(sig_buf);
 	//			strSignature.Set(sig_buf, sig_len-1); // sig_len includes null terminator, whereas Set() adds 1 for it.
 				
-//				OTLog::vError("SIGNATURE:\n--------------------%s"
+//				otErr << "SIGNATURE:\n--------------------%s"
 //						"------------------\n", strSignature.Get());
 
 				// Here we pass the signature back to the caller.
@@ -456,7 +455,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 bool OTMint_Lucre::VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination)
 {
 	bool bReturnValue = false;
-//	OTLog::Error("%s <bank info> <coin>\n", argv[0]);
+//	otErr << "%s <bank info> <coin>\n", argv[0]);
     _OT_Lucre_Dumper setDumper;
 	
 	OpenSSL_BIO bioBank	= BIO_new(BIO_s_mem()); // input

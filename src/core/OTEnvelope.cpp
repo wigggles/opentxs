@@ -190,14 +190,14 @@ bool OTEnvelope::GetAsBookendedString(OTString & strArmorWithBookends, // output
         const bool bWritten = theArmoredText.WriteArmoredString(strArmorWithBookends, "ENVELOPE", // todo hardcoded
                                                                 bEscaped);
         if (!bWritten)
-            OTLog::vError("%s: Failed while calling: "
-                          "theArmoredText.WriteArmoredString\n", __FUNCTION__);
+            otErr << __FUNCTION__ << ": Failed while calling: "
+                          "theArmoredText.WriteArmoredString\n";
         else
             return true;
     }
     else
-        OTLog::vError("%s: Failed while calling: "
-                      "theArmoredText.SetData(m_dataContents, true)\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed while calling: "
+                      "theArmoredText.SetData(m_dataContents, true)\n";
     
     return false;
 }
@@ -216,15 +216,15 @@ bool OTEnvelope::SetFromBookendedString(const OTString & strArmorWithBookends, /
         const bool bGotData = theArmoredText.GetData(m_dataContents, true); // bLineBreaks = true
 
         if (!bGotData)
-            OTLog::vError("%s: Failed while calling: "
-                          "theArmoredText.GetData\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Failed while calling: "
+                          "theArmoredText.GetData\n";
         else
             return true;
     }
     else
-        OTLog::vError("%s: Failed while calling: "
-                      "theArmoredText.LoadFromString\n", __FUNCTION__);
-    // -----------------------------
+		otErr << __FUNCTION__ << ": Failed while calling: "
+                      "theArmoredText.LoadFromString\n";
+
     return false;
 }
 
@@ -237,33 +237,33 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
 {
     OT_ASSERT((thePassword.isPassword() && (thePassword.getPasswordSize() > 0)) || (thePassword.isMemory() && (thePassword.getMemorySize() > 0)));
     OT_ASSERT(theInput.Exists());
-    // -----------------------------------------------
+
     // Generate a random initialization vector.
     //
     OTPayload theIV;
 
     if (false == theIV.Randomize(OTCryptoConfig::SymmetricIvSize()))
     {
-		OTLog::vError("%s: Failed trying to randomly generate IV.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to randomly generate IV.\n";
 		return false;	
     }
-    // -----------------------------------------------
+
     // If the symmetric key hasn't already been generated, we'll just do that now...
     // (The passphrase is used to derive another key that is used to encrypt the
     // actual symmetric key, and to access it later.)
     //
     if ((false == theKey.IsGenerated()) && (false == theKey.GenerateKey(thePassword)))
     {
-		OTLog::vError("%s: Failed trying to generate symmetric key using password.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to generate symmetric key using password.\n";
 		return false;	
     }
-    // -----------------------------------------------
+
 
 	if (!theKey.HasHashCheck())
 	{
 		if(!theKey.GenerateHashCheck(thePassword))
 		{
-		OTLog::vError("%s: Failed trying to generate hash check using password.\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Failed trying to generate hash check using password.\n";
 		return false;
 		}
 	}
@@ -274,39 +274,37 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
     
     if (false == theKey.GetRawKeyFromPassphrase(thePassword, theRawSymmetricKey))
     {
-		OTLog::vError("%s: Failed trying to retrieve raw symmetric key using password.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to retrieve raw symmetric key using password.\n";
 		return false;	
     }
-    // -----------------------------------------------
-    //
+
+
     OTPayload theCipherText;
     
     const bool bEncrypted = OTCrypto::It()->Encrypt(theRawSymmetricKey, // The symmetric key, in clear form.
-                                                    // -------------------------------
+
                                                     theInput.Get(),     // This is the Plaintext.
                                                     theInput.GetLength() + 1, // for null terminator
-                                                    // -------------------------------
+
                                                     theIV,              // Initialization vector.
-                                                    // -------------------------------
+
                                                     theCipherText);     // OUTPUT. (Ciphertext.)
-    // -----------------------------------------------
+
     //
     // Success?
     //
     if (!bEncrypted)
     {
-        OTLog::vError("%s: (static) call failed to encrypt. Wrong key? (Returning false.)\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": (static) call failed to encrypt. Wrong key? (Returning false.)\n";
 		return false;
     }
-    // -----------------------------------------------
-    //
+
 	// This is where the envelope final contents will be placed,
     // including the envelope type, the size of the IV, the IV
     // itself, and the ciphertext.
     //
 	m_dataContents.Release();
 
-    // -----------------------------------------------
     // Write the ENVELOPE TYPE (network order version.)
     //
     // 0 == Error
@@ -319,8 +317,7 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
     m_dataContents.Concatenate(reinterpret_cast<void *>(&env_type_n),   
                                // (uint32_t here is the 2nd parameter to Concatenate, and has nothing to do with env_type_n being uint16_t)
                                static_cast<uint32_t>(sizeof(env_type_n)));  
-    // ------------------------------------------------------------
-    //
+
     // Write IV size (in network-order)
     //
     uint32_t  ivlen   = OTCryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
@@ -334,8 +331,8 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
     //
 	m_dataContents.Concatenate(theIV.GetPayloadPointer(), 
                                static_cast<uint32_t>(theIV.GetSize()));
-    // ------------------------------------------------------------
-    
+
+
     // Write the Ciphertext.
     //
     m_dataContents.Concatenate(theCipherText.GetPayloadPointer(), 
@@ -346,7 +343,7 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
     // size minus the other pieces. We might still want to add that size here, however.
     // (for security / safety reasons.)
     
-    // -----------------------------------------------
+
     return true;
 }
 
@@ -354,20 +351,19 @@ bool OTEnvelope::Encrypt(const OTString & theInput, OTSymmetricKey & theKey, con
 bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, const OTPassword & thePassword)
 {
     const char * szFunc = "OTEnvelope::Decrypt";
-    // ------------------------------------------------
+
     OT_ASSERT((thePassword.isPassword() && (thePassword.getPasswordSize() > 0)) || (thePassword.isMemory() && (thePassword.getMemorySize() > 0)));
     OT_ASSERT(theKey.IsGenerated());
-    // -----------------------------------------------
+
     OTPassword  theRawSymmetricKey;
     
     if (false == theKey.GetRawKeyFromPassphrase(thePassword, theRawSymmetricKey))
     {
-		OTLog::vError("%s: Failed trying to retrieve raw symmetric key using password. (Wrong password?)\n", 
-                      szFunc);
+		otErr << szFunc << ": Failed trying to retrieve raw symmetric key using password. (Wrong password?)\n";
 		return false;	
     }
-    // -----------------------------------------------
-    //
+
+
     uint32_t    nRead         = 0;
     uint32_t    nRunningTotal = 0;
     
@@ -387,12 +383,12 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     if (0 == (nRead = m_dataContents.OTfread(reinterpret_cast<uint8_t*>(&env_type_n),
                                              static_cast<uint32_t>(sizeof(env_type_n)))))
 	{
-		OTLog::vError("%s: Error reading Envelope Type. Expected asymmetric(1) or symmetric (2).\n", szFunc);
+		otErr << szFunc << ": Error reading Envelope Type. Expected asymmetric(1) or symmetric (2).\n";
 		return false;
 	}
     nRunningTotal += nRead;
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(env_type_n)));
-    // ----------------------------------------------------------------------------
+
 	// convert that envelope type from network to HOST endian.
     //
     const uint16_t env_type = static_cast<uint16_t>(ntohs(static_cast<uint16_t>(env_type_n)));
@@ -401,12 +397,11 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     if (2 != env_type)
 	{
         const uint32_t l_env_type = static_cast<uint32_t>(env_type);
-		OTLog::vError("%s: Error: Expected Envelope for Symmetric key (type 2) but instead found type: %lld.\n", 
-                      szFunc, l_env_type);
+		otErr << szFunc << ": Error: Expected Envelope for Symmetric key (type 2) but instead found type: " << l_env_type << ".\n";
 		return false;
 	}
-    // ****************************************************************************
-    //
+
+
     // Read network-order IV size (and convert to host version) 
     //    
     const uint32_t max_iv_length   = OTCryptoConfig::SymmetricIvSize(); // I believe this is a max length, so it may not match the actual length of the IV.
@@ -418,25 +413,25 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     if (0 == (nRead = m_dataContents.OTfread(reinterpret_cast<uint8_t*>(&iv_size_n),
                                              static_cast<uint32_t>(sizeof(iv_size_n)))))
 	{
-		OTLog::vError("%s: Error reading IV Size.\n", szFunc);
+		otErr << szFunc << ": Error reading IV Size.\n";
 		return false;
 	}
     nRunningTotal += nRead;
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(iv_size_n)));
-    // ----------------------------------------------------------------------------
+
 	// convert that iv size from network to HOST endian.
     //
     const uint32_t iv_size_host_order = ntohl(iv_size_n);
     
     if (iv_size_host_order > max_iv_length)
     {
-        OTLog::vError("%s: Error: iv_size (%lld) is larger than max_iv_length (%lld).\n",
-                      szFunc, static_cast<int64_t>(iv_size_host_order), static_cast<int64_t>(max_iv_length));
+		otErr << szFunc << ": Error: iv_size (" << static_cast<int64_t>(iv_size_host_order) <<
+			") is larger than max_iv_length (" << static_cast<int64_t>(max_iv_length) << ").\n";
         return false;
     }
 //  nRunningTotal += iv_size_host_order; // Nope!
-    // ****************************************************************************
-    //
+
+
     // Then read the IV (initialization vector) itself.
     //
     OTPayload theIV;
@@ -445,7 +440,7 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     if (0 == (nRead = m_dataContents.OTfread(static_cast<uint8_t*>(const_cast<void *>(theIV.GetPayloadPointer())), 
                                              static_cast<uint32_t>(iv_size_host_order))))
     {
-        OTLog::vError("%s: Error reading initialization vector.\n", szFunc);
+		otErr << szFunc << ": Error reading initialization vector.\n";
         return false;
     }
     nRunningTotal += nRead;
@@ -453,7 +448,7 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     
     OT_ASSERT(nRead <= max_iv_length);
     
-	// ----------------------------------------------------------------------------    
+ 
     // We create an OTPayload object to store the ciphertext itself, which begins AFTER the end of the IV.
     // So we see pointer + nRunningTotal as the starting point for the ciphertext.
     // the size of the ciphertext, meanwhile, is the size of the entire thing, MINUS nRunningTotal.
@@ -462,37 +457,37 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
                                                static_cast<const uint8_t *>(m_dataContents.GetPointer()) + nRunningTotal
                                                ), 
 					  m_dataContents.GetSize() - nRunningTotal);
-    // ----------------------------------------------------------------------------
+
     // Now we've got all the pieces together, let's try to decrypt it...
     //
     OTPayload thePlaintext; // for output.
     
     const bool bDecrypted = OTCrypto::It()->Decrypt(theRawSymmetricKey, // The symmetric key, in clear form.
-                                                    // -------------------------------
+
                                                     static_cast<const char *>(theCipherText.GetPayloadPointer()),  // This is the Ciphertext.
                                                     theCipherText.GetSize(),
-                                                    // -------------------------------
+
                                                     theIV,
-                                                    // -------------------------------
+
                                                     thePlaintext); // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR OTPayload& here (either will work.)
-    // -----------------------------------------------
+
     // theOutput is where we'll put the decrypted data.
     //
     theOutput.Release();
     
     if (bDecrypted)
     {
-        // -----------------------------------------------------
+
         // Make sure it's null-terminated...
         //
         uint32_t nIndex = thePlaintext.GetSize()-1;
         (static_cast<uint8_t*>(const_cast<void *>(thePlaintext.GetPointer())))[nIndex] = '\0';
         
-        // -----------------------------------------------------
+
         // Set it into theOutput (to return the plaintext to the caller)
         //
         theOutput.Set(static_cast<const char *>(thePlaintext.GetPointer()));
-        // ----------------
+
     }
     
     return bDecrypted;
@@ -508,7 +503,7 @@ bool OTEnvelope::Seal(const OTPseudonym & theRecipient, const OTString & theInpu
     theRecipient.GetIdentifier(strNymID);
     theKeys.insert(std::pair<std::string, OTAsymmetricKey *>
                    (strNymID.Get(), const_cast<OTAsymmetricKey *>(&(theRecipient.GetPublicEncrKey()))));
-    // -----------------------------
+
     return this->Seal(theKeys, theInput);
 }
 
@@ -523,16 +518,16 @@ bool OTEnvelope::Seal(setOfNyms & theRecipients, const OTString & theInput)
     {
         OTPseudonym * pNym = *it;
 		OT_ASSERT_MSG(NULL != pNym, "OTEnvelope::Seal: Assert: NULL pseudonym pointer.");
-		// ------------------------------
+
         OTString            strNymID;
         pNym->GetIdentifier(strNymID);
         RecipPubKeys.insert(std::pair<std::string, OTAsymmetricKey *>
                             (strNymID.Get(), const_cast<OTAsymmetricKey *>(&(pNym->GetPublicEncrKey()))));
     }
-    // --------------------------------
+
     if (0 == RecipPubKeys.size())
         return false;
-    // --------------------------------
+
 	return Seal(RecipPubKeys, theInput);
 }
 
@@ -543,7 +538,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey & RecipPubKey, const OTString & theI
     theKeys.insert(std::pair<std::string, OTAsymmetricKey *>
                    ("", // Normally the NymID goes here, but we don't know what it is, in this case.
                     const_cast<OTAsymmetricKey *>(&RecipPubKey)));
-    // -----------------------------
+
     return this->Seal(theKeys, theInput);
 }
 
@@ -553,7 +548,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey & RecipPubKey, const OTString & theI
 bool OTEnvelope::Seal(mapOfAsymmetricKeys & RecipPubKeys, const OTString & theInput)
 {
     OT_ASSERT_MSG(RecipPubKeys.size() > 0, "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
-    // -----------------------------------------------
+
     
     return OTCrypto::It()->Seal(RecipPubKeys, theInput, m_dataContents);
 }

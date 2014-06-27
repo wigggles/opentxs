@@ -189,18 +189,18 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
     
     while (!m_listMessages.empty())
     {
-        // ----------------------------
+
         OTMessage * pMsg = m_listMessages.front();
         
         m_listMessages.pop_front();
 
         if (NULL == pMsg)
         {
-            OTLog::Error("OTMessageBuffer::Pop: Error: List of incoming server replies "
-                         "is NOT empty, yet when Pop was called, pMsg was NULL! (Skipping.)\n");
+            otErr << "OTMessageBuffer::Pop: Error: List of incoming server replies "
+                         "is NOT empty, yet when Pop was called, pMsg was NULL! (Skipping.)\n";
             continue;
         }
-        // ----------------------------
+
         // Below this point, pMsg has been popped, and it's NOT NULL, and it 
         // will be lost if not tracked or returned.
         //
@@ -212,9 +212,9 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
         }
         // Below this point, we KNOW that pMsg has the CORRECT ServerID and NymID.
         // (And that all others, though popped, were pushed to temp_list in order.)
-        // -------------------------------------------------        
+    
         const int64_t lMsgRequest = atol(pMsg->m_strRequestNum.Get());
-        // ----------------------------
+
         // Now we only need to see if the request number matches...
         //
         if (lMsgRequest == lRequestNum)
@@ -224,18 +224,18 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
         }
         else // Server/Nym IDs match, BUT -- Wrong request num! (Discard message and skip.)
         {
-            OTLog::vOutput(0, "OTMessageBuffer::Pop: Warning: While looking for server (%s) reply to request number %lld for Nym (%s), "
-                           "discovered (and discarded) an old server reply for request number %lld "
-                           "(A %s command. The client should have flushed it by now anyway, so it was probably slow on the network "
-                           "and then assumed to have been dropped. It's okay--the protocol is designed to handle these occurrences.)\n",
-                           strServerID.Get(), lRequestNum, strNymID.Get(), lMsgRequest, pMsg->m_strCommand.Get());
+			otOut << "OTMessageBuffer::Pop: Warning: While looking for server (" << strServerID <<
+				") reply to request number " << lRequestNum << " for Nym (" << strNymID << "), "
+				"discovered (and discarded) an old server reply for request number " << lMsgRequest << " "
+				"(A " << pMsg->m_strCommand << " command. The client should have flushed it by now anyway, so it was probably slow on the network "
+                "and then assumed to have been dropped. It's okay--the protocol is designed to handle these occurrences.)\n";
             delete pMsg; pMsg = NULL;
             continue;
         }
         
     } // while
-    // ----------------------------
-    
+
+
     // Put the other messages back, in order...
     //
     while (!temp_list.empty())
@@ -244,7 +244,7 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
         temp_list.pop_front();
         m_listMessages.push_front(pMsg);
     }
-    // ----------------------------
+
 
 	return pReturnValue;
 }
@@ -294,7 +294,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
     
     if (theMessage.m_strRequestNum.Exists())
         lRequestNum = atol(theMessage.m_strRequestNum.Get()); // The map index is the request number on the message itself.
-    // ----------------
+
     // It's technically possible to have TWO messages (from two different
     // servers) that happen to have the same request number. So we verify
     // that here, before removing any old ones with the same number and IDs.
@@ -303,17 +303,17 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
     
     for (; it != m_mapMessages.end(); ++it)
     {
-        // -----------------------------
+
         const int64_t  & lTempReqNum   = it->first;
-        // -----------------------
+
         if (lTempReqNum != lRequestNum)
         {
             continue;
         }
-        // -----------------------
+
         OTMessage   * pMsg          = it->second;
         OT_ASSERT(NULL != pMsg);
-        // -----------------------------
+
         //
         // If a server ID was passed in, but doesn't match the server ID on this message,
         // Then skip this one. (Same with the NymID.)
@@ -323,7 +323,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
         {
             continue;
         }
-        // --------
+
         else
         {
             delete pMsg;
@@ -333,12 +333,12 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
         }
     }
     // Whatever it was, it's gone now!
-    // ----------------------------------
+
     // Now that we KNOW there's nothing already there with that request number (for that
     // server ID and Nym ID), we go ahead and add the new message to the map. (And take ownership.)
     //
     m_mapMessages.insert(std::pair<int64_t, OTMessage *>(lRequestNum, &theMessage));
-    // ----------------------------------
+
     //
     // Save it to local storage, in case we don't see the reply until the next run.
     //
@@ -349,10 +349,10 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
                       theMessage.m_strServerID.Get());
     strFolder2.Format("%s%s%s", strFolder1.Get(), OTLog::PathSeparator(),
                       "sent" /*todo hardcoding*/);
-    // ----------------------------------
+
     strFolder.Format("%s%s%s", strFolder2.Get(), OTLog::PathSeparator(),
                      theMessage.m_strNymID.Get());
-    // ----------------------------------
+
 
 	OTString strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
@@ -368,7 +368,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
     strFile.Format("%s.msg", theMessage.m_strRequestNum.Get());
     
     theMessage.SaveContract(strFolder.Get(), strFile.Get());
-    // ----------------------------------
+
     // We also keep a list of the request numbers, so let's load it up, add the number
     // to that list, and then save it again.
     //
@@ -386,12 +386,12 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
         it = m_mapMessages.begin();
         while (it != m_mapMessages.end())
         {
-            // -----------------------------
+
             const int64_t  & lTempReqNum   = it->first;
-            // -----------------------
+
             OTMessage   * pMsg          = it->second;
             OT_ASSERT(NULL != pMsg);
-            // -----------------------------
+
             //
             // If a server ID was passed in, but doesn't match the server ID on this message,
             // Then skip this one. (Same with the NymID.)
@@ -402,7 +402,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
                 ++it;
                 continue;
             }
-            // --------
+
             else
             {
                 theNumList.Add(lTempReqNum);
@@ -410,7 +410,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
             ++it;
         }
     }// else
-    // ----------------------------------
+
     // By this point, theNumList has either been loaded from local storage and had the new number added,
     // or it wasn't in local storage and thus we created it and added all the numnbers to it (including new one.)
     // Therefore nothing left to do here, but save it back again!
@@ -420,7 +420,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
     
     if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(), str_data_filename)) // todo hardcoding.
     {
-        OTLog::Error("OTMessageOutbuffer::AddSentMessage: Error: failed writing list of request numbers to storage.\n");
+        otErr << "OTMessageOutbuffer::AddSentMessage: Error: failed writing list of request numbers to storage.\n";
     }
 }
 
@@ -435,17 +435,17 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
     
     for ( ; it != m_mapMessages.end(); ++it)
     {
-        // -----------------------------
+
         const int64_t  & lTempReqNum   = it->first;
-        // -----------------------
+
         if (lTempReqNum != lRequestNum)
         {
             continue;
         }
-        // -----------------------
+
         OTMessage   * pMsg          = it->second;
         OT_ASSERT(NULL != pMsg);
-        // -----------------------------
+
         //
         // If a server ID was passed in, but doesn't match the server ID on this message,
         // Then skip this one. (Same with the NymID.)
@@ -454,13 +454,13 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
         {
             continue;
         }
-        // --------
+
         else
         {
             return pMsg;
         }
     }
-    // ----------------------------------
+
     // Didn't find it? Okay let's load it from local storage, if it's there...
     //
     OTString strFolder, strFile;
@@ -470,7 +470,7 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
                      "sent", /*todo hardcoding*/ OTLog::PathSeparator(),
                      strNymID.Get());
     strFile.Format("%lld.msg", lRequestNum);
-    // -----------------------------------
+
     // Check the existing list, if it exists.
     //
     OTNumList theNumList;
@@ -488,7 +488,7 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents referenced
             // by that list.
-            // -----------------------------------
+
             OTMessage * pMsg = new OTMessage;
             OT_ASSERT(NULL != pMsg);
             OTCleanup<OTMessage> theMsgAngel(pMsg);
@@ -502,10 +502,10 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
                 theMsgAngel.SetCleanupTargetPointer(NULL);
                 return pMsg;
             }
-            // ----------------------------------
+
         }
     }
-    // ----------------------------------
+
     // STILL didn't find it? (Failure.)
     //
 	return NULL;
@@ -519,17 +519,17 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                                const bool     * pbHarvestingForRetry/*=NULL*/)
 {
 //  const char * szFuncName		= "OTMessageOutbuffer::Clear";
-    // -----------------------------------------------
+
     
     mapOfMessages::iterator it = m_mapMessages.begin();
     
     while (it != m_mapMessages.end())
     {
-        // -----------------------------
+
         const int64_t  & lRequestNum   = it->first;
         OTMessage   * pThisMsg      = it->second;
         OT_ASSERT(NULL != pThisMsg);
-        // -----------------------------
+
         //
         // If a server ID was passed in, but doesn't match the server ID on this message,
         // Then skip this one. (Same with the NymID.)
@@ -541,7 +541,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
             ++it;
             continue;
         }
-        // --------
+
         else
         {
             /*
@@ -586,11 +586,11 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                 OT_ASSERT(NULL != pstrNymID && pstrNymID->Exists());
                 const OTIdentifier MSG_NYM_ID(*pstrNymID);
                 OT_ASSERT(pNym->CompareID(MSG_NYM_ID));
-                // ----------------------------
+
                 OT_ASSERT(NULL != pstrServerID && pstrServerID->Exists());
-                // ----------------------------
+
                 OT_ASSERT(NULL != pbHarvestingForRetry);
-                // ----------------------------
+
                 /*
                  getNymbox			-- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getNymbox reply
                  getRequest			-- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getRequest reply
@@ -626,7 +626,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
 
                     const bool bTransactionWasSuccess  = false; // Per above, since "the transaction never had a chance to run" then it could NOT have been an explicit success.
                     const bool bTransactionWasFailure  = false; // Per above, since "the transaction never had a chance to run" then it could NOT have been an explicit failure.
-                    // -----------------------------------------------------
+
                     pThisMsg->HarvestTransactionNumbers(*pNym,      // Actually it's pNym who is "harvesting" the numbers in this call.   <========= HARVEST
                                                         *pbHarvestingForRetry,
                                                         bReplyWasSuccess,
@@ -635,15 +635,15 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                                                         bTransactionWasFailure);
                 } // if there's a transaction to be harvested inside this message.
             } // if pNym !NULL
-            // ----------------------
+
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
             m_mapMessages.erase(it);
             it = temp_it; // here's where the iterator gets incremented (during the erase, basically.)
-            // ----------------------
+
             delete pThisMsg;                // <============ DELETE
             pThisMsg = NULL;
-            // ---------------------------------------------------------------------------
+
             if (NULL != pstrNymID && NULL != pstrServerID)
             {
                 OTString strFolder, strFile;
@@ -653,7 +653,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                                  "sent", /*todo hardcoding*/ OTLog::PathSeparator(),
                                  pstrNymID->Get());
                 strFile.Format("%lld.msg", lRequestNum);
-                // ---------------------------------------------------------------------------
+
                 OTNumList theNumList;
                 std::string str_data_filename("sent.dat");  // todo hardcoding.
                 if (OTDB::Exists(strFolder.Get(), str_data_filename))
@@ -673,12 +673,12 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                     it = m_mapMessages.begin();
                     while (it != m_mapMessages.end())
                     {
-                        // -----------------------------
+
                         const int64_t  & lTempReqNum   = it->first;
-                        // -----------------------
+
                         OTMessage   * pMsg          = it->second;
                         OT_ASSERT(NULL != pMsg);
-                        // -----------------------------
+
                         //
                         // If a server ID was passed in, but doesn't match the server ID on this message,
                         // Then skip this one. (Same with the NymID.)
@@ -689,7 +689,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                             ++it;
                             continue;
                         }
-                        // --------
+
                         else
                         {
                             theNumList.Add(lTempReqNum);
@@ -697,7 +697,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                         ++it;
                     }
                 }// else
-                // ----------------------------------
+
                 // By this point, theNumList has either been loaded from local storage and had the number removed,
                 // or it wasn't in local storage and thus we created it and added all the numbers to it from RAM (not
                 // including the one being erased, since it was already removed from the RAM list, above.) So either
@@ -709,9 +709,9 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                 theNumList.Output(strOutput);
                 if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(), str_data_filename)) // todo hardcoding.
                 {
-                    OTLog::Error("OTMessageOutbuffer::Clear: Error: failed writing list of request numbers to storage.\n");
+                    otErr << "OTMessageOutbuffer::Clear: Error: failed writing list of request numbers to storage.\n";
                 }
-                // ----------------------------------
+
                 // Make sure any messages being erased here, are also erased from local storage.
                 // Now that we've updated the numlist in local storage, let's
                 // erase the sent message itself...
@@ -725,7 +725,7 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                     OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
                 }
             }
-            // ---------------------------------------------------------------------------
+
         }
     }
 }
@@ -742,25 +742,25 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
                      "sent", /*todo hardcoding*/ OTLog::PathSeparator(),
                      strNymID.Get());
     strFile.Format("%lld.msg", lRequestNum);
-    // ------------------------------------------------
+
     mapOfMessages::iterator it = m_mapMessages.begin();
     
     bool bReturnValue = false;
     
     while (it != m_mapMessages.end())
     {
-        // -----------------------------
+
         const int64_t  & lTempReqNum   = it->first;
-        // -----------------------
+
         if (lTempReqNum != lRequestNum)
         {
             ++it;
             continue;
         }
-        // -----------------------
+
         OTMessage   * pMsg          = it->second;
         OT_ASSERT(NULL != pMsg);
-        // -----------------------------
+
         //
         // If a server ID was passed in, but doesn't match the server ID on this message,
         // Then skip this one. (Same with the NymID.)
@@ -770,27 +770,27 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
             ++it;
             continue;
         }
-        // --------
+
         else
         {
             delete pMsg; pMsg = NULL;
-            // ----------------------
+
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
             m_mapMessages.erase(it);
             it = temp_it; // here's where it gets incremented. (During the erase, basically.)
-            // ----------------------
+
             bReturnValue = true;
             break;
         }
     }
-    // ----------------------------------
+
     // Whether we found it in RAM or not, let's make sure to delete it from
     // local storage, if it's there... (Since there's a list there we have to update,
     // anyway.)
     // We keep a list of the request numbers, so let's load it up, remove the number
     // from that list, and then save it again.
-    // ----------------------------------
+
     OTNumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename))
@@ -805,12 +805,12 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
         it = m_mapMessages.begin();
         while (it != m_mapMessages.end())
         {
-            // -----------------------------
+
             const int64_t  & lTempReqNum   = it->first;
-            // -----------------------
+
             OTMessage   * pMsg          = it->second;
             OT_ASSERT(NULL != pMsg);
-            // -----------------------------
+
             //
             // If a server ID was passed in, but doesn't match the server ID on this message,
             // Then skip this one. (Same with the NymID.)
@@ -821,7 +821,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
                 ++it;
                 continue;
             }
-            // --------
+
             else
             {
                 theNumList.Add(lTempReqNum);
@@ -829,7 +829,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
             ++it;
         }
     }// else
-    // ----------------------------------
+
     // By this point, theNumList has either been loaded from local storage and had the number removed,
     // or it wasn't in local storage and thus we created it and added all the numbers to it from RAM (not
     // including the one being erased, since it was already removed from the RAM list, above.) So either
@@ -841,9 +841,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(), str_data_filename))
     {
-        OTLog::Error("OTMessageOutbuffer::RemoveSentMessage: Error: failed writing list of request numbers to storage.\n");
+        otErr << "OTMessageOutbuffer::RemoveSentMessage: Error: failed writing list of request numbers to storage.\n";
     }
-    // ----------------------------------
+
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
@@ -856,7 +856,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
         OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
         return true;
     }
-    // ----------------------------------
+
 	return bReturnValue;
 }
 
@@ -866,7 +866,7 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const OTTransaction & theTransact
     const int64_t &    lRequestNum = theTransaction.GetRequestNum();
     const OTString  strServerID(theTransaction.GetPurportedServerID());
     const OTString  strNymID(theTransaction.GetUserID());
-    // -------------------------------------
+
     return GetSentMessage(lRequestNum, strServerID, strNymID);
 }
 
@@ -878,7 +878,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction & theTransaction)
     const int64_t &    lRequestNum = theTransaction.GetRequestNum();
     const OTString  strServerID(theTransaction.GetPurportedServerID());
     const OTString  strNymID(theTransaction.GetUserID());
-    // -------------------------------------
+
     return RemoveSentMessage(lRequestNum, strServerID, strNymID);
 }
 

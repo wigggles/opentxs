@@ -232,7 +232,7 @@ bool OTInstrument::SaveContractWallet(std::ofstream &)
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-//    OTLog::Error("OTInstrument::ProcessXMLNode...\n");
+//    otErr << "OTInstrument::ProcessXMLNode...\n";
 	int32_t nReturnVal = 0;
     
 	// Here we call the parent class first.
@@ -249,7 +249,7 @@ int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	if (nReturnVal != 0) // -1 is error, and 1 is "found it". Either way, return.
 		return nReturnVal;	// 0 means "nothing happened, keep going."
     
-	// ---------
+
 	
     // This is from OTCronItem. It's only here as sample code.
     //
@@ -265,7 +265,7 @@ int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //        }
 //        else
 //		{
-//			OTLog::Error("Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n");
+//			otErr << "Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n";
 //			return (-1); // error condition
 //		}
 //        
