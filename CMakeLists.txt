@@ -77,12 +77,20 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   set(WARN_CXX_FLAGS "-Wno-vla-extension -Wno-overloaded-virtual")
 endif()
 
-set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wno-format ${WARN_CXX_FLAGS} -Wextra -pedantic -Wno-vla")
+if (NOT MSVC)
+  set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wno-format ${WARN_CXX_FLAGS} -Wextra -pedantic -Wno-vla")
+endif()
 
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 
+#-----------------------------------------------------------------------------
+# Third party libraries
+
+find_package(OpenSSL)
+find_package(Protobuf)
+find_package(ZLIB)
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
@@ -94,17 +102,20 @@ endif()
 
 if (MSVC)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions(-D_UNICODE)
+  if (WIN32)
+    add_definitions(-D_WIN32_WINNT=0x0501)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    link_directories(${OPENSSL_INCLUDE_DIR}/../lib/VC)
+  else()
+    include_directories("${OPENSSL_INCLUDE_DIR}/../../OpenSSL-Win64/include")
+    link_directories("${OPENSSL_INCLUDE_DIR}/../../OpenSSL-Win64/lib/VC")
+  endif(WIN32)
+  include_directories(${PROTOBUF_INCLUDE_DIR})
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  link_directories(${ZLIB_LIBRARIES})
 endif(MSVC)
-if (WIN32)
-  add_definitions(-D_WIN32_WINNT=0x0501)
-endif(WIN32)
 
-
-#-----------------------------------------------------------------------------
-# Third party libraries
-
-find_package(OpenSSL)
-find_package(Protobuf)
 
 #-----------------------------------------------------------------------------
 # Force out-of-source build

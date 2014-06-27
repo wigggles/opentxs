@@ -144,6 +144,15 @@
 
 namespace opentxs {
 
+std::ostream & operator << (std::ostream & os, const OTIdentifier & obj)
+{
+    OTString str;
+    obj.GetString(str);
+    os << str;
+    return os;
+}
+
+
 OTIdentifier::OTIdentifier() : OTData()  { }
 
 

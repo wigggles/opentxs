@@ -137,6 +137,8 @@
 #include "OTDataFolder.hpp"
 #include "OTPaths.hpp"
 
+#include <fstream>
+
 
 namespace opentxs {
 
@@ -144,6 +146,42 @@ namespace opentxs {
 
 // Todo:  Someday...
 
+#endif
+
+
+// Open-Transactions
+// NOTE: review this in security audit...
+// This is da2ce7's fix for the problems that appeared from removing
+// Lucre from the OT source and linking it separately. (Without applink.c
+// which causes cross-boundary issues with file handles.)
+#ifdef _WIN32
+#ifdef _DEBUG
+
+void CleanupDumpFile(const char *filepathexact)
+{
+    std::fstream f(filepathexact, std::ios::in);
+
+    if (f)
+    {
+        f.close();
+        f.open(filepathexact, std::ios::out | std::ios::trunc);
+        f.close();
+        remove(filepathexact);
+    }
+}
+
+
+void SetDumper(const char *filepathexact)
+{
+    // lets clear the last time we used this file.
+    CleanupDumpFile(filepathexact);
+    BIO *out = new BIO;
+    out = BIO_new_file(filepathexact, "w");
+    assert(out);
+    SetDumper(out);
+}
+
+#endif
 #endif
 
 

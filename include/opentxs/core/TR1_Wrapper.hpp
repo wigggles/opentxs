@@ -1,10 +1,6 @@
 #ifndef __TR1_WRAPPER_HPP__
 #define __TR1_WRAPPER_HPP__
 
-#ifdef _MSC_VER
-//#include "ot_msvc.h"
-#endif
-
 //  C++ Defines.
 #ifdef OT_USE_TR1
 #undef OT_USE_TR1

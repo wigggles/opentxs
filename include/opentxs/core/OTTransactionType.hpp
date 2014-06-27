@@ -455,20 +455,20 @@ protected:
 	if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM))
 	{
 		// error, return.
-		OTLog::Output(0, "Failed loading or verifying account in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Failed loading or verifying account in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;
 	}
 	// the account, inbox, and outbox all have the same Server ID. But does it match *this receipt?
 	else if (THE_ACCOUNT.GetPurportedServerID() != GetPurportedServerID())
 	{
 		// error, return.
-		OTLog::Output(0, "Account, inbox or outbox server ID fails to match receipt server ID.\n");
+		otOut << "Account, inbox or outbox server ID fails to match receipt server ID.\n";
 		return false;
 	}
 	else if (THE_ACCOUNT.GetPurportedAccountID() != GetPurportedAccountID()) // Same as above except for account ID instead of server ID.
 	{
 		// error, return.
-		OTLog::Output(0, "Account ID fails to match receipt account ID.\n");
+		otOut << "Account ID fails to match receipt account ID.\n";
 		return false;
 	}
 	// -------------------------------------------------

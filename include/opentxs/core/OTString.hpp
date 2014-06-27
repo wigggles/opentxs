@@ -141,6 +141,7 @@
 
 #include <cstdarg>
 #include <list>
+#include <iostream>
 #include <map>
 #include <sstream>
 
@@ -311,6 +312,8 @@ class OTString
 {
    // Construction -- Destruction
 public:
+EXPORT	friend std::ostream & operator << (std::ostream & os, const OTString & obj);
+    
 EXPORT	OTString();
 EXPORT	OTString(const OTString & strValue);
 EXPORT	OTString(const OTASCIIArmor & strValue);

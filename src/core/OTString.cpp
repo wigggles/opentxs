@@ -140,11 +140,18 @@
 #include "OTPseudonym.hpp"
 #include "OTSignature.hpp"
 
-#include <cstdio>
-
 #if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))
 #include <wordexp.h>
 #endif
+
+
+namespace opentxs {
+
+std::ostream & operator << (std::ostream & os, const OTString & obj)
+{
+    os << obj.Get();
+    return os;
+}
 
 
 /*
@@ -176,15 +183,12 @@
  
  */
 
-namespace opentxs {
-
-//inline bool vformat(const char * fmt, va_list vl, std::string & str_output)
 //static
 bool OTString::vformat(const char * fmt, va_list * pvl, std::string & str_Output)
 {
     OT_ASSERT(NULL != fmt);
     OT_ASSERT(NULL != pvl);
-    // ------------------
+
 	int32_t size=0;
 	int32_t nsize=0;
 	char * buffer = NULL;
@@ -200,11 +204,11 @@ bool OTString::vformat(const char * fmt, va_list * pvl, std::string & str_Output
 	size = 512;
 #endif
 
-    // ------------------------------------    
+
 	buffer = new char[size+100];
 	OT_ASSERT(NULL != buffer);
 	OTPassword::zeroMemory(buffer, size+100);
-    // ------------------------------------    
+
 
 #ifdef _WIN32
 	nsize = vsnprintf_s(buffer,size,size,fmt,args_2);
@@ -231,7 +235,7 @@ bool OTString::vformat(const char * fmt, va_list * pvl, std::string & str_Output
 	buffer = new char[size+100];
 	OT_ASSERT(NULL != buffer);
 	OTPassword::zeroMemory(buffer, size+100);
-	// ------------------------------------
+
 #ifdef _WIN32
 	nsize = vsnprintf_s(buffer,size,size,fmt,*pvl);
 	va_end(args);
@@ -239,11 +243,11 @@ bool OTString::vformat(const char * fmt, va_list * pvl, std::string & str_Output
 #else
 	nsize = vsnprintf(buffer,size,fmt,*pvl);
 #endif
-	// ------------------------------------
+
 	OT_ASSERT( nsize >= 0    );
     }
     OT_ASSERT(  size >  nsize);
-    // ------------------------------------
+
     str_Output = buffer;
     delete [] buffer;
     buffer = NULL;
@@ -339,18 +343,18 @@ errno_t strcpy_s(
 bool OTString::safe_strcpy(char * dest,
                            const
                            char * src,
-                           // -----------------
+
                            size_t dest_size,
                            bool   bZeroSource/*=false*/) // if true, initializes the source buffer to zero after the copying is done.
 {
     // Make sure they don't overlap.
     //
     OT_ASSERT_MSG(false == ((src > dest) && (src < (dest + dest_size))), "ASSERT: safe_strcpy: Unexpected memory overlap.\n");
-    // ---------------------------------
+
     bool bSuccess = false;
 
     const size_t src_length = OTString::safe_strlen(src, MAX_STRING_LENGTH); 
-    // ---------------------------------------
+
     OT_ASSERT_MSG(dest_size > src_length, "OTString::safe_strcpy: ASSERT: src_length must be less than dest_size.\n");
     
 #ifdef _WIN32
@@ -382,7 +386,7 @@ size_t OTString::safe_strlen(const char * s, size_t max)
 std::string & OTString::trim(std::string& str)
 {
 	std::string whitespaces (" \t\f\v\n\r");
-	// -----------------------------------
+
     
 	size_t found = str.find_first_not_of(whitespaces);
 	
@@ -390,7 +394,7 @@ std::string & OTString::trim(std::string& str)
     {
 		str.erase(0, found);
     }
-	// -----------------------------------
+
     
 	found = str.find_last_not_of(whitespaces);
 	
@@ -398,9 +402,9 @@ std::string & OTString::trim(std::string& str)
     {
 		str.erase(found+1);
     }
-	// -----------------------------------
 
-//	OTLog::vError("(DEBUGGING OTString.cpp) CONTRACT HAS BEEN TRIMMED!!!  RESULT: \n\n***BEGIN TRIM DATA:%s******END TRIM DATA\n\n",
+
+//	otErr << "(DEBUGGING OTString.cpp) CONTRACT HAS BEEN TRIMMED!!!  RESULT: \n\n***BEGIN TRIM DATA:%s******END TRIM DATA\n\n",
 //				  str.c_str()); // todo temp remove
 	return str;
 }
@@ -553,7 +557,7 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
     // fabcy-pansy parser that allows for multiple level of quotes nesting and escaped quotes
     if (!Exists())
         return true;
-    // --------------
+
     wordexp_t exp_result;
 
     exp_result.we_wordc = 0;
@@ -562,12 +566,12 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
 
     if (wordexp(Get(), &exp_result, 0)) // non-zero == failure.
     {
-        OTLog::vError("OTString::TokenizeIntoKeyValuePairs: Error calling wordexp() "
-            "(to expand user-defined script args.)\nData: %s\n", Get());
+        otErr << "OTString::TokenizeIntoKeyValuePairs: Error calling wordexp() "
+            "(to expand user-defined script args.)\nData: " << *this << "\n";
         //		wordfree(&exp_result); 
         return false;
     }
-    // ----------------------------
+
 
     if ((exp_result.we_wordc > 0) && (NULL != exp_result.we_wordv))
     {
@@ -584,13 +588,13 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
             const std::string str_key = exp_result.we_wordv[i];
             const std::string str_val = exp_result.we_wordv[i+1];
 
-            OTLog::vOutput(2, "%s:Parsed: %s = %s\n", __FUNCTION__, str_key.c_str(), str_val.c_str());
+            otInfo << __FUNCTION__ << ":Parsed: " << str_key << " = " << str_val << "\n";
             mapOutput.insert(std::pair<std::string, std::string>(str_key, str_val));		
         }
 
         wordfree(&exp_result); 
     }
-    // --------------
+
     return true;
 #else
     // simple parser that allows for one level of quotes nesting but no escaped quotes
@@ -612,7 +616,7 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
             while (txt[i] != quote && txt[i] != 0) i++;
             if (txt[i] != quote)
             {
-                OTLog::vError("%s: Unmatched quotes in: %s\n", __FUNCTION__, txt);
+				otErr << __FUNCTION__ << ": Unmatched quotes in: " << txt << "\n";
                 return false;
             }
             k2 = i;
@@ -636,7 +640,7 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
             while (txt[i] != quote && txt[i] != 0) i++;
             if (txt[i] != quote)
             {
-                OTLog::vError("%s: Unmatched quotes in: %s\n", __FUNCTION__, txt);
+				otErr << __FUNCTION__ << ": Unmatched quotes in: " << txt << "\n";
                 return false;
             }
             v2 = i;
@@ -651,7 +655,7 @@ bool OTString::TokenizeIntoKeyValuePairs(std::map<std::string, std::string> & ma
 
         if (key.length() != 0 && value.length() != 0)
         {
-            OTLog::vOutput(2, "%s:Parsed: %s = %s\n", __FUNCTION__, key.c_str(), value.c_str());
+			otInfo << __FUNCTION__ << ":Parsed: " << key << " = " << value << "\n";
             mapOutput.insert(std::pair<std::string, std::string>(key, value));
         }
     }
@@ -725,7 +729,7 @@ int64_t OTString::ToLong() const
     if (!*end) return lNumber;
     else
     {
-        OTLog::sError("Conversion error (str to int64_t), non-convertible part: %s",end);
+        otErr << "Conversion error (str to int64_t), non-convertible part: %s",end);
         OT_FAIL;
         return -1;
     }
@@ -963,14 +967,14 @@ void OTString::LowLevelSet(const char * new_string, uint32_t nEnforcedMaxLength)
 			return;
 
         OT_ASSERT_MSG(nLength < (MAX_STRING_LENGTH-10), "ASSERT: OTString::LowLevelSet: Exceeded MAX_STRING_LENGTH! (String would not have fully fit anyway--it would have been truncated here, potentially causing data corruption.)"); // 10 being a buffer.        
-        // ------------------------------------------
+
         // Add null terminator to source string JUST IN CASE...
         // Update: this is const, so we can't change it. However, the strnlen above will only have
         // worked if there was a null terminator, since otherwise we would have hit the above ASSERT.
         // Therefore we should be safe enough without it here...
         //
 //      new_string[nLength] = '\0';
-        // ------------------------------------------
+
 		m_strBuffer = str_dup2(new_string, nLength);
 		
 		if (NULL != m_strBuffer)
@@ -990,12 +994,12 @@ bool OTString::MemSet(const char * pMem, uint32_t theSize) // if theSize is 10..
 	// -------------------	
 	if ((NULL == pMem) || (theSize < 1))
 		return true;
-	// -------------------
+
 	char * str_new = new char [theSize + 1]; // then we allocate 11 
 	OT_ASSERT(NULL != str_new);
 	// -------------------	
     OTPassword::zeroMemory(str_new, theSize + 1);
-	// -------------------
+
 //  void * OTPassword::safe_memcpy(void   * dest,
 //                                 uint32_t dest_size,
 //                                 const
@@ -1012,16 +1016,16 @@ bool OTString::MemSet(const char * pMem, uint32_t theSize) // if theSize is 10..
     // todo optimize: This is probably superfluous due to the zeroMemory above.
     // Then again, we might want to remove that, and then keep this. 
 	str_new[theSize] = '\0'; // add null-terminator. (I deliberately made this buffer 1 byte larger so I could put the 0 at the end.) Here the index[10] is the 11th byte, since we're counting from 0.
-    // ------------------------------------------    
+
     // Calculate the length (in case there was a null terminator in the middle...)
     // This way we're guaranteed to have the correct length.
     //
     uint32_t nLength = static_cast<uint32_t> (OTString::safe_strlen(str_new, static_cast<size_t>(theSize)));
 	str_new[nLength] = '\0'; // This SHOULD be superfluous as well...
-    // ------------------------------------------    
+
 	m_lLength	= nLength; // the length doesn't count the 0.
 	m_strBuffer	= str_new;
-    // ------------------------------------------
+
 	return true;
 }
 
@@ -1257,7 +1261,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
 {
     if (!this->Exists())
         return false;
-    // ----------------------
+
     bool bArmoredAndALSOescaped = false;    // "- -----BEGIN OT ARMORED"
     bool bArmoredButNOTescaped  = false;    // "-----BEGIN OT ARMORED"
     
@@ -1267,8 +1271,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
         
         if (!bEscapedIsAllowed)
         {
-            OTLog::vError("%s: Armored and escaped value passed in, but escaped are forbidden here. "
-                          "(Returning.)\n");
+			otErr << __FUNCTION__ << ": Armored and escaped value passed in, but escaped are forbidden here. (Returning.)\n";
             return false;
         }
     }
@@ -1276,15 +1279,15 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
     {
         bArmoredButNOTescaped = true;
     }
-    // ----------------------------------------
-    const bool bArmored = (bArmoredAndALSOescaped || bArmoredButNOTescaped);
-    // ----------------------------------------
-    // Whether the string is armored or not, (-----BEGIN OT ARMORED)
+
+	const bool bArmored = (bArmoredAndALSOescaped || bArmoredButNOTescaped);
+
+	// Whether the string is armored or not, (-----BEGIN OT ARMORED)
     // either way, we'll end up with the decoded version in this variable:
     //
     std::string str_Trim;
-    // ------------------------------------------------
-    if (bArmored) // it's armored, we have to decode it first.
+
+	if (bArmored) // it's armored, we have to decode it first.
     {
         OTASCIIArmor ascTemp;
         if (false == (ascTemp.LoadFromString(*this,
@@ -1293,8 +1296,8 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
                                              OT_BEGIN_ARMORED)))     // Default is:       "-----BEGIN"
                                                                     // We're doing this: "-----BEGIN OT ARMORED" (Should worked for escaped as well, here.)
         {
-            OTLog::vError("%s: Error loading string contents from ascii-armored encoding. "
-                          "Contents: \n%s\n", __FUNCTION__, this->Get());
+			otErr << __FUNCTION__ << ": Error loading string contents from ascii-armored encoding. "
+				"Contents: \n" << this->Get() << "\n";
             return false;
         }
         else // success loading the actual contents out of the ascii-armored version.
@@ -1309,15 +1312,15 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
         std::string str_temp(this->Get(), this->GetLength());
         str_Trim = OTString::trim(str_temp); // This is the std::string for the trim process. (Wasn't armored, so here we use it as passed in.)
     }
-    // ------------------------------------------------
+
     // At this point, str_Trim contains the actual contents, whether they
     // were originally ascii-armored OR NOT. (And they are also now trimmed, either way.)
-    // ------------------------------------------
+
     this->Release();
-    // ------------------------------------------
+
     if (str_Trim.size() > 0)
         this->Set(str_Trim.c_str());
-    // ------------------------------------------
+
     return this->Exists();
 }
 
@@ -1338,7 +1341,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
 //    int32_t size      = 512;
 //    char * buffer = new char[size];
 //    buffer[0]     = '\0';
-//    // ------------------------------------    
+//
 //    int32_t nsize = vsnprintf(buffer,size,fmt,vl);
 //    
 //    //fail -- delete buffer and try again
@@ -1348,7 +1351,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed/*=true*/)
 //        buffer = new char[nsize+1]; //+1 for /0
 //        nsize = vsnprintf(buffer,nsize,fmt,vl);
 //    }
-//    // ------------------------------------
+//
 //    str_output = buffer;
 //    delete buffer;
 //    return true;

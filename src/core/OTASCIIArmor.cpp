@@ -141,14 +141,11 @@
 
 #include <fstream>
 
-#ifdef _WIN32
-#include <zlib/zlib.h>
-#else
 #include <zlib.h>
-#endif
+
 
 namespace opentxs {
-
+    
 
 const char * OT_BEGIN_ARMORED   = "-----BEGIN OT ARMORED";
 const char * OT_END_ARMORED     =   "-----END OT ARMORED";

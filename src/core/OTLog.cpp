@@ -132,16 +132,20 @@
 
 #include "stdafx.hpp"
 
+#define OTLOG_IMPORT
+
 #include "OTLog.hpp"
 
 #include "OTPaths.hpp"
 
 #include "tinythread.hpp"
 
+#ifndef _WIN32
+#include <cerrno>
+#endif
 #include <fstream>
 #include <iostream>
 
-#include <cerrno>
 #include <constants.h>
 #include <stacktrace.h>
 
@@ -264,6 +268,51 @@ const OTString OTLog::m_strVersion		 = OT_VERSION;
 const OTString OTLog::m_strPathSeparator = "/";
 
 
+OTLOG_IMPORT OTLogStream otErr(-1);   // logs using otErr << )
+OTLOG_IMPORT OTLogStream otInfo(2);  // logs using OTLog::vOutput(2)
+OTLOG_IMPORT OTLogStream otOut(0);   // logs using OTLog::vOutput(0)
+OTLOG_IMPORT OTLogStream otWarn(1);  // logs using OTLog::vOutput(1)
+OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
+OTLOG_IMPORT OTLogStream otLog4(4);  // logs using OTLog::vOutput(4)
+OTLOG_IMPORT OTLogStream otLog5(5);  // logs using OTLog::vOutput(5)
+
+
+OTLogStream::OTLogStream(int _logLevel)
+    : std::ostream(this)
+    , logLevel(_logLevel)
+    , next(0)
+    , pBuffer(new char[1024])
+{
+}
+
+OTLogStream::~OTLogStream()
+{
+    delete [] pBuffer;
+    pBuffer = NULL;
+}
+
+int OTLogStream::overflow(int c)
+{
+    pBuffer[next++] = c;
+    if (c != '\n' && next < 1000)
+    {
+        return 0;
+    }
+
+    pBuffer[next++] = '\0';
+    next = 0;
+
+    if (logLevel < 0)
+    {
+        OTLog::Error(pBuffer);
+        return 0;
+    }
+
+     OTLog::Output(logLevel, pBuffer);
+    return 0;
+}
+
+
 // Global, thread local.
 //static thread_local OTLog * OTLog::pLogger;
 
@@ -335,9 +384,7 @@ bool OTLog::Init(const OTString & strThreadContext, const int32_t & nLogLevel)
 //static
 bool OTLog::IsInitialized()
 {
-	if (NULL == pLogger)
-		return false;
-	else return pLogger->m_bInitialized;
+	return NULL != pLogger && pLogger->m_bInitialized;
 }
 
 
@@ -350,15 +397,14 @@ bool OTLog::Cleanup()
 			pLogger = NULL;
 			return true;
 	}
-	else return false;
+	return false;
 }
 
 
 //static
 bool OTLog::CheckLogger(OTLog * pLogger)
 {
-    if (NULL != pLogger)
-    if (pLogger->m_bInitialized) return true;
+    if (NULL != pLogger && pLogger->m_bInitialized) return true;
 
     OT_FAIL;
 }
@@ -406,7 +452,7 @@ bool OTLog::LogToFile(const OTString & strOutput)
 {
 	// We now do this either way.
 	{
-		std::cerr << strOutput.Get();
+		std::cerr << strOutput;
 		std::cerr.flush();
 	}
 
@@ -431,7 +477,7 @@ bool OTLog::LogToFile(const OTString & strOutput)
 
 			if(!logfile.fail())
 			{
-				logfile << strOutput.Get();
+				logfile << strOutput;
 				logfile.close();
 				bSuccess = true;
 			}
@@ -452,7 +498,7 @@ const OTString OTLog::GetMemlogAtIndex(const int32_t nIndex)
 
 	if ((nIndex < 0) || (uIndex >= OTLog::pLogger->logDeque.size()))
 	{
-		OTLog::vError("%s: index out of bounds: %d\n", __FUNCTION__, nIndex);
+		otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
 		return "";
 	}
 
@@ -618,9 +664,9 @@ size_t OTLog::logAssert(const char * szFilename, size_t nLinenumber, const char 
 	{
 #ifndef ANDROID // if NOT android
 		std::cerr << szMessage << "\n";
-		// -----------------------------
+
 		LogToFile(szMessage); LogToFile("\n");
-		// -----------------------------
+
 
 #else // if Android
 		__android_log_write(ANDROID_LOG_FATAL,"OT Assert (or Fail)", szMessage);
@@ -632,13 +678,13 @@ size_t OTLog::logAssert(const char * szFilename, size_t nLinenumber, const char 
     if ((NULL != szFilename))
     {
 #ifndef ANDROID // if NOT android
-        // -----------------------------
+
         // Pass it to LogToFile, as this always logs.
         //
         OTString strTemp;
         strTemp.Format("\nOT_ASSERT in %s at line %d\n", szFilename, nLinenumber);
         LogToFile(strTemp.Get());
-        // -----------------------------
+
 
 #else // if Android
         OTString strAndroidAssertMsg;
@@ -675,7 +721,7 @@ void OTLog::Output(int32_t nVerbosity, const char *szOutput)
 	// We store the last 1024 logs so programmers can access them via the API.
 	if (bHaveLogger) OTLog::PushMemlogFront(szOutput);
 
-	// ---------------------------------------
+
 
 #ifndef ANDROID // if NOT android
 
@@ -716,21 +762,6 @@ void OTLog::Output(int32_t nVerbosity, const char *szOutput)
 }
 
 
-void OTLog::Output(int32_t nVerbosity, OTString & strOutput)
-{
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
-
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
-
-	if (strOutput.Exists())
-		OTLog::Output(nVerbosity, strOutput.Get());
-}
-
-
 // the vOutput is to avoid name conflicts.
 void OTLog::vOutput(int32_t nVerbosity, const char *szOutput, ...)
 {
@@ -745,7 +776,7 @@ void OTLog::vOutput(int32_t nVerbosity, const char *szOutput, ...)
 	// If log level is 0, and verbosity of this message is 2, don't bother logging it.
 	if (((0 != LogLevel()) && (nVerbosity > LogLevel())) || (NULL == szOutput))
 		return;
-	// --------------------
+
 	std::string str_output;
 
 	va_list args;
@@ -756,7 +787,7 @@ void OTLog::vOutput(int32_t nVerbosity, const char *szOutput, ...)
 	const bool bFormatted = OTString::vformat(szOutput, &args, strOutput);
 
 	va_end(args);
-	// -------------------
+
     if (bFormatted)
         OTLog::Output(nVerbosity, strOutput.c_str());
     else
@@ -778,7 +809,7 @@ void OTLog::vError(const char *szError, ...)
 
 	if ((NULL == szError))
 		return;
-    // --------------------
+
 
 	va_list args;
 	va_start(args, szError);
@@ -788,7 +819,7 @@ void OTLog::vError(const char *szError, ...)
     const bool bFormatted = OTString::vformat(szError, &args, strOutput);
 
 	va_end(args);
-    // -------------------
+
     if (bFormatted)
         OTLog::Error(strOutput.c_str());
 	else OT_FAIL;
@@ -822,13 +853,6 @@ void OTLog::Error(const char *szError)
 #else // if Android
 	__android_log_write(ANDROID_LOG_ERROR,"OT Error", szError);
 #endif
-}
-
-
-void OTLog::Error(OTString & strError)
-{
-	if (strError.Exists())
-		OTLog::Error(strError.Get());
 }
 
 
@@ -866,100 +890,14 @@ void OTLog::Errno(const char * szLocation/*=NULL*/) // stderr
 
 	if (NULL == szErrString)
 		szErrString = buf;
-	// ------------------------
+
 	if (0 == nstrerr)
-		OTLog::vError("%s %s: errno %d: %s.\n",
-		szFunc, sz_location,
-		errnum, szErrString[0] != '\0' ? szErrString : "");
+		otErr << szFunc << " " << sz_location << ": errno " << errnum <<
+		": " << (szErrString[0] != '\0' ? szErrString : "") << ".\n";
 	else
-		OTLog::vError("%s %s: errno: %d. (Unable to retrieve error string for that number.)\n",
-		szFunc, sz_location,
-		errnum);
+		otErr << szFunc << " " << sz_location << ": errno: " << errnum <<
+		". (Unable to retrieve error string for that number.)\n";
 }
-
-
-void OTLog::sOutput(int32_t nVerbosity,const OTString & strOne)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity,const OTString & strOne, const OTString & strTwo)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity,const OTString & strOne, const OTString & strTwo, const OTString & strThree)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get(),strThree.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity,const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity,const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity, const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive, const OTString & strSix)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSix.Get());
-	}
-
-
-void OTLog::sOutput(int32_t nVerbosity, const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive, const OTString & strSix, const OTString & strSeven)
-	{
-		OTLog::vOutput(nVerbosity,strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSix.Get(),strSeven.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne)
-	{
-		OTLog::vError(strOne.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive, const OTString & strSix)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSix.Get());
-	}
-
-
-void OTLog::sError(const OTString & strOne, const OTString & strTwo, const OTString & strThree, const OTString & strFour, const OTString & strFive, const OTString & strSix, const OTString & strSeven)
-	{
-		OTLog::vError(strOne.Get(),strTwo.Get(),strThree.Get(),strFour.Get(),strFive.Get(),strSix.Get(),strSeven.Get());
-	}
 
 
 // String Helpers
@@ -1665,8 +1603,8 @@ struct sigaction new_action, old_action; \
 { \
 	if (sigaction(OT_SIGNAL_TYPE, &new_action, NULL) != 0) \
 { \
-	OTLog::vError("OTLog::SetupSignalHandler: Failed setting signal handler for error %d (%s)\n", \
-	OT_SIGNAL_TYPE, strsignal(OT_SIGNAL_TYPE)); \
+    otErr << "OTLog::SetupSignalHandler: Failed setting signal handler for error " << OT_SIGNAL_TYPE \
+          << " (" << strsignal(OT_SIGNAL_TYPE) << ")\n"; \
 	abort(); \
 } \
 } \
@@ -1682,7 +1620,7 @@ void OTLog::SetupSignalHandler()
 	if (0 == nCount)
 	{
 		++nCount;
-		// --------------------------------------
+
         OT_HANDLE_SIGNAL(SIGINT)  // Ctrl-C. (So we can shutdown gracefully, I suppose, on Ctrl-C.)
         OT_HANDLE_SIGNAL(SIGSEGV) // Segmentation fault.
 //      OT_HANDLE_SIGNAL(SIGABRT) // Abort.
@@ -1699,7 +1637,7 @@ void OTLog::SetupSignalHandler()
 //      OT_HANDLE_SIGNAL(SIGQUIT) // SIGQUIT is the signal sent to a process by its controlling terminal when the user requests that the process perform a core dump.
         OT_HANDLE_SIGNAL(SIGSYS)  // sent when a process supplies an incorrect argument to a system call.
 //      OT_HANDLE_SIGNAL(SIGTRAP) // used by debuggers
-        // --------------------------------------
+
 	}
 }
 
