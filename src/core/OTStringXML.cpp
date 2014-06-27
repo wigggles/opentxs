@@ -134,7 +134,7 @@
 
 #include "OTStringXML.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {

@@ -155,13 +155,13 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
 
     if (m_str_script.size() > 0)
     {        
-        // --------------------
+
         /*
         this->chai->add(user_type<OTParty>(), "OTParty");        
         this->chai->add(constructor<OTParty()>(), "OTParty");
         this->chai->add(constructor<OTParty(const OTParty&)>(), "OTParty");
         this->chai->add(fun<OTParty&(OTParty::*)(const OTParty&)>(&OTParty::operator=), "=");
-        // -----------------------------------------------------
+
         this->chai->add(fun(&OTParty::GetPartyName), "GetPartyName");
         this->chai->add(fun(&OTParty::GetNymID), "GetNymID");
         this->chai->add(fun(&OTParty::GetEntityID), "GetEntityID");
@@ -178,7 +178,7 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
         {
             OTParty * pParty = (*it).second;
             OT_ASSERT(NULL != pParty);
-            // ------------------------
+
             std::string party_name  = pParty->GetPartyName();
             std::string party_id    = pParty->GetPartyID();
 
@@ -201,12 +201,12 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             this->chai->add_global_const(const_var(party_name),    party_name.c_str()); // Why name and not ID? See comment just above.
 //          this->chai->add_global_const(const_var(party_id),      party_name.c_str());
         }
-        // --------------------
+
         FOR_EACH(mapOfPartyAccounts, m_mapAccounts)
         {
             OTPartyAccount * pAcct = (*it).second;
             OT_ASSERT(NULL != pAcct);
-            // ------------------------
+
             std::string acct_name  = pAcct->GetName().Get();
             std::string acct_id    = pAcct->GetAcctID().Get();
 
@@ -218,7 +218,7 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             this->chai->add_global_const(const_var(acct_name), acct_name.c_str()); // See comment in above block for party name.
 //          this->chai->add_global_const(const_var(acct_id),   acct_name.c_str());
         }
-        // --------------------
+
         /*
          enum OTVariable_Access
          {
@@ -240,7 +240,7 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             const std::string var_name  = (*it).first;
             OTVariable * pVar           = (*it).second;
             OT_ASSERT((NULL != pVar) && (var_name.size() > 0));
-            // ------------------------
+
 
             switch (pVar->GetType()) 
             {
@@ -276,37 +276,34 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
                     {
                         this->chai->add_global_const(const_var(pVar->CopyValueString()), var_name.c_str());
 
-//                      OTLog::vError("\n\n\nOTSCRIPT DEBUGGING  (const var added to script): %s\n\n\n", str_Value.c_str());
+//                      otErr << "\n\n\nOTSCRIPT DEBUGGING  (const var added to script): %s\n\n\n", str_Value.c_str());
                     }
                     else
                     {
                         this->chai->add(var(&str_Value), // passing ptr here so the script can modify this variable if it wants.
                                  var_name.c_str());
 
-//                      OTLog::vError("\n\n\nOTSCRIPT DEBUGGING var added to script: %s \n\n\n", str_Value.c_str());
+//                      otErr << "\n\n\nOTSCRIPT DEBUGGING var added to script: %s \n\n\n", str_Value.c_str());
                     }
                 }
                     break;
                     
                 default:
-                    OTLog::vError("OTScriptChai::ExecuteScript: Failure: Unknown variable type for variable: %s\n",
-                                  var_name.c_str());
+					otErr << "OTScriptChai::ExecuteScript: Failure: Unknown variable type for variable: " 
+						<< var_name << "\n";
                     return false;
             }
         }
-        // --------------------
-        
-        
-        // --------------------
+
+
         // Here we add the mapOfParties user-defined type to the chaiscript engine.
 //      this->chai->add(user_type<mapOfParties>(), "mapOfParties");
-        // --------------------
+
+
         // Here we add the m_mapParties member variable itself
 //      this->chai->add_global_const(const_var(m_mapParties), "Parties");
-        // --------------------
-        
-        
-        // ***************************************
+
+
         try 
         {
             if (NULL == pReturnVar)             // Nothing to return.
@@ -346,21 +343,18 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
                         break;
 
                     default:
-                        OTLog::Error("OTScriptChai::ExecuteScript: Unknown return type passed in, "
-                                     "unable to service it.\n");
+                        otErr << "OTScriptChai::ExecuteScript: Unknown return type passed in, "
+                                     "unable to service it.\n";
                         return false;
                 } // switch
             } // else return variable.
         } // try
         catch (const chaiscript::exception::eval_error &ee) {
             // Error in script parsing / execution
-            OTLog::vError("OTScriptChai::ExecuteScript: \n Caught chaiscript::exception::eval_error: \n %s. \n"
-                          "   File: %s\n"
-                          "   Start position, line: %d column: %d\n"
-                          "   End position,   line: %d column: %d\n\n",
-                          ee.reason.c_str(), ee.filename.c_str(), 
-                          ee.start_position.line, ee.start_position.column,
-                          ee.end_position.line, ee.end_position.column);
+			otErr << "OTScriptChai::ExecuteScript: \n Caught chaiscript::exception::eval_error: \n " 
+				<< ee.reason << ". \n   File: " << ee.filename << "\n"
+				"   Start position, line: " << ee.start_position.line << " column: " << ee.start_position.column << "\n"
+				"   End position,   line: " << ee.end_position.line << " column: " << ee.end_position.column << "\n\n";
 
             std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
@@ -369,7 +363,6 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             std::cout << std::endl;
             std::cout << std::endl;
 
-            // ----------------------            
 //          std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
 //                std::cout << "during evaluation at (" << *(ee.call_stack[0]->filename) << " " << ee.call_stack[0]->start.line << ", " << ee.call_stack[0]->start.column << ")";
@@ -390,39 +383,39 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             std::cout << std::endl;
 
             
-//          OTLog::Error("CALL STACK:\n\n");
+//          otErr << "CALL STACK:\n\n";
 //          int32_t nStack = 0;
 //          FOR_EACH_CONST(std::vector<AST_NodePtr>, e.call_stack)
 //          {
 //              AST_NodePtr pNode = *it;
-//              // ----------------------
+//
 //              if (pNode)
 //              {
 //                  std::string str_node = pNode->to_string();                  
-//                  OTLog::vError("%d: %s\n", nStack++, str_node.c_str());
+//                  otErr << "%d: %s\n", nStack++, str_node.c_str());
 //              }
 //          }
             
             return false;
         } catch (const chaiscript::exception::bad_boxed_cast &e) {
             // Error unboxing return value
-            OTLog::vError("OTScriptChai::ExecuteScript: Caught chaiscript::exception::bad_boxed_cast : %s.\n",
-                          (e.what() != NULL) ? e.what() : "e.what() returned null, sorry");
+			otErr << "OTScriptChai::ExecuteScript: Caught chaiscript::exception::bad_boxed_cast : " 
+				<< ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << ".\n";
             return false;
         } catch (const std::exception &e) {
             // Error explicitly thrown from script
-            OTLog::vError("OTScriptChai::ExecuteScript: Caught std::exception exception: %s\n",
-                          (e.what() != NULL) ? e.what() : "e.what() returned null, sorry");
+			otErr << "OTScriptChai::ExecuteScript: Caught std::exception exception: "
+				<< ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << "\n";
             return false;
         }
 //      catch (chaiscript::Boxed_Value bv) 
         catch (...)
         {
 //          int32_t i = chaiscript::boxed_cast<int32_t>(bv);
-            OTLog::Error("OTScriptChai::ExecuteScript: Caught exception.\n");
+            otErr << "OTScriptChai::ExecuteScript: Caught exception.\n";
             return false;
         }
-        // ***************************************
+
     }
     
     return true;

@@ -144,7 +144,7 @@
 #include "OTSmartContract.hpp"
 #include "OTStorage.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 #ifdef OT_USE_SCRIPT_CHAI
 #	include "OTScriptChai.hpp"
@@ -172,23 +172,23 @@ namespace opentxs {
 OTScriptable * OTScriptable::InstantiateScriptable(const OTString & strInput)
 {
 	static char buf[45] = "";
-	// ---------------------------------
+
 	if (false == strInput.Exists())
     {
-        OTLog::vError("%s: Failure: Input string is empty.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failure: Input string is empty.\n";
         return NULL;
     }
-    // --------------------------------------------------------------------
-    OTString strContract(strInput);
+
+	OTString strContract(strInput);
 
     if (false == strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true by default.
     {
-        OTLog::vError("%s: Input string apparently was encoded and then failed decoding. Contents: \n%s\n",
-                      __FUNCTION__, strInput.Get());
+		otErr << __FUNCTION__ << ": Input string apparently was encoded and then failed decoding. Contents: \n"
+			<< strInput << "\n";
         return NULL;
     }
-    // ------------------------------------------
-    // At this point, strContract contains the actual contents, whether they
+
+	// At this point, strContract contains the actual contents, whether they
     // were originally ascii-armored OR NOT. (And they are also now trimmed, either way.)
     //
 	strContract.reset(); // for sgets
@@ -197,7 +197,7 @@ OTScriptable * OTScriptable::InstantiateScriptable(const OTString & strInput)
 
 	if (!bGotLine)
 		return NULL;
-	// --------------------------------
+
     OTCronItem * pItem = NULL;
 
 	OTString strFirstLine(buf);
@@ -257,13 +257,12 @@ bool OTScriptable::ValidateName(const std::string str_name)
 {
 	if (str_name.size() <= 0)
 	{
-		OTLog::Error("OTScriptable::ValidateName: Name has zero size.\n");
+		otErr << "OTScriptable::ValidateName: Name has zero size.\n";
 		return false;
 	}
 	else if (find_if(str_name.begin(), str_name.end(), is_ot_namechar_invalid) != str_name.end())
 	{
-		OTLog::vError("OTScriptable::ValidateName: Name fails validation testing: %s\n",
-					 str_name.c_str());
+		otErr << "OTScriptable::ValidateName: Name fails validation testing: " << str_name << "\n";
 		return false;
 	}
 
@@ -289,7 +288,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript(OTScript & theScript)
         OT_ASSERT(NULL != pScript->chai)
 
 		pScript->chai->add(fun(&OTScriptable::GetTime), "get_time");
-		// ---------------------------------------------------------------------------------
+
 		pScript->chai->add(fun(&OTScriptable::CanExecuteClause, this), "party_may_execute_clause");
 //		pScript->chai.add(fun(&OTScriptable::CanExecuteClause, (*this)), "party_may_execute_clause");
 	}
@@ -298,7 +297,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript(OTScript & theScript)
 	else
 #endif // OT_USE_SCRIPT_CHAI
     {
-		OTLog::Error("OTScriptable::RegisterOTNativeCallsWithScript: Failed dynamic casting OTScript to OTScriptChai \n");
+		otErr << "OTScriptable::RegisterOTNativeCallsWithScript: Failed dynamic casting OTScript to OTScriptChai \n";
 	}
 }
 
@@ -308,7 +307,7 @@ std::string OTScriptable::GetTime() // Returns a string, containing seconds as i
 {
     const time64_t  CURRENT_TIME = OTTimeGetCurrentTime();
     const int64_t   lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
-    // ----------------------------------
+
     OTString strTime;
     strTime.Format("%lld", lTime);
     return	strTime.Get();
@@ -325,30 +324,29 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 {
 //  OTCron * pCron  = GetCron();
 //  OT_ASSERT(NULL != pCron);
-//  // ----------------------------------
+
 //  OTPseudonym * pServerNym = pCron->GetServerNym();
 //  OT_ASSERT(NULL != pServerNym);
-    // -------------------------------------------------
+
 
 	OTParty		* pParty	= this->GetParty(str_party_name);
 	OTClause	* pClause	= this->GetClause(str_clause_name);
 
 	if (NULL == pParty)
 	{
-		OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Unable to find this party: %s\n",
-					   str_party_name.size() > 0 ? str_party_name.c_str() : "");
+		otOut << "OTScriptable::CanExecuteClause: Unable to find this party: " <<
+			(str_party_name.size() > 0 ? str_party_name.c_str() : "") << "\n";
 		return false;
 	}
 
 	if (NULL == pClause)
 	{
-		OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Unable to find this clause: %s\n",
-					   str_clause_name.size() > 0 ? str_clause_name.c_str() : "");
+		otOut << "OTScriptable::CanExecuteClause: Unable to find this clause: " <<
+			(str_clause_name.size() > 0 ? str_clause_name.c_str() : "") << "\n";
 		return false;
 	}
 	// Below this point, pParty and pClause are both good.
-	// -------------------------------------------------
-	//
+
 
 	// ...This WILL check to see if pParty has its Opening number verified as issued.
 	// (If the opening number is > 0 then VerifyPartyAuthorization() is smart enough to verify it.)
@@ -384,7 +382,7 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 //
 //	if (!bVerifiedAuthorization)
 //	{
-//		OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Unable to verify authorization for party: %s\n",
+//		otOut << "OTScriptable::CanExecuteClause: Unable to verify authorization for party: %s\n",
 //					   str_party_name.c_str());
 //		return false;
 //	}
@@ -407,19 +405,19 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 	//
 	if (str_clause_name.compare(0,5,"cron_") == 0) // todo stop hardcoding
 	{
-		OTLog::Output(0, "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in cron_\n");
+		otOut << "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in cron_\n";
 		return false;
 	}
 
 	if (str_clause_name.compare(0,5,"hook_") == 0) // todo stop hardcoding
 	{
-		OTLog::Output(0, "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in hook_\n");
+		otOut << "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in hook_\n";
 		return false;
 	}
 
 	if (str_clause_name.compare(0,9,"callback_") == 0) // todo stop hardcoding
 	{
-		OTLog::Output(0, "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in callback_\n");
+		otOut << "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in callback_\n";
 		return false;
 	}
 	// *****************************************************************************
@@ -439,8 +437,7 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 
 	if (NULL != pCallbackClause) // Found it!
 	{
-		OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Found script for: %s. Asking...\n",
-					   SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE);
+		otOut << "OTScriptable::CanExecuteClause: Found script for: " << SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE << ". Asking...\n";
 
 		// The function we're IN defaults to TRUE, if there's no script available.
 		// However, if the script is available, then our default return value starts as FALSE.
@@ -448,9 +445,9 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 		//
 		OTVariable param1		("param_party_name",  str_party_name,	OTVariable::Var_Constant);
 		OTVariable param2		("param_clause_name", str_clause_name,	OTVariable::Var_Constant);
-		// -------------------------------------------------------------
+
 		OTVariable theReturnVal	("return_val",		  false);
-		// -------------------------------------------------------------
+
 		mapOfVariables theParameters;
 		theParameters.insert(std::pair<std::string, OTVariable *>("param_party_name",  &param1));
 		theParameters.insert(std::pair<std::string, OTVariable *>("param_clause_name", &param2));
@@ -459,25 +456,25 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
 
 		if (false == this->ExecuteCallback(*pCallbackClause, theParameters, theReturnVal)) // <============================================
 		{
-			OTLog::vError("OTScriptable::CanExecuteClause: Error while running callback script %s, clause %s \n",
-						  SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE, str_clause_name.c_str());
+			otErr << "OTScriptable::CanExecuteClause: Error while running callback script "
+				<< SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE << ", clause " << str_clause_name << " \n";
 			return false;
 		}
 		else
 		{
-			OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Success executing callback script %s, clause: %s.\n\n",
-						   SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE, str_clause_name.c_str());
+			otOut << "OTScriptable::CanExecuteClause: Success executing callback script "
+				<< SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE << ", clause: " << str_clause_name << ".\n\n";
 
 			return theReturnVal.CopyValueBool();
 		}
-		// ****************************************
+
 	}
 	else
 	{
-		OTLog::vOutput(0, "OTScriptable::CanExecuteClause: Unable to find script for: %s. Therefore, default return value is: TRUE.\n",
-					   SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE);
+		otOut << "OTScriptable::CanExecuteClause: Unable to find script for: " << SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE <<
+			". Therefore, default return value is: TRUE.\n";
 	}
-	// *****************************************************************************
+
 
 	return true;
 }
@@ -497,7 +494,7 @@ bool OTScriptable::AllPartiesHaveSupposedlyConfirmed()
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 		if (!(pParty->GetMySignedCopy().Exists()))
 			return false;
 	}
@@ -512,7 +509,7 @@ void OTScriptable::ClearTemporaryPointers()
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 		pParty->ClearTemporaryPointers();
 	}
 }
@@ -526,17 +523,17 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
 
 	OTBylaw * pBylaw = theCallbackClause.GetBylaw();
 	OT_ASSERT(NULL != pBylaw);
-	// -------------------------------------------------
+
 	// By this point, we have the clause we are executing as theCallbackClause,
 	// and we have the Bylaw it belongs to, as pBylaw.
-	// ----------------------------------------
+
 
 	const std::string str_code		=	theCallbackClause.GetCode();	// source code for the script.
 	const std::string str_language	=	pBylaw->GetLanguage();			// language it's in. (Default is "chai")
 
 	_SharedPtr<OTScript> pScript = OTScriptFactory(str_language, str_code);
 
-	// ---------------------------------------------------------------
+
 	//
 	// SET UP THE NATIVE CALLS, REGISTER THE PARTIES, REGISTER THE VARIABLES, AND EXECUTE THE SCRIPT.
 	//
@@ -546,7 +543,7 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
 		//
 		this->RegisterOTNativeCallsWithScript(*pScript);
 
-		// ---------------------------------------
+
 		// Register all the parties with the script.
 		//
 		FOR_EACH(mapOfParties, m_mapParties)
@@ -554,11 +551,11 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
 			const std::string str_party_name	= (*it).first;
 			OTParty * pParty					= (*it).second;
 			OT_ASSERT((NULL != pParty) && (str_party_name.size() > 0));
-			// -----------------------
+
 
 			pScript->AddParty(str_party_name, *pParty);
 		}
-		// ---------------------------------------
+
 		// Add the parameters...
 		//
 		FOR_EACH(mapOfVariables, theParameters)
@@ -566,11 +563,11 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
 			const std::string str_var_name	= (*it).first;
 			OTVariable * pVar				= (*it).second;
 			OT_ASSERT((NULL != pVar)&&(str_var_name.size() > 0));
-			// ---------------------------------------------------
+
 			pVar->RegisterForExecution(*pScript);
 		}
 
-		// ---------------------------------------
+
 		// Also need to loop through the Variables on pBylaw and register those as well.
 		//
 		pBylaw->RegisterVariablesForExecution(*pScript); // This sets all the variables as CLEAN so we can check for dirtiness after execution.
@@ -583,23 +580,20 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
 
 		if (false == pScript->ExecuteScript(&varReturnVal))
 		{
-			OTLog::vError("OTScriptable::ExecuteCallback: Error while running callback on scriptable: %s\n",
-						 m_strLabel.Get());
+			otErr << "OTScriptable::ExecuteCallback: Error while running callback on scriptable: " << m_strLabel << "\n";
 		}
 		else
 		{
-			OTLog::vOutput(0, "OTScriptable::ExecuteCallback: Successfully executed callback on scriptable: %s\n\n",
-						   m_strLabel.Get());
+			otOut << "OTScriptable::ExecuteCallback: Successfully executed callback on scriptable: " << m_strLabel << "\n\n";
 			return true;
 		}
 	}
-	// ---------------------------------------------------------------
+
 	else
 	{
-		OTLog::Error("OTScriptable::ExecuteCallback: Error instantiating script!\n");
+		otErr << "OTScriptable::ExecuteCallback: Error instantiating script!\n";
 	}
 
-	// ***************************************************************
 
 	// NOTE: Normally after calling a script, you want to check to see if any of the persistent variables
 	// are dirty, and if important, send a notice to the parties, save an updated copy of the contract, etc.
@@ -650,7 +644,7 @@ bool OTScriptable::SendNoticeToAllParties(bool bSuccessMsg,
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// ------------------
+
         // If a smart contract is being canceled, it may not have been confirmed by
         // all parties. There may be some unconfirmed parties. (Meaning there is no
         // NymID available for those parties.) So here, we make sure we are only sending
@@ -683,7 +677,7 @@ bool OTScriptable::IsDirty() const
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// ---------------------------------------------------
+
 		//
 		if (pBylaw->IsDirty())
 		{
@@ -706,7 +700,7 @@ bool OTScriptable::IsDirtyImportant() const
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// ---------------------------------------------------
+
 		//
 		if (pBylaw->IsDirtyImportant())
 		{
@@ -727,7 +721,7 @@ void OTScriptable::SetAsClean()
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// ---------------------------------------------------
+
 		//
 		pBylaw->SetAsClean(); // so we can check for dirtiness later, if it's changed.
 	}
@@ -772,20 +766,20 @@ OTPartyAccount * OTScriptable::GetPartyAccount(const std::string str_acct_name)
 {
 	if (false == OTScriptable::ValidateName(str_acct_name)) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::GetPartyAccount:  Error: invalid name.\n");
+		otErr << "OTScriptable::GetPartyAccount:  Error: invalid name.\n";
 		return NULL;
 	}
-	// ----------------------------------------
 
-//	OTLog::vError("DEBUGGING OTScriptable::GetPartyAccount: above loop. str_acct_name: %s \n", str_acct_name.c_str());
+
+//	otErr << "DEBUGGING OTScriptable::GetPartyAccount: above loop. str_acct_name: %s \n", str_acct_name.c_str());
 
 	FOR_EACH(mapOfParties, m_mapParties)
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -------------------------
 
-//		OTLog::vError("DEBUGGING OTScriptable::GetPartyAccount: loop iteration. party name: %s \n", pParty->GetPartyName().c_str());
+
+//		otErr << "DEBUGGING OTScriptable::GetPartyAccount: loop iteration. party name: %s \n", pParty->GetPartyName().c_str());
 
 		OTPartyAccount * pAcct = pParty->GetAccount(str_acct_name);
 
@@ -793,7 +787,7 @@ OTPartyAccount * OTScriptable::GetPartyAccount(const std::string str_acct_name)
 			return pAcct;
 	}
 
-//	OTLog::Error("DEBUGGING OTScriptable::GetPartyAccount: below loop \n");
+//	otErr << "DEBUGGING OTScriptable::GetPartyAccount: below loop \n";
 
 	return NULL;
 }
@@ -805,7 +799,7 @@ OTPartyAccount * OTScriptable::GetPartyAccountByID(const OTIdentifier & theAcctI
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -------------------------
+
 
 		OTPartyAccount * pAcct = pParty->GetAccountByID(theAcctID);
 
@@ -820,10 +814,10 @@ OTPartyAccount * OTScriptable::GetPartyAccountByID(const OTIdentifier & theAcctI
 /*
  bool HasAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL) const; // If Nym is agent for Party, set agent's pointer to Nym and return true.
  bool HasAgentByNymID(OTIdentifier & theNymID, OTAgent ** ppAgent=NULL) const;
- // ------------------------------------
+
  bool HasAuthorizingAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL) const;
  bool HasAuthorizingAgentByNymID(OTIdentifier & theNymID, OTAgent ** ppAgent=NULL) const; // ppAgent lets you get the agent ptr if it was there.
- // ------------------------------------
+
  */
 
 /*
@@ -838,7 +832,7 @@ OTParty * OTScriptable::FindPartyBasedOnNymIDAsAgent(const OTIdentifier & theNym
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAgentByNymID(theNymID, ppAgent))
 			return pParty;
@@ -853,7 +847,7 @@ OTParty * OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier & th
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAuthorizingAgentByNymID(theNymID, ppAgent))
 			return pParty;
@@ -868,7 +862,7 @@ OTParty * OTScriptable::FindPartyBasedOnAccountID(const OTIdentifier & theAcctID
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAccountByID(theAcctID, ppPartyAccount))
 		{
@@ -885,7 +879,7 @@ OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym & theNym, OTAgent
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAgent(theNym, ppAgent))
 			return pParty;
@@ -900,7 +894,7 @@ OTParty * OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym & theNym, OTA
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAuthorizingAgent(theNym, ppAgent))
 			return pParty;
@@ -915,7 +909,7 @@ OTParty * OTScriptable::FindPartyBasedOnAccount(OTAccount & theAccount, OTPartyA
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		if (pParty->HasAccount(theAccount, ppPartyAccount))
 		{
@@ -932,7 +926,7 @@ void OTScriptable::RetrieveNymPointers(mapOfNyms & map_Nyms_Already_Loaded)
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -----------------------
+
 
 		pParty->RetrieveNymPointers(map_Nyms_Already_Loaded);
 	}
@@ -981,15 +975,14 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 {
 	// This function DOES assume that theParty was initially FOUND on OTScriptable.
 	// Meaning I don't have to verify that much if I got this far.
-	// --------------------------------------------------
+
     const bool bNeedToCleanup = (NULL == pmap_NEWLY_LOADED) ? true : false;
-	// --------------------------------------------------
+
 	// This party hasn't signed the contract??
 	//
 	if (false == theParty.GetMySignedCopy().Exists())
 	{
-		OTLog::vOutput(0, "%s: Unable to find party's signed copy of this contract. Has it been executed?\n",
-                       __FUNCTION__);
+		otOut << __FUNCTION__ << ": Unable to find party's signed copy of this contract. Has it been executed?\n";
 		return false;
 	}
 
@@ -1016,7 +1009,7 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 		{
 			OTPseudonym * pNym = (*it).second;
 			OT_ASSERT(NULL != pNym);
-			// -----------------------------
+
 			if (theParty.HasAuthorizingAgent(*pNym, &pAuthorizingAgent))
 			{
 				pAuthAgentsNym = pNym; // Just in case
@@ -1025,7 +1018,7 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 		}
 		// if pAuthorizingAgent != NULL, that means the authorizing agent was found among the map of nyms that were already loaded.
 	}
-	// -------------------------------------------------------------------------------------
+
 	// Only if I had to load the authorizing agent myself, do I clear its temporary pointer.
 	// (Because it's going out of scope at the bottom of this function.)
 	// Any other temporary pointers, I do NOT clear, but I leave them because a script is
@@ -1048,13 +1041,12 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 		if (NULL != pAuthAgentsNym) // success
 		{
 			OT_ASSERT(NULL != pAuthorizingAgent); // This HAS to be set now. I assume it henceforth.
-			OTLog::vOutput(3, "%s: I just had to load "
-						   "the authorizing agent's Nym for a party (%s), "
+			otLog3 << __FUNCTION__ << ": I just had to load "
+				"the authorizing agent's Nym for a party (" << theParty.GetPartyName() << "), "
 						   "so I guess it wasn't already available on the list of "
-						   "Nyms that were already loaded.\n",
-                           __FUNCTION__, theParty.GetPartyName().c_str());
-            // ----------------------------------------------------
-            // Either I'm DEFINITELY cleaning it up myself, OR I'm adding it to a list
+						   "Nyms that were already loaded.\n";
+
+			// Either I'm DEFINITELY cleaning it up myself, OR I'm adding it to a list
             // where the CALLER can clean it up.
             //
             if (bNeedToCleanup)
@@ -1071,15 +1063,14 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 		}
 		else
 		{
-			OTLog::vError("%s: Error: Strange, unable to load authorizing agent's Nym (to verify his signature.)\n",
-                          __FUNCTION__);
+			otErr << __FUNCTION__ << ": Error: Strange, unable to load authorizing agent's Nym (to verify his signature.)\n";
 			return false;
 		}
 	}
 
 	// Below this point, we KNOW that pAuthorizingAgent is a good pointer and will be cleaned up properly/automatically.
 	// I'm not using pAuthAgentsNym directly, but pAuthorizingAgent WILL use it before this function is done.
-	// -----------------------------------------
+
 
 	// (3) Verify the issued number, if he has one. If this instance is OTScriptable-derived, but NOT OTCronItem-derived,
 	//     then that means there IS NO opening number (or closing number) since we're not even on Cron. The parties just
@@ -1095,23 +1086,22 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 	{
 		if (false == pAuthorizingAgent->VerifyIssuedNumber(lOpeningNo, strServerID))
 		{
-			OTLog::vError("%s: Opening trans number %lld doesn't "
-						  "verify for the nym listed as the authorizing agent for party %s.\n",
-                          __FUNCTION__, lOpeningNo, theParty.GetPartyName().c_str());
+			otErr << __FUNCTION__ << ": Opening trans number " << lOpeningNo << " doesn't "
+				"verify for the nym listed as the authorizing agent for party " << theParty.GetPartyName() << ".\n";
 			if (bHadToLoadItMyself && bNeedToCleanup)
 				pAuthorizingAgent->ClearTemporaryPointers(); // We loaded the Nym ourselves, which goes out of scope after this function.
 			return false;
 		}
-		// --------------------------------------
+
 		// The caller wants the additional verification that the number hasn't been USED
 		// yet -- AND the caller wants you to BURN IT HERE.
 		else if (bBurnTransNo)
 		{
 			if (false == pAuthorizingAgent->VerifyTransactionNumber(lOpeningNo, strServerID))
 			{
-				OTLog::vError("%s: Opening trans number %lld doesn't "
-							  "verify as available for use, for the nym listed as the authorizing agent for party: %s.\n",
-                              __FUNCTION__, lOpeningNo, theParty.GetPartyName().c_str());
+				otErr << __FUNCTION__ << ": Opening trans number " << lOpeningNo << " doesn't "
+					"verify as available for use, for the nym listed as the authorizing agent for party: " 
+					<< theParty.GetPartyName() << ".\n";
 				if (bHadToLoadItMyself && bNeedToCleanup)
 					pAuthorizingAgent->ClearTemporaryPointers(); // We loaded the Nym ourselves, which goes out of scope after this function.
 				return false;
@@ -1124,18 +1114,19 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 				pAuthorizingAgent->RemoveTransactionNumber(lOpeningNo, strServerID, theSignerNym, true); // bSave=true
 			}
 		}
-		// ---------------------
+
 	} // if lOpeningNo>0
 	else if (bBurnTransNo)  // In this case, bBurnTransNo=true, then the caller EXPECTED to burn a transaction
 	{						// num. But the number was 0! Therefore, FAILURE!
-		OTLog::vOutput(0, "%s: FAILURE. On Party %s, expected to burn a legitimate opening transaction "
-					   "number, but got this instead: %lld\n", __FUNCTION__, theParty.GetPartyName().c_str(), lOpeningNo);
+		otOut << __FUNCTION__ << ": FAILURE. On Party " << theParty.GetPartyName().c_str()
+			<< ", expected to burn a legitimate opening transaction "
+			"number, but got this instead: " << lOpeningNo << "\n";
 		if (bHadToLoadItMyself && bNeedToCleanup)
 			pAuthorizingAgent->ClearTemporaryPointers(); // We loaded the Nym ourselves, which goes out of scope after this function.
 		return false;
 	}
-	// ----------------------------------------------
-	//
+
+
 	// (4)
 	// Here, we use the Authorizing Agent to verify the signature on his party's version of the contract.
 	// Notice: Even if the authorizing agent gets fired, we can still load his Nym to verify the original signature on the
@@ -1153,7 +1144,7 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 
 	if (NULL == pPartySignedCopy)
 	{
-		OTLog::vError("%s: Error loading party's signed copy of agreement. Has it been executed?\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error loading party's signed copy of agreement. Has it been executed?\n";
 		if (bHadToLoadItMyself && bNeedToCleanup)
 			pAuthorizingAgent->ClearTemporaryPointers();
 		return false;
@@ -1162,7 +1153,7 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 	{
 		theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
 	}
-	// ----------------------------------------------
+
 	const bool bSigVerified = pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
 //	const bool bSigVerified = pPartySignedCopy->VerifySignature(*pAuthAgentsNym);
 	bool bContentsVerified = false;
@@ -1176,14 +1167,13 @@ bool OTScriptable::VerifyPartyAuthorization(OTParty			& theParty,		// The party 
 		bContentsVerified = this->Compare(*pPartySignedCopy); // This also compares the opening / closing numbers, if they are non-zero.
 
 		if (!bContentsVerified)
-			OTLog::vOutput(0, "%s: Though the signature verifies, the contract "
-						   "signed by the party (%s) doesn't match this contract. (Failed comparison.)\n",
-                           __FUNCTION__, theParty.GetPartyName().c_str());
+			otOut << __FUNCTION__ << ": Though the signature verifies, the contract "
+			"signed by the party (" << theParty.GetPartyName() <<
+			") doesn't match this contract. (Failed comparison.)\n";
 	}
 	else
-		OTLog::vOutput(0, "%s: Signature failed to verify for party: %s \n",
-                       __FUNCTION__, theParty.GetPartyName().c_str());
-	// ----------------------------------------------
+		otOut << __FUNCTION__ << ": Signature failed to verify for party: " << theParty.GetPartyName() << " \n";
+
 	if (bHadToLoadItMyself && bNeedToCleanup)
 		pAuthorizingAgent->ClearTemporaryPointers(); // We loaded the Nym ourselves, which goes out of scope after this function.
 	//The party is done with it now, and we don't want it to keep pointing to something that is now going out of scope.
@@ -1206,7 +1196,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 	//
 	// this->VerifySignature(theNym)
 
-	// ----------------------------------------------------
+
 	// NEW VERSION:
 	/*
 	 Proves the original party DOES approve of Nym:
@@ -1231,18 +1221,18 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 
 	if (NULL == pParty)
 	{
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgent: Unable to find party based on Nym as agent.\n");
+		otOut << "OTScriptable::VerifyNymAsAgent: Unable to find party based on Nym as agent.\n";
 		return false;
 	}
 	// Below this point, pParty is good.
-	// --------------------------------------------------
+
 
 	// This party hasn't signed the contract??
 	//
 	if (false == pParty->GetMySignedCopy().Exists())
 	{
-		OTLog::vOutput(0, "OTScriptable::VerifyNymAsAgent: Unable to find party's (%s) signed copy of "
-					   "this contract. Has it been executed?\n", pParty->GetPartyName().c_str());
+		otOut << "OTScriptable::VerifyNymAsAgent: Unable to find party's (" << pParty->GetPartyName() <<
+			") signed copy of this contract. Has it been executed?\n";
 		return false;
 	}
 
@@ -1269,7 +1259,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 		{
 			OTPseudonym * pNym = (*it).second;
 			OT_ASSERT(NULL != pNym);
-			// -----------------------------
+
 
 			if (pParty->HasAuthorizingAgent(*pNym, &pAuthorizingAgent))
 			{
@@ -1292,15 +1282,15 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 		if (NULL != pAuthAgentsNym) // success
 		{
 			OT_ASSERT(NULL != pAuthorizingAgent); // This HAS to be set now. I assume it henceforth.
-			OTLog::vOutput(3, "OTScriptable::VerifyNymAsAgent: I just had to load the authorizing agent's Nym for a party (%s), "
-						  "so I guess it wasn't already available on the list of Nyms that were already loaded.\n",
-						   pParty->GetPartyName().c_str());
+			otLog3 << "OTScriptable::VerifyNymAsAgent: I just had to load the authorizing agent's Nym for a party ("
+				<< pParty->GetPartyName() << "), so I guess it wasn't already available "
+				"on the list of Nyms that were already loaded.\n";
 			theAgentNymAngel.SetCleanupTarget(*pAuthAgentsNym);  // CLEANUP!!
 		}
 		else
 		{
-			OTLog::vError("OTScriptable::VerifyNymAsAgent: Error: Strange, unable to load authorizing "
-						 "agent's Nym for party %s (to verify his signature.)\n", pParty->GetPartyName().c_str());
+			otErr << "OTScriptable::VerifyNymAsAgent: Error: Strange, unable to load authorizing "
+				"agent's Nym for party " << pParty->GetPartyName() << " (to verify his signature.)\n";
 			pParty->ClearTemporaryPointers();
 			return false;
 		}
@@ -1308,7 +1298,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 
 	// Below this point, we KNOW that pAuthorizingAgent is a good pointer and will be cleaned up properly/automatically.
 	// I'm not using pAuthAgentsNym directly, but pAuthorizingAgent WILL use it before this function is done.
-	// -----------------------------------------
+
 
 	// TODO: Verify the opening transaction # here, like I do in VerifyPartyAuthorization() ??  Research first.
 
@@ -1329,14 +1319,14 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 
 	if (NULL == pPartySignedCopy)
 	{
-		OTLog::vError("OTScriptable::VerifyNymAsAgent: Error loading party's (%s) signed copy of agreement. Has it been executed?\n",
-					  pParty->GetPartyName().c_str());
+		otErr << "OTScriptable::VerifyNymAsAgent: Error loading party's (" << pParty->GetPartyName() <<
+			") signed copy of agreement. Has it been executed?\n";
 		pParty->ClearTemporaryPointers();
 		return false;
 	}
 	else
 		theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
-	// ----------------------------------------------
+
 
 	const bool bSigVerified = pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
 	bool bContentsVerified = false;
@@ -1350,18 +1340,18 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym & theNym,
 		bContentsVerified = this->Compare(*pPartySignedCopy);
 
 		if (!bContentsVerified)
-			OTLog::vOutput(0, "OTScriptable::VerifyNymAsAgent: Though the signature verifies, the contract "
-						   "signed by the party (%s) doesn't match this contract. (Failed comparison.)\n",
-						   pParty->GetPartyName().c_str());
+			otOut << "OTScriptable::VerifyNymAsAgent: Though the signature verifies, the contract "
+			"signed by the party (" << pParty->GetPartyName() <<
+			") doesn't match this contract. (Failed comparison.)\n";
 	}
 	else
-		OTLog::vOutput(0, "OTScriptable::VerifyNymAsAgent: Signature failed to verify for party: %s \n",
-					   pParty->GetPartyName().c_str());
+		otOut << "OTScriptable::VerifyNymAsAgent: Signature failed to verify for party: " 
+		<< pParty->GetPartyName() << " \n";
 
 
 	// Todo: possibly call this->Compare(*pPartySignedCopy); to make sure there's no funny business.
 	// Well actually that HAS to happen anyway, it's just a question of whether it goes here too, or only somewhere else.
-	// ----------------------------------------------
+
 
 	pParty->ClearTemporaryPointers(); // We loaded a Nym ourselves, which goes out of scope after this function. The party is done
 									// with it now, and we don't want it to keep pointing to something that is now going out of scope.
@@ -1389,20 +1379,20 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 
 	if (NULL == pParty)
 	{
-		OTLog::vError("OTScriptable::%s: Unable to find party for acct: %s \n",
-					  __FUNCTION__, thePartyAcct.GetName().Get());
+		otErr << "OTScriptable::" << __FUNCTION__ << ": Unable to find party for acct: " 
+			<< thePartyAcct.GetName() << " \n";
 		return false;
 	}
-	// -----------------------
+
 	OTAgent * pAuthorizedAgent = thePartyAcct.GetAuthorizedAgent();
 
 	if (NULL == pAuthorizedAgent)
 	{
-		OTLog::vOutput(0, "OTScriptable::%s: Unable to find authorized agent (%s) for acct: %s \n",
-					   __FUNCTION__, thePartyAcct.GetAgentName().Get(), thePartyAcct.GetName().Get());
+		otOut << "OTScriptable::" << __FUNCTION__ << ": Unable to find authorized agent ("
+			<< thePartyAcct.GetAgentName() << ") for acct: " << thePartyAcct.GetName() << " \n";
 		return false;
 	}
-    // -----------------------
+
 	// BELOW THIS POINT, pParty and pAuthorizedAgent are both good pointers.
 	//
 	// Next, we need to verify that pParty is the proper OWNER of thePartyAcct..
@@ -1412,25 +1402,25 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 	// agent for an entity, authorized based on a specific role, and the account
 	// is owned by that entity / controlled by that role.)
 	//
-	// -----------------------
+
 	// VERIFY ACCOUNT's OWNERSHIP BY PARTY
 	//
 	if (!thePartyAcct.VerifyOwnership())  // This will use pParty internally.
 	{
-		OTLog::vOutput(0, "OTScriptable::%s: Unable to verify party's (%s) ownership of acct: %s \n",
-					  __FUNCTION__, pParty->GetPartyName().c_str(), thePartyAcct.GetName().Get());
+		otOut << "OTScriptable::" << __FUNCTION__ << ": Unable to verify party's ("
+			<< pParty->GetPartyName() << ") ownership of acct: " << thePartyAcct.GetName() << " \n";
 		return false;
 	}
-    // -----------------------
+
 	// VERIFY ACCOUNT's AUTHORIZED AGENT (that he has rights to manipulate the account itself)
 	//
 	if (!thePartyAcct.VerifyAgency()) // This will use pAuthorizedAgent internally.
 	{
-		OTLog::vOutput(0, "OTScriptable::%s: Unable to verify agent's (%s) rights re: acct: %s \n",
-					   __FUNCTION__, pAuthorizedAgent->GetName().Get(), thePartyAcct.GetName().Get());
+		otOut << "OTScriptable::" << __FUNCTION__ << ": Unable to verify agent's (" << pAuthorizedAgent->GetName().Get()
+			<< ") rights re: acct: " << thePartyAcct.GetName() << " \n";
 		return false;
 	}
-	// **************************************************
+
 
     //     Verify the closing number, if he has one. (If this instance is OTScriptable-derived, but NOT OTCronItem-derived,
     //     then that means there IS NO closing number, since we're not even on Cron.) The PartyAccts just happen
@@ -1448,12 +1438,11 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 	{
 		if (false == pAuthorizedAgent->VerifyIssuedNumber(lClosingNo, strServerID))
 		{
-			OTLog::vOutput(0, "OTScriptable::%s: Closing trans number %lld doesn't "
-						   "verify for the nym listed as the authorized agent for account %s.\n", __FUNCTION__,
-                           lClosingNo, thePartyAcct.GetName().Get());
+			otOut << "OTScriptable::" << __FUNCTION__ << ": Closing trans number " << lClosingNo << " doesn't "
+				"verify for the nym listed as the authorized agent for account " << thePartyAcct.GetName() << ".\n";
 			return false;
 		}
-		// --------------------------------------
+
 		// The caller wants the additional verification that the number hasn't been USED
 		// yet -- AND the caller wants you to BURN IT HERE.
         //
@@ -1461,9 +1450,9 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 		{
 			if (false == pAuthorizedAgent->VerifyTransactionNumber(lClosingNo, strServerID))
 			{
-				OTLog::vOutput(0, "OTScriptable::%s: Closing trans number %lld doesn't "
-							   "verify as available for use, for the nym listed as the authorized agent for acct: %s.\n",
-							   __FUNCTION__, lClosingNo, thePartyAcct.GetName().Get());
+				otOut << "OTScriptable::" << __FUNCTION__ << ": Closing trans number " << lClosingNo << " doesn't "
+					"verify as available for use, for the nym listed as the authorized agent for acct: " 
+					<< thePartyAcct.GetName() << ".\n";
 				return false;
 			}
 			else// SUCCESS -- It verified as available, so let's burn it here. (So he can't use it twice. It remains
@@ -1474,15 +1463,16 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 				pAuthorizedAgent->RemoveTransactionNumber(lClosingNo, strServerID, theSignerNym, true); // bSave=true
 			}
 		}
-		// ---------------------
+
 	} // if lClosingNo>0
 	else if (bBurnTransNo)  // In this case, bBurnTransNo=true, then the caller EXPECTED to burn a transaction
 	{						// num. But the number was 0! Therefore, FAILURE!
-		OTLog::vOutput(0, "OTScriptable::%s: FAILURE. On Acct %s, expected to burn a legitimate closing transaction "
-					   "number, but got this instead: %lld\n", __FUNCTION__, thePartyAcct.GetName().Get(), lClosingNo);
+		otOut << "OTScriptable::" << __FUNCTION__ << ": FAILURE. On Acct " << thePartyAcct.GetName() << 
+			", expected to burn a legitimate closing transaction "
+			"number, but got this instead: " << lClosingNo << "\n";
 		return false;
 	}
-	// ----------------------------------------------
+
 	return true;
 }
 
@@ -1495,7 +1485,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(OTPartyAccount	& thePartyAcct,	/
 bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym & theNym,
 											  OTAccount & theAccount)
 {
-	// -------------------------------------------------------------
+
 	// Lookup the party via the NYM.
 	// NOTE: I think without this, the agent never gets its pointer set to Nym.  FYI.
 	// OTAgent * pAgent = NULL;
@@ -1504,12 +1494,12 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym & theNym,
 //	if (NULL == pNymParty)
 //	{
 //		OT_ASSERT(NULL != pAgent);
-//		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: Unable to find party based on Nym as agent.\n");
+//		otOut << "OTScriptable::VerifyNymAsAgentForAccount: Unable to find party based on Nym as agent.\n";
 //		return false;
 //	}
 	// Below this point, pAgent is a good pointer.
 	//
-	// -------------------------------------------------------------
+
 	// Lookup the party via the ACCOUNT.
 	//
 	OTPartyAccount	* pPartyAcct	= NULL;
@@ -1518,23 +1508,23 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym & theNym,
 	if (NULL == pParty)
 	{
 		OT_ASSERT(NULL != pPartyAcct);
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: Unable to find party based on account.\n");
+		otOut << "OTScriptable::VerifyNymAsAgentForAccount: Unable to find party based on account.\n";
 		return false;
 	}
 	// pPartyAcct is a good pointer below this point.
 
-	// -------------------------------------------------------------
+
 
 	// Verify ownership.
 	//
 	if (false == pParty->VerifyOwnershipOfAccount(theAccount))
 	{
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: pParty is not the owner of theAccount.\n");
+		otOut << "OTScriptable::VerifyNymAsAgentForAccount: pParty is not the owner of theAccount.\n";
 		pParty->ClearTemporaryPointers(); // Just in case.
 		return false;
 	}
 
-	// -------------------------------------------------------------
+
 
 	const	std::string	str_acct_agent_name	= pPartyAcct->	GetAgentName().Get();
 			OTAgent *	pAgent				= pParty->		GetAgent(str_acct_agent_name);
@@ -1543,14 +1533,14 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym & theNym,
 	//
 	if (NULL == pAgent)
 	{
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: Unable to find the right agent for this account.\n");
+		otOut << "OTScriptable::VerifyNymAsAgentForAccount: Unable to find the right agent for this account.\n";
 		pParty->ClearTemporaryPointers(); // Just in case.
 		return false;
 	}
 	// Below this point, pPartyAcct is a good pointer, and so is pParty, as well as pAgent
 	// We also know that the agent's name is the same one that was listed on the account as authorized.
 	// (Because we used the account's agent_name to look up pAgent in the first place.)
-	// -------------------------------------------------------------
+
 
 	// Make sure theNym is a valid signer for pAgent, whether representing himself as in individual, or in a role for an entity.
 	// This means that pAgent (looked up based on partyAcct's agent name) will return true to IsValidSigner when passed theNym,
@@ -1558,13 +1548,13 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym & theNym,
 	//
 	if (false == pAgent->IsValidSigner(theNym))
 	{
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a valid signer for pAgent.\n");
+		otOut << "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a valid signer for pAgent.\n";
 		pParty->ClearTemporaryPointers(); // Just in case.
 		return false;
 	}
 	if (false == pAgent->VerifyAgencyOfAccount(theAccount))
 	{
-		OTLog::Output(0, "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a valid agent for theAccount.\n");
+		otOut << "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a valid agent for theAccount.\n";
 		pParty->ClearTemporaryPointers(); // Just in case.
 		return false;
 	}
@@ -1671,15 +1661,15 @@ OTClause * OTScriptable::GetClause(const std::string str_clause_name)
 {
 	if (false == OTScriptable::ValidateName(str_clause_name)) // this logs, FYI.
 	{
-		OTLog::vError("%s: Error: invalid name.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error: invalid name.\n";
 		return NULL;
 	}
-	// --------------------------------
+
 	FOR_EACH(mapOfBylaws, m_mapBylaws)
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// -------------------------
+
 		OTClause * pClause = pBylaw->GetClause(str_clause_name);
 
 		if (NULL != pClause) // found it.
@@ -1694,15 +1684,15 @@ OTAgent * OTScriptable::GetAgent(const std::string str_agent_name)
 {
 	if (false == OTScriptable::ValidateName(str_agent_name)) // this logs, FYI.
 	{
-		OTLog::vError("%s: Error: invalid name.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error: invalid name.\n";
 		return NULL;
 	}
-	// -----------------------------------
+
 	FOR_EACH(mapOfParties, m_mapParties)
 	{
 		OTParty * pParty = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// -------------------------
+
 		OTAgent * pAgent = pParty->GetAgent(str_agent_name);
 
 		if (NULL != pAgent) // found it.
@@ -1717,10 +1707,10 @@ OTBylaw * OTScriptable::GetBylaw(const std::string str_bylaw_name)
 {
 	if (false == OTScriptable::ValidateName(str_bylaw_name)) // this logs, FYI.
 	{
-		OTLog::vError("%s: Error: invalid name.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error: invalid name.\n";
 		return NULL;
 	}
-	// -----------------------------------------------------------
+
 	mapOfBylaws::iterator iii = m_mapBylaws.find(str_bylaw_name);
 
 	if (m_mapBylaws.end() == iii) // Did NOT find it.
@@ -1728,11 +1718,11 @@ OTBylaw * OTScriptable::GetBylaw(const std::string str_bylaw_name)
 		// People call this function sometimes just to SEE if one is there.
 		// So it's not an error if it's not there...
 		//
-//		OTLog::vOutput(0, "OTScriptable::GetBylaw: Strange: bylaw not found: %s. Bylaw count is: %d \n",
+//		otOut << "OTScriptable::GetBylaw: Strange: bylaw not found: %s. Bylaw count is: %d \n",
 //					   str_bylaw_name.c_str(), m_mapBylaws.size());
 		return NULL;
 	}
-	// ----------------------------------------
+
 	OTBylaw * pBylaw = (*iii).second;
 	OT_ASSERT(NULL != pBylaw);
 
@@ -1744,10 +1734,10 @@ OTParty * OTScriptable::GetParty(const std::string str_party_name)
 {
 	if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
 	{
-		OTLog::vError("%s: Error: invalid name.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error: invalid name.\n";
 		return NULL;
 	}
-	// -----------------------------------------------------------
+
 	mapOfParties::iterator it = m_mapParties.find(str_party_name);
 
 	if (m_mapParties.end() == it) // Did NOT find it.
@@ -1755,11 +1745,11 @@ OTParty * OTScriptable::GetParty(const std::string str_party_name)
 		// GetParty() is often called to SEE if a party is there.
 		// (So if the party ain't there, it's not necessarily an error.)
 		//
-//		OTLog::vOutput(0, "OTScriptable::GetParty: Strange: party not found: %s\n",
+//		otOut << "OTScriptable::GetParty: Strange: party not found: %s\n",
 //					   str_party_name.c_str());
 		return NULL;
 	}
-	// ----------------------------------------
+
 	OTParty * pParty = (*it).second;
 	OT_ASSERT(NULL != pParty);
 
@@ -1771,25 +1761,25 @@ OTParty * OTScriptable::GetPartyByIndex(int32_t nIndex)
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapParties.size())))
     {
-        OTLog::vError("%s: Index out of bounds: %d\n", __FUNCTION__, nIndex);
+		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else
     {
-        // --------------------------
-        int32_t nLoopIndex = -1; // will be 0 on first iteration.
+
+		int32_t nLoopIndex = -1; // will be 0 on first iteration.
 
         FOR_EACH(mapOfParties, m_mapParties)
         {
             OTParty * pParty = (*it).second;
             OT_ASSERT(NULL != pParty);
-            // ----------------------------
-            ++nLoopIndex; // 0 on first iteration.
+
+			++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex)
                 return pParty;
         } // FOR_EACH
-        // --------------------------
-    }
+
+	}
     return NULL;
 }
 
@@ -1798,25 +1788,25 @@ OTBylaw * OTScriptable::GetBylawByIndex(int32_t nIndex)
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapBylaws.size())))
     {
-        OTLog::vError("%s: Index out of bounds: %d\n", __FUNCTION__, nIndex);
+		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else
     {
-        // --------------------------
-        int32_t nLoopIndex = -1; // will be 0 on first iteration.
+
+		int32_t nLoopIndex = -1; // will be 0 on first iteration.
 
         FOR_EACH(mapOfBylaws, m_mapBylaws)
         {
             OTBylaw * pBylaw = (*it).second;
             OT_ASSERT(NULL != pBylaw);
-            // ----------------------------
-            ++nLoopIndex; // 0 on first iteration.
+
+			++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex)
                 return pBylaw;
         } // FOR_EACH
-        // --------------------------
-    }
+
+	}
     return NULL;
 }
 
@@ -1838,7 +1828,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 		const std::string current_party_name = (*it).first;
 		OTParty * pParty                     = (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// ---------------
+
 		if (pParty->GetMySignedCopy().Exists())
 		{
 			OTScriptable * pPartySignedCopy = OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy());
@@ -1846,23 +1836,23 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 
 			if (NULL == pPartySignedCopy)
 			{
-				OTLog::vError("%s: Error loading party's (%s) signed copy of agreement. Has it been executed?\n",
-                              __FUNCTION__, current_party_name.c_str());
+				otErr << __FUNCTION__ << ": Error loading party's (" << current_party_name << 
+					") signed copy of agreement. Has it been executed?\n";
 				return false;
 			}
 			else
 				theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
-			// ----------------------
+
 			if ( ! this->Compare(*pPartySignedCopy) )   // <==== For all signed copies, we compare them to *this.
 			{
-				OTLog::vError("%s: Party's (%s) signed copy of agreement doesn't match *this.\n",
-                              __FUNCTION__, current_party_name.c_str());
+				otErr << __FUNCTION__ << ": Party's (" << current_party_name <<
+					") signed copy of agreement doesn't match *this.\n";
 				return false;
 			}
 		}
 		// else nothing. (We only verify against the ones that are signed.)
 	} // FOR_EACH
-	// ---------------
+
 	return bReturnVal;
 }
 
@@ -1882,10 +1872,10 @@ bool OTScriptable::ConfirmParty(OTParty & theParty)
 
 	if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::ConfirmParty:  Error: invalid name.\n");
+		otErr << "OTScriptable::ConfirmParty:  Error: invalid name.\n";
 		return false;
 	}
-	// -----------------------------------------------------------
+
 	// MAKE SURE ALL SIGNED COPIES ARE OF THE SAME CONTRACT.
 	// Loop through ALL the parties. For whichever ones are already signed,
 	// load up the signed copy and make sure it compares to the main one.
@@ -1898,7 +1888,7 @@ bool OTScriptable::ConfirmParty(OTParty & theParty)
 	// BY THIS POINT, we know that, of all the parties who have already signed,
 	// their signed copies DO match this smart contract.
 	//
-	// -----------------------------------------------------------
+
 	//
 	// Next, find the theoretical Party on this scriptable that matches the actual Party that
 	// was passed in. (It should already be there.) If found, replace it with the one passed in.
@@ -1912,24 +1902,23 @@ bool OTScriptable::ConfirmParty(OTParty & theParty)
 	{
 		OTParty * pParty = (*it_delete).second;
 		OT_ASSERT(NULL != pParty);
-		// -------------------------------
+
 
 		if (!pParty->Compare(theParty)) // Make sure my party compares to the one it's replacing...
 		{
-			OTLog::vOutput(0, "OTScriptable::ConfirmParty: Party (%s) doesn't match the one it's confirming.\n",
-						   str_party_name.c_str());
+			otOut << "OTScriptable::ConfirmParty: Party (" << str_party_name << ") doesn't match the one it's confirming.\n";
 			return false;
 		}
 		// else...
 		m_mapParties.erase(it_delete);  // Remove the theoretical party from the map, so we can replace it with the real one.
 		delete pParty; pParty=NULL;		// Delete it, since I own it.
-		// ------------------------
+
 		// Careful:  This ** DOES ** TAKE OWNERSHIP!  theParty will get deleted when
 		// this OTScriptable instance is.
 		//
 		m_mapParties.insert( std::pair<std::string, OTParty *>(str_party_name, &theParty)) ;
 		theParty.SetOwnerAgreement(*this); // Now the actual party is in place, instead of a placekeeper version of it. There are actual Acct/Nym IDs now, etc.
-		// ------------------------
+
 
 		// Sign it and save it,
 		OTString strNewSignedCopy;
@@ -1939,12 +1928,12 @@ bool OTScriptable::ConfirmParty(OTParty & theParty)
 		{
 			this->SaveContract();
 			this->SaveContractRaw(strNewSignedCopy);
-			// -----------------------
+
 			// then save a copy of it inside theParty,
 			//
 			theParty.SetMySignedCopy(strNewSignedCopy);
 
-			// -----------------------
+
 			// then sign the overall thing again, so that signed copy (now inside theParty) will be properly saved.
 			// That way when other people verify my signature, it will be there for them to verify.
 			//
@@ -1958,9 +1947,8 @@ bool OTScriptable::ConfirmParty(OTParty & theParty)
 		return false;
 	}
 	else
-		OTLog::vOutput(0, "OTScriptable::ConfirmParty: Failed attempt to confirm non-existent party: %s \n ",
-					  str_party_name.c_str());
-	// ----------------------------------------
+		otOut << "OTScriptable::ConfirmParty: Failed attempt to confirm non-existent party: " << str_party_name << " \n ";
+
 
 	return false;
 }
@@ -1975,10 +1963,10 @@ bool OTScriptable::AddParty(OTParty & theParty)
 
 	if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::AddParty:  Error: invalid name.\n");
+		otErr << "OTScriptable::AddParty:  Error: invalid name.\n";
 		return false;
 	}
-	// -----------------------------------------------------------
+
 
 	if (m_mapParties.find(str_party_name) == m_mapParties.end())
 	{
@@ -1990,9 +1978,9 @@ bool OTScriptable::AddParty(OTParty & theParty)
 		return true;
 	}
 	else
-		OTLog::Output(0, "OTScriptable::AddParty: Failed attempt: party already exists on contract.\n ");
+		otOut << "OTScriptable::AddParty: Failed attempt: party already exists on contract.\n ";
 
-	// ----------------------------------------
+
 
 	return false;
 }
@@ -2004,10 +1992,10 @@ bool OTScriptable::AddBylaw(OTBylaw & theBylaw)
 
 	if (false == OTScriptable::ValidateName(str_name)) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::AddBylaw:  Error: invalid name.\n");
+		otErr << "OTScriptable::AddBylaw:  Error: invalid name.\n";
 		return false;
 	}
-	// -----------------------------------------------------------
+
 
 	if (m_mapBylaws.find(str_name) == m_mapBylaws.end())
 	{
@@ -2019,9 +2007,9 @@ bool OTScriptable::AddBylaw(OTBylaw & theBylaw)
 		return true;
 	}
 	else
-		OTLog::Output(0, "OTScriptable::AddBylaw: Failed attempt: bylaw already exists on contract.\n ");
+		otOut << "OTScriptable::AddBylaw: Failed attempt: bylaw already exists on contract.\n ";
 
-	// ----------------------------------------
+
 
 	return false;
 }
@@ -2054,61 +2042,57 @@ bool OTScriptable::Compare(OTScriptable & rhs)
 	//
 	if (this->GetPartyCount() != rhs.GetPartyCount())
 	{
-		OTLog::vOutput(0, "%s: The number of parties does not match.\n", szFunc);
+		otOut << szFunc << ": The number of parties does not match.\n";
 		return false;
 	}
 	if (this->GetBylawCount() != rhs.GetBylawCount())
 	{
-		OTLog::vOutput(0, "%s: The number of bylaws does not match.\n", szFunc);
+		otOut << szFunc << ": The number of bylaws does not match.\n";
 		return false;
 	}
-	// ----------------------------------------
+
 	FOR_EACH_CONST(mapOfBylaws, m_mapBylaws)
 	{
 		const std::string str_bylaw_name	= (*it).first;
 		OTBylaw * pBylaw					= (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// --------------------
+
 
 		OTBylaw * p2 = rhs.GetBylaw(str_bylaw_name);
 
 		if (NULL == p2)
 		{
-			OTLog::vOutput(0, "%s: Unable to find bylaw %s on rhs.\n", szFunc,
-						   str_bylaw_name.c_str());
+			otOut << szFunc << ": Unable to find bylaw " << str_bylaw_name << " on rhs.\n";
 			return false;
 		}
 		else if ( ! pBylaw->Compare(*p2) )
 		{
-			OTLog::vOutput(0, "%s: Bylaws don't match: %s.\n", szFunc,
-						   str_bylaw_name.c_str());
+			otOut << szFunc << ": Bylaws don't match: " << str_bylaw_name << ".\n";
 			return false;
 		}
 	}
-	// ----------------------------------------
+
 	FOR_EACH_CONST(mapOfParties, m_mapParties)
 	{
 		const std::string str_party_name	= (*it).first;
 		OTParty * pParty					= (*it).second;
 		OT_ASSERT(NULL != pParty);
-		// --------------------
+
 
 		OTParty * p2 = rhs.GetParty(str_party_name);
 
 		if (NULL == p2)
 		{
-			OTLog::vOutput(0, "%s: Unable to find party %s on rhs.\n", szFunc,
-						   str_party_name.c_str());
+			otOut << szFunc << ": Unable to find party " << str_party_name << " on rhs.\n";
 			return false;
 		}
 		else if ( ! pParty->Compare(*p2) )
 		{
-			OTLog::vOutput(0, "%s: Parties don't match: %s.\n", szFunc,
-						   str_party_name.c_str());
+			otOut << szFunc << ": Parties don't match: " << str_party_name << ".\n";
 			return false;
 		}
 	}
-	// ----------------------------
+
 
     return true;
 }
@@ -2213,7 +2197,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const OTString strNodeName(xml->getNodeName());
 
 
-//    OTLog::vError("OTScriptable::ProcessXMLNode:  strNodeName: %s \n", strNodeName.Get());
+//    otErr << "OTScriptable::ProcessXMLNode:  strNodeName: %s \n", strNodeName.Get());
 
 
 	if (strNodeName.Compare("scriptableContract"))
@@ -2224,7 +2208,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strNumParties		= xml->getAttributeValue("numParties");
         OTString strNumBylaws		= xml->getAttributeValue("numBylaws");
 
-		// ---------------------------------------
+
 		// These determine whether asset IDs and/or party owner IDs
 		// are used on the template for any given smart contract.
 		// (Some templates are specific to certain asset types, while
@@ -2236,8 +2220,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		if (strSpecify2.Compare("true"))
 			m_bSpecifyParties = true;
 
-        // -----------------------------------------------
-		//
+
 		// Load up the Parties.
 		//
 		int32_t nPartyCount	= strNumParties.Exists() ? atoi(strNumParties.Get()) : 0;
@@ -2248,12 +2231,12 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //				xml->read(); // <==================
 				if (false == SkipToElement(xml))
 				{
-					OTLog::vOutput(0, "%s: Failure: Unable to find expected element for party. \n", szFunc);
+					otOut << szFunc << ": Failure: Unable to find expected element for party. \n";
 					return (-1);
 				}
-				// -----------------------------------------------
 
-//                OTLog::vOutput(0, "%s: Looping to load parties: currently on: %s \n", szFunc, xml->getNodeName());
+
+//                otOut << "%s: Looping to load parties: currently on: %s \n", szFunc, xml->getNodeName());
 
 				if ((!strcmp("party", xml->getNodeName())))
 				{
@@ -2270,20 +2253,20 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     OTString strIsCopyProvided	= xml->getAttributeValue("signedCopyProvided");
 
-                    // ----------------------------------
-                    bool bIsCopyProvided = false; // default
+
+					bool bIsCopyProvided = false; // default
 
                     if (strIsCopyProvided.Compare("true"))
                         bIsCopyProvided = true;
 
-                    // ---------------------------------------
-                    int64_t lOpeningTransNo = 0;
-                    // -------
+
+					int64_t lOpeningTransNo = 0;
+
                     if (strOpeningTransNo.Exists())
                         lOpeningTransNo = atol(strOpeningTransNo.Get());
                     else
-                        OTLog::vError("%s: Expected openingTransNo in party.\n", szFunc);
-                    // ---------------------------------------
+						otErr << szFunc << "s: Expected openingTransNo in party.\n";
+
 
                     OTParty * pParty = new 	OTParty(strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
                                                     strOwnerType.Compare("nym") ? true : false,
@@ -2293,8 +2276,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     pParty->SetOpeningTransNo(lOpeningTransNo);	// WARNING:  NEED TO MAKE SURE pParty IS CLEANED UP BELOW THIS POINT, IF FAILURE!!
 
-                    // -----------------------------------------------
-                    //
+
                     // Load up the agents.
                     //
                     int32_t nAgentCount	= strNumAgents.Exists() ? atoi(strNumAgents.Get()) : 0;
@@ -2305,12 +2287,12 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //                          xml->read(); // <==================
                             if (false == SkipToElement(xml))
                             {
-                                OTLog::vOutput(0, "%s: Failure: Unable to find expected element for agent. \n", szFunc);
+								otOut << szFunc << ": Failure: Unable to find expected element for agent. \n";
                                 delete pParty; pParty=NULL;
                                 return (-1);
                             }
-                            // -----------------------------------------------
-                            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("agent", xml->getNodeName())))
+
+							if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("agent", xml->getNodeName())))
                             {
                                 OTString strAgentName		= xml->getAttributeValue("name"); // Agent name (if needed in script code)
                                 OTString strAgentRepSelf	= xml->getAttributeValue("doesAgentRepresentHimself"); // Agent might also BE the party, and not just party's employee.
@@ -2319,51 +2301,49 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTString strRoleID			= xml->getAttributeValue("roleID"); // Role ID if Nym in Role.
                                 OTString strGroupName		= xml->getAttributeValue("groupName"); // Group name if voting group. (Relative to entity.)
 
-                                // ----------------------------------
 
                                 if (!strAgentName.Exists() || !strAgentRepSelf.Exists() || !strAgentIndividual.Exists())
                                 {
-                                    OTLog::vError("%s: Error loading agent: Either the name, or one of the bool variables was EMPTY.\n", szFunc);
+									otErr << szFunc << ": Error loading agent: Either the name, or one of the bool variables was EMPTY.\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
-                                // ----------------------------------
-                                if (!OTScriptable::ValidateName(strAgentName.Get()))
+
+								if (!OTScriptable::ValidateName(strAgentName.Get()))
                                 {
-                                    OTLog::vError("%s: Failed loading agent due to Invalid name: %s\n", szFunc,
-                                                  strAgentName.Get());
+									otErr << szFunc << ": Failed loading agent due to Invalid name: " << strAgentName << "\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
-                                // ----------------------------------
-                                bool bRepsHimself = true; // default
+
+								bool bRepsHimself = true; // default
 
                                 if (strAgentRepSelf.Compare("false"))
                                     bRepsHimself = false;
 
-                                // ----------------------------------
-                                bool bIsIndividual = true; // default
+
+								bool bIsIndividual = true; // default
 
                                 if (strAgentIndividual.Compare("false"))
                                     bIsIndividual = false;
 
-                                // ---------------------------------------
-                                // See if the same-named agent already exists on ANY of the OTHER PARTIES
+
+								// See if the same-named agent already exists on ANY of the OTHER PARTIES
                                 // (There can only be one agent on an OTScriptable with a given name.)
                                 //
                                 OTAgent * pExistingAgent = this->GetAgent(strAgentName.Get());
 
                                 if (NULL != pExistingAgent) // Uh-oh, it's already there!
                                 {
-                                    OTLog::vOutput(0, "%s: Error loading agent named %s, since one was "
-                                                   "already there on party %s.\n", szFunc, strAgentName.Get(), strName.Get());
+									otOut << szFunc << ": Error loading agent named " << strAgentName << ", since one was "
+										"already there on party " << strName << ".\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
                                 // The AddAgent call below checks to see if it's already there, but only for the
                                 // currently-loading party.
                                 // Whereas the above GetAgent() call checks this OTScriptable for ALL the agents on the already-loaded parties.
-                                // ----------------------------------
+
 
                                 OTAgent * pAgent =
                                 new OTAgent(bRepsHimself, bIsIndividual, strAgentName, strNymID, strRoleID, strGroupName);
@@ -2373,7 +2353,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 {
                                     delete pAgent; pAgent = NULL;
                                     delete pParty; pParty=NULL;
-                                    OTLog::vError("%s: Failed adding agent to party.\n", szFunc);
+									otErr << szFunc << ": Failed adding agent to party.\n";
                                     return (-1);
                                 }
 
@@ -2385,14 +2365,14 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
                             else
                             {
-                                OTLog::vError("%s: Expected agent element in party.\n", szFunc);
+								otErr << szFunc << ": Expected agent element in party.\n";
                                 delete pParty; pParty=NULL;
                                 return (-1); // error condition
                             }
                         } // while
                     }
-                    // --------------------------------
-                    //
+
+
                     // LOAD PARTY ACCOUNTS.
                     //
                     int32_t nAcctCount	= strNumAccounts.Exists() ? atoi(strNumAccounts.Get()) : 0;
@@ -2403,12 +2383,12 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //                          xml->read(); // <==================
                             if (false == OTContract::SkipToElement(xml))
                             {
-                                OTLog::vError("%s: Error finding expected next element for party account.\n", szFunc);
+								otErr << szFunc << ": Error finding expected next element for party account.\n";
                                 delete pParty; pParty=NULL;
                                 return (-1);
                             }
-                            // -----------------------------------------------
-                            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("assetAccount", xml->getNodeName())))
+
+							if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("assetAccount", xml->getNodeName())))
                             {
                                 OTString strAcctName		= xml->getAttributeValue("name"); // Acct name (if needed in script code)
                                 OTString strAcctID			= xml->getAttributeValue("acctID"); // Asset Acct ID
@@ -2417,48 +2397,47 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTString strClosingTransNo	= xml->getAttributeValue("closingTransNo"); // the closing #s are on the asset accounts.
 
                                 int64_t lClosingTransNo = 0;
-                                // -------
-                                if (strClosingTransNo.Exists())
+
+								if (strClosingTransNo.Exists())
                                     lClosingTransNo = atol(strClosingTransNo.Get());
                                 else
                                 {
-                                    OTLog::vError("%s: Expected closingTransNo in partyaccount.\n", szFunc);
+									otErr << szFunc << ": Expected closingTransNo in partyaccount.\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
-                                // ----------------------------------
+
 
                                 // Missing Account ID is allowed, as well as agent name, since those things may not be decided yet.
                                 //
                                 if (!strAcctName.Exists() || (m_bSpecifyAssetID && !strAssetTypeID.Exists()))
 //                              if (!strAcctName.Exists() || !strAcctID.Exists() || !strAgentName.Exists() || !strAssetTypeID.Exists())
                                 {
-                                    OTLog::vError("%s: Expected missing AcctID or AssetTypeID or Name or AgentName in partyaccount.\n",
-                                                  szFunc);
+									otErr << szFunc << ": Expected missing AcctID or AssetTypeID or Name or AgentName in partyaccount.\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
-                                // See if the same-named partyacct already exists on ANY of the OTHER PARTIES
+
+								// See if the same-named partyacct already exists on ANY of the OTHER PARTIES
                                 // (There can only be one partyacct on an OTScriptable with a given name.)
                                 //
                                 OTPartyAccount * pAcct = this->GetPartyAccount(strAcctName.Get());
 
                                 if (NULL != pAcct) // Uh-oh, it's already there!
                                 {
-                                    OTLog::vOutput(0, "%s: Error loading partyacct named %s, since one was "
-                                                   "already there on party %s.\n", szFunc, strAcctName.Get(), strName.Get());
+									otOut << szFunc << ": Error loading partyacct named " << strAcctName << ", since one was "
+										"already there on party " << strName << ".\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
                                 // The AddAccount call below checks to see if it's already there, but only for the
                                 // currently-loading party.
                                 // Whereas the above call checks this OTScriptable for all the accounts on the already-loaded parties.
-                                // ----------------------------------
+
 
                                 if (false == pParty->AddAccount(strAgentName, strAcctName, strAcctID, strAssetTypeID, lClosingTransNo))
                                 {
-                                    OTLog::vError("%s: Failed adding account to party.\n", szFunc);
+									otErr << szFunc << ": Failed adding account to party.\n";
                                     delete pParty; pParty=NULL;
                                     return (-1);
                                 }
@@ -2473,14 +2452,13 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
                             else
                             {
-                                OTLog::vError("%s: Expected assetAccount element in party.\n", szFunc);
+								otErr << szFunc << ": Expected assetAccount element in party.\n";
                                 delete pParty; pParty=NULL;
                                 return (-1); // error condition
                             }
                         } // while
                     }
 
-                    // **************************************
 
                     if (bIsCopyProvided)
                     {
@@ -2489,9 +2467,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                         if (false == OTContract::LoadEncodedTextFieldByName(xml, strTextExpected, pElementExpected))
                         {
-                            OTLog::vError("%s: "
-                                          "Expected %s element with text field.\n", szFunc,
-                                          pElementExpected);
+							otErr << szFunc << ": Expected " << pElementExpected << " element with text field.\n";
                             delete pParty; pParty = NULL;
                             return (-1); // error condition
                         }
@@ -2500,35 +2476,34 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         pParty->SetMySignedCopy(strTextExpected);
                     }
 
-                    // --------------------------------
+
 //                    if (false == SkipAfterLoadingField(xml))  // </party>
 //                    {
-//                        OTLog::vOutput(0, "*** %s: Bad data? Expected EXN_ELEMENT_END here, but "
+//                        otOut << "*** %s: Bad data? Expected EXN_ELEMENT_END here, but "
 //                                       "didn't get it. Failure.\n", szFunc);
 //                        delete pParty; pParty=NULL;
 //                        return (-1);
 //                    }
-                    // --------------------------------
+
 
                     if (AddParty(*pParty))
-                        OTLog::vOutput(2, "%s: Loaded Party: %s\n", szFunc, pParty->GetPartyName().c_str());
+						otInfo << szFunc << ": Loaded Party: " << pParty->GetPartyName() << "\n";
                     else
                     {
-                        OTLog::vError("%s: Failed loading Party: %s\n", szFunc, pParty->GetPartyName().c_str());
+						otErr << szFunc << ": Failed loading Party: " << pParty->GetPartyName() << "\n";
                         delete pParty; pParty = NULL;
                         return (-1); // error condition
                     }
 				}
 				else
 				{
-					OTLog::vError("%s: Expected party element.\n", szFunc);
+					otErr << szFunc << ": Expected party element.\n";
 					return (-1); // error condition
 				}
 			} // while
 		}
 
-        // -----------------------------------------------
-		//
+
 		// Load up the Bylaws.
 		//
 		int32_t nBylawCount	= strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
@@ -2539,12 +2514,12 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //				xml->read(); // <==================
 				if (false == SkipToElement(xml))
 				{
-					OTLog::vOutput(0, "%s: Failure: Unable to find expected element for bylaw. \n", szFunc);
+					otOut << szFunc << ": Failure: Unable to find expected element for bylaw. \n";
 					return (-1);
 				}
-				// -----------------------------------------------
 
-//                OTLog::vOutput(0, "%s: Looping to load bylaws: currently on: %s \n", szFunc, xml->getNodeName());
+
+//                otOut << "%s: Looping to load bylaws: currently on: %s \n", szFunc, xml->getNodeName());
 
 
 				if (!strcmp("bylaw", xml->getNodeName()))
@@ -2561,8 +2536,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     OT_ASSERT(NULL != pBylaw);
 
-                    // ---------------------------------------------------------------------------
-                    //
+
                     // LOAD VARIABLES AND CONSTANTS.
                     //
                     int32_t nCount	= strNumVariable.Exists() ? atoi(strNumVariable.Get()) : 0;
@@ -2573,11 +2547,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //                          xml->read(); // <==================
                             if (false == OTContract::SkipToElement(xml))
                             {
-                                OTLog::vError("%s: Error finding expected next element for variable.\n", szFunc);
+								otErr << szFunc << ": Error finding expected next element for variable.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1);
                             }
-                            // -----------------------------------------------
+
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("variable", xml->getNodeName())))
                             {
                                 OTString strVarName		= xml->getAttributeValue("name"); // Variable name (if needed in script code)
@@ -2585,15 +2559,14 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTString strVarType		= xml->getAttributeValue("type"); // string or int64_t
                                 OTString strVarAccess	= xml->getAttributeValue("access"); // constant, persistent, or important.
 
-                                // ----------------------------------
 
                                 if (!strVarName.Exists() || !strVarType.Exists() || !strVarAccess.Exists())
                                 {
-                                    OTLog::vError("%s: Expected missing name, type, or access type in variable.\n", szFunc);
+									otErr << szFunc << ": Expected missing name, type, or access type in variable.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
+
                                 // See if the same-named variable already exists on ANY of the OTHER BYLAWS
                                 // (There can only be one variable on an OTScriptable with a given name.)
                                 //
@@ -2601,16 +2574,16 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 if (NULL != pVar) // Uh-oh, it's already there!
                                 {
-                                    OTLog::vOutput(0, "%s: Error loading variable named %s, since one was "
-                                                   "already there on one of the bylaws.\n", szFunc, strVarName.Get());
+									otOut << szFunc << ": Error loading variable named " << strVarName << ", since one was "
+                                                   "already there on one of the bylaws.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
                                 // The AddVariable call below checks to see if it's already there, but only for the
                                 // currently-loading bylaw.
                                 // Whereas the above call checks this OTScriptable for all the variables on the already-loaded bylaws.
-                                // ----------------------------------
-                                //
+
+
                                 // VARIABLE TYPE AND ACCESS TYPE
                                 //
                                 OTVariable::OTVariable_Type theVarType = OTVariable::Var_Error_Type;
@@ -2622,9 +2595,8 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 else if (strVarType.Compare("bool"))
                                     theVarType = OTVariable::Var_Bool;
                                 else
-                                    OTLog::vError("%s: Bad variable type: %s.\n", szFunc, strVarType.Get());
+									otErr << szFunc << ": Bad variable type: " << strVarType << ".\n";
 
-                                // ---------
 
                                 OTVariable::OTVariable_Access theVarAccess = OTVariable::Var_Error_Access;
 
@@ -2635,20 +2607,18 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 else if (strVarAccess.Compare("important"))
                                     theVarAccess = OTVariable::Var_Important;
                                 else
-                                    OTLog::vError("%s: Bad variable access type: %s.\n", szFunc, strVarAccess.Get());
+									otErr << szFunc << ": Bad variable access type: " << strVarAccess << ".\n";
 
-                                // ---------
 
                                 if ((OTVariable::Var_Error_Access == theVarAccess) ||
                                     (OTVariable::Var_Error_Type == theVarType))
                                 {
-                                    OTLog::vError("%s: Error loading variable to bylaw: "
-                                                  "bad type (%s) or access type (%s).\n",
-                                                  szFunc, strVarType.Get(), strVarAccess.Get());
+									otErr << szFunc << ": Error loading variable to bylaw: bad type (" << strVarType
+										<< ") or access type (" << strVarAccess << ").\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
+
 
                                 bool bAddedVar = false;
                                 const std::string str_var_name = strVarName.Get();
@@ -2663,14 +2633,13 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                         }
                                         else
                                         {
-                                            OTLog::vError("%s: No value found for integer variable: %s\n", szFunc,
-                                                          strVarName.Get());
+											otErr << szFunc << ": No value found for integer variable: " << strVarName << "\n";
                                             delete pBylaw; pBylaw=NULL;
                                             return (-1);
                                         }
                                         break;
-                                        // ---------------------------------
-                                    case OTVariable::Var_Bool:
+
+									case OTVariable::Var_Bool:
                                         if (strVarValue.Exists())
                                         {
                                             const bool bVarValue = strVarValue.Compare("true") ? true : false;
@@ -2678,14 +2647,13 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                         }
                                         else
                                         {
-                                            OTLog::vError("%s: No value found for bool variable: %s\n", szFunc,
-                                                          strVarName.Get());
+											otErr << szFunc << ": No value found for bool variable: " << strVarName << "\n";
                                             delete pBylaw; pBylaw=NULL;
                                             return (-1);
                                         }
                                         break;
-                                        // ---------------------------------
-                                    case OTVariable::Var_String:
+
+									case OTVariable::Var_String:
                                     {
                                         // I realized I should probably allow empty strings.  :-P
                                         if (strVarValue.Exists() && strVarValue.Compare("exists"))
@@ -2693,8 +2661,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                             strVarValue.Release(); // probably unnecessary.
                                             if (false == OTContract::LoadEncodedTextField(xml, strVarValue))
                                             {
-                                                OTLog::vError("%s: No value found for string variable: %s\n", szFunc,
-                                                              strVarName.Get());
+												otErr << szFunc << ": No value found for string variable: " << strVarName << "\n";
                                                 delete pBylaw; pBylaw=NULL;
                                                 return (-1);
                                             }
@@ -2708,16 +2675,16 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     }
                                         break;
                                     default:
-                                        OTLog::vError("%s: Wrong variable type... "
-                                                      "somehow AFTER I should have already detected it...\n", szFunc);
+										otErr << szFunc << ": Wrong variable type... "
+                                                      "somehow AFTER I should have already detected it...\n";
                                         delete pBylaw; pBylaw=NULL;
                                         return (-1);
                                 }
-                                // -------------------------------------------------
+
 
                                 if (false == bAddedVar)
                                 {
-                                    OTLog::vError("%s: Failed adding variable to bylaw.\n", szFunc);
+									otErr << szFunc << ": Failed adding variable to bylaw.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
@@ -2730,7 +2697,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             //					if (false == SkipAfterLoadingField(xml))
             //					{
-            //						OTLog::Output(0, "*** OTScriptable::ProcessXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
+            //						otOut << "*** OTScriptable::ProcessXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
             //									"didn't get it. Failure.\n");
             //						delete pBylaw; pBylaw=NULL;
             //						return (-1);
@@ -2738,15 +2705,15 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
                             else
                             {
-                                OTLog::vError("%s: Expected variable element in bylaw.\n", szFunc);
+								otErr << szFunc << ": Expected variable element in bylaw.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1); // error condition
                             }
                         } // while
                     }
 
-                    // ---------------------------------------------------------------------------
-                    // LOAD CLAUSES
+
+					// LOAD CLAUSES
                     //
                     nCount	= strNumClauses.Exists() ? atoi(strNumClauses.Get()) : 0;
                     if (nCount > 0)
@@ -2758,11 +2725,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             //				xml->read(); // <==================
             //				if (false == OTContract::SkipToElement(xml))
             //				{
-            //					OTLog::Error("OTScriptable::ProcessXMLNode: Error finding expected next element for variable.\n");
+            //					otErr << "OTScriptable::ProcessXMLNode: Error finding expected next element for variable.\n";
             //					delete pBylaw; pBylaw=NULL;
             //					return (-1);
             //				}
-                            // -----------------------------------------------
+
 
                             const char	*	pElementExpected	= "clause";
                             OTString		strTextExpected; // clause's script code will go here.
@@ -2784,9 +2751,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if (false == OTContract::LoadEncodedTextFieldByName(xml, strTextExpected, pElementExpected, &temp_MapAttributes)) // </clause>
                             {
-                                OTLog::vError("%s: Error: "
-                                              "Expected %s element with text field.\n", szFunc,
-                                              pElementExpected);
+								otErr << szFunc << ": Error: Expected " << pElementExpected << " element with text field.\n";
                                 delete pBylaw; pBylaw = NULL;
                                 return (-1); // error condition
                             }
@@ -2794,7 +2759,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             // Okay we now have the script code in strTextExpected. Next, let's read the clause's NAME
                             // from the map. If it's there, and presumably some kind of harsh validation for both, then
                             // create a clause object and add to my list here.
-                            // ------------------------------------------
+
 
                             mapOfStrings::iterator it = temp_MapAttributes.find("name");
 
@@ -2804,16 +2769,16 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 if (str_name.size() > 0) // SUCCESS
                                 {
-                                    // ---------------------------------------
+
 
             //						if (false == SkipAfterLoadingField(xml))  // NOt sure yet about this block....
             //						{
-            //							OTLog::Output(0, "*** OTScriptable::ProcessXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
+            //							otOut << "*** OTScriptable::ProcessXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
             //										  "didn't get it. Failure.\n");
             //							delete pBylaw; pBylaw=NULL;
             //							return (-1);
             //						}
-                                    // *****************************************************
+
 
                                     // See if the same-named clause already exists on ANY of the OTHER BYLAWS
                                     // (There can only be one clause on an OTScriptable with a given name.)
@@ -2822,16 +2787,16 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                     if (NULL != pClause) // Uh-oh, it's already there!
                                     {
-                                        OTLog::vOutput(0, "%s: Error loading clause named %s, since one was already "
-                                                       "there on one of the bylaws.\n", szFunc, str_name.c_str());
+										otOut << szFunc << ": Error loading clause named " << str_name << ", since one was already "
+                                                       "there on one of the bylaws.\n";
                                         delete pBylaw; pBylaw=NULL;
                                         return (-1);
                                     }
-                                    // ---------------------------------------------------------
-                                    else if (false == pBylaw->AddClause(str_name.c_str(),
+
+									else if (false == pBylaw->AddClause(str_name.c_str(),
                                                                         strTextExpected.Get()))
                                     {
-                                        OTLog::vError("%s: Failed adding clause to bylaw.\n", szFunc);
+										otErr << szFunc << ": Failed adding clause to bylaw.\n";
                                         delete pBylaw; pBylaw=NULL;
                                         return (-1); // error condition
                                     }
@@ -2840,14 +2805,14 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // that we set above for "name" in temp_MapAttributes.
                                 else
                                 {
-                                    OTLog::vError("%s: Expected clause name.\n", szFunc);
+									otErr << szFunc << ": Expected clause name.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1); // error condition
                                 }
                             }
                             else
                             {
-                                OTLog::vError("%s: Strange error: couldn't find name AT ALL.\n", szFunc);
+								otErr << szFunc << ": Strange error: couldn't find name AT ALL.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1); // error condition
                             }
@@ -2855,8 +2820,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     } // if strNumClauses.Exists() && nCount > 0
 
 
-                    // ---------------------------------------------------------------------------
-                    //
                     // LOAD HOOKS.
                     //
                     nCount	= strNumHooks.Exists() ? atoi(strNumHooks.Get()) : 0;
@@ -2867,47 +2830,45 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //                          xml->read();
                             if (false == SkipToElement(xml))
                             {
-                                OTLog::vOutput(0, "%s: Failure: Unable to find expected element.\n", szFunc);
+								otOut << szFunc << ": Failure: Unable to find expected element.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1);
                             }
-                            // --------------------------------------
-                            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("hook", xml->getNodeName())))
+
+							if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("hook", xml->getNodeName())))
                             {
                                 OTString strHookName	= xml->getAttributeValue("name"); // Name of standard hook such as hook_activate or cron_process, etc
                                 OTString strClause		= xml->getAttributeValue("clause"); // Name of clause on this Bylaw that should trigger when that callback occurs.
 
-                                // ----------------------------------
 
                                 if (!strHookName.Exists() || !strClause.Exists())
                                 {
-                                    OTLog::vError("%s: Expected missing name or clause while loading hook.\n", szFunc);
+									otErr << szFunc << ": Expected missing name or clause while loading hook.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
+
 
                                 if (false == pBylaw->AddHook(strHookName.Get(), strClause.Get()))
                                 {
-                                    OTLog::vError("%s: Failed adding hook to bylaw.\n", szFunc);
+									otErr << szFunc << ": Failed adding hook to bylaw.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
+
 
 //                              xml->read(); // <==================  NO NEED FOR THIS HERE.
                             }
                             else
                             {
-                                OTLog::vError("%s: Expected hook element in bylaw.\n", szFunc);
+								otErr << szFunc << ": Expected hook element in bylaw.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1); // error condition
                             }
                         } // while
                     }
 
-                    // ---------------------------------------------------------------
-                    //
+
                     // LOAD CALLBACKS.
                     //
                     nCount	= 0;
@@ -2919,100 +2880,96 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //                          xml->read();
                             if (false == SkipToElement(xml))
                             {
-                                OTLog::vOutput(0, "%s: Failure: Unable to find expected element.\n", szFunc);
+								otOut << szFunc << ": Failure: Unable to find expected element.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1);
                             }
-                            // --------------------------------------
-                            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("callback", xml->getNodeName())))
+
+							if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("callback", xml->getNodeName())))
                             {
                                 OTString strCallbackName	= xml->getAttributeValue("name"); // Name of standard callback such as OnActivate, OnDeactivate, etc
                                 OTString strClause			= xml->getAttributeValue("clause"); // Name of clause on this Bylaw that should trigger when that hook occurs.
 
-                                // ----------------------------------
 
                                 if (!strCallbackName.Exists() || !strClause.Exists())
                                 {
-                                    OTLog::vError("%s: Expected, yet nevertheless missing, name or clause while loading "
-                                                  "callback for bylaw %s.\n", szFunc, strName.Get());
+									otErr << szFunc << ": Expected, yet nevertheless missing, name or clause while loading "
+										"callback for bylaw " << strName << ".\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
-                                // See if the same-named callback already exists on ANY of the OTHER BYLAWS
+
+								// See if the same-named callback already exists on ANY of the OTHER BYLAWS
                                 // (There can only be one clause to handle any given callback.)
                                 //
                                 OTClause * pClause = this->GetCallback(strCallbackName.Get());
 
                                 if (NULL != pClause) // Uh-oh, it's already there!
                                 {
-                                    OTLog::vOutput(0, "%s: Error loading callback %s, since one was already there on one of the other bylaws.\n",
-                                                   szFunc,
-                                                   strCallbackName.Get());
+									otOut << szFunc << ": Error loading callback " << strCallbackName << 
+										", since one was already there on one of the other bylaws.\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
                                 // The below call checks to see if it's already there, but only for the currently-loading bylaw.
                                 // Whereas the above call checks this OTScriptable for all the already-loaded bylaws.
-                                // ---------------------------------------
+
 
                                 if (false == pBylaw->AddCallback(strCallbackName.Get(), strClause.Get()))
                                 {
-                                    OTLog::vError("%se: Failed adding callback (%s) to bylaw (%s).\n", szFunc,
-                                                  strCallbackName.Get(), strName.Get());
+									otErr << szFunc << ": Failed adding callback (" << strCallbackName <<
+										") to bylaw (" << strName << ").\n";
                                     delete pBylaw; pBylaw=NULL;
                                     return (-1);
                                 }
-                                // ---------------------------------------
+
 
 //                              xml->read(); // <==================    NO NEED FOR THIS HERE.
                             }
                             else
                             {
-                                OTLog::vError("%s: Expected callback element in bylaw.\n", szFunc);
+								otErr << szFunc << ": Expected callback element in bylaw.\n";
                                 delete pBylaw; pBylaw=NULL;
                                 return (-1); // error condition
                             }
                         } // while
                     }
 
-                    // --------------------------------
+
 //                  if (false == SkipAfterLoadingField(xml))  // </bylaw>
 //                  {
-//                      OTLog::vOutput(0, "*** %s: Bad data? Expected EXN_ELEMENT_END here, but "
+//                      otOut << "*** %s: Bad data? Expected EXN_ELEMENT_END here, but "
 //                                     "didn't get it. Failure.\n", szFunc);
 //                      delete pBylaw; pBylaw=NULL;
 //                      return (-1);
 //                  }
-                    // --------------------------------
+
 
                     if (AddBylaw(*pBylaw))
                     {
-                        OTLog::vOutput(2, "%s: Loaded Bylaw: %s\n", szFunc,
-                                       pBylaw->GetName().Get());
+						otInfo << szFunc << ": Loaded Bylaw: " << pBylaw->GetName() << "\n";
                     }
                     else
                     {
-                        OTLog::vError("%s: Failed loading Bylaw: %s\n", szFunc,
-                                      pBylaw->GetName().Get());
+						otErr << szFunc << ": Failed loading Bylaw: " << pBylaw->GetName() << "\n";
                         delete pBylaw; pBylaw = NULL;
                         return (-1); // error condition
                     }
                 }
                 else
 				{
-					OTLog::vError("%s: Expected bylaw element.\n", szFunc);
+					otErr << szFunc << ": Expected bylaw element.\n";
 					return (-1); // error condition
 				}
 
             } // while
         }
-        // -----------------------------------------------
+
 
 		nReturnVal = 1;
 	}
 
-	// ----------------------------------------------------------------------------------
+
 
 
 	return nReturnVal;
@@ -3026,16 +2983,16 @@ OTVariable * OTScriptable::GetVariable(const std::string str_VarName)
 {
 	if (false == OTScriptable::ValidateName(str_VarName)) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::GetVariable:  Error: invalid name.\n");
+		otErr << "OTScriptable::GetVariable:  Error: invalid name.\n";
 		return NULL;
 	}
-	// -------------------------------------
+
 
 	FOR_EACH(mapOfBylaws, m_mapBylaws)
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// -------------------------
+
 
 		OTVariable * pVar = pBylaw->GetVariable(str_VarName);
 
@@ -3054,15 +3011,15 @@ OTClause * OTScriptable::GetCallback(const std::string str_CallbackName)
 	if ((false == OTScriptable::ValidateName(str_CallbackName)) ||
 		(str_CallbackName.compare(0,9,"callback_") != 0)) // this logs, FYI.
 	{
-		OTLog::vError("OTScriptable::GetCallback:  Error: invalid name: %s\n", str_CallbackName.c_str());
+		otErr << "OTScriptable::GetCallback:  Error: invalid name: " << str_CallbackName << "\n";
 		return NULL;
 	}
-	// -------------------------------------
+
 	FOR_EACH(mapOfBylaws, m_mapBylaws)
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// -------------------------
+
 
 		OTClause * pClause = pBylaw->GetCallback(str_CallbackName);
 
@@ -3084,17 +3041,17 @@ bool OTScriptable::GetHooks(const std::string str_HookName, mapOfClauses & theRe
 		((str_HookName.compare(0,5,"cron_") != 0) && (str_HookName.compare(0,5,"hook_") != 0))
 	   ) // this logs, FYI.
 	{
-		OTLog::Error("OTScriptable::GetHooks:  Error: invalid name.\n");
+		otErr << "OTScriptable::GetHooks:  Error: invalid name.\n";
 		return false;
 	}
-	// -------------------------------------
+
 	bool bReturnVal = false;
 
 	FOR_EACH(mapOfBylaws, m_mapBylaws)
 	{
 		OTBylaw * pBylaw = (*it).second;
 		OT_ASSERT(NULL != pBylaw);
-		// -------------------------
+
 
 		// Look up all clauses matching a specific hook.
 		//

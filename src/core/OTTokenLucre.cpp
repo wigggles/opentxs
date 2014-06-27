@@ -179,16 +179,16 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym & theNym,
                                          int64_t lDenomination,
                                          int32_t nTokenCount/*=OTToken::nMinimumPrototokenCount*/)
 {		
-	//	OTLog::vError("%s <bank public info> <coin request private output file> <coin request public output file>\n", argv[0]);
+	//	otErr << "%s <bank public info> <coin request private output file> <coin request public output file>\n", argv[0]);
     //
 	if (OTToken::blankToken != m_State)
 	{
-		OTLog::Error("OTToken_Lucre::GenerateTokenRequest: Blank token expected.\n");
+		otErr << "OTToken_Lucre::GenerateTokenRequest: Blank token expected.\n";
 		return false;
 	}
-    // -----------------------------------------------------------------
+
     _OT_Lucre_Dumper setDumper;  // todo security.
-    // -----------------------------------------------------------------
+
     OpenSSL_BIO bioBank		=	BIO_new(BIO_s_mem()); // Input. We must supply the bank's public lucre info
 	
 	// This version base64-DECODES the ascii-armored string passed in,
@@ -197,10 +197,10 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym & theNym,
 	OTASCIIArmor ascPublicMint;
 	
 	theMint.GetPublic(ascPublicMint, lDenomination);
-//	OTLog::vError("DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
+//	otErr << "DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
 	
 	OTString strPublicMint(ascPublicMint);
-//	OTLog::vError("DEBUG: OTToken  public str: \n%s\n", strPublicMint.Get());
+//	otErr << "DEBUG: OTToken  public str: \n%s\n", strPublicMint.Get());
 	
 	// Get the bank's public key (now decoded in strPublicMint)
 	// and put it into bioBank so we can use it with Lucre.
@@ -211,9 +211,9 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym & theNym,
     PublicBank bank;
     bank.ReadBIO(bioBank);
 
-    // -----------------------------------------------------------------
+
 	Release(); // note: why is this here? I guess to release the prototokens, the signature (is there one?) and m_ascSpendable (exists? doubt it.) This WAS also doing "InitToken" (no longer) which WAS setting series and expiration range back to 0 (no longer.) Which was causing problems for all series above 0. I'm leaving this call here, to do the stuff I guess it was put here for. But things such as the series, expiration date range, and token count, etc are no longer (inadvertantly) set to 0 here on this line. I'm also moving the SetSeriesAndExpiration call to be BELOW this line, since it's not apparently needed above this line anyway.
-    // -----------------------------------------------------------------
+
     // We are supposed to set these values here.
 	// The server actually sets them again, for security reasons.
 	// But we should still set them since server may choose to reject the request.
@@ -226,7 +226,7 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym & theNym,
     // stopped wiping them in Release.)
     //
 	SetSeriesAndExpiration(theMint.GetSeries(), theMint.GetValidFrom(), theMint.GetValidTo());
-    // -----------------------------------------------------------------
+
 	const int32_t nFinalTokenCount = (nTokenCount < OTToken::GetMinimumPrototokenCount()) ? 
 					OTToken::GetMinimumPrototokenCount() : nTokenCount; 
 	
@@ -291,7 +291,7 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym & theNym,
 //
 bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, OTToken & theRequest)
 {
-//	OTLog::vError("%s <bank public info> <private coin request> <signed coin request> <coin>\n",
+//	otErr << "%s <bank public info> <private coin request> <signed coin request> <coin>\n",
 	bool bReturnValue = false;
 	
 	// When the Mint has signed a token and sent it back to the client,
@@ -299,7 +299,7 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, O
 	// this function is only performed on tokens in the signedToken state.
 	if (OTToken::signedToken != m_State)
 	{
-		OTLog::Error("Signed token expected in OTToken_Lucre::ProcessToken\n");
+		otErr << "Signed token expected in OTToken_Lucre::ProcessToken\n";
 		return false;
 	}
 	
@@ -320,7 +320,7 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, O
 	BIO_puts(bioBank, strPublicMint.Get());
 
 	// Get the existing signature into a bio.
-//	OTLog::vError("DEBUGGING, m_Signature: -------------%s--------------\n", m_Signature.Get());
+//	otErr << "DEBUGGING, m_Signature: -------------%s--------------\n", m_Signature.Get());
 	OTString strSignature(m_Signature);
 	BIO_puts(bioSignature, strSignature.Get());
 	
@@ -330,7 +330,7 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, O
 	
 	if (bFoundToken)
 	{
-//		OTLog::vError("THE PRIVATE REQUEST ARMORED CONTENTS:\n------------------>%s<-----------------------\n",
+//		otErr << "THE PRIVATE REQUEST ARMORED CONTENTS:\n------------------>%s<-----------------------\n",
 //				thePrototoken.Get());
 		
 		// Decrypt the prototoken
@@ -338,7 +338,7 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, O
 		OTEnvelope theEnvelope(thePrototoken);
 		theEnvelope.Open(theNym, strPrototoken); // todo check return value.
 		
-//		OTLog::vError("THE PRIVATE REQUEST CONTENTS:\n------------------>%s<-----------------------\n",
+//		otErr << "THE PRIVATE REQUEST CONTENTS:\n------------------>%s<-----------------------\n",
 //				strPrototoken.Get());
 		
 		// copy strPrototoken to a BIO
@@ -374,14 +374,14 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym & theNym, OTMint & theMint, O
 			OTString strCoin;	
 			strCoin.Set(CoinBuffer, coinLen);
 			
-//			OTLog::vError("Processing token...\n%s\n", strCoin.Get());
+//			otErr << "Processing token...\n%s\n", strCoin.Get());
 			
 			// ...to Envelope stored in m_ascSpendable (encrypted and base64-encoded)
 			OTEnvelope theEnvelope;
 			theEnvelope.Seal(theNym, strCoin);	// Todo check the return values on these two functions
 			theEnvelope.GetAsciiArmoredData(m_ascSpendable); // Here's the final product.
 			
-//			OTLog::vError("NEW SPENDABLE token...\n--------->%s<----------------\n", m_ascSpendable.Get());
+//			otErr << "NEW SPENDABLE token...\n--------->%s<----------------\n", m_ascSpendable.Get());
 
 			// Now the coin is encrypted from here on out, and otherwise ready-to-spend.
 			m_State			= OTToken::spendableToken;

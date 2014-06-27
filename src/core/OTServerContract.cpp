@@ -139,7 +139,7 @@
 
 #include <fstream>
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {
@@ -214,7 +214,7 @@ bool OTServerContract::SaveContractWallet(std::ofstream & ofs)
 	
 	if (SaveContractWallet(strOutput))
 	{
-		ofs << strOutput.Get();
+		ofs << strOutput;
 		return true;
 	}
 		
@@ -224,13 +224,13 @@ bool OTServerContract::SaveContractWallet(std::ofstream & ofs)
 
 void OTServerContract::CreateContents()
 {
-    // ----------------------------------
+
     m_strVersion = "2.0";  // 2.0 since adding credentials.
-    // ----------------------------------
+
  	m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 	m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "notaryProviderContract", m_strVersion.Get());
-    // --------------------------------------------
+
     // Entity
     m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
                               " longname=\"%s\"\n"
@@ -240,7 +240,7 @@ void OTServerContract::CreateContents()
                               m_strEntityLongName .Get(),
                               m_strEntityEmail    .Get(),
                               m_strURL            .Get());
-    // --------------------------------------------
+
     // notaryServer
     m_xmlUnsigned.Concatenate("<notaryServer hostname=\"%s\"\n"
                               " port=\"%d\"\n"
@@ -248,12 +248,12 @@ void OTServerContract::CreateContents()
                               m_strHostname.Get(),
                               m_nPort,
                               m_strURL.Get());
-    // --------------------------------------------
+
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions, etc.
     this->CreateInnerContents();
-    // --------------------------------------------
+
 	m_xmlUnsigned.Concatenate("</%s>\n", "notaryProviderContract");
-    // --------------------------------------------
+
 }
 
 
@@ -279,9 +279,9 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{
 		m_strVersion = xml->getAttributeValue("version");					
 		
-		OTLog::vOutput(1, "\n"
+		otWarn << "\n"
 				"===> Loading XML portion of server contract into memory structures...\n\n"
-				"Notary Server Name: %s\nContract version: %s\n----------\n", m_strName.Get(), m_strVersion.Get());
+				"Notary Server Name: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
 		nReturnVal = 1;
 	}
 	
@@ -291,9 +291,9 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		m_nPort			= atoi(xml->getAttributeValue("port"));					
 		m_strURL		= xml->getAttributeValue("URL");					
 		
-		OTLog::vOutput(1, "\n"
-				"Notary Server connection info:\n --- Hostname: %s\n --- Port: %d\n --- URL:%s\n\n", 
-				m_strHostname.Get(), m_nPort, m_strURL.Get());
+		otWarn << "\n"
+			"Notary Server connection info:\n --- Hostname: " << m_strHostname << "\n --- Port: "
+			<< m_nPort << "\n --- URL:" << m_strURL << "\n\n";
 		nReturnVal = 1;
 	}
 	

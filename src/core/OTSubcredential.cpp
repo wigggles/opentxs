@@ -153,7 +153,7 @@
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 // Contains 3 key pairs: signing, authentication, and encryption.
@@ -252,7 +252,7 @@ void OTSubcredential::UpdatePublicContentsToString(OTString & strAppendTo) // Us
             strAppendTo.Concatenate("<publicInfo key=\"%s\">\n%s</publicInfo>\n\n",
                                       (*it).first.c_str(), ascInfo.Get());
         }
-        // ------------------------------
+
         strAppendTo.Concatenate("</publicContents>\n\n");
     }
 }
@@ -302,28 +302,28 @@ void OTSubcredential::UpdateContents()
         ascSource.SetString(this->GetNymIDSource()); // A nym should always verify through its own source. (Whatever that may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n", ascSource.Get());
     }
-    // --------------------------------------------
+
 //  if (OTSubcredential::credPublicInfo == m_StoreAs)  // (Always saving public info.)
     {
         // *****************************************************
         // PUBLIC INFO
         this->UpdateMasterPublicToString(m_xmlUnsigned);
-        // --------------------------------------------
+
         this->UpdatePublicContentsToString(m_xmlUnsigned);
         // *****************************************************
     }
-	// -------------------------------------------------
+
     // If we're saving the private credential info...
     // 
     if (OTSubcredential::credPrivateInfo == m_StoreAs)
     {
         this->UpdatePublicCredentialToString(m_xmlUnsigned);
-        // -------------------------------------
+
         this->UpdatePrivateContentsToString(m_xmlUnsigned);
     }
 	// -------------------------------------------------	
 	m_xmlUnsigned.Concatenate("</subCredential>\n");
-    // --------------------------------------------
+
     m_StoreAs = OTSubcredential::credPrivateInfo;  // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state processes ONCE, and then goes back to this again.
 }
 
@@ -348,26 +348,25 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	// if (nReturnVal = OTContract::ProcessXMLNode(xml))
     //	  return nReturnVal;
 	
-    // --------------------------------------------------
+
 	if (strNodeName.Compare("subCredential"))
 	{
 		m_strNymID			= xml->getAttributeValue("nymID");
 		m_strMasterCredID	= xml->getAttributeValue("masterCredentialID");
 		
-		OTLog::Output(1, "Loading subcredential...\n");
+		otWarn << "Loading subcredential...\n";
 		
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	else if (strNodeName.Compare("nymIDSource"))
 	{		
-		OTLog::Output(1, "Loading nymIDSource...\n");
+		otWarn << "Loading nymIDSource...\n";
 		
         OTASCIIArmor ascTemp;
         if (false == OTContract::LoadEncodedTextField(xml, ascTemp))
 		{
-			OTLog::vError("Error in %s line %d: failed loading expected nymIDSource field.\n",
-                          __FILE__, __LINE__);
+			otErr << "Error in " << __FILE__ << " line " << __LINE__ << ": failed loading expected nymIDSource field.\n";
 			return (-1); // error condition
 		}
         if (ascTemp.Exists())
@@ -375,15 +374,14 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	else if (strNodeName.Compare("masterPublic"))
 	{
         OTString strMasterPublicCredential;
         
 		if (false == OTContract::LoadEncodedTextField(xml, strMasterPublicCredential))
 		{
-			OTLog::vError("Error in %s line %d: failed loading expected master public credential while loading subcredential.\n",
-                          __FILE__, __LINE__);
+			otErr << "Error in " << __FILE__ << " line " << __LINE__ << ": failed loading expected master public credential while loading subcredential.\n";
 			return (-1); // error condition
 		}
         // Verify the master public credential we loaded against the one we expected to get, according
@@ -391,16 +389,15 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         else if ((NULL != m_pOwner) && false == (m_pOwner->GetPubCredential().Compare(strMasterPublicCredential)))
         {
-            OTLog::vError("Failure in %s line %d: while loading subcredential: master public "
+			otErr << "Failure in " << __FILE__ << " line " << __LINE__ << ": while loading subcredential: master public "
                           "credential loaded just now, doesn't match the actual master public credential, "
-                          "according to the current owner object.\n",
-                          __FILE__, __LINE__);
+                          "according to the current owner object.\n";
 			return (-1); // error condition
         }
 		
 		nReturnVal = 1;
 	}
-	// ------------------------------------------------------------------------------------
+
 	else if (strNodeName.Compare("publicContents"))
 	{
         OTString strCount;
@@ -413,7 +410,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             
             while (nTempCount-- > 0)
             {
-                // -----------------------------------------------                
+
                 const char	*	pElementExpected	= "publicInfo";
                 OTString		strPublicInfo;
                 
@@ -426,72 +423,67 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 
                 if (false == OTContract::LoadEncodedTextFieldByName(xml, strPublicInfo, pElementExpected, &temp_MapAttributes)) // </publicInfo>
                 {
-                    OTLog::vError("%s: Error: "
-                                  "Expected %s element with text field.\n", __FUNCTION__,
-                                  pElementExpected);
+					otErr << __FUNCTION__ << ": Error: Expected " << pElementExpected << " element with text field.\n";
                     return (-1); // error condition
                 }
-                // ------------------------------------------
-                mapOfStrings::iterator it = temp_MapAttributes.find("key");                
+
+				mapOfStrings::iterator it = temp_MapAttributes.find("key");                
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string & str_key = (*it).second;
                     
                     if (str_key.size() > 0) // Success finding key type ('A' 'E' or 'S')
                     {
-                        // ---------------------------------------
-                        mapPublic.insert(std::pair<std::string, std::string>(str_key, strPublicInfo.Get()));
-                        // ---------------------------------------
-                    }
+
+						mapPublic.insert(std::pair<std::string, std::string>(str_key, strPublicInfo.Get()));
+
+					}
                     // else it's empty, which is expected if nothing was there, since that's the default value
                     // that we set above for "name" in temp_MapAttributes.
                     else
                     {
-                        OTLog::vError("%s: Expected key type of 'A' or 'E' or 'S'.\n", __FUNCTION__);
+						otErr << __FUNCTION__ << ": Expected key type of 'A' or 'E' or 'S'.\n";
                         return (-1); // error condition
                     }
                 }
                 else
                 {
-                    OTLog::vError("%s: Strange error: couldn't find key type AT ALL.\n", __FUNCTION__); // should never happen.
+					otErr << __FUNCTION__ << ": Strange error: couldn't find key type AT ALL.\n"; // should never happen.
                     return (-1); // error condition
                 }
             } // while
-            // --------------------------------
-            if (static_cast<int64_t>(mapPublic.size()) != nCount)
+
+			if (static_cast<int64_t>(mapPublic.size()) != nCount)
             {
-                OTLog::vError("%s, %s, %d: Subcredential expected to load %d publicInfo objects, "
-                              "but actually loaded %d. (Mismatch, failure loading.)\n",
-                              __FUNCTION__, __FILE__, __LINE__, nCount, mapPublic.size());
+				otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << ": Subcredential expected to load " << nCount << " publicInfo objects, "
+					"but actually loaded " << mapPublic.size() << ". (Mismatch, failure loading.)\n";
                 return (-1); // error condition
             }
-            // --------------------------------
-            if (false == this->SetPublicContents(mapPublic))  // <==============  Success.
+
+			if (false == this->SetPublicContents(mapPublic))  // <==============  Success.
             {
-                OTLog::vError("%s, %s, %d: Subcredential failed setting public contents while loading.\n",
-                              __FUNCTION__, __FILE__, __LINE__);
+				otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << ": Subcredential failed setting public contents while loading.\n";
                 return (-1); // error condition    
             }
-            // --------------------------------            
-        } // if strCount.Exists() && nCount > 0
-        // -------------------------------------------------------------------------------
-		OTLog::Output(2, "Loaded publicContents for subcredential.\n");
+
+		} // if strCount.Exists() && nCount > 0
+
+		otInfo << "Loaded publicContents for subcredential.\n";
 		
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	else if (strNodeName.Compare("publicCredential"))
 	{
 		if (false == OTContract::LoadEncodedTextField(xml, m_strContents)) // <========= m_strContents.
 		{
-			OTLog::vError("Error in %s line %d: failed loading expected public credential while loading private subcredential.\n",
-                          __FILE__, __LINE__);
+			otErr << "Error in " << __FILE__ << " line " << __LINE__ << ": failed loading expected public credential while loading private subcredential.\n";
 			return (-1); // error condition
 		}
 		
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	else if (strNodeName.Compare("privateContents"))
 	{
         OTString strCount;
@@ -504,8 +496,8 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             
             while (nTempCount-- > 0)
             {
-                // -----------------------------------------------                
-                const char	*	pElementExpected	= "privateInfo";
+
+				const char	*	pElementExpected	= "privateInfo";
                 OTString		strPrivateInfo;
                 
                 // This map contains values we will also want, when we read the info...
@@ -517,46 +509,43 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 
                 if (false == OTContract::LoadEncodedTextFieldByName(xml, strPrivateInfo, pElementExpected, &temp_MapAttributes)) // </privateInfo>
                 {
-                    OTLog::vError("%s: Error: "
-                                  "Expected %s element with text field.\n", __FUNCTION__,
-                                  pElementExpected);
+					otErr << __FUNCTION__ << ": Error: Expected " << pElementExpected << " element with text field.\n";
                     return (-1); // error condition
                 }
-                // ------------------------------------------
-                mapOfStrings::iterator it = temp_MapAttributes.find("key");                
+
+				mapOfStrings::iterator it = temp_MapAttributes.find("key");                
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string & str_key = (*it).second;
                     
                     if (str_key.size() > 0) // Success finding key type ('A' 'E' or 'S')
                     {
-                        // ---------------------------------------
-                        mapPrivate.insert(std::pair<std::string, std::string>(str_key, strPrivateInfo.Get()));
-                        // ---------------------------------------
-                    }
+
+						mapPrivate.insert(std::pair<std::string, std::string>(str_key, strPrivateInfo.Get()));
+
+					}
                     // else it's empty, which is expected if nothing was there, since that's the default value
                     // that we set above for "name" in temp_MapAttributes.
                     else
                     {
-                        OTLog::vError("%s: Expected key type of 'A' or 'E' or 'S'.\n", __FUNCTION__);
+						otErr << __FUNCTION__ << ": Expected key type of 'A' or 'E' or 'S'.\n";
                         return (-1); // error condition
                     }
                 }
                 else
                 {
-                    OTLog::vError("%s: Strange error: couldn't find key type AT ALL.\n", __FUNCTION__); // should never happen.
+					otErr << __FUNCTION__ << ": Strange error: couldn't find key type AT ALL.\n"; // should never happen.
                     return (-1); // error condition
                 }
             } // while
-            // --------------------------------
+
             if (static_cast<int64_t>(mapPrivate.size()) != nCount)
             {
-                OTLog::vError("%s, %s, %d: Subcredential expected to load %d privateInfo objects, "
-                              "but actually loaded %d. (Mismatch, failure loading.)\n",
-                              __FUNCTION__, __FILE__, __LINE__, nCount, mapPrivate.size());
+				otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << ": Subcredential expected to load " << nCount << " privateInfo objects, "
+					"but actually loaded " << mapPrivate.size() << ". (Mismatch, failure loading.)\n";
                 return (-1); // error condition
             }
-            // --------------------------------
+
             OT_ASSERT(NULL != m_pOwner);
             
             // Sometimes we are supposed to use a specific, pre-specified password (versus just
@@ -578,18 +567,17 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             
             if (false == this->SetPrivateContents(mapPrivate, m_pOwner->GetImportPassword()))
             {
-                OTLog::vError("%s, %s, %d: Subcredential failed setting private contents while loading.\n",
-                              __FUNCTION__, __FILE__, __LINE__);
+				otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__ << ": Subcredential failed setting private contents while loading.\n";
                 return (-1); // error condition    
             }
-            // --------------------------------            
-        } // if strCount.Exists() && nCount > 0
-        // -------------------------------------------------------------------------------
-		OTLog::Output(2, "Loaded privateContents for subcredential.\n");
+
+		} // if strCount.Exists() && nCount > 0
+
+		otInfo << "Loaded privateContents for subcredential.\n";
 		
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	return nReturnVal;
 }
 
@@ -600,23 +588,22 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //
 bool OTSubcredential::VerifyNymID()
 {
-    // ---------------------------------------
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
+
+	// Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
     OTIdentifier theTempID;
     const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
     OT_ASSERT(bCalculate);
-    // ---------------------------------------
-    const OTString strNymID(theTempID);
+
+	const OTString strNymID(theTempID);
     if (false == m_strNymID.Compare(strNymID))
     {
-        OTLog::vOutput(0, "%s: Failure: When the NymID's source is hashed, the result doesn't match the expected NymID.\n"
-                       "Expected: %s\n   Found: %s\n  Source: %s\n", __FUNCTION__, m_strNymID.Get(), strNymID.Get(),
-                       m_strSourceForNymID.Get());
+		otOut << __FUNCTION__ << ": Failure: When the NymID's source is hashed, the result doesn't match the expected NymID.\n"
+			"Expected: " << m_strNymID << "\n   Found: " << strNymID << "\n  Source: " << m_strSourceForNymID << "\n";
         return false;
     }
-    // ---------------------------------------
-    return true;
+
+	return true;
 }
 
 
@@ -628,24 +615,23 @@ bool OTSubcredential::VerifyNymID()
 bool OTSubcredential::VerifyInternally()
 {
     OT_ASSERT(NULL != m_pOwner);
-    // ---------------------------------------
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
+
+	// Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
     if (false == this->VerifyNymID())
         return false;
-    // ---------------------------------------
-    // Verify that m_pOwner->GetMasterkey() and *this have the same NymID.
+
+	// Verify that m_pOwner->GetMasterkey() and *this have the same NymID.
     //
     if (false == m_strNymID.Compare(m_pOwner->GetMasterkey().GetNymID()))
     {
-        OTLog::vOutput(0, "%s: Failure: The actual master credential's NymID doesn't match the NymID on this subcredential.\n"
-                       "    This NymID: %s\nMaster's NymID: %s\n My Master Cred ID: %s\n", __FUNCTION__,
-                       m_strNymID.Get(), m_pOwner->GetMasterkey().GetNymID().Get(),
-                       m_strMasterCredID.Get());
+		otOut << __FUNCTION__ << ": Failure: The actual master credential's NymID doesn't match the NymID on this subcredential.\n"
+			"    This NymID: " << m_strNymID << "\nMaster's NymID: " << m_pOwner->GetMasterkey().GetNymID() << 
+			"\n My Master Cred ID: " << m_strMasterCredID << "\n";
         return false;
     }
-    // ---------------------------------------
-    // Verify m_strMasterCredID against the hash of m_pOwner->GetMasterkey().GetPubCredential()
+
+	// Verify m_strMasterCredID against the hash of m_pOwner->GetMasterkey().GetPubCredential()
     // (the master credentialID is a hash of the master credential.)
     //
     OTIdentifier theActualMasterID;
@@ -655,15 +641,14 @@ bool OTSubcredential::VerifyInternally()
  
     if (false == m_strMasterCredID.Compare(strActualMasterID))
     {
-        OTLog::vOutput(0, "%s: Failure: When the actual Master Credential is hashed, the "
+		otOut << __FUNCTION__ << ": Failure: When the actual Master Credential is hashed, the "
                        "result doesn't match the expected Master Credential ID.\n"
-                       "Expected: %s\n   Found: %s\nMaster Cred:\n%s\n", __FUNCTION__,
-                       m_strMasterCredID.Get(), strActualMasterID.Get(),
-                       m_pOwner->GetPubCredential().Get());
+					   "Expected: " << m_strMasterCredID << "\n   Found: "
+					   << strActualMasterID << "\nMaster Cred:\n" << m_pOwner->GetPubCredential() << "\n";
         return false;
     }
-    // ---------------------------------------
-    // Then verify the signature of m_pOwner->GetMasterkey()...
+
+	// Then verify the signature of m_pOwner->GetMasterkey()...
     // Let's get a few things straight:
     // * OTMasterkey is a key (derived from OTKeyCredential, derived from OTSubcredential) and it can only sign itself.
     // * The only further verification a Masterkey can get is if its hash is posted at the source. Or, if the source
@@ -674,18 +659,17 @@ bool OTSubcredential::VerifyInternally()
     // * Whereas m_strMasterSigned is only used by OTSubkey, and thus only must be verified there.
     // * Any OTSubcredential must also be signed by its master. (Except masters, which already sign themselves.)
     // * Any OTMasterkey must (at some point, and/or regularly) verify against its own source.
-    //
-    // -----------------
-    // * Any OTSubcredential must also be signed by its master. (Except masters, which already sign themselves.)
+
+
+	// * Any OTSubcredential must also be signed by its master. (Except masters, which already sign themselves.)
     //
     if (false == this->VerifySignedByMaster())
     {
-        OTLog::vOutput(0, "%s: Failure: This subcredential hasn't been signed by its master credential.\n",
-                       __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failure: This subcredential hasn't been signed by its master credential.\n";
         return false;
     }
-    // ---------------------------------------
-    return true;
+
+	return true;
 }
 
 
@@ -700,15 +684,14 @@ bool OTSubcredential::VerifyContract()
 {
 	if (false == this->VerifyContractID())
 	{
-		OTLog::vOutput(1, "%s: Failed verifying credential ID against whatever it was expected to be.\n",
-                       __FUNCTION__);
+		otWarn << __FUNCTION__ << ": Failed verifying credential ID against whatever it was expected to be.\n";
 		return false;
 	}
-    // -------------------------------------
+
 	if (false == this->VerifyInternally()) // Logs copiously.
         return false;
-    // -------------------------------------
-    return true;
+
+	return true;
 }
 
 
@@ -716,7 +699,7 @@ bool OTSubcredential::VerifyContract()
 void OTSubcredential::CalculateContractID(OTIdentifier & newID)
 {
 	if (!newID.CalculateDigest(this->GetPubCredential()))
-		OTLog::vError("%s: Error calculating credential digest.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
 }
 
 

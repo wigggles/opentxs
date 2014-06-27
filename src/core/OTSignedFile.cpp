@@ -138,7 +138,7 @@
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {
@@ -190,7 +190,7 @@ int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		m_strPurportedLocalDir	= xml->getAttributeValue("localDir");
 		m_strPurportedFilename	= xml->getAttributeValue("filename");
 
-		// ---------------------
+
 
 		nReturnVal = 1;
 	}
@@ -199,7 +199,7 @@ int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{
 		if (false == OTContract::LoadEncodedTextField(xml, m_strSignedFilePayload))
 		{
-			OTLog::Error("Error in OTSignedFile::ProcessXMLNode: filePayload field without value.\n");
+			otErr << "Error in OTSignedFile::ProcessXMLNode: filePayload field without value.\n";
 			return (-1); // error condition
 		}
 
@@ -225,12 +225,9 @@ bool OTSignedFile::VerifyFile()
 		m_strSignedFilename.Compare(m_strPurportedFilename))
 		return true;
 
-    OTLog::vError("%s: Failed verifying signed file:\n"
-                  "Expected directory: %s  Found: %s\n"
-                  "Expected filename:  %s  Found: %s\n",
-                  __FUNCTION__,
-                  m_strLocalDir      .Get(), m_strPurportedLocalDir.Get(),
-                  m_strSignedFilename.Get(), m_strPurportedFilename.Get());
+	otErr << __FUNCTION__ << ": Failed verifying signed file:\n"
+		"Expected directory: " << m_strLocalDir << "  Found: " << m_strPurportedLocalDir << "\n"
+		"Expected filename:  " << m_strSignedFilename << "  Found: " << m_strPurportedFilename << "\n";
 	return false;
 }
 
@@ -284,7 +281,7 @@ bool OTSignedFile::SaveFile()
 // Assumes SetFilename() has already been set.
 bool OTSignedFile::LoadFile()
 {
-//	OTLog::vOutput(0, "DEBUG LoadFile (Signed) folder: %s file: %s \n", m_strFoldername.Get(), m_strFilename.Get());
+//	otOut << "DEBUG LoadFile (Signed) folder: %s file: %s \n", m_strFoldername.Get(), m_strFilename.Get());
 
 	if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get()))
 		return LoadContract();

@@ -142,7 +142,7 @@
 #include "OTPurse.hpp"
 #include "OTStorage.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 #if defined (OT_CASH_USING_LUCRE)
 #include "OTTokenLucre.hpp"
@@ -264,14 +264,14 @@ OTToken::OTToken(const OTPurse & thePurse)
 
 void OTToken::Release_Token()
 {
-    // -------------------------
+
 	m_Signature.Release();
 	m_ascSpendable.Release();
-    // -------------------------
+
 //  InitToken();
-    // -------------------------    
+
 	ReleasePrototokens();
-    // -------------------------
+
 }
 
 
@@ -308,7 +308,7 @@ void OTToken::ReleasePrototokens()
 		
 		delete pPrototoken; pPrototoken	= NULL;
 	}
-	// ------------------------------------------------
+
 	FOR_EACH(mapOfPrototokens, m_mapPrivate)
 	{		
 		OTASCIIArmor * pPrototoken = (*it).second;
@@ -316,12 +316,12 @@ void OTToken::ReleasePrototokens()
 		
 		delete pPrototoken; pPrototoken	= NULL;
 	}
-	// ------------------------------------------------    
+
 	m_mapPublic.clear();
 	m_mapPrivate.clear();
-    // ------------------------------------------------
+
 	m_nTokenCount	= 0;
-    // ------------------------------------------------
+
 }
 
 
@@ -350,7 +350,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine, const OTId
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre(SERVER_ID, ASSET_ID);		OT_ASSERT(NULL != pToken); }
 #else
-    OTLog::vError("%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
+    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
                   __FUNCTION__);
 #endif // defined (OT_CASH_USING_LUCRE)
 
@@ -372,7 +372,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine, const OTPu
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre(thePurse);		OT_ASSERT(NULL != pToken); }
 #else
-    OTLog::vError("%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
+    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
                   __FUNCTION__);
 #endif // defined (OT_CASH_USING_LUCRE)
 
@@ -388,7 +388,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTPurse & thePurse)
     pToken = new OTToken_Lucre(thePurse);
     OT_ASSERT(NULL != pToken);
 #else
-    OTLog::vError("%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
+    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
                   __FUNCTION__);
 #endif // defined (OT_CASH_USING_LUCRE)
 
@@ -410,7 +410,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine)
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre;		OT_ASSERT(NULL != pToken); }
 #else
-    OTLog::vError("%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
+    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
                   __FUNCTION__);
 #endif // defined (OT_CASH_USING_LUCRE)
 
@@ -423,10 +423,10 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine)
 OTToken * OTToken::TokenFactory(OTString strInput, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
 {
 //  const char * szFunc = "OTToken::TokenFactory";
-    // --------------------------------------------------------------------
+
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed = OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
-    // --------------------------------------------------------------------
+
     if (bProcessed)
     {
         OTToken * pToken = OTToken::LowLevelInstantiate(strFirstLine, SERVER_ID, ASSET_ID);
@@ -449,10 +449,10 @@ OTToken * OTToken::TokenFactory(OTString strInput, const OTIdentifier & SERVER_I
 OTToken * OTToken::TokenFactory(OTString strInput, const OTPurse & thePurse)
 {
 //  const char * szFunc = "OTToken::TokenFactory";
-    // --------------------------------------------------------------------
+
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed = OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
-    // --------------------------------------------------------------------
+
     if (bProcessed)
     {
         OTToken * pToken = OTToken::LowLevelInstantiate(strFirstLine, thePurse);
@@ -475,10 +475,10 @@ OTToken * OTToken::TokenFactory(OTString strInput, const OTPurse & thePurse)
 OTToken * OTToken::TokenFactory(OTString strInput)
 {
 //  const char * szFunc = "OTToken::TokenFactory";
-    // --------------------------------------------------------------------
+
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed = OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
-    // --------------------------------------------------------------------
+
     if (bProcessed)
     {
         OTToken * pToken = OTToken::LowLevelInstantiate(strFirstLine);
@@ -514,24 +514,23 @@ OTToken * OTToken::TokenFactory(OTString strInput)
 bool OTToken::IsTokenAlreadySpent(OTString & theCleartextToken)
 {
 	OTString strAssetID(GetAssetID());
-	// ----------------------------------------------------------------------------		
+	
 	// Calculate the filename (a hash of the Lucre cleartext token ID)
 	OTIdentifier theTokenHash;
 	theTokenHash.CalculateDigest(theCleartextToken);
 	
 	// Grab the new hash into a string (for use as a filename)
 	OTString strTokenHash(theTokenHash);
-	// ----------------------------------------------------------------------------	
+
 	OTString strAssetFolder;
 	strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
 	
 	bool bTokenIsPresent = OTDB::Exists(OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
-	// --------------------------------------------------------------------
+
 	if (bTokenIsPresent)
 	{
-		OTLog::vOutput(0, "\nOTToken::IsTokenAlreadySpent: Token was already spent: %s%s%s%s%s\n", 
-					   OTFolders::Spent().Get(), OTLog::PathSeparator(), strAssetFolder.Get(), 
-					   OTLog::PathSeparator(), strTokenHash.Get());
+		otOut << "\nOTToken::IsTokenAlreadySpent: Token was already spent: " << OTFolders::Spent() << OTLog::PathSeparator()
+			<< strAssetFolder << OTLog::PathSeparator() << strTokenHash << "\n";
 		return true;	// all errors must return true in this function.
 						// But this is not an error. Token really WAS already
 	}					// spent, and this true is for real. The others are just
@@ -548,7 +547,7 @@ bool OTToken::IsTokenAlreadySpent(OTString & theCleartextToken)
 bool OTToken::RecordTokenAsSpent(OTString & theCleartextToken)
 {
 	OTString strAssetID(GetAssetID());
-	// ----------------------------------------------------------------------------
+
 	// Calculate the filename (a hash of the Lucre cleartext token ID)
 	OTIdentifier theTokenHash;
 	theTokenHash.CalculateDigest(theCleartextToken);
@@ -558,46 +557,43 @@ bool OTToken::RecordTokenAsSpent(OTString & theCleartextToken)
 		
 	OTString strAssetFolder;
 	strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
-	// --------------------------------------------------------------------
+
 	// See if the spent token file ALREADY EXISTS...
 	bool bTokenIsPresent = OTDB::Exists(OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
 	
 	// If so, we're trying to record a token that was already recorded...
 	if (bTokenIsPresent)
 	{
-		OTLog::vError("OTToken::RecordTokenAsSpent: Trying to record token as spent,"
-					  " but it was already recorded: %s%s%s%s%s\n", 
-					  OTFolders::Spent().Get(), OTLog::PathSeparator(), strAssetFolder.Get(), 
-					  OTLog::PathSeparator(), strTokenHash.Get());
+		otErr << "OTToken::RecordTokenAsSpent: Trying to record token as spent,"
+			" but it was already recorded: " << OTFolders::Spent() << OTLog::PathSeparator() <<
+			strAssetFolder << OTLog::PathSeparator() << strTokenHash << "\n";
 		return false;
 	}
-	// ----------------------------------------------------------------------	
+
 	// FINISHED:
 	//
 	// We actually save the token itself into the file, which is named based
 	// on a hash of the Lucre data.
 	// The success of that operation is also now the success of this one.
-    // --------------------------------------------------------------------
-	//
+
+
 	OTString strFinal;
     OTASCIIArmor ascTemp(m_strRawFile);
     
     if (false == ascTemp.WriteArmoredString(strFinal, m_strContractType.Get()))
     {
-		OTLog::vError("OTToken::RecordTokenAsSpent: Error recording token as "
-                      "spent (failed writing armored string):\n%s%s%s%s%s\n",
-					  OTFolders::Spent().Get(), OTLog::PathSeparator(), strAssetFolder.Get(), 
-					  OTLog::PathSeparator(), strTokenHash.Get());
+		otErr << "OTToken::RecordTokenAsSpent: Error recording token as "
+			"spent (failed writing armored string):\n" << OTFolders::Spent() << OTLog::PathSeparator() <<
+			strAssetFolder << OTLog::PathSeparator() << strTokenHash << "\n";
 		return false;
     }
-    // --------------------------------------------------------------------
+
 	const bool bSaved = OTDB::StorePlainString(strFinal.Get(), OTFolders::Spent().Get(), 
                                                strAssetFolder.Get(), strTokenHash.Get());
 	if (!bSaved)
 	{
-		OTLog::vError("OTToken::RecordTokenAsSpent: Error saving file: %s%s%s%s%s\n", 
-					  OTFolders::Spent().Get(), OTLog::PathSeparator(), strAssetFolder.Get(), 
-					  OTLog::PathSeparator(), strTokenHash.Get());
+		otErr << "OTToken::RecordTokenAsSpent: Error saving file: " << OTFolders::Spent() << OTLog::PathSeparator()\
+			<< strAssetFolder << OTLog::PathSeparator() << strTokenHash << "\n";
 	}
 	
 	return bSaved;
@@ -657,7 +653,7 @@ bool OTToken::ReassignOwnership(OTNym_or_SymmetricKey & oldOwner,  // must be pr
 {
 	const char *   szFunc = "OTToken::ReassignOwnership";
     const OTString strDisplay(szFunc);
-    // --------------------------    
+
     bool bSuccess = true;
 
     if (!oldOwner.CompareID(newOwner)) // only re-assign if they don't ALREADY have the same owner.
@@ -690,7 +686,7 @@ bool OTToken::ReassignOwnership(OTNym_or_SymmetricKey & oldOwner,  // must be pr
 bool OTToken::GetSpendableString(OTNym_or_SymmetricKey theOwner, OTString & theString) const
 {
     const char * szFunc = "OTToken::GetSpendableString";
-    // -------------------------------------
+
     if (m_ascSpendable.Exists())
     {
         OTEnvelope theEnvelope(m_ascSpendable);
@@ -702,7 +698,7 @@ bool OTToken::GetSpendableString(OTNym_or_SymmetricKey theOwner, OTString & theS
             return true;
     }
     else
-        OTLog::vError("%s: m_ascSpendable is empty... (failure.)\n", szFunc);
+		otErr << szFunc << ": m_ascSpendable is empty... (failure.)\n";
     
     return false;
 }
@@ -871,11 +867,10 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		m_AssetTypeID.SetString(strAssetTypeID);
 		m_ServerID.SetString(strServerID);
 
-		OTLog::vOutput(4,
+		otLog4 << 
 				//	"\n===> Loading XML for token into memory structures..."
-				"\n\nToken State: %s\n Denomination: %lld\n"
-				" AssetTypeID: %s\nServerID: %s\n", 
-				strState.Get(), GetDenomination(), strAssetTypeID.Get(), strServerID.Get());
+				"\n\nToken State: " << strState << "\n Denomination: " << GetDenomination() << "\n"
+				" AssetTypeID: " << strAssetTypeID << "\nServerID: " << strServerID << "\n";
 		
 		nReturnVal = 1;
 	}
@@ -884,7 +879,7 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{
 		if (false == OTContract::LoadEncodedTextField(xml, m_ascSpendable))
 		{
-			OTLog::Error("Error in OTToken::ProcessXMLNode: token ID without value.\n");
+			otErr << "Error in OTToken::ProcessXMLNode: token ID without value.\n";
 			return (-1); // error condition
 		}
 		
@@ -895,7 +890,7 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{		
 		if (false == OTContract::LoadEncodedTextField(xml, m_Signature))
 		{
-			OTLog::Error("Error in OTToken::ProcessXMLNode: token Signature without value.\n");
+			otErr << "Error in OTToken::ProcessXMLNode: token Signature without value.\n";
 			return (-1); // error condition
 		}
 		
@@ -920,7 +915,7 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		
 		if (!OTContract::LoadEncodedTextField(xml, *pArmoredPrototoken) || !pArmoredPrototoken->Exists())
 		{
-			OTLog::Error("Error in OTToken::ProcessXMLNode: prototoken field without value.\n");
+			otErr << "Error in OTToken::ProcessXMLNode: prototoken field without value.\n";
 			
 			delete pArmoredPrototoken;
 			pArmoredPrototoken = NULL;
@@ -950,7 +945,7 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		
 		if (!OTContract::LoadEncodedTextField(xml, *pArmoredPrototoken) || !pArmoredPrototoken->Exists())
 		{
-			OTLog::Error("Error in OTToken::ProcessXMLNode: privatePrototoken field without value.\n");
+			otErr << "Error in OTToken::ProcessXMLNode: privatePrototoken field without value.\n";
 			
 			delete pArmoredPrototoken;
 			pArmoredPrototoken = NULL;
@@ -962,7 +957,7 @@ int32_t OTToken::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 			m_mapPrivate[nPrivateTokenCount] = pArmoredPrototoken;
 			nPrivateTokenCount++;
 			
-			OTLog::vOutput(4, "Loaded prototoken and adding to m_mapPrivate at index: %d\n", nPrivateTokenCount-1);
+			otLog4 << "Loaded prototoken and adding to m_mapPrivate at index: " << nPrivateTokenCount - 1 << "\n";
 		}
 		
 		return 1;
@@ -993,7 +988,7 @@ bool OTToken::GetPrototoken(OTASCIIArmor & ascPrototoken, int32_t nTokenIndex)
 	{
 		return false;
 	}
-    // --------------------------------------
+
 	FOR_EACH(mapOfPrototokens, m_mapPublic)
 	{
 		OTASCIIArmor * pPrototoken = (*it).second;
@@ -1052,7 +1047,7 @@ OTToken * OTToken::InstantiateAndGenerateTokenRequest(const OTPurse & thePurse,
     
     if (!bGeneratedRequest)
     {
-        OTLog::vError("%s: Failed trying to generate token request.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to generate token request.\n";
         delete pToken;
         pToken = NULL;
     }
@@ -1089,7 +1084,7 @@ void OTToken::SetSignature(const OTASCIIArmor & theSignature, int32_t nTokenInde
 	// We now officially have the bank's signature on this token.
 	m_Signature.Set(theSignature);
 	
-//	OTLog::vError("DEBUG OTToken::SetSignature. nTokenIndex is %d.\nm_Signature is:\n%s\n"
+//	otErr << "DEBUG OTToken::SetSignature. nTokenIndex is %d.\nm_Signature is:\n%s\n"
 //			"-------------------------------------\n",
 //			nTokenIndex, m_Signature.Get());
 	
@@ -1119,11 +1114,11 @@ bool OTToken::GetSignature(OTASCIIArmor & theSignature) const
 // with the Server's Nym.
 bool OTToken::VerifyToken(OTPseudonym & theNotary, OTMint & theMint)
 {
-	//OTLog::vError("%s <bank info> <coin>\n",argv[0]);
+	//otErr << "%s <bank info> <coin>\n",argv[0]);
 	
 	if (OTToken::spendableToken != m_State)
 	{
-		OTLog::Error("Expected spendable token in OTToken::VerifyToken\n");
+		otErr << "Expected spendable token in OTToken::VerifyToken\n";
         
 
 		return false;
@@ -1155,7 +1150,7 @@ bool OTToken::VerifyToken(OTPseudonym & theNotary, OTMint & theMint)
 		m_VALID_FROM	!= theMint.GetValidFrom() ||
 		m_VALID_TO		!= theMint.GetValidTo())
 	{
-		OTLog::vOutput(0, "Token series information doesn't match Mint series information!\n");
+		otOut << "Token series information doesn't match Mint series information!\n";
 		return false;
 	}
 	
@@ -1166,19 +1161,19 @@ bool OTToken::VerifyToken(OTPseudonym & theNotary, OTMint & theMint)
 	// and time is within the range described on the token.
 	if (!VerifyCurrentDate())
 	{
-		OTLog::Output(0, "Token is expired!\n");
+		otOut << "Token is expired!\n";
 		return false;
 	}
 	
 	// pass the cleartext Lucre spendable coin data to the Mint to be verified.
     if (theMint.VerifyToken(theNotary, strContents, GetDenomination()))  // Here's the boolean output: coin is verified!
 	{
-		OTLog::Output(0, "Token verified!\n");
+		otOut << "Token verified!\n";
 		return true;
 	}
 	else
     {
-		OTLog::Output(0, "Bad coin!\n");
+		otOut << "Bad coin!\n";
 		return false;
 	}
 }

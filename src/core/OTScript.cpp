@@ -197,7 +197,7 @@ namespace opentxs {
 
 _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type)
 {
-    // -------------------------------------------
+
 #ifdef OT_USE_SCRIPT_CHAI
     // default or explicit chai script interpreter
     if (script_type == "" || script_type =="chai") // todo no hardcoding.
@@ -205,27 +205,26 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type)
         _SharedPtr<OTScript> pChaiScript(new OTScriptChai);
         return pChaiScript;
     }
-    // -------------------------------------------
+
 //#elif OT_USE_SCRIPT_LUA
 //  if (script_type =="lua") // todo no hardcoding.
 //  {
 //      _SharedPtr<OTScript> pLuaScript(new OTScriptLua);
 //      return pLuaScript;
 //  }
-    // -------------------------------------------
+
 #else
     // default no script interpreter
     if (script_type == "")
     {
-        OTLog::Error("\n\n WARNING 1: script_type == noscript. \n\n");
+        otErr << "\n\n WARNING 1: script_type == noscript. \n\n";
         
         _SharedPtr<OTScript> pNoScript(new OTScript);
         return pNoScript;
     }
 #endif
-    // -------------------------------------------
-    OTLog::vError("%s: Script language (%s) not found.\n",
-                  __FUNCTION__, script_type.c_str());
+
+	otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
     
     _SharedPtr<OTScript> retVal;
     return retVal;
@@ -235,7 +234,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type)
 _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type, 
                                      const std::string & script_contents)
 {
-    // -------------------------------------------
+
 #ifdef OT_USE_SCRIPT_CHAI
     // default or explicit chai script interpreter
     if (script_type == "" || script_type == "chai") // todo no hardcoding.
@@ -243,27 +242,26 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type,
         _SharedPtr<OTScript> pChaiScript(new OTScriptChai(script_contents));
         return pChaiScript;
     }
-    // -------------------------------------------
-//#elif OT_USE_SCRIPT_LUA
+
+	//#elif OT_USE_SCRIPT_LUA
     //  if (script_type =="lua") // todo no hardcoding.
     //  {
     //      _SharedPtr<OTScript> pLuaScript(new OTScriptLua(script_contents));
     //      return pLuaScript;
     //  }
-    // -------------------------------------------
+
 #else
     // default no script interpreter
     if (script_type == "")
     {
-        OTLog::Error("\n\n WARNING 2: script_type == noscript. \n\n");
+        otErr << "\n\n WARNING 2: script_type == noscript. \n\n";
         
         _SharedPtr<OTScript> pNoScript(new OTScript);
         return pNoScript;
     }
 #endif
-    // -------------------------------------------
-    OTLog::vError("%s: Script language (%s) not found.\n",
-                  __FUNCTION__, script_type.c_str());
+
+	otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
     
     _SharedPtr<OTScript> retVal;
     return retVal;
@@ -419,7 +417,7 @@ void OTScript::RemoveVariable (OTVariable & theVar)
 
 bool OTScript::ExecuteScript(OTVariable * /*=NULL*/)
 {
-    OTLog::vError("OTScript::ExecuteScript: Scripting has been disabled.\n");
+    otErr << "OTScript::ExecuteScript: Scripting has been disabled.\n";
     return true;
 }
 

@@ -194,8 +194,8 @@ bool OTStashItem::CreditStash(const int64_t &lAmount)
 {
 	if (lAmount < 0)
 	{
-		OTLog::vOutput(0, "OTStashItem::CreditStash: Failed attempt to credit a negative amount (%lld). Asset Type: %s \n",
-					   lAmount, m_strAssetTypeID.Get());
+		otOut << "OTStashItem::CreditStash: Failed attempt to credit a negative amount ("
+			<< lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
 		return false;
 	}
 
@@ -209,8 +209,8 @@ bool OTStashItem::DebitStash(const int64_t &lAmount)
 {
 	if (lAmount < 0)
 	{
-		OTLog::vOutput(0, "OTStashItem::DebitStash: Failed attempt to debit a negative amount (%lld). Asset Type: %s \n",
-					   lAmount, m_strAssetTypeID.Get());
+		otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative amount ("
+			<< lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
 		return false;
 	}
 
@@ -218,8 +218,8 @@ bool OTStashItem::DebitStash(const int64_t &lAmount)
 
 	if (lTentativeNewBalance < 0)
 	{
-		OTLog::vOutput(0, "OTStashItem::DebitStash: Failed attempt to debit (amount of) %lld: New stash balance would have been a negative "
-					   "amount (%lld). Asset Type: %s \n", lAmount, lTentativeNewBalance, m_strAssetTypeID.Get());
+		otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) " << lAmount << ": New stash balance would have been a negative "
+			"amount (" << lTentativeNewBalance << "). Asset Type: " << m_strAssetTypeID << " \n";
 		return false;
 	}
 

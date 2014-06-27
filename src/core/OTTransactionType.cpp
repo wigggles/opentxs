@@ -147,10 +147,10 @@ namespace opentxs {
 OTTransactionType * OTTransactionType::TransactionFactory(OTString strInput)
 {
     const char * szFunc = "OTTransactionType::TransactionFactory";
-    // --------------------------------------------------------------------
+
     OTString   strContract, strFirstLine; // output for the below function.
     const bool bProcessed = OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
-    // --------------------------------------------------------------------
+
     if (bProcessed)
     {
         OTTransactionType * pContract = NULL;
@@ -167,14 +167,13 @@ OTTransactionType * OTTransactionType::TransactionFactory(OTString strInput)
         else if (strFirstLine.Contains("-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30 chars long.
         {	pContract = new OTAccount();		OT_ASSERT(NULL != pContract); }
 
-        // ----------------------------------------------
-        // The string didn't match any of the options in the factory.
+
+		// The string didn't match any of the options in the factory.
         //
         // The string didn't match any of the options in the factory.
         if (NULL == pContract)
         {
-            OTLog::vOutput(0, "%s: Object type not yet supported by class factory: %s\n",
-                           szFunc, strFirstLine.Get());
+			otOut << szFunc << ": Object type not yet supported by class factory: " << strFirstLine << "\n";
             return NULL;
         }
 
@@ -198,14 +197,13 @@ OTTransactionType * OTTransactionType::TransactionFactory(OTString strInput)
         }
         else
         {
-            OTLog::vOutput(0, "%s: Failed loading contract from string (first line): %s\n",
-                           szFunc, strFirstLine.Get());
+			otOut << szFunc << ": Failed loading contract from string (first line): " << strFirstLine << "\n";
             delete pContract;
             pContract = NULL;
         }
     }
-    // --------------------------------------------------------------------
-    return NULL;
+
+	return NULL;
 }
 
 
@@ -376,18 +374,18 @@ bool OTTransactionType::VerifyAccount(OTPseudonym & theNym)
 	//
 	if (false == VerifyContractID())
 	{
-		OTLog::Error("Error verifying account ID in OTTransactionType::VerifyAccount\n");
+		otErr << "Error verifying account ID in OTTransactionType::VerifyAccount\n";
 		return false;
 	}
 	else if (false == VerifySignature(theNym))
 	{
-		OTLog::Error("Error verifying signature in OTTransactionType::VerifyAccount.\n");
+		otErr << "Error verifying signature in OTTransactionType::VerifyAccount.\n";
 		return false;
 	}
 
-	OTLog::Output(4, "\nWe now know that...\n"
+	otLog4 << "\nWe now know that...\n"
 			"1) The expected Account ID matches the ID that was found on the object.\n"
-			"2) The SIGNATURE VERIFIED on the object.\n\n");
+			"2) The SIGNATURE VERIFIED on the object.\n\n";
 	return true;
 }
 
@@ -409,9 +407,9 @@ bool OTTransactionType::VerifyContractID()
 		(m_ServerID	!= m_AcctServerID))
 	{
 		OTString str1(m_ID), str2(m_AcctID), str3(m_ServerID), str4(m_AcctServerID);
-		OTLog::vError("Identifiers do NOT match in OTTransactionType::VerifyContractID.\n"
-				"m_ID: %s\n m_AcctID: %s\n m_ServerID: %s\n m_AcctServerID: %s\n",
-				str1.Get(), str2.Get(), str3.Get(), str4.Get());
+		otErr << "Identifiers do NOT match in OTTransactionType::VerifyContractID.\n"
+			"m_ID: " << str1 << "\n m_AcctID: " << str2 << "\n m_ServerID: " 
+			<< str3 << "\n m_AcctServerID: " << str4 << "\n";
 
 //        OT_FAIL;  // I was debugging.
 
@@ -420,7 +418,7 @@ bool OTTransactionType::VerifyContractID()
 	else
 	{
 //		OTString str1(m_AcctID), str2(m_AcctServerID);
-//		OTLog::vError("Expected Account ID and Server ID both *SUCCESSFUL* match to "
+//		otErr << "Expected Account ID and Server ID both *SUCCESSFUL* match to "
 //				"IDs in the xml:\n Account ID:\n%s\n ServerID:\n%s\n"
 //				"-----------------------------------------------------------------------------\n",
 //				str1.Get(), str2.Get());
