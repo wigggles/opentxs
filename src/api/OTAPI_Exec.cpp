@@ -358,7 +358,7 @@ bool OTAPI_Exec::SetWallet(const std::string & strWalletFilename)
 	bool bIsInitialized = OTAPI()->IsInitialized();
 	if (!bIsInitialized)
 	{
-		OTLog::sError("%s: Error: OT_API not Initialized!!\n", __FUNCTION__);
+		OTLog::vError("%s: Error: OT_API not Initialized!!\n", __FUNCTION__);
 		OT_FAIL;
 	}
 	else
@@ -371,7 +371,7 @@ bool OTAPI_Exec::SetWallet(const std::string & strWalletFilename)
 		}
 		else
 		{
-			OTLog::sError("%s: Error:: Wallet Filename is Null!\n", __FUNCTION__);
+			OTLog::vError("%s: Error:: Wallet Filename is Null!\n", __FUNCTION__);
 		}
 		OT_FAIL;
 	}

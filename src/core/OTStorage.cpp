@@ -2574,20 +2574,20 @@ namespace OTDB
 
         // must be 3chars in length, or equal to "."
         if (strZero.empty() && (0 != zeroStr.compare("."))) {
-            OTLog::sError("%s: Empty: %s is too short (and not \".\").!\n"
+            OTLog::vError("%s: Empty: %s is too short (and not \".\").!\n"
                 "zeroStr was: \"%s\"\n", __FUNCTION__, "zeroStr", zeroStr.c_str());
             return -1;
         }
 
         // the first string must not be empty
         if (strOne.empty()) {
-            OTLog::sError("%s: Empty: %s passed in!\n", __FUNCTION__, "oneStr");
+            OTLog::vError("%s: Empty: %s passed in!\n", __FUNCTION__, "oneStr");
             return -2;
         }
 
         // if the second string is empty, so must the third.
         if (strTwo.empty() && !strThree.empty()) {
-            OTLog::sError("%s: Error: strThree passed in: %s while strTwo is empty!\n", __FUNCTION__, strThree.c_str());
+            OTLog::vError("%s: Error: strThree passed in: %s while strTwo is empty!\n", __FUNCTION__, strThree.c_str());
             return -3;
         }
 
@@ -2657,11 +2657,11 @@ namespace OTDB
             const bool bFolderExists = OTPaths::PathExists(strFolder.c_str());
 
             if (bMakePath && !bFolderExists) {
-                OTLog::sError("%s: Error: was told to make path, however cannot confirm the path!\n", __FUNCTION__);
+                OTLog::vError("%s: Error: was told to make path, however cannot confirm the path!\n", __FUNCTION__);
                 return -4;
             }
             if (!bMakePath && !bFolderExists) {
-                OTLog::sOutput(1, "%s: Debug: Cannot find Folder: %s \n", __FUNCTION__, strFolder.c_str());
+                OTLog::vOutput(1, "%s: Debug: Cannot find Folder: %s \n", __FUNCTION__, strFolder.c_str());
             }
         }
 
@@ -2868,9 +2868,9 @@ namespace OTDB
 
 		if (0 > ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr))
 		{
-			OTLog::sError("Error: %s: Failed calling ConstructAndConfirmPath with:\n"
+			OTLog::vError("Error: %s: Failed calling ConstructAndConfirmPath with:\n"
 				"strOutput: %s | strFolder: %s | oneStr: %s | twoStr: %s | threeStr: %s \n",
-				__FUNCTION__, strOutput, strFolder, oneStr, twoStr, threeStr);
+                __FUNCTION__, strOutput.c_str(), strFolder.c_str(), oneStr.c_str(), twoStr.c_str(), threeStr.c_str());
 
 			return false;
 		}

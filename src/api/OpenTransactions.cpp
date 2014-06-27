@@ -414,10 +414,10 @@ OT_API::Pid::~Pid()
 
 void OT_API::Pid::OpenPid(const OTString strPidFilePath)
 {
-	if (this->IsPidOpen()) { OTLog::sError("%s: Pid is OPEN, MUST CLOSE BEFORE OPENING A NEW ONE!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
+	if (this->IsPidOpen()) { OTLog::vError("%s: Pid is OPEN, MUST CLOSE BEFORE OPENING A NEW ONE!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
 
-	if (!strPidFilePath.Exists()) { OTLog::sError("%s: %s is Empty!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
-	if (3 > strPidFilePath.GetLength()) { OTLog::sError("%s: %s is Too Short! (%s)\n",__FUNCTION__,"strPidFilePath",strPidFilePath.Get()); OT_FAIL; }
+	if (!strPidFilePath.Exists()) { OTLog::vError("%s: %s is Empty!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
+	if (3 > strPidFilePath.GetLength()) { OTLog::vError("%s: %s is Too Short! (%s)\n",__FUNCTION__,"strPidFilePath",strPidFilePath.Get()); OT_FAIL; }
 
 	OTLog::vOutput(1, "%s: Using Pid File: %s\n",__FUNCTION__,strPidFilePath.Get());
 	this->m_strPidFilePath = strPidFilePath;
@@ -493,8 +493,8 @@ void OT_API::Pid::OpenPid(const OTString strPidFilePath)
 
 void OT_API::Pid::ClosePid()
 {
-	if (!this->IsPidOpen()) { OTLog::sError("%s: Pid is CLOSED, WHY CLOSE A PID IF NONE IS OPEN!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
-	if (!this->m_strPidFilePath.Exists()) { OTLog::sError("%s: %s is Empty!\n",__FUNCTION__,"m_strPidFilePath"); OT_FAIL; }
+	if (!this->IsPidOpen()) { OTLog::vError("%s: Pid is CLOSED, WHY CLOSE A PID IF NONE IS OPEN!\n",__FUNCTION__,"strPidFilePath"); OT_FAIL; }
+	if (!this->m_strPidFilePath.Exists()) { OTLog::vError("%s: %s is Empty!\n",__FUNCTION__,"m_strPidFilePath"); OT_FAIL; }
 
 	// -------------------------------------------------------
 	// PID -- Set it to 0 in the lock file so the next time we run OT, it knows there isn't
@@ -2162,14 +2162,14 @@ bool OT_API::Wallet_RemoveServer(const OTIdentifier & SERVER_ID)
 	// -----------------------------------------------------
 
 	if (NULL == m_pWallet) {
-		OTLog::sError("%s:  No wallet found...\n",__FUNCTION__);
+		OTLog::vError("%s:  No wallet found...\n",__FUNCTION__);
 		OT_FAIL;
 	}
 
 	if (m_pWallet->RemoveServerContract(SERVER_ID))
 	{
 		m_pWallet->SaveWallet();
-		OTLog::sOutput(0, "%s: Removed server contract from the wallet: %s\n", __FUNCTION__, SERVER_ID);
+		OTLog::vOutput(0, "%s: Removed server contract from the wallet: %s\n", __FUNCTION__, OTString(SERVER_ID).Get());
 		return true;
 	}
 	return false;
@@ -2196,14 +2196,14 @@ bool OT_API::Wallet_RemoveAssetType(const OTIdentifier & ASSET_ID)
 
 
 	if (NULL == m_pWallet) {
-		OTLog::sError("%s: No wallet found...!\n",__FUNCTION__);
+		OTLog::vError("%s: No wallet found...!\n",__FUNCTION__);
 		OT_FAIL;
 	}
 
 	if (m_pWallet -> RemoveAssetContract(ASSET_ID))
 	{
 		m_pWallet -> SaveWallet();
-		OTLog::sOutput(0, "%s: Removed asset contract from the wallet: %s\n",__FUNCTION__, ASSET_ID);
+		OTLog::vOutput(0, "%s: Removed asset contract from the wallet: %s\n",__FUNCTION__, OTString(ASSET_ID).Get());
 		return true;
 	}
 	return false;
@@ -2240,18 +2240,18 @@ bool OT_API::Wallet_RemoveNym(const OTIdentifier & NYM_ID)
 
 	if (NULL == m_pWallet)
     {
-		OTLog::sError("%s: No wallet found...!\n",__FUNCTION__);
+		OTLog::vError("%s: No wallet found...!\n",__FUNCTION__);
 		OT_FAIL;
 	}
 
 	if (m_pWallet->RemoveNym(NYM_ID))
 	{
-		OTLog::sOutput(0, "%s: Success erasing Nym from wallet: %s\n", __FUNCTION__, NYM_ID);
+        OTLog::vOutput(0, "%s: Success erasing Nym from wallet: %s\n", __FUNCTION__, OTString(NYM_ID).Get());
 		m_pWallet -> SaveWallet();
 		return true;
 	}
 	else
-		OTLog::sOutput(0, "%s: Failure erasing Nym from wallet: %s\n", __FUNCTION__, NYM_ID);
+        OTLog::vOutput(0, "%s: Failure erasing Nym from wallet: %s\n", __FUNCTION__, OTString(NYM_ID).Get());
 
 	return false;
 }

@@ -154,7 +154,8 @@ class OTSymmetricKey;
 class OTIdentifier : public OTData
 {
 public:
-    // ----------------------------------------------
+EXPORT	friend std::ostream & operator << (std::ostream & os, const OTString & obj);
+
 	// Some digests are handled in special ways before they can call OpenSSL. They are internal,
 	// like SAMY hash.
 EXPORT	bool CalculateDigestInternal(const OTString & strInput,  const OTString & strHashAlgorithm);

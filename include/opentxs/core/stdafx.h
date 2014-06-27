@@ -3,10 +3,6 @@
 
 #pragma once
 
-#ifdef _MSC_VER
-//#include "ot_msvc.h"
-#endif
-
 #include "OTCommon.hpp"
 
 #include "OTglobal.h"

@@ -171,6 +171,17 @@ OTMint_Lucre::~OTMint_Lucre() { }
 #if defined (OT_CASH_USING_LUCRE)
 
 
+// Todo: need to be saving these BIOs somewhere, and freeing them at
+// the end of the run of the application.
+//
+void SetMonitor(const char *filepathexact)
+{
+    BIO *out = new BIO;
+    out = BIO_new_file(filepathexact, "r");
+    assert(out);
+    SetDumper(out);
+}
+
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
 bool OTMint_Lucre::AddDenomination(OTPseudonym & theNotary, int64_t lDenomination, int32_t nPrimeLength/*=1024*/)
