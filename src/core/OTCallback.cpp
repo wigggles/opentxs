@@ -165,7 +165,7 @@ namespace opentxs {
 
 OTCallback::~OTCallback()
 {
-	OTLog::vError("OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- as the application is closing.)\n");
+	otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- as the application is closing.)\n";
 //	std::cout << "OTCallback::~OTCallback()" << std:: endl;
 }
 

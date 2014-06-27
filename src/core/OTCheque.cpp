@@ -137,7 +137,7 @@
 #include "OTASCIIArmor.hpp"
 #include "OTLog.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 using namespace irr;
 using namespace io;
@@ -220,21 +220,21 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
 	{
 		OTString strHasRecipient = xml->getAttributeValue("hasRecipient");
         m_bHasRecipient = strHasRecipient.Compare("true");
-        // ---------------------------------
+
         OTString strHasRemitter = xml->getAttributeValue("hasRemitter");
         m_bHasRemitter = strHasRemitter.Compare("true");
-        // ---------------------------------
+
 		m_strVersion   = xml->getAttributeValue("version");
 		m_lAmount      = atol(xml->getAttributeValue("amount"));
-        // ---------------------------------
+
 		SetTransactionNum( atol(xml->getAttributeValue("transactionNum")) );
-        // ---------------------------------
+
         const OTString str_valid_from = xml->getAttributeValue("validFrom");
         const OTString str_valid_to   = xml->getAttributeValue("validTo");
 
         SetValidFrom(OTTimeGetTimeFromSeconds(str_valid_from.ToLong()));
         SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
-        // ---------------------------------
+
 		OTString	strAssetTypeID     (xml->getAttributeValue("assetTypeID")),
 					strServerID        (xml->getAttributeValue("serverID")),
 					strSenderAcctID    (xml->getAttributeValue("senderAcctID")),
@@ -242,21 +242,21 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
                     strRecipientUserID (xml->getAttributeValue("recipientUserID")),
                     strRemitterUserID  (xml->getAttributeValue("remitterUserID")),
                     strRemitterAcctID  (xml->getAttributeValue("remitterAcctID"));
-		// ---------------------
+
 		OTIdentifier	ASSET_ID(strAssetTypeID),		 SERVER_ID(strServerID),
 						SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
-		// ---------------------
+
 		SetAssetID(ASSET_ID);
 		SetServerID(SERVER_ID);
 		SetSenderAcctID(SENDER_ACCT_ID);
 		SetSenderUserID(SENDER_USER_ID);
-		// ---------------------
+
 		// Recipient ID 
 		if (m_bHasRecipient)
 			m_RECIPIENT_USER_ID.SetString(strRecipientUserID);
 		else
 			m_RECIPIENT_USER_ID.Release();
-		// ---------------------
+
 		// Remitter ID (for vouchers)
 		if (m_bHasRemitter)
 		{
@@ -268,22 +268,15 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
 			m_REMITTER_USER_ID.Release();
 			m_REMITTER_ACCT_ID.Release();
 		}
-		// ---------------------
+
 		
-		OTLog::vOutput(2,
-                       "\n\nCheque Amount: %lld.  Transaction Number: %lld\n Valid From: %" PRId64"\n Valid To: %" PRId64"\n"
-                       " AssetTypeID: %s\n ServerID: %s\n"
-                       " senderAcctID: %s\n senderUserID: %s\n "
-                       " Has Recipient? %s. If yes, UserID of Recipient: %s\n"
-                       " Has Remitter? %s. If yes, UserID/Acct of Remitter: %s / %s\n",
-                       m_lAmount, m_lTransactionNum, str_valid_from.ToLong(), str_valid_to.ToLong(),
-                       strAssetTypeID.Get(), strServerID.Get(),
-                       strSenderAcctID.Get(), strSenderUserID.Get(), 
-                       (m_bHasRecipient ? "Yes" : "No"),
-                       strRecipientUserID.Get(),
-                       (m_bHasRemitter ? "Yes" : "No"),
-                       strRemitterUserID.Get(),
-                       strRemitterAcctID.Get());
+		otInfo << 
+			"\n\nCheque Amount: " << m_lAmount << ".  Transaction Number: " << m_lTransactionNum << "\n Valid From: " << str_valid_from.ToLong() <<
+			"\n Valid To: " << str_valid_to.ToLong() << "\n AssetTypeID: " << strAssetTypeID << "\n ServerID: " << strServerID << "\n"
+			" senderAcctID: " << strSenderAcctID << "\n senderUserID: " << strSenderUserID << "\n "
+			" Has Recipient? " << (m_bHasRecipient ? "Yes" : "No") << ". If yes, UserID of Recipient: " << strRecipientUserID << "\n"
+			" Has Remitter? " << (m_bHasRemitter ? "Yes" : "No") << ". If yes, UserID/Acct of Remitter: " << strRemitterUserID <<
+			" / " << strRemitterAcctID << "\n";
 		
 		nReturnVal = 1;
 	}
@@ -292,7 +285,7 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
 	{		
 		if (false == OTContract::LoadEncodedTextField(xml, m_strMemo))
 		{
-			OTLog::Error("Error in OTCheque::ProcessXMLNode: memo field without value.\n");
+			otErr << "Error in OTCheque::ProcessXMLNode: memo field without value.\n";
 			return (-1); // error condition
 		}
 		

@@ -199,7 +199,7 @@ void OTClause::Serialize(OTString & strAppend)
 		strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
 							  m_strName.Get(),
 							  "ERROR_CLAUSE_CODE_NULL");
-		OTLog::Error("Empty script code in OTClause::Serialize()\n");
+		otErr << "Empty script code in OTClause::Serialize()\n";
 	}
 }
 
@@ -209,15 +209,13 @@ bool OTClause::Compare(const OTClause & rhs) const
 {
 	if (!(this->GetName().Compare(rhs.GetName())))
 	{
-		OTLog::vOutput(0, "OTClause::Compare: Names don't match: %s / %s \n",
-					   this->GetName().Get(), rhs.GetName().Get());
+		otOut << "OTClause::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
 		return false;
 	}
 
 	if (!(this->m_strCode.Compare(rhs.GetCode())))
 	{
-		OTLog::vOutput(0, "OTClause::Compare: Source code for interpreted script fails to match, on clause: %s \n",
-					  this->GetName().Get());
+		otOut << "OTClause::Compare: Source code for interpreted script fails to match, on clause: " << this->GetName() << " \n";
 		return false;
 	}
 

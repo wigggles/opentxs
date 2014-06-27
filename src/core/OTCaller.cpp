@@ -166,7 +166,7 @@ namespace opentxs {
 
 OTCaller::~OTCaller()
 {
-	OTLog::vOutput(0, "OTCaller::~OTCaller: (This should only happen as the application is closing.)\n");
+	otOut << "OTCaller::~OTCaller: (This should only happen as the application is closing.)\n";
 
 	delCallback();
 }
@@ -198,7 +198,7 @@ void OTCaller::SetDisplay(const char * szDisplay, int32_t nLength)
 //
 bool OTCaller::GetPassword(OTPassword & theOutput) const // Get the password....
 {
-	OTLog::Output(0, "OTCaller::GetPassword: FYI, returning password after invoking a (probably Java) password dialog.\n");
+	otOut << "OTCaller::GetPassword: FYI, returning password after invoking a (probably Java) password dialog.\n";
 
 	theOutput.setPassword_uint8(m_Password.getPassword_uint8(), m_Password.getPasswordSize());
 
@@ -219,28 +219,28 @@ void OTCaller::delCallback()
 	//		delete _callback;	// But I know we're currently crashing from deleting same object twice.
 	// And since the object comes from Java, who am I to delete it? Let Java clean it up.
 	if (isCallbackSet())
-		OTLog::Output(0, "OTCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
-					  "(This message doesn't trigger if it was already NULL.)\n");
-	//--------------------------------
+		otOut << "OTCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
+					  "(This message doesn't trigger if it was already NULL.)\n";
+
 	_callback = NULL;
 }
 
 
 void OTCaller::setCallback(OTCallback *cb)
 {
-	OTLog::Output(0, "OTCaller::setCallback: Attempting to set the password OTCallback pointer...\n");
+	otOut << "OTCaller::setCallback: Attempting to set the password OTCallback pointer...\n";
 
 	if (NULL == cb)
 	{
-		OTLog::Output(0, "OTCaller::setCallback: ERROR: NULL password OTCallback object passed in. (Returning.)\n");
+		otOut << "OTCaller::setCallback: ERROR: NULL password OTCallback object passed in. (Returning.)\n";
 		return;
 	}
 
 	delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
-	// -----------------------------
+
 
 	_callback = cb;
-	OTLog::Output(0, "OTCaller::setCallback: FYI, the password OTCallback pointer was set.\n");
+	otOut << "OTCaller::setCallback: FYI, the password OTCallback pointer was set.\n";
 }
 
 
@@ -256,12 +256,12 @@ void OTCaller::callOne()
 
 	if (isCallbackSet())
 	{
-		OTLog::Output(0, "OTCaller::callOne: FYI, Executing password callback (one)...\n");
+		otOut << "OTCaller::callOne: FYI, Executing password callback (one)...\n";
 		_callback->runOne(this->GetDisplay(), m_Password);
 	}
 	else
 	{
-		OTLog::Output(0, "OTCaller::callOne: WARNING: Failed attempt to trigger password callback (one), due to \"it hasn't been set yet.\"\n");
+		otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger password callback (one), due to \"it hasn't been set yet.\"\n";
 	}
 }
 
@@ -272,12 +272,12 @@ void OTCaller::callTwo()
 
 	if (isCallbackSet())
 	{
-		OTLog::Output(0, "OTCaller::callTwo: FYI, Executing password callback (two)...\n");
+		otOut << "OTCaller::callTwo: FYI, Executing password callback (two)...\n";
 		_callback->runTwo(this->GetDisplay(), m_Password);
 	}
 	else
 	{
-		OTLog::Output(0, "OTCaller::callTwo: WARNING: Failed attempt to trigger password callback (two), due to \"it hasn't been set yet.\"\n");
+		otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger password callback (two), due to \"it hasn't been set yet.\"\n";
 	}
 }
 
