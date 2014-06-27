@@ -159,8 +159,7 @@ bool OTAgent::VerifySignature(OTContract & theContract)
 	//
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::VerifySignature: Entities and roles are not yet supported. Agent: %s.\n",
-					  m_strName.Get());
+		otErr << "OTAgent::VerifySignature: Entities and roles are not yet supported. Agent: " << m_strName << ".\n";
 		return false;
 	}// todo: when adding entities, this will change.
 
@@ -187,9 +186,8 @@ bool OTAgent::VerifySignature(OTContract & theContract)
 	if (NULL == m_pNym)
 	{
 		OTString strTemp(theContract);
-		OTLog::vError("OTAgent::VerifySignature: Attempted to verify signature on contract, "
-					 "but no Nym had ever been loaded for this agent:\n\n%s\n\n",
-					 strTemp.Get());
+		otErr << "OTAgent::VerifySignature: Attempted to verify signature on contract, "
+			"but no Nym had ever been loaded for this agent:\n\n" << strTemp << "\n\n";
 		return false;
 	}
 
@@ -220,8 +218,8 @@ OTPseudonym * OTAgent::LoadNym(OTPseudonym & theServerNym)
 		if (false == pNym->LoadPublicKey())
 		{
 			OTString strNymID(theAgentNymID);
-			OTLog::vError("OTAgent::LoadNym: Failure loading "
-						  "agent's public key:\n%s\n", strNymID.Get());
+			otErr << "OTAgent::LoadNym: Failure loading "
+				"agent's public key:\n" << strNymID << "\n";
 			delete pNym; pNym=NULL;
 		}
 		else if (pNym->VerifyPseudonym() &&
@@ -234,13 +232,12 @@ OTPseudonym * OTAgent::LoadNym(OTPseudonym & theServerNym)
 		else
 		{
 			OTString strNymID(theAgentNymID);
-			OTLog::vError("OTAgent::LoadNym: Failure verifying agent's public key or loading signed nymfile: %s\n",
-						  strNymID.Get());
+			otErr << "OTAgent::LoadNym: Failure verifying agent's public key or loading signed nymfile: " << strNymID << "\n";
 			delete pNym; pNym=NULL;
 		}
 	}
 	else
-		OTLog::Error("OTAgent::LoadNym: Failure. Are you sure this agent IS a Nym at all? \n");
+		otErr << "OTAgent::LoadNym: Failure. Are you sure this agent IS a Nym at all? \n";
 
 	return NULL;
 }
@@ -283,7 +280,7 @@ OTAgent::OTAgent(const std::string str_agent_name, OTPseudonym & theNym,
 		// be passed in, and set here.  I WILL PROBABLY make that part into a SEPARATE CONSTRUCTOR.
 		// (Once I get around to adding Entities.)
 		//
-		OTLog::Error("OTAgent::OTAgent: THIS HASN'T BEEN WRITTEN YET!!\n");
+		otErr << "OTAgent::OTAgent: THIS HASN'T BEEN WRITTEN YET!!\n";
 	}
 }
 
@@ -463,7 +460,7 @@ bool OTAgent::GetSignerID(OTIdentifier& theOutput) const
             return GetNymID(theOutput);
         }
     }
-    // ---------------------------------
+
     // else IsGroup()... unable to sign directly; must hold votes instead.
     //
     return false;
@@ -572,10 +569,10 @@ int32_t OTAgent::GetCountAuthorizedAccts()
 {
 	if (NULL == m_pForParty)
 	{
-		OTLog::Error("OTAgent::CountAuthorizedAccts: Error: m_pForParty was NULL.\n");
+		otErr << "OTAgent::CountAuthorizedAccts: Error: m_pForParty was NULL.\n";
 		return 0; // Maybe should log here...
 	}
-    // -------------------------------------
+
 	return m_pForParty->GetAccountCount(m_strName.Get());
 }
 
@@ -627,12 +624,12 @@ void OTAgent::RetrieveNymPointer(mapOfNyms & map_Nyms_Already_Loaded)
 	{
 		if (!m_strName.Exists())  // Whoaa!! Can't add it without the agent's name for the map!
 		{
-			OTLog::Error("OTAgent::RetrieveNymPointers: Failed: m_strName is empty!\n");
+			otErr << "OTAgent::RetrieveNymPointers: Failed: m_strName is empty!\n";
 		}
 		else if (map_Nyms_Already_Loaded.end() ==
 				 map_Nyms_Already_Loaded.insert(map_Nyms_Already_Loaded.begin(), std::pair<std::string, OTPseudonym *>(str_agent_name, m_pNym)))
-			OTLog::vError("OTAgent::RetrieveNymPointer: Failed on insertion, as though another nym were already "
-						 "there with the same agent name! (%s)\n", m_strName.Get());
+			otErr << "OTAgent::RetrieveNymPointer: Failed on insertion, as though another nym were already "
+			"there with the same agent name! (" << m_strName << ")\n";
 		// (else it was inserted successfully.)
 	}
 	// else nothing, since it's normal that most of them are NULL, even when one is goood.
@@ -645,10 +642,10 @@ bool OTAgent::VerifyAgencyOfAccount(const OTAccount & theAccount) const
 
 	if (!this->GetSignerID(theSignerID))
 	{
-		OTLog::Error("OTAgent::VerifyAgencyOfAccount: ERROR: Entities and roles haven't been coded yet.\n");
+		otErr << "OTAgent::VerifyAgencyOfAccount: ERROR: Entities and roles haven't been coded yet.\n";
 		return false;
 	}
-	// --------------------
+
 
 	return theAccount.VerifyOwnerByID(theSignerID); // todo when entities and roles come, won't this "just work", or do I also have to warn the acct whether it's a Nym or a Role being passed?
 }
@@ -680,7 +677,7 @@ bool OTAgent::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
 		OTPseudonym *	pNym		= NULL;
 		OTCleanup<OTPseudonym> theNymAngel;
 
-		// -------------------------------------------------
+
 		// If a list of pre-loaded Nyms was passed in, see if one of them is ours.
 		//
 		if (NULL != pNymMap)
@@ -696,7 +693,7 @@ bool OTAgent::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
 				OT_ASSERT(NULL != pNym);
 			}
 		}
-		// -------------------------------------------------
+
 
 		if (NULL == pNym) // It wasn't on the list of already-loaded nyms that was passed in, so we have to load it.
 		{
@@ -708,7 +705,7 @@ bool OTAgent::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
 			// before loading it. Let's load it up!)
 			//
 			if (NULL == (pNym = this->LoadNym(theServerNym)))
-				OTLog::vError("%s: Failed loading Nym.\n", szFunc);
+				otErr << szFunc << ": Failed loading Nym.\n";
 			else
 				theNymAngel.SetCleanupTarget(*pNym); // CLEANUP  :-)
 		}
@@ -730,12 +727,11 @@ bool OTAgent::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
                                                             pstrAttachment); // pActualAcct=NULL here. (This call will load the acct up and update its inbox hash.)
 		}
 		else
-			OTLog::vError("%s: Error: pNym is NULL, or lClosingNumber <=0, "
-						 "or pNym->VerifyIssuedNum(strServerID, lClosingNumber)) failed to verify.\n",
-                         szFunc);
+			otErr << szFunc << ": Error: pNym is NULL, or lClosingNumber <=0, "
+						 "or pNym->VerifyIssuedNum(strServerID, lClosingNumber)) failed to verify.\n";
 	}
 	else
-		OTLog::vError("%s: No NymID available for this agent...\n", szFunc);
+		otErr << szFunc << ": No NymID available for this agent...\n";
 
 	return false;
 }
@@ -817,15 +813,13 @@ bool OTAgent::SignContract(OTContract & theInput)
 {
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::SignContract: Entities and roles are not yet supported. Agent: %s.\n",
-					  m_strName.Get());
+		otErr << "OTAgent::SignContract: Entities and roles are not yet supported. Agent: " << m_strName << ".\n";
 		return false;
 	}// todo: when adding entities, this will change.
-	// ---------------------------
+
 	if (NULL == m_pNym)
 	{
-		OTLog::vError("OTAgent::SignContract: Nym was NULL while trying to sign contract. Agent: %s.\n",
-					  m_strName.Get());
+		otErr << "OTAgent::SignContract: Nym was NULL while trying to sign contract. Agent: " << m_strName << ".\n";
 		return false;
 	}// todo: when adding entities, this will change.
 
@@ -838,16 +832,14 @@ bool OTAgent::VerifyIssuedNumber(const int64_t & lNumber, const OTString & strSe
 	// Todo: this function may change when entities / roles are added.
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::VerifyIssuedNumber:  Error: Entities and Roles are not yet supported. Agent: %s\n",
-					 m_strName.Get());
+		otErr << "OTAgent::VerifyIssuedNumber:  Error: Entities and Roles are not yet supported. Agent: " << m_strName << "\n";
 		return false;
 	}
-	// -----------------------------------------
+
 	if (NULL != m_pNym)
 		return m_pNym->VerifyIssuedNum(strServerID, lNumber);
 	else
-		OTLog::vError("OTAgent::VerifyIssuedNumber: Error: m_pNym was NULL. For agent: %s\n",
-					  m_strName.Get());
+		otErr << "OTAgent::VerifyIssuedNumber: Error: m_pNym was NULL. For agent: " << m_strName << "\n";
 
 	return false;
 }
@@ -858,16 +850,14 @@ bool OTAgent::VerifyTransactionNumber(const int64_t & lNumber, const OTString & 
 	// Todo: this function may change when entities / roles are added.
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::VerifyTransactionNumber:  Error: Entities and Roles are not yet supported. Agent: %s\n",
-					 m_strName.Get());
+		otErr << "OTAgent::VerifyTransactionNumber:  Error: Entities and Roles are not yet supported. Agent: " << m_strName << "\n";
 		return false;
 	}
-	// -----------------------------------------
+
 	if (NULL != m_pNym)
 		return m_pNym->VerifyTransactionNum(strServerID, lNumber);
 	else
-		OTLog::vError("OTAgent::VerifyTransactionNumber: Error: m_pNym was NULL. For agent: %s\n",
-					  m_strName.Get());
+		otErr << "OTAgent::VerifyTransactionNumber: Error: m_pNym was NULL. For agent: " << m_strName << "\n";
 
 	return false;
 }
@@ -881,16 +871,15 @@ bool OTAgent::HarvestTransactionNumber(const int64_t & lNumber,
                                        bool bSave/*=false*/, // Each agent's nym is used if pSignerNym is NULL, whereas the server
                                        OTPseudonym * pSignerNym/*=NULL*/) // uses this optional arg to substitute serverNym as signer.
 {
-    // -------------------------------------
+
 	// Todo: this function may change when entities / roles are added.
     //
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("%s:  Error: Entities and Roles are not yet supported. Agent: %s\n",
-					 __FUNCTION__, m_strName.Get());
+		otErr << __FUNCTION__ << ":  Error: Entities and Roles are not yet supported. Agent: " << m_strName << "\n";
 		return false;
 	}
-	// -----------------------------------------
+
 	if (NULL != m_pNym)
 	{
         // If a signer wasn't passed in (the server-side uses server nym to sign)
@@ -898,7 +887,7 @@ bool OTAgent::HarvestTransactionNumber(const int64_t & lNumber,
         //
         if (NULL == pSignerNym)
             pSignerNym = m_pNym;
-        // -----------------------------------------------
+
         const OTIdentifier theServerID(strServerID);
 
 		// This won't "add it back" unless we're SURE he had it in the first place...
@@ -922,12 +911,11 @@ bool OTAgent::HarvestTransactionNumber(const int64_t & lNumber,
 			return true;
         }
 		else
-			OTLog::vError("%s: Number (%lld) failed to verify for agent: %s (Thus didn't bother "
-                          "'adding it back'.)\n", __FUNCTION__, lNumber, m_strName.Get());
+			otErr << __FUNCTION__ << ": Number (" << lNumber << ") failed to verify for agent: " << m_strName <<
+			" (Thus didn't bother 'adding it back'.)\n";
 	}
 	else
-		OTLog::vError("%s: Error: m_pNym was NULL. For agent: %s\n",
-					  __FUNCTION__, m_strName.Get());
+		otErr << __FUNCTION__ << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
 
 	return false;
 }
@@ -941,11 +929,10 @@ bool OTAgent::RemoveTransactionNumber(const int64_t & lNumber, const OTString & 
 	// Todo: this function may change when entities / roles are added.
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::%s:  Error: Entities and Roles are not yet supported. Agent: %s\n",
-                      __FUNCTION__, m_strName.Get());
+		otErr << "OTAgent::" << __FUNCTION__ << ":  Error: Entities and Roles are not yet supported. Agent: " << m_strName << "\n";
 		return false;
 	}
-	// -----------------------------------------
+
 	if (NULL != m_pNym)
 	{
 		std::set<int64_t> & theIDSet = m_pNym->GetSetOpenCronItems(); // The transaction is now in play, so we are going to add it to this list.
@@ -959,13 +946,12 @@ bool OTAgent::RemoveTransactionNumber(const int64_t & lNumber, const OTString & 
                 m_pNym->SaveSignedNymfile(SIGNER_NYM);
         }
         else
-            OTLog::vError("OTAgent::%s: Error, should never happen. (I'd assume you aren't "
-                          "removing numbers without verifying first if they're there.)\n", __FUNCTION__);
+			otErr << "OTAgent::" << __FUNCTION__ << ": Error, should never happen. (I'd assume you aren't "
+                          "removing numbers without verifying first if they're there.)\n";
         return bSuccess;
 	}
 	else
-		OTLog::vError("OTAgent::%s: Error: m_pNym was NULL. For agent: %s\n",
-					  __FUNCTION__, m_strName.Get());
+		otErr << "OTAgent::" << __FUNCTION__ << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
 
 	return false;
 }
@@ -982,11 +968,10 @@ bool OTAgent::RemoveIssuedNumber(const int64_t & lNumber,
 	// Todo: this function may change when entities / roles are added.
 	if (!IsAnIndividual() || !DoesRepresentHimself())
 	{
-		OTLog::vError("OTAgent::%s:  Error: Entities and Roles are not yet supported. Agent: %s\n",
-                      __FUNCTION__, m_strName.Get());
+		otErr << "OTAgent::" << __FUNCTION__ << ":  Error: Entities and Roles are not yet supported. Agent: " << m_strName << "\n";
 		return false;
 	}
-	// -----------------------------------------
+
 	if (NULL != m_pNym)
     {
         std::set<int64_t> & theIDSet = m_pNym->GetSetOpenCronItems(); // The transaction is being removed from play, so we will remove it from this list.
@@ -996,7 +981,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t & lNumber,
         {
             if (NULL == pSignerNym)
                 pSignerNym = m_pNym;
-            // -----------------------------------
+
             // Since the Trans# is now out of play, the server removes it as an open cron item.
             //
             std::set<int64_t>::iterator theSetIT = theIDSet.find(lNumber);
@@ -1008,13 +993,12 @@ bool OTAgent::RemoveIssuedNumber(const int64_t & lNumber,
                 m_pNym->SaveSignedNymfile(*pSignerNym);
         }
         else
-            OTLog::vError("OTAgent::%s: Error, should never happen. (I'd assume you aren't "
-                          "removing issued numbers without verifying first if they're there.)\n", __FUNCTION__);
+			otErr << "OTAgent::" << __FUNCTION__ << ": Error, should never happen. (I'd assume you aren't "
+                          "removing issued numbers without verifying first if they're there.)\n";
         return bSuccess;
     }
 	else
-		OTLog::vError("OTAgent::%s: Error: m_pNym was NULL. For agent: %s\n",
-					  __FUNCTION__, m_strName.Get());
+		otErr << "OTAgent::" << __FUNCTION__ << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
 
 	return false;
 }
@@ -1029,23 +1013,23 @@ bool OTAgent::ReserveClosingTransNum(const OTString & strServerID, OTPartyAccoun
 	{
 		if (thePartyAcct.GetClosingTransNo() > 0)
 		{
-			OTLog::Output(0, "OTAgent::ReserveClosingTransNum: Failure: The account ALREADY has a closing transaction number "
-						  "set on it. Don't you want to save that first, before overwriting it?\n");
+			otOut << "OTAgent::ReserveClosingTransNum: Failure: The account ALREADY has a closing transaction number "
+						  "set on it. Don't you want to save that first, before overwriting it?\n";
 			return false;
 		}
-		// ----------------------------------------------
+
 		if (m_pNym->GetTransactionNumCount(strServerID) < 1) // Need a closing number...
 		{
-			OTLog::Output(0, "OTAgent::ReserveClosingTransNum: *** Failure *** Nym needs at least 1 transaction number available in order to do this.\n");
+			otOut << "OTAgent::ReserveClosingTransNum: *** Failure *** Nym needs at least 1 transaction number available in order to do this.\n";
 			return false;
 		}
-		// ----------------------------------------------
+
 		else if (false == m_pNym->GetNextTransactionNum(*m_pNym, strServerID, lTransactionNumber))
 		{
-			OTLog::Error("OTAgent::ReserveClosingTransNum: Error: Strangely, unable to get a transaction number, even though supposedly one was there.\n");
+			otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, unable to get a transaction number, even though supposedly one was there.\n";
 			return false;
 		}
-		// ------------------------------------------------
+
 		// BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE SAVED...
 		// Any errors below this point will require this call before returning:
 		// HarvestAllTransactionNumbers(strServerID);
@@ -1055,12 +1039,11 @@ bool OTAgent::ReserveClosingTransNum(const OTString & strServerID, OTPartyAccoun
 
 		return true;
 	}
-	// -------------------------------------------------
+
 	else // todo: when entities and roles are added... this function will change.
 	{
-		OTLog::vError("OTAgent::ReserveClosingTransNum: Either the Nym pointer isn't set properly, "
-					  "or you tried to use Entities when they haven't been coded yet. Agent: %s \n",
-					  m_strName.Get());
+		otErr << "OTAgent::ReserveClosingTransNum: Either the Nym pointer isn't set properly, "
+			"or you tried to use Entities when they haven't been coded yet. Agent: " << m_strName << " \n";
 	}
 
 	return false;
@@ -1076,28 +1059,28 @@ bool OTAgent::ReserveOpeningTransNum(const OTString & strServerID)
 	{
 		if (NULL == m_pForParty)
 		{
-			OTLog::Error("OTAgent::ReserveOpeningTransNum: Error: Party pointer was NULL.  SHOULD NEVER HAPPEN!!\n");
+			otErr << "OTAgent::ReserveOpeningTransNum: Error: Party pointer was NULL.  SHOULD NEVER HAPPEN!!\n";
 			return false;
 		}
 		if (m_pForParty->GetOpeningTransNo() > 0)
 		{
-			OTLog::Output(0, "OTAgent::ReserveOpeningTransNum: Failure: Party ALREADY had an opening transaction number "
-						  "set on it. Don't you want to save that first, before overwriting it?\n");
+			otOut << "OTAgent::ReserveOpeningTransNum: Failure: Party ALREADY had an opening transaction number "
+						  "set on it. Don't you want to save that first, before overwriting it?\n";
 			return false;
 		}
-		// ----------------------------------------------
+
 		if (m_pNym->GetTransactionNumCount(strServerID) < 1) // Need opening number...
 		{
-			OTLog::Output(0, "OTAgent::ReserveOpeningTransNum: *** Failure *** Nym needs at least 1 transaction number available in order to do this.\n");
+			otOut << "OTAgent::ReserveOpeningTransNum: *** Failure *** Nym needs at least 1 transaction number available in order to do this.\n";
 			return false;
 		}
-		// ----------------------------------------------
+
 		else if (false == m_pNym->GetNextTransactionNum(*m_pNym, strServerID, lTransactionNumber))
 		{
-			OTLog::Error("OTAgent::ReserveOpeningTransNum: Error: Strangely, unable to get a transaction number, even though supposedly one was there.\n");
+			otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, unable to get a transaction number, even though supposedly one was there.\n";
 			return false;
 		}
-		// ------------------------------------------------
+
 		// BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE SAVED...
 		// Any errors below this point will require this call before returning:
 		// HarvestAllTransactionNumbers(strServerID);
@@ -1107,12 +1090,11 @@ bool OTAgent::ReserveOpeningTransNum(const OTString & strServerID)
 
 		return true;
 	}
-	// -------------------------------------------------
+
 	else // todo: when entities and roles are added... this function will change.
 	{
-		OTLog::vError("OTAgent::ReserveOpeningTransNum: Either the Nym pointer isn't set properly, "
-					 "or you tried to use Entities when they haven't been coded yet. Agent: %s \n",
-					  m_strName.Get());
+		otErr << "OTAgent::ReserveOpeningTransNum: Either the Nym pointer isn't set properly, "
+			"or you tried to use Entities when they haven't been coded yet. Agent: " << m_strName << " \n";
 	}
 
 	return false;
