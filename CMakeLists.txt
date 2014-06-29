@@ -23,6 +23,7 @@ option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 option(RPM                 "Build a RPM" OFF)
 option(DEB                 "Build a DEB" OFF)
+option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
 
 if(BUILD_VERBOSE)
   set(CMAKE_VERBOSE_MAKEFILE true)
@@ -32,15 +33,16 @@ endif()
 #-----------------------------------------------------------------------------
 # Print system information
 
-message(STATUS "CMake version:   ${CMAKE_VERSION}")
-message(STATUS "System:          ${CMAKE_SYSTEM}")
-message(STATUS "Processor:       ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "CMake version:   	${CMAKE_VERSION}")
+message(STATUS "System:          	${CMAKE_SYSTEM}")
+message(STATUS "Processor:       	${CMAKE_SYSTEM_PROCESSOR}")
 
-message(STATUS "Verbose:         ${BUILD_VERBOSE}")
-message(STATUS "Testing:         ${BUILD_TESTS}")
-message(STATUS "Documentation:   ${BUILD_DOCUMENTATION}")
-message(STATUS "Build RPM:       ${RPM}")
-message(STATUS "Build DEB:       ${DEB}")
+message(STATUS "Verbose:         	${BUILD_VERBOSE}")
+message(STATUS "Testing:         	${BUILD_TESTS}")
+message(STATUS "Documentation:   	${BUILD_DOCUMENTATION}")
+message(STATUS "Build RPM:       	${RPM}")
+message(STATUS "Build DEB:       	${DEB}")
+message(STATUS "CL autocompletion: 	${AUTOCOMPLETION}")
 
 
 #-----------------------------------------------------------------------------
@@ -206,7 +208,7 @@ add_subdirectory(tests)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs
 	DESTINATION bin)
 
-IF (NOT WIN32)
+if (NOT WIN32)
   include(GNUInstallDirs)
 
   install(FILES
@@ -217,7 +219,7 @@ IF (NOT WIN32)
   ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.so
   ${CMAKE_CURRENT_BINARY_DIR}/lib/libgtest.so
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
-ENDIF()
+endif()
 
 install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
          DESTINATION include)
@@ -234,9 +236,16 @@ install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
          DESTINATION include/irrxml
 	 FILES_MATCHING PATTERN "*.hpp")
 
-# Packaging
-set(CPACK_GENERATOR "TGZ")
+# opentxs CL client autocompletion
+if(AUTOCOMPLETION)
+  install (FILES
+	 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bash_completion.d/opentxs-bash-completion.sh
+         DESTINATION /etc/bash_completion.d/)
+endif(AUTOCOMPLETION)
 
+
+###### Packaging
+set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_NAME "opentxs")
 set(CPACK_PACKAGE_RELEASE 1)
