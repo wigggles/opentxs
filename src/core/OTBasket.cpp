@@ -137,7 +137,7 @@
 #include "OTPseudonym.hpp"
 #include "OTLog.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 // This is a good implementation. Dots all the i's, so to speak.
@@ -184,9 +184,9 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym & theNym, const OTIdentifier & 
     {
         BasketItem * pRequestItem = this->At(i);
         OT_ASSERT(NULL != pRequestItem);
-        // --------------------------------
+
         const int64_t lClosingTransNo = pRequestItem->lClosingTransactionNo;
-        // --------------------------------
+
 
         // This function will only "add it back" if it was really there in the first place.
         // (Verifies it is on issued list first, before adding to available list.)
@@ -196,14 +196,14 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym & theNym, const OTIdentifier & 
         if (bClawedBack)
             bNeedToSave = true;
 //		else 
-//			OTLog::vError("OTBasket::HarvestClosingNumbers: Number (%lld) failed as issued. (Thus didn't bother 'adding it back'.)\n",
+//			otErr << "OTBasket::HarvestClosingNumbers: Number (%lld) failed as issued. (Thus didn't bother 'adding it back'.)\n",
 //						  lClosingTransNo);
     } // for
     // *************************************************************************
     // Then the BASKET currency itself...
     //
     const int64_t lClosingTransNo = this->GetClosingNum();
-    // --------------------------------
+
     
     // This function will only "add it back" if it was really there in the first place.
     // (Verifies it is on issued list first, before adding to available list.)
@@ -331,7 +331,7 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		m_nSubCount			= atoi(strSubCount.Get());
 		m_lMinimumTransfer	= atol(strMinTrans.Get()); 
 		
-		OTLog::Output(1, "Loading currency basket...\n");
+		otWarn << "Loading currency basket...\n";
 		
 		return 1;
 	}
@@ -353,9 +353,8 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strTemp.Exists())
             SetClosingNum(atol(	strTemp.Get()	));
 
-		OTLog::vOutput(2, "Basket Transfer multiple is %d. Direction is %s. Closing number is %lld. "
-                       "Target account is:\n%s\n", m_nTransferMultiple, strDirection.Get(),
-                       m_lClosingTransactionNo, strRequestAccountID.Get());
+		otInfo << "Basket Transfer multiple is " << m_nTransferMultiple << ". Direction is " << strDirection <<
+			". Closing number is " << m_lClosingTransactionNo << ". Target account is:\n" << strRequestAccountID << "\n";
 		
 		return 1;
 	}
@@ -382,7 +381,7 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		
 		m_dequeItems.push_back(pItem);
 
-		OTLog::Output(2, "Loaded basket item.\n");
+		otInfo << "Loaded basket item.\n";
 		
 		return 1;
 	}
@@ -416,7 +415,7 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
                                   m_lClosingTransactionNo,
                                   m_bExchangingIn ? "in" : "out");
 	}
-	// ------------------------------------------------------------
+
 	for (int32_t i = 0; i < Count(); i++)
 	{
 		BasketItem * pItem = m_dequeItems[i];
@@ -524,7 +523,7 @@ void OTBasket::Release_Basket()
 void OTBasket::Release()
 {
     Release_Basket();
-    // ---------------------
+
     ot_super::Release();
 }
 
