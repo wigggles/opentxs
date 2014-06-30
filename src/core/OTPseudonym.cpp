@@ -147,7 +147,7 @@
 #include "OTSubkey.hpp"
 #include "OTSymmetricKey.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -162,9 +162,9 @@ OTPseudonym * OTPseudonym::LoadPublicNym(const OTIdentifier & NYM_ID,
 										 const char * szFuncName/*=NULL*/)
 {
 	const char * szFunc = (NULL != szFuncName) ? szFuncName : "OTPseudonym::LoadPublicNym";
-	// ------------------------------------------
+
 	const OTString	strNymID(NYM_ID);
-	// ------------------------------------------
+
 	// If name is empty, construct one way,
 	// else construct a different way.
 	//
@@ -172,26 +172,26 @@ OTPseudonym * OTPseudonym::LoadPublicNym(const OTIdentifier & NYM_ID,
 		(new OTPseudonym(NYM_ID)):
 		(new OTPseudonym(*pstrName, strNymID, strNymID));
 	OT_ASSERT_MSG(NULL != pNym, "OTPseudonym::LoadPublicNym: Error allocating memory.\n");
-	// ---------------------------
+
     bool bLoadedKey = pNym->LoadPublicKey(); // Deprecated. Only used for old-style Nyms. Eventually, remove this. Currently LoadPublicKey calls LoadCredentials, which is what we should be calling, once the nym's own keypair is eliminated.
-	// ---------------------------
+
 	// First load the public key
 	if (false == bLoadedKey)
-		OTLog::vOutput(1, "%s: %s: Unable to find nym: %s\n", __FUNCTION__, szFunc, strNymID.Get());
+		otWarn << __FUNCTION__ << ": " << szFunc << ": Unable to find nym: " << strNymID << "\n";
 	else if (false == pNym->VerifyPseudonym())
-		OTLog::vError("%s: %s: Security: Failure verifying Nym: %s\n", __FUNCTION__, szFunc, strNymID.Get());
+		otErr << __FUNCTION__ << ": " << szFunc << ": Security: Failure verifying Nym: " << strNymID << "\n";
 	else if (false == pNym->LoadSignedNymfile(*pNym))
 	{
-		OTLog::vOutput(4, "OTPseudonym::LoadPublicNym %s: Usually normal: There's no Nymfile (%s), though there IS a public "
+		otLog4 << "OTPseudonym::LoadPublicNym " << szFunc << ": Usually normal: There's no Nymfile (" << strNymID << "), though there IS a public "
 					   "key, which checks out. It's probably just someone else's Nym. (So I'm still returning this Nym to "
-					   "the caller so he can still use the public key.)\n", szFunc, strNymID.Get());
+					   "the caller so he can still use the public key.)\n";
 		return pNym;
 	}
 	else // success
 		return pNym;
-	// -------------------
+
 	delete pNym; pNym = NULL;
-	// -------------------
+
 	return NULL;
 }
 
@@ -258,9 +258,9 @@ OTPseudonym * OTPseudonym::LoadPrivateNym(const OTIdentifier & NYM_ID,
 	const char * szFunc = (NULL != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
 
 	if (NYM_ID.IsEmpty()) return NULL;
-	// ------------------------------------------
+
 	const OTString	strNymID(NYM_ID);
-	// ------------------------------------------
+
 	// If name is empty, construct one way,
 	// else construct a different way.
 	//
@@ -268,14 +268,14 @@ OTPseudonym * OTPseudonym::LoadPrivateNym(const OTIdentifier & NYM_ID,
 		(new OTPseudonym(NYM_ID)):
 		(new OTPseudonym(*pstrName, strNymID, strNymID));
 	OT_ASSERT_MSG(NULL != pNym, "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
-	// ---------------------------------
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (NULL == pPWData)
         pPWData = &thePWData;
-    // ----------------------------------
+
     bool bLoadedKey = pNym->Loadx509CertAndPrivateKey(bChecking, pPWData, pImportPassword); // old style. (Deprecated.) Eventually remove this.
     //***  Right now Loadx509CertAndPrivateKey calls LoadCredentials at its top, which is what we should be calling here. But that function handles old-style Nyms too, so we keep it around until we lose those.  // <====================
-    // ---------------------------------
+
 	// Error loading x509CertAndPrivateKey.
 	if (false == bLoadedKey)
 		OTLog::vOutput(bChecking ? 1 : 0,"%s: %s: (%s: is %s).  Unable to load credentials, "
@@ -284,19 +284,17 @@ OTPseudonym * OTPseudonym::LoadPrivateNym(const OTIdentifier & NYM_ID,
 	// success loading x509CertAndPrivateKey,
 	// failure verifying pseudonym public key.
 	else if (false == pNym->VerifyPseudonym())                              // <====================
-		OTLog::vError("%s %s: Failure verifying Nym public key: %s\n",
-                      __FUNCTION__, szFunc, strNymID.Get());
+		otErr << __FUNCTION__ << " " << szFunc << ": Failure verifying Nym public key: " << strNymID << "\n";
 	// success verifying pseudonym public key.
 	// failure loading signed nymfile.
 	else if (false == pNym->LoadSignedNymfile(*pNym)) // Unlike with public key, with private key we DO expect nymfile to be here.
-		OTLog::vError("%s %s: Failure calling LoadSignedNymfile: %s\n",
-                      __FUNCTION__, szFunc, strNymID.Get());
+		otErr << __FUNCTION__ << " " << szFunc << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
 	else // ultimate success.
 		return pNym;
-	// ---------------------------------
+
 	delete pNym;
 	pNym = NULL;
-	// ----------
+
 	return NULL;
 }
 
@@ -343,12 +341,12 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
     const
     OTString * pstrSourceToUse  = NULL;
     OTString   strTempSource; // Used sometimes.
-    // -----------------------------------------------------------------------
+
     const mapOfStrings * pmapActualPrivate = NULL;
     const mapOfStrings * pmapActualPublic  = NULL;
-    // -----------------------------------------------------------------------
+
     mapOfStrings   mapPrivate, mapPublic; // Used sometimes.
-    // -----------------------------------------------------------------------
+
     // If keys are passed in, then those are the keys we're meant to use for the credential.
     //
     // Note: if the Nym is self-signed, then his "source" is his public key, which can thus
@@ -363,17 +361,17 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
     // we generate the keys.
     //
     OT_ASSERT(NULL != m_pkeypair);
-    // ----------------------------------------------
+
     if (NULL == pmapPrivate) // If no keys were passed in...
     {
         // That means to use (or generate) my existing keypair as the signing key,
         // and generate the other two keypairs also.
-        // ----------------------------------------------
+
         const size_t sizeMapPublic  = mapPublic .size();
         const size_t sizeMapPrivate = mapPrivate.size();
-        // ----------------------------------------------
+
         OTString strReason, strPublicError, strPrivateError;
-        // ----------------------------------------------
+
         // Nym already has a keypair. (Use it as the signing key.)
         //
         // NOTE: We only want to do this if the Nym doesn't already have any credentials.
@@ -392,7 +390,7 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
         //
         OTIdentifier theSelfSignedNymID;
         m_pkeypair->CalculateID(theSelfSignedNymID);
-        // ----------------------------------------------
+
         if ((!(m_mapCredentials.size() > 0)      ||
             this->CompareID(theSelfSignedNymID)) &&  // If there AREN'T any credentials yet, or if the Nym is self-signed,
             (this->HasPublicKey () ||                // and if we have a keypair already, use it
@@ -402,39 +400,39 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
             strPublicError .Set("In %s, line %d: Failed using existing public key as public signing key in OTPseudonym::%s.\n");
             strPrivateError.Set("In %s, line %d: Failed using existing private key as private signing key in OTPseudonym::%s.\n");
         }
-        // ----------------------------------------------
+
         else // GENERATE A NEW KEYPAIR.
         {
             const bool bCreateKeySigning = m_pkeypair->MakeNewKeypair(nBits);
             OT_ASSERT (bCreateKeySigning);
-            // ----------------------------------------------
+
             m_pkeypair->SaveAndReloadBothKeysFromTempFile();  // Keys won't be right until this happens. (Necessary evil until better fix.) Todo: eliminate need to do this.
-            // ----------------------------------------------
+
             strReason      .Set("Generating signing key for new master credential.");
             strPublicError .Set("In %s, line %d: Failed creating public signing key in OTPseudonym::%s.\n");
             strPrivateError.Set("In %s, line %d: Failed creating private signing key in OTPseudonym::%s.\n");
         }
-        // ------------------------------------------
+
         // SIGNING KEY
         //
         OTString strPublicKey, strPrivateCert;
-        // ------------------------------------------
+
         const bool b1 = m_pkeypair->GetPublicKey(strPublicKey, false); // bEscaped=true by default.
         const bool b2 = m_pkeypair->SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
-        // ----------------------------------------------
+
         if (b1 && b2)
         {
             mapPublic. insert(std::pair<std::string, std::string>("S", strPublicKey.Get()));
             mapPrivate.insert(std::pair<std::string, std::string>("S", strPrivateCert.Get()));
         }
-        // ------------------------------------------
+
         if (!b1 || !(mapPublic.size() > sizeMapPublic))
         {
-            OTLog::vError(strPublicError.Get(),
+           OTLog::vError(strPublicError.Get(),
                           __FILE__, __LINE__, __FUNCTION__);
             return false;
         }
-        // ------------------------------------------
+
         if (!b2 || !(mapPrivate.size() > sizeMapPrivate))
         {
             OTLog::vError(strPrivateError.Get(),
@@ -451,60 +449,58 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
         // Use the public/private data for all 3 keypairs onto mapPublic and
         // mapPrivate.
         //
-        // ----------------------------------------------
+
         OTKeypair keyAuth, keyEncr;  // (The signing keypair already exists by this point. These are the other two we need.)
-        // ----------------------------------------------
+
         const bool bCreateKeyAuth = keyAuth.MakeNewKeypair();
         const bool bCreateKeyEncr = keyEncr.MakeNewKeypair();
-        // ----------------------------------------------
+
         OT_ASSERT(bCreateKeyAuth && bCreateKeyEncr);
-        // ----------------------------------------------
+
         keyAuth.SaveAndReloadBothKeysFromTempFile();  // Keys won't be right until this happens.
         keyEncr.SaveAndReloadBothKeysFromTempFile();  // (Necessary evil until better fix.) Todo: eliminate need to do this.
-        // ---------------------------------------------------------------------------------
+
         strPublicKey.  Release();
         strPrivateCert.Release();
-        // ----------------------------------------------
+
         const bool b3 = keyAuth.GetPublicKey(strPublicKey, false); // bEscaped=true by default.
         const bool b4 = keyAuth.SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
-        // ------------------------------------------
+
         if (b3 && b4)
         {
             mapPublic. insert(std::pair<std::string, std::string>("A", strPublicKey.Get()));
             mapPrivate.insert(std::pair<std::string, std::string>("A", strPrivateCert.Get()));
         }
-        // ---------------------------------------------------------------------------------
+
         strPublicKey.  Release();
         strPrivateCert.Release();
-        // ----------------------------------------------
+
         const bool b5 = keyEncr.GetPublicKey(strPublicKey, false); // bEscaped=true by default.
         const bool b6 = keyEncr.SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
-        // ------------------------------------------
+
         if (b5 && b6)
         {
             mapPublic. insert(std::pair<std::string, std::string>("E", strPublicKey.Get()));
             mapPrivate.insert(std::pair<std::string, std::string>("E", strPrivateCert.Get()));
         }
-        // ------------------------------------------
+
         if (!(mapPublic.size() >= (sizeMapPublic + 3)))
         {
-            OTLog::vError("In %s, line %d: Failed adding (auth or encr) public keys in OTPseudonym::%s.\n",
-                          __FILE__, __LINE__, __FUNCTION__);
+			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed adding (auth or encr) public keys in OTPseudonym::" << __FUNCTION__ << ".\n";
             return false;
         }
-        // --------------------------------
+
         if (!(mapPrivate.size() >= (sizeMapPrivate + 3)))
         {
-            OTLog::vError("In %s, line %d: Failed adding (auth or encr) private keys in OTPseudonym::%s.\n",
-                          __FILE__, __LINE__, __FUNCTION__);
+			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed adding (auth or encr) private keys in OTPseudonym::" << __FUNCTION__ << ".\n";
             return false;
         }
-        // --------------------------------
+
         pmapActualPrivate = &mapPrivate;
         pmapActualPublic  = &mapPublic;
-        // --------------------------------
+
     } // A private key wasn't passed in.
-    // ----------------------------------------------
+
     // A keypair WAS passed in...
     //
     else
@@ -544,14 +540,13 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
 
         if (!bChangeNymID && this->m_strSourceForNymID.Exists() && !pstrSourceForNymID->Compare(this->m_strSourceForNymID))
         {
-            OTLog::vError("In %s, line %d, OTPseudonym::%s: The Nym already has a source, but a different "
+			otErr << "In " << __FILE__ << ", line " << __LINE__ << ", OTPseudonym::" << __FUNCTION__ << ": The Nym already has a source, but a different "
                           "source was passed in (they should be identical, since you can't change a Nym's "
-                          "source without changing his ID.)\n",
-                          __FILE__, __LINE__, __FUNCTION__);
+                          "source without changing his ID.)\n";
             return false;
         }
     }
-    // ----------------------------
+
     else // No source was passed in. That means use the existing one if it exists,
     {    // or otherwise create it based on the key (self-signed Nym.)
          //
@@ -563,13 +558,13 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
             m_pkeypair->GetPublicKey(strTempSource); // bEscaped=true by default. Todo: someday change this to false. (It will invalidate existing NymIDs.)
         else
         {
-            OTLog::vError("In %s, line %d, OTPseudonym::%s: Error: The Nym had no ID source, nor were we able "
-                          "to derive one from his (non-existent) public key.\n", __FILE__, __LINE__, __FUNCTION__);
+			otErr << "In " << __FILE__ << ", line " << __LINE__ << ", OTPseudonym::" << __FUNCTION__ << ": Error: The Nym had no ID source, nor were we able "
+                          "to derive one from his (non-existent) public key.\n";
             return false;
         }
-        // ----------------------------------------------
+
         pstrSourceToUse = &strTempSource;
-        // ----------------------------------------------
+
         // Hash the purported source, and see if it matches the existing NymID.
         //
         OTIdentifier theTempID;
@@ -586,23 +581,23 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
 
             const OTString strKeypairNymID(theKeypairNymID), strCalculatedNymID(theTempID);
 
-            OTLog::vOutput(0, "%s: No NymID Source was passed in, so I tried to use the existing source (or if that was missing, the existing public key) for "
+			otOut << __FUNCTION__ << ": No NymID Source was passed in, so I tried to use the existing source (or if that was missing, the existing public key) for "
                            "the Nym, but hashing that failed to produce the Nym's ID. Meaning the Nym must have "
                            "some other source already, which needs to be passed into this function, for it to work on this Nym.\n"
                            "NOTE: Pass 'bChangeNymID' into this function as true, if you want to override this behavior.\n"
-                           "NYM ID: %s \n KEY PAIR CALCULATED ID: %s \n CONTENTS CALCULATED ID: %s \n NYM ID SOURCE: %s\n",
-                           __FUNCTION__, strNymID.Get(), strKeypairNymID.Get(), strCalculatedNymID.Get(), pstrSourceToUse->Get());
+						   "NYM ID: " << strNymID << " \n KEY PAIR CALCULATED ID: " << strKeypairNymID << " \n CONTENTS CALCULATED ID: "
+						   << strCalculatedNymID << " \n NYM ID SOURCE: " << pstrSourceToUse->Get() << "\n";
             return false;
         }
     }
-    // ----------------------------------------------------------------------------------------------
+
     // By this point, pstrSourceToUse is good to go, and calculates to the correct ID for this Nym.
     // Also by this point, the Nym's source and ID are both definitely set and correct (before this function is even called.)
     // Also by this point, pmapActualPrivate and pmapActualPublic are each set with their 3 keys.
-    // **************************************************************************************************
-    //
+
+
     OT_ASSERT(NULL != pstrSourceToUse);
-    // -------------------------------------------------
+
     // See if there are any other master credentials already. If there are, make
     // sure they have the same source string calculated above.
     //
@@ -612,39 +607,39 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
         {
             OTCredential * pCredential = (*it).second;
             OT_ASSERT(NULL != pCredential);
-            // -----------------------------
+
             if (false == pstrSourceToUse->Compare(pCredential->GetSourceForNymID()))
             {
-                OTLog::vOutput(0, "%s: Attempt to add new master credential failed to "
-                               "match the NymID Source on an existing master credential.\n", __FUNCTION__);
+				otOut << __FUNCTION__ << ": Attempt to add new master credential failed to "
+                               "match the NymID Source on an existing master credential.\n";
                 return false;
             }
         } // FOR_EACH
-        // --------------------------------------------------
+
         // bChangeNymID only works if we are adding the FIRST credential. You can't be changing
         // a Nym's ID if he already has credentials, since we only made that possible in the first
         // place to make it possible to add the first credential.
         //
         if (bChangeNymID)
         {
-            OTLog::vError("%s: Failure: cannot change NymID for Nym who "
-                          "already has credentials.\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Failure: cannot change NymID for Nym who "
+                          "already has credentials.\n";
             return false;
         }
     }
-    // --------------------------------------------------
+
     // Can't change the NymID if it's already registered at a server somewhere.
     //
     if (bChangeNymID && (m_mapRequestNum.size() > 0))
     {
-        OTLog::vError("%s: Failure: cannot change NymID for Nym who already is registered at "
-                      "transaction servers.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failure: cannot change NymID for Nym who already is registered at "
+                      "transaction servers.\n";
         return false;
     }
-    // --------------------------------------------------
+
     OT_ASSERT(NULL != pmapActualPrivate);
     OT_ASSERT(NULL != pmapActualPublic);
-    // --------------------------------------------------
+
     // Create a new master credential, and set its source string (which also sets
     // the NymID).
     //
@@ -652,18 +647,18 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
 
     if (NULL == pMaster) // Below this block, pMaster must be cleaned up.
     {
-        OTLog::vError("%s: Failed trying to create a new master credential, while calling "
-                      "OTCredential::CreateMaster.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to create a new master credential, while calling "
+                      "OTCredential::CreateMaster.\n";
         return false;
     }
-    // --------------------------------------------------
+
     // NOTE: The only way to verify a Master Credential is to go to its source (for its NymID)
     // and see if the Master Credential ID is posted at that source. And since the Master Credential
     // ID cannot possibly be known before the Master Credential is created and hashed, there is no
     // way that Credential's ID could have already been posted at that source. Therefore it's
     // impossible for the Credential to verify against the source at this time. (Although it must
     // verify by the time the credential is registered at any OT server.)
-    // ----------------------------------------------------
+
     // We can still verify the credential internally, however. (Everything but the source.)
     //
     OTString strNymID;
@@ -674,28 +669,27 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
         OTIdentifier theTempID;
         theTempID.CalculateDigest(*pstrSourceToUse);
         const OTString strTempID(theTempID);
-        OTLog::vError("%s: Failed trying to verify the new master credential.\n"
-                      "Nym ID: %s\nHash of Source: %s\n Source: %s\n", __FUNCTION__,
-                      strNymID.Get(), strTempID.Get(), pstrSourceToUse->Get());
+		otErr << __FUNCTION__ << ": Failed trying to verify the new master credential.\n"
+			"Nym ID: " << strNymID << "\nHash of Source: " << strTempID <<
+			"\n Source: " << pstrSourceToUse->Get() << "\n";
         delete pMaster;
         pMaster = NULL;
         return false;
     }
-    // ----------------------------------------------------
+
     // OTFolders::Credential() is for private credentials (I've created.)
     // OTFolders::Pubcred() is for public credentials (I've downloaded.)
     // ...(FYI.)
     //
     if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(), pMaster->GetMasterCredID().Get()))
     {
-        OTLog::vError("%s: Failure: Apparently there is already a credential stored "
-                      "for this ID (even though this is a new master credential, just generated.)\n",
-                      __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failure: Apparently there is already a credential stored "
+                      "for this ID (even though this is a new master credential, just generated.)\n";
         delete pMaster;
         pMaster = NULL;
         return false;
     }
-    // ----------------------------------------------------
+
     // It's already signed (inside CreateMaster) but it's still not added to the Nym,
     // or saved to local storage. So let's do that next...
     //
@@ -706,15 +700,15 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
 
     if (!bSaved)
     {
-        OTLog::vError("%s: Failed trying to save new master credential to local storage.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to save new master credential to local storage.\n";
         delete pMaster;
         pMaster = NULL;
         return false;
     }
-    // --------------------------------------------------
+
     m_mapCredentials.insert(std::pair<std::string, OTCredential *>(pMaster->GetMasterCredID().Get(), pMaster));
     strOutputMasterCredID = pMaster->GetMasterCredID();
-    // --------------------------------------------------
+
     this->m_strSourceForNymID = *pstrSourceToUse; // This may be superfluous. (Or may just go inside the below block.)
 
     if (bChangeNymID)
@@ -726,9 +720,9 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
     // (currently the public key is just assumed to be the source.)
     // When that time comes, we'll need to set the altLocation here as
     // well, since it will be optional whenever there is a source involved.
-    // --------------------------------------------------
+
     this->SaveCredentialList();
-    // --------------------------------------------------
+
     return true;
 }
 
@@ -740,38 +734,38 @@ bool OTPseudonym::AddNewSubkey(const OTIdentifier & idMasterCredential,
                                OTString       * pstrNewID/*=NULL*/)
 {
     const OTString strMasterCredID(idMasterCredential);
-    // --------------------------------------------------
+
     mapOfCredentials::iterator it = m_mapCredentials.find(strMasterCredID.Get());
 
     if (it == m_mapCredentials.end()) // Didn't find it.
     {
-        OTLog::vOutput(0, "%s: Failed trying to add key credential to nonexistent master credential.\n", __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failed trying to add key credential to nonexistent master credential.\n";
         return false;
     }
-    // --------------------------------------------------
+
     OTCredential * pMaster = (*it).second;
     OT_ASSERT(NULL != pMaster);
-    // --------------------------------------------------
+
     OTSubkey * pSubkey = NULL;
     const bool bAdded = pMaster->AddNewSubkey(nBits, pmapPrivate, pPWData, &pSubkey);
-    // ------------------------------
+
     if (false == bAdded)
     {
-        OTLog::vOutput(0, "%s: Failed trying to add key credential to master credential.\n", __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failed trying to add key credential to master credential.\n";
         return false;
     }
     OT_ASSERT(NULL != pSubkey);
-    // ----------------------------------------------------
+
     if (false == pSubkey->VerifyInternally())
     {
 
-        OTLog::Error("NYM::ADD_NEW_SUBKEY:   2.5 \n");
+        otErr << "NYM::ADD_NEW_SUBKEY:   2.5 \n";
 
-        OTLog::vError("%s: Failed trying to verify the new key credential.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to verify the new key credential.\n";
         // todo: remove it again, since it failed to verify.
         return false;
     }
-    // ----------------------------------------------------
+
     // It's already signed (inside AddNewSubkey) but it's still not added to the Nym,
     // or saved to local storage. So let's do that next...
     //
@@ -784,24 +778,23 @@ bool OTPseudonym::AddNewSubkey(const OTIdentifier & idMasterCredential,
     //
     if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(), strSubkeyID.Get()))
     {
-        OTLog::vError("%s: Failure: Apparently there is already a credential stored "
-                      "for this ID (even though this is a new credential, just generated.)\n",
-                      __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failure: Apparently there is already a credential stored "
+                      "for this ID (even though this is a new credential, just generated.)\n";
         return false;
     }
-    // ----------------------------------------------------
+
     OTString strFoldername, strFilename;
     strFoldername.Format("%s%s%s", OTFolders::Credential().Get(), OTLog::PathSeparator(), strNymID.Get());
     strFilename.  Format("%s",     strSubkeyID.Get());
     const bool bSaved = pSubkey->SaveContract(strFoldername.Get(), strFilename.Get());
     if (!bSaved)
     {
-        OTLog::vError("%s: Failed trying to save new key credential to local storage.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to save new key credential to local storage.\n";
         return false;
     }
-    // --------------------------------------------------
+
     this->SaveCredentialList();
-    // --------------------------------------------------
+
     if (NULL != pstrNewID)
         *pstrNewID = strSubkeyID;
 
@@ -815,35 +808,35 @@ bool OTPseudonym::AddNewSubcredential(const OTIdentifier & idMasterCredential,
                                       OTPasswordData * pPWData/*=NULL*/)
 {
     const OTString strMasterCredID(idMasterCredential);
-    // --------------------------------------------------
+
     mapOfCredentials::iterator it = m_mapCredentials.find(strMasterCredID.Get());
 
     if (it == m_mapCredentials.end()) // Didn't find it.
     {
-        OTLog::vOutput(0, "%s: Failed trying to add subcredential to nonexistent master credential.\n", __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failed trying to add subcredential to nonexistent master credential.\n";
         return false;
     }
-    // --------------------------------------------------
+
     OTCredential * pMaster = (*it).second;
     OT_ASSERT(NULL != pMaster);
-    // --------------------------------------------------
+
     OTSubcredential * pSubcredential = NULL;
     const bool bAdded = pMaster->AddNewSubcredential(*pmapPrivate, *pmapPublic, pPWData, &pSubcredential);
-    // ------------------------------
+
     if (false == bAdded)
     {
-        OTLog::vOutput(0, "%s: Failed trying to add subcredential to master credential.\n", __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failed trying to add subcredential to master credential.\n";
         return false;
     }
     OT_ASSERT(NULL != pSubcredential);
-    // ----------------------------------------------------
+
     if (false == pSubcredential->VerifyInternally())
     {
-        OTLog::vError("%s: Failed trying to verify the new subcredential.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to verify the new subcredential.\n";
         // todo: remove it again, since it failed to verify.
         return false;
     }
-    // ----------------------------------------------------
+
     // It's already signed (inside AddNewSubcredential) but it's still not added to the Nym,
     // or saved to local storage. So let's do that next...
     //
@@ -853,24 +846,23 @@ bool OTPseudonym::AddNewSubcredential(const OTIdentifier & idMasterCredential,
 
     if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(), strSubcredentialID.Get()))
     {
-        OTLog::vError("%s: Failure: Apparently there is already a credential stored "
-                      "for this ID (even though this is a new credential, just generated.)\n",
-                      __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failure: Apparently there is already a credential stored "
+                      "for this ID (even though this is a new credential, just generated.)\n";
         return false;
     }
-    // ----------------------------------------------------
+
     OTString strFoldername, strFilename;
     strFoldername.Format("%s%s%s", OTFolders::Credential().Get(), OTLog::PathSeparator(), strNymID.Get());
     strFilename.  Format("%s",     strSubcredentialID.Get());
     const bool bSaved = pSubcredential->SaveContract(strFoldername.Get(), strFilename.Get());
     if (!bSaved)
     {
-        OTLog::vError("%s: Failed trying to save new subcredential to local storage.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed trying to save new subcredential to local storage.\n";
         return false;
     }
-    // --------------------------------------------------
+
     this->SaveCredentialList();
-    // --------------------------------------------------
+
     return true;
 }
 
@@ -916,7 +908,7 @@ bool OTPseudonym::RemoveMailByIndex(const int32_t nIndex) // if false, mail inde
 		(nIndex < 0)		|| (uIndex >= m_dequeMail.size()))
 		return false;
 
-	// -----------------------
+
 
 	OTMessage * pMessage = m_dequeMail.at(nIndex);
 
@@ -978,7 +970,7 @@ bool OTPseudonym::RemoveOutmailByIndex(const int32_t nIndex) // if false, outmai
 		(nIndex < 0)		|| (uIndex >= m_dequeOutmail.size()))
 		return false;
 
-	// -----------------------
+
 
 	OTMessage * pMessage = m_dequeOutmail.at(nIndex);
 
@@ -1049,7 +1041,7 @@ int32_t OTPseudonym::GetOutpaymentsIndexByTransNum(const int64_t lTransNum)
                 strPayment.Exists())
             {
                 OTPayment thePayment(strPayment);
-                // ---------------------------------------------
+
                 // Let's see if it's the cheque we're looking for...
                 //
                 if (thePayment.IsValid())
@@ -1065,7 +1057,7 @@ int32_t OTPseudonym::GetOutpaymentsIndexByTransNum(const int64_t lTransNum)
             }
         }
     } // for
-    // --------------------------------------------------------
+
     return (-1);
 }
 
@@ -1078,11 +1070,11 @@ bool OTPseudonym::RemoveOutpaymentsByIndex(const int32_t nIndex, bool bDeleteIt/
 	// Out of bounds.
 	if (m_dequeOutpayments.empty() || (nIndex < 0) || (uIndex >= m_dequeOutpayments.size()))
     {
-        OTLog::vError("%s: Error: Index out of bounds: signed: %d unsigned: %u (size is %d).\n",
-                      __FUNCTION__, nIndex, uIndex, m_dequeOutpayments.size());
+		otErr << __FUNCTION__ << ": Error: Index out of bounds: signed: " << nIndex << " unsigned: " << uIndex <<
+			" (size is " << m_dequeOutpayments.size() << ").\n";
 		return false;
     }
-	// -----------------------
+
 	OTMessage * pMessage = m_dequeOutpayments.at(nIndex);
 	OT_ASSERT(NULL != pMessage);
 
@@ -1118,11 +1110,10 @@ OTItem * OTPseudonym::GenerateTransactionStatement(const OTTransaction & theOwne
 {
 	if ( (theOwner.GetUserID() != m_nymID) )
 	{
-		OTLog::vError("OTPseudonym::%s: Transaction has wrong owner (expected to match nym).\n",
-                      __FUNCTION__);
+		otErr << "OTPseudonym::" << __FUNCTION__ << ": Transaction has wrong owner (expected to match nym).\n";
 		return NULL;
 	}
-	// ---------------------------------------------------------
+
 	// theOwner is the depositPaymentPlan, activateSmartContract, or marketOffer that triggered the need for this transaction statement.
 	// since it uses up a transaction number, I will be sure to remove that one from my list before signing the list.
 	OTItem * pBalanceItem = OTItem::CreateItemFromTransaction(theOwner, OTItem::transactionStatement); // <=== transactionStatement type, with user ID, server ID, transaction ID.
@@ -1131,14 +1122,14 @@ OTItem * OTPseudonym::GenerateTransactionStatement(const OTTransaction & theOwne
 	if (NULL == pBalanceItem)
 		return NULL;
 
-	// --------------------------------------------------------
+
 	// COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM
 
 	OTPseudonym theMessageNym;
 
 	theMessageNym.HarvestIssuedNumbers(theOwner.GetPurportedServerID(),
                                        *this /*unused in this case, not saving to disk*/, *this, false); // bSave = false;
-	// ---------------------------------------------------------
+
     switch (theOwner.GetType())
     {
         case OTTransaction::cancelCronItem:
@@ -1158,7 +1149,7 @@ OTItem * OTPseudonym::GenerateTransactionStatement(const OTTransaction & theOwne
         default:
             break;
     }
-	// ---------------------------------------------------------
+
 	// What about cases where no number is being used? (Such as processNymbox)
 	// Perhaps then if this function is even called, it's with a 0-number transaction, in which
 	// case the above Removes probably won't hurt anything.  Todo.
@@ -1166,7 +1157,7 @@ OTItem * OTPseudonym::GenerateTransactionStatement(const OTTransaction & theOwne
 	OTString	strMessageNym(theMessageNym); // Okay now we have the transaction numbers in this MessageNym string.
 
 	pBalanceItem->SetAttachment(strMessageNym);	// <======== This is where the server will read the transaction numbers from (A nym in item.m_ascAttachment)
-	// ---------------------------------------------------------
+
 	pBalanceItem->SignContract(*this); // <=== Sign, save, and return. OTTransactionType needs to weasel in a "date signed" variable.
 	pBalanceItem->SaveContract();
 
@@ -1183,10 +1174,10 @@ bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString & strOutput, const 
 bool OTPseudonym::Savex509CertAndPrivateKey(bool  bCreateFile/*=true*/,
                                             const OTString * pstrReason/*=NULL*/)
 {
-    // ---------------------------------------
+
     OTString    strOutput;
     const bool  bSuccess = m_pkeypair->SaveAndReloadBothKeysFromTempFile(&strOutput, pstrReason);
-	// ---------------------------------------
+
     //
 	// At this point, the Nym's private key is set, and its public key is also set.
 	// So the object in memory is good to go.
@@ -1195,21 +1186,20 @@ bool OTPseudonym::Savex509CertAndPrivateKey(bool  bCreateFile/*=true*/,
 	//
 	if (bSuccess)
 	{
-		// ------------------------------------------
+
         // NYM ID based on SOURCE
         //
         if (this->m_strSourceForNymID.Exists())
             m_nymID.CalculateDigest(this->m_strSourceForNymID);
-		// ------------------------------------------
+
         // (or) NYM ID based on PUBLIC SIGNING KEY
         //
         else if (false == this->SetIdentifierByPubkey())
         {
-			OTLog::vError("%s: Error calculating Nym ID (as a digest of Nym's public (signing) key.)\n",
-                          __FUNCTION__);
+			otErr << __FUNCTION__ << ": Error calculating Nym ID (as a digest of Nym's public (signing) key.)\n";
 			return false;
         }
-		// ------------------------------------------
+
         // If we set the ID based on the public key (above block),
         // then we should set the source to contain that public key.
         else
@@ -1219,16 +1209,15 @@ bool OTPseudonym::Savex509CertAndPrivateKey(bool  bCreateFile/*=true*/,
 
             this->SetNymIDSource(strTempSource);
         }
-        // ---------------------------------------
+
 		const OTString strFilenameByID(m_nymID); // FILENAME based on NYM ID
-		// ---------------------------------------
+
         if (bCreateFile &&
             (false == OTDB::StorePlainString(strOutput.Get(),
                                              OTFolders::Cert().Get(),
                                              strFilenameByID.Get()))) // Store as actual Nym ID this time instead of temp.nym
 		{
-			OTLog::vError("%s: Failure storing cert for new nym: %s\n",
-                          __FUNCTION__, strFilenameByID.Get());
+			otErr << __FUNCTION__ << ": Failure storing cert for new nym: " << strFilenameByID << "\n";
 			return false;
 		}
 	}
@@ -1244,27 +1233,27 @@ bool OTPseudonym::GenerateNym(int32_t  nBits/*=1024*/,
                               const std::string str_id_source   /*=""*/,
                               const std::string str_alt_location/*=""*/)
 {
-	// ---------------------------------------------------------------
+
     OT_ASSERT(NULL != m_pkeypair);
-    // ---------------------------------------------------------------
+
     if (m_pkeypair->MakeNewKeypair(nBits))
     {
         OTString strSource     (str_id_source),
                  strAltLocation(str_alt_location);
-        // ---------------------------------------------------------------
+
         this->SetNymIDSource(strSource);
         this->SetAltLocation(strAltLocation);
-        // ---------------------------------------------------------------
+
         OTString strReason("Creating new Nym."); // NOTE: Savex509CertAndPrivateKey sets the ID and sometimes if necessary, the source.
         bool bSaved = this->Savex509CertAndPrivateKey(bCreateFile, &strReason);  // Todo: remove this. Credentials code will supercede.
-        // ---------------------------------------------------------------
+
         if (bSaved && bCreateFile)
         {
             bSaved = this->SaveSignedNymfile(*this); // Now we'll generate the NymFile as well! (bCreateFile will be false for temp Nyms..)
         }
-        // ---------------------------------------------------------------
+
         if (bCreateFile && !bSaved)
-            OTLog::vError("%s: Failed trying to save new Nym's cert or nymfile.\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Failed trying to save new Nym's cert or nymfile.\n";
         else
         {
             // NEW CREDENTIALS CODE!
@@ -1302,21 +1291,19 @@ bool OTPseudonym::GenerateNym(int32_t  nBits/*=1024*/,
                 else
                 {
                     bSaved = false;
-                    OTLog::vError("%s: Failed trying to add new keyCredential to new Master credential.\n",
-                                  __FUNCTION__);
+					otErr << __FUNCTION__ << ": Failed trying to add new keyCredential to new Master credential.\n";
                 }
             }
             else
             {
                 bSaved = false;
-                OTLog::vError("%s: Failed trying to add new master credential to new Nym.\n",
-                              __FUNCTION__);
+				otErr << __FUNCTION__ << ": Failed trying to add new master credential to new Nym.\n";
             }
         }
 
         return bSaved;
     }
-    // ---------------------------------------------------------------
+
     return false;
 }
 
@@ -1324,12 +1311,12 @@ bool OTPseudonym::GenerateNym(int32_t  nBits/*=1024*/,
 bool OTPseudonym::SetIdentifierByPubkey()
 {
     OT_ASSERT(NULL != m_pkeypair);
-    // ---------------------------------------------------------------
+
     const bool bCalculated = m_pkeypair->CalculateID(m_nymID); // OTAsymmetricKey::CalculateID only works with public keys.
 
 	if (!bCalculated)
 	{
-		OTLog::vError("%s: Error calculating Nym ID in OTAsymmetricKey::CalculateID().\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error calculating Nym ID in OTAsymmetricKey::CalculateID().\n";
 		return false;
 	}
 
@@ -1362,7 +1349,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
 {
 	const std::string str_ServerID((NULL != pstrServerID) ? pstrServerID->Get() : "");
 
-    // --------------------------
+
     // These use str_ServerID (above)
     //
     CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
@@ -1370,7 +1357,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
     CLEAR_MAP_AND_DEQUE(m_mapTentativeNum)
     CLEAR_MAP_AND_DEQUE(m_mapAcknowledgedNum)
 
-    // ----------------------------
+
 
     std::list<mapOfHighestNums::iterator> listOfHighestNums;
     std::list<mapOfIdentifiers::iterator> listOfNymboxHash;
@@ -1389,7 +1376,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
 //			m_mapHighTransNo.erase(it);
 		}
 	}
-    // ----------------------------
+
 
     FOR_EACH(mapOfIdentifiers, m_mapNymboxHash)
     {
@@ -1399,7 +1386,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
         listOfNymboxHash.push_back(it);
 //      m_mapNymboxHash.erase(it);
     }
-    // ----------------------------
+
     // This is mapped to acct_id, not server_id.
     // (So we just wipe them all.)
     //
@@ -1408,7 +1395,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
         listOfInboxHash.push_back(it);
 //      m_mapInboxHash.erase(it);
     }
-    // ----------------------------
+
     // This is mapped to acct_id, not server_id.
     // (So we just wipe them all.)
     //
@@ -1417,7 +1404,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
         listOfOutboxHash.push_back(it);
 //      m_mapOutboxHash.erase(it);
     }
-    // ----------------------------
+
 
     FOR_EACH(mapOfIdentifiers, m_mapRecentHash)
     {
@@ -1428,7 +1415,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString * pstrServerID/*=NULL*/, const
 //      m_mapRecentHash.erase(it);
     }
 
-    // ----------------------------------------------------------------
+
 
     while (listOfHighestNums.size() > 0)
     {
@@ -1687,19 +1674,19 @@ void OTPseudonym::ReleaseTransactionNumbers()
 
 /*
  ResyncWithServer:
-    // ----------------------------------------------------
+
 --	OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the Nymbox
-    // ----------------------------------------------------
+
 --    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest DOWNLOADED Nymbox (OTIdentifier) mapped by ServerID (std::string)
 --    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox according to Server, based on some recent reply. (May be newer...)
-    // ----------------------------------------------------
+
 --    mapOfIdentifiers    m_mapInboxHash;
 --    mapOfIdentifiers    m_mapOutboxHash;
-    // ----------------------------------------------------
+
 --	dequeOfMail		m_dequeMail;	// Any mail messages received by this Nym. (And not yet deleted.)
 --	dequeOfMail		m_dequeOutmail;	// Any mail messages sent by this Nym. (And not yet deleted.)
 --	dequeOfMail		m_dequeOutpayments;	// Any outoing payments sent by this Nym. (And not yet deleted.) (payments screen.)
-    // -----------------------------------------------
+
 --	mapOfRequestNums m_mapRequestNum;	// Whenever this user makes a request to a transaction server
 
 **	mapOfTransNums	 m_mapTransNum;	// Each Transaction Request must be accompanied by a fresh transaction #,
@@ -1707,36 +1694,36 @@ void OTPseudonym::ReleaseTransactionNumbers()
 **	mapOfTransNums	 m_mapTentativeNum;
 
 **  mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each server (just like request numbers are.)
-	// -----------------------------
+
 --    mapOfTransNums	m_mapAcknowledgedNum; // request numbers are stored here.
-	// -----------------------------
+
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed out, the server-side Nym keeps a list of them handy.
-    // -----------------------------
+
     // (SERVER side)
     // Using strings here to avoid juggling memory crap.
 --    std::set<std::string> m_setAccounts; // A list of asset account IDs. Server side only (client side uses wallet; has multiple servers.)
-    // ------------------------------------------
+
     // (SERVER side.)
 --	int64_t	m_lUsageCredits;	// Server-side. The usage credits available for this Nym. Infinite if negative.
- // -----------------------------
+
  */
 
 /*
  OTPseudonym::RemoveAllNumbers affects (**):  (-- means doesn't affect)
- // ----------------------------------------------------
+
 --	OTIdentifier        m_NymboxHash;       // (Server-side) Hash of the Nymbox
- // ----------------------------------------------------
+
 **    mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of latest DOWNLOADED Nymbox (OTIdentifier) mapped by ServerID (std::string)
 **    mapOfIdentifiers    m_mapRecentHash;    // (Client-side) Hash of Nymbox according to Server, based on some recent reply. (May be newer...)
- // ----------------------------------------------------
+
 **    mapOfIdentifiers    m_mapInboxHash;
 **    mapOfIdentifiers    m_mapOutboxHash;
- // ----------------------------------------------------
+
 --	dequeOfMail		m_dequeMail;	// Any mail messages received by this Nym. (And not yet deleted.)
 --	dequeOfMail		m_dequeOutmail;	// Any mail messages sent by this Nym. (And not yet deleted.)
 --	dequeOfMail		m_dequeOutpayments;	// Any outoing payments sent by this Nym. (And not yet deleted.) (payments screen.)
-    // -----------------------------------------------
+
 --    mapOfRequestNums m_mapRequestNum;
 
 **	mapOfTransNums   m_mapTransNum;
@@ -1744,18 +1731,18 @@ void OTPseudonym::ReleaseTransactionNumbers()
 **	mapOfTransNums	 m_mapTentativeNum;
 
 **    mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each server (just like request numbers are.)
- // -----------------------------
+
 **  mapOfTransNums	 m_mapAcknowledgedNum;  // request nums are stored.
-	// -----------------------------
+
     // (SERVER side)
 --    std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed out, the server-side Nym keeps a list of them handy.
- // ----------------------------------------------------
+
     // (SERVER side)
 --    std::set<std::string> m_setAccounts; // A list of asset account IDs. Server side only (client side uses wallet; has multiple servers.)
-    // ------------------------------------------
+
     // (SERVER side.)
 --	int64_t	m_lUsageCredits;	// Server-side. The usage credits available for this Nym. Infinite if negative.
- // ----------------------------------------------------
+
 
 
  CLEAR_MAP_AND_DEQUE(m_mapIssuedNum)
@@ -1784,7 +1771,7 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 {
 	bool bSuccess = true;
 
-	// --------------------------------------
+
 	const OTIdentifier &	theServerID = theNymbox.GetRealServerID();
 	const OTString			strServerID(theServerID);
 	const OTString			strNymID(m_nymID);
@@ -1792,7 +1779,7 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 	const int32_t nIssuedNumCount	= theMessageNym.GetIssuedNumCount(theServerID);
 	const int32_t nTransNumCount	= theMessageNym.GetTransactionNumCount(theServerID);
 
-	// --------------------------------------
+
 	// Remove all issued, transaction, and tentative numbers for a specific server ID,
     // as well as all acknowledgedNums, and the highest transaction number for that serverID,
 	// from *this nym. Leave our record of the highest trans num received from that server,
@@ -1800,13 +1787,13 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 	//
 	this->RemoveAllNumbers(&strServerID, false); // bRemoveHighestNum=true by default. But in this case, I keep it.
 
-	// --------------------------------------
+
 	// Any issued or trans numbers we add to *this from theMessageNym, are also added here so
 	// they can be used to update the "highest number" record (at the bottom of this function.)
 	//
 	std::set<int64_t> setTransNumbers;
 
-	// ***************************************************************************
+
 	// Now that *this has no issued or transaction numbers for theServerID, we add
 	// them back again from theMessageNym. (So they will match, and be 'N SYNC!!!)
 	//
@@ -1818,38 +1805,38 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 
 		if (false == this->AddIssuedNum(strServerID, lNum))		// Add to list of numbers that haven't been closed yet.
 		{
-			OTLog::vError("OTPseudonym::ResyncWithServer: Failed trying to add IssuedNum (%lld) onto *this nym: %s, for server: %s\n",
-						  lNum, strNymID.Get(), strServerID.Get());
+			otErr << "OTPseudonym::ResyncWithServer: Failed trying to add IssuedNum (" << lNum << ") onto *this nym: "
+				<< strNymID << ", for server: " << strServerID << "\n";
 			bSuccess = false;
 		}
 		else
 		{
 			setTransNumbers.insert(lNum);
-			// ---------------------------
-			OTLog::vOutput(1, "OTPseudonym::ResyncWithServer: Added IssuedNum (%lld) onto *this nym: %s, for server: %s \n",
-						   lNum, strNymID.Get(), strServerID.Get());
+
+			otWarn << "OTPseudonym::ResyncWithServer: Added IssuedNum (" << lNum << ") onto *this nym: " 
+				<< strNymID << ", for server: " << strServerID << " \n";
 		}
 	}
-	// --------------------------------------
+
 	for(int32_t n2 = 0; n2 < nTransNumCount; ++n2)
 	{
 		const int64_t lNum = theMessageNym.GetTransactionNum(theServerID, n2);
 
 		if (false == this->AddTransactionNum(strServerID, lNum))		// Add to list of available-to-use numbers.
 		{
-			OTLog::vError("OTPseudonym::ResyncWithServer: Failed trying to add TransactionNum (%lld) onto *this nym: %s, for server: %s\n",
-						  lNum, strNymID.Get(), strServerID.Get());
+			otErr << "OTPseudonym::ResyncWithServer: Failed trying to add TransactionNum (" << lNum << ") onto *this nym: "
+				<< strNymID << ", for server: " << strServerID << "\n";
 			bSuccess = false;
 		}
 		else
 		{
 			setTransNumbers.insert(lNum);
-			// ---------------------------
-			OTLog::vOutput(1, "OTPseudonym::ResyncWithServer: Added TransactionNum (%lld) onto *this nym: %s, for server: %s \n",
-						   lNum, strNymID.Get(), strServerID.Get());
+
+			otWarn << "OTPseudonym::ResyncWithServer: Added TransactionNum (" << lNum << ") onto *this nym: "
+				<< strNymID << ", for server: " << strServerID << " \n";
 		}
 	}
-	// ***************************************************************************
+
 	// We already cleared all tentative numbers from *this (above in
 	// RemoveAllNumbers). Next, loop through theNymbox and add Tentative numbers
 	// to *this based on each successNotice in the Nymbox. This way, when the notices
@@ -1860,23 +1847,23 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 		OTTransaction * pTransaction = (*it).second;
 		OT_ASSERT(NULL != pTransaction);
 //		OTString strTransaction(*pTransaction);
-//		OTLog::vError("TRANSACTION CONTENTS:\n%s\n", strTransaction.Get());
+//		otErr << "TRANSACTION CONTENTS:\n%s\n", strTransaction.Get());
 
 		// (a new; ALREADY just added transaction number.)
 		if ((OTTransaction::successNotice != pTransaction->GetType())) // if !successNotice
 			continue;
-		// -------------
+
 		const int64_t lNum = pTransaction->GetReferenceToNum(); // successNotice is inRefTo the new transaction # that should be on my tentative list.
 
 		if (false == this->AddTentativeNum(strServerID, lNum)) // Add to list of tentatively-being-added numbers.
 		{
-			OTLog::vError("OTPseudonym::ResyncWithServer: Failed trying to add TentativeNum (%lld) onto *this nym: %s, for server: %s\n",
-						  lNum, strNymID.Get(), strServerID.Get());
+			otErr << "OTPseudonym::ResyncWithServer: Failed trying to add TentativeNum (" << lNum << ") onto *this nym: "
+				<< strNymID << ", for server: " << strServerID << "\n";
 			bSuccess = false;
 		}
 		else
-			OTLog::vOutput(1, "OTPseudonym::ResyncWithServer: Added TentativeNum (%lld) onto *this nym: %s, for server: %s \n",
-						   lNum, strNymID.Get(), strServerID.Get());
+			otWarn << "OTPseudonym::ResyncWithServer: Added TentativeNum (" << lNum << ") onto *this nym: " 
+			<< strNymID << ", for server: " << strServerID << " \n";
 		// There's no "else insert to setTransNumbers" here, like the other two blocks above.
 		// Why not? Because setTransNumbers is for updating the Highest Trans Num record on this Nym,
 		// and the Tentative Numbers aren't figured into that record until AFTER they are accepted
@@ -1886,7 +1873,7 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 		// the "available" transaction list (and issued.)
 
 	} // FOR_EACH (Nymbox)
-	// ***************************************************************************
+
 
 	const std::string strID	= strServerID.Get();
 
@@ -1894,30 +1881,30 @@ bool OTPseudonym::ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessag
 	{
 		if ( strID == it_high_num->first )	// We found it!
 		{
-            // -------------------------
+
 			// See if any numbers on the set are higher, and if so, update the record to match.
 			//
 			FOR_EACH(std::set<int64_t>, setTransNumbers)
 			{
 				const int64_t lTransNum = (*it);
-				// --------------------------------
+
 				// Grab a copy of the old highest trans number
 				const int64_t lOldHighestNumber = it_high_num->second;
-				// --------------------------------
+
 				if (lTransNum > lOldHighestNumber) // Did we find a bigger one?
 				{
 					// Then update the Nym's record!
 					this->m_mapHighTransNo[it_high_num->first] = lTransNum;
-					OTLog::vOutput(1, "OTPseudonym::ResyncWithServer: Updated HighestNum (%lld) record on *this nym: %s, for server: %s \n",
-								   lTransNum, strNymID.Get(), strServerID.Get());
+					otWarn << "OTPseudonym::ResyncWithServer: Updated HighestNum (" << lTransNum << ") record on *this nym: " 
+						<< strNymID << ", for server: " << strServerID << " \n";
 				}
 			}
-            // -------------------------
+
 			// We only needed to do this for the one server, so we can break now.
 			break;
 		}
 	}
-	// ***************************************************************************
+
 
 	return (this->SaveSignedNymfile(*this) && bSuccess);
 }
@@ -2388,7 +2375,7 @@ bool OTPseudonym::AddAcknowledgedNum(const OTString & strServerID, const int64_t
 			break;
 		}
 	}
-    // ---------------------------------
+
 	return AddGenericNum(m_mapAcknowledgedNum, strServerID, lRequestNum); // <=== Here we finally add the new request number, the actual purpose of this function.
 }
 
@@ -2402,12 +2389,12 @@ bool OTPseudonym::AddTransactionNum(OTPseudonym & SIGNER_NYM, const OTString & s
 {
 	bool bSuccess1 = AddTransactionNum(strServerID, lTransNum);	// Add to list of available-to-use, outstanding numbers.
 	bool bSuccess2 = AddIssuedNum(strServerID, lTransNum);		// Add to list of numbers that haven't been closed yet.
-	// -----------------------------------
+
 	if (bSuccess1 && !bSuccess2)
 		RemoveGenericNum(m_mapTransNum, strServerID, lTransNum);
 	else if (bSuccess2 && !bSuccess1)
 		RemoveGenericNum(m_mapIssuedNum, strServerID, lTransNum);
-	// -----------------------------------
+
 	if (bSuccess1 && bSuccess2 && bSave)
 		bSave = SaveSignedNymfile(SIGNER_NYM);
 	else
@@ -2425,12 +2412,12 @@ bool OTPseudonym::AddTransactionNum(OTPseudonym & SIGNER_NYM, const OTString & s
 bool OTPseudonym::RemoveTentativeNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum, bool bSave) // SAVE OR NOT (your choice) High-Level.
 {
 	bool bSuccess = RemoveTentativeNum(strServerID, lTransNum);		// Remove from list of numbers that haven't been made available for use yet, though they're "tentative"...
-	// -----------------------------------
+
 	if (bSuccess && bSave)
 		bSave = SaveSignedNymfile(SIGNER_NYM);
 	else
 		bSave = true; // so the return at the bottom calculates correctly.
-	// -----------------------------------
+
 	return (bSuccess && bSave);
 }
 
@@ -2442,12 +2429,12 @@ bool OTPseudonym::RemoveTentativeNum(OTPseudonym & SIGNER_NYM, const OTString & 
 bool OTPseudonym::RemoveIssuedNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum, bool bSave) // SAVE OR NOT (your choice) High-Level.
 {
 	bool bSuccess = RemoveIssuedNum(strServerID, lTransNum); // Remove from list of numbers that are still signed out.
-	// -----------------------------------
+
 	if (bSuccess && bSave)
 		bSave = SaveSignedNymfile(SIGNER_NYM);
 	else
 		bSave = true; // so the return at the bottom calculates correctly.
-	// -----------------------------------
+
 	return (bSuccess && bSave);
 }
 
@@ -2464,12 +2451,12 @@ bool OTPseudonym::RemoveIssuedNum(OTPseudonym & SIGNER_NYM, const OTString & str
 bool OTPseudonym::RemoveAcknowledgedNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lRequestNum, bool bSave) // SAVE OR NOT (your choice) High-Level.
 {
 	bool bSuccess = RemoveAcknowledgedNum(strServerID, lRequestNum);		// Remove from list of acknowledged request numbers.
-	// -----------------------------------
+
 	if (bSuccess && bSave)
 		bSave = SaveSignedNymfile(SIGNER_NYM);
 	else
 		bSave = true; // so the return at the bottom calculates correctly.
-	// -----------------------------------
+
 	return (bSuccess && bSave);
 }
 
@@ -2485,7 +2472,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier & theServerID,
                                                   OTPseudonym  & theOtherNym, bool bSave/*=true*/)
 {
     const char * szFunc = "OTPseudonym::HarvestTransactionNumbers";
-    // --------------------
+
 	int64_t lTransactionNumber = 0;
 
 	std::set<int64_t> setInput, setOutputGood, setOutputBad;
@@ -2519,7 +2506,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier & theServerID,
 		}
 	} // for
 
-	// ----------------------------------
+
     // Looks like we found some numbers to harvest
     // (tentative numbers we had already been waiting for,
     // yet hadn't processed onto our issued list yet...)
@@ -2541,8 +2528,8 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier & theServerID,
         // to log more in the case of lViolater being >0 but less than the 'last highest number.'
         //
 		if ((-1) == lViolator)
-			OTLog::vError("%s: ERROR: UpdateHighestNum() returned (-1), which is an error condition. "
-                          "(Should never happen.)\nNym ID: %s \n", szFunc, strNymID.Get());
+			otErr << szFunc << ": ERROR: UpdateHighestNum() returned (-1), which is an error condition. "
+			"(Should never happen.)\nNym ID: " << strNymID << " \n";
 		else
 		{
             // We only remove-tentative-num/add-transaction-num for the numbers that were above our 'last highest number'.
@@ -2551,7 +2538,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier & theServerID,
 			FOR_EACH(std::set<int64_t>, setOutputGood)
 			{
 				const int64_t lNoticeNum = (*it);
-                // --------------------------------------
+
                 // We already know it's on the TentativeNum list, since we checked that in the above for loop.
                 // We also already know that it's not on the issued list, since we checked that as well.
                 // That's why the below calls just ASSUME those things already.
@@ -2644,7 +2631,7 @@ bool OTPseudonym::ClawbackTransactionNumber(const OTIdentifier & theServerID,
     if (NULL == pSIGNER_NYM)
         pSIGNER_NYM = this;
     // Below this point, pSIGNER_NYM is definitely a good pointer.
-    // -------------------------------
+
     const OTString strServerID(theServerID);
 
     // Only re-add the transaction number if it's already on my issued list.
@@ -2656,7 +2643,7 @@ bool OTPseudonym::ClawbackTransactionNumber(const OTIdentifier & theServerID,
         AddTransactionNum(*pSIGNER_NYM, strServerID, lTransClawback, bSave);
         return true;
     }
-    // -------------------------------
+
     return false;
 }
 
@@ -2701,7 +2688,7 @@ bool OTPseudonym::GetNextTransactionNum(OTPseudonym & SIGNER_NYM, const OTString
 	if (bRetVal && bSave)
 	{
 		if (false == SaveSignedNymfile(SIGNER_NYM))
-            OTLog::Error("Error saving signed NymFile in OTPseudonym::GetNextTransactionNum\n");
+            otErr << "Error saving signed NymFile in OTPseudonym::GetNextTransactionNum\n";
 	}
 
 	return bRetVal;
@@ -2773,14 +2760,14 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
 		const int64_t lSetNum = *it;
 
 		if (lSetNum > lHighestInSet)		lHighestInSet = lSetNum;    // Set lHighestInSet to contain the highest number out of setNumbers (input)
-		// ---------------------
+
 		if (0 == lLowestInSet)				lLowestInSet = lSetNum;     // If lLowestInSet is still 0, then set it to the current number (happens first iteration.)
 		else if (lSetNum < lLowestInSet)	lLowestInSet = lSetNum;     // If current number is less than lLowestInSet, then set lLowestInSet to current Number.
 	}
 
     // By this point, lLowestInSet contains the lowest number in setNumbers,
     // and lHighestInSet contains the highest number in setNumbers.
-    // -------------------------------------------------------------------
+
     //
 	// The Pseudonym has a map of the "highest transaction numbers" for different servers.
 	// For Server Bob, with this Pseudonym, I might be on number 34.
@@ -2809,7 +2796,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
             //
 			const int64_t lOldHighestNumber = it->second; // <=========== The previous "highest number".
 
-			// ----------------------------------------------
+
 
             // Loop through the numbers passed in, and for each, see if it's less than
             // the previous "highest number for this server."
@@ -2821,21 +2808,21 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
             FOR_EACH_IT(std::set<int64_t>, setNumbers, it_numbers)
             {
                 const int64_t lSetNum = *it_numbers;
-                // ------------------------
+
                 // If the current number (this iteration) is less than or equal to the
                 // "old highest number", then it's not going to be added twice.
                 // (It goes on the "bad list.")
                 //
                 if (lSetNum <= lOldHighestNumber)
                 {
-                    OTLog::vOutput(1, "OTPseudonym::UpdateHighestNum: New transaction number is less-than-or-equal-to "
+                    otWarn << "OTPseudonym::UpdateHighestNum: New transaction number is less-than-or-equal-to "
                                    "last known 'highest trans number' record. (Must be seeing the same server reply for "
                                    "a second time, due to a receipt in my Nymbox.) "
-                                   "FYI, last known 'highest' number received: %lld (Current 'violator': %lld) Skipping...\n",
-                                   lOldHighestNumber, lSetNum);
+								   "FYI, last known 'highest' number received: " << lOldHighestNumber <<
+								   " (Current 'violator': " << lSetNum << ") Skipping...\n";
                     setOutputBad.insert(lSetNum);
                 }
-                // ------------------------------------------------------------------------------
+
                 // The current number this iteration, as it should be, is HIGHER than any transaction
                 // number I've ever received before. (Although sometimes old messages will 'echo'.)
                 // I want to replace the "highest" record with this one
@@ -2844,7 +2831,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
                     setOutputGood.insert(lSetNum);
                 }
             } // FOR_EACH_IT (it_numbers)
-			// ----------------------------------------------
+
 
 			// Here we're making sure that all the numbers in the set are larger than any others
 			// that we've had before for the same server (They should only ever get larger.)
@@ -2853,7 +2840,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
 			if ((lLowestInSet > 0) && (lLowestInSet <= lOldHighestNumber))  // WARNING! The new numbers should ALWAYS be larger than the previous ones!
                                                                             // UPDATE: Unless we happen to be processing the same receipt for a second time, due to redundancy in the system (for preventing syncing errors.)
 				lReturnVal = lLowestInSet;  // We return the violator (otherwise 0 if success).
-			// ---------------------------------------------------------------
+
 			// The loop has succeeded in finding the server ID and its associated "highest number" value.
             //
 			bFoundServerID = true;
@@ -2861,7 +2848,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
                     //  the right server ID. Once we find it, we break (no matter what.)
 		} // server ID matches.
 	} // FOR_EACH
-	// ----------------------------------------------------------------
+
 	// If we found the server ID, that means the highest number was previously recorded.
     // We don't want to replace it unless we were successful in this function. And if we
     // were, then we want to replace it with the new "highest number in the set."
@@ -2892,8 +2879,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
     {
         if (bFoundServerID)
         {
-            OTLog::vOutput(0, "OTPseudonym::UpdateHighestNum: Raising Highest Trans Number from %lld to %lld.\n",
-                           m_mapHighTransNo[strID], lHighestInSet);
+			otOut << "OTPseudonym::UpdateHighestNum: Raising Highest Trans Number from " << m_mapHighTransNo[strID] << " to " << lHighestInSet << ".\n";
 
             // We KNOW it's there, so we can straight-away just
             // erase it and insert it afresh..
@@ -2901,19 +2887,18 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
             m_mapHighTransNo.erase(strID);
             m_mapHighTransNo.insert(std::pair<std::string, int64_t>(strID, lHighestInSet));
         }
-        // ----------------------------------------------
+
         // If I didn't find the server in the list above (whether the list is empty or not....)
         // that means the record does not yet exist. (So let's create it)--we wouldn't even be
         // here unless we found valid transaction numbers and added them to setOutputGood.
         // (So let's record lHighestInSet mapped to strID, just as above.)
         else
         {
-            OTLog::vOutput(0, "OTPseudonym::UpdateHighestNum: Creating "
-                           "Highest Transaction Number entry for this server as '%lld'.\n",
-                           lHighestInSet);
+            otOut << "OTPseudonym::UpdateHighestNum: Creating "
+				"Highest Transaction Number entry for this server as '" << lHighestInSet << "'.\n";
             m_mapHighTransNo.insert(std::pair<std::string, int64_t>(strID, lHighestInSet));
         }
-        // ----------------------------------------------
+
         // By this point either the record was created, or we were successful above in finding it
         // and updating it. Either way, it's there now and potentially needs to be saved.
         //
@@ -2934,7 +2919,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym & SIGNER_NYM,
          // see a place here for that return value.
          //
     }
-    // ----------------------------------------------------------------
+
 
 	return lReturnVal; // Defaults to 0 (success) but above, might have been set to "lLowestInSet" (if one was below the mark.)
 }
@@ -3015,8 +3000,7 @@ void OTPseudonym::IncrementRequestNum(OTPseudonym & SIGNER_NYM, const OTString &
 			m_mapRequestNum[it->first] = lOldRequestNumber + 1;
 
 			// Now we can log BOTH, before and after... // debug here
-			OTLog::vOutput(4, "Incremented Request Number from %lld to %lld. Saving...\n",
-					lOldRequestNumber, m_mapRequestNum[it->first]);
+			otLog4 << "Incremented Request Number from " << lOldRequestNumber << " to " << m_mapRequestNum[it->first] << ". Saving...\n";
 
 			// The call has succeeded
 			bSuccess = true;
@@ -3029,7 +3013,7 @@ void OTPseudonym::IncrementRequestNum(OTPseudonym & SIGNER_NYM, const OTString &
 
 	if (!bSuccess)
 	{
-		OTLog::Output(0, "Creating Request Number entry as '100'. Saving...\n");
+		otOut << "Creating Request Number entry as '100'. Saving...\n";
 		m_mapRequestNum[strServerID.Get()] = 100;
 		bSuccess = true;
 	}
@@ -3077,8 +3061,7 @@ void OTPseudonym::OnUpdateRequestNum(OTPseudonym & SIGNER_NYM, const OTString & 
 			m_mapRequestNum[it->first] = lNewRequestNumber;
 
 			// Now we can log BOTH, before and after...
-			OTLog::vOutput(4, "Updated Request Number from %lld to %lld. Saving...\n",
-					lOldRequestNumber, m_mapRequestNum[it->first]);
+			otLog4 << "Updated Request Number from " << lOldRequestNumber << " to " << m_mapRequestNum[it->first] << ". Saving...\n";
 			break;
 		}
 	}
@@ -3088,11 +3071,11 @@ void OTPseudonym::OnUpdateRequestNum(OTPseudonym & SIGNER_NYM, const OTString & 
 
 	if (!bSuccess)
 	{
-		OTLog::vOutput(0, "Creating Request Number entry as '%lld'. Saving...\n", lNewRequestNumber);
+		otOut << "Creating Request Number entry as '" << lNewRequestNumber << "'. Saving...\n";
 		m_mapRequestNum[strServerID.Get()] = lNewRequestNumber;
 		bSuccess = true;
 	}
-	// -----------------
+
 	if (bSuccess)
 	{
 		SaveSignedNymfile(SIGNER_NYM);
@@ -3157,39 +3140,37 @@ bool OTPseudonym::VerifyPseudonym() const
         {
             const OTCredential * pCredential = (*it).second;
             OT_ASSERT(NULL != pCredential);
-            // ---------------------------------------
+
             const OTIdentifier theCredentialNymID(pCredential->GetNymID());
             if (false == this->CompareID(theCredentialNymID))
             {
                 OTString strNymID;
                 this->GetIdentifier(strNymID);
-                OTLog::vOutput(0, "%s: Credential NymID (%s) doesn't match actual NymID: %s\n",
-                               __FUNCTION__, pCredential->GetNymID().Get(), strNymID.Get());
+				otOut << __FUNCTION__ << ": Credential NymID (" << pCredential->GetNymID() <<
+					") doesn't match actual NymID: " << strNymID << "\n";
                 return false;
             }
-            // ---------------------------------------
-            if (false == pCredential->VerifyInternally())
+
+			if (false == pCredential->VerifyInternally())
             {
-                OTLog::vOutput(0, "%s: Credential (%s) failed its own internal verification.\n",
-                               __FUNCTION__, pCredential->GetMasterCredID().Get());
+				otOut << __FUNCTION__ << ": Credential (" << pCredential->GetMasterCredID() << 
+					") failed its own internal verification.\n";
                 return false;
             }
-            // ---------------------------------------
-            // Warning: time-intensive. Todo optimize: load a contract here which verifies authorization,
+
+			// Warning: time-intensive. Todo optimize: load a contract here which verifies authorization,
             // based on a signature from a separate process which did an identity lookup externally.
             // Once that authorization times out, then the identity verification server can just sign
             // another one.
             //
             if (false == pCredential->VerifyAgainstSource()) // todo optimize, warning: time-intensive.
             {
-                OTLog::vOutput(0, "%s: Credential failed against its source. Credential ID: %s\n"
-                               "NymID: %s\nSource: %s\n", __FUNCTION__,
-                               pCredential->GetMasterCredID().Get(), pCredential->GetNymID().Get(),
-                               pCredential->GetSourceForNymID().Get());
+				otOut << __FUNCTION__ << ": Credential failed against its source. Credential ID: " << pCredential->GetMasterCredID() << "\n"
+					"NymID: " << pCredential->GetNymID() << "\nSource: " << pCredential->GetSourceForNymID() << "\n";
                 return false;
             }
-            // ---------------------------------------
-        } // FOR_EACH_CONST
+
+		} // FOR_EACH_CONST
 
 
         // NOTE: m_pkeypair needs to be phased out entirely. TODO!!
@@ -3213,44 +3194,44 @@ bool OTPseudonym::VerifyPseudonym() const
             OT_ASSERT(m_mapCredentials.end() != it);
             OTCredential * pCredential = (*it).second;
             OT_ASSERT(NULL != pCredential);
-            // -----------------------------
+
             OTString strSigningKey;
 
             if (const_cast<OTKeypair &>(pCredential->GetSignKeypair(&m_listRevokedIDs)).GetPublicKey(strSigningKey, false)) //bEscaped
                 return m_pkeypair->SetPublicKey(strSigningKey, false); // bEscaped
             else
-                OTLog::vError("%s: Failed in call to pCredential->GetPublicSignKey().GetPublicKey()\n", __FUNCTION__);
+				otErr << __FUNCTION__ << ": Failed in call to pCredential->GetPublicSignKey().GetPublicKey()\n";
         }
 
         return true;
 
     } // If there are credentials
-    // --------------------------------------------
+
     else // Deprecated. OTPseudonym::m_pkeypair was used for encryption, signing, and authentication.
     {    // (Replaced by the above block, which has a map of credentials for each Nym, with each
          // credential having a master key and a set of subcredentials including subkeys.
          //
         OT_ASSERT(NULL != m_pkeypair);
-        // -----------------
+
         OTString strPublicKey;
         bool bGotPublicKey = m_pkeypair->GetPublicKey(strPublicKey);
 
         if (!bGotPublicKey)
         {
-            OTLog::Error("Error getting public key in OTPseudonym::VerifyPseudonym.\n");
+            otErr << "Error getting public key in OTPseudonym::VerifyPseudonym.\n";
             return false;
         }
-        // --------------------------------------------
-        OTIdentifier newID;
+
+		OTIdentifier newID;
         bool bSuccessCalculateDigest = newID.CalculateDigest(strPublicKey);
 
         if (!bSuccessCalculateDigest)
         {
-            OTLog::Error("Error calculating pubkey digest.\n");
+            otErr << "Error calculating pubkey digest.\n";
             return false;
         }
-        // --------------------------------------------
-        // newID now contains the Hash aka Message Digest aka Fingerprint aka "IDENTIFIER"
+
+		// newID now contains the Hash aka Message Digest aka Fingerprint aka "IDENTIFIER"
         // of the public key (in its text form, with escaped bookends.)
         //
         // Now let's compare that identifier to the one already loaded by the wallet
@@ -3259,15 +3240,14 @@ bool OTPseudonym::VerifyPseudonym() const
         if (m_nymID != newID)
         {
             OTString str1(m_nymID), str2(newID);
-            OTLog::vError("\nHashes do NOT match in OTPseudonym::VerifyPseudonym!\n%s\n%s\n",
-                    str1.Get(), str2.Get());
+			otErr << "\nHashes do NOT match in OTPseudonym::VerifyPseudonym!\n" << str1 << "\n" << str2 << "\n";
 
             return false;
         }
         else
         {
     //		OTString str2(newID);
-    //		OTLog::Output(1, "\nNymID from wallet *SUCCESSFUL* match to hash of Nym\'s public key:\n%s\n"
+    //		otWarn << "\nNymID from wallet *SUCCESSFUL* match to hash of Nym\'s public key:\n%s\n"
     //				"---------------------------------------------------------------\n", str2.Get());
             return true;
         }
@@ -3307,7 +3287,7 @@ bool OTPseudonym::SavePseudonymWallet(std::ofstream & ofs) const
 	OTString strOutput;
 
 	if (SavePseudonymWallet(strOutput))
-		ofs << strOutput.Get();
+		ofs << strOutput;
 	else
 		return false;
 
@@ -3339,14 +3319,14 @@ bool OTPseudonym::SavePublicKey(const OTString & strPath) const
 
 		if (!bStored)
 		{
-			OTLog::vError("Failure in OTPseudonym::SavePublicKey while saving to storage: %s%s%s\n",
-						  szFoldername, OTLog::PathSeparator(), szFilename);
+			otErr << "Failure in OTPseudonym::SavePublicKey while saving to storage: " 
+				<< szFoldername << OTLog::PathSeparator() << szFilename << "\n";
 			return false;
 		}
 	}
 	else
 	{
-		OTLog::Error("Error in OTPseudonym::SavePublicKey: unable to GetPublicKey from Nym\n");
+		otErr << "Error in OTPseudonym::SavePublicKey: unable to GetPublicKey from Nym\n";
 		return false;
 	}
 
@@ -3370,7 +3350,7 @@ bool OTPseudonym::SavePublicKey(std::ofstream & ofs) const
 	}
 	else
 	{
-		OTLog::Error("Error in OTPseudonym::SavePublicKey: unable to GetPublicKey from Nym\n");
+		otErr << "Error in OTPseudonym::SavePublicKey: unable to GetPublicKey from Nym\n";
 		return false;
 	}
 
@@ -3381,15 +3361,15 @@ bool OTPseudonym::SavePublicKey(std::ofstream & ofs) const
 // pstrID is an output parameter.
 bool OTPseudonym::Server_PubKeyExists(OTString * pstrID/*=NULL*/) // Only used on server side.
 {
-	// ------------------------------------
+
 	OTString strID;
     if (NULL == pstrID)
     {
         pstrID = &strID;
     }
     this->GetIdentifier(*pstrID);
-	// ------------------------------------
-    // Below this point, pstrID is a GOOD pointer, no matter what. (And no need to delete it.)
+
+	// Below this point, pstrID is a GOOD pointer, no matter what. (And no need to delete it.)
 
 	return OTDB::Exists(OTFolders::Pubkey().Get(), pstrID->Get());
 }
@@ -3400,8 +3380,8 @@ bool OTPseudonym::Server_PubKeyExists(OTString * pstrID/*=NULL*/) // Only used o
 bool OTPseudonym::LoadPublicKey()
 {
     OT_ASSERT(NULL != m_pkeypair);
-    // ----------------------------
-    // Here we try to load credentials first (the new system) and if it's successful, we
+
+	// Here we try to load credentials first (the new system) and if it's successful, we
     // use that to set the public key from the credential, and then return. Otherwise,
     // we run the old code.
     //
@@ -3411,15 +3391,15 @@ bool OTPseudonym::LoadPublicKey()
 //        OT_ASSERT(m_mapCredentials.end() != it);
 //        OTCredential * pCredential = (*it).second;
 //        OT_ASSERT(NULL != pCredential);
-//        // -----------------------------
-//        OTString strSigningKey;
+
+		//        OTString strSigningKey;
 //
 //        if (const_cast<OTKeypair &>(pCredential->GetSignKeypair(&m_listRevokedIDs)).GetPublicKey(strSigningKey, false)) //bEscaped
 //            return m_pkeypair->SetPublicKey(strSigningKey, false); // bEscaped
 //        else
-//            OTLog::vError("%s: Failed in call to pCredential->GetPublicSignKey().GetPublicKey()\n", __FUNCTION__);
-        // -----------------------------
-        return true;
+//            otErr << "%s: Failed in call to pCredential->GetPublicSignKey().GetPublicKey()\n", __FUNCTION__);
+
+		return true;
 
         // NOTE: LoadPublicKey (this function) calls LoadCredentials (above.) On the server side, these are
         // public credentials which do not contain keys, per se. Instead, it contains a single variable which in
@@ -3444,8 +3424,8 @@ bool OTPseudonym::LoadPublicKey()
         // still expecting things to work the old way -- and these are precisely the sorts of cases I probably want to
         // uncover, so I can convert things over...
     }
-    // ----------------------------
-    // OLD STYLE (below.) Deprecated!
+
+	// OLD STYLE (below.) Deprecated!
 
 
 	OTString strID;
@@ -3457,14 +3437,14 @@ bool OTPseudonym::LoadPublicKey()
 		// the key won't be there.
 		// Therefore I log at level 4, the same level as I log the successful outcome.
         //
-		OTLog::vOutput(4, "%s: Failed load: "
-                      "Apparently this Nym doesn't exist. (Returning.)\n", __FUNCTION__);
+		otLog4 << __FUNCTION__ << ": Failed load: "
+                      "Apparently this Nym doesn't exist. (Returning.)\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
-    const char * szFoldername	= OTFolders::Pubkey().Get();
+
+	const char * szFoldername	= OTFolders::Pubkey().Get();
 	const char * szFilename		= strID.Get();
-	// --------------------------------------------------------------------
+
 	const OTString strFoldername(szFoldername), strFilename(szFilename);
 
 	// This loads up the ascii-armored Public Key.
@@ -3478,19 +3458,19 @@ bool OTPseudonym::LoadPublicKey()
 	{
 		if (!m_pkeypair->LoadPublicKey(strFoldername, strFilename))
 		{
-			OTLog::vError("%s: Although the ascii-armored file (%s%s%s) was read, LoadPublicKey "
-						  "returned false.\n", __FUNCTION__, szFoldername, OTLog::PathSeparator(), szFilename);
+			otErr << __FUNCTION__ << ": Although the ascii-armored file (" << szFoldername <<
+				OTLog::PathSeparator() << szFilename << ") was read, LoadPublicKey returned false.\n";
 			return false;
 		}
 		else
 		{
-			OTLog::vOutput(4, "%s: Successfully loaded public key from file: %s%s%s\n",
-						   __FUNCTION__, szFoldername, OTLog::PathSeparator(), szFilename);
+			otLog4 << __FUNCTION__ << ": Successfully loaded public key from file: "
+				<< szFoldername << OTLog::PathSeparator() << szFilename << "\n";
 		}
 		return true;
 	}
 
-	OTLog::vOutput(2, "%s: Failure.\n", __FUNCTION__);
+	otInfo << __FUNCTION__ << ": Failure.\n";
 	return false;
 }
 
@@ -3508,7 +3488,7 @@ void OTPseudonym::DisplayStatistics(OTString & strOutput)
         strOutput.Concatenate("Req# is %lld for server ID: %s\n",
                               lRequestNumber, strServerID.c_str());
     }
-    // -------------------------------------
+
     FOR_EACH(mapOfHighestNums, m_mapHighTransNo)
     {
         std::string	strServerID = (*it).first;
@@ -3612,7 +3592,7 @@ void OTPseudonym::DisplayStatistics(OTString & strOutput)
         }
         strOutput.Concatenate("%s", "\n");
     }
-    // -----------------------------------------------------------------------
+
     strOutput.Concatenate("==>      Name: %s   %s\n", m_strName.Get(),
                           m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
 	strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
@@ -3642,8 +3622,7 @@ bool OTPseudonym::SavePseudonym()
 		m_strNymfile.Format("%s", nymID.Get());
 	}
 
-	OTLog::vOutput(2, "Saving nym to: %s%s%s\n",
-				   OTFolders::Nym().Get(), OTLog::PathSeparator(), m_strNymfile.Get());
+	otInfo << "Saving nym to: " << OTFolders::Nym() << OTLog::PathSeparator() << m_strNymfile << "\n";
 
 	return this->SavePseudonym(OTFolders::Nym().Get(), m_strNymfile.Get());
 }
@@ -3656,12 +3635,11 @@ bool OTPseudonym::SavePseudonym(const char * szFoldername, const char * szFilena
 
 	OTString strNym;
 	this->SavePseudonym(strNym);
-	// -------------------------------------
+
 	bool bSaved = OTDB::StorePlainString(strNym.Get(), szFoldername, szFilename);
 	if (!bSaved)
-		OTLog::vError("%s: Error saving file: %s%s%s\n", __FUNCTION__,
-					  szFoldername, OTLog::PathSeparator(), szFilename);
-    // --------------------------------------------------------------------
+		otErr << __FUNCTION__ << ": Error saving file: " << szFoldername << OTLog::PathSeparator() << szFilename << "\n";
+
 	return bSaved;
 }
 
@@ -3671,7 +3649,7 @@ bool OTPseudonym::SavePseudonym(std::ofstream & ofs)
 	OTString strNym;
 	this->SavePseudonym(strNym);
 
-	ofs << strNym.Get();
+	ofs << strNym;
 
 	return true;
 }
@@ -3688,7 +3666,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(bool bImporting, //bImporting=true
 
     if (NULL == pImportPassword)
     {
-        // ----------------------------------------------------
+
         // whether import/export, this display string is for the OUTSIDE OF WALLET
         // portion of that process.
         //
@@ -3702,31 +3680,31 @@ bool OTPseudonym::ReEncryptPrivateCredentials(bool bImporting, //bImporting=true
 
         if (NULL == pExportPassphrase)
         {
-            OTLog::vError("%s: Failed in GetPassphraseFromUser.\n", __FUNCTION__);
+			otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
             return false;
         }
-        // ----------------------------------------
-//      OTLog::vOutput(0, "%s: DEBUGGING pExportPassphrase, size %d, contains: %s \n",
+
+//      otOut << "%s: DEBUGGING pExportPassphrase, size %d, contains: %s \n",
 //                     __FUNCTION__, pExportPassphrase->getPasswordSize(), pExportPassphrase->getPassword());
     }
     else
     {
         pExportPassphrase = pImportPassword;
 
-//      OTLog::vOutput(0, "%s: DEBUGGING pImportPassword, size %d, contains: %s \n",
+//      otOut << "%s: DEBUGGING pImportPassword, size %d, contains: %s \n",
 //                     __FUNCTION__, pImportPassword->getPasswordSize(), pImportPassword->getPassword());
     }
-    // ****************************************************
+
 
     FOR_EACH(mapOfCredentials, m_mapCredentials)
     {
         OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         if (false == pCredential->ReEncryptPrivateCredentials(*pExportPassphrase, bImporting))
             return false;
     }
-    // ----------------------------------------------------
+
     return true;
 }
 
@@ -3750,17 +3728,17 @@ void OTPseudonym::GetPublicCredentials(OTString & strCredList, mapOfStrings * pm
                             m_strVersion.Get(),
                             strNymID.Get()
                             );
-    // ----------------------------------------------------
+
     this->SerializeNymIDSource(strCredList);
-    // ----------------------------------------------------
+
     FOR_EACH(mapOfCredentials, m_mapCredentials)
     {
         OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         pCredential->SerializeIDs(strCredList, m_listRevokedIDs, pmapCredFiles); // bShowRevoked=false by default, bValid=true by default. (True since we're looping m_mapCredentials only, and not m_mapRevoked.)
     }
-    // ----------------------------------------------------
+
     strCredList.Concatenate("</OTuser>\n");
 }
 
@@ -3778,18 +3756,18 @@ void OTPseudonym::GetPrivateCredentials(OTString & strCredList, mapOfStrings * p
                             m_strVersion.Get(),
                             strNymID.Get()
                             );
-    // ----------------------------------------------------
+
     this->SerializeNymIDSource(strCredList);
-    // ----------------------------------------------------
+
     this->SaveCredentialsToString(strCredList, NULL, pmapCredFiles);
-    // ----------------------------------------------------
+
     strCredList.Concatenate("</OTuser>\n");
 }
 
 
 void OTPseudonym::SerializeNymIDSource(OTString & strOutput)
 {
-    // ----------------------------------
+
     // We encode these before storing.
     if (m_strSourceForNymID.Exists())
     {
@@ -3823,11 +3801,11 @@ void OTPseudonym::SaveCredentialListToString(OTString & strOutput)
                           m_strVersion.Get(),
                           strNymID.Get()
                           );
-    // ----------------------------------------------------
+
     this->SerializeNymIDSource(strOutput);
-    // ----------------------------------------------------
+
     this->SaveCredentialsToString(strOutput);
-    // ----------------------------------------------------
+
     strOutput.Concatenate("</OTuser>\n");
 }
 
@@ -3836,7 +3814,7 @@ bool OTPseudonym::SaveCredentialList()
 {
 	OTString strNymID, strOutput;
 	this->GetIdentifier(strNymID);
-    // ----------------------------------------------------
+
     this->SaveCredentialListToString(strOutput);
 
     if (strOutput.Exists())
@@ -3846,7 +3824,7 @@ bool OTPseudonym::SaveCredentialList()
         if (ascOutput.WriteArmoredString(strOutput, "CREDENTIAL LIST") && // bEscaped=false by default.
             strOutput.Exists())
         {
-            // ----------------------------------------------------
+
             // Save it to local storage.
             OTString strFilename;
             strFilename.Format("%s.cred", strNymID.Get());
@@ -3855,11 +3833,11 @@ bool OTPseudonym::SaveCredentialList()
 
             if (false == OTDB::StorePlainString(strOutput.Get(), str_Folder, strFilename.Get()))
             {
-                OTLog::vError("%s: Failure trying to store %s credential list for Nym: %s\n",
-                              __FUNCTION__, this->HasPrivateKey() ? "private" : "public", strNymID.Get());
+				otErr << __FUNCTION__ << ": Failure trying to store " <<
+					(this->HasPrivateKey() ? "private" : "public") << " credential list for Nym: " << strNymID << "\n";
                 return false;
             }
-            // ----------------------------------------------------
+
             return true;
         }
     }
@@ -3875,19 +3853,19 @@ bool OTPseudonym::LoadCredentials(bool bLoadPrivate/*=false*/, // Loads public c
                                   OTPassword * pImportPassword/*=NULL*/)
 {
     OTString strReason(NULL == pPWData ? OT_PW_DISPLAY : pPWData->GetDisplayString());
-	// --------------------------------------------------------------------
+
     this->ClearCredentials();
-	// --------------------------------------------------------------------
+
 	OTString strNymID;
     this->GetIdentifier(strNymID);
-	// --------------------------------------------------------------------
-    OTString strFilename;
+
+	OTString strFilename;
     strFilename.Format("%s.cred", strNymID.Get());
-	// --------------------------------------------------------------------
-    const char * szFoldername = bLoadPrivate ? OTFolders::Credential().Get() : OTFolders::Pubcred().Get();
+
+	const char * szFoldername = bLoadPrivate ? OTFolders::Credential().Get() : OTFolders::Pubcred().Get();
 	const char * szFilename   = strFilename.Get();
-	// --------------------------------------------------------------------
-    if (OTDB::Exists(szFoldername, szFilename))
+
+	if (OTDB::Exists(szFoldername, szFilename))
     {
         OTString strFileContents(OTDB::QueryPlainString(szFoldername, szFilename));
 
@@ -3919,11 +3897,11 @@ bool OTPseudonym::LoadCredentials(bool bLoadPrivate/*=false*/, // Loads public c
         }
         else
         {
-            OTLog::vError("%s: Failed trying to load credential list from file: %s%s%s\n",
-                           __FUNCTION__, szFoldername, OTLog::PathSeparator(), szFilename);
+			otErr << __FUNCTION__ << ": Failed trying to load credential list from file: "
+				<< szFoldername << OTLog::PathSeparator() << szFilename << "\n";
         }
     }
-    // ---------------------------------------
+
 	return false; // No log on failure, since often this may be used to SEE if credentials exist.
                   // (No need for error message every time they don't exist.)
 }
@@ -3943,22 +3921,22 @@ void OTPseudonym::SaveCredentialsToString(OTString     & strOutput,
 						   "/>\n\n",
 						   str_revoked_id.c_str());
     }
-    // -------------------------------------
+
     // Serialize master and sub-credentials here.
     FOR_EACH(mapOfCredentials, m_mapCredentials)
     {
         OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         pCredential->SerializeIDs(strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true); // bShowRevoked=false by default (true here), bValid=true
     }
-    // -------------------------------------
+
     // Serialize Revoked master credentials here, including their subkeys.
     FOR_EACH(mapOfCredentials, m_mapRevoked)
     {
         OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         pCredential->SerializeIDs(strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true, false); // bShowRevoked=false by default. (Here it's true.) bValid=true by default. Here is for revoked, so false.
     }
 	// *************************************************************************
@@ -3991,9 +3969,9 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 						   );
 	// *************************************************************************
 
-    // ----------------------------------------------------
+
     this->SerializeNymIDSource(strNym);
-    // ----------------------------------------------------
+
 
     // For now I'm saving the credential list to a separate file. (And then of course,
     // each credential also gets its own file.) We load the credential list file,
@@ -4019,7 +3997,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 						   lRequestNum
 						   );
 	}
-	// -------------------------------------
+
 	int64_t lHighestNum;
 
 	FOR_EACH(mapOfHighestNums, m_mapHighTransNo)
@@ -4035,7 +4013,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 						   lHighestNum
 						   );
 	}
-	// -------------------------------------
+
     // When you delete a Nym, it just marks it.
     // Actual deletion occurs during maintenance sweep (targeting marked nyms...)
     //
@@ -4043,7 +4021,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
         strNym.Concatenate("<MARKED_FOR_DELETION>\n"
                            "%s</MARKED_FOR_DELETION>\n\n",
                            "THIS NYM HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
-	// -------------------------------------
+
 	int64_t lTransactionNumber = 0;
 
 	FOR_EACH(mapOfTransNums, m_mapTransNum)
@@ -4090,7 +4068,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
 
 	lTransactionNumber = 0;
 
@@ -4138,7 +4116,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
 
 	lTransactionNumber = 0;
 
@@ -4187,7 +4165,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 
 	} // for
 
-	// -------------------------------------
+
 
     // although mapOfTransNums is used, in this case,
     // request numbers are what is actually being stored.
@@ -4240,7 +4218,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 
 	} // for
 
-	// -------------------------------------
+
 
 	if (!(m_dequeMail.empty()))
 	{
@@ -4263,7 +4241,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	}
 
-	// -------------------------------------
+
 
 
 	if (!(m_dequeOutmail.empty()))
@@ -4287,7 +4265,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	}
 
-	// -------------------------------------
+
 
 	if (!(m_dequeOutpayments.empty()))
 	{
@@ -4310,7 +4288,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	}
 
-	// -------------------------------------
+
     // These are used on the server side.
     // (That's why you don't see the server ID saved here.)
     //
@@ -4325,7 +4303,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	}
 
-	// -------------------------------------
+
     // These are used on the server side.
     // (That's why you don't see the server ID saved here.)
     //
@@ -4340,7 +4318,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	}
 
-	// -------------------------------------
+
     // client-side
 	FOR_EACH(mapOfIdentifiers, m_mapNymboxHash)
 	{
@@ -4359,7 +4337,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
     // client-side
 	FOR_EACH(mapOfIdentifiers, m_mapRecentHash)
 	{
@@ -4378,7 +4356,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
     // server-side
     if (!m_NymboxHash.IsEmpty())
     {
@@ -4389,9 +4367,9 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
                            strNymboxHash.Get());
     }
 
-	// -------------------------------------
 
-    // -------------------------------------
+
+
     // client-side
 	FOR_EACH(mapOfIdentifiers, m_mapInboxHash)
 	{
@@ -4410,7 +4388,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
     // client-side
 	FOR_EACH(mapOfIdentifiers, m_mapOutboxHash)
 	{
@@ -4429,7 +4407,7 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 		}
 	} // for
 
-	// -------------------------------------
+
 
 	strNym.Concatenate("</OTuser>\n");
 
@@ -4466,9 +4444,9 @@ const OTCredential * OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex) con
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapCredentials.size())))
     {
-        OTLog::vError("%s: Index out of bounds: %d\n", __FUNCTION__, nIndex);
+		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
-    // --------------------
+
     else
     {
         int32_t nLoopIndex = -1;
@@ -4477,13 +4455,13 @@ const OTCredential * OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex) con
         {
             const OTCredential * pCredential = (*it).second;
             OT_ASSERT(NULL != pCredential);
-            // ---------------------------------
+
             ++nLoopIndex; // 0 on first iteration.
-            // ---------------------------------
-            if (nLoopIndex == nIndex)
+
+			if (nLoopIndex == nIndex)
                 return pCredential;
-            // ---------------------------------
-        }
+
+		}
     }
     return NULL;
 }
@@ -4493,10 +4471,10 @@ const OTCredential * OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex) co
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapRevoked.size())))
     {
-        OTLog::vError("%s: Index out of bounds: %d\n", __FUNCTION__, nIndex);
+		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
-    // --------------------
-    else
+
+	else
     {
         int32_t nLoopIndex = -1;
 
@@ -4504,13 +4482,13 @@ const OTCredential * OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex) co
         {
             const OTCredential * pCredential = (*it).second;
             OT_ASSERT(NULL != pCredential);
-            // ---------------------------------
-            ++nLoopIndex; // 0 on first iteration.
-            // ---------------------------------
-            if (nLoopIndex == nIndex)
+
+			++nLoopIndex; // 0 on first iteration.
+
+			if (nLoopIndex == nIndex)
                 return pCredential;
-            // ---------------------------------
-        }
+
+		}
     }
     return NULL;
 }
@@ -4587,9 +4565,9 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                                  OTPassword   * pImportPassword/*=NULL*/)
 {
 	bool bSuccess = false;
-    // ------------------------------------
+
     ClearAll();  // Since we are loading everything up... (credentials are NOT cleared here. See note in OTPseudonym::ClearAll.)
-    // ------------------------------------
+
 	OTStringXML strNymXML(strNym); // todo optimize
 	irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
 	OT_ASSERT(NULL != xml);
@@ -4602,31 +4580,31 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 //        switch(xml->getNodeType())
 //        {
 //            case(EXN_NONE):
-//                OTLog::Error("ACK NUMS: EXN_NONE --  No xml node. This is usually the node if you did not read anything yet.\n");
+//                otErr << "ACK NUMS: EXN_NONE --  No xml node. This is usually the node if you did not read anything yet.\n";
 //                break;
 //            case(EXN_ELEMENT):
-//                OTLog::Error("ACK NUMS: EXN_ELEMENT -- An xml element such as <foo>.\n");
+//                otErr << "ACK NUMS: EXN_ELEMENT -- An xml element such as <foo>.\n";
 //                break;
 //            case(EXN_ELEMENT_END):
-//                OTLog::Error("ACK NUMS: EXN_ELEMENT_END -- End of an xml element such as </foo>.\n");
+//                otErr << "ACK NUMS: EXN_ELEMENT_END -- End of an xml element such as </foo>.\n";
 //                break;
 //            case(EXN_TEXT):
-//                OTLog::Error("ACK NUMS: EXN_TEXT -- Text within an xml element: <foo> this is the text. <foo>.\n");
+//                otErr << "ACK NUMS: EXN_TEXT -- Text within an xml element: <foo> this is the text. <foo>.\n";
 //                break;
 //            case(EXN_COMMENT):
-//                OTLog::Error("ACK NUMS: EXN_COMMENT -- An xml comment like <!-- I am a comment --> or a DTD definition.\n");
+//                otErr << "ACK NUMS: EXN_COMMENT -- An xml comment like <!-- I am a comment --> or a DTD definition.\n";
 //                break;
 //            case(EXN_CDATA):
-//                OTLog::Error("ACK NUMS: EXN_CDATA -- An xml cdata section like <![CDATA[ this is some CDATA ]]>.\n");
+//                otErr << "ACK NUMS: EXN_CDATA -- An xml cdata section like <![CDATA[ this is some CDATA ]]>.\n";
 //                break;
 //            case(EXN_UNKNOWN):
-//                OTLog::Error("ACK NUMS: EXN_UNKNOWN -- Unknown element.\n");
+//                otErr << "ACK NUMS: EXN_UNKNOWN -- Unknown element.\n";
 //                break;
 //            default:
-//                OTLog::Error("ACK NUMS: default!! -- SHOULD NEVER HAPPEN...\n");
+//                otErr << "ACK NUMS: default!! -- SHOULD NEVER HAPPEN...\n";
 //                break;
 //        }
-//        OTLog::vError("OTPseudonym::LoadFromString: NODE DATA: %s\n", xml->getNodeData());
+//        otErr << "OTPseudonym::LoadFromString: NODE DATA: %s\n", xml->getNodeData());
 
 
 		// strings for storing the data that we want to read out of the file
@@ -4644,22 +4622,22 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 //            switch(xml->getNodeType())
 //            {
 //                case(EXN_NONE):
-//                    OTLog::Error("SKIPPING: EXN_NONE --  No xml node. This is usually the node if you did not read anything yet.\n");
+//                    otErr << "SKIPPING: EXN_NONE --  No xml node. This is usually the node if you did not read anything yet.\n";
 //                    break;
 //                case(EXN_TEXT):
-//                    OTLog::Error("SKIPPING: EXN_TEXT -- Text within an xml element: <foo> this is the text. <foo>.\n");
+//                    otErr << "SKIPPING: EXN_TEXT -- Text within an xml element: <foo> this is the text. <foo>.\n";
 //                    break;
 //                case(EXN_COMMENT):
-//                    OTLog::Error("SKIPPING: EXN_COMMENT -- An xml comment like <!-- I am a comment --> or a DTD definition.\n");
+//                    otErr << "SKIPPING: EXN_COMMENT -- An xml comment like <!-- I am a comment --> or a DTD definition.\n";
 //                    break;
 //                case(EXN_ELEMENT_END):
-//                    OTLog::Error("SKIPPING: EXN_ELEMENT_END -- End of an xml element such as </foo>.\n");
+//                    otErr << "SKIPPING: EXN_ELEMENT_END -- End of an xml element such as </foo>.\n";
 //                    break;
 //                case(EXN_CDATA):
-//                    OTLog::Error("SKIPPING: EXN_CDATA -- An xml cdata section like <![CDATA[ this is some CDATA ]]>.\n");
+//                    otErr << "SKIPPING: EXN_CDATA -- An xml cdata section like <![CDATA[ this is some CDATA ]]>.\n";
 //                    break;
 //                default:
-//                    OTLog::Error("SKIPPING: default!! -- SHOULD NEVER HAPPEN...\n");
+//                    otErr << "SKIPPING: default!! -- SHOULD NEVER HAPPEN...\n";
 //                    break;
 //            }
 
@@ -4667,7 +4645,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
         case irr::io::EXN_ELEMENT:
 			{
                 const OTString strNodeName = xml->getNodeName();
-//              OTLog::vError("PROCESSING EXN_ELEMENT: NODE NAME: %s\n", strNodeName.Get());
+//              otErr << "PROCESSING EXN_ELEMENT: NODE NAME: %s\n", strNodeName.Get());
 
 				if (strNodeName.Compare("OTuser"))
 				{
@@ -4687,45 +4665,43 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					//m_nymID.SetString(UserNymID);
 
 					if (UserNymID.GetLength())
-						OTLog::vOutput(3, "\nLoading user, version: %s NymID:\n%s\n", m_strVersion.Get(), UserNymID.Get());
+						otLog3 << "\nLoading user, version: " << m_strVersion << " NymID:\n" << UserNymID << "\n";
 					bSuccess = true;
 				}
-                // ----------------------------------
-                else if (strNodeName.Compare("nymIDSource"))
+
+				else if (strNodeName.Compare("nymIDSource"))
                 {
-//                  OTLog::Output(3, "Loading nymIDSource...\n");
+//                  otLog3 << "Loading nymIDSource...\n");
                     OTASCIIArmor ascAltLocation = xml->getAttributeValue("altLocation"); // optional.
                     if (ascAltLocation.Exists())
                         ascAltLocation.GetString(m_strAltLocation, false); //bLineBreaks=true by default.
 
                     if (false == OTContract::LoadEncodedTextField(xml, m_strSourceForNymID))
                     {
-                        OTLog::vError("Error in %s line %d: failed loading expected nymIDSource field.\n",
-                                      __FILE__, __LINE__);
+						otErr << "Error in " << __FILE__ << " line " << __LINE__ << ": failed loading expected nymIDSource field.\n";
                         return false; // error condition
                     }
                 }
-                // ----------------------------------
+
                 else if (strNodeName.Compare("revokedCredential"))
 				{
 					const OTString strRevokedID = xml->getAttributeValue("ID");
-                    OTLog::vOutput(3, "revokedCredential ID: %s\n", strRevokedID.Get());
+					otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
                     listOfStrings::iterator iter = std::find(m_listRevokedIDs.begin(), m_listRevokedIDs.end(), strRevokedID.Get());
                     if (iter == m_listRevokedIDs.end()) // It's not already there, so it's safe to add it.
                         m_listRevokedIDs.push_back(strRevokedID.Get()); // todo optimize.
 				}
-                // ----------------------------------
+
                 else if (strNodeName.Compare("masterCredential"))
 				{
 					const OTString strID    = xml->getAttributeValue("ID");
 					const OTString strValid = xml->getAttributeValue("valid");
                     const bool bValid = strValid.Compare("true");
-                    OTLog::vOutput(3, "Loading %s masterCredential ID: %s\n",
-                                   bValid ? "valid" : "invalid", strID.Get());
+					otLog3 << "Loading " << (bValid ? "valid" : "invalid") << " masterCredential ID: " << strID << "\n";
                     OTString strNymID;
                     this->GetIdentifier(strNymID);
                     OTCredential * pCredential = NULL;
-                    // -------------------------
+
                     if (NULL == pMapCredentials) // pMapCredentials is an option that allows you to read credentials from the map instead of from local storage. (While loading the Nym...) In this case, the option isn't being employed...
                         pCredential = OTCredential::LoadMaster(strNymID, strID);
                     else // In this case, it potentially is on the map...
@@ -4733,8 +4709,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                         mapOfStrings::iterator it_cred = pMapCredentials->find(strID.Get());
 
                         if (it_cred == pMapCredentials->end()) // Nope, didn't find it on the map. But if a Map was passed, then it SHOULD have contained all the listed credentials (including the one we're trying to load now.)
-                            OTLog::vError("%s: Expected master credential (%s) on map of credentials, but couldn't find it. (Failure.)\n",
-                                          __FUNCTION__, strID.Get());
+							otErr << __FUNCTION__ << ": Expected master credential (" << strID << ") on map of credentials, but couldn't find it. (Failure.)\n";
                         else // Found it on the map passed in (so no need to load from storage, we'll load from string instead.)
                         {
                             const OTString strMasterCredential((*it_cred).second.c_str());
@@ -4746,11 +4721,10 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                             }
                         }
                     }
-                    // -------------------------
-                    if (NULL == pCredential)
+
+					if (NULL == pCredential)
                     {
-                        OTLog::vError("%s: Failed trying to load Master Credential ID: %s\n",
-                                      __FUNCTION__, strID.Get());
+						otErr << __FUNCTION__ << ": Failed trying to load Master Credential ID: " << strID << "\n";
                         return false;
                     }
                     else // pCredential must be cleaned up or stored somewhere.
@@ -4761,36 +4735,36 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                             pMap->insert(std::pair<std::string, OTCredential *>(strID.Get(), pCredential)); // <=====
                         else
                         {
-                            OTLog::vError("%s: While loading credential (%s), discovered it was already there "
+							otErr << __FUNCTION__ << ": While loading credential (" << strID << "), discovered it was already there "
                                           "on my list, or one with the exact same ID! Therefore, failed "
-                                          "adding this newer one.\n", __FUNCTION__, strID.Get());
+                                          "adding this newer one.\n";
                             delete pCredential; pCredential = NULL;
                             return false;
                         }
                     }
 				}
-                // ----------------------------------
-                else if (strNodeName.Compare("keyCredential"))
+
+				else if (strNodeName.Compare("keyCredential"))
 				{
 					const OTString strID           = xml->getAttributeValue("ID");
 					const OTString strValid        = xml->getAttributeValue("valid"); // If this is false, the ID is already on revokedCredentials list. (FYI.)
 					const OTString strMasterCredID = xml->getAttributeValue("masterID");
                     const bool bValid = strValid.Compare("true");
-                    OTLog::vOutput(3, "Loading %s keyCredential ID: %s\n ...For master credential: %s\n",
-                                   bValid ? "valid" : "invalid", strID.Get(), strMasterCredID.Get());
+					otLog3 << "Loading " << (bValid ? "valid" : "invalid") << " keyCredential ID: " << strID <<
+						"\n ...For master credential: " << strMasterCredID << "\n";
                     OTCredential * pCredential = this->GetMasterCredential(strMasterCredID); // no need to cleanup.
                     if (NULL == pCredential)
                         pCredential = this->GetRevokedCredential(strMasterCredID);
                     if (NULL == pCredential)
                     {
-                        OTLog::vError("%s: While loading keyCredential, failed trying to find expected Master Credential ID: %s\n",
-                                      __FUNCTION__, strMasterCredID.Get());
+						otErr << __FUNCTION__ << ": While loading keyCredential, failed trying to find expected Master Credential ID: "
+							<< strMasterCredID << "\n";
                         return false;
                     }
                     else // We found the master credential that this keyCredential belongs to.
                     {
                         bool bLoaded = false;
-                        // -------------------------
+
                         if (NULL == pMapCredentials) // pMapCredentials is an option that allows you to read credentials from the map instead of from local storage. (While loading the Nym...) In this case, the option isn't being employed...
                             bLoaded = pCredential->LoadSubkey(strID);
                         else // In this case, it potentially is on the map...
@@ -4798,8 +4772,8 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                             mapOfStrings::iterator it_cred = pMapCredentials->find(strID.Get());
 
                             if (it_cred == pMapCredentials->end()) // Nope, didn't find it on the map. But if a Map was passed, then it SHOULD have contained all the listed credentials (including the one we're trying to load now.)
-                                OTLog::vError("%s: Expected keyCredential (%s) on map of credentials, but couldn't find it. (Failure.)\n",
-                                              __FUNCTION__, strID.Get());
+								otErr << __FUNCTION__ << ": Expected keyCredential (" << strID <<
+								") on map of credentials, but couldn't find it. (Failure.)\n";
                             else // Found it on the map passed in (so no need to load from storage, we'll load from string instead.)
                             {
                                 const OTString strSubCredential((*it_cred).second.c_str());
@@ -4807,48 +4781,48 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                                     bLoaded = pCredential->LoadSubkeyFromString(strSubCredential, strID, pImportPassword);
                             }
                         }
-                        // -------------------------
+
                         if (!bLoaded)
                         {
                             OTString strNymID;
                             this->GetIdentifier(strNymID);
-                            OTLog::vError("%s: Failed loading keyCredential %s for master credential %s for Nym %s.\n",
-                                          __FUNCTION__, strID.Get(), strMasterCredID.Get(), strNymID.Get());
+							otErr << __FUNCTION__ << ": Failed loading keyCredential " << strID <<
+								" for master credential " << strMasterCredID << " for Nym " << strNymID << ".\n";
                             return false;
                         }
                     }
 				}
-                // ----------------------------------
+
                 else if (strNodeName.Compare("subCredential"))
 				{
 					const OTString strID           = xml->getAttributeValue("ID");
 					const OTString strValid        = xml->getAttributeValue("valid"); // If this is false, the ID is already on revokedCredentials list. (FYI.)
 					const OTString strMasterCredID = xml->getAttributeValue("masterID");
                     const bool bValid = strValid.Compare("true");
-                    OTLog::vOutput(3, "Loading %s subCredential ID: %s\n ...For master credential: %s\n",
-                                   bValid ? "valid" : "invalid", strID.Get(), strMasterCredID.Get());
+					otLog3 << "Loading " << (bValid ? "valid" : "invalid") << " subCredential ID: " << strID <<
+						"\n ...For master credential: " << strMasterCredID << "\n";
                     OTCredential * pCredential = this->GetMasterCredential(strMasterCredID); // no need to cleanup.
                     if (NULL == pCredential)
                         pCredential = this->GetRevokedCredential(strMasterCredID);
                     if (NULL == pCredential)
                     {
-                        OTLog::vError("%s: While loading subCredential, failed trying to find expected Master Credential ID: %s\n",
-                                      __FUNCTION__, strMasterCredID.Get());
+						otErr << __FUNCTION__ << ": While loading subCredential, failed trying to find expected Master Credential ID: " 
+							<< strMasterCredID << "\n";
                         return false;
                     }
                     else // We found the master credential that this subCredential belongs to.
                     {
                         bool bLoaded = false;
-                        // -------------------------
-                        if (NULL == pMapCredentials) // pMapCredentials is an option that allows you to read credentials from the map instead of from local storage. (While loading the Nym...) In this case, the option isn't being employed...
+
+						if (NULL == pMapCredentials) // pMapCredentials is an option that allows you to read credentials from the map instead of from local storage. (While loading the Nym...) In this case, the option isn't being employed...
                             bLoaded = pCredential->LoadSubcredential(strID);
                         else // In this case, it potentially is on the map...
                         {
                             mapOfStrings::iterator it_cred = pMapCredentials->find(strID.Get());
 
                             if (it_cred == pMapCredentials->end())// Nope, didn't find it on the map. But if a Map was passed, then it SHOULD have contained all the listed credentials (including the one we're trying to load now.)
-                                OTLog::vError("%s: Expected subCredential (%s) on map of credentials, but couldn't find it. (Failure.)\n",
-                                              __FUNCTION__, strID.Get());
+								otErr << __FUNCTION__ << ": Expected subCredential (" << strID <<
+								") on map of credentials, but couldn't find it. (Failure.)\n";
                             else // Found it on the map passed in (so no need to load from storage, we'll load from string instead.)
                             {
                                 const OTString strSubCredential((*it_cred).second.c_str());
@@ -4856,25 +4830,24 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                                     bLoaded = pCredential->LoadSubcredentialFromString(strSubCredential, strID, pImportPassword);
                             }
                         }
-                        // -------------------------
-                        if (!bLoaded)
+
+						if (!bLoaded)
                         {
                             OTString strNymID;
                             this->GetIdentifier(strNymID);
-                            OTLog::vError("%s: Failed loading subCredential %s for master credential %s for Nym %s.\n",
-                                          __FUNCTION__, strID.Get(), strMasterCredID.Get(), strNymID.Get());
+							otErr << __FUNCTION__ << ": Failed loading subCredential " << strID << " for master credential " 
+								<< strMasterCredID << " for Nym " << strNymID << ".\n";
                             return false;
                         }
                     }
                 }
-                // ----------------------------------
+
 				else if (strNodeName.Compare("requestNum"))
 				{
 					const OTString ReqNumServerID = xml->getAttributeValue("serverID");
 					const OTString ReqNumCurrent  = xml->getAttributeValue("currentRequestNum");
 
-					OTLog::vOutput(3, "\nCurrent Request Number is %s for ServerID: %s\n",
-								   ReqNumCurrent.Get(), ReqNumServerID.Get());
+					otLog3 << "\nCurrent Request Number is " << ReqNumCurrent << " for ServerID: " << ReqNumServerID << "\n";
 
 					// Make sure now that I've loaded this request number, to add it to my
 					// internal map so that it is available for future lookups.
@@ -4884,7 +4857,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 				{
 					const OTString strValue = xml->getAttributeValue("value");
 
-					OTLog::vOutput(3, "\nNymboxHash is: %s\n", strValue.Get());
+					otLog3 << "\nNymboxHash is: " << strValue << "\n";
 
                     if (strValue.Exists())
                         m_NymboxHash.SetString(strValue);
@@ -4894,8 +4867,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString strServerID      = xml->getAttributeValue("serverID");
 					const OTString strNymboxHash    = xml->getAttributeValue("nymboxHash");
 
-					OTLog::vOutput(3, "\nNymboxHash is %s for ServerID: %s\n",
-								   strNymboxHash.Get(), strServerID.Get());
+					otLog3 << "\nNymboxHash is " << strNymboxHash << " for ServerID: " << strServerID << "\n";
 
 					// Make sure now that I've loaded this nymboxHash, to add it to my
 					// internal map so that it is available for future lookups.
@@ -4910,8 +4882,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString strServerID      = xml->getAttributeValue("serverID");
 					const OTString strRecentHash    = xml->getAttributeValue("recentHash");
 
-					OTLog::vOutput(3, "\nRecentHash is %s for ServerID: %s\n",
-								   strRecentHash.Get(), strServerID.Get());
+					otLog3 << "\nRecentHash is " << strRecentHash << " for ServerID: " << strServerID << "\n";
 
 					// Make sure now that I've loaded this RecentHash, to add it to my
 					// internal map so that it is available for future lookups.
@@ -4926,8 +4897,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString strAccountID    = xml->getAttributeValue("accountID");
 					const OTString strHashValue    = xml->getAttributeValue("hashValue");
 
-					OTLog::vOutput(3, "\nInboxHash is %s for Account ID: %s\n",
-								   strHashValue.Get(), strAccountID.Get());
+					otLog3 << "\nInboxHash is " << strHashValue << " for Account ID: " << strAccountID << "\n";
 
 					// Make sure now that I've loaded this InboxHash, to add it to my
 					// internal map so that it is available for future lookups.
@@ -4943,8 +4913,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString strAccountID    = xml->getAttributeValue("accountID");
 					const OTString strHashValue    = xml->getAttributeValue("hashValue");
 
-					OTLog::vOutput(3, "\nOutboxHash is %s for Account ID: %s\n",
-								   strHashValue.Get(), strAccountID.Get());
+					otLog3 << "\nOutboxHash is " << strHashValue << " for Account ID: " << strAccountID << "\n";
 
 					// Make sure now that I've loaded this OutboxHash, to add it to my
 					// internal map so that it is available for future lookups.
@@ -4960,14 +4929,14 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString HighNumServerID = xml->getAttributeValue("serverID");
 					const OTString HighNumRecent = xml->getAttributeValue("mostRecent");
 
-					OTLog::vOutput(3, "\nHighest Transaction Number ever received is %s for ServerID: %s\n",
-								   HighNumRecent.Get(), HighNumServerID.Get());
+					otLog3 << "\nHighest Transaction Number ever received is " << HighNumRecent << 
+						" for ServerID: " << HighNumServerID << "\n";
 
 					// Make sure now that I've loaded this highest number, to add it to my
 					// internal map so that it is available for future lookups.
 					m_mapHighTransNo[HighNumServerID.Get()] = atol(HighNumRecent.Get());
 				}
-                // ----------------------------------------------
+
 
                 else if (strNodeName.Compare("transactionNums"))
                 {
@@ -4975,7 +4944,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     OTString strTemp;
                     if (!tempServerID.Exists() || !OTContract::LoadEncodedTextField(xml, strTemp))
                     {
-                        OTLog::vError("%s: Error: transactionNums field without value.\n", __FUNCTION__);
+						otErr << __FUNCTION__ << ": Error: transactionNums field without value.\n";
                         return false; // error condition
                     }
                     OTNumList theNumList;
@@ -4987,14 +4956,12 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     while(theNumList.Peek(lTemp))
                     {
                         theNumList.Pop();
-                        // ------------
-                        OTLog::vOutput(3, "Transaction Number %lld ready-to-use for ServerID: %s\n",
-                                       lTemp, tempServerID.Get());
+
+						otLog3 << "Transaction Number " << lTemp << " ready-to-use for ServerID: " << tempServerID << "\n";
                         AddTransactionNum(tempServerID, lTemp); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
                     }
                 }
 
-                // ----------------------------------------------
 
                 else if (strNodeName.Compare("issuedNums"))
                 {
@@ -5002,7 +4969,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     OTString strTemp;
                     if (!tempServerID.Exists() || !OTContract::LoadEncodedTextField(xml, strTemp))
                     {
-                        OTLog::vError("%s: Error: issuedNums field without value.\n", __FUNCTION__);
+						otErr << __FUNCTION__ << ": Error: issuedNums field without value.\n";
                         return false; // error condition
                     }
                     OTNumList theNumList;
@@ -5014,14 +4981,12 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     while(theNumList.Peek(lTemp))
                     {
                         theNumList.Pop();
-                        // ------------
-                        OTLog::vOutput(3, "Currently liable for issued trans# %lld at ServerID: %s\n",
-                                       lTemp, tempServerID.Get());
+
+						otLog3 << "Currently liable for issued trans# " << lTemp << " at ServerID: " << tempServerID << "\n";
                         AddIssuedNum(tempServerID, lTemp); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
                     }
                 }
 
-                // ----------------------------------------------
 
                 else if (strNodeName.Compare("tentativeNums"))
                 {
@@ -5029,7 +4994,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     OTString strTemp;
                     if (!tempServerID.Exists() || !OTContract::LoadEncodedTextField(xml, strTemp))
                     {
-                        OTLog::Error("OTPseudonym::LoadFromString: Error: tentativeNums field without value.\n");
+                        otErr << "OTPseudonym::LoadFromString: Error: tentativeNums field without value.\n";
                         return false; // error condition
                     }
                     OTNumList theNumList;
@@ -5041,15 +5006,13 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     while(theNumList.Peek(lTemp))
                     {
                         theNumList.Pop();
-                        // ------------
-                        OTLog::vOutput(3, "Tentative: Currently awaiting success notice, "
-                                       "for accepting trans# %lld for ServerID: %s\n",
-                                       lTemp, tempServerID.Get());
+
+						otLog3 << "Tentative: Currently awaiting success notice, "
+							"for accepting trans# " << lTemp << " for ServerID: " << tempServerID << "\n";
                         AddTentativeNum(tempServerID, lTemp); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
                     }
                 }
 
-                // ----------------------------------------------
 
                 else if (strNodeName.Compare("ackNums"))
                 {
@@ -5057,22 +5020,21 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     OTString strTemp;
                     if (!tempServerID.Exists())
                     {
-                        OTLog::vError("%s: Error: While loading ackNums "
-                                      "field: Missing serverID. Nym contents:\n\n%s\n\n",
-                                      __FUNCTION__, strNym.Get());
+						otErr << __FUNCTION__ << ": Error: While loading ackNums "
+							"field: Missing serverID. Nym contents:\n\n" << strNym << "\n\n";
                         return false; // error condition
                     }
-                    // ----------------------
+
 
 //                  xml->read(); // there should be a text field next, with the data for the list of acknowledged numbers.
                     // Note: I think I was forced to add this when the numlist was empty, one time, so this may come back
                     // to haunt me, but I want to fix it right, not kludge it.
-                    //
-                    // ----------------------
+
+
                     if (!OTContract::LoadEncodedTextField(xml, strTemp))
                     {
-                        OTLog::vError("%s: Error: ackNums field without value "
-                                      "(at least, unable to LoadEncodedTextField on that value.)\n", __FUNCTION__);
+						otErr << __FUNCTION__ << ": Error: ackNums field without value "
+                                      "(at least, unable to LoadEncodedTextField on that value.)\n";
                         return false; // error condition
                     }
                     OTNumList theNumList;
@@ -5084,14 +5046,13 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     while(theNumList.Peek(lTemp))
                     {
                         theNumList.Pop();
-                        // ------------
-                        OTLog::vOutput(2, "Acknowledgment record exists for server reply, for Request Number %lld for ServerID: %s\n",
-                                       lTemp, tempServerID.Get());
+
+						otInfo << "Acknowledgment record exists for server reply, for Request Number "
+							<< lTemp << " for ServerID: " << tempServerID << "\n";
                         AddAcknowledgedNum(tempServerID, lTemp); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
                     }
                 }
 
-                // ----------------------------------------------
 
                 // THE BELOW FOUR ARE DEPRECATED, AND ARE REPLACED BY THE ABOVE FOUR.
 
@@ -5100,8 +5061,7 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString TransNumServerID  = xml->getAttributeValue("serverID");
 					const OTString TransNumAvailable = xml->getAttributeValue("transactionNum");
 
-					OTLog::vOutput(3, "Transaction Number %s available for ServerID: %s\n",
-								   TransNumAvailable.Get(), TransNumServerID.Get());
+					otLog3 << "Transaction Number " << TransNumAvailable << " available for ServerID: " << TransNumServerID << "\n";
 
 					AddTransactionNum(TransNumServerID, atol(TransNumAvailable.Get())); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
 				}
@@ -5110,8 +5070,8 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString TransNumServerID  = xml->getAttributeValue("serverID");
 					const OTString TransNumAvailable = xml->getAttributeValue("transactionNum");
 
-					OTLog::vOutput(3, "Currently liable for Transaction Number %s, for ServerID: %s\n",
-								   TransNumAvailable.Get(), TransNumServerID.Get());
+					otLog3 << "Currently liable for Transaction Number " << TransNumAvailable <<
+						", for ServerID: " << TransNumServerID << "\n";
 
 					AddIssuedNum(TransNumServerID, atol(TransNumAvailable.Get())); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
 				}
@@ -5120,8 +5080,8 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString TransNumServerID  = xml->getAttributeValue("serverID");
 					const OTString TransNumAvailable = xml->getAttributeValue("transactionNum");
 
-					OTLog::vOutput(3, "Currently waiting on server success notice, accepting Transaction Number %s, for ServerID: %s\n",
-								   TransNumAvailable.Get(), TransNumServerID.Get());
+					otLog3 << "Currently waiting on server success notice, accepting Transaction Number "
+						<< TransNumAvailable << ", for ServerID: " << TransNumServerID << "\n";
 
 					AddTentativeNum(TransNumServerID, atol(TransNumAvailable.Get())); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
 				}
@@ -5130,18 +5090,18 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 					const OTString AckNumServerID = xml->getAttributeValue("serverID");
 					const OTString AckNumValue    = xml->getAttributeValue("requestNum");
 
-					OTLog::vOutput(3, "Acknowledgment record exists for server reply, for Request Number %s, for ServerID: %s\n",
-								   AckNumValue.Get(), AckNumServerID.Get());
+					otLog3 << "Acknowledgment record exists for server reply, for Request Number "
+						<< AckNumValue << ", for ServerID: " << AckNumServerID << "\n";
 
 					AddAcknowledgedNum(AckNumServerID, atol(AckNumValue.Get())); // This version doesn't save to disk. (Why save to disk AS WE'RE LOADING?)
 				}
-                // -------------------------------------
-                else if (strNodeName.Compare("MARKED_FOR_DELETION"))
+
+				else if (strNodeName.Compare("MARKED_FOR_DELETION"))
 				{
 					m_bMarkForDeletion = true;
-                    OTLog::vOutput(3, "This nym has been MARKED_FOR_DELETION (at some point prior.)\n");
+                    otLog3 << "This nym has been MARKED_FOR_DELETION (at some point prior.)\n";
 				}
-                // -------------------------------------
+
 				else if (strNodeName.Compare("hasOpenCronItem"))
 				{
                     OTString strID = xml->getAttributeValue("ID");
@@ -5150,11 +5110,10 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     {
                         const int64_t lNewID = atol(strID.Get());
                         m_setOpenCronItems.insert(lNewID);
-                        OTLog::vOutput(3, "This nym has an open cron item with ID: %s\n",
-                                       strID.Get());
+						otLog3 << "This nym has an open cron item with ID: " << strID << "\n";
                     }
                     else
-                        OTLog::vOutput(3, "This nym MISSING ID when loading open cron item record.\n");
+                        otLog3 << "This nym MISSING ID when loading open cron item record.\n";
 				}
 				else if (strNodeName.Compare("ownsAssetAcct"))
 				{
@@ -5163,11 +5122,10 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
                     if (strID.Exists())
                     {
                         m_setAccounts.insert(strID.Get());
-                        OTLog::vOutput(3, "This nym has an asset account with the ID: %s\n",
-                                       strID.Get());
+						otLog3 << "This nym has an asset account with the ID: " << strID << "\n";
                     }
                     else
-                        OTLog::vOutput(3, "This nym MISSING asset account ID when loading nym record.\n");
+                        otLog3 << "This nym MISSING asset account ID when loading nym record.\n";
 				}
 				else if (strNodeName.Compare("mailMessage"))
 				{
@@ -5293,14 +5251,14 @@ bool OTPseudonym::LoadFromString(const OTString & strNym,
 				else
 				{
 					// unknown element type
-					OTLog::vError("Unknown element type in %s: %s\n", __FUNCTION__, xml->getNodeName());
+					otErr << "Unknown element type in " << __FUNCTION__ << ": " << xml->getNodeName() << "\n";
 					bSuccess = false;
 				}
 				break;
 			}
 			default:
 			{
-				OTLog::vOutput(5, "Unknown XML type in %s: %s\n", __FUNCTION__, xml->getNodeName());
+				otLog5 << "Unknown XML type in " << __FUNCTION__ << ": " << xml->getNodeName() << "\n";
 				break;
 			}
 		} // switch
@@ -5321,8 +5279,7 @@ bool OTPseudonym::LoadSignedNymfile(OTPseudonym & SIGNER_NYM)
 
 	if (false == theNymfile.LoadFile())
 	{
-		OTLog::vOutput(1, "%s: Failed loading a signed nymfile: %s\n\n",
-                       __FUNCTION__, nymID.Get());
+		otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID << "\n\n";
 	}
 	// We verify:
 	//
@@ -5332,22 +5289,21 @@ bool OTPseudonym::LoadSignedNymfile(OTPseudonym & SIGNER_NYM)
 	//
     else if (false == theNymfile.VerifyFile())
     {
-        OTLog::vError("%s: Failed verifying nymfile: %s\n\n",
-                      __FUNCTION__, nymID.Get());
+		otErr << __FUNCTION__ << ": Failed verifying nymfile: " << nymID << "\n\n";
     }
     else if (false == theNymfile.VerifySignature(SIGNER_NYM))
     {
         OTString strSignerNymID;
         SIGNER_NYM.GetIdentifier(strSignerNymID);
-        OTLog::vError("%s: Failed verifying signature on nymfile: %s\n Signer Nym ID: %s\n",
-                      __FUNCTION__, nymID.Get(), strSignerNymID.Get());
+		otErr << __FUNCTION__ << ": Failed verifying signature on nymfile: "
+			<< nymID << "\n Signer Nym ID: " << strSignerNymID << "\n";
     }
     // NOTE: Comment out the above two blocks if you want to load a Nym without having
     // to verify his information. (For development reasons. Never do that normally.)
-    // -----------------------------------
-    else
+
+	else
 	{
-		OTLog::Output(2, "Loaded and verified signed nymfile. Reading from string...\n");
+		otInfo << "Loaded and verified signed nymfile. Reading from string...\n";
 
 		if (theNymfile.GetFilePayload().GetLength() > 0)
 			return this->LoadFromString(theNymfile.GetFilePayload()); // <====== Success...
@@ -5355,11 +5311,10 @@ bool OTPseudonym::LoadSignedNymfile(OTPseudonym & SIGNER_NYM)
 		{
 			const int64_t lLength = static_cast<int64_t> (theNymfile.GetFilePayload().GetLength());
 
-			OTLog::vError("%s: Bad length (%lld) while loading nymfile: %s\n",
-                          __FUNCTION__, lLength, nymID.Get());
+			otErr << __FUNCTION__ << ": Bad length (" << lLength << ") while loading nymfile: " << nymID << "\n";
 		}
 	}
-    // -----------------------------------
+
 	return false;
 }
 
@@ -5374,7 +5329,7 @@ bool OTPseudonym::SaveSignedNymfile(OTPseudonym & SIGNER_NYM)
 	OTSignedFile	theNymfile(OTFolders::Nym().Get(), strNymID);
 	theNymfile.GetFilename(m_strNymfile);
 
-	OTLog::vOutput(2, "Saving nym to: %s\n", m_strNymfile.Get());
+	otInfo << "Saving nym to: " << m_strNymfile << "\n";
 
 	// First we save this nym to a string...
 	// Specifically, the file payload string on the OTSignedFile object.
@@ -5392,8 +5347,8 @@ bool OTPseudonym::SaveSignedNymfile(OTPseudonym & SIGNER_NYM)
         {
             OTString strSignerNymID;
             SIGNER_NYM.GetIdentifier(strSignerNymID);
-            OTLog::vError("%s: Failed while calling theNymfile.SaveFile() for Nym %s using Signer Nym %s\n",
-                          __FUNCTION__, strNymID.Get(), strSignerNymID.Get());
+			otErr << __FUNCTION__ << ": Failed while calling theNymfile.SaveFile() for Nym " << strNymID <<
+				" using Signer Nym " << strSignerNymID << "\n";
         }
 
 		return bSaved;
@@ -5402,8 +5357,8 @@ bool OTPseudonym::SaveSignedNymfile(OTPseudonym & SIGNER_NYM)
     {
         OTString strSignerNymID;
         SIGNER_NYM.GetIdentifier(strSignerNymID);
-        OTLog::vError("%s: Failed trying to sign and save Nymfile for Nym %s using Signer Nym %s\n",
-                      __FUNCTION__, strNymID.Get(), strSignerNymID.Get());
+		otErr << __FUNCTION__ << ": Failed trying to sign and save Nymfile for Nym " << strNymID <<
+			" using Signer Nym " << strSignerNymID << "\n";
     }
 
 	return false;
@@ -5458,8 +5413,7 @@ bool OTPseudonym::VerifyIssuedNumbersOnNym(OTPseudonym & THE_NYM)
 
 					if (false == VerifyIssuedNum(OTstrServerID, lTransactionNumber))
 					{
-						OTLog::vOutput(0, "OTPseudonym::%s: Issued transaction # %lld from THE_NYM not found on *this.\n",
-									   __FUNCTION__, lTransactionNumber);
+						otOut << "OTPseudonym::" << __FUNCTION__ << ": Issued transaction # " << lTransactionNumber << " from THE_NYM not found on *this.\n";
 
 						return false;
 					}
@@ -5471,8 +5425,8 @@ bool OTPseudonym::VerifyIssuedNumbersOnNym(OTPseudonym & THE_NYM)
 	// Finally, verify that the counts match...
 	if (nNumberOfTransactionNumbers1 != nNumberOfTransactionNumbers2)
 	{
-		OTLog::vOutput(0, "OTPseudonym::%s: Issued transaction # Count mismatch: %d and %d\n",
-					   __FUNCTION__, nNumberOfTransactionNumbers1, nNumberOfTransactionNumbers2);
+		otOut << "OTPseudonym::" << __FUNCTION__ << ": Issued transaction # Count mismatch: " 
+			<< nNumberOfTransactionNumbers1 << " and " << nNumberOfTransactionNumbers2 << "\n";
 
 		return false;
 	}
@@ -5519,8 +5473,7 @@ bool OTPseudonym::VerifyTransactionStatementNumbersOnNym(OTPseudonym & THE_NYM) 
 
 				if (false == THE_NYM.VerifyIssuedNum(OTstrServerID, lTransactionNumber))
 				{
-					OTLog::vOutput(0, "OTPseudonym::%s: Issued transaction # %lld from *this not found on THE_NYM.\n",
-								   __FUNCTION__, lTransactionNumber);
+					otOut << "OTPseudonym::" << __FUNCTION__ << ": Issued transaction # " << lTransactionNumber << " from *this not found on THE_NYM.\n";
 					return false;
 				}
 			}
@@ -5564,24 +5517,22 @@ bool OTPseudonym::LoadNymfile(const char * szFilename/*=NULL*/)
 	{
 		m_strNymfile = szFilename;
 	}
-	// --------------------------------------------------------------------
+
 	if (false == OTDB::Exists(szFoldername, m_strNymfile.Get()))
 	{
-		OTLog::vError("%s: File does not exist: %s%s%s\n", __FUNCTION__,
-					  szFoldername, OTLog::PathSeparator(), m_strNymfile.Get());
+		otErr << __FUNCTION__ << ": File does not exist: " << szFoldername << OTLog::PathSeparator() << m_strNymfile << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
-	//
+
+
 	std::string strFileContents(OTDB::QueryPlainString(szFoldername, m_strNymfile.Get())); // <=== LOADING FROM DATA STORE.
 
 	if (strFileContents.length() < 2)
 	{
-		OTLog::vError("%s: Error reading file: %s%s%s\n", __FUNCTION__,
-					  szFoldername, OTLog::PathSeparator(), m_strNymfile.Get());
+		otErr << __FUNCTION__ << ": Error reading file: " << szFoldername << OTLog::PathSeparator() << m_strNymfile << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
+
 	OTString strRawFile = strFileContents.c_str();
 
 	if (strRawFile.GetLength())
@@ -5596,15 +5547,14 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(const OTString   & strInpu
                                                             OTPassword * pImportPassword/*=NULL*/)
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------------------------------------------------------
+
 	if (!strInput.Exists())
 	{
         const OTString strID(m_nymID);
-		OTLog::vError("%s: strInput does not exist. (Returning false.) ID currently set to: %s\n",
-                      __FUNCTION__, strID.Get());
+		otErr << __FUNCTION__ << ": strInput does not exist. (Returning false.) ID currently set to: " << strID << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
+
     OTString strReason(NULL == pPWData ? OT_PW_DISPLAY : pPWData->GetDisplayString());
 
     return m_pkeypair->LoadCertAndPrivateKeyFromString(strInput, &strReason, pImportPassword);
@@ -5618,7 +5568,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking/*=false*/,
                                             OTPassword * pImportPassword/*=NULL*/)
 {
     OT_ASSERT(NULL != m_pkeypair);
-    // ----------------------------
+
     OTPasswordData thePWData( OT_PW_DISPLAY );
     if (NULL == pPWData)
         pPWData = &thePWData;
@@ -5636,7 +5586,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking/*=false*/,
         OT_ASSERT(m_mapCredentials.end() != it);
         OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         OTString strPubAndPrivCert;
 
         if (const_cast<OTKeypair &>(pCredential->GetSignKeypair(&m_listRevokedIDs)).SaveCertAndPrivateKeyToString(strPubAndPrivCert,
@@ -5646,24 +5596,24 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking/*=false*/,
             const bool bReturnValue = m_pkeypair->LoadCertAndPrivateKeyFromString(strPubAndPrivCert, &strReason, pImportPassword);
 
             if (!bReturnValue)
-                OTLog::vError("%s: Failed in call to m_pkeypair->SetPrivateKey.\n", __FUNCTION__);
+				otErr << __FUNCTION__ << ": Failed in call to m_pkeypair->SetPrivateKey.\n";
 
             return bReturnValue;
         }
-        // -----------------------------
+
     }
-    // ---------------------------------
+
     // OLD STYLE (below) Deprecated.
 
 
 	OTString     strID(m_nymID);
-	// --------------------------------------------------------------------
+
 	std::string  strFoldername	= OTFolders::Cert().Get();
 	std::string  strFilename	= strID.Get();
-	// --------------------------------------------------------------------
-	if (strFoldername.empty()) { OTLog::vError("%s: Error: strFoldername is empty!",__FUNCTION__); OT_FAIL; }
-	if (strFilename.empty())   { OTLog::vError("%s: Error: strFilename is empty!",  __FUNCTION__); OT_FAIL; }
-	// --------------------------------------------------------------------
+
+	if (strFoldername.empty()) { otErr << __FUNCTION__ << ": Error: strFoldername is empty!"; OT_FAIL; }
+	if (strFilename.empty())   { otErr << __FUNCTION__ << ": Error: strFilename is empty!"; OT_FAIL; }
+
 	const bool bExists = OTDB::Exists(strFoldername, strFilename);
 
 	if (!bExists)
@@ -5673,15 +5623,14 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking/*=false*/,
 
 		return false;
 	}
-	// --------------------------------------------------------------------
+
 	else if (m_pkeypair->LoadBothKeysFromCertFile(OTFolders::Cert(), // foldername
                                                   strID,             // filename
                                                   &strReason,
                                                   pImportPassword))
 		return true; // LoadBothKeysFromCertFile has plenty of logs, no need for more at this time here.
-    // ---------------------------------
-    OTLog::vError("%s: Failure, filename: %s%s%s\n", __FUNCTION__,
-                  strFoldername.c_str(), OTLog::PathSeparator(), strFilename.c_str());
+
+	otErr << __FUNCTION__ << ": Failure, filename: " << strFoldername << OTLog::PathSeparator() << strFilename << "\n";
     return false;
 }
 
@@ -5691,10 +5640,10 @@ bool OTPseudonym::DoesCertfileExist(const OTString & strNymID)
 {
     OTString strCredListFile;
     strCredListFile.Format("%s.cred", strNymID.Get());
-	// --------------------------------------------------------------------
+
     return OTDB::Exists(OTFolders::Cert()      .Get(), strNymID       .Get()) || // Old-school.
            OTDB::Exists(OTFolders::Credential().Get(), strCredListFile.Get());   // New-school.
-	// --------------------------------------------------------------------
+
 }
 
 
@@ -5709,7 +5658,7 @@ bool OTPseudonym::CertfileExists()
 bool OTPseudonym::HasPublicKey()
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
     return m_pkeypair->HasPublicKey();
 }
 
@@ -5717,7 +5666,7 @@ bool OTPseudonym::HasPublicKey()
 bool OTPseudonym::HasPrivateKey()
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
     return m_pkeypair->HasPrivateKey();
 }
 
@@ -5727,7 +5676,7 @@ bool OTPseudonym::HasPrivateKey()
 bool OTPseudonym::SetCertificate(const OTString & strCert, bool bEscaped/*=true*/)
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
 	return m_pkeypair->LoadPublicKeyFromCertString(strCert, bEscaped);
 }
 
@@ -5737,7 +5686,7 @@ bool OTPseudonym::SetCertificate(const OTString & strCert, bool bEscaped/*=true*
 bool OTPseudonym::SetPublicKey(const OTString & strKey, bool bEscaped/*=true*/)
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
 	return m_pkeypair->SetPublicKey(strKey, bEscaped);
 }
 
@@ -5746,7 +5695,7 @@ bool OTPseudonym::SetPublicKey(const OTString & strKey, bool bEscaped/*=true*/)
 bool OTPseudonym::SetPublicKey(const OTASCIIArmor & strKey)
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
 	return m_pkeypair->SetPublicKey(strKey);
 }
 
@@ -5757,7 +5706,7 @@ bool OTPseudonym::SetPublicKey(const OTASCIIArmor & strKey)
 bool OTPseudonym::SetPrivateKey(const OTString & strKey, bool bEscaped/*=true*/)
 {
     OT_ASSERT(NULL != m_pkeypair);
-	// --------------------
+
 	return m_pkeypair->SetPrivateKey(strKey, bEscaped);
 }
 
@@ -5767,7 +5716,7 @@ bool OTPseudonym::SetPrivateKey(const OTString & strKey, bool bEscaped/*=true*/)
 bool OTPseudonym::SetPrivateKey(const OTASCIIArmor & strKey)
 {
     OT_ASSERT(NULL != m_pkeypair);
-    // --------------------
+
     return m_pkeypair->SetPrivateKey(strKey);
 }
 
@@ -5780,12 +5729,12 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateAuthKey() const
 
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
 			if(NULL != pCredential) break;
         }
@@ -5797,13 +5746,15 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateAuthKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from where I can pluck a private AUTHENTICATION key, apparently. Instead, using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from where I can pluck a private AUTHENTICATION key, apparently." 
+			" Instead, using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials,"
+			" so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPrivateKey();
     }
 }
@@ -5817,12 +5768,12 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateEncrKey() const
 
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
 			if(NULL != pCredential) break;
         }
@@ -5834,13 +5785,15 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateEncrKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from where I can pluck a private ENCRYPTION key, apparently. Instead, using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from where I can pluck a private ENCRYPTION key, apparently. "
+			"Instead, using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials, "
+			"so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPrivateKey();
     }
 }
@@ -5854,12 +5807,12 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateSignKey() const
 
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
 			if(NULL != pCredential) break;
         }
@@ -5871,13 +5824,15 @@ const OTAsymmetricKey & OTPseudonym::GetPrivateSignKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from where I can pluck a private SIGNING key, apparently. Instead, using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from where I can pluck a private SIGNING key, apparently. Instead,"
+			" using the private key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good"
+			" that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPrivateKey();
     }
 }
@@ -5891,12 +5846,12 @@ const OTAsymmetricKey & OTPseudonym::GetPublicAuthKey() const
 
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
 			if(NULL != pCredential) break;
         }
@@ -5908,13 +5863,15 @@ const OTAsymmetricKey & OTPseudonym::GetPublicAuthKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from which I can pluck a public AUTHENTICATION key, unfortunately. Instead, using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from which I can pluck a public AUTHENTICATION key, unfortunately. Instead,"
+			" using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good"
+			" that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPublicKey();
     }
 }
@@ -5927,12 +5884,12 @@ const OTAsymmetricKey & OTPseudonym::GetPublicEncrKey() const
 		const OTCredential * pCredential = NULL;
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
             if(NULL != pCredential) break;
         }
@@ -5944,13 +5901,15 @@ const OTAsymmetricKey & OTPseudonym::GetPublicEncrKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from which I can pluck a public ENCRYPTION key, unfortunately. Instead, using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from which I can pluck a public ENCRYPTION key, unfortunately. Instead,"
+			" using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good"
+			" that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPublicKey();
     }
 }
@@ -5964,12 +5923,12 @@ const OTAsymmetricKey & OTPseudonym::GetPublicSignKey() const
 
         FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
         {
-			// ------------------
+
             // Todo: If we have some criteria, such as which master or subcredential
             // is currently being employed by the user, we'll use that here to skip
             // through this loop until we find the right one. Until then, I'm just
             // going to return the first one that's valid (not null).
-            // ------------------
+
             pCredential = (*it).second;
 			if(NULL != pCredential) break;
         }
@@ -5981,13 +5940,15 @@ const OTAsymmetricKey & OTPseudonym::GetPublicSignKey() const
     {
         OTString strNymID;
         this->GetIdentifier(strNymID);
-        OTLog::vOutput(1, "%s: This nym (%s) has no credentials from which I can pluck a public SIGNING key, unfortunately. Instead, using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good that I'm having to do this here. Why are there no credentials on this Nym?)\n", __FUNCTION__, strNymID.Get());
+		otWarn << __FUNCTION__ << ": This nym (" << strNymID << ") has no credentials from which I can pluck a public SIGNING key, unfortunately. Instead,"
+			" using the public key on the Nym's keypair (a system which is being deprecated in favor of credentials, so it's not good"
+			" that I'm having to do this here. Why are there no credentials on this Nym?)\n";
     }
 
 //  else // Deprecated.
     {
         OT_ASSERT(NULL != m_pkeypair);
-        // -------
+
         return m_pkeypair->GetPublicKey();
     }
 }
@@ -6004,19 +5965,19 @@ const OTAsymmetricKey & OTPseudonym::GetPublicSignKey() const
 int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys & listOutput, const OTSignature & theSignature, char cKeyType/*='0'*/) const
 {
     OT_ASSERT(NULL != m_pkeypair);
-    // -----------------------------------------------
+
     // Unfortunately, theSignature can only narrow the search down (there may be multiple results.)
     int32_t nCount = 0;
-    // -----------------------------------------------
+
     FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
     {
         const OTCredential * pCredential = (*it).second;
         OT_ASSERT(NULL != pCredential);
-        // -----------------------------
+
         const int32_t nTempCount = pCredential->GetPublicKeysBySignature(listOutput, theSignature, cKeyType);
         nCount += nTempCount;
     }
-    // -----------------------------------------------
+
     return nCount;
 }
 
@@ -6100,7 +6061,7 @@ OTPseudonym::OTPseudonym(const OTString & strNymID) : m_bMarkForDeletion(false),
 void OTPseudonym::ClearCredentials()
 {
     m_listRevokedIDs.clear();
-    // -----------------------------
+
     while (!m_mapCredentials.empty())
     {
         OTCredential * pCredential = m_mapCredentials.begin()->second;
@@ -6108,7 +6069,7 @@ void OTPseudonym::ClearCredentials()
 		delete pCredential;
 		pCredential = NULL;
     }
-    // -----------------------------
+
     while (!m_mapRevoked.empty())
     {
         OTCredential * pCredential = m_mapRevoked.begin()->second;
@@ -6123,46 +6084,46 @@ void OTPseudonym::ClearAll()
 {
     m_mapRequestNum.clear();
     m_mapHighTransNo.clear();
-    // ---------------------------
+
     ReleaseTransactionNumbers();
 //  m_mapTransNum.clear();
 //  m_mapIssuedNum.clear();
 //  m_mapTentativeNum.clear();
 //  m_mapAcknowledgedNum.clear();
-    // ---------------------------
+
     m_mapNymboxHash.clear();
     m_mapRecentHash.clear();
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
-    // ---------------------------
+
     m_setAccounts.clear();
     m_setOpenCronItems.clear();
-    // -----------------------------
+
 	ClearMail();
 	ClearOutmail();
 	ClearOutpayments();
-    // -----------------------------
+
     // We load the Nym twice... once just to load the credentials up from the .cred file, and a second
     // time to load the rest of the Nym up from the Nymfile. LoadFromString calls ClearAll before loading,
     // so there's no possibility of duplicated data on the Nym. And when that happens, we don't want the
     // credentials to get cleared, since we want them to still be there after the rest of the Nym is
     // loaded. So this is commented out.
 //  ClearCredentials();
-    // -----------------------------
+
 }
 
 
 OTPseudonym::~OTPseudonym()
 {
-    // -----------------------------
+
 	ClearAll();
 	ClearCredentials();
-    // -----------------------------
+
     if (NULL != m_pkeypair)
         delete m_pkeypair; // todo: else error
-    // -----------------------------
+
 	m_pkeypair	= NULL;
-    // -----------------------------
+
 }
 
 } // namespace opentxs

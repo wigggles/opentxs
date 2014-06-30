@@ -276,7 +276,7 @@ bool OTPayload::GetEnvelope(OTEnvelope & theEnvelope) const
 	}
 	else
     {
-		OTLog::Error("Invalid Checksum in OTPayload::GetEnvelope\n");
+		otErr << "Invalid Checksum in OTPayload::GetEnvelope\n";
 		return false;
 	}
 }
@@ -312,7 +312,7 @@ bool OTPayload::GetMessagePayload(OTMessage & theMessage) const
 	}
 	else
     {
-		OTLog::Error("Invalid Checksum in OTPayload::GetMessage\n");
+		otErr << "Invalid Checksum in OTPayload::GetMessage\n";
 		return false;
 	}
 }

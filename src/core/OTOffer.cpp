@@ -136,7 +136,7 @@
 
 #include "OTLog.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 // Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid offers and a list of ask offers.)
@@ -276,19 +276,18 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		SetServerID(SERVER_ID);
 		SetAssetID(ASSET_ID);
 		SetCurrencyID(CURRENCY_TYPE_ID);
-		// ------------------------------------
+
 		const OTString strScale	= xml->getAttributeValue("marketScale");
 		const int64_t lScale		= strScale.Exists() ? atol(strScale.Get()) : 0; // if it doesn't exist, the 0 here causes the below error to fire.
 				
 		if (false == isPowerOfTen( lScale ))
 		{
-			OTLog::vOutput(0, "OTOffer::ProcessXMLNode: Failure: marketScale *must* be 1, or a power of 10. Instead I got: %lld.\n",
-						   lScale);
+			otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be 1, or a power of 10. Instead I got: " << lScale << ".\n";
 			return (-1);
 		}
 		else
 			SetScale(lScale);
-		// ------------------------------------
+
 		const OTString strPriceLimit = xml->getAttributeValue("priceLimit");
 		const int64_t lPriceLimit       = strPriceLimit.Exists() ? atol(strPriceLimit.Get()) : 0; // if it doesn't exist, the 0 here causes the below error to fire.
         
@@ -296,52 +295,48 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		if (!strPriceLimit.Exists())
 //      if (lPriceLimit < 1)
 		{
-			OTLog::vOutput(0, "OTOffer::ProcessXMLNode: Failure: priceLimit *must* be provided.\n",
-						   lPriceLimit);
+			otOut << "OTOffer::ProcessXMLNode: Failure: priceLimit *must* be provided(" << lPriceLimit << ").\n";
 			return (-1);
 		}
 		else
 			SetPriceLimit(lPriceLimit);
-		// ------------------------------------
+
 		const OTString strTotal	= xml->getAttributeValue("totalAssetsOnOffer");
 		const int64_t lTotal		= strTotal.Exists() ? atol(strTotal.Get()) : 0; // if it doesn't exist, the 0 here causes the below error to fire.
 		if (lTotal < 1)
 		{
-			OTLog::vOutput(0, "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer *must* be larger than 0. Instead I got: %lld.\n",
-						   lTotal);
+			otOut << "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer *must* be larger than 0. Instead I got: " << lTotal << ".\n";
 			return (-1);
 		}
 		else
 			SetTotalAssetsOnOffer(lTotal);
-		// ------------------------------------
+
 		const OTString strFinished	= xml->getAttributeValue("finishedSoFar");
 		const int64_t lFinished		= strFinished.Exists() ? atol(strFinished.Get()) : 0; // if it doesn't exist, the 0 here causes the below error to fire.
 		if (lFinished < 0)
 		{
-			OTLog::vOutput(0, "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* be 0 or larger. Instead I got: %lld.\n",
-						   lFinished);
+			otOut << "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* be 0 or larger. Instead I got: " << lFinished << ".\n";
 			return (-1);
 		}
 		else
 			SetFinishedSoFar(lFinished);
-		// ------------------------------------
+
 		const OTString	strMinInc	= xml->getAttributeValue("minimumIncrement");
 		const int64_t		lMinInc		= strMinInc.Exists() ? atol(strMinInc.Get()) : 0; // if it doesn't exist, the 0 here causes the below error to fire.
 		if ((lMinInc < 1) || (lMinInc > lTotal)) // Minimum increment cannot logically be higher than the total assets on offer...
 		{
-			OTLog::vOutput(0, "OTOffer::ProcessXMLNode: Failure: minimumIncrement *must* be 1 or larger, \n"
-						   "and must also be less than the total assets on offer. Instead I got: %lld.\n",
-						   lMinInc);
+			otOut << "OTOffer::ProcessXMLNode: Failure: minimumIncrement *must* be 1 or larger, \n"
+				"and must also be less than the total assets on offer. Instead I got: " << lMinInc << ".\n";
 			return (-1);
 		}
 		else
 			SetMinimumIncrement(lMinInc);
-		// -----------------------------------
+
 		const OTString strTransNum = xml->getAttributeValue("transactionNum");
 		const int64_t lTransNum = strTransNum.Exists() ? atol(strTransNum.Get()) : 0;
 		
 		SetTransactionNum(lTransNum);
-		// ----------------------------------------------------------------
+
         const OTString str_valid_from = xml->getAttributeValue("validFrom");
         const OTString str_valid_to   = xml->getAttributeValue("validTo");
         
@@ -350,28 +345,24 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         
 		if ((tValidTo < tValidFrom) && (tValidTo != 0))
 		{
-			OTLog::vOutput(0, "OTOffer::%s: Failure: validTo date (%" PRId64") cannot be earlier than "
-                           "validFrom date (%" PRId64").\n", __FUNCTION__, tValidFrom, tValidTo);
+			otOut << "OTOffer::" << __FUNCTION__ << ": Failure: validTo date (" << tValidFrom << ") cannot be earlier than "
+				"validFrom date (" << tValidTo << ").\n";
 			return (-1);
 		}
-        // ----------------------------------------------------------------
+
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
-		// ----------------------------------------------------------------
-		OTLog::vOutput(4,
-					   "\n\nOffer. Transaction Number: %lld\n Valid From: %" PRId64"\n Valid To: %" PRId64"\n"
-					   " AssetTypeID: %s\n  CurrencyTypeID: %s\n ServerID: %s\n"
-					   " Price Limit: %lld,  Total Assets on Offer: %lld,  %s so far: %lld\n "
-					   " Scale: %lld.   Minimum Increment: %lld.  This offer is a%s.\n", 
-					   m_lTransactionNum, tValidFrom, tValidTo,
-					   strAssetTypeID.Get(), strCurrencyTypeID.Get(), strServerID.Get(),
-					   GetPriceLimit(), GetTotalAssetsOnOffer(),  (m_bSelling ? "sold" : "bought"), 
-					   GetFinishedSoFar(), GetScale(), GetMinimumIncrement(), 
-					   (m_bSelling ? "n ASK" : " BID"));
-        // ----------------------------------------------------------------
+
+		otLog4 << 
+			"\n\nOffer. Transaction Number: " << m_lTransactionNum << "\n Valid From: " << tValidFrom << "\n Valid To: " << tValidTo << "\n"
+			" AssetTypeID: " << strAssetTypeID << "\n  CurrencyTypeID: " << strCurrencyTypeID << "\n ServerID: " << strServerID << "\n"
+			" Price Limit: " << GetPriceLimit() << ",  Total Assets on Offer: " << GetTotalAssetsOnOffer() << ",  " <<
+			(m_bSelling ? "sold" : "bought") << " so far: " << GetFinishedSoFar() << "\n "
+			" Scale: " << GetScale() << ".   Minimum Increment: " << GetMinimumIncrement() << ".  This offer is a" << (m_bSelling ? "n ASK" : " BID") << ".\n";
+
 		nReturnVal = 1;
 	}
-    // ----------------
+
 	return nReturnVal;
 }
 
