@@ -217,7 +217,7 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
 	while (std::isspace(*pChar, loc))
         pChar++;
 
-    // -------------------------------------
+
     bool bStartedANumber = false; // During the loop, set this to true when processing a digit, and set to false when anything else. That way when we go to add the number to the list, and it's "0", we'll know it's a real number we're supposed to add, and not just a default value.
 
     for (;;) // We already know it's not null, due to the assert. (So at least one iteration will happen.)
@@ -241,28 +241,27 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
                     bSuccess = false; // We still go ahead and try to add them all, and then return this sort of status when it's all done.
                 }
             }
-            // ------------------
+
             lNum = 0;   // reset for the next transaction number (in the comma-separated list.)
             bStartedANumber = false; // reset
         }
         else
         {
-            OTLog::vError("OTNumList::Add: Error: Unexpected character found in erstwhile comma-separated list of longs: %c\n",
-                          *pChar);
+			otErr << "OTNumList::Add: Error: Unexpected character found in erstwhile comma-separated list of longs: " << *pChar << "\n";
             bSuccess = false;
             break;
         }
-        // ---------------------------------
+
         // End of the road.
         if ('\0' == *pChar)
             break;
-        // -----------
+
         pChar++;
-        // -----------
+
         // Skip any whitespace.
 		while (std::isspace(*pChar, loc))
             pChar++;
-        // -------------------------------------
+
     } // while
 
     return bSuccess;
@@ -357,14 +356,14 @@ bool OTNumList::Verify(const OTNumList & rhs) const
     //
     if (this->Count() != rhs.Count())
         return false;
-    // -------------------
+
 
     // Verify each value on *this is also found on rhs.
     //
     FOR_EACH(std::set<int64_t>, m_setData)
     {
         const int64_t lValue = *it;
-        // ----------
+
         if (false == rhs.Verify(lValue))
             return false;
     }
@@ -388,13 +387,13 @@ bool OTNumList::VerifyAny(const std::set<int64_t> & setData) const
     FOR_EACH_CONST(std::set<int64_t>, m_setData)
     {
         const int64_t lValue = *it;
-        // ----------
+
         std::set<int64_t>::const_iterator it_find = setData.find(lValue);
 
         if (it_find != setData.end()) // found a match.
             return true;
     }
-    // -----------
+
     return false;
 }
 
@@ -461,7 +460,7 @@ bool OTNumList::Output(OTString & strOutput) const // returns false if the numli
     {
         const int64_t lValue = *it;
         nIterationCount ++;
-        // ----------
+
 
         strOutput.Concatenate("%s%lld",
                               // If first iteration, prepend a blank string (instead of a comma.)

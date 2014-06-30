@@ -152,7 +152,7 @@
 #include "OTCredential.hpp"
 #include "OTLog.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -176,20 +176,20 @@ int32_t OTMasterkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	if (0 != nReturnVal)
        return nReturnVal;
 	// else it was 0 (continue...)
-    // --------------------------------------------------
+
     const OTString strNodeName(xml->getNodeName());
-    // --------------------------------------------------
+
 	if (strNodeName.Compare("masterCredential"))
 	{
 		m_strNymID = xml->getAttributeValue("nymID");
 
 		m_strMasterCredID.Release();
 		
-		OTLog::Output(1, "Loading masterCredential...\n");
+		otWarn << "Loading masterCredential...\n";
 		
 		nReturnVal = 1;
 	}
-	// ----------------------------------
+
 	return nReturnVal;
 }
 
@@ -207,14 +207,14 @@ void OTMasterkey::UpdateContents()
         ascSource.SetString(this->GetNymIDSource()); // A nym should always verify through its own source. (Whatever that may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n", ascSource.Get());
     }
-    // --------------------------------------------
+
     // PUBLIC INFO
     //
 //  if (OTSubcredential::credPublicInfo == m_StoreAs)   // PUBLIC INFO  (Always save this in every state.)
     {        
         this->UpdatePublicContentsToString(m_xmlUnsigned);
     }
-	// -------------------------------------------------
+
     // PRIVATE INFO
     //
     // If we're saving the private credential info...
@@ -222,12 +222,12 @@ void OTMasterkey::UpdateContents()
     if (OTSubcredential::credPrivateInfo == m_StoreAs)   // PRIVATE INFO
     {
         this->UpdatePublicCredentialToString(m_xmlUnsigned);
-        // -------------------------------------
+
         this->UpdatePrivateContentsToString(m_xmlUnsigned);
     }
 	// -------------------------------------------------	
 	m_xmlUnsigned.Concatenate("</masterCredential>\n");
-    // --------------------------------------------
+
     m_StoreAs = OTSubcredential::credPrivateInfo;  // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state processes ONCE, and then goes back to this again.
 }
 
@@ -248,17 +248,17 @@ bool OTMasterkey::VerifyInternally()
 //      return false;
     if (false == this->VerifyNymID())
         return false;
-    // ---------------------------------------
+
     OT_ASSERT(NULL != m_pOwner);
     // Verify that *this == m_pOwner->GetMasterkey() (the master credential.)
     //
     if (this != &(m_pOwner->GetMasterkey()))
     {
-        OTLog::vOutput(0, "%s: Failure: Expected *this object to be the same as m_pOwner->GetMasterkey(), "
-                       "but it wasn't.\n", __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failure: Expected *this object to be the same as m_pOwner->GetMasterkey(), "
+                       "but it wasn't.\n";
         return false;
     }
-    // ---------------------------------------
+
     // Remember this note above: ...if we need anything else that OTKeyCredential::VerifyInternally
     // was doing, we will have to duplicate that here as well...
     // Since we aren't calling OTKeyCredential::VerifyInternally (the super) and since that function
@@ -268,11 +268,10 @@ bool OTMasterkey::VerifyInternally()
     //
     if (false == this->VerifySignedBySelf())
     {
-        OTLog::vOutput(0, "%s: Failed verifying master credential: it's not signed by itself (its own signing key.)\n",
-                       __FUNCTION__);
+		otOut << __FUNCTION__ << ": Failed verifying master credential: it's not signed by itself (its own signing key.)\n";
         return false;
     }
-    // ---------------------------------------
+
     return true;
 }
 
@@ -306,9 +305,9 @@ bool OTMasterkey::VerifyAgainstSource() const
     // credentials can be verified (as well as subcredentials) from any source
     // the user prefers.
     //
-    // ---------------------------------
+
     bool bVerified = false;
-    // ---------------------------------
+
     const std::string str_raw_source(m_strSourceForNymID.Get());
     std::string str_source;
     
@@ -364,7 +363,7 @@ bool OTMasterkey::VerifyAgainstSource() const
         str_source = str_raw_source;
         bVerified = this->VerifySource_Pubkey(str_source.c_str());
     }
-    // -----------------------------------------------------------------
+
     return bVerified;
 }
 
@@ -377,13 +376,12 @@ bool OTMasterkey::VerifySource_HTTP(const OTString) const
      If so, then I verify.
      */
     
-    OTLog::vError("%s: Failure: this function has not yet been written, so this HTTP source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this HTTP source cannot be verified.\n";
 //    return false;
     
     // Todo security
-    OTLog::vError("\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTP source had verified."
-                  "\n\n\n ----------------------- \n\n");
+    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTP source had verified."
+                  "\n\n\n ----------------------- \n\n";
 
     return true;
 }
@@ -397,13 +395,12 @@ bool OTMasterkey::VerifySource_HTTPS(const OTString) const
      If so, then I verify.
      */
 
-    OTLog::vError("%s: Failure: this function has not yet been written, so this HTTPS source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this HTTPS source cannot be verified.\n";
 //    return false;
 
     // Todo security
-    OTLog::vError("\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTPS source had verified."
-                  "\n\n\n ----------------------- \n\n");
+    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTPS source had verified."
+                  "\n\n\n ----------------------- \n\n";
     
     return true;
 }
@@ -420,13 +417,12 @@ bool OTMasterkey::VerifySource_Bitcoin(const OTString) const
      If so, then I verify.
      */
 
-    OTLog::vError("%s: Failure: this function has not yet been written, so this Bitcoin source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this Bitcoin source cannot be verified.\n";
 //    return false;
 
     // Todo security
-    OTLog::vError("\nNOTE: Returning TRUE for TESTING PURPOSES, as if Bitcoin had verified."
-                  "\n\n\n ----------------------- \n\n");
+    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if Bitcoin had verified."
+                  "\n\n\n ----------------------- \n\n";
     
     return true;
 }
@@ -440,13 +436,12 @@ bool OTMasterkey::VerifySource_Namecoin(const OTString) const
      If so, then I verify.
      */
 
-    OTLog::vError("%s: Failure: this function has not yet been written, so this Namecoin source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this Namecoin source cannot be verified.\n";
 //    return false;
 
     // Todo security
-    OTLog::vError("\nNOTE: Returning TRUE for TESTING PURPOSES, as if Namecoin had verified."
-                  "\n\n\n ----------------------- \n\n");
+    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if Namecoin had verified."
+                  "\n\n\n ----------------------- \n\n";
     
     return true;
 }
@@ -454,24 +449,21 @@ bool OTMasterkey::VerifySource_Namecoin(const OTString) const
 
 bool OTMasterkey::VerifySource_Freenet(const OTString) const
 {
-    OTLog::vError("%s: Failure: this function has not yet been written, so this Freenet source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this Freenet source cannot be verified.\n";
     return false;
 }
 
 
 bool OTMasterkey::VerifySource_TOR(const OTString) const
 {
-    OTLog::vError("%s: Failure: this function has not yet been written, so this Tor source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this Tor source cannot be verified.\n";
     return false;
 }
 
 
 bool OTMasterkey::VerifySource_I2P(const OTString) const
 {
-    OTLog::vError("%s: Failure: this function has not yet been written, so this I2P source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this I2P source cannot be verified.\n";
     return false;
 }
 
@@ -486,8 +478,7 @@ bool OTMasterkey::VerifySource_CA(const OTString) const
      Then it verifies.
      */
     
-    OTLog::vError("%s: Failure: this function has not yet been written, so this CA source cannot be verified.\n",
-                  __FUNCTION__);
+	otErr << __FUNCTION__ << ": Failure: this function has not yet been written, so this CA source cannot be verified.\n";
     return false;
 }
 

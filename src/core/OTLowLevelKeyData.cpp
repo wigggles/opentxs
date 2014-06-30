@@ -194,7 +194,7 @@ void OTLowLevelKeyData::Cleanup()
 
 bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
 {
-    // ---------------------------------------
+
 //	OpenSSL_BIO		bio_err	=	NULL;
 	X509		*	x509	=	NULL;
 	EVP_PKEY	*	pNewKey	=	NULL;
@@ -207,10 +207,10 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
 	// Note: 512 bit key CRASHES
 	// 1024 is apparently a minimum requirement, if not an only requirement.
 	// Will need to go over just what sorts of keys are involved here... todo.
-	// ------------------------------------------------------------
+
 	if (NULL == x509)
 	{
-		OTLog::vError("%s: Failed attempting to generate new x509 cert.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed attempting to generate new x509 cert.\n";
         
 		if (NULL != pNewKey)
 			EVP_PKEY_free(pNewKey);
@@ -218,10 +218,10 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
         
 		return false;
 	}
-	// ---------------------------------------------------------------
+
 	if (NULL == pNewKey)
 	{
-		OTLog::vError("%s: Failed attempting to generate new private key.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Failed attempting to generate new private key.\n";
 		
 		if (NULL != x509)
 			X509_free(x509);
@@ -229,7 +229,7 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
         
 		return false;
 	}
-	// ---------------------------------------------------------------
+
 	// Below this point, x509 and pNewKey will need to be cleaned up properly.
     
     if (m_bCleanup)
@@ -252,7 +252,7 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
 //
 //	PEM_write_PrivateKey(stdout, pNewKey, EVP_des_ede3_cbc(), NULL, 0, OTAsymmetricKey::GetPasswordCallback(), &thePWData2);
 //	PEM_write_X509(stdout, x509);
-    // ---------------------------------------------------------------    
+
 	return true;
 }
 
@@ -261,10 +261,10 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair & theKeypair)
 {
     OT_ASSERT(NULL != dp->m_pKey);
     OT_ASSERT(NULL != dp->m_pX509);
-    // ----------------------------------------------
+
     OT_ASSERT(NULL != theKeypair.m_pkeyPublic);
     OT_ASSERT(NULL != theKeypair.m_pkeyPrivate);
-    // ----------------------------------------------
+
     // Since we are in OpenSSL-specific code, we have to make sure these are
     // OpenSSL-specific keys.
     //
@@ -273,15 +273,15 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair & theKeypair)
     
     if (NULL == pPublicKey)
     {
-        OTLog::vError("%s: dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPublic)\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPublic)\n";
         return false;
     }
     if (NULL == pPrivateKey)
     {
-        OTLog::vError("%s: dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPrivate)\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPrivate)\n";
         return false;
     }
-    // ----------------------------------------------
+
     // Now we can call OpenSSL-specific methods on these keys...
     //
     pPublicKey-> SetAsPublic();

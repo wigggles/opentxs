@@ -165,13 +165,13 @@ OTNym_or_SymmetricKey::~OTNym_or_SymmetricKey()
     // for this one or that.
     //
     m_pNym       = NULL;
-    // -------------
+
     m_pKey       = NULL;
-    // -------------
+
     if (m_bCleanupPassword && (NULL != m_pPassword))
         delete m_pPassword;
     m_pPassword  = NULL; // optional
-    // -------------
+
     
     m_pstrDisplay = NULL;
     
@@ -192,7 +192,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(const OTNym_or_SymmetricKey & rhs) 
     // even delete it once.
     //
     m_pNym       = rhs.m_pNym;
-    // -----------------
+
     m_pKey       = rhs.m_pKey;
     m_pPassword  = rhs.m_pPassword; // optional
 
@@ -285,7 +285,7 @@ void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
     if (NULL != m_pPassword)
     {
         m_pPassword->zeroMemory();
-        // -------------
+
         if (m_bCleanupPassword) // Only in cases where *this is the actual owner of m_pPassword.
         {
             delete m_pPassword;
@@ -298,10 +298,10 @@ void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
 bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey & rhs) const
 {
     OTIdentifier idTHIS, idRHS;
-    // --------------------------
+
     this->GetIdentifier(idTHIS);
     rhs.  GetIdentifier(idRHS );
-    // --------------------------
+
     return (idTHIS == idRHS);
 }
 
@@ -349,10 +349,10 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
                                             const OTString   * pstrDisplay/*=NULL*/)
 {
     const char * szFunc = "OTNym_or_SymmetricKey::Open_or_Decrypt";
-    // --------------------------
+
     bool bSuccess                  = false;
     bool bHadToInstantiatePassword = false;
-    // ---------------
+
 	// Decrypt/Open inputEnvelope into strOutput
     //    
     if (this->IsNym()) // *this is a Nym.
@@ -369,15 +369,15 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
         {
             const OTString strDisplay((NULL == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
-            // -------------------------------------------
+
             // returns a text OTPassword, or NULL.
             //
             pPassword = OTSymmetricKey::GetPassphraseFromUser((NULL == m_pstrDisplay) ? &strDisplay : m_pstrDisplay);//bool bAskTwice=false
             
             if (NULL == pPassword) // Unable to retrieve passphrase from user.
             {
-                OTLog::vOutput(0, "%s: Failed trying to retrieve passphrase for key. "
-                               "Returning false.\n", szFunc);
+				otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
+                               "Returning false.\n";
                 return false;
             }
             else // OTNym_or_SymmetricKey stores this, if it creates it.
@@ -385,8 +385,8 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
                  //
                 bHadToInstantiatePassword = true;
         }
-        // -------------------------------------------
-        //
+
+
         bSuccess = (const_cast<OTEnvelope &>(inputEnvelope)).Decrypt(strOutput, *(this->GetKey()), *pPassword);
         
         // We only set this, presuming we have to at all, if it was a success.
@@ -405,7 +405,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
         }
     }
     // else ? should never happen.
-    // -------------------------------------------
+
     return bSuccess;
 }
 
@@ -415,17 +415,17 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
                                             const OTString   * pstrDisplay/*=NULL*/)
 {
     const char * szFunc = "OTNym_or_SymmetricKey::Seal_or_Encrypt";
-    // --------------------------
+
     bool bSuccess                  = false;
     bool bHadToInstantiatePassword = false;
-    // ---------------
+
 	// Encrypt/Seal strInput into outputEnvelope
     //
     if (this->IsNym())
     {
         bSuccess = outputEnvelope.Seal(*(this->GetNym()), strInput);
     }
-    // -------------------------------------------
+
     else if (this->IsKey())
     {
         OTPassword * pPassword = NULL;
@@ -436,15 +436,15 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
         {
             const OTString strDisplay((NULL == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
-            // -------------------------------------------
+
             // returns a text OTPassword, or NULL.
             //
             pPassword = OTSymmetricKey::GetPassphraseFromUser((NULL == m_pstrDisplay) ? &strDisplay : m_pstrDisplay);//bool bAskTwice=false
             
             if (NULL == pPassword) // Unable to retrieve passphrase from user.
             {
-                OTLog::vOutput(0, "%s: Failed trying to retrieve passphrase for key. "
-                               "Returning false.\n", szFunc);
+				otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
+                               "Returning false.\n";
                 return false;
             }
             else // OTNym_or_SymmetricKey stores this, if it creates it.
@@ -452,8 +452,8 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
                  //
                 bHadToInstantiatePassword = true;
         }
-        // -------------------------------------------
-        //
+
+
         bSuccess = outputEnvelope.Encrypt(strInput, *(this->GetKey()), *pPassword);
         
         // We only set this, presuming we have to at all, if it was a success.
@@ -472,7 +472,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
         }
     }
     // else ? should never happen.
-    // -----------------------------------
+
 	return bSuccess;
 }
 
