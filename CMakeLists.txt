@@ -17,13 +17,26 @@ option(BUILD_VERBOSE       "Verbose build output." ON)
 option(BUILD_TESTS         "Build the unit tests." ON)
 
 option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
-option(KEYRING_MAC         "Build with Mac Keyring" OFF)
-option(KEYRING_GNOME       "Build with Gnome OSX Keyring" OFF)
+option(KEYRING_MAC         "Build with Mac OSX Keyring" OFF)
+option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 option(RPM                 "Build a RPM" OFF)
 option(DEB                 "Build a DEB" OFF)
 option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
+
+option(SIGNAL_HANLDER      "Enable Signal Handler" OFF)
+
+#SWIG Bindings
+option(JAVA    "Build with Java binding" OFF)
+option(PERL    "Build with Perl binding" OFF)
+option(PHP     "Build with PHP binding" OFF)
+option(PYTHON  "Build with Python binding" OFF)
+option(RUBY    "Build with Ruby binding" OFF)
+option(TCL     "Build with TCL binding" OFF)
+option(CSHARP  "Build with C# binding" OFF)
+option(D       "Build with D binding" OFF)
+option(GO      "Build with Go binding" OFF)
 
 if(BUILD_VERBOSE)
   set(CMAKE_VERBOSE_MAKEFILE true)
@@ -43,6 +56,16 @@ message(STATUS "Documentation:   	${BUILD_DOCUMENTATION}")
 message(STATUS "Build RPM:       	${RPM}")
 message(STATUS "Build DEB:       	${DEB}")
 message(STATUS "CL autocompletion: 	${AUTOCOMPLETION}")
+
+message(STATUS "Java binding:    ${JAVA}")
+message(STATUS "Perl binding:    ${PERL}")
+message(STATUS "PHP binding:     ${PHP}")
+message(STATUS "Python binding:  ${PYTHON}")
+message(STATUS "Ruby binding:    ${RUBY}")
+message(STATUS "TCL binding:     ${TCL}")
+message(STATUS "C# binding:      ${CSHARP}")
+message(STATUS "D binding:       ${D}")
+message(STATUS "Go binding:      ${GO}")
 
 
 #-----------------------------------------------------------------------------
@@ -194,6 +217,10 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Build source
+
+if(SIGNAL_HANLDER)
+add_definitions(-DOT_SIGNAL_HANDLING)
+endif(SIGNAL_HANLDER)
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
