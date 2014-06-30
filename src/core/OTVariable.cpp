@@ -144,7 +144,7 @@ namespace opentxs {
 void OTVariable::Serialize(OTString & strAppend,
 						   bool bCalculatingID/*=false*/)
 {
-	// ---------------------------------------
+
 	std::string str_access("");
 
 	switch (m_Access) {
@@ -158,10 +158,10 @@ void OTVariable::Serialize(OTString & strAppend,
 			str_access = "important";
 			break;
 		default:
-			OTLog::Error("OTVariable::Serialize:  ERROR:  Bad variable type.\n");
+			otErr << "OTVariable::Serialize:  ERROR:  Bad variable type.\n";
 			break;
 	}
-	// ---------------------------------------
+
 	std::string str_type;
 
 	switch (m_Type) {
@@ -219,10 +219,10 @@ void OTVariable::Serialize(OTString & strAppend,
 			break;
 		default:
 			str_type = "ERROR_VARIABLE_TYPE";
-			OTLog::Error("OTVariable::Serialize: Error, Wrong Type -- not serializing.\n");
+			otErr << "OTVariable::Serialize: Error, Wrong Type -- not serializing.\n";
 			break;
 	}
-	// ---------------------------------------
+
 }
 
 
@@ -308,8 +308,7 @@ bool OTVariable::SetValue(const int32_t & nValue)
 {
 	if (!IsInteger())
 	{
-		OTLog::vError("OTVariable::SetValue(int64_t): Error: This variable (%s) is not an integer.\n",
-					  m_strName.Get());
+		otErr << "OTVariable::SetValue(int64_t): Error: This variable (" << m_strName << ") is not an integer.\n";
 		return false;
 	}
 
@@ -323,8 +322,7 @@ bool OTVariable::SetValue(const bool bValue)
 {
 	if (!IsBool())
 	{
-		OTLog::vError("OTVariable::SetValue(bool): Error: This variable (%s) is not a bool.\n",
-					  m_strName.Get());
+		otErr << "OTVariable::SetValue(bool): Error: This variable (" << m_strName << ") is not a bool.\n";
 		return false;
 	}
 
@@ -338,8 +336,7 @@ bool OTVariable::SetValue(const std::string & str_Value)
 {
 	if (!IsString())
 	{
-		OTLog::vError("OTVariable::SetValue(std::string): Error: This variable (%s) is not a string.\n",
-					  m_strName.Get());
+		otErr << "OTVariable::SetValue(std::string): Error: This variable (" << m_strName << ") is not a string.\n";
 		return false;
 	}
 
@@ -377,7 +374,7 @@ bool OTVariable::IsDirty() const
 				bReturnVal = true;
 			break;
 		default:
-			OTLog::vError("OTVariable::IsDirty: Error: unknown type for variable: %s\n", m_strName.Get());
+			otErr << "OTVariable::IsDirty: Error: unknown type for variable: " << m_strName << "\n";
 			break;
 	}
 
@@ -400,7 +397,7 @@ void OTVariable::SetAsClean()
 			m_bValueBackup = m_bValue; // Save a copy of the current value, so we can check later and see if they're different.
 			break;
 		default:
-			OTLog::vError("OTVariable::SetAsClean: Error: unknown type for variable: %s\n", m_strName.Get());
+			otErr << "OTVariable::SetAsClean: Error: unknown type for variable: " << m_strName << "\n";
 			m_str_ValueBackup	= m_str_Value;
 			m_nValueBackup		= m_nValue;
 			m_bValueBackup		= m_bValue;
@@ -424,11 +421,11 @@ void OTVariable::UnregisterScript()
 void OTVariable::RegisterForExecution(OTScript& theScript)
 {
 	this->SetAsClean(); // so we can check for dirtiness after execution.
-	// -------------------------------------------------------------------------
+
 	const std::string str_var_name = m_strName.Get();
-	// -------------------------------------------------------------------------
+
 	theScript.AddVariable (str_var_name, *this);
-	// -------------------------------------------------------------------------
+
     this->m_pScript = &theScript; // So later, if the variable destructs, and this pointer is set, the variable can remove itself from the script.
 }
 
@@ -438,23 +435,20 @@ bool OTVariable::Compare(OTVariable & rhs)
 {
 	if (!(GetName().Compare(rhs.GetName())))
 	{
-		OTLog::vOutput(0, "OTVariable::Compare: Names don't match: %s / %s \n",
-					   GetName().Get(), rhs.GetName().Get());
+		otOut << "OTVariable::Compare: Names don't match: " << GetName() << " / " << rhs.GetName() << " \n";
 		return false;
 	}
 	if ( ! (GetType() == rhs.GetType()) )
 	{
-		OTLog::vOutput(0, "OTVariable::Compare: Type doesn't match: %s \n",
-					   GetName().Get());
+		otOut << "OTVariable::Compare: Type doesn't match: " << GetName() << " \n";
 		return false;
 	}
 	if ( ! (GetAccess() == rhs.GetAccess()) )
 	{
-		OTLog::vOutput(0, "OTVariable::Compare: Access types don't match: %s \n",
-					   GetName().Get());
+		otOut << "OTVariable::Compare: Access types don't match: " << GetName() << " \n";
 		return false;
 	}
-	// -------------------------------
+
 
 	bool bMatch = false;
 
@@ -470,8 +464,7 @@ bool OTVariable::Compare(OTVariable & rhs)
 			bMatch = (GetValueString().compare(rhs.GetValueString()) == 0);
 			break;
 		default:
-			OTLog::vError("OTVariable::Compare: Unknown type in variable %s.\n",
-						 m_strName.Get());
+			otErr << "OTVariable::Compare: Unknown type in variable " << m_strName << ".\n";
 			break;
 	}
 

@@ -215,7 +215,7 @@ void OTTrackable::Release()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-//    OTLog::Error("OTTrackable::ProcessXMLNode...\n");
+//    otErr << "OTTrackable::ProcessXMLNode...\n";
     
 	int32_t nReturnVal = 0;
     
@@ -236,7 +236,7 @@ int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	if (nReturnVal != 0) // -1 is error, and 1 is "found it". Either way, return.
 		return nReturnVal;	// 0 means "nothing happened, keep going."
     
-	// ---------
+
 	// From OTCronItem (only as sample code.)
     //
 //    if (!strcmp("closingTransactionNumber", xml->getNodeName())) 
@@ -251,7 +251,7 @@ int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //        }
 //        else
 //		{
-//			OTLog::Error("Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n");
+//			otErr << "Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n";
 //			return (-1); // error condition
 //		}
 //        

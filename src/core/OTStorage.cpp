@@ -143,6 +143,7 @@
 
 #include <fstream>
 
+
 /*
  // We want to store EXISTING OT OBJECTS (Usually signed contracts)
  // These have an EXISTING OT path, such as "inbox/acct_id".
@@ -399,7 +400,7 @@ namespace OTDB
 		delete details::pFunctionMap;
 		details::pFunctionMap = NULL;
 
-		// ------------------------------------------
+
 
 #if defined (OTDB_PROTOCOL_BUFFERS)
 		google::protobuf::ShutdownProtobufLibrary();
@@ -425,25 +426,25 @@ namespace OTDB
 		//
 //		if (NULL != details::s_pStorage)
 //		{
-//			OTLog::Error("OTDB::InitDefaultStorage: Existing storage context already exists. (Erasing / replacing it.)\n");
+//			otErr << "OTDB::InitDefaultStorage: Existing storage context already exists. (Erasing / replacing it.)\n";
 //
 //			delete details::s_pStorage;
 //			details::s_pStorage = NULL;
 //		}
-		// ******************************************
+
 		if (NULL == details::s_pStorage)
 		{
-			OTLog::Output(2, "OTDB::InitDefaultStorage: Existing storage context doesn't already exist. (Creating it.)\n");
+			otInfo << "OTDB::InitDefaultStorage: Existing storage context doesn't already exist. (Creating it.)\n";
 
 			details::s_pStorage = Storage::Create(eStoreType, ePackType);
 		}
-		// ------------------------------
+
 		if (NULL == details::s_pStorage)
 		{
-			OTLog::Error("OTDB::InitDefaultStorage: Failed while calling OTDB::Storage::Create()\n");
+			otErr << "OTDB::InitDefaultStorage: Failed while calling OTDB::Storage::Create()\n";
 			return false;
 		}
-		// ------------------------------
+
 		return true;
 	}
 
@@ -496,21 +497,19 @@ namespace OTDB
 					}
 					else
                     {
-						OTLog::vError("%s: ot_twoStr or ot_threeStr exist, when ot_oneStr doesn't exist! \n",
-                                      szFuncName);
+						otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when ot_oneStr doesn't exist! \n";
 						OT_FAIL;
 					}
                 }
 				else if ( (!ot_twoStr.Exists()) && (ot_threeStr.Exists()) )
                 {
-					OTLog::vError("%s: ot_twoStr or ot_threeStr exist, when ot_oneStr doesn't exist! \n",
-                                  szFuncName);
+					otErr << szFuncName << ": ot_twoStr or ot_threeStr exist, when ot_oneStr doesn't exist! \n";
 					OT_FAIL;
 				}
             }
 			else
             {
-				OTLog::vError("%s: ot_strFolder must always exist!\n", szFuncName);
+				otErr << szFuncName << ": ot_strFolder must always exist!\n";
 				OT_FAIL;
 			}
 			return true;
@@ -535,13 +534,12 @@ namespace OTDB
 				strFolder = ".";
 			}
 		}
-        // ---------------------------------------------------
+
 		Storage * pStorage = details::s_pStorage;
 
 		if (NULL == pStorage)
 		{
-			OTLog::vOutput(0, "OTDB::%s: details::s_pStorage is null. (Returning false.)\n",
-                           __FUNCTION__);
+			otOut << "OTDB::" << __FUNCTION__ << ": details::s_pStorage is null. (Returning false.)\n";
 			return false;
 		}
 
@@ -567,13 +565,12 @@ namespace OTDB
 				strFolder = ".";
 			}
 		}
-        // ---------------------------------------------------
+
 		Storage * pStorage = details::s_pStorage;
         
 		if (NULL == pStorage)
 		{
-			OTLog::vOutput(0, "OTDB::%s: details::s_pStorage is null. (Returning -1.)\n",
-                           __FUNCTION__);
+			otOut << "OTDB::" << __FUNCTION__ << ": details::s_pStorage is null. (Returning -1.)\n";
 			return -1;
 		}
         
@@ -598,7 +595,7 @@ namespace OTDB
 				strFolder = ".";
 			}
 		}
-        // -----------------------------------------
+
 		Storage * pStorage = details::s_pStorage;
 
 		if (NULL == pStorage)
@@ -715,7 +712,7 @@ namespace OTDB
 
 		if (NULL == pStorage)
 		{
-			OTLog::Error("OTDB::StoreObject: No default storage object allocated.\n");
+			otErr << "OTDB::StoreObject: No default storage object allocated.\n";
 			return false;
 		}
 
@@ -759,7 +756,7 @@ namespace OTDB
 
 		if (NULL == pStorage)
 		{
-			OTLog::Error("OTDB::EncodeObject: No Default Storage object allocated.\n");
+			otErr << "OTDB::EncodeObject: No Default Storage object allocated.\n";
 			return "";
 		}
 		return pStorage->EncodeObject(theContents);
@@ -789,7 +786,7 @@ namespace OTDB
 
 		if (NULL == pStorage)
 		{
-			OTLog::Error("OTDB::EraseValueByKey: No Default Storage object allocated.\n");
+			otErr << "OTDB::EraseValueByKey: No Default Storage object allocated.\n";
 			return false;
 		}
 
@@ -879,17 +876,17 @@ namespace OTDB
 
 		if (NULL == pStorable)  // ALL Storables should implement SOME subinterface of IStorable
 		{
-			OTLog::Error("OTPacker::Pack: Error: IStorable dynamic_cast failed.\n");
+			otErr << "OTPacker::Pack: Error: IStorable dynamic_cast failed.\n";
 			return NULL;
 		}
-		// --------------------------------
+
 		// This is polymorphic, so we get the right kind of buffer for the packer.
 		//
 		PackedBuffer * pBuffer = CreateBuffer();
 		OT_ASSERT(NULL != pBuffer);
 
 		// Must delete pBuffer, or return it, below this point.
-		// -------------------------------------
+
 		pStorable->hookBeforePack(); // Give the subclass a chance to prepare its data for packing...
 
 		// This line (commented out) shows how the line below it would have looked if I had ended
@@ -918,7 +915,7 @@ namespace OTDB
 
 		if (NULL == pStorable)
 			return false;
-		// --------------------------------
+
 		// outObj is the OUTPUT OBJECT.
 		// If we're unable to unpack the contents of inBuf
 		// into outObj, return false.
@@ -927,7 +924,7 @@ namespace OTDB
 		{
 			return false;
 		}
-		// ---------------------------
+
 		pStorable->hookAfterUnpack(); // Give the subclass a chance to settle its data after unpacking...
 
 		return true;
@@ -942,7 +939,7 @@ namespace OTDB
 		OT_ASSERT(NULL != pBuffer);
 
 		// Must delete pBuffer, or return it, below this point.
-		// -------------------------------------
+
 		if (false == pBuffer->PackString(inObj))
 		{
 			delete pBuffer;
@@ -954,7 +951,7 @@ namespace OTDB
 
 	bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
 	{
-		// --------------------------------
+
 		// outObj is the OUTPUT OBJECT.
 		// If we're unable to unpack the contents of inBuf
 		// into outObj, return false.
@@ -1029,7 +1026,7 @@ namespace OTDB
 	// store smart pointers, instead of regular pointers, so they are self-cleaning.
 	//
 
-	// ----------------------------------------------
+
 
 
 
@@ -1039,7 +1036,7 @@ namespace OTDB
 //          RemoveServerInfo(0);
 	}
 
-	// ----------------------------------------------
+
 
 	Contact::~Contact()
 	{
@@ -1050,7 +1047,7 @@ namespace OTDB
 //          RemoveContactAcct(0);
 	}
 
-	// ----------------------------------------------
+
 
 
 
@@ -1060,7 +1057,7 @@ namespace OTDB
 //          RemoveContact(0);
 	}
 
-	// ----------------------------------------------
+
 
 
 
@@ -1095,7 +1092,7 @@ namespace OTDB
 
 
 
-	// ---------------
+
 
 	/* Protocol Buffers notes.
 
@@ -1253,7 +1250,7 @@ namespace OTDB
 	//
 	// Interface:	IStorablePB
 	//
-	// --------------------------------------------
+
 	// Protocol Buffers packer.
 	//
 #if defined (OTDB_PROTOCOL_BUFFERS)
@@ -1333,12 +1330,12 @@ namespace OTDB
 
 		if (NULL == pMessage)
 			return false;
-		// ------------
+
 		String_InternalPB * pBuffer = dynamic_cast<String_InternalPB *> (pMessage);
 
 		if (NULL == pBuffer) // Buffer is wrong type!!
 			return false;
-		// ------------
+
 		pBuffer->set_value(theString);
 
 		if (false == pBuffer->SerializeToString(&m_buffer))
@@ -1355,15 +1352,15 @@ namespace OTDB
 
 		if (NULL == pMessage)
 			return false;
-		// ------------
+
 		String_InternalPB * pBuffer = dynamic_cast<String_InternalPB *> (pMessage);
 
 		if (NULL == pBuffer) // Buffer is wrong type!!
 			return false;
-		// ------------
+
 		if (false == pBuffer->ParseFromString(m_buffer))
 			return false;
-		// ------------
+
 		theString = pBuffer->value();
 
 		return true;
@@ -1404,7 +1401,7 @@ namespace OTDB
 		}
 		else
 		{
-			OTLog::Error("Buffer had zero length in BufferPB::WriteToOStream\n");
+			otErr << "Buffer had zero length in BufferPB::WriteToOStream\n";
 		}
 
 		return false;
@@ -1460,7 +1457,7 @@ namespace OTDB
 		pObject->hookBeforePack(); \
 		pNewInternal->CopyFrom(*pInternal); \
 	}
-	// ---------------------------------------------------------------------
+
 
 #define OT_IMPLEMENT_PB_LIST_UNPACK(pb_name, element_type, ELEMENT_ENUM) \
 	while (Get##element_type##Count() > 0) \
@@ -1479,7 +1476,7 @@ namespace OTDB
 		PointerTo##element_type thePtr(dynamic_cast< element_type *>(pNewWrapper)); \
 		list_##element_type##s.push_back(thePtr); \
 	}
-	// ---------------------------------------------------------------------
+
 
 	template<>
 	void WalletDataPB::hookBeforePack()
@@ -1498,7 +1495,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(ripple_server, RippleServer, STORED_OBJ_RIPPLE_SERVER)
 		OT_IMPLEMENT_PB_LIST_UNPACK(loom_server, LoomServer, STORED_OBJ_LOOM_SERVER)
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void StringMapPB::hookBeforePack()
@@ -1529,7 +1526,7 @@ namespace OTDB
 			the_map.insert ( std::pair<std::string,std::string>(theNode.key(), theNode.value()) );
 		}
 	}
-	// ---------------------------------------------
+
 
 
 	template<>
@@ -1546,7 +1543,7 @@ namespace OTDB
 		// The way StringPB is used, this function will never actually get called.
 		// (But if you used it like the others, it would work, since this function is here.)
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void BlobPB::hookBeforePack()
@@ -1563,7 +1560,7 @@ namespace OTDB
 			m_memBuffer.assign(strTemp.begin(), strTemp.end());
 		}
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void ContactPB::hookBeforePack()
@@ -1573,7 +1570,7 @@ namespace OTDB
 		__pb_obj.set_email(email);
 		__pb_obj.set_public_key(public_key);
 		__pb_obj.set_memo(memo);
-		// --------------------------------
+
 		OT_IMPLEMENT_PB_LIST_PACK(nyms, ContactNym)
 		OT_IMPLEMENT_PB_LIST_PACK(accounts, ContactAcct)
 	}
@@ -1587,12 +1584,12 @@ namespace OTDB
 		public_key	= __pb_obj.public_key();
 		memo		= __pb_obj.memo();
 
-		// ---------------------------------
+
 
 		OT_IMPLEMENT_PB_LIST_UNPACK(nyms, ContactNym, STORED_OBJ_CONTACT_NYM)
 		OT_IMPLEMENT_PB_LIST_UNPACK(accounts, ContactAcct, STORED_OBJ_CONTACT_ACCT)
 	}
-	// ---------------------------------------------
+
 
 
 
@@ -1605,7 +1602,7 @@ namespace OTDB
 		__pb_obj.set_public_key(public_key);
 		__pb_obj.set_memo(memo);
 
-		// ----------------------------------------------------
+
 
 		OT_IMPLEMENT_PB_LIST_PACK(servers, ServerInfo)
 	}
@@ -1619,11 +1616,11 @@ namespace OTDB
 		public_key = __pb_obj.public_key();
 		memo = __pb_obj.memo();
 
-		// ----------------------------------------------------
+
 
 		OT_IMPLEMENT_PB_LIST_UNPACK(servers, ServerInfo, STORED_OBJ_SERVER_INFO)
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void AddressBookPB::hookBeforePack()
@@ -1636,7 +1633,7 @@ namespace OTDB
 	{
 		OT_IMPLEMENT_PB_LIST_UNPACK(contacts, Contact, STORED_OBJ_CONTACT)
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void ContactAcctPB::hookBeforePack()
@@ -1662,7 +1659,7 @@ namespace OTDB
 		memo = __pb_obj.memo();
 		public_key = __pb_obj.public_key();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void ServerInfoPB::hookBeforePack()
@@ -1676,7 +1673,7 @@ namespace OTDB
 		server_id = __pb_obj.server_id();
 		server_type = __pb_obj.server_type();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void BitcoinAcctPB::hookBeforePack()
@@ -1694,7 +1691,7 @@ namespace OTDB
 		server_id = __pb_obj.server_id();
 		bitcoin_acct_name = __pb_obj.bitcoin_acct_name();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void BitcoinServerPB::hookBeforePack()
@@ -1718,7 +1715,7 @@ namespace OTDB
 		bitcoin_username = __pb_obj.bitcoin_username();
 		bitcoin_password = __pb_obj.bitcoin_password();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void RippleServerPB::hookBeforePack()
@@ -1746,7 +1743,7 @@ namespace OTDB
 		namefield_id = __pb_obj.namefield_id();
 		passfield_id = __pb_obj.passfield_id();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void LoomServerPB::hookBeforePack()
@@ -1770,7 +1767,7 @@ namespace OTDB
 		loom_username = __pb_obj.loom_username();
 		namefield_id = __pb_obj.namefield_id();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void MarketDataPB::hookBeforePack()
@@ -1817,7 +1814,7 @@ namespace OTDB
 		recent_highest_bid = __pb_obj.recent_highest_bid();
 		recent_lowest_ask = __pb_obj.recent_lowest_ask();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void MarketListPB::hookBeforePack()
@@ -1831,7 +1828,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(market_data, MarketData, STORED_OBJ_MARKET_DATA)
 	}
 
-	// ---------------------------------------------
+
 
 	template<>
 	void BidDataPB::hookBeforePack()
@@ -1854,7 +1851,7 @@ namespace OTDB
 		minimum_increment = __pb_obj.minimum_increment();
 		date = __pb_obj.date();
 	}
-	// ---------------------------------------------
+
 
 
 	template<>
@@ -1878,7 +1875,7 @@ namespace OTDB
 		minimum_increment = __pb_obj.minimum_increment();
 		date = __pb_obj.date();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void OfferListMarketPB::hookBeforePack()
@@ -1894,7 +1891,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(asks, AskData, STORED_OBJ_ASK_DATA)
 	}
 
-	// ---------------------------------------------
+
 
 	template<>
 	void TradeDataMarketPB::hookBeforePack()
@@ -1915,7 +1912,7 @@ namespace OTDB
 		price = __pb_obj.price();
 		amount_sold = __pb_obj.amount_sold();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void TradeListMarketPB::hookBeforePack()
@@ -1929,7 +1926,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataMarket, STORED_OBJ_TRADE_DATA_MARKET)
 	}
 
-	// ---------------------------------------------
+
 
 	template<>
 	void OfferDataNymPB::hookBeforePack()
@@ -1976,7 +1973,7 @@ namespace OTDB
 		stop_price = __pb_obj.stop_price();
 		date = __pb_obj.date();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void OfferListNymPB::hookBeforePack()
@@ -1990,7 +1987,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(offers, OfferDataNym, STORED_OBJ_OFFER_DATA_NYM)
 	}
 
-	// ---------------------------------------------
+
 
 	template<>
 	void TradeDataNymPB::hookBeforePack()
@@ -2025,7 +2022,7 @@ namespace OTDB
 		currency_id = __pb_obj.currency_id();
 		currency_paid = __pb_obj.currency_paid();
 	}
-	// ---------------------------------------------
+
 
 	template<>
 	void TradeListNymPB::hookBeforePack()
@@ -2039,7 +2036,7 @@ namespace OTDB
 		OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataNym, STORED_OBJ_TRADE_DATA_NYM)
 	}
 
-	// ---------------------------------------------
+
 
 
 #endif // defined (OTDB_PROTOCOL_BUFFERS)
@@ -2094,7 +2091,7 @@ namespace OTDB
 
 		if (NULL == pPacker)
 		{
-			OTLog::Error("OTDB::Storage::CreateObject: Failed, since this->GetPacker() returned NULL.\n");
+			otErr << "OTDB::Storage::CreateObject: Failed, since this->GetPacker() returned NULL.\n";
 			return NULL;
 		}
 
@@ -2116,7 +2113,7 @@ namespace OTDB
 //			case STORE_COUCH_DB:
 //				pStore = new StorageCouchDB; OT_ASSERT(NULL != pStore); break;
 			default:
-				OTLog::Error("OTDB::Storage::Create: Failed: Unknown storage type.\n");
+				otErr << "OTDB::Storage::Create: Failed: Unknown storage type.\n";
 				break;
 		}
 
@@ -2130,7 +2127,7 @@ namespace OTDB
 
 			if (NULL == pPacker)
 			{
-				OTLog::Error("OTDB::Storage::Create: Failed while creating packer.\n");
+				otErr << "OTDB::Storage::Create: Failed while creating packer.\n";
 
 				// For whatever reason, we failed. Memory issues or whatever.
 				delete pStore;
@@ -2142,13 +2139,13 @@ namespace OTDB
 			pStore->SetPacker(*pPacker);
 		}
 		else
-			OTLog::Error("OTDB::Storage::Create: Failed, since pStore is NULL.\n");
+			otErr << "OTDB::Storage::Create: Failed, since pStore is NULL.\n";
 
 		return pStore; // Possible to return NULL.
 	}
 
 
-	// ----------------------------------------------
+
 
 	StorageType Storage::GetType() const
 	{
@@ -2167,7 +2164,7 @@ namespace OTDB
 	}
 
 
-	// ----------------------------------------------------------------------
+
 
 	bool Storage::StoreString(std::string strContents, std::string strFolder,
 							  std::string oneStr/*=""*/, std::string twoStr/*=""*/, std::string threeStr/*=""*/)
@@ -2186,12 +2183,12 @@ namespace OTDB
 
 		if (NULL == pPacker)
 			return false;
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->Pack(strContents);
 
 		if (NULL == pBuffer)
 			return false;
-		// ---------------------------
+
 		bool bSuccess = onStorePackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
 		// Don't want any leaks here, do we?
@@ -2205,19 +2202,19 @@ namespace OTDB
 									 std::string oneStr/*=""*/, std::string twoStr/*=""*/, std::string threeStr/*=""*/)
 	{
 		std::string theString("");
-		// ------------------------------
+
 		OTPacker * pPacker = GetPacker();
 
 		if (NULL == pPacker)
 			return theString;
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->CreateBuffer();
 
 		if (NULL == pBuffer)
 			return theString;
 
 		// Below this point, responsible for pBuffer.
-		// ---------------------------
+
 		bool bSuccess = onQueryPackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
 		if (!bSuccess)
@@ -2226,7 +2223,7 @@ namespace OTDB
             pBuffer = NULL;
 			return theString;
 		}
-		// ---------------------------
+
 		// We got the packed buffer back from the query!
 		// Now let's unpack it and return the Storable object.
 
@@ -2238,7 +2235,7 @@ namespace OTDB
 			theString = "";
 			return theString;
 		}
-		// ---------------------------
+
 		// Success :-)
 
 		// Don't want any leaks here, do we?
@@ -2248,7 +2245,7 @@ namespace OTDB
 		return theString;
 	}
 
-	// ----------------------------------------------------------------------
+
 
 	// For when you want NO PACKING.
 
@@ -2269,7 +2266,7 @@ namespace OTDB
 		return theString;
 	}
 
-	// ----------------------------------------------------------------------
+
 
 
 
@@ -2280,23 +2277,23 @@ namespace OTDB
 
 		if (NULL == pPacker)
 		{
-			OTLog::Error("No packer allocated in Storage::StoreObject\n");
+			otErr << "No packer allocated in Storage::StoreObject\n";
 			return false;
 		}
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->Pack(theContents);
 
 		if (NULL == pBuffer)
 		{
-			OTLog::Error("Packing failed in Storage::StoreObject\n");
+			otErr << "Packing failed in Storage::StoreObject\n";
 			return false;
 		}
-		// ---------------------------
+
 		bool bSuccess = onStorePackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
 		if (false == bSuccess)
 		{
-			OTLog::Error("Storing failed in Storage::StoreObject (calling onStorePackedBuffer) \n");
+			otErr << "Storing failed in Storage::StoreObject (calling onStorePackedBuffer) \n";
 			return false;
 		}
 
@@ -2319,14 +2316,14 @@ namespace OTDB
 		if (NULL == pPacker)
 			return NULL;
 
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->CreateBuffer();
 
 		if (NULL == pBuffer)
 			return NULL;
 
 		// Below this point, responsible for pBuffer.
-		// ---------------------------
+
 		Storable * pStorable = CreateObject(theObjectType);
 
 		if (NULL == pStorable)
@@ -2336,7 +2333,7 @@ namespace OTDB
 		}
 
 		// Below this point, responsible for pBuffer AND pStorable.
-		// ---------------------------
+
 		bool bSuccess = onQueryPackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
 		if (!bSuccess)
@@ -2346,7 +2343,7 @@ namespace OTDB
 
 			return NULL;
 		}
-		// ---------------------------
+
 		// We got the packed buffer back from the query!
 		// Now let's unpack it and return the Storable object.
 
@@ -2359,7 +2356,7 @@ namespace OTDB
 
 			return NULL;
 		}
-		// ---------------------------
+
 		// Success :-)
 
 		// Don't want any leaks here, do we?
@@ -2369,7 +2366,7 @@ namespace OTDB
 	}
 
 
-	// ----------------------------------------------------------------------
+
 
 
 
@@ -2381,18 +2378,18 @@ namespace OTDB
 
 		if (NULL == pPacker)
 		{
-			OTLog::Error("Storage::EncodeObject: No packer allocated.\n");
+			otErr << "Storage::EncodeObject: No packer allocated.\n";
 			return strReturnValue;
 		}
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->Pack(theContents);
 
 		if (NULL == pBuffer)
 		{
-			OTLog::Error("Storage::EncodeObject: Packing failed.\n");
+			otErr << "Storage::EncodeObject: Packing failed.\n";
 			return strReturnValue;
 		}
-		// ---------------------------
+
 		//OTPackedBuffer:
 //		virtual const	uint8_t *	GetData()=0;
 //		virtual			size_t			GetSize()=0;
@@ -2403,16 +2400,16 @@ namespace OTDB
 		if ((nNewSize < 1) || (NULL == pNewData))
 		{
 			delete pBuffer; pBuffer = NULL;
-			// -------------
-			OTLog::Error("Storage::EncodeObject: Packing failed (2).\n");
+
+			otErr << "Storage::EncodeObject: Packing failed (2).\n";
 			return strReturnValue;
 		}
-		// ---------------------------
+
 		const OTData		theData(pNewData, nNewSize);
 		const OTASCIIArmor	theArmor(theData);
 
 		strReturnValue.assign(theArmor.Get(), theArmor.GetLength());
-		// ---------------------------
+
 		// Don't want any leaks here, do we?
 		delete pBuffer;
 
@@ -2425,19 +2422,19 @@ namespace OTDB
 	{
 		if (strInput.size() < 1)
 			return NULL;
-		// -----------------------
+
 		OTPacker * pPacker = GetPacker();
 
 		if (NULL == pPacker)
 			return NULL;
-		// ---------------------------
+
 		PackedBuffer * pBuffer = pPacker->CreateBuffer();
 
 		if (NULL == pBuffer)
 			return NULL;
 
 		// Below this point, responsible for pBuffer.
-		// ---------------------------
+
 		Storable * pStorable = CreateObject(theObjectType);
 
 		if (NULL == pStorable)
@@ -2447,11 +2444,11 @@ namespace OTDB
 		}
 
 		// Below this point, responsible for pBuffer AND pStorable.
-		// ---------------------------
+
 		OTASCIIArmor	theArmor;
 		theArmor.Set(strInput.c_str(), static_cast<uint32_t> (strInput.size()));
 		const OTPayload	thePayload(theArmor);
-		// ---------------------------
+
 		// Put thePayload's contents into pBuffer here.
 		//
 		pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPayloadPointer()), thePayload.GetSize());
@@ -2467,7 +2464,7 @@ namespace OTDB
 
 			return NULL;
 		}
-		// ---------------------------
+
 		// Success :-)
 
 		// Don't want any leaks here, do we?
@@ -2484,7 +2481,7 @@ namespace OTDB
 		bool bSuccess = onEraseValueByKey(strFolder, oneStr, twoStr, threeStr);
 
 		if (false == bSuccess)
-			OTLog::Error("Storage::EraseValueByKey: Failed trying to erase a value (while calling onEraseValueByKey) \n");
+			otErr << "Storage::EraseValueByKey: Failed trying to erase a value (while calling onEraseValueByKey) \n";
 
 		return bSuccess;
 	}
@@ -2522,7 +2519,7 @@ namespace OTDB
 		OTPaths::AppendFile(strFilePath, m_strDataPath, szFileName);
 		return OTPaths::PathExists(strFilePath);
 	}
-    // ----------------------------------------------------------------------
+
 
 	/*
 	 - Based on the input, constructs the full path and returns it in strOutput.
@@ -2546,7 +2543,7 @@ namespace OTDB
 		return this->ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr, twoStr, threeStr);
 	}
 
-    // ----------------------------------------------------------------------
+
 
     int64_t StorageFS::ConstructAndConfirmPath(      std::string & strOutput,
 		const std::string strFolder,      const std::string oneStr/*=""*/,
@@ -2574,20 +2571,20 @@ namespace OTDB
 
         // must be 3chars in length, or equal to "."
         if (strZero.empty() && (0 != zeroStr.compare("."))) {
-            OTLog::vError("%s: Empty: %s is too short (and not \".\").!\n"
-                "zeroStr was: \"%s\"\n", __FUNCTION__, "zeroStr", zeroStr.c_str());
+			otErr << __FUNCTION__ << ": Empty: " << "zeroStr" << " is too short (and not \".\").!\n"
+				"zeroStr was: \"" << zeroStr << "\"\n";
             return -1;
         }
 
         // the first string must not be empty
         if (strOne.empty()) {
-            OTLog::vError("%s: Empty: %s passed in!\n", __FUNCTION__, "oneStr");
+			otErr << __FUNCTION__ << ": Empty: " << "oneStr" << " passed in!\n";
             return -2;
         }
 
         // if the second string is empty, so must the third.
         if (strTwo.empty() && !strThree.empty()) {
-            OTLog::vError("%s: Error: strThree passed in: %s while strTwo is empty!\n", __FUNCTION__, strThree.c_str());
+			otErr << __FUNCTION__ << ": Error: strThree passed in: " << strThree << " while strTwo is empty!\n";
             return -3;
         }
 
@@ -2657,11 +2654,11 @@ namespace OTDB
             const bool bFolderExists = OTPaths::PathExists(strFolder.c_str());
 
             if (bMakePath && !bFolderExists) {
-                OTLog::vError("%s: Error: was told to make path, however cannot confirm the path!\n", __FUNCTION__);
+				otErr << __FUNCTION__ << ": Error: was told to make path, however cannot confirm the path!\n";
                 return -4;
             }
             if (!bMakePath && !bFolderExists) {
-                OTLog::vOutput(1, "%s: Debug: Cannot find Folder: %s \n", __FUNCTION__, strFolder.c_str());
+				otWarn << __FUNCTION__ << ": Debug: Cannot find Folder: " << strFolder << " \n";
             }
         }
 
@@ -2675,8 +2672,6 @@ namespace OTDB
 	}
 
 
-
-    // ----------------------------------------------------------------------
 	// Store/Retrieve an object. (Storable.)
 
 	bool StorageFS::onStorePackedBuffer(PackedBuffer & theBuffer,  std::string strFolder,
@@ -2686,7 +2681,7 @@ namespace OTDB
 
 		if (0 > ConstructAndCreatePath(strOutput, strFolder, oneStr, twoStr, threeStr))
 		{
-			OTLog::vError("%s: Error writing to %s.\n", __FUNCTION__, strOutput.c_str());
+			otErr << __FUNCTION__ << ": Error writing to " << strOutput << ".\n";
 			return false;
 		}
 
@@ -2700,8 +2695,7 @@ namespace OTDB
 
 		if (ofs.fail())
 		{
-			OTLog::vError("%s: Error opening file: %s\n",
-						  __FUNCTION__, strOutput.c_str());
+			otErr << __FUNCTION__ << ": Error opening file: " << strOutput << "\n";
 			return false;
 		}
 
@@ -2713,7 +2707,7 @@ namespace OTDB
 
 		return bSuccess;
 	}
-    // ----------------------------------------------------------------------
+
 
 	bool StorageFS::onQueryPackedBuffer(PackedBuffer & theBuffer,  std::string strFolder,
 										std::string oneStr/*=""*/, std::string twoStr/*=""*/, std::string threeStr/*=""*/)
@@ -2724,27 +2718,25 @@ namespace OTDB
 
 		if (0 > lRet)
 		{
-			OTLog::vError("StorageFS::%s: Error with %s.\n", __FUNCTION__, strOutput.c_str());
+			otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput << ".\n";
 			return false;
 		}
 		else if (0 == lRet)
 		{
-			OTLog::vError("StorageFS::%s: Failure reading from %s: file does not exist.\n",
-                          __FUNCTION__, strOutput.c_str());
+			otErr << "StorageFS::" << __FUNCTION__ << ": Failure reading from " << strOutput << ": file does not exist.\n";
 			return false;
 		}
-		// -------------------------------
+
 		// READ from the file here
 
 		std::ifstream fin(strOutput.c_str(), std::ios::in | std::ios::binary);
 
 		if (!fin.is_open())
 		{
-			OTLog::vError("%s: Error opening file: %s\n",
-                          __FUNCTION__, strOutput.c_str());
+			otErr << __FUNCTION__ << ": Error opening file: " << strOutput << "\n";
 			return false;
 		}
-		// -------------------------
+
 		bool bSuccess = theBuffer.ReadFromIStream(fin, lRet);
 
 		fin.close();
@@ -2753,7 +2745,6 @@ namespace OTDB
 	}
 
 
-    // ----------------------------------------------------------------------
 	// Store/Retrieve a plain string, (without any packing.)
 
 
@@ -2764,8 +2755,7 @@ namespace OTDB
 
 		if (0 > ConstructAndCreatePath(strOutput, strFolder, oneStr, twoStr, threeStr))
 		{
-			OTLog::vError("StorageFS::%s: Error writing to %s.\n",
-                          __FUNCTION__, strOutput.c_str());
+			otErr << "StorageFS::" << __FUNCTION__ << ": Error writing to " << strOutput << ".\n";
 			return false;
 		}
 
@@ -2773,7 +2763,7 @@ namespace OTDB
 
 		// TODO: If not, next I should actually create a .lock file for myself right here..
 
-		// ----------------------------------------------
+
 		// SAVE to the file here.
 		//
 		// Here's where the serialization code would be changed to CouchDB or whatever.
@@ -2783,23 +2773,21 @@ namespace OTDB
 
 		if (ofs.fail())
 		{
-			OTLog::vError("%s: Error opening file: %s\n",
-						  __FUNCTION__, strOutput.c_str());
+			otErr << __FUNCTION__ << ": Error opening file: " << strOutput << "\n";
 			return false;
 		}
 
 		ofs.clear();
-		ofs << theBuffer.c_str();
+		ofs << theBuffer;
 		bool bSuccess = ofs.good();
 		ofs.close();
-		// ------------------------------------
+
 
 		// TODO: Remove the .lock file.
 
 		return bSuccess;
 	}
 
-    // ----------------------------------------------------------------------
 
 	bool StorageFS::onQueryPlainString(std::string & theBuffer, std::string strFolder,
 									   std::string oneStr/*=""*/, std::string twoStr/*=""*/, std::string threeStr/*=""*/)
@@ -2810,27 +2798,25 @@ namespace OTDB
 
         if (0 > lRet)
 		{
-			OTLog::vError("StorageFS::%s: Error with %s.\n",
-                          __FUNCTION__, strOutput.c_str());
+			otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput << ".\n";
 			return false;
 		}
 		else if (0 == lRet)
 		{
-			OTLog::vError("StorageFS::%s: Failure reading from %s: file does not exist.\n",
-                          __FUNCTION__, strOutput.c_str());
+			otErr << "StorageFS::" << __FUNCTION__ << ": Failure reading from " << strOutput << ": file does not exist.\n";
 			return false;
 		}
-		// -------------------------------
+
 		// Open the file here
 
 		std::ifstream fin(strOutput.c_str(),  std::ios::in | std::ios::binary);
 
 		if (!fin.is_open())
 		{
-			OTLog::vError("%s: Error opening file: %s\n", __FUNCTION__, strOutput.c_str());
+			otErr << __FUNCTION__ << ": Error opening file: " << strOutput << "\n";
 			return false;
 		}
-		// -------------------------
+
 		// Read from the file as a plain string.
 
 		std::stringstream buffer;
@@ -2854,11 +2840,6 @@ namespace OTDB
 	}
 
 
-	// -----------------------------------------------------------------
-
-
-
-	// -----------------------------------------
 	// Erase a value by location.
 	//
 	bool StorageFS::onEraseValueByKey(std::string strFolder,
@@ -2868,9 +2849,9 @@ namespace OTDB
 
 		if (0 > ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr))
 		{
-			OTLog::vError("Error: %s: Failed calling ConstructAndConfirmPath with:\n"
-				"strOutput: %s | strFolder: %s | oneStr: %s | twoStr: %s | threeStr: %s \n",
-                __FUNCTION__, strOutput.c_str(), strFolder.c_str(), oneStr.c_str(), twoStr.c_str(), threeStr.c_str());
+			otErr << "Error: " << __FUNCTION__ << ": Failed calling ConstructAndConfirmPath with:\n"
+				"strOutput: " << strOutput << " | strFolder: " << strFolder << " | oneStr: " << oneStr <<
+				" | twoStr: " << twoStr << " | threeStr: " << threeStr << " \n";
 
 			return false;
 		}
@@ -2879,7 +2860,7 @@ namespace OTDB
 
 		// TODO: If not, next I should actually create a .lock file for myself right here..
 
-		// ----------------------------------------------
+
 		// SAVE to the file here. (a blank string.)
 		//
 		// Here's where the serialization code would be changed to CouchDB or whatever.
@@ -2889,8 +2870,7 @@ namespace OTDB
 
 		if (ofs.fail())
 		{
-			OTLog::vError("Error opening file in StorageFS::onEraseValueByKey: %s\n",
-						  strOutput.c_str());
+			otErr << "Error opening file in StorageFS::onEraseValueByKey: " << strOutput << "\n";
 			return false;
 		}
 
@@ -2902,19 +2882,19 @@ namespace OTDB
         // random data, right? Wrong: YOU need to override OTStorage and create your
         // own subclass, where you can override onEraseValueByKey and do that stuff
         // yourself. It's outside of the scope of OT.
-		// ------------------------------------
-        //
+
+
         if( remove( strOutput.c_str() ) != 0 )
         {
             bSuccess = false;
-            OTLog::vError("** Failed trying to delete file:  %s \n", strOutput.c_str() );
+			otErr << "** Failed trying to delete file:  " << strOutput << " \n";
         }
         else
         {
             bSuccess = true;
-            OTLog::vOutput(2, "** Success deleting file:  %s \n", strOutput.c_str() );
+			otInfo << "** Success deleting file:  " << strOutput << " \n";
         }
-		// ------------------------------------
+
 
 		// TODO: Remove the .lock file.
 
@@ -2922,7 +2902,6 @@ namespace OTDB
 	}
 
 
-	// ----------------------------------------------
 	// Constructor for Filesystem storage context.
 	//
 	StorageFS::StorageFS() : Storage()
@@ -2937,7 +2916,7 @@ namespace OTDB
 
 	}
 
-	// -----------------------------------------
+
 	// See if the file is there.
 
 	bool StorageFS::Exists(std::string strFolder, std::string oneStr/*=""*/,
@@ -2948,8 +2927,8 @@ namespace OTDB
 		return (0 < ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr));
 	}
 
-    // -----------------------------------------
-    // Returns path size, plus path in strOutput.
+
+	// Returns path size, plus path in strOutput.
     //
     int64_t StorageFS::FormPathString(std::string & strOutput,
                                    std::string   strFolder,       std::string oneStr/*=""*/,
@@ -2957,9 +2936,7 @@ namespace OTDB
     {
 		return ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr);
     }
-    
-	// ********************************************************************
-
+  
 
 } // namespace OTDB
 

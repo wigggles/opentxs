@@ -146,7 +146,7 @@
 #include "OTStorage.hpp"
 #include "OTTrade.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {
@@ -159,54 +159,54 @@ char const * const __TypeStrings[] =
 	"replyNotice",		// When you send a request to the server, sometimes its reply is so important, 
 						// that it drops a copy into your Nymbox to make you receive and process it.
 	"successNotice",	// A transaction # has successfully been signed out. (Nymbox.)
-	// --------------------------------------------------------------------------------------
+
 	"pending",			// Pending transfer, in the inbox/outbox.
-	// --------------------------------------------------------------------------------------
+
 	"transferReceipt",	// the server drops this into your inbox, when someone accepts your transfer.
-	// --------------------------------------------------------------------------------------
+
 	"chequeReceipt",	// the server drops this into your inbox, when someone deposits your cheque.
 	"voucherReceipt",	// the server drops this into your inbox, when someone deposits your voucher.
 	"marketReceipt",	// server drops this into inbox periodically, if you have an offer on the market.
 	"paymentReceipt",	// the server drops this into people's inboxes, periodically, if they have payment plans.
-	// --------------------------------------------------------------------------------------
+
 	"finalReceipt",     // the server drops this into your inbox(es), when a CronItem expires or is canceled.
 	"basketReceipt",    // the server drops this into your inboxes, when a basket exchange is processed.
-	// --------------------------------------------------------------------------------------
+
 	"instrumentNotice",		// Receive these in paymentInbox (by way of Nymbox), and send in Outpayments (like outMail.) (When done, they go to recordBox or expiredBox to await deletion.)
 	"instrumentRejection",	// When someone rejects your invoice from his paymentInbox, you get one of these in YOUR paymentInbox.
-	// --------------------------------------------------------------------------------------
+
 	"processNymbox",	// process nymbox transaction	 // comes from client
 	"atProcessNymbox",	// process nymbox reply			 // comes from server
 	"processInbox",		// process inbox transaction	 // comes from client
 	"atProcessInbox",	// process inbox reply			 // comes from server
-	// --------------------------------------------------------------------------------------
+
 	"transfer",			// or "spend". This transaction is a transfer from one account to another
 	"atTransfer",		// reply from the server regarding a transfer request
-	// --------------------------------------------------------------------------------------
+
 	"deposit",			// this transaction is a deposit of bearer tokens (from client)
 	"atDeposit",		// reply from the server regarding a deposit request
-	// --------------------------------------------------------------------------------------
+
 	"withdrawal",		// this transaction is a withdrawal of bearer tokens
 	"atWithdrawal",		// reply from the server regarding a withdrawal request
-	// --------------------------------------------------------------------------------------
+
 	"marketOffer",		// this transaction is a market offer
 	"atMarketOffer",	// reply from the server regarding a market offer
-	// --------------------------------------------------------------------------------------
+
 	"paymentPlan",		// this transaction is a payment plan
 	"atPaymentPlan",	// reply from the server regarding a payment plan
-	// --------------------------------------------------------------------------------------
+
 	"smartContract",	// this transaction is a smart contract
 	"atSmartContract",	// reply from the server regarding a smart contract
-	// --------------------------------------------------------------------------------------
+
 	"cancelCronItem",	// this transaction is a cancellation of a cron item (payment plan etc)
 	"atCancelCronItem",	// reply from the server regarding said cancellation.
-	// --------------------------------------------------------------------------------------
+
 	"exchangeBasket",	// this transaction is an exchange in/out of a basket currency.
 	"atExchangeBasket",	// reply from the server regarding said exchange.
-	// --------------------------------------------------------------------------------------
+
 	"payDividend",      // this transaction is a dividend payment (to the shareholders.)
 	"atPayDividend",    // reply from the server regarding said dividend payment.
-	// --------------------------------------------------------------------------------------
+
 	"error_state"	
 };
 
@@ -247,26 +247,24 @@ bool OTTransaction::VerifyAccount(OTPseudonym & theNym)
 	//
 	if (false == VerifyContractID())
 	{
-		OTLog::vError("%s: Error verifying account ID.\n",
-                      __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error verifying account ID.\n";
 		return false;
 	}
 	// todo security audit:
 	else if (IsAbbreviated() && (pParent != NULL) && !pParent->VerifySignature(theNym))
 	{
-		OTLog::vError("%s: Error verifying signature on parent ledger for abbreviated transaction receipt.\n",
-                      __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error verifying signature on parent ledger for abbreviated transaction receipt.\n";
 		return false;
 	}
 	else if (!IsAbbreviated() && (false == VerifySignature(theNym)))
 	{
-		OTLog::vError("%s: Error verifying signature.\n", __FUNCTION__);
+		otErr << __FUNCTION__ << ": Error verifying signature.\n";
 		return false;
 	}
 	
-	OTLog::Output(4, "\nWe now know that...\n"
+	otLog4 << "\nWe now know that...\n"
 				  "1) The expected Account ID matches the ID that was found on the object.\n"
-				  "2) The SIGNATURE VERIFIED on the object.\n\n");
+				  "2) The SIGNATURE VERIFIED on the object.\n\n";
 	return true;
 }
 
@@ -312,7 +310,7 @@ bool OTTransaction::VerifyAccount(OTPseudonym & theNym)
  exchangeBasket,	// this transaction is an exchange in/out of a basket currency.
  payDividend,	    // this transaction is dividend payment (to shareholders.)
 
- // --------------------------------------------------------------------------------------
+
 
  HarvestClosingNumbers:    (The X's means "not needed for closing numbers)
  
@@ -341,7 +339,7 @@ bool OTTransaction::VerifyAccount(OTPseudonym & theNym)
  
  exchangeBasket,	// this transaction is an exchange in/out of a basket currency.
 
- // --------------------------------------------------------------------------------------
+
 
  */
 
@@ -552,7 +550,7 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
             //    enough TO call it for the recipient if transaction was attempted but didn't succeed, since the
             //    recipient's opening number is still good in that case.
             //
-            // --------------------------------------------------------------------
+
             
             const OTIdentifier theNymID(theNym);
             
@@ -594,7 +592,7 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
                     }
                 }
             }
-            // --------------------------------------------
+
             // theNym is RECIPIENT / PAYEE
             //
             // This case is slightly different because above, a successful message with a failed transaction will burn the
@@ -628,16 +626,16 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
                             if (strPaymentPlan.Exists() && thePlan.LoadContractFromString(strPaymentPlan))
                                 return thePlan.GetRecipientOpeningNum();
                             else
-                                OTLog::Error("OTTransaction::HarvestOpeningNumber: Error: Unable to load "
-                                             "paymentPlan object from paymentPlan transaction item.\n");
+                                otErr << "OTTransaction::HarvestOpeningNumber: Error: Unable to load "
+                                             "paymentPlan object from paymentPlan transaction item.\n";
                         }
                         else
-                            OTLog::Error("OTTransaction::HarvestOpeningNumber: Error: Unable to find "
-                                         "paymentPlan item in paymentPlan transaction.\n");
+                            otErr << "OTTransaction::HarvestOpeningNumber: Error: Unable to find "
+                                         "paymentPlan item in paymentPlan transaction.\n";
                         return 0;
                     }
                 }; // class _getRecipientOpeningNum
-                // ----------------------------------
+
                 
                 // If the server reply message was unambiguously a FAIL, that means the opening number is STILL GOOD.
                 // (Because the transaction therefore never even had a chance to run.)
@@ -684,7 +682,7 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
         }
             break;
             
-            // --------------------------------------------------------------------------------------------------
+
             
             // TODO: Make sure that when a user receives a success notice that a smart contract has been started up,
             // that he marks his opener as "burned" instead of as "used." It's gone!
@@ -705,13 +703,13 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
                                             // But if transaction succeeded, then the closers CANNOT be recovered. (Only removed, once you sign
                                             // off on the receipt.)
         {
-            // ------------------------------------------------------------------------------------------
-            OTItem * pItem = this->GetItem(OTItem::smartContract);
+
+			OTItem * pItem = this->GetItem(OTItem::smartContract);
             
             if (NULL == pItem)
             {
-                OTLog::Error("OTTransaction::HarvestOpeningNumber: Error: Unable to find "
-                             "smartContract item in smartContract transaction.\n");
+                otErr << "OTTransaction::HarvestOpeningNumber: Error: Unable to find "
+                             "smartContract item in smartContract transaction.\n";
             }
             else // Load up the smart contract...
             {
@@ -722,13 +720,13 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
                 // If we failed to load the smart contract...
                 if (!strSmartContract.Exists() || (false == theSmartContract.LoadContractFromString(strSmartContract)))
                 {
-                    OTLog::Error("OTTransaction::HarvestOpeningNumber: Error: Unable to load "
-                                 "smartContract object from smartContract transaction item.\n");
+                    otErr << "OTTransaction::HarvestOpeningNumber: Error: Unable to load "
+                                 "smartContract object from smartContract transaction item.\n";
                 }
                 else // theSmartContract is ready to go....
                 {
-                    // ------------------------------------------------------------------------------------------
-                    // The message reply itself was a failure. This means the transaction itself never got a chance
+
+					// The message reply itself was a failure. This means the transaction itself never got a chance
                     // to run... which means ALL the opening numbers on that transaction are STILL GOOD.
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry)
@@ -761,10 +759,10 @@ bool OTTransaction::HarvestOpeningNumber(OTPseudonym & theNym,
 //                          bSuccess = true;                            
                         }
                     } // else if (bReplyWasSuccess)
-                    // ------------------------------------------------------------------------------------------
+
                 } // else (smart contract loaded successfully)
             } // pItem was found.
-            // ------------------------------------------------------------------------------------------
+
         }
             break;
             
@@ -801,8 +799,7 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
         case OTTransaction::transfer:       // Has no closing numbers.
             
             break;
-            
-        // --------------------------------------------------------------------------------------------------
+
             
         case OTTransaction::marketOffer:    // Uses 3 transaction #s, the opening number and 2 closers.
                                             // If message fails, all closing numbers are harvestable.
@@ -814,8 +811,8 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
             
             if (NULL == pItem)
             {
-                OTLog::Error("OTTransaction::HarvestClosingNumbers: Error: Unable to find "
-                             "marketOffer item in marketOffer transaction.\n");
+                otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable to find "
+                             "marketOffer item in marketOffer transaction.\n";
             }
             else // pItem is good. Let's load up the OTTrade object...
             {
@@ -829,13 +826,12 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                 // If failed to load the trade...
                 if (!bLoadContractFromString)
                 {
-                    OTLog::vError("OTTransaction::HarvestClosingNumbers: ERROR: Failed loading trade from string:\n\n%s\n\n",
-                                  strTrade.Get());
+					otErr << "OTTransaction::HarvestClosingNumbers: ERROR: Failed loading trade from string:\n\n" << strTrade << "\n\n";
                 }
                 else // theTrade is ready to go....
                 {
-                    // ------------------------------------------------------------------------------------------
-                    // The message reply itself was a failure. This means the transaction itself never got a chance
+
+					// The message reply itself was a failure. This means the transaction itself never got a chance
                     // to run... which means ALL the closing numbers on that transaction are STILL GOOD.
                     //
                     if (bReplyWasFailure)// && !bHarvestingForRetry) // on re-try, we need the closing #s to stay put, so the re-try has a chance to work.
@@ -843,10 +839,10 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                                         // Because with marketOffer, ALL transaction #s are re-set EACH re-try, not just the opening #. Therefore ALL must be clawed back.
                         theTrade.HarvestClosingNumbers(theNym); // (Contrast this with payment plan, exchange basket, smart contract...)
                         bSuccess = true;
-                        // ------------------------------------
+
 //                      theTrade.GetAssetAcctClosingNum();      // For reference.
 //                      theTrade.GetCurrencyAcctClosingNum();   // (The above harvest call grabs THESE numbers.)
-                        // ------------------------------------
+
                     }
                     // Else if the server reply message was unambiguously a SUCCESS, that means the opening number is DEFINITELY NOT HARVESTABLE.
                     // Why? Because that means the transaction definitely ran--and the opener is marked as "used" on SUCCESS, or "burned" on
@@ -877,12 +873,12 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                             bSuccess = true;                            
                         }
                     } // else if (bReplyWasSuccess)
-                    // ------------------------------------------------------------------------------------------
-                } // else (the trade loaded successfully)
+
+				} // else (the trade loaded successfully)
             } // pItem was found.
         }
-            // ------------------------------------------------------------------------------------------
-            break;
+
+			break;
             
         case OTTransaction::exchangeBasket: // Uses X transaction #s: the opener, which is burned success-or-fail, and Y closers
                                             // (one for each account.) Closers are marked "used" if success transaction,
@@ -892,8 +888,8 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
             
             if (NULL == pItem)
             {
-                OTLog::Error("OTTransaction::HarvestClosingNumbers: Error: Unable to find "
-                             "exchangeBasket item in exchangeBasket transaction.\n");
+                otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable to find "
+                             "exchangeBasket item in exchangeBasket transaction.\n";
             }
             else // pItem is good. Let's load up the OTBasket object...
             {
@@ -907,13 +903,12 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                 // If failed to load the request basket...
                 if (!bLoadContractFromString)
                 {
-                    OTLog::vError("OTTransaction::HarvestClosingNumbers: ERROR: Failed loading basket request from string:\n\n%s\n\n",
-                                  strBasket.Get());
+					otErr << "OTTransaction::HarvestClosingNumbers: ERROR: Failed loading basket request from string:\n\n" << strBasket << "\n\n";
                 }
                 else // theBasket is ready to go....
                 {
-                    // ------------------------------------------------------------------------------------------
-                    // The message reply itself was a failure. This means the transaction itself never got a chance
+
+					// The message reply itself was a failure. This means the transaction itself never got a chance
                     // to run... which means ALL the closing numbers on that transaction are STILL GOOD.
                     //
                     
@@ -938,7 +933,7 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                         //
                         theBasket.HarvestClosingNumbers(theNym, GetPurportedServerID(), true); //bSave=true
                         bSuccess = true;
-                        // ------------------------------------
+
                     }
                     // Else if the server reply message was unambiguously a SUCCESS, that means the opening number is DEFINITELY NOT HARVESTABLE.
                     // Why? Because that means the transaction definitely ran--and the opener for exchangeBasket is always burned, success-or-fail.
@@ -969,12 +964,12 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                             bSuccess = true;                            
                         }
                     } // else if (bReplyWasSuccess)
-                    // ------------------------------------------------------------------------------------------
+
                 } // else (the basket loaded successfully)
             } // pItem was found.
         }
             break;
-            // --------------------------------------------------------------------------------------------------
+
 
             // These aren't AS simple.
         case OTTransaction::paymentPlan:    // Uses 4 transaction #s: the opener (sender's #), which is burned on transaction failure, but kept alive on success,
@@ -986,8 +981,8 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
             
             if (NULL == pItem)
             {
-                OTLog::Error("OTTransaction::HarvestClosingNumbers: Error: Unable to find "
-                             "paymentPlan item in paymentPlan transaction.\n");
+                otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable to find "
+                             "paymentPlan item in paymentPlan transaction.\n";
             }
             else // pItem is good. Let's load up the OTPaymentPlan object...
             {
@@ -1001,8 +996,7 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                 // If failed to load the payment plan from string...
                 if (!bLoadContractFromString)
                 {
-                    OTLog::vError("OTTransaction::HarvestClosingNumbers: ERROR: Failed loading payment plan from string:\n\n%s\n\n",
-                                  strPaymentPlan.Get());
+					otErr << "OTTransaction::HarvestClosingNumbers: ERROR: Failed loading payment plan from string:\n\n" << strPaymentPlan << "\n\n";
                 }
                 else // thePlan is ready to go....
                 {
@@ -1041,13 +1035,12 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                             bSuccess = true;
                         }
                     }
-                    // ------------------------------------------------------------------------------------------
+
                 } // else (the payment plan loaded successfully)
             } // pItem was found.
         }
             break;
-            
-            // --------------------------------------------------------------------------------------------------
+
                         
         case OTTransaction::smartContract:  // Uses X transaction #s, with an opener for each party and a closer for each asset account.
                                             // If the message is rejected by the server, then ALL openers can be harvested. But if the
@@ -1057,13 +1050,13 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                                             // But if transaction succeeded, then the closers CANNOT be recovered. (Only removed, once you sign
                                             // off on the receipt.)
         {
-            // ------------------------------------------------------------------------------------------
-            OTItem * pItem = this->GetItem(OTItem::smartContract);
+
+			OTItem * pItem = this->GetItem(OTItem::smartContract);
             
             if (NULL == pItem)
             {
-                OTLog::Error("OTTransaction::HarvestClosingNumbers: Error: Unable to find "
-                             "smartContract item in smartContract transaction.\n");
+                otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable to find "
+                             "smartContract item in smartContract transaction.\n";
             }
             else // Load up the smart contract...
             {
@@ -1074,13 +1067,13 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                 // If we failed to load the smart contract...
                 if (!strSmartContract.Exists() || (false == theSmartContract.LoadContractFromString(strSmartContract)))
                 {
-                    OTLog::Error("OTTransaction::HarvestClosingNumbers: Error: Unable to load "
-                                 "smartContract object from smartContract transaction item.\n");
+                    otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable to load "
+                                 "smartContract object from smartContract transaction item.\n";
                 }
                 else // theSmartContract is ready to go....
                 {
-                    // ------------------------------------------------------------------------------------------
-                    // The message reply itself was a failure. This means the transaction itself never got a chance
+
+					// The message reply itself was a failure. This means the transaction itself never got a chance
                     // to run... which means ALL the closing numbers on that transaction are STILL GOOD.
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry) // on re-try, we need the closing #s to stay put, so the re-try has a chance to work.
@@ -1115,11 +1108,11 @@ bool OTTransaction::HarvestClosingNumbers(OTPseudonym & theNym,
                             bSuccess = true;                            
                         }
                     } // else if (bReplyWasSuccess)
-                    // ------------------------------------------------------------------------------------------
-                } // else (smart contract loaded successfully)
+
+				} // else (smart contract loaded successfully)
             } // pItem was found.
-            // ------------------------------------------------------------------------------------------
-        }
+
+		}
             break;
             
         default:
@@ -1169,10 +1162,10 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 {
 	if (IsAbbreviated())
 	{
-		OTLog::Error("OTTransaction::VerifyTransactionReceipt: Error: This is an abbreviated receipt. (Load the box receipt first.)\n");
+		otErr << "OTTransaction::VerifyTransactionReceipt: Error: This is an abbreviated receipt. (Load the box receipt first.)\n";
 		return false;
 	}
-	// ------------------------------------
+
 	// LOAD "AT TRANSACTION STATEMENT" (ITEM)
 	
 	OTItem * pBalanceItem = NULL;
@@ -1182,22 +1175,22 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 	if (NULL == pResponseBalanceItem)
 	{
 		// error, return.
-		OTLog::Output(0, "No atTransactionStatement item found on receipt (strange.)\n");
+		otOut << "No atTransactionStatement item found on receipt (strange.)\n";
 		return false;
 	}
 	else if (OTItem::acknowledgement != pResponseBalanceItem->GetStatus())
 	{
 		// error, return.
-		OTLog::Output(0, "Error: atTransactionStatement found on receipt, but not a successful one.\n");
+		otOut << "Error: atTransactionStatement found on receipt, but not a successful one.\n";
 		return false;		
 	}
 	else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM))
 	{		
-		OTLog::Output(0, "Unable to verify signature on atTransactionStatement item in OTTransaction::VerifyTransactionReceipt.\n");
+		otOut << "Unable to verify signature on atTransactionStatement item in OTTransaction::VerifyTransactionReceipt.\n";
 		return false;				
 	}
 	
-	// ------------------------------------
+
 	
 	// LOAD "TRANSACTION STATEMENT" (ITEM)
 	
@@ -1207,7 +1200,7 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 	if (!strBalanceItem.Exists())
 	{
 		// error, return.
-		OTLog::Output(0, "No transactionStatement item found as 'in ref to' string on a receipt containing atTransactionStatement item.\n");
+		otOut << "No transactionStatement item found as 'in ref to' string on a receipt containing atTransactionStatement item.\n";
 		return false;				
 	}
 	
@@ -1217,21 +1210,21 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 	
 	if (NULL == pBalanceItem)
 	{
-		OTLog::Output(0, "Unable to load transactionStatement item from string (from a receipt containing an atTransactionStatement item.)\n");
+		otOut << "Unable to load transactionStatement item from string (from a receipt containing an atTransactionStatement item.)\n";
 		return false;				
 	}
 	else if (pBalanceItem->GetType() != OTItem::transactionStatement)
 	{
-		OTLog::Output(0, "Wrong type on pBalanceItem (expected OTItem::transactionStatement)\n");
+		otOut << "Wrong type on pBalanceItem (expected OTItem::transactionStatement)\n";
 		return false;				
 	}
 	else if (!pBalanceItem->VerifySignature(THE_NYM))
 	{
-		OTLog::Output(0, "Unable to verify signature on transactionStatement item in OTTransaction::VerifyTransactionReceipt.\n");
+		otOut << "Unable to verify signature on transactionStatement item in OTTransaction::VerifyTransactionReceipt.\n";
 		return false;				
 	}
 	
-	// ---------------------------------------------------------
+
 	
 	// LOAD MESSAGE NYM (THE LIST OF ISSUED NUMBERS ACCORDING TO THE RECEIPT.)
 	
@@ -1242,11 +1235,11 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 	
 	if (!strMessageNym.Exists() || !theMessageNym.LoadFromString(strMessageNym))
 	{
-		OTLog::Output(0, "Unable to load message nym in OTTransaction::VerifyTransactionReceipt.\n");
+		otOut << "Unable to load message nym in OTTransaction::VerifyTransactionReceipt.\n";
 		return false;				
 	}
 	
-	// ------------------------------------
+
 	
 	// VERIFY THE LIST OF ISSUED (SIGNED FOR) TRANSACTION NUMBERS ON THE NYM AGAINST THE RECEIPT.
 	
@@ -1260,7 +1253,7 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, // For ve
 	//
 	if (!THE_NYM.VerifyTransactionStatementNumbersOnNym(theMessageNym))
 	{
-		OTLog::Output(0, "Unable to verify issued numbers on last signed receipt with numbers on THE_NYM in OTTransaction::VerifyTransactionReceipt.\n");
+		otOut << "Unable to verify issued numbers on last signed receipt with numbers on THE_NYM in OTTransaction::VerifyTransactionReceipt.\n";
 		return false;				
 	}
 	
@@ -1286,22 +1279,21 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
 	
 	if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename))
 	{
-		OTLog::Output(1, "Receipt file doesn't exist in OTTransaction::VerifyTransactionReceipt.\n");
+		otWarn << "Receipt file doesn't exist in OTTransaction::VerifyTransactionReceipt.\n";
 		return false;
 	}
-	
-	// ----------------------------------------------------------------------------
-	//
+
+
 	std::string strFileContents(OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename)); // <=== LOADING FROM DATA STORE.
 	
 	if (strFileContents.length() < 2)
 	{
-		OTLog::vError("OTTransaction::VerifyTransactionReceipt: Error reading file: %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyTransactionReceipt: Error reading file: " << szFolder1name 
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
-		
+
+
 	OTString strTransaction(strFileContents.c_str());
 
     OTTransactionType * pContents = OTTransactionType::TransactionFactory(strTransaction);
@@ -1309,13 +1301,9 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
     
 	if ((NULL == pContents) || (false == pContents->VerifySignature(SERVER_NYM)))
 	{
-		OTLog::vError("OTTransaction::VerifyTransactionReceipt: Unable to load or verify transaction statement:"
-                      " %s%s%s%s%s\n",
-					  szFolder1name,            // receipts
-                      OTLog::PathSeparator(), 
-                      szFolder2name,            // receipts/SERVER_ID
-                      OTLog::PathSeparator(), 
-                      szFilename);              // receipts/SERVER_ID/USER_ID.success
+		// receipts/SERVER_ID/USER_ID.success
+		otErr << "OTTransaction::VerifyTransactionReceipt: Unable to load or verify transaction statement:"
+			" " << szFolder1name << OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";             
 		return false;
 	}				
 	
@@ -1324,7 +1312,7 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
     
     if (NULL != pTrans)
 	{
-		// -----------------------------------------------------
+
 		OTTransaction * pTransaction = NULL;
 		OTCleanup<OTTransaction> theTransAngel;
 		
@@ -1340,20 +1328,20 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
 			else if (pTrans->Contains("expiredBoxRecord"))	  lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
 			else
 			{
-				OTLog::Error("OTTransaction::VerifyTransactionReceipt: Error loading from abbreviated transaction: "
+				otErr << "OTTransaction::VerifyTransactionReceipt: Error loading from abbreviated transaction: "
 							 "couldn't find nymboxRecord or inboxRecord or outboxRecord in raw contents of abbreviated "
-							 "transaction. Can't tell the ledger type from this.\n");
+							 "transaction. Can't tell the ledger type from this.\n";
 				return false;			
 			}
-			// --------------
+
 			pTransaction = OTTransaction::LoadBoxReceipt(*pTrans, lBoxType);
 			if (NULL == pTransaction)
 			{
-				OTLog::vError("OTTransaction::VerifyTransactionReceipt: Error loading from abbreviated transaction: "
-							  "failed loading box receipt.");
+				otErr << "OTTransaction::VerifyTransactionReceipt: Error loading from abbreviated transaction: "
+							  "failed loading box receipt.";
 				return false;			
 			}
-			// ----------------
+
 			theTransAngel.SetCleanupTargetPointer(pTransaction);
 		}
 		else
@@ -1362,7 +1350,7 @@ bool OTTransaction::VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
 		return pTransaction->VerifyTransactionReceipt(SERVER_NYM, THE_NYM);
 	}
     else   
-        OTLog::Error("OTTransaction::VerifyTransactionReceipt: Error... dynamic_cast failed.\n");
+        otErr << "OTTransaction::VerifyTransactionReceipt: Error... dynamic_cast failed.\n";
     	
     return false;
 }
@@ -1377,7 +1365,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM,
 	OTIdentifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
 	OTString strServerID(SERVER_ID), strReceiptID(ACCT_ID);
 	
-	// -----------------------------------
+
 	
 	// Load the last successful BALANCE STATEMENT...
 	
@@ -1391,31 +1379,30 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM,
 			
 	if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename))
 	{
-		OTLog::Output(1, "Receipt file doesn't exist in OTTransaction::VerifyBalanceReceipt.\n");
+		otWarn << "Receipt file doesn't exist in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;
 	}
-	
-	// ----------------------------------------------------------------------------
-	//
+
+
 	std::string strFileContents(OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename)); // <=== LOADING FROM DATA STORE.
 	
 	if (strFileContents.length() < 2)
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Error reading file: %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Error reading file: " << szFolder1name << OTLog::PathSeparator() 
+			<< szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
-	
+
+
 	OTString strTransaction(strFileContents.c_str());
 	
 	if (!tranOut.LoadContractFromString(strTransaction))
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Unable to load balance statement:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load balance statement:\n " << szFolder1name << OTLog::PathSeparator()
+			<< szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}
-	// -----------------------------------------------------
+
 	OTTransaction * pTransaction = NULL;
 	OTCleanup<OTTransaction> theTransAngel;
 	
@@ -1431,28 +1418,28 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM,
 		else if (tranOut.Contains("expiredBoxRecord"))		lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
 		else
 		{
-			OTLog::vError("OTTransaction::VerifyBalanceReceipt: Error loading from abbreviated transaction: "
-						  "unknown ledger type. (probably message but who knows.)\n");
+			otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from abbreviated transaction: "
+						  "unknown ledger type. (probably message but who knows.)\n";
 			return false;			
 		}
-		// --------------
+
 		pTransaction = OTTransaction::LoadBoxReceipt(tranOut, lBoxType);
 		if (NULL == pTransaction)
 		{
-			OTLog::vError("OTTransaction::VerifyBalanceReceipt: Error loading from abbreviated transaction: "
-						  "failed loading box receipt.");
+			otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from abbreviated transaction: "
+						  "failed loading box receipt.";
 			return false;			
 		}
-		// ----------------
+
 		theTransAngel.SetCleanupTargetPointer(pTransaction);
 	}
 	else
 		pTransaction = &tranOut;
-	// -----------------------------------------------------	
+
 	if (!pTransaction->VerifySignature(SERVER_NYM))
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Unable to verify SERVER_NYM signature on balance statement:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify SERVER_NYM signature on balance statement:\n " << szFolder1name 
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}				
 	
@@ -1524,7 +1511,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	// new functionality, since this version must assume differences are there, and STILL verify things
 	// by comparing details about those differences, whereas that version only serves to make sure
 	// everything still matches.
-	// ---------------------------------------------------
+
 	
 	// -- Verify nym transactions match. (issued.)
 	// -- Verify outbox matches.
@@ -1594,10 +1581,10 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 
 	if (IsAbbreviated())
 	{
-		OTLog::Error("OTTransaction::VerifyBalanceReceipt: Error: This is an abbreviated receipt. (Load the box receipt first.)\n");
+		otErr << "OTTransaction::VerifyBalanceReceipt: Error: This is an abbreviated receipt. (Load the box receipt first.)\n";
 		return false;
 	}
-	// ------------------------------------
+
 	
 	OTIdentifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
 
@@ -1605,12 +1592,11 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 
 //	if (USER_ID != GetUserID())
 //	{
-//		OTLog::Error("*** OTIdentifier USER_ID(OTPseudonym THE_NYM) doesn't match OTTransactionType::GetUserID() in OTTransaction::VerifyBalanceReceipt\n");
+//		otErr << "*** OTIdentifier USER_ID(OTPseudonym THE_NYM) doesn't match OTTransactionType::GetUserID() in OTTransaction::VerifyBalanceReceipt\n";
 //		return false;
 //	}
 	
-	// -----------------------------------
-	
+
 	// Load the last TRANSACTION STATEMENT as well...
     
 	OTString strFilename; strFilename.Format("%s.success", strReceiptID.Get());
@@ -1621,23 +1607,21 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	
 	if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename))
 	{
-		OTLog::vOutput(1, "Receipt file doesn't exist in OTTransaction::VerifyBalanceReceipt:\n %s\n", szFilename);
+		otWarn << "Receipt file doesn't exist in OTTransaction::VerifyBalanceReceipt:\n " << szFilename << "\n";
 		return false;
 	}
-	
-	// ----------------------------------------------------------------------------
-	//
+
+
 	std::string strFileContents(OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename)); // <=== LOADING FROM DATA STORE.
 	
 	if (strFileContents.length() < 2)
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Error reading transaction statement:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Error reading transaction statement:\n " << szFolder1name 
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
 
-    
+
 	OTString strTransaction(strFileContents.c_str());
 	
 //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealServerID());
@@ -1646,14 +1630,14 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
     
 	if (NULL == pContents)
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Unable to load transaction statement:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load transaction statement:\n " << szFolder1name 
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}				
 	else if (!pContents->VerifySignature(SERVER_NYM))
 	{
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Unable to verify signature on transaction statement:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify signature on transaction statement:\n " << szFolder1name
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;
 	}				
     
@@ -1662,8 +1646,8 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
     
     if (NULL == pTrans)
     {
-		OTLog::vError("OTTransaction::VerifyBalanceReceipt: Was expecting an OTTransaction to be stored in the transaction statement at:\n %s%s%s%s%s\n", 
-					  szFolder1name, OTLog::PathSeparator(), szFolder2name, OTLog::PathSeparator(), szFilename);
+		otErr << "OTTransaction::VerifyBalanceReceipt: Was expecting an OTTransaction to be stored in the transaction statement at:\n " << szFolder1name 
+			<< OTLog::PathSeparator() << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
 		return false;        
     }
         
@@ -1694,22 +1678,22 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		if (NULL == pResponseTransactionItem)
 		{
 			// error, return.
-			OTLog::Output(0, "No atTransactionStatement item found on receipt (strange.)\n");
+			otOut << "No atTransactionStatement item found on receipt (strange.)\n";
 			return false;
 		}
 		else if (OTItem::acknowledgement != pResponseTransactionItem->GetStatus())
 		{
 			// error, return.
-			OTLog::Output(0, "Error: atTransactionStatement found on receipt, but not a successful one.\n");
+			otOut << "Error: atTransactionStatement found on receipt, but not a successful one.\n";
 			return false;		
 		}
 		else if (!pResponseTransactionItem->VerifySignature(SERVER_NYM))
 		{		
-			OTLog::Output(0, "Unable to verify signature on atTransactionStatement item in OTTransaction::VerifyBalanceReceipt.\n");
+			otOut << "Unable to verify signature on atTransactionStatement item in OTTransaction::VerifyBalanceReceipt.\n";
 			return false;				
 		}
 		
-		// ------------------------------------
+
 		
 		// LOAD "TRANSACTION STATEMENT" (ITEM) from within the above item we got.
 		
@@ -1719,7 +1703,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		if (!strBalanceItem.Exists())
 		{
 			// error, return.
-			OTLog::Output(0, "No transactionStatement item found as 'in ref to' string on a receipt containing atTransactionStatement item.\n");
+			otOut << "No transactionStatement item found as 'in ref to' string on a receipt containing atTransactionStatement item.\n";
 			return false;				
 		}
 		
@@ -1727,50 +1711,47 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		
 		if (NULL == pTransactionItem)
 		{
-			OTLog::Output(0, "Unable to load transactionStatement item from string (from a receipt containing an atTransactionStatement item.)\n");
+			otOut << "Unable to load transactionStatement item from string (from a receipt containing an atTransactionStatement item.)\n";
 			return false;				
 		}
 		else if (pTransactionItem->GetType() != OTItem::transactionStatement)
 		{
-			OTLog::Output(0, "Wrong type on pTransactionItem (expected OTItem::transactionStatement)\n");
+			otOut << "Wrong type on pTransactionItem (expected OTItem::transactionStatement)\n";
 			return false;				
 		}
 		else if (!pTransactionItem->VerifySignature(THE_NYM))
 		{
-			OTLog::Output(0, "Unable to verify signature on transactionStatement item in OTTransaction::VerifyBalanceReceipt.\n");
+			otOut << "Unable to verify signature on transactionStatement item in OTTransaction::VerifyBalanceReceipt.\n";
 			return false;				
 		}
 		
 		pItemWithIssuedList = pTransactionItem;
 	}
 	
-	// -------------------------------------------------------
-	
 	// LOAD THE ACCOUNT 
-	
 	
 	OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
 
 	if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM))
 	{
 		// error, return.
-		OTLog::Output(0, "Failed loading or verifying account for THE_NYM in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Failed loading or verifying account for THE_NYM in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;		
 	}
 	else if (THE_ACCOUNT.GetPurportedServerID() != GetPurportedServerID()) // the account, inbox, and outbox all have the same Server ID. But does it match *this receipt?
 	{
 		// error, return.
-		OTLog::Output(0, "Account, inbox or outbox server ID fails to match receipt server ID.\n");
+		otOut << "Account, inbox or outbox server ID fails to match receipt server ID.\n";
 		return false;
 	}
 	else if (THE_ACCOUNT.GetPurportedAccountID() != GetPurportedAccountID()) // Same as above except for account ID instead of server ID.
 	{
 		// error, return.
-		OTLog::Output(0, "Account ID fails to match receipt account ID.\n");
+		otOut << "Account ID fails to match receipt account ID.\n";
 		return false;
 	}
 
-	// -----------------------------------------------------
+
 	
 	// LOAD INBOX AND OUTBOX
 	
@@ -1782,11 +1763,11 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	if ((NULL == pInbox) || (NULL == pOutbox))
 	{
 		// error, return.
-		OTLog::Output(0, "Inbox or outbox was NULL after THE_ACCOUNT.Load in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Inbox or outbox was NULL after THE_ACCOUNT.Load in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;
 	}
 	
-	// ------------------------------------
+
 	
 	// LOAD "AT BALANCE STATEMENT" (ITEM)
 	
@@ -1795,22 +1776,22 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	if (NULL == pResponseBalanceItem)
 	{
 		// error, return.
-		OTLog::Output(0, "No atBalanceStatement item found on receipt (strange.)\n");
+		otOut << "No atBalanceStatement item found on receipt (strange.)\n";
 		return false;
 	}
 	else if (OTItem::acknowledgement != pResponseBalanceItem->GetStatus())
 	{
 		// error, return.
-		OTLog::Output(0, "Error: atBalanceStatement found on receipt, but not a successful one.\n");
+		otOut << "Error: atBalanceStatement found on receipt, but not a successful one.\n";
 		return false;		
 	}
 	else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM))
 	{		
-		OTLog::Output(0, "Unable to verify signature on atBalanceStatement item in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Unable to verify signature on atBalanceStatement item in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;				
 	}
 	
-	// ------------------------------------
+
 
 	// LOAD "BALANCE STATEMENT" (ITEM)
 
@@ -1822,7 +1803,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	if (!strBalanceItem.Exists())
 	{
 		// error, return.
-		OTLog::Output(0, "No balanceStatement item found as 'in ref to' string on a receipt containing atBalanceStatement item.\n");
+		otOut << "No balanceStatement item found as 'in ref to' string on a receipt containing atBalanceStatement item.\n";
 		return false;				
 	}
 
@@ -1830,22 +1811,22 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			
 	if (NULL == pBalanceItem)
 	{
-		OTLog::Output(0, "Unable to load balanceStatement item from string (from a receipt containing an atBalanceStatement item.)\n");
+		otOut << "Unable to load balanceStatement item from string (from a receipt containing an atBalanceStatement item.)\n";
 		return false;				
 	}
 	else if (pBalanceItem->GetType() != OTItem::balanceStatement)
 	{
-		OTLog::Output(0, "Wrong type on pBalanceItem (expected OTItem::balanceStatement)\n");
+		otOut << "Wrong type on pBalanceItem (expected OTItem::balanceStatement)\n";
 		return false;				
 	}
 	else if (!pBalanceItem->VerifySignature(THE_NYM))
 	{
-		OTLog::Output(0, "Unable to verify signature on balanceStatement item in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Unable to verify signature on balanceStatement item in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;				
 	}
 	
 
-	// ---------------------------------------------------------
+
 
 	// LOAD MESSAGE NYM (THE LIST OF ISSUED NUMBERS ACCORDING TO THE RECEIPT.)
 	
@@ -1858,17 +1839,17 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	else 
 		pItemWithIssuedList = pBalanceItem; // Hereafter we can use pItemWithIssuedList to verify issued transaction numbers (and NOTHING ELSE.)
 
-	// ------------
+
 	
 	pItemWithIssuedList->GetAttachment(strMessageNym);	// Like right here, for example.
 
 	if (!strMessageNym.Exists() || !theMessageNym.LoadFromString(strMessageNym))
 	{
-		OTLog::Output(0, "Unable to load message nym in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Unable to load message nym in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;				
 	}
 			
-	// ------------------------------------
+
 
 	// Finally everything is loaded and verified!
 	// I have the Nym and Server Nym
@@ -1906,18 +1887,18 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 //	if (!THE_NYM.VerifyIssuedNumbersOnNym(theMessageNym)) // Explained above. Balance Statements from other accts might be newer, and have burned #s already. Thus I
 	if (!THE_NYM.VerifyTransactionStatementNumbersOnNym(theMessageNym))	// Can't expect a # on the receipt to still be available, though I MUST verify that every number on current Nym IS on the receipt (just not the other way around.)
 	{
-		OTLog::Output(0, "Unable to verify issued numbers on last signed receipt with numbers on THE_NYM in OTTransaction::VerifyBalanceReceipt.\n");
+		otOut << "Unable to verify issued numbers on last signed receipt with numbers on THE_NYM in OTTransaction::VerifyBalanceReceipt.\n";
 		return false;				
 	}
 	
-	// -------------------------------------------------------
+
 	
 	// LOOP THROUGH THE BALANCE STATEMENT ITEMS (INBOX AND OUTBOX) TO GATHER SOME DATA...
 	
 	int32_t nInboxItemCount = 0, nOutboxItemCount = 0;
 	
 	
-//	OTLog::vError("BEFORE LOOP nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//	otErr << "BEFORE LOOP nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 	
 	const char * szInbox        = "Inbox";
 	const char * szOutbox       = "Outbox";
@@ -1925,7 +1906,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	int64_t lReceiptBalanceChange  = 0; // For measuring the amount of the total of items in the inbox that have changed the balance (like cheque receipts)
 	
 	// Notice here, I'm back to using pBalanceItem instead of pItemWithIssuedList, since this is the inbox/outbox section...
-	OTLog::vOutput(1, "Number of inbox/outbox items on the balance statement: %d\n", pBalanceItem->GetItemCount());
+	otWarn << "Number of inbox/outbox items on the balance statement: " << pBalanceItem->GetItemCount() << "\n";
 	
     
     // TODO:  Note: If the balance item shows a FINAL RECEIPT present, then ALL the co-related cron receipts in
@@ -1947,7 +1928,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 				
 		switch (pSubItem->GetType()) 
 		{
-            // ------------------------------------------------------
+
             // These types of receipts can actually change your balance.
             //
 			case OTItem::chequeReceipt: 
@@ -1957,7 +1938,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                 
 				lReceiptBalanceChange += pSubItem->GetAmount();
                 
-//				OTLog::vError("RECEIPT: lReceiptBalanceChange: %lld  pSubItem->GetAmount()  %lld\n", 
+//				otErr << "RECEIPT: lReceiptBalanceChange: %lld  pSubItem->GetAmount()  %lld\n", 
 //                    lReceiptBalanceChange, pSubItem->GetAmount());
 
                 // DROPS THROUGH HERE...
@@ -1966,7 +1947,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			case OTItem::finalReceipt:
                 
 				nInboxItemCount++;
-//				OTLog::vError("RECEIPT: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//				otErr << "RECEIPT: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 				pLedger = pInbox;
 				pszLedgerType = szInbox;
                 
@@ -1974,19 +1955,19 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			case OTItem::transfer:
 				
                 break; // we'll handle this in the next switch.
-            // ------------------------------------------------------
+
                 
 			default:
 			{
 				OTString strItemType;
 				pSubItem->GetTypeString(strItemType);
-				OTLog::vOutput(3, "OTTransaction::VerifyBalanceReceipt: Ignoring %s item "
-							   "in balance statement while verifying it against inbox.\n", strItemType.Get());
+				otLog3 << "OTTransaction::VerifyBalanceReceipt: Ignoring " << strItemType << " item "
+							   "in balance statement while verifying it against inbox.\n";
 			}				
 				continue;
 		}
 		
-        // -------------------------------------
+
         
 		switch (pSubItem->GetType()) 
 		{
@@ -1997,7 +1978,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 					lReceiptAmountMultiplier = -1; // transfers out always reduce your balance.
 					nOutboxItemCount++;
 
-//					OTLog::vError("GetAmount() negative, OUTBOX ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//					otErr << "GetAmount() negative, OUTBOX ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 
 					pLedger = pOutbox;
 					pszLedgerType = szOutbox;
@@ -2009,7 +1990,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 					pLedger = pInbox;
 					pszLedgerType = szInbox;
 
-//					OTLog::vError("GetAmount() POSITIVE, INBOX ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//					otErr << "GetAmount() POSITIVE, INBOX ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 
 				}
 				break;
@@ -2027,7 +2008,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 				continue; // This will never happen, due to the first continue above in the first switch.
 		}
 		
-        // ------------------------------------------------------------------
+
 
 		OTTransaction * pTransaction = NULL;
 		
@@ -2048,9 +2029,9 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			lTempTransactionNum	= pResponseBalanceItem->GetNewOutboxTransNum();
 			pTransaction		= pLedger->GetTransaction(lTempTransactionNum);
 			
-			OTLog::Output(3, "OTTransaction::VerifyBalanceReceipt: (This iteration, I'm handling an item listed as '1' in the outbox.)\n");
+			otLog3 << "OTTransaction::VerifyBalanceReceipt: (This iteration, I'm handling an item listed as '1' in the outbox.)\n";
 		}
-		else // ---------------------------------------------------------------
+		else
 		{   // THE ABOVE IS THE *UNUSUAL* CASE, WHEREAS THIS IS THE NORMAL CASE:
             //
 			// Make sure that the transaction number of each sub-item is found
@@ -2067,7 +2048,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			lTempNumberOfOrigin	= pTransaction->GetRawNumberOfOrigin();
         }
         
-        // ------------------------------------------------------------------
+
 		bool bSwitchedBoxes = false; // In the event that an outbox pending transforms into an inbox transferReceipt, I set this true.
 		
 		// Let's say I sign a balance receipt showing a 100 clam pending transfer, sitting in my outbox.
@@ -2082,8 +2063,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		// Therefore the code has to specifically allow for this case, for outbox items...
 		if ((NULL == pTransaction) && (pOutbox == pLedger))
 		{
-			OTLog::vOutput(4, "OTTransaction::%s: Outbox pending found as inbox transferReceipt. (Normal.)\n",
-                           __FUNCTION__);
+			otLog4 << "OTTransaction::" << __FUNCTION__ << ": Outbox pending found as inbox transferReceipt. (Normal.)\n";
 
 			// We didn't find the transaction that was expected to be in the outbox. (A pending.)
 			// Therefore maybe it is now a transfer receipt in the Inbox. We allow for this case.
@@ -2094,7 +2074,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 			{
 				lTempTransactionNum	= pTransaction->GetTransactionNum();
 				lTempNumberOfOrigin	= pTransaction->GetRawNumberOfOrigin();
-                // --------------------------------------------------------------
+
                 // re: the code below: lTempReferenceToNum	= pSubItem->GetReferenceToNum();
                 //
                 // If it had been in the outbox, the pending receipt would be "in reference to" my original
@@ -2130,7 +2110,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 				nInboxItemCount++;
 				nOutboxItemCount--;
 				
-//				OTLog::vError("PENDING->TransferReceipt. nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//				otErr << "PENDING->TransferReceipt. nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 
 				pLedger = pInbox;
 				pszLedgerType = szInbox;
@@ -2159,41 +2139,37 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		// STILL not found?? 
 		if (NULL == pTransaction)
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: Expected %s transaction (%lld) not found. (Amount %lld.)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum, pSubItem->GetAmount());
+			otOut << "OTTransaction::" << __FUNCTION__ << ": Expected " << pszLedgerType << " transaction (" << lTempTransactionNum
+				<< ") not found. (Amount " << pSubItem->GetAmount() << ".)\n";
 			return false;
 		}
-		// ----------------------------------------------------------------------------------
+
 		// subItem is from the balance statement, and pTransaction is from the inbox/outbox
 		if (pSubItem->GetReferenceToNum() != lTempReferenceToNum)
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) mismatch Reference Num: %lld, expected %lld\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum,
-                           pSubItem->GetReferenceToNum(), lTempReferenceToNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction (" << lTempTransactionNum
+				<< ") mismatch Reference Num: " << pSubItem->GetReferenceToNum() << ", expected " << lTempReferenceToNum << "\n";
 			return false;
 		}
-        // ----------------------------------------------------------------------------------
+
 		if (pSubItem->GetRawNumberOfOrigin() != lTempNumberOfOrigin)
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) mismatch Number of Origin: %lld, expected %lld\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum,
-                           pSubItem->GetRawNumberOfOrigin(), lTempNumberOfOrigin);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction (" << lTempTransactionNum <<
+				") mismatch Number of Origin: " << pSubItem->GetRawNumberOfOrigin() << ", expected " << lTempNumberOfOrigin << "\n";
 			return false;
 		}
-        // ----------------------------------------------------------------------------------
+
 		int64_t lTransactionAmount	 =	pTransaction->GetReceiptAmount();
 		lTransactionAmount		*=	lReceiptAmountMultiplier;
 		
 		if (pSubItem->GetAmount() != lTransactionAmount)
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) "
-						   "amounts don't match: Report says %lld, but expected %lld. Trans recpt amt: %lld, (pBalanceItem->GetAmount() == %lld.)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum,
-						   pSubItem->GetAmount(), lTransactionAmount, pTransaction->GetReceiptAmount(),
-						   pBalanceItem->GetAmount());
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction (" << lTempTransactionNum << ") "
+				"amounts don't match: Report says " << pSubItem->GetAmount() << ", but expected " << lTransactionAmount << ". Trans recpt amt: "
+				<< pTransaction->GetReceiptAmount() << ", (pBalanceItem->GetAmount() == " << pBalanceItem->GetAmount() << ".)\n";
 			return false;
 		}
-        // ----------------------------------------------------------------------------------
+
 		if (
 			(pSubItem->GetType() == OTItem::transfer)	&& 
 				(
@@ -2206,72 +2182,70 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 				)
 		   )
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (pending block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (pending block)\n";
 			return false;
 		}
 		
 		if ((pSubItem->GetType()		== OTItem::chequeReceipt) &&
 			(pTransaction->GetType()	!= OTTransaction::chequeReceipt))
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (chequeReceipt block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (chequeReceipt block)\n";
 			return false;
 		}
 		
 		if ((pSubItem->GetType()		== OTItem::voucherReceipt) &&
 			(pTransaction->GetType()	!= OTTransaction::voucherReceipt))
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (voucherReceipt block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (voucherReceipt block)\n";
 			return false;
 		}
 		
 		if ((pSubItem->GetType()		== OTItem::marketReceipt) &&
 			(pTransaction->GetType()	!= OTTransaction::marketReceipt))
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (marketReceipt block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (marketReceipt block)\n";
 			return false;
 		}
 		
 		if ((pSubItem->GetType()		== OTItem::paymentReceipt) && 
 			(pTransaction->GetType()	!= OTTransaction::paymentReceipt))
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (paymentReceipt block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (paymentReceipt block)\n";
 			return false;
 		}
 		
 		if ((pSubItem->GetType()		== OTItem::transferReceipt) && 
 			(pTransaction->GetType()	!= OTTransaction::transferReceipt))
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type. (transferReceipt block)\n",
-						   __FUNCTION__, pszLedgerType, lTempTransactionNum);
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction ("
+				<< lTempTransactionNum << ") wrong type. (transferReceipt block)\n";
 			return false;
 		}
         
 		if ((pSubItem->GetType()		== OTItem::basketReceipt) && 
-            // -------------------------------------------------------
+
 			((pTransaction->GetType()	!= OTTransaction::basketReceipt) || 
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))
             )
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type or closing num (%lld). "
-                           "(basketReceipt block)\n", __FUNCTION__, pszLedgerType, lTempTransactionNum,
-                           pSubItem->GetClosingNum());
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction (" << lTempTransactionNum << ") wrong type or closing num (" << pSubItem->GetClosingNum() << "). "
+                           "(basketReceipt block)\n";
 			return false;
 		}
         
 		if ((pSubItem->GetType()		== OTItem::finalReceipt) && 
-            // -------------------------------------------------------
+
 			((pTransaction->GetType()	!= OTTransaction::finalReceipt) || 
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))
              )
 		{
-			OTLog::vOutput(0, "OTTransaction::%s: %s transaction (%lld) wrong type or closing num (%lld). "
-                           "(finalReceipt block)\n", __FUNCTION__, pszLedgerType, lTempTransactionNum,
-                           pSubItem->GetClosingNum());
+			otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType << " transaction (" << lTempTransactionNum << ") wrong type or closing num (" << pSubItem->GetClosingNum() << "). "
+                           "(finalReceipt block)\n";
 			return false;
 		}
 	}
@@ -2281,26 +2255,21 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	// I also know that I found each item from the receipt on the new inbox or outbox (as I should have)
 	// But do I have to verify that the items are all signed for. I'll do that below since this list
 	// is a subset of that one (supposedly.)
+
 	
-	//-----------------------------------------------------------------
-	
-	
-//	OTLog::vError("BEFORE COUNT MATCH. nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
+//	otErr << "BEFORE COUNT MATCH. nInboxItemCount: %d  nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
 	
 	if (nOutboxItemCount != pOutbox->GetTransactionCount())
 	{
-		OTLog::vOutput(0, "OTTransaction::%s: Outbox mismatch in expected transaction count.\n"
-					   " --- THE_INBOX count: %d --- THE_OUTBOX count: %d\n"
-					   "--- nInboxItemCount: %d --- nOutboxItemCount: %d\n\n", 
-					   __FUNCTION__, pInbox->GetTransactionCount(), pOutbox->GetTransactionCount(),
-					   nInboxItemCount, nOutboxItemCount);
+		otOut << "OTTransaction::" << __FUNCTION__ << ": Outbox mismatch in expected transaction count.\n"
+			" --- THE_INBOX count: " << pInbox->GetTransactionCount() << " --- THE_OUTBOX count: " << pOutbox->GetTransactionCount() << "\n"
+			"--- nInboxItemCount: " << nInboxItemCount << " --- nOutboxItemCount: " << nOutboxItemCount << "\n\n";
 		
 		return false;
 	}
 	
 	// (Notice I don't check inbox item count here, since that actually CAN change.)
 	
-	//-----------------------------------------------------------------
 
 	// LOOP THROUGH LATEST INBOX AND GATHER DATA / VALIDATE AGAINST LAST RECEIPT.
 	
@@ -2313,7 +2282,6 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		
 		OT_ASSERT(NULL != pTransaction);
 
-        // -----------------------------------------------
 
 		switch (pTransaction->GetType())
 		{
@@ -2324,7 +2292,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                 
 				lInboxBalanceChange += pTransaction->GetReceiptAmount(); // Here I total ALL relevant receipts.
 				
-//				OTLog::vError("ON INBOX:  lInboxBalanceChange: %lld  pTransaction->GetReceiptAmount(): %lld\n", // temp remove debugging todo
+//				otErr << "ON INBOX:  lInboxBalanceChange: %lld  pTransaction->GetReceiptAmount(): %lld\n", // temp remove debugging todo
 //							  lInboxBalanceChange, pTransaction->GetReceiptAmount());
 				
             case OTTransaction::finalReceipt:       // finalReceipt has no amount.
@@ -2334,14 +2302,13 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 				break;
 			default:
 			{
-				OTLog::vOutput(4, "OTTransaction::%s: Ignoring %s item in inbox while verifying it against balance receipt.\n",
-                               __FUNCTION__, pTransaction->GetTypeString());
+				otLog4 << "OTTransaction::" << __FUNCTION__ << ": Ignoring " << pTransaction->GetTypeString()
+					<< " item in inbox while verifying it against balance receipt.\n";
 			}				
 				continue;
 		}
-        
-        // -----------------------------------------------
-		//
+
+
         // This "for" loop is in the process of iterating the LATEST INBOX...
         // ...For each receipt in that inbox, we try and look up a record of the exact same receipt in
         // the INBOX REPORT (present in the balance agreement from the LAST SIGNED TRANSACTION RECEIPT.)
@@ -2352,8 +2319,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		
         OTItem * pFinalReceiptItem = NULL;
 
-        // ---------------------------------------------------------------------
-        //
+
 		// The above loop already verified that all items in the receipt's inbox were found in the new inbox.
         //
 		// But THIS item, though found in the new inbox, WAS NOT FOUND in the OLD inbox (on the receipt.)
@@ -2387,9 +2353,9 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                     //
                     if (NULL != pFinalReceiptItem)
                     {
-                        OTLog::vOutput(0, "OTTransaction::%s: Malicious server? A new cronReceipt has appeared, "
+						otOut << "OTTransaction::" << __FUNCTION__ << ": Malicious server? A new cronReceipt has appeared, "
                                        "even though its corresponding \nfinalReceipt was already present in the LAST SIGNED RECEIPT. "
-                                       "In reference to: %lld\n", __FUNCTION__, pTransaction->GetReferenceToNum());
+									   "In reference to: " << pTransaction->GetReferenceToNum() << "\n";
                         return false;
                     }
                     // else drop-through, since marketReceipts and paymentReceipts DO affect the balance...
@@ -2399,7 +2365,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                     
 					lInboxSupposedDifference += pTransaction->GetReceiptAmount(); // Here I only total the NEW receipts (not found in old receipt inbox but found in current inbox.)
 					
-//					OTLog::vError("NOT ON RECEIPT:  lInboxSupposedDifference: %lld  pTransaction->GetReceiptAmount(): %lld\n", // temp remove debugging todo
+//					otErr << "NOT ON RECEIPT:  lInboxSupposedDifference: %lld  pTransaction->GetReceiptAmount(): %lld\n", // temp remove debugging todo
 //								  lInboxSupposedDifference, pTransaction->GetReceiptAmount());
 					
 				case OTTransaction::finalReceipt:   // This has no value. 0 amount.
@@ -2412,119 +2378,107 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 					break; // this should never happen due to above switch.
 			}
 		}
-        // ---------------------------------------------------------------------
-        //
+
+
 		else // If the transaction from the inbox WAS found as an item on the old receipt, let's verify the two against each other...
 		{
 			// subItem is from the balance statement, and pTransaction is from the inbox
 			if (pSubItem->GetReferenceToNum() != pTransaction->GetReferenceToNum())
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) mismatch Reference Num: %lld, expected %lld\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum(), pSubItem->GetReferenceToNum(),
-							   pTransaction->GetReferenceToNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() <<
+					") mismatch Reference Num: " << pSubItem->GetReferenceToNum() << ", expected " << pTransaction->GetReferenceToNum() << "\n";
 				return false;
 			}
-            // ----------------------------------------------------------------------------------
-            if (pSubItem->GetNumberOfOrigin() != pTransaction->GetNumberOfOrigin())
+
+			if (pSubItem->GetNumberOfOrigin() != pTransaction->GetNumberOfOrigin())
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) mismatch Reference Num: %lld, expected %lld\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum(),
-                               pSubItem->GetNumberOfOrigin(), pTransaction->GetNumberOfOrigin());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() <<
+					") mismatch Reference Num: " << pSubItem->GetNumberOfOrigin() << ", expected " << pTransaction->GetNumberOfOrigin() << "\n";
 				return false;
 			}
-            // ----------------------------------------------------------------------------------
+
 			// We're looping through the inbox here, so no multiplier is needed for the amount
 			// (that was only for outbox items.)
 			if (pSubItem->GetAmount()	!= (pTransaction->GetReceiptAmount() ))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) "
-							   "amounts don't match: %lld, expected %lld. (pBalanceItem->GetAmount() == %lld.)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum(),
-							   pSubItem->GetAmount(), pTransaction->GetReceiptAmount(),
-							   pBalanceItem->GetAmount());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") "
+					"amounts don't match: " << pSubItem->GetAmount() << ", expected " << pTransaction->GetReceiptAmount() <<
+					". (pBalanceItem->GetAmount() == " << pBalanceItem->GetAmount() << ".)\n";
 				return false;
 			}
 			
 			if ((pSubItem->GetType()		== OTItem::transfer) && 
 				(pTransaction->GetType()	!= OTTransaction::pending))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. (pending block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. (pending block)\n";
 				return false;
 			}
 			
 			if ((pSubItem->GetType()		== OTItem::chequeReceipt) &&
 				(pTransaction->GetType()	!= OTTransaction::chequeReceipt))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. "
-                               "(chequeReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. "
+                               "(chequeReceipt block)\n";
 				return false;
 			}
 			
 			if ((pSubItem->GetType()		== OTItem::voucherReceipt) &&
 				(pTransaction->GetType()	!= OTTransaction::voucherReceipt))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. "
-                               "(voucherReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction:" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. "
+                               "(voucherReceipt block)\n";
 				return false;
 			}
 			
 			if ((pSubItem->GetType()		== OTItem::marketReceipt) &&
 				(pTransaction->GetType()	!= OTTransaction::marketReceipt))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. "
-                               "(marketReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. "
+                               "(marketReceipt block)\n";
 				return false;
 			}
 			
 			if ((pSubItem->GetType()		== OTItem::paymentReceipt) && 
 				(pTransaction->GetType()	!= OTTransaction::paymentReceipt))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. "
-                               "(paymentReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. "
+                               "(paymentReceipt block)\n";
 				return false;
 			}
 
 			if ((pSubItem->GetType()		== OTItem::transferReceipt) && 
 				(pTransaction->GetType()	!= OTTransaction::transferReceipt))
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type. "
-                               "(transferReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type. "
+                               "(transferReceipt block)\n";
 				return false;
 			}
             
             if ((pSubItem->GetType()		== OTItem::basketReceipt) && 
-                // ---------------------------------------------------------
+
 				((pTransaction->GetType()	!= OTTransaction::basketReceipt) ||
                  (pSubItem->GetClosingNum()	!= pTransaction->GetClosingNum()))
                 )
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type, "
-                               "or mismatched closing num. (basketReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type, "
+                               "or mismatched closing num. (basketReceipt block)\n";
 				return false;
 			}
 
             if ((pSubItem->GetType()		== OTItem::finalReceipt) && 
-                // ---------------------------------------------------------
+
 				((pTransaction->GetType()	!= OTTransaction::finalReceipt) ||
                  (pSubItem->GetClosingNum()	!= pTransaction->GetClosingNum()))
                 )
 			{
-				OTLog::vOutput(0, "OTTransaction::%s: Inbox transaction (%lld) wrong type, "
-                               "or mismatched closing num. (finalReceipt block)\n",
-							   __FUNCTION__, pSubItem->GetTransactionNum());
+				otOut << "OTTransaction::" << __FUNCTION__ << ": Inbox transaction (" << pSubItem->GetTransactionNum() << ") wrong type, "
+                               "or mismatched closing num. (finalReceipt block)\n";
 				return false;
 			}
 
 		} // else pSubItem WAS found on the old receipt		
 		
-		// ---------------
+
 		// Next I need to find out the transaction number that I ORIGINALLY used, that's somehow associated with the receipt
 		// I found in my inbox, by looking up the number from within the receipt...
 		//
@@ -2534,15 +2488,15 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
         
 		switch (pTransaction->GetType())
 		{
-            // ----------------------------------------------------------------------
+
 			case OTTransaction::transferReceipt: // a transfer receipt is in reference to some guy's acceptPending
             case OTTransaction::chequeReceipt:
             case OTTransaction::voucherReceipt:
                 
                 lIssuedNum = pTransaction->GetNumberOfOrigin();
 				break;
-            // ----------------------------------------------------------------------
-            // ANY cron-related receipts should go here...
+
+			// ANY cron-related receipts should go here...
             //
 			case OTTransaction::marketReceipt: 
 			case OTTransaction::paymentReceipt:		// a payment receipt #92 is IN REFERENCE TO my payment plan #13, 
@@ -2570,8 +2524,8 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                 // also still valid until the FINAL RECEIPT is closed.)
                 //               
 				break;               
-            // ----------------------------------------------------------------------
-        
+
+
                 // basketReceipt always expects the issued num to be its "closing num". The "reference to" is instead
                 // expected to contain the basketExchange ID (Trans# of the original request to exchange, which is already closed.)
                 //
@@ -2585,11 +2539,11 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
                 lIssuedNum = pTransaction->GetClosingNum();
                 break;
                 
-            // ----------------------------------------------------------------------
+
 			default:
 				continue; // Below this point (inside the loop) is ONLY for receipts that somehow represent a transaction number that's still issued / signed out to me.
 		}
-		// -----------------------------------------------
+
 		
 		// Whether pSubItem is NULL or not, pTransaction DEFINITELY exists either way, in the newest inbox.
 		// Therefore, let's verify whether I'm even responsible for that transaction number... (Just because I signed
@@ -2598,8 +2552,8 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		//
 		if (!theMessageNym.VerifyIssuedNum(strServerID, lIssuedNum))
 		{
-			OTLog::vError("OTTransaction::%s: Error verifying if transaction num in inbox (%lld) was actually signed out (%lld)\n",
-						  __FUNCTION__, pTransaction->GetTransactionNum(), lIssuedNum);
+			otErr << "OTTransaction::" << __FUNCTION__ << ": Error verifying if transaction num in inbox (" 
+				<< pTransaction->GetTransactionNum() << ") was actually signed out (" << lIssuedNum << ")\n";
 			return false;
 		}
         
@@ -2625,7 +2579,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	//
 	// All that's left is to make sure the balance is right...
 	//
-	// --------------------------------------------------
+
 	
 	// VERIFY ACCOUNT BALANCE (RECONCILING WITH NEW INBOX RECEIPTS)
 
@@ -2674,7 +2628,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	const bool bNewInboxWasBigger		= ((lInboxBalanceChange > lReceiptBalanceChange) ? true : false);
 	const bool bNewInboxWasSmaller		= ((lInboxBalanceChange < lReceiptBalanceChange) ? true : false);
 	
-	// --------------------------------
+
 	
 	int64_t lActualDifference;
 	
@@ -2685,7 +2639,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	else
 		lActualDifference = 0;
 
-	// --------------------------------
+
 
 	/*
 	 Example for logic:
@@ -2724,7 +2678,7 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	 Inbox B:	bNewInboxWasBigger == FALSE,	
 				bNewInboxWasSmaller == TRUE
 	 
-	 // --------------------------
+
 	 
 	 if (
 	 (bNewInboxWasBigger	&& (lAbsoluteDifference	!= lInboxSupposedDifference))	||	// lInboxSupposedDifference should be positive here.
@@ -2760,14 +2714,12 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 	// (Which is probably impossible anyway) then return false.
 	if (lActualDifference	!=	lInboxSupposedDifference)
 	{
-		OTLog::vError("OTTransaction::%s: lActualDifference (%lld) is not equal to lInboxSupposedDifference (%lld)\n"
-					  "FYI, Inbox balance on old receipt: %lld  Inbox balance on current inbox: %lld\n",
-                      __FUNCTION__, lActualDifference, lInboxSupposedDifference,
-                      lReceiptBalanceChange, lInboxBalanceChange);
+		otErr << "OTTransaction::" << __FUNCTION__ << ": lActualDifference (" << lActualDifference << ") is not equal to lInboxSupposedDifference (" << lInboxSupposedDifference << ")\n"
+			"FYI, Inbox balance on old receipt: " << lReceiptBalanceChange << "  Inbox balance on current inbox: " << lInboxBalanceChange << "\n";
 		return false;
 	}
 	
-	// ---------------------------------------------
+
 	// if, according to the two inboxes, they are different (in terms of how they would impact balance),
 	// then therefore, they must have impacted my balance. THEREFORE, my old balance MUST be equivalent to
 	// the current (apparently new) balance, PLUS OR MINUS THE DIFFERENCE, ACCORDING TO THE DIFFERENCE BETWEEN THE INBOXES.
@@ -2807,9 +2759,8 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
 		// Let's say ActualDifference == 10-3 (prev balance minus current balance) == 7.
 		// If that's the case, then 7 + THE_ACCT.Balance should equal 10 again from the last balance statement!
 
-		OTLog::vError("OTTransaction::%s: lActualDifference in receipts (%lld) "
-					  "plus current acct balance (%lld) is NOT equal to last signed balance (%lld)\n",
-					  __FUNCTION__, lActualDifference, THE_ACCOUNT.GetBalance(), pBalanceItem->GetAmount());
+		otErr << "OTTransaction::" << __FUNCTION__ << ": lActualDifference in receipts (" << lActualDifference << ") "
+			"plus current acct balance (" << THE_ACCOUNT.GetBalance() << ") is NOT equal to last signed balance (" << pBalanceItem->GetAmount() << ")\n";
 		return false;		
 	}	
 	
@@ -2832,7 +2783,7 @@ bool OTTransaction::SetupBoxReceiptFilename(const int64_t		 lLedgerType,
 											OTString & strFilename)
 {
 	OT_ASSERT(NULL != szCaller);
-    // --------------------------------------------------------
+
 	const char * pszFolder = NULL;  // "nymbox" (or "inbox" or "outbox")
 	switch (lLedgerType) 
 	{
@@ -2844,20 +2795,20 @@ bool OTTransaction::SetupBoxReceiptFilename(const int64_t		 lLedgerType,
 		case 5:	pszFolder = OTFolders::RecordBox().Get();		break;
 		case 6:	pszFolder = OTFolders::ExpiredBox().Get();		break;
 		default:
-			OTLog::vError("OTTransaction::%s %s: Error: unknown box type: %lld. "
-						  "(This should never happen.)\n", __FUNCTION__, szCaller, lLedgerType);
+			otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller << ": Error: unknown box type: "
+				<< lLedgerType << ". (This should never happen.)\n";
 			return false;
 	}
-	// --------------------------------------------------------------------
+
 	strFolder1name.Set(pszFolder);							// "nymbox" (or "inbox" or "outbox")
 	strFolder2name.Set(strServerID);						// "SERVER_ID"
     strFolder3name.Format("%s.r", strUserOrAcctID.Get());	// "USER_ID.r"
-	// --------------------------------------------------------------------
-    strFilename.Format("%lld.rct", lTransactionNum);			// "TRANSACTION_ID.rct"
+
+	strFilename.Format("%lld.rct", lTransactionNum);			// "TRANSACTION_ID.rct"
 	// todo hardcoding of file extension. Need to standardize extensions.
 	
 	// Finished product:			"nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"
-	// --------------------------------------------------------------------
+
 	return true;	
 }
 
@@ -2875,9 +2826,9 @@ bool OTTransaction::SetupBoxReceiptFilename(const int64_t lLedgerType,
 {
 	OTString strUserOrAcctID;
 	theTransaction.GetIdentifier(strUserOrAcctID);
-	// --------------------------------------------------------------------
+
 	const OTString strServerID(theTransaction.GetRealServerID());
-	// --------------------------------------------------------------------
+
 	return OTTransaction::SetupBoxReceiptFilename(lLedgerType, strUserOrAcctID, strServerID,
 												  theTransaction.GetTransactionNum(), szCaller,
 												  strFolder1name, strFolder2name, strFolder3name,
@@ -2897,7 +2848,7 @@ bool OTTransaction::SetupBoxReceiptFilename(OTLedger & theLedger,
 											OTString & strFilename)
 {
 	int64_t lLedgerType = 0;
-    // --------------------------------------------------------
+
 	switch (theLedger.GetType()) 
 	{
 		case OTLedger::nymbox:          lLedgerType = 0;	break;
@@ -2908,11 +2859,11 @@ bool OTTransaction::SetupBoxReceiptFilename(OTLedger & theLedger,
 		case OTLedger::recordBox:		lLedgerType = 5;	break;
 		case OTLedger::expiredBox:		lLedgerType = 6;	break;
 		default:
-			OTLog::vError("OTTransaction::%s %s: Error: unknown box type. "
-						  "(This should never happen.)\n", __FUNCTION__, szCaller);
+			otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller << ": Error: unknown box type. "
+						  "(This should never happen.)\n";
 			return false;
 	}
-	// --------------------------------------------------------
+
 	return OTTransaction::SetupBoxReceiptFilename(lLedgerType, theTransaction, szCaller,
 												  strFolder1name, strFolder2name, strFolder3name,
 												  strFilename);
@@ -2932,20 +2883,18 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger & theLedger)
 														strFolder1name, strFolder2name, strFolder3name,
 														strFilename))
 		return false; // This already logs -- no need to log twice, here.
-	// --------------------------------------------------------------------	
-    // See if the box receipt exists before trying to save over it...
+
+	// See if the box receipt exists before trying to save over it...
     //
 	if (false == OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(), strFolder3name.Get(),
 							  strFilename.Get()))
 	{
-		OTLog::vOutput(2, "%s: Box receipt already doesn't exist, thus no need to delete: "
-					   "At location: %s%s%s%s%s%s%s\n", __FUNCTION__, strFolder1name.Get(),
-                       OTLog::PathSeparator(), 
-					   strFolder2name.Get(), OTLog::PathSeparator(), strFolder3name.Get(),
-					   OTLog::PathSeparator(), strFilename.Get());
+		otInfo << __FUNCTION__ << ": Box receipt already doesn't exist, thus no need to delete: "
+			"At location: " << strFolder1name << OTLog::PathSeparator() << strFolder2name << OTLog::PathSeparator() 
+			<< strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 		return false;
 	}
-	// --------------------------------------------------------------------
+
 
 	OTString strFinal;
     OTASCIIArmor ascTemp;
@@ -2956,14 +2905,14 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger & theLedger)
     
         if (false == ascTemp.WriteArmoredString(strFinal, m_strContractType.Get()))
         {
-            OTLog::vError("%s: Error deleting (writing over) box receipt (failed writing armored string):\n%s%s%s%s%s%s%s\n", 
-                          __FUNCTION__, strFolder1name.Get(),
-                          OTLog::PathSeparator(), strFolder2name.Get(), OTLog::PathSeparator(), 
-                          strFolder3name.Get(), OTLog::PathSeparator(), strFilename.Get());
+			otErr << __FUNCTION__ << ": Error deleting (writing over) box receipt (failed writing armored string):\n"
+                << strFolder1name << OTLog::PathSeparator()
+                << strFolder2name << OTLog::PathSeparator()
+                << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
             return false;
         }
     }
-    // --------------------------------------------------------------------
+
 
     // NOTE: I do the armored string FIRST, THEN add the "marked for deletion" 
     // part as I save it. (This way, it's still searchable with grep.)
@@ -2979,36 +2928,31 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger & theLedger)
 		strOutput.Format("%s\n\n%s\n", 
 						 "(Transaction was already empty -- strange.)", 
 						 "MARKED_FOR_DELETION"); // todo hardcoded.
-	// --------------------------------------------------------------------
-    
+
+
 	bool bDeleted = OTDB::StorePlainString(strOutput.Get(), strFolder1name.Get(), 
 										   strFolder2name.Get(), strFolder3name.Get(),
 										   strFilename.Get());
 	if (false == bDeleted)
-		OTLog::vError("%s: Error deleting (writing over) file: "
-					  "%s%s%s%s%s%s%s\nContents:\n\n%s\n\n", 
-					  __FUNCTION__, strFolder1name.Get(), OTLog::PathSeparator(),
-                      strFolder2name.Get(),
-					  OTLog::PathSeparator(), strFolder3name.Get(), 
-					  OTLog::PathSeparator(), strFilename.Get(),
-					  m_strRawFile.Get());
-	// --------------------------------------------------------------------
+		otErr << __FUNCTION__ << ": Error deleting (writing over) file: "
+		<< strFolder1name << OTLog::PathSeparator() << strFolder2name << OTLog::PathSeparator()
+		<< strFolder3name << OTLog::PathSeparator() << strFilename << "\nContents:\n\n" << m_strRawFile << "\n\n";
+
 	return bDeleted;	
 }
 
 
 bool OTTransaction::SaveBoxReceipt(const int64_t lLedgerType)
 {
-	// ---------------------------------
-    if (IsAbbreviated())
+
+	if (IsAbbreviated())
     {
-        OTLog::vOutput(0, "%s: Unable to save box receipt %lld: "
+		otOut << __FUNCTION__ << ": Unable to save box receipt " << GetTransactionNum() << ": "
                        "This transaction is the abbreviated version (box receipt is supposed to "
-					   "consist of the full version, so we can't save THIS as the box receipt.)\n",
-					   __FUNCTION__, GetTransactionNum());
+					   "consist of the full version, so we can't save THIS as the box receipt.)\n";
         return false;
     }
-	// --------------------------------------------------------------------	
+
 	OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 	
 	if (false == OTTransaction::SetupBoxReceiptFilename(lLedgerType, *this, 
@@ -3016,18 +2960,17 @@ bool OTTransaction::SaveBoxReceipt(const int64_t lLedgerType)
 														strFolder1name, strFolder2name, strFolder3name,
 														strFilename))
 		return false; // This already logs -- no need to log twice, here.
-	// --------------------------------------------------------------------	
-    // See if the box receipt exists before trying to save over it...
+
+	// See if the box receipt exists before trying to save over it...
     //
 	if (OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(), strFolder3name.Get(), strFilename.Get()))
 	{
-		OTLog::vOutput(0, "%s: Warning -- Box receipt already exists! (Overwriting)"
-					   "At location: %s%s%s%s%s%s%s\n", __FUNCTION__, strFolder1name.Get(), OTLog::PathSeparator(), 
-					   strFolder2name.Get(), OTLog::PathSeparator(), strFolder3name.Get(), OTLog::PathSeparator(),
-					   strFilename.Get());
+		otOut << __FUNCTION__ << ": Warning -- Box receipt already exists! (Overwriting)"
+			"At location: " << strFolder1name << OTLog::PathSeparator() << strFolder2name << OTLog::PathSeparator() 
+			<< strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 //		return false;
 	}
-	// --------------------------------------------------------------------
+
 	// Try to save the box receipt to local storage.
 	//
 	OTString strFinal;
@@ -3035,24 +2978,21 @@ bool OTTransaction::SaveBoxReceipt(const int64_t lLedgerType)
     
     if (false == ascTemp.WriteArmoredString(strFinal, m_strContractType.Get()))
     {
-		OTLog::vError("%s: Error saving box receipt (failed writing armored string):\n%s%s%s%s%s%s%s\n", 
-                      __FUNCTION__, strFolder1name.Get(), OTLog::PathSeparator(), 
-                      strFolder2name.Get(), OTLog::PathSeparator(), strFolder3name.Get(), OTLog::PathSeparator(),
-                      strFilename.Get());
+		otErr << __FUNCTION__ << ": Error saving box receipt (failed writing armored string):\n" << strFolder1name << OTLog::PathSeparator()
+			<< strFolder2name << OTLog::PathSeparator() << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 		return false;
     }
-    // --------------------------------------------------------------------
-    
+
+
 	bool bSaved = OTDB::StorePlainString(strFinal.Get(), strFolder1name.Get(),
 										 strFolder2name.Get(), strFolder3name.Get(),
 										 strFilename.Get()); 
 	
 	if (false == bSaved)
-		OTLog::vError("%s: Error writing file: %s%s%s%s%s%s%s\nContents:\n\n%s\n\n", 
-					  __FUNCTION__, strFolder1name.Get(), OTLog::PathSeparator(), strFolder2name.Get(),
-					  OTLog::PathSeparator(), strFolder3name.Get(), 
-					  OTLog::PathSeparator(), strFilename.Get(), m_strRawFile.Get());
-	// --------------------------------------------------------------------
+		otErr << __FUNCTION__ << ": Error writing file: " << strFolder1name << OTLog::PathSeparator()
+		<< strFolder2name << OTLog::PathSeparator() << strFolder3name << OTLog::PathSeparator() 
+		<< strFilename << "\nContents:\n\n" << m_strRawFile << "\n\n";
+
 	return bSaved;	
 }
 
@@ -3075,18 +3015,17 @@ OTTransaction * OTTransaction::LoadBoxReceipt(OTTransaction & theAbbrev, const i
     // local storage, into a string.
     // Then, try to load the transaction from that string and see if successful.
     // If it verifies, then return it. Otherwise return NULL.
-    // --------------------------------------------------------
-    // Can only load abbreviated transactions (so they'll become their full form.)
+
+	// Can only load abbreviated transactions (so they'll become their full form.)
     //
     if (false == theAbbrev.IsAbbreviated())
     {
-        OTLog::vOutput(0, "%s: Unable to load box receipt %lld: "
-                       "(Because argument 'theAbbrev' wasn't abbreviated.)\n", 
-					   __FUNCTION__, theAbbrev.GetTransactionNum());
+		otOut << __FUNCTION__ << ": Unable to load box receipt " << theAbbrev.GetTransactionNum() << ": "
+                       "(Because argument 'theAbbrev' wasn't abbreviated.)\n";
         return NULL;
     }
-    // ****************************************************************
-    // Next, see if the appropriate file exists, and load it up from
+
+	// Next, see if the appropriate file exists, and load it up from
     // local storage, into a string.
 	
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
@@ -3099,19 +3038,18 @@ OTTransaction * OTTransaction::LoadBoxReceipt(OTTransaction & theAbbrev, const i
 														strFolder3name, 
 														strFilename))
 		return NULL; // This already logs -- no need to log twice, here.
-	// --------------------------------------------------------------------	
-    // See if the box receipt exists before trying to load it...
+
+	// See if the box receipt exists before trying to load it...
     //
 	if (false == OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(), strFolder3name.Get(), strFilename.Get()))
 	{
-		OTLog::vOutput(1, "%s: Box receipt does not exist: %s%s%s%s%s%s%s\n",
-					   __FUNCTION__, 
-                       strFolder1name.Get(), OTLog::PathSeparator(), 
-					   strFolder2name.Get(), OTLog::PathSeparator(), 
-					   strFolder3name.Get(), OTLog::PathSeparator(), strFilename.Get());
+		otWarn << __FUNCTION__ << ": Box receipt does not exist: "
+            << strFolder1name << OTLog::PathSeparator() 
+			<< strFolder2name << OTLog::PathSeparator()
+            << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 		return NULL;
 	}
-	// --------------------------------------------------------------------
+
 	// Try to load the box receipt from local storage.
 	//
 	std::string strFileContents(OTDB::QueryPlainString(strFolder1name.Get(), // <=== LOADING FROM DATA STORE.
@@ -3120,88 +3058,68 @@ OTTransaction * OTTransaction::LoadBoxReceipt(OTTransaction & theAbbrev, const i
                                                        strFilename.Get())); 
 	if (strFileContents.length() < 2)
 	{
-		OTLog::vError("%s: Error reading file: %s%s%s%s%s%s%s\n", 
-					  __FUNCTION__,
-                      strFolder1name.Get(), OTLog::PathSeparator(), 
-                      strFolder2name.Get(), OTLog::PathSeparator(), 
-                      strFolder3name.Get(), OTLog::PathSeparator(), 
-                      strFilename.Get());
+		otErr << __FUNCTION__ << ": Error reading file: " << strFolder1name << OTLog::PathSeparator() 
+			<< strFolder2name << OTLog::PathSeparator() << strFolder3name 
+			<< OTLog::PathSeparator() << strFilename << "\n";
 		return NULL;
 	}
-	// --------------------------------------------------------------------
+
 	OTString strRawFile(strFileContents.c_str());
 	
 	if (false == strRawFile.Exists())
 	{
-		OTLog::vError("%s: Error reading file (resulting output "
-                      "string is empty): %s%s%s%s%s%s%s\n",
-					  __FUNCTION__,
-                      strFolder1name.Get(), OTLog::PathSeparator(),
-					  strFolder2name.Get(), OTLog::PathSeparator(),
-					  strFolder3name.Get(), OTLog::PathSeparator(),
-					  strFilename.Get());
+		otErr << __FUNCTION__ << ": Error reading file (resulting output "
+			"string is empty): " << strFolder1name << OTLog::PathSeparator() << strFolder2name 
+			<< OTLog::PathSeparator() << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 		return NULL;
 	}
-	// --------------------------------------------------------------------
-    // Finally, try to load the transaction from that string and see if successful.
+
+	// Finally, try to load the transaction from that string and see if successful.
     //
     OTTransactionType * pTransType = OTTransactionType::TransactionFactory(strRawFile);
 	
     if (NULL == pTransType)
 	{
-		OTLog::vError("%s: Error instantiating transaction "
-                      "type based on strRawFile: %s%s%s%s%s%s%s\n",
-					  __FUNCTION__,
-                      strFolder1name.Get(), OTLog::PathSeparator(),
-					  strFolder2name.Get(), OTLog::PathSeparator(),
-					  strFolder3name.Get(), OTLog::PathSeparator(),
-					  strFilename.Get());
+		otErr << __FUNCTION__ << ": Error instantiating transaction "
+			"type based on strRawFile: " << strFolder1name << OTLog::PathSeparator() << strFolder2name 
+			<< OTLog::PathSeparator() << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 		return NULL;
 	}
-	// --------------------------------------------------------------------
+
     OTTransaction * pBoxReceipt = dynamic_cast<OTTransaction *>(pTransType);
     
     if (NULL == pBoxReceipt)
 	{
-		OTLog::vError("%s: Error dynamic_cast from transaction "
-                      "type to transaction, based on strRawFile: %s%s%s%s%s%s%s\n",
-					  __FUNCTION__,
-                      strFolder1name.Get(), OTLog::PathSeparator(),
-					  strFolder2name.Get(), OTLog::PathSeparator(),
-					  strFolder3name.Get(), OTLog::PathSeparator(),
-					  strFilename.Get());
+		otErr << __FUNCTION__ << ": Error dynamic_cast from transaction "
+			"type to transaction, based on strRawFile: " << strFolder1name << OTLog::PathSeparator() 
+			<< strFolder2name << OTLog::PathSeparator() << strFolder3name 
+			<< OTLog::PathSeparator() << strFilename << "\n";
 		delete pTransType; pTransType = NULL; // cleanup!
 		return NULL;
 	}
-	// --------------------------------------------------------------------
-    // BELOW THIS POINT, pBoxReceipt exists, and is an OTTransaction pointer, and is loaded,
+
+	// BELOW THIS POINT, pBoxReceipt exists, and is an OTTransaction pointer, and is loaded,
     // and basically is ready to be compared to theAbbrev, which is its abbreviated version.
 	// It MUST either be returned or deleted.
-    // ****************************************************************
-	
+
+
 	bool bSuccess = theAbbrev.VerifyBoxReceipt(*pBoxReceipt);
     
 	if (false == bSuccess)
     {
-		OTLog::vError("%s: Failed verifying Box Receipt:\n%s%s%s%s%s%s%s\n", 
-					  __FUNCTION__,
-                      strFolder1name.Get(), OTLog::PathSeparator(),
-					  strFolder2name.Get(), OTLog::PathSeparator(),
-					  strFolder3name.Get(), OTLog::PathSeparator(),
-					  strFilename.Get());
-        // -----------------
-        delete pBoxReceipt;	pBoxReceipt = NULL;
+		otErr << __FUNCTION__ << ": Failed verifying Box Receipt:\n" << strFolder1name << OTLog::PathSeparator() 
+			<< strFolder2name << OTLog::PathSeparator() << strFolder3name 
+			<< OTLog::PathSeparator() << strFilename << "\n";
+
+		delete pBoxReceipt;	pBoxReceipt = NULL;
         return NULL;
     }
 	else 
-		OTLog::vOutput(2, "%s: Successfully loaded Box Receipt in:\n%s%s%s%s%s%s%s\n", 
-					   __FUNCTION__,
-                       strFolder1name.Get(), OTLog::PathSeparator(),
-					   strFolder2name.Get(), OTLog::PathSeparator(),
-					   strFolder3name.Get(), OTLog::PathSeparator(),
-					   strFilename.Get());
-	// -------------------------------------------------
-    // Todo: security analysis. By this point we've verified the hash of the transaction against the stored
+		otInfo << __FUNCTION__ << ": Successfully loaded Box Receipt in:\n" << strFolder1name << OTLog::PathSeparator() 
+		<< strFolder2name << OTLog::PathSeparator() << strFolder3name 
+		<< OTLog::PathSeparator() << strFilename << "\n";
+
+	// Todo: security analysis. By this point we've verified the hash of the transaction against the stored
     // hash inside the abbreviated version. (VerifyBoxReceipt) We've also verified a few other values like transaction
     // number, and the "in ref to" display number. We're then assuming based on those, that the adjustment and display
     // amount are correct. (The hash is actually a zero knowledge proof of this already.) This is good for speedier
@@ -3209,7 +3127,7 @@ OTTransaction * OTTransaction::LoadBoxReceipt(OTTransaction & theAbbrev, const i
     // UPDATE: We'll save this for optimization needs in the future.
 	//  pBoxReceipt->SetAbbrevAdjustment(       theAbbrev.GetAbbrevAdjustment() );    
 	//  pBoxReceipt->SetAbbrevDisplayAmount(    theAbbrev.GetAbbrevDisplayAmount() );
- 	// -------------------------------------------------
+
 	
 	return pBoxReceipt;
 }
@@ -3232,8 +3150,8 @@ bool OTTransaction::SaveBoxReceipt(OTLedger & theLedger)
 		case OTLedger::recordBox:		lLedgerType = 5;	break;
 		case OTLedger::expiredBox:		lLedgerType = 6;	break;
 		default:
-			OTLog::Error("OTTransaction::SaveBoxReceipt: Error: unknown box type. "
-						 "(This should never happen.)\n");
+			otErr << "OTTransaction::SaveBoxReceipt: Error: unknown box type. "
+						 "(This should never happen.)\n";
 			return false;
 	}
 	return this->SaveBoxReceipt(lLedgerType);
@@ -3248,7 +3166,7 @@ bool OTTransaction::VerifyBoxReceiptExists(const OTIdentifier & SERVER_ID,
 										   const int64_t		  &	lTransactionNum)
 {
 	const int64_t lLedgerType = static_cast<int64_t> (nBoxType);
-	// --------------------------------------------------------------------
+
 	const OTString strServerID(SERVER_ID), strUserOrAcctID(0 == lLedgerType ? USER_ID : ACCOUNT_ID); // (For Nymbox aka type 0, the UserID will be here.)
 	// --------------------------------------------------------------------	
 	OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
@@ -3269,11 +3187,11 @@ bool OTTransaction::VerifyBoxReceiptExists(const OTIdentifier & SERVER_ID,
 									  strFolder3name.Get(),
 									  strFilename.Get());
 	
-	OTLog::vOutput(1, "OTTransaction::%s: %s: %s%s%s%s%s%s%s\n", bExists ? "(Already have this one)" : "(Need to download this one)",
-				   __FUNCTION__, strFolder1name.Get(), OTLog::PathSeparator(),
-				   strFolder2name.Get(), OTLog::PathSeparator(), 
-				   strFolder3name.Get(), OTLog::PathSeparator(), 
-				   strFilename.Get());
+	otWarn << "OTTransaction::" << (bExists ? "(Already have this one)" : "(Need to download this one)") 
+           << ": " << __FUNCTION__ << ": "
+           << strFolder1name << OTLog::PathSeparator()
+           << strFolder2name << OTLog::PathSeparator()
+           << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
 	
 	return bExists;
 }
@@ -3283,15 +3201,13 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction & theFullVersion)
 {
 	if (!m_bIsAbbreviated || theFullVersion.IsAbbreviated())
 	{
-		OTLog::vError("OTTransaction::%s: Failure: This transaction "
-					  "isn't abbreviated (val: %s), or the purported full version erroneously is (val: %s). "
-					  "Either way, you can't use it in this way, for trans num: %lld\n",
-					  __FUNCTION__, m_bIsAbbreviated ? "IS" : "IS NOT",
-                      theFullVersion.IsAbbreviated() ? "IS" : "IS NOT",
-					  GetTransactionNum());
+		otErr << "OTTransaction::" << __FUNCTION__ << ": Failure: This transaction "
+			"isn't abbreviated (val: " << (m_bIsAbbreviated ? "IS" : "IS NOT") << "), or the purported full version erroneously is (val: "
+			<< (theFullVersion.IsAbbreviated() ? "IS" : "IS NOT") << "). "
+			"Either way, you can't use it in this way, for trans num: " << GetTransactionNum() << "\n";
 		return false;
 	}
-	// ---------------------
+
 	// VERIFY THE HASH
 	//
 	OTIdentifier   idFullVersion;	// Generate a message digest of that string.
@@ -3303,33 +3219,32 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction & theFullVersion)
 	//
 	if (m_Hash != idFullVersion) 
 	{
-		OTLog::vError("OTTransaction::%s: Failure: The purported 'full version' of the transaction, "
-					  "passed in for verification fails to match the stored hash value for trans num: %lld\n",
-					  __FUNCTION__, GetTransactionNum());
+		otErr << "OTTransaction::" << __FUNCTION__ << ": Failure: The purported 'full version' of the transaction, "
+			"passed in for verification fails to match the stored hash value for trans num: " << GetTransactionNum() << "\n";
 		return false;
 	}
-	// ---------------------
+
 	// BY THIS POINT, we already know it's a definite match.
 	// But we check a few more things, just to be safe.
 	// Such as the TRANSACTION NUMBER...
 	if (GetTransactionNum() != theFullVersion.GetTransactionNum()) 
 	{
-		OTLog::vError("OTTransaction::%s: Failure: The purported 'full version' of the transaction "
-					  "passed in (number %lld) fails to match the actual transaction number: %lld\n",
-					  __FUNCTION__, theFullVersion.GetTransactionNum(), GetTransactionNum());
+		otErr << "OTTransaction::" << __FUNCTION__ << ": Failure: The purported 'full version' of the transaction "
+			"passed in (number " << theFullVersion.GetTransactionNum() <<
+			") fails to match the actual transaction number: " << GetTransactionNum() << "\n";
 		return false;
 	}
-	// ---------------------
+
 	// THE "IN REFERENCE TO" NUMBER (DISPLAY VERSION)
 	if (this->GetAbbrevInRefDisplay() != theFullVersion.GetReferenceNumForDisplay())
 	{
-		OTLog::vError("OTTransaction::%s: Failure: The purported 'full version' of the transaction "
-					  "passed, GetReferenceNumForDisplay() (%lld) fails to match the GetAbbrevInRefDisplay (%lld) on this.\n",
-					  __FUNCTION__, theFullVersion.GetReferenceNumForDisplay(), this->GetAbbrevInRefDisplay());
+		otErr << "OTTransaction::" << __FUNCTION__ << ": Failure: The purported 'full version' of the transaction "
+			"passed, GetReferenceNumForDisplay() (" << theFullVersion.GetReferenceNumForDisplay() <<
+			") fails to match the GetAbbrevInRefDisplay (" << this->GetAbbrevInRefDisplay() << ") on this.\n";
 		return false;
 	}
-	// ---------------------
-	
+
+
 	return true;
 }
 
@@ -3349,7 +3264,7 @@ bool OTTransaction::VerifyItems(OTPseudonym & theNym)
 	
 	if (NYM_ID != GetUserID())
 	{
-		OTLog::Error("Wrong owner passed to OTTransaction::VerifyItems\n");
+		otErr << "Wrong owner passed to OTTransaction::VerifyItems\n";
 		return false;
 	}
 
@@ -3560,7 +3475,7 @@ OTTransaction::OTTransaction(const OTIdentifier	& theUserID,
 	SetPurportedServerID(theServerID);
 	
 	SetUserID(theUserID);
-    // ---------------------
+
     
     if (NULL != pNumList)
         m_Numlist = *pNumList;
@@ -3664,7 +3579,7 @@ void OTTransaction::ReleaseItems()
 void OTTransaction::Release()
 {
 	Release_Transaction();
-    // --------------------
+
     ot_super::Release();
 }
 
@@ -3710,7 +3625,7 @@ OTItem * OTTransaction::GetItemInRefTo(const int64_t lReference)
     {
         OT_FAIL_MSG("CAN'T USE GetItemInRefTo! (There are multiple items in reference to the same number...) SWITCH to using NumberOfOrigin?");
     }
-    // -----------------------------------
+
 	FOR_EACH(listOfItems, m_listItems)
 	{
 		OTItem * pItem = *it;
@@ -3835,7 +3750,7 @@ bool OTTransaction::GetSuccess()
                 case OTItem::atBalanceStatement:     // processInbox and notarizeTransactions. server's reply to a balance statement. One of these items appears inside any transaction reply.
                 case OTItem::atTransactionStatement: // processNymbox and also for starting/stopping any cron items. (notarizeTransactions: payment plan, market offer, smart contract, trigger clause, cancel cron item, etc.) The server's reply to a transaction statement. Like a balance statement, except no asset acct is involved.
                     //
-                // ------------------------------------------------------------------------
+
                                         
                     if (OTItem::acknowledgement == pItem->GetStatus())
                     {
@@ -3865,7 +3780,7 @@ bool OTTransaction::GetSuccess()
                 case OTItem::atAcceptMessage:       // processNymbox. server's reply to nym's accepting a message (from another nym) that's in his nymbox.
                 case OTItem::atAcceptNotice:        // processNymbox. server's reply to nym's accepting a notice from the server, such as a successNotice (success signing out new transaction numbers) or a replyNotice, or an instrumentNotice.
                     // For example, some server replies are dropped into your Nymbox, to make sure you receive them. Then you accept them, to remove from your Nymbox.
-                // ------------------------------------------------------------------------                
+
                     
                     // PROCESS NYMBOX *and* PROCESS INBOX
                     
@@ -3875,7 +3790,7 @@ bool OTTransaction::GetSuccess()
                 case OTItem::atAcceptFinalReceipt:  // Part of a processInbox or processNymbox transaction reply from the server.
                 case OTItem::atDisputeFinalReceipt:  // Would be in processNymbox AND processInbox. Can these be disputed? Think through the process. Todo.
                     
-                // ------------------------------------------------------------------------
+
                     
                     // PROCESS INBOX
                     
@@ -3894,7 +3809,7 @@ bool OTTransaction::GetSuccess()
                 case OTItem::atAcceptBasketReceipt:  // processInbox. Basket Receipt, from a basket currency exchange (in or out.)
                 case OTItem::atDisputeBasketReceipt: // processInbox. dispute basket receipt.
                     
-                // ------------------------------------------------------------------------
+
                     
                     // If we found at least one of these, and nothing fails by the end of the loop,
                     // then for processNymbox and processInbox, it's a success. (If balance agreement also...)
@@ -3911,11 +3826,10 @@ bool OTTransaction::GetSuccess()
                     //
                     continue;
                                         
-                // **************************************************************************
                     
                 default:
-                    OTLog::Error("Wrong transaction type passed to OTTransaction::GetSuccess() "
-                                 "for processNymbox or processInbox transaction.\n");
+                    otErr << "Wrong transaction type passed to OTTransaction::GetSuccess() "
+                                 "for processNymbox or processInbox transaction.\n";
                     return false;
             }// switch
         } // FOR_EACH
@@ -3924,9 +3838,6 @@ bool OTTransaction::GetSuccess()
         
     } // if processNymbox or processInbox.
     
-    
-    
-    // ----------------------------------------------------------------------------
     
     // Okay, it's not a processNymbox or processInbox.
     //
@@ -3942,7 +3853,6 @@ bool OTTransaction::GetSuccess()
 //			case OTItem::atServerfee:            // Fees currently aren't coded. Todo.
 //			case OTItem::atIssuerfee:            // Same as above. Todo.
                 
-            // **************************************************************************
                 
             // BALANCE AGREEMENT  /  TRANSACTION STATEMENT
                 
@@ -3960,9 +3870,8 @@ bool OTTransaction::GetSuccess()
                 //
             case OTItem::atBalanceStatement:     // processInbox and notarizeTransactions. server's reply to a balance statement. One of these items appears inside any transaction reply.
 			case OTItem::atTransactionStatement: // processNymbox and also for starting/stopping any cron items. (notarizeTransactions: payment plan, market offer, smart contract, trigger clause, cancel cron item, etc.) The server's reply to a transaction statement. Like a balance statement, except no asset acct is involved.
-                //
+
                                 
-                // ------------------------------------------------------------------------
                 if (OTItem::acknowledgement == pItem->GetStatus())
 				{
                     bFoundABalanceAgreement = true;
@@ -4010,7 +3919,7 @@ bool OTTransaction::GetSuccess()
 			case OTItem::atCancelCronItem:       // notarizeTransaction. server's reply to request to cancel a [ market offer | payment plan | smart contract ]
 			case OTItem::atExchangeBasket:       // notarizeTransaction. server's reply to request to exchange in or out of a basket currency.
 
-            // ------------------------------------------------------------------------
+
                 
             // RECEIPTS
                 
@@ -4049,7 +3958,7 @@ bool OTTransaction::GetSuccess()
             // **************************************************************************
                 
 			default:
-				OTLog::Error("Wrong transaction type passed to OTTransaction::GetSuccess()\n");
+				otErr << "Wrong transaction type passed to OTTransaction::GetSuccess()\n";
 				return false;
 		}
 	}
@@ -4077,10 +3986,10 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(const OTString &
 		theType = OTTransaction::replyNotice;
 	else if (strType.Compare("successNotice"))
 		theType = OTTransaction::successNotice;
-    // --------------------------------------------------------------
+
 	else if (strType.Compare("pending"))
 		theType = OTTransaction::pending;
-	// --------------------------------------------------------------
+
     else if (strType.Compare("transferReceipt"))
 		theType = OTTransaction::transferReceipt;
 	else if (strType.Compare("voucherReceipt"))
@@ -4095,12 +4004,12 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(const OTString &
 		theType = OTTransaction::finalReceipt;
 	else if (strType.Compare("basketReceipt"))
 		theType = OTTransaction::basketReceipt;
-	// --------------------------------------------------------------
+
 	else if (strType.Compare("instrumentNotice"))
 		theType = OTTransaction::instrumentNotice;
 	else if (strType.Compare("instrumentRejection"))
 		theType = OTTransaction::instrumentRejection;
-	// --------------------------------------------------------------
+
 	else if (strType.Compare("processNymbox"))
 		theType = OTTransaction::processNymbox;
 	else if (strType.Compare("atProcessNymbox"))
@@ -4148,7 +4057,7 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(const OTString &
 	// --------------------------------------------------------------	
 	else
 		theType = OTTransaction::error_state;
-	// --------------------------------------------------------------
+
 	
 	return theType;
 }
@@ -4171,18 +4080,18 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                                          bool   & bReplyTransSuccess,
                                          OTNumList * pNumList/*=NULL*/)
 {
-	// -------------------------------------
+
 	const OTString strOrigin		= xml->getAttributeValue("numberOfOrigin");
 	const OTString strTransNum		= xml->getAttributeValue("transactionNum");
 	const OTString strInRefTo		= xml->getAttributeValue("inReferenceTo");
 	const OTString strInRefDisplay	= xml->getAttributeValue("inRefDisplay");
 	const OTString strDateSigned	= xml->getAttributeValue("dateSigned");
-	// -------------------------------------
+
 	if (!strTransNum.Exists() || !strInRefTo.Exists() || !strInRefDisplay.Exists() || !strDateSigned.Exists())
 	{
-		OTLog::vOutput(0, "OTTransaction::LoadAbbreviatedRecord: Failure: missing strTransNum (%s) or strInRefTo (%s) "
-					   "or strInRefDisplay (%s) or strDateSigned(%s) while loading abbreviated receipt. \n",
-					   strTransNum.Get(), strInRefTo.Get(), strInRefDisplay.Get(), strDateSigned.Get());
+		otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: missing strTransNum (" << strTransNum <<
+			") or strInRefTo (" << strInRefTo << ") or strInRefDisplay (" << strInRefDisplay <<
+			") or strDateSigned(" << strDateSigned << ") while loading abbreviated receipt. \n";
 		return (-1);			
 	}
 	lTransactionNum		= atol(strTransNum.Get());
@@ -4191,10 +4100,10 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     
     if (strOrigin.Exists())
         lNumberOfOrigin = atol(strOrigin.Get());
-	// -------------------------------------
+
 	// DATE SIGNED
     the_DATE_SIGNED = OTTimeGetTimeFromSeconds(strDateSigned.Get()); // (We already verified it Exists() just above.)
-	// -------------------------------------
+
 	// Transaction TYPE for the abbreviated record...
 	theType                 = OTTransaction::error_state; // default
 	const
@@ -4205,35 +4114,33 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 
         if (OTTransaction::error_state == theType)
         {
-            OTLog::vError("OTTransaction::LoadAbbreviatedRecord: Failure: OTTransaction::error_state was the found type (based on "
-                          "string %s), when loading abbreviated receipt for trans num: %lld (In Reference To: %lld) \n",
-                          strAbbrevType.Get(), lTransactionNum, lInRefTo);
+            otErr << "OTTransaction::LoadAbbreviatedRecord: Failure: OTTransaction::error_state was the found type (based on "
+				"string " << strAbbrevType << "), when loading abbreviated receipt for trans num: " 
+				<< lTransactionNum << " (In Reference To: " << lInRefTo << ") \n";
             return (-1);
         }
     }
 	else 
 	{
-		OTLog::vOutput(0, "OTTransaction::LoadAbbreviatedRecord: Failure: unknown transaction type (%s) when "
-					   "loading abbreviated receipt for trans num: %lld (In Reference To: %lld) \n",
-					   strAbbrevType.Get(), lTransactionNum, lInRefTo);
+		otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: unknown transaction type (" << strAbbrevType << ") when "
+			"loading abbreviated receipt for trans num: " << lTransactionNum << " (In Reference To: " << lInRefTo << ") \n";
 		return (-1);
 	}
-	// -------------------------------------
+
 	// RECEIPT HASH
 	//
 	strHash	= xml->getAttributeValue("receiptHash");
 	if (!strHash.Exists())
 	{
-		OTLog::vOutput(0, "OTTransaction::LoadAbbreviatedRecord: Failure: Expected receiptHash while loading "
-					   "abbreviated receipt for trans num: %lld (In Reference To: %lld)\n", lTransactionNum,
-					   lInRefTo);
+		otOut << "OTTransaction::LoadAbbreviatedRecord: Failure: Expected receiptHash while loading "
+			"abbreviated receipt for trans num: " << lTransactionNum << " (In Reference To: " << lInRefTo << ")\n";
 		return (-1);			
 	}
-	// -------------------------------------
+
 	lAdjustment		= 0;
 	lDisplayValue	= 0;
 	lClosingNum		= 0;
-	// -------------------------------------
+
 	const OTString strAbbrevAdjustment		= xml->getAttributeValue("adjustment");
 	if (strAbbrevAdjustment.Exists())
 		lAdjustment							= atol(strAbbrevAdjustment.Get());
@@ -4241,7 +4148,7 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 	const OTString strAbbrevDisplayValue	= xml->getAttributeValue("displayValue");
 	if (strAbbrevDisplayValue.Exists())
 		lDisplayValue						= atol(strAbbrevDisplayValue.Get());
-	// -------------------------------------------------------------------------
+
     
     if (OTTransaction::replyNotice == theType)
 	{
@@ -4249,18 +4156,18 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 		
 		if (!strRequestNum.Exists())
 		{
-			OTLog::vOutput(0, "OTTransaction::LoadAbbreviatedRecord: Failed loading abbreviated receipt: "
-						   "expected requestNumber on replyNotice trans num: %lld (In Reference To: %lld)\n",
-						   lTransactionNum, lInRefTo);
+			otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading abbreviated receipt: "
+				"expected requestNumber on replyNotice trans num: " << lTransactionNum 
+				<< " (In Reference To: " << lInRefTo << ")\n";
 			return (-1);
 		}
 		lRequestNum	= atol(strRequestNum.Get());
-        // ----------------------------------------
+
         const OTString strTransSuccess = xml->getAttributeValue("transSuccess");
 
         bReplyTransSuccess  = strTransSuccess.Compare("true");
 	} // if replyNotice (expecting request Number)
-	// -------------------------------------
+
 
 	// If the transaction is a certain type, then it will also have a CLOSING number. 
 	// (Grab that too.)
@@ -4272,14 +4179,13 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 		
 		if (!strAbbrevClosingNum.Exists())
 		{
-			OTLog::vOutput(0, "OTTransaction::LoadAbbreviatedRecord: Failed loading abbreviated receipt: "
-						   "expected closingNum on trans num: %lld (In Reference To: %lld)\n",
-						   lTransactionNum, lInRefTo);
+			otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading abbreviated receipt: "
+				"expected closingNum on trans num: " << lTransactionNum << " (In Reference To: " << lInRefTo << ")\n";
 			return (-1);
 		}
 		lClosingNum	= atol(strAbbrevClosingNum.Get());
 	} // if finalReceipt or basketReceipt (expecting closing num)
-	// -------------------------------------
+
     // These types carry their own internal list of numbers.
     //
 	if ((NULL != pNumList) &&
@@ -4293,7 +4199,7 @@ int32_t OTTransaction::LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 		if (strNumbers.Exists())
             pNumList->Add(strNumbers);
 	} // if blank or successNotice (expecting totalListOfNumbers.. no more multiple blanks in the same ledger! They all go in a single transaction.)
-	// -------------------------------------
+
     
 	return 1;
 }
@@ -4320,7 +4226,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{
         pNumList = &m_Numlist;
     }
-    // -----------------------------------------
+
     
     if (strNodeName.Compare("nymboxRecord")         ||
         strNodeName.Compare("inboxRecord")          ||
@@ -4333,17 +4239,17 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		int64_t lTransactionNum	= 0;
 		int64_t lInRefTo			= 0;
 		int64_t lInRefDisplay		= 0;
-		// -------------------------------------
+
 		time64_t the_DATE_SIGNED	= OT_TIME_ZERO;
 		OTTransaction::transactionType theType = OTTransaction::error_state; // default
 		OTString strHash;
-		// -------------------------------------
+
 		int64_t lAdjustment		= 0;
 		int64_t lDisplayValue		= 0;
 		int64_t lClosingNum		= 0;
         int64_t lRequestNumber     = 0;
         bool bReplyTransSuccess = false;
-		// -------------------------------------
+
 		int32_t nAbbrevRetVal =
 			OTTransaction::LoadAbbreviatedRecord(xml,
                                                  lNumberOfOrigin,
@@ -4359,10 +4265,10 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                  lRequestNumber,
                                                  bReplyTransSuccess,
                                                  pNumList); // for "OTTransaction::blank" and "OTTransaction::successNotice" (Otherwise NULL.)
-		// -------------------------------------
+
 		if ((-1) == nAbbrevRetVal)
 			return (-1); // The function already logs appropriately.
-		// -------------------------------------
+
 		m_bIsAbbreviated	= true;	// <======================
 
         SetNumberOfOrigin(lNumberOfOrigin);
@@ -4382,7 +4288,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		if (strHash.Exists())
 			m_Hash.SetString(strHash);
 		else
-			OTLog::Error("OTTransaction::ProcessXMLNode: Missing receiptHash on abbreviated record.\n");
+			otErr << "OTTransaction::ProcessXMLNode: Missing receiptHash on abbreviated record.\n";
 		
 		return 1;
 	}
@@ -4392,47 +4298,46 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	//
 	else if (strNodeName.Compare("transaction")) // Todo:  notice how this "else if" uses OTString::Compare, where most other ProcessXMLNode functions in OT use !strcmp()? (That's right: Buffer overflow. Need to fix elsewhere as it is fixed here.)
 	{	
-		// -------------------------------------
+
 		const OTString strType = xml->getAttributeValue("type");
 		
 		if (strType.Exists())
 			m_Type = OTTransaction::GetTypeFromString(strType);
 		else 
 		{
-			OTLog::vOutput(0, "OTTransaction::ProcessXMLNode: Failure: unknown transaction type: %s \n",
-						   strType.Get());
+			otOut << "OTTransaction::ProcessXMLNode: Failure: unknown transaction type: " << strType << " \n";
 			return (-1);
 		}
-		// -------------------------------------
+
 		OTString strCancelled	= xml->getAttributeValue("cancelled");
         if (strCancelled.Exists() && strCancelled.Compare("true"))
             m_bCancelled = true;
         else
             m_bCancelled = false;
-		// -------------------------------------
+
 		OTString strDateSigned	= xml->getAttributeValue("dateSigned");
 		const int64_t lDateSigned	= strDateSigned.Exists() ? atol(strDateSigned.Get()) : 0;
 		m_DATE_SIGNED			= OTTimeGetTimeFromSeconds(lDateSigned); // Todo casting ?
-		// -------------------------------------
+
 		const OTString strAcctID	= xml->getAttributeValue("accountID"); 
 		const OTString strServerID	= xml->getAttributeValue("serverID");
 		const OTString strUserID	= xml->getAttributeValue("userID");
-		// -------------------------------------
+
 		if (!strAcctID.Exists() || !strServerID.Exists() || !strUserID.Exists())
 		{
-			OTLog::vOutput(0, "OTTransaction::ProcessXMLNode: Failure: missing strAcctID (%s) or strServerID (%s) or strUserID (%s). \n",
-						   strAcctID.Get(), strServerID.Get(), strUserID.Get());
+			otOut << "OTTransaction::ProcessXMLNode: Failure: missing strAcctID (" << strAcctID << ") or strServerID ("
+				<< strServerID << ") or strUserID (" << strUserID << "). \n";
 			return (-1);			
 		}
 		// -------------------------------------		
 		const OTString strOrigin	= xml->getAttributeValue("numberOfOrigin");
 		const OTString strTransNum	= xml->getAttributeValue("transactionNum");
 		const OTString strInRefTo	= xml->getAttributeValue("inReferenceTo");
-		// -------------------------------------
+
 		if (!strTransNum.Exists() || !strInRefTo.Exists())
 		{
-			OTLog::vOutput(0, "OTTransaction::ProcessXMLNode: Failure: missing strTransNum (%s) or strInRefTo (%s). \n",
-						   strTransNum.Get(), strInRefTo.Get());
+			otOut << "OTTransaction::ProcessXMLNode: Failure: missing strTransNum (" 
+				<< strTransNum << ") or strInRefTo (" << strInRefTo << "). \n";
 			return (-1);			
 		}
 		// -------------------------------------	
@@ -4472,7 +4377,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 		SetPurportedAccountID(ACCOUNT_ID);  // GetPurportedAccountID() const { return m_AcctID; }
 		SetPurportedServerID(SERVER_ID);	// GetPurportedServerID() const { return m_AcctServerID; }
 		SetUserID(USER_ID);
-		// -------------------------------------------
+
         //  m_bLoadSecurely defaults to true.
         // Normally the RealAccountID and RealServerID are set from above, before
         // loading. That way, I can compare them to whatever is actually loaded.
@@ -4493,7 +4398,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealAccountID(ACCOUNT_ID);
             SetRealServerID(SERVER_ID);
         }
-        // -------------------------------------------
+
 
         if (strOrigin.Exists())
             this->SetNumberOfOrigin(atol(strOrigin.Get()));
@@ -4530,12 +4435,10 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 			const OTIdentifier & GetPurportedServerID() const { return m_AcctServerID; }
 
 		 */
-		OTLog::vOutput(4, "Loaded transaction %lld, in reference to: %lld type: %s\n",
-//				"accountID:\n%s\n serverID:\n%s\n----------\n", 
-				GetTransactionNum(),
-				GetReferenceToNum(), strType.Get()
+		otLog4 << "Loaded transaction " << GetTransactionNum() << ", in reference to: "
+			<< GetReferenceToNum() << " type: " << strType << "\n";
+//				"accountID:\n%s\n serverID:\n%s\n----------\n",
 //				strAcctID.Get(), strServerID.Get()
-				);
 		
 		return 1;
 	}	
@@ -4550,7 +4453,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
         else
 		{
-			OTLog::Error("Error in OTTransaction::ProcessXMLNode: closingTransactionNumber field without value, or in wrong transaction type.\n");
+			otErr << "Error in OTTransaction::ProcessXMLNode: closingTransactionNumber field without value, or in wrong transaction type.\n";
 			return (-1); // error condition
 		}
         
@@ -4560,7 +4463,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{		
 		if (false == OTContract::LoadEncodedTextField(xml, m_ascCancellationRequest))
 		{
-			OTLog::Error("Error in OTTransaction::ProcessXMLNode: cancelRequest field without value.\n");
+			otErr << "Error in OTTransaction::ProcessXMLNode: cancelRequest field without value.\n";
 			return (-1); // error condition
 		}
 		
@@ -4570,7 +4473,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 	{		
 		if (false == OTContract::LoadEncodedTextField(xml, m_ascInReferenceTo))
 		{
-			OTLog::Error("Error in OTTransaction::ProcessXMLNode: inReferenceTo field without value.\n");
+			otErr << "Error in OTTransaction::ProcessXMLNode: inReferenceTo field without value.\n";
 			return (-1); // error condition
 		}
 		
@@ -4582,37 +4485,35 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 		if (!OTContract::LoadEncodedTextField(xml, strData) || !strData.Exists())
 		{
-			OTLog::Error("Error in OTTransaction::ProcessXMLNode: transaction item field without value.\n");
+			otErr << "Error in OTTransaction::ProcessXMLNode: transaction item field without value.\n";
 			return (-1); // error condition
 		}
 		else 
 		{
 			OTItem * pItem = new OTItem(GetUserID(), *this);
 			OT_ASSERT(NULL != pItem);			
-			// -----------------------------------------------------
+
 			if (false == m_bLoadSecurely)
 				pItem->SetLoadInsecure();
-			// -----------------------------------------------------
+
 			// If we're able to successfully base64-decode the string and load it up as
 			// a transaction, then add it to the ledger's list of transactions
 			if (false == pItem->LoadContractFromString(strData))
             {
-                OTLog::vError("ERROR: OTTransaction failed loading item from string: \n\n%s\n\n",
-                              strData.Exists() ? strData.Get() : "");
+				otErr << "ERROR: OTTransaction failed loading item from string: \n\n" << (strData.Exists() ? strData.Get() : "") << "\n\n";
 				delete pItem; pItem = NULL;
 				return (-1);
             }
             else if (false == pItem->VerifyContractID())
 			{
-				OTLog::vError("ERROR: Failed verifying transaction Item in OTTransaction::ProcessXMLNode: \n\n%s\n\n",
-                             strData.Get());
+				otErr << "ERROR: Failed verifying transaction Item in OTTransaction::ProcessXMLNode: \n\n" << strData << "\n\n";
 				delete pItem; pItem = NULL;
 				return (-1);
 			}			
 			else 
 			{
 				m_listItems.push_back(pItem);
-//				OTLog::Output(5, "Loaded transaction Item and adding to m_listItems in OTTransaction\n");
+//				otLog5 << "Loaded transaction Item and adding to m_listItems in OTTransaction\n");
 			}
 		}
 
@@ -4644,10 +4545,10 @@ void OTTransaction::UpdateContents()
     {
         strCancelled.Format(" cancelled=\"%s\"\n", "true");
     }
-    // ----------------------------------------
+
     OTString strListOfBlanks;   // IF this transaction is "blank" or "successNotice" this will serialize the list of transaction numbers for it. (They now support multiple numbers.)
     OTString strRequestNum;     // Used by replyNotice only.
-    // ----------------------------------------
+
 	switch (m_Type) 
 	{
         case OTTransaction::replyNotice:
@@ -4670,13 +4571,13 @@ void OTTransaction::UpdateContents()
         default:
             break;
 	}
-    // -----------------------------------------------------
+
 	const char * pTypeStr = GetTypeString(); // TYPE
 	const OTString	strType((NULL != pTypeStr) ? pTypeStr : "error_state"), 
 					strAcctID(GetPurportedAccountID()), 
 					strServerID(GetPurportedServerID()),
 					strUserID(GetUserID());	
-	// -----------------------------------------------------
+
 	m_DATE_SIGNED = OTTimeGetCurrentTime(); // We store the timestamp of when this transaction was signed.
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
 	// -----------------------------------------------------	
@@ -4700,12 +4601,12 @@ void OTTransaction::UpdateContents()
 							  GetTransactionNum(), strListOfBlanks.Get(),
 							  GetReferenceToNum());
 	// -----------------------------------------------------	
-	//	OTLog::vError("IN REFERENCE TO, LENGTH: %d\n", m_ascInReferenceTo.GetLength());
+	//	otErr << "IN REFERENCE TO, LENGTH: %d\n", m_ascInReferenceTo.GetLength());
 	
 	if (IsAbbreviated())
 	{
 		if (NULL != m_pParent) {
-		// ----------------------------------
+
 		switch (m_pParent->GetType())
 		{
 			case OTLedger::nymbox:			this->SaveAbbreviatedNymboxRecord(m_xmlUnsigned);	break;
@@ -4716,19 +4617,16 @@ void OTTransaction::UpdateContents()
 			case OTLedger::expiredBox:		this->SaveAbbrevExpiredBoxRecord(m_xmlUnsigned);    break;
 				/* --- BREAK --- */
 			case OTLedger::message:
-				OTLog::vError("OTTransaction::%s: Unexpected message ledger type in 'abbreviated' block. (Error.) \n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected message ledger type in 'abbreviated' block. (Error.) \n";
 				break;
 			default:
-				OTLog::vError("OTTransaction::%s: Unexpected ledger type in 'abbreviated' block. (Error.) \n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected ledger type in 'abbreviated' block. (Error.) \n";
 				break;
 		} /*switch*/			}	// if (NULL != m_pParent)
-		else OTLog::vError("OTTransaction::%s: Error: Unable to save abbreviated receipt here, since m_pParent is NULL.\n",
-                           __FUNCTION__);
-		// ----------------------------------
+		else otErr << "OTTransaction::" << __FUNCTION__ << ": Error: Unable to save abbreviated receipt here, since m_pParent is NULL.\n";
+
 	}	// if (IsAbbreviated())
-	// -------------------------------------
+
 	else // not abbreviated (full details.)
 	{
 		// -----------------------------------------------------	
@@ -4822,7 +4720,7 @@ void OTTransaction::UpdateContents()
 void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString & strOutput)
 {
 	int64_t lDisplayValue = 0;
-	// ----------------------------------------------
+
     switch (m_Type) 
     {
         case OTTransaction::instrumentNotice:
@@ -4836,16 +4734,15 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString & strOutput)
                 lDisplayValue	= GetAbbrevDisplayAmount();
             break;
         default: // All other types are irrelevant for payment inbox reports
-            OTLog::vError("OTTransaction::%s: Unexpected %s transaction "
-                           "in payment inbox while making abbreviated payment inbox record.\n",
-                          __FUNCTION__, GetTypeString());
+			otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected " << GetTypeString() << " transaction "
+                           "in payment inbox while making abbreviated payment inbox record.\n";
             
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbrevPaymentInboxRecord: Unexpected transaction type.");
             
             return;
     }
 
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -4853,10 +4750,10 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -4873,7 +4770,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the payment inbox, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
 	/* 
 	 NOTES...
 	 
@@ -4912,7 +4809,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString & strOutput)
 void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 {
 	int64_t lDisplayValue = 0;
-	// ----------------------------------------------
+
     switch (m_Type) 
     {
         // ******************************************
@@ -4939,16 +4836,15 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
         // ******************************************
         default: // All other types are irrelevant for inbox reports
         {
-            OTLog::vError("OTTransaction::%s: Unexpected %s transaction "
-                           "in expired box while making abbreviated expired-box record.\n",
-                          __FUNCTION__, GetTypeString());
+			otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected " << GetTypeString() << " transaction "
+                           "in expired box while making abbreviated expired-box record.\n";
             
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbrevExpiredBoxRecord: Unexpected transaction type.");
 
         }
             return;
     }
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -4956,10 +4852,10 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -4976,7 +4872,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the expired box, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
 	/*
 	 NOTES...
 	 
@@ -5037,13 +4933,13 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 ////				lDisplayValue	= 0;
 //				break;
 //			default: // All other types are irrelevant for payment outbox reports.
-//				OTLog::vError("OTTransaction::SaveAbbrevPaymentOutboxRecord: Unexpected %s transaction "
+//				otErr << "OTTransaction::SaveAbbrevPaymentOutboxRecord: Unexpected %s transaction "
 //							  "in payment outbox while making abbreviated payment outbox record.\n",
 //							  GetTypeString());
 //				return;
 //		}
 //	}
-//	// ----------------------------------------------
+//
 //	// By this point, we know only the right types of receipts are being saved, and 
 //	// the adjustment and display value are both set correctly.
 //	
@@ -5051,10 +4947,10 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 //	OTString		strType;	// <===========
 //	const char *	pTypeStr = GetTypeString();
 //	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-//	// ----------------------------------------------
+//
 //	// DATE SIGNED
 //	const int64_t lDateSigned = m_DATE_SIGNED;
-//	// ----------------------------------------------
+//
 //	// HASH OF THE COMPLETE "BOX RECEIPT"
 //	//
 //	OTString strHash;
@@ -5069,7 +4965,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 //		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the payment outbox, for example.)
 //		idReceiptHash.GetString(strHash);
 //	}
-//	// ----------------------------------------------
+//
 //	strOutput.Concatenate("<paymentOutboxRecord type=\"%s\"\n"
 //						  " dateSigned=\"%lld\"\n"
 //						  " receiptHash=\"%s\"\n"
@@ -5118,7 +5014,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 	// kinds of receipts. See above comment.)
 	
 	int64_t lAdjustment = 0, lDisplayValue = 0;
-	// ----------------------------------------------
+
     switch (m_Type) 
     {
             // ******************************************
@@ -5217,13 +5113,13 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
         // ******************************************
         default: // All other types are irrelevant for inbox reports
         {
-            OTLog::vError("OTTransaction::SaveAbbrevRecordBoxRecord: Unexpected %s transaction "
-                           "in record box while making abbreviated record-box record.\n", GetTypeString());
+			otErr << "OTTransaction::SaveAbbrevRecordBoxRecord: Unexpected " << GetTypeString() << " transaction "
+                           "in record box while making abbreviated record-box record.\n";
         }
             return;
     }	// why not transfer receipt? Because the amount was already removed from your account when you transferred it,
 
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -5231,10 +5127,10 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -5251,7 +5147,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the record box, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
 	/* 
 	 NOTES...
 	 
@@ -5272,7 +5168,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 	
     if ((OTTransaction::finalReceipt == m_Type) || 
 		(OTTransaction::basketReceipt == m_Type))
-		// ---------------------------
+
 		strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
 							  " dateSigned=\"%lld\"\n"
 							  " receiptHash=\"%s\"\n"
@@ -5325,7 +5221,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 {
     int64_t lDisplayValue = 0;
-	// ----------------------------------------------    
+
     OTString strDisplayValue;   // IF this transaction is passing through on its way to the paymentInbox, it will have a displayValue.
     OTString strListOfBlanks;   // IF this transaction is "blank" or "successNotice" this will serialize the list of transaction numbers for it. (They now support multiple numbers.)
     OTString strRequestNum;     // ONLY replyNotice transactions carry a request Num.
@@ -5355,7 +5251,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 		case OTTransaction::notice:			// A notice from the server. Used in Nymbox. Probably contains an updated smart contract.
 		case OTTransaction::finalReceipt:	// Any finalReceipt in an inbox will also drop a copy into the Nymbox.
 			break;                          
-            // ------------
+
             // paymentInbox items are transported through the Nymbox.
             // Therefore, this switch statement from SaveAbbrevPaymentInbox
             // is also found here, to handle those receipts as they pass through.
@@ -5369,15 +5265,14 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 		case OTTransaction::instrumentRejection:	// A rejection notice from the intended recipient of an instrumentNotice.
                 lDisplayValue	= 0;                
 			break;                          
-            // ------------
+
 		default: // All other types are irrelevant for nymbox reports.
-			OTLog::vError("%s: Unexpected %s transaction in nymbox while making abbreviated nymbox record.\n",
-                          __FUNCTION__, GetTypeString());
+			otErr << __FUNCTION__ << ": Unexpected " << GetTypeString() << " transaction in nymbox while making abbreviated nymbox record.\n";
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedNymboxRecord: Unexpected transaction in this Nymbox.");
             
 			return;
 	}
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -5385,10 +5280,10 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -5405,11 +5300,11 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the inbox, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
     
 	if ((OTTransaction::finalReceipt == m_Type) || 
 		(OTTransaction::basketReceipt == m_Type)) // I actually don't think you can put a basket receipt notice in a nymbox, the way you can with a final receipt notice. Probably can remove this line.
-		// ---------------------------
+
 		strOutput.Concatenate("<nymboxRecord type=\"%s\"\n"
 							  " dateSigned=\"%lld\"\n"
 							  " receiptHash=\"%s\"\n"
@@ -5424,7 +5319,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString & strOutput)
 							  GetClosingNum(),
 							  GetReferenceNumForDisplay(),
 							  GetReferenceToNum());
-	// -----------------------------
+
 	else
 		strOutput.Concatenate("<nymboxRecord type=\"%s\"\n"
 							  " dateSigned=\"%lld\"\n%s"
@@ -5461,14 +5356,14 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString & strOutput)
             }
             break;							// In this case, since it's the outbox, then it's a MINUS (-500) Display amount (since I'm sending, not receiving it.)
         default: // All other types are irrelevant for outbox reports.
-            OTLog::vError("OTTransaction::SaveAbbreviatedOutboxRecord: Unexpected %s transaction "
-                          "in outbox while making abbreviated outbox record.\n", GetTypeString());
+			otErr << "OTTransaction::SaveAbbreviatedOutboxRecord: Unexpected " << GetTypeString() << " transaction "
+                          "in outbox while making abbreviated outbox record.\n";
             
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedOutboxRecord: unexpected transaction type.");
             
             return;
     }
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -5476,10 +5371,10 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -5496,7 +5391,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the inbox, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
 	strOutput.Concatenate("<outboxRecord type=\"%s\"\n"
 						  " dateSigned=\"%lld\"\n"
 						  " receiptHash=\"%s\"\n"
@@ -5533,7 +5428,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
 	// ref# that OT needs to use, it will return the one that the user probably wants to see.	
 	//
 	int64_t lAdjustment = 0, lDisplayValue = 0;
-	// ----------------------------------------------
+
     switch (m_Type) 
     {
             // -- In inbox, pending hasn't been accepted yet. In outbox, it's already gone. Either
@@ -5589,9 +5484,8 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
             break;
         default: // All other types are irrelevant for inbox reports
         {
-            OTLog::vError("OTTransaction::%s: Unexpected %s transaction "
-                           "in inbox while making abbreviated inbox record.\n",
-                          __FUNCTION__, GetTypeString());
+			otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected " << GetTypeString() << " transaction "
+                           "in inbox while making abbreviated inbox record.\n";
             
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedInboxRecord: unexpected transaction type.");
             
@@ -5599,7 +5493,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
             return;
     }	// why not transfer receipt? Because the amount was already removed from your account when you transferred it,
 
-	// ----------------------------------------------
+
 	// By this point, we know only the right types of receipts are being saved, and 
 	// the adjustment and display value are both set correctly.
 	
@@ -5607,10 +5501,10 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
 	OTString		strType;	// <===========
 	const char *	pTypeStr = GetTypeString();
 	strType.Set((NULL != pTypeStr) ? pTypeStr : "error_state");
-	// ----------------------------------------------
+
 	// DATE SIGNED
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-	// ----------------------------------------------
+
 	// HASH OF THE COMPLETE "BOX RECEIPT"
 	// Save abbreviated is only used for receipts in boxes such as inbox, outbox, and nymbox.
 	// (Thus the moniker "Box Receipt", as contrasted with cron receipts or normal transaction receipts with balance agreements.)
@@ -5627,7 +5521,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
 		this->CalculateContractID(idReceiptHash);	// abbreviated short-form record (in the inbox, for example.)
 		idReceiptHash.GetString(strHash);
 	}
-	// ----------------------------------------------
+
 	/* 
 	 NOTES...
 	 
@@ -5648,7 +5542,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString & strOutput)
 	
     if ((OTTransaction::finalReceipt == m_Type) || 
 		(OTTransaction::basketReceipt == m_Type))
-		// ---------------------------
+
 		strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
 							  " dateSigned=\"%lld\"\n"
 							  " receiptHash=\"%s\"\n"
@@ -5703,8 +5597,7 @@ void OTTransaction::ProduceInboxReportItem(OTItem & theBalanceItem)
 {	
 	OTItem::itemType theItemType = OTItem::error_state;
 	
-	OTLog::vOutput(3, "Producing statement report item for inbox item type: %s.\n",
-                   GetTypeString()); // temp remove.
+	otLog3 << "Producing statement report item for inbox item type: " << GetTypeString() << ".\n"; // temp remove.
 	
 	switch (m_Type) 
 	{	// These are the types that have an amount (somehow)
@@ -5734,8 +5627,8 @@ void OTTransaction::ProduceInboxReportItem(OTItem & theBalanceItem)
 			break;
 		default: // All other types are irrelevant for inbox reports
 		{
-			OTLog::vOutput(3, "OTTransaction::ProduceInboxReportItem: Ignoring %s transaction "
-						   "in inbox while making balance statement.\n", GetTypeString());
+			otLog3 << "OTTransaction::ProduceInboxReportItem: Ignoring " << GetTypeString() << " transaction "
+						   "in inbox while making balance statement.\n";
 		}
 			return;
 	}	// why not transfer receipt? Because the amount was already removed from your account when you transferred it,
@@ -5743,8 +5636,8 @@ void OTTransaction::ProduceInboxReportItem(OTItem & theBalanceItem)
 	    // the change in balance -- you already signed off on it. UPDATE: that's okay since the below GetReceiptAmount()
 	    // will return 0 for a transfer receipt anyway.
 	
-    // ---------------------------------------------------
-    // In the case of a cron receipt which is in the inbox, but is being accepted
+
+	// In the case of a cron receipt which is in the inbox, but is being accepted
     // by a notarizeProcessInbox, (if theOwner is a processInbox transaction) then 
     // we don't want to report that item. Why not? Because if the processInbox is a
     // success, the item would be presumed removed. (That's what the process aims to do,
@@ -5807,7 +5700,7 @@ void OTTransaction::ProduceInboxReportItem(OTItem & theBalanceItem)
     }
     */
     
-    // -----------------------------------------------------------
+
     
 	// the item will represent THIS TRANSACTION, and will be added to theBalanceItem.
 	
@@ -5857,7 +5750,7 @@ void OTTransaction::ProduceOutboxReportItem(OTItem & theBalanceItem)
 			theItemType = OTItem::transfer;
 			break;
 		default: // All other types are irrelevant for outbox reports.
-			OTLog::Error("ProduceOutboxReportItem: Error, wrong item type. Returning.\n");
+			otErr << "ProduceOutboxReportItem: Error, wrong item type. Returning.\n";
 			return;
 	}
 	
@@ -5882,7 +5775,7 @@ void OTTransaction::ProduceOutboxReportItem(OTItem & theBalanceItem)
 		
 		
 		// debugging remove this
-//		OTLog::vError("PRODUCING OUTBOX REPORT ITEM: lAmount: %lld  Trans# %lld  Ref# %lld \n", lAmount,
+//		otErr << "PRODUCING OUTBOX REPORT ITEM: lAmount: %lld  Trans# %lld  Ref# %lld \n", lAmount,
 //                    pReportItem->GetTransactionNum(), pReportItem->GetReferenceToNum());
 		
 		// No need to sign/save pReportItem, since it is just used for in-memory storage, and is
@@ -5903,7 +5796,7 @@ int64_t OTTransaction::GetReceiptAmount()
 {
 	if (IsAbbreviated())
 		return GetAbbrevAdjustment();
-	// ---------------------------
+
 	int64_t lAdjustment = 0;
 		
 	OTItem * pOriginalItem = NULL;
@@ -5939,14 +5832,13 @@ int64_t OTTransaction::GetReceiptAmount()
 		default: // All other types have no amount -- return 0.
 			return 0;
 	}
-	// -------------------------------------------------
+
 	if (NULL == pOriginalItem)
     {
-        OTLog::vError("OTTransaction::%s: Unable to find original item. Should never happen.\n",
-                      __FUNCTION__);
+		otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to find original item. Should never happen.\n";
 		return 0; // Should never happen, since we always expect one based on the transaction type.
 	}
-	// -------------------------------------------------	
+
 	OTString strAttachment;
 	OTCheque theCheque; // allocated on the stack :-)
 
@@ -5957,8 +5849,8 @@ int64_t OTTransaction::GetReceiptAmount()
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s. (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to " << 
+					((OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt") << ". (expected depositCheque)\n";
 				return 0;
 			}
 			
@@ -5970,8 +5862,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			{
 				OTString strCheque(theCheque);
 				
-				OTLog::vError("ERROR loading cheque from string in OTTransaction::%s:\n%s\n",
-                              __FUNCTION__, strCheque.Get());
+				otErr << "ERROR loading cheque from string in OTTransaction::" << __FUNCTION__ << ":\n" << strCheque << "\n";
 			}
 			else 
 			{
@@ -5989,7 +5880,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			
 			if (pOriginalItem->GetType() != OTItem::acceptPending)
 			{
-				OTLog::Error("Wrong item type attached to transferReceipt\n");
+				otErr << "Wrong item type attached to transferReceipt\n";
 			}
 			else
 			{	// If I transfer 100 clams to someone, then my account is smaller by 100 clams. -100 has hit my account.
@@ -6012,7 +5903,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			
 			if (pOriginalItem->GetType() != OTItem::transfer)
 			{
-				OTLog::Error("Wrong item type attached to pending transfer\n");
+				otErr << "Wrong item type attached to pending transfer\n";
 			}
 			else
 			{
@@ -6026,7 +5917,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			
  			if (pOriginalItem->GetType() != OTItem::marketReceipt)
 			{
-				OTLog::Error("Wrong item type attached to marketReceipt\n");
+				otErr << "Wrong item type attached to marketReceipt\n";
 			}
 			else
 			{
@@ -6037,7 +5928,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			
 			if (pOriginalItem->GetType() != OTItem::paymentReceipt)
 			{
-				OTLog::Error("Wrong item type attached to paymentReceipt\n");
+				otErr << "Wrong item type attached to paymentReceipt\n";
 			}
 			else
 			{
@@ -6048,7 +5939,7 @@ int64_t OTTransaction::GetReceiptAmount()
 			
 			if (pOriginalItem->GetType() != OTItem::basketReceipt)
 			{
-				OTLog::Error("Wrong item type attached to basketReceipt\n");
+				otErr << "Wrong item type attached to basketReceipt\n";
 			}
 			else
 			{
@@ -6068,8 +5959,8 @@ int64_t OTTransaction::GetReceiptAmount()
 // virtual
 int64_t OTTransaction::GetNumberOfOrigin()
 {
-    // --------------------------------
-    if (0 == m_lNumberOfOrigin)
+
+	if (0 == m_lNumberOfOrigin)
     {
         switch (this->GetType())
         {
@@ -6078,9 +5969,8 @@ int64_t OTTransaction::GetNumberOfOrigin()
             case atDeposit:             // reply from the server regarding a deposit request
             case instrumentNotice:      // Receive these in paymentInbox (by way of Nymbox), and send in Outpayments.
             case instrumentRejection:   // When someone rejects your invoice, you get one of these in YOUR paymentInbox.
-                // ------------------------------------------------------------------------------
-                OTLog::vError("%s: In this case, you can't calculate the origin number, you must set it explicitly.\n",
-                              __FUNCTION__);
+
+				otErr << __FUNCTION__ << ": In this case, you can't calculate the origin number, you must set it explicitly.\n";
                 this->SetNumberOfOrigin(0);  // Not applicable.
                 // Comment this out later so people can't use it to crash the server:
                 OT_FAIL_MSG("In this case, you can't calculate the origin number, you must set it explicitly.");
@@ -6088,11 +5978,11 @@ int64_t OTTransaction::GetNumberOfOrigin()
             default:
                 break;
         }
-        // -----------------------------
-        this->CalculateNumberOfOrigin();
+
+		this->CalculateNumberOfOrigin();
     }
-    // -----------------------------    
-    return m_lNumberOfOrigin;
+
+	return m_lNumberOfOrigin;
 }
 
 
@@ -6100,8 +5990,8 @@ int64_t OTTransaction::GetNumberOfOrigin()
 void OTTransaction::CalculateNumberOfOrigin()
 {
     OT_ASSERT(!IsAbbreviated());
-    // ----------------------------    
-    switch (this->GetType())
+
+	switch (this->GetType())
     {
         case blank:           // freshly issued transaction number, not used yet
         case message:         // A message from one user to another, also in the nymbox.
@@ -6112,28 +6002,27 @@ void OTTransaction::CalculateNumberOfOrigin()
         case atProcessNymbox: // process nymbox reply          // comes from server
             this->SetNumberOfOrigin(0);  // Not applicable.
             break;
-        // --------------------------------------------------------------------------------------
-        case pending:         // Server puts this in your outbox (when sending) and recipient's inbox.
+
+		case pending:         // Server puts this in your outbox (when sending) and recipient's inbox.
         case marketReceipt:   // server periodically drops this into your inbox if an offer is live.
         case paymentReceipt:  // the server drops this into people's inboxes, every time a payment processes.
         case finalReceipt:    // the server drops this into your in/nym box(es), when a CronItem expires or is canceled.
         case basketReceipt:   // the server drops this into your inboxes, when a basket exchange is processed.
             this->SetNumberOfOrigin(this->GetReferenceToNum()); // pending is in reference to the original transfer.
             break;
-        // --------------------------------------------------------------------------------------            
-        case transferReceipt:       // the server drops this into your inbox, when someone accepts your transfer.
+
+		case transferReceipt:       // the server drops this into your inbox, when someone accepts your transfer.
         case deposit:               // this transaction is a deposit (cash or cheque)
         case atDeposit:             // reply from the server regarding a deposit request
         case instrumentNotice:      // Receive these in paymentInbox (by way of Nymbox), and send in Outpayments.
         case instrumentRejection:   // When someone rejects your invoice, you get one of these in YOUR paymentInbox.
-            OTLog::vError("%s: In this case, you can't calculate the origin number, you must set it explicitly.\n",
-                          __FUNCTION__);
+			otErr << __FUNCTION__ << ": In this case, you can't calculate the origin number, you must set it explicitly.\n";
             this->SetNumberOfOrigin(0);  // Not applicable.
             // Comment this out later so people can't use it to crash the server:
             OT_FAIL_MSG("In this case, you can't calculate the origin number, you must set it explicitly.");
             break;
-        // --------------------------------------------------------------------------------------
-        case chequeReceipt:   // the server drops this into your inbox, when someone deposits your cheque.
+
+		case chequeReceipt:   // the server drops this into your inbox, when someone deposits your cheque.
         case voucherReceipt:  // the server drops this into your inbox, when someone deposits your voucher.
 		{
 			OTString strReference;
@@ -6148,47 +6037,47 @@ void OTTransaction::CalculateNumberOfOrigin()
                                                                   this->GetReferenceToNum());
 			OT_ASSERT(NULL != pOriginalItem);
             OTCleanup<OTItem> theItemAngel(pOriginalItem);
-            // ------------------------------------------------
+
 			if (OTItem::depositCheque != pOriginalItem->GetType())
 			{
-				OTLog::vError("%s: ERROR: Wrong item type attached to %s "
-                              "(expected OTItem::depositCheque)\n", __FUNCTION__,
-                              (chequeReceipt == this->GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": ERROR: Wrong item type attached to " << 
+					((chequeReceipt == this->GetType()) ? "chequeReceipt" : "voucherReceipt") << " "
+                              "(expected OTItem::depositCheque)\n";
                 this->SetNumberOfOrigin(0);
 				return;
 			}
-            // ------------------------------------------------
-            this->SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
+
+			this->SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
 		}
 			break;
-        // --------------------------------------------------------------------------------------
+
         case processInbox:      // process inbox transaction    // comes from client
         case atProcessInbox:    // process inbox reply          // comes from server
-        // --------------------------------------------------------------------------------------
+
         case transfer:          // or "spend". This transaction is a request to transfer from one account to another
         case atTransfer:        // reply from the server regarding a transfer request
-        // --------------------------------------------------------------------------------------
+
         case withdrawal:        // this transaction is a withdrawal (cash or voucher)
         case atWithdrawal:      // reply from the server regarding a withdrawal request
-        // --------------------------------------------------------------------------------------
+
         case marketOffer:       // this transaction is a market offer
         case atMarketOffer:     // reply from the server regarding a market offer
-        // --------------------------------------------------------------------------------------
+
         case paymentPlan:       // this transaction is a payment plan
         case atPaymentPlan:     // reply from the server regarding a payment plan
-        // --------------------------------------------------------------------------------------
+
         case smartContract:     // this transaction is a smart contract
         case atSmartContract:   // reply from the server regarding a smart contract
-        // --------------------------------------------------------------------------------------
+
         case cancelCronItem:    // this transaction is intended to cancel a market offer or payment plan.
         case atCancelCronItem:  // reply from the server regarding said cancellation.
-        // --------------------------------------------------------------------------------------
+
         case exchangeBasket:    // this transaction is an exchange in/out of a basket currency.
         case atExchangeBasket:  // reply from the server regarding said exchange.
-        // --------------------------------------------------------------------------------------
+
         case payDividend:       // this transaction is dividend payment (to all shareholders...)
         case atPayDividend:     // reply from the server regarding said dividend payment.
-        // --------------------------------------------------------------------------------------            
+
         default:
             this->SetNumberOfOrigin(this->GetTransactionNum());
             break;
@@ -6222,7 +6111,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
 {
    if (IsAbbreviated())
       return GetAbbrevInRefDisplay();
-   // ----------------------------
+
    int64_t lReferenceNum = 0;
    
 	OTCleanup<OTItem> theItemAngel;
@@ -6333,7 +6222,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
  // You still have a choice to encrypt your local storage, but the "outPayments" box, which is
  // client-side-only, is not encrypted by default.
  
- // ----------------------------------------
+
  
     When the SERVER receives the "sendUserInstrument" message, it adds a new instrumentNotice transaction
     to the recipient's nymbox, in order to inform him, like this:
@@ -6366,7 +6255,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
         
         msgOut.m_bSuccess = true;
     }
- // ---------------------
+
  
 // NOTICE that the original message (from the sender) is attached to the new transaction 
 // as a "reference string" and the reference number points to itself. (Since a message has
@@ -6415,8 +6304,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
 			if (NULL != pItem)
 				pItem->GetAttachment(strUpdatedCronItem);
             else
-                OTLog::vError("OTTransaction::%s: Failed trying to get paymentReceipt item from paymentReceipt transaction.\n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Failed trying to get paymentReceipt item from paymentReceipt transaction.\n";
                         
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
 			theCronItemAngel.SetCleanupTargetPointer(pCronItem);
@@ -6438,13 +6326,13 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
             }
             else
             {
-                OTLog::vError("OTTransaction::%s: Unable to load Cron Item. Should never happen. Receipt: %lld  Origin: %lld\n",
-                              __FUNCTION__, this->GetTransactionNum(), this->GetNumberOfOrigin());
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to load Cron Item. Should never happen. Receipt: " 
+					<< this->GetTransactionNum() << "  Origin: " << this->GetNumberOfOrigin() << "\n";
                 return false;
             }
             break;
         }
-        // --------------------------------------------------
+
         case OTTransaction::instrumentNotice:
         {
             /*
@@ -6495,7 +6383,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
             }            
             return false;
         }   
-        // --------------------------------------------------
+
  		case OTTransaction::pending:
 		case OTTransaction::chequeReceipt:
 		case OTTransaction::voucherReceipt:
@@ -6507,17 +6395,17 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
             
             break;
         }   
-        // --------------------------------------------------
+
 		default: // All other types are irrelevant here.
 			return false;
 	}
     // --------------------------------------------------	
 	if (NULL == pOriginalItem)
     {
-        OTLog::Error("OTTransaction::GetSenderUserIDForDisplay: original item not found. Should never happen.\n");
+        otErr << "OTTransaction::GetSenderUserIDForDisplay: original item not found. Should never happen.\n";
 		return false; // Should never happen, since we always expect one based on the transaction type.
     }
-	// -------------------------------------------------
+
 	OTCheque theCheque; // allocated on the stack :-)
 	OTString strAttachment;
 		
@@ -6528,8 +6416,8 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to " << 
+					((OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt") << " (expected depositCheque)\n";
 				return false;
 			}
 			
@@ -6541,8 +6429,8 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
 			{
 				OTString strCheque(theCheque);
 				
-				OTLog::vError("ERROR loading cheque or voucher from string in OTTransaction::%s:\n%s\n",
-							  __FUNCTION__, strCheque.Get());
+				otErr << "ERROR loading cheque or voucher from string in OTTransaction::" 
+					<< __FUNCTION__ << ":\n" << strCheque << "\n";
 			}
 			else 
 			{
@@ -6560,7 +6448,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier & theReturnID)
 			
 			if (pOriginalItem->GetType() != OTItem::transfer)
 			{
-				OTLog::Error("Wrong item type attached to pending transfer\n");
+				otErr << "Wrong item type attached to pending transfer\n";
 			}
 			else
 			{
@@ -6600,8 +6488,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
 			if (NULL != pItem)
 				pItem->GetAttachment(strUpdatedCronItem);
             else
-                OTLog::vError("OTTransaction::%s: Failed trying to get paymentReceipt item from paymentReceipt transaction.\n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Failed trying to get paymentReceipt item from paymentReceipt transaction.\n";
 
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
 			theCronItemAngel.SetCleanupTargetPointer(pCronItem);
@@ -6624,13 +6511,13 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
             }
             else
             {
-                OTLog::vError("OTTransaction::%s: Unable to load Cron Item. Should never happen. Receipt: %lld  Origin: %lld\n",
-                              __FUNCTION__, this->GetTransactionNum(), this->GetNumberOfOrigin());
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to load Cron Item. Should never happen. Receipt: " 
+					<< this->GetTransactionNum() << "  Origin: " << this->GetNumberOfOrigin() << "\n";
                 return false;
             }
         }
             break; // this break never actually happens. Above always returns, if triggered.
-            // --------------------------------------------------
+
         case OTTransaction::instrumentNotice:
         {
             /*
@@ -6682,7 +6569,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
             return false;
         } // case OTTransaction::instrumentNotice:
             break;
-        // --------------------------------------------------
+
         //
 		case OTTransaction::transferReceipt: 
 		case OTTransaction::chequeReceipt:
@@ -6702,7 +6589,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
 	if (NULL == pOriginalItem)
 		return false; // Should never happen, since we always expect one based on the transaction type.
 	
-	// -------------------------------------------------
+
     OTCheque theCheque; // allocated on the stack :-)
     OTString strAttachment;
 
@@ -6712,7 +6599,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::acceptPending)
 			{
-				OTLog::Error("Wrong item type attached to transferReceipt\n");
+				otErr << "Wrong item type attached to transferReceipt\n";
 				return false;
 			}
 			else 
@@ -6728,8 +6615,8 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to " <<
+					((OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt") << " (expected depositCheque)\n";
 				return false;
 			}
 			
@@ -6741,8 +6628,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier & theReturnID)
 			{
 				OTString strCheque(theCheque);
 				
-				OTLog::vError("ERROR loading cheque or voucher from string in OTTransaction::%s:\n%s\n",
-							  __FUNCTION__, strCheque.Get());
+				otErr << "ERROR loading cheque or voucher from string in OTTransaction::" << __FUNCTION__ << ":\n" << strCheque << "\n";
 			}
 			else if (theCheque.HasRecipient())
 			{
@@ -6792,8 +6678,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
 			if (NULL != pItem)
 				pItem->GetAttachment(strUpdatedCronItem);
             else
-                OTLog::vError("OTTransaction::%s: Failed trying to get paymentReceipt item from paymentReceipt transaction.\n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Failed trying to get paymentReceipt item from paymentReceipt transaction.\n";
 
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
 			theCronItemAngel.SetCleanupTargetPointer(pCronItem);
@@ -6815,8 +6700,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
             }
             else
             {
-                OTLog::vError("OTTransaction::%s: Unable to load Cron Item. Should never happen. Receipt: %lld  Origin: %lld\n",
-                              __FUNCTION__, this->GetTransactionNum(), this->GetNumberOfOrigin());
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to load Cron Item. Should never happen. Receipt: "
+					<< this->GetTransactionNum() << "  Origin: " << this->GetNumberOfOrigin() << "\n";
                 return false;
             }
         }
@@ -6838,12 +6723,11 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
 		
 	if (NULL == pOriginalItem)
     {
-        OTLog::vError("OTTransaction::%s: couldn't load original item, should never happen. \n",
-                      __FUNCTION__);
+		otErr << "OTTransaction::" << __FUNCTION__ << ": couldn't load original item, should never happen. \n";
 		return false; // Should never happen, since we always expect one based on the transaction type.
 	}
-	// -------------------------------------------------
-    OTCheque theCheque; // allocated on the stack :-)
+
+	OTCheque theCheque; // allocated on the stack :-)
     OTString strAttachment;
 		
 	switch (GetType()) 
@@ -6853,8 +6737,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to " << 
+					((OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt") << " (expected depositCheque)\n";
 				return false;
 			}
 
@@ -6866,8 +6750,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
 			{
 				OTString strCheque(theCheque);
 				
-				OTLog::vError("ERROR loading cheque from string in OTTransaction::%s:\n%s\n",
-							  __FUNCTION__, strCheque.Get());
+				otErr << "ERROR loading cheque from string in OTTransaction::" << __FUNCTION__ << ":\n" << strCheque << "\n";
 			}
 			else 
 			{
@@ -6885,7 +6768,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier & theReturnID)
 			
 			if (pOriginalItem->GetType() != OTItem::transfer)
 			{
-				OTLog::Error("Wrong item type attached to pending transfer\n");
+				otErr << "Wrong item type attached to pending transfer\n";
 			}
 			else
 			{
@@ -6926,8 +6809,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
 			if (NULL != pItem)
 				pItem->GetAttachment(strUpdatedCronItem);
             else
-                OTLog::vError("OTTransaction::%s: Failed trying to get paymentReceipt item from paymentReceipt transaction.\n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Failed trying to get paymentReceipt item from paymentReceipt transaction.\n";
 
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
 			theCronItemAngel.SetCleanupTargetPointer(pCronItem);
@@ -6950,13 +6832,13 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
             }
             else // else if it is any other kind of cron item...
             {
-                OTLog::vError("OTTransaction::%s: Unable to load Cron Item. Should never happen. Receipt: %lld  Origin: %lld\n",
-                              __FUNCTION__, this->GetTransactionNum(), this->GetNumberOfOrigin());
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to load Cron Item. Should never happen. Receipt: " 
+					<< this->GetTransactionNum() << "  Origin: " << this->GetNumberOfOrigin() << "\n";
                 return false;
             }
         }
             break; // this break never actually happens. Above always returns, if triggered.
-        // ------------------------------------------
+
 		case OTTransaction::pending: 
 		case OTTransaction::transferReceipt: 
 		case OTTransaction::chequeReceipt:
@@ -6975,7 +6857,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
 	// -------------------------------------------------		
 	if (NULL == pOriginalItem)
 		return false; // Should never happen, since we always expect one based on the transaction type.
-	// -------------------------------------------------
+
 	OTCheque theCheque; // allocated on the stack :-)
 	OTString strAttachment;
 		
@@ -6985,7 +6867,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::acceptPending)
 			{
-				OTLog::Error("Wrong item type attached to transferReceipt\n");
+				otErr << "Wrong item type attached to transferReceipt\n";
 				return false;
 			}
 			else 
@@ -7001,8 +6883,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to "
+					<< ((OTTransaction::chequeReceipt == GetType()) ? "chequeReceipt" : "voucherReceipt") << " (expected depositCheque)\n";
 				return false;
 			}
 			else 
@@ -7017,7 +6899,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID)
 			
 			if (pOriginalItem->GetType() != OTItem::transfer)
 			{
-				OTLog::Error("Wrong item type attached to pending transfer\n");
+				otErr << "Wrong item type attached to pending transfer\n";
 			}
 			else
 			{
@@ -7058,8 +6940,7 @@ bool OTTransaction::GetMemo(OTString & strMemo)
 			if (NULL != pItem)
 				pItem->GetAttachment(strUpdatedCronItem);
             else
-                OTLog::vError("OTTransaction::%s: Failed trying to get paymentReceipt item from paymentReceipt transaction.\n",
-                              __FUNCTION__);
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Failed trying to get paymentReceipt item from paymentReceipt transaction.\n";
 
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
 			theCronItemAngel.SetCleanupTargetPointer(pCronItem);
@@ -7082,13 +6963,13 @@ bool OTTransaction::GetMemo(OTString & strMemo)
             }
             else // else if it's any other kind of cron item.
             {
-                OTLog::vError("OTTransaction::%s: Unable to load Cron Item. Should never happen. Receipt: %lld  Origin: %lld\n",
-                              __FUNCTION__, this->GetTransactionNum(), this->GetNumberOfOrigin());
+				otErr << "OTTransaction::" << __FUNCTION__ << ": Unable to load Cron Item. Should never happen. Receipt: " 
+					<< this->GetTransactionNum() << "  Origin: " << this->GetNumberOfOrigin() << "\n";
                 return false;
             }
         }
             break; // this break never actually happens. Above always returns, if triggered.
-        // ------------------------------------------
+
 		case OTTransaction::pending: 
 		case OTTransaction::transferReceipt: 
 		case OTTransaction::chequeReceipt:
@@ -7104,10 +6985,10 @@ bool OTTransaction::GetMemo(OTString & strMemo)
 		default: 
 			return false;
 	}
-	// -------------------------------------------------		
+	
 	if (NULL == pOriginalItem)
 		return false; // Should never happen, since we always expect one based on the transaction type.
-	// -------------------------------------------------
+
 	OTCheque theCheque; // allocated on the stack :-)
 	OTString strAttachment;
 		
@@ -7117,7 +6998,7 @@ bool OTTransaction::GetMemo(OTString & strMemo)
 		{
 			if (pOriginalItem->GetType() != OTItem::acceptPending)
 			{
-				OTLog::vError("%s: Wrong item type attached to transferReceipt\n", __FUNCTION__);
+				otErr << __FUNCTION__ << ": Wrong item type attached to transferReceipt\n";
 				return false;
 			}
 			else 
@@ -7133,8 +7014,8 @@ bool OTTransaction::GetMemo(OTString & strMemo)
 		{
 			if (pOriginalItem->GetType() != OTItem::depositCheque)
 			{
-				OTLog::vError("%s: Wrong item type attached to %s (expected depositCheque)\n", __FUNCTION__,
-                              (OTTransaction::chequeReceipt == this->GetType()) ? "chequeReceipt" : "voucherReceipt");
+				otErr << __FUNCTION__ << ": Wrong item type attached to " << 
+					((OTTransaction::chequeReceipt == this->GetType()) ? "chequeReceipt" : "voucherReceipt") << " (expected depositCheque)\n";
 				return false;
 			}
 			else 
@@ -7142,16 +7023,15 @@ bool OTTransaction::GetMemo(OTString & strMemo)
                 OTCheque   theCheque;
                 OTString   strCheque;
                 pOriginalItem->GetAttachment(strCheque);
-                // -------------------------------------
-                if (false == ((strCheque.GetLength() > 2) &&
+
+				if (false == ((strCheque.GetLength() > 2) &&
                               theCheque.LoadContractFromString(strCheque)))
                 {
-                    OTLog::vError("%s: Error loading cheque or voucher from string:\n%s\n",
-                                  __FUNCTION__, strCheque.Get());
+					otErr << __FUNCTION__ << ": Error loading cheque or voucher from string:\n" << strCheque << "\n";
                     return false;
                 }
-                // ---------------------------------
-                // Success loading the cheque.
+
+				// Success loading the cheque.
                 //
                 strMemo  = theCheque.GetMemo();
                 bSuccess = strMemo.Exists();
@@ -7163,7 +7043,7 @@ bool OTTransaction::GetMemo(OTString & strMemo)
 			
 			if (pOriginalItem->GetType() != OTItem::transfer)
 			{
-				OTLog::vError("%s: Wrong item type attached to pending transfer\n", __FUNCTION__);
+				otErr << __FUNCTION__ << ": Wrong item type attached to pending transfer\n";
 			}
 			else
 			{

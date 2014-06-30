@@ -139,7 +139,7 @@
 #include "OTStashItem.hpp"
 #include "OTStorage.hpp"
 
-#include "irrxml/irrXML.hpp"
+#include <irrxml/irrXML.hpp>
 
 
 namespace opentxs {
@@ -148,7 +148,7 @@ void OTStash::Serialize(OTString & strAppend)
 {
 	strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
 						  m_str_stash_name.c_str(), m_mapStashItems.size());
-	// -----------------
+
 
 	FOR_EACH(mapOfStashItems, m_mapStashItems)
 	{
@@ -159,7 +159,7 @@ void OTStash::Serialize(OTString & strAppend)
 		strAppend.Concatenate("<stashItem assetTypeID=\"%s\" balance=\"%lld\" />\n\n",
 							  pStashItem->GetAssetTypeID().Get(), pStashItem->GetAmount());
 	}
-	// -----------------
+
 	strAppend.Concatenate("</stash>\n\n");
 }
 
@@ -168,13 +168,13 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & s
 {
 	if (!strStashName.Exists())
 	{
-		OTLog::Error("OTStash::ReadFromXMLNode: Failed: Empty stash 'name' attribute.\n");
+		otErr << "OTStash::ReadFromXMLNode: Failed: Empty stash 'name' attribute.\n";
 		return (-1);
 	}
 
 	m_str_stash_name = strStashName.Get();
 
-	// -----------------------------------------------
+
 	//
 	// Load up the stash items.
 	//
@@ -186,28 +186,28 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & s
 //			xml->read();
 			if (false == OTContract::SkipToElement(xml))
 			{
-				OTLog::Output(0, "OTStash::ReadFromXMLNode: Failure: Unable to find expected element.\n");
+				otOut << "OTStash::ReadFromXMLNode: Failure: Unable to find expected element.\n";
 				return (-1);
 			}
-			// --------------------------------------
+
 			if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("stashItem", xml->getNodeName())))
 			{
 				OTString strAssetTypeID	= xml->getAttributeValue("assetTypeID"); // Asset Type ID of this account.
 				OTString strAmount		= xml->getAttributeValue("balance"); // Account ID for this account.
 
-				// ----------------------------------
+
 
 				if (!strAssetTypeID.Exists() || !strAmount.Exists())
 				{
-					OTLog::vError("OTStash::ReadFromXMLNode: Error loading stashItem: Either the assetTypeID (%s), "
-								  "or the balance (%s) was EMPTY.\n", strAssetTypeID.Get(), strAmount.Get());
+					otErr << "OTStash::ReadFromXMLNode: Error loading stashItem: Either the assetTypeID ("
+						<< strAssetTypeID << "), or the balance (" << strAmount << ") was EMPTY.\n";
 					return (-1);
 				}
 
 				if (!CreditStash(strAssetTypeID.Get(), atol(strAmount.Get()) ))  // <===============
 				{
-					OTLog::vError("OTStash::ReadFromXMLNode: Failed crediting stashItem for stash %s. assetTypeID (%s), "
-								  "balance (%s).\n", strStashName.Get(), strAssetTypeID.Get(), strAmount.Get());
+					otErr << "OTStash::ReadFromXMLNode: Failed crediting stashItem for stash " << strStashName <<
+						". assetTypeID (" << strAssetTypeID << "), balance (" << strAmount << ").\n";
 					return (-1);
 				}
 
@@ -215,15 +215,15 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & s
 			}
 			else
 			{
-				OTLog::Error("OTStash::ReadFromXMLNode: Expected stashItem element.\n");
+				otErr << "OTStash::ReadFromXMLNode: Expected stashItem element.\n";
 				return (-1); // error condition
 			}
 		} // while
 	}
-	// --------------------------------
+
 	if (false == OTContract::SkipAfterLoadingField(xml))	// </stash>
-	{ OTLog::Output(0, "*** OTStash::ReadFromXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
-					"didn't get it. Returning -1.\n"); return (-1); }
+	{ otOut << "*** OTStash::ReadFromXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
+					"didn't get it. Returning -1.\n"; return (-1); }
 
 	return 1;
 }

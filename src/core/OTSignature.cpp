@@ -150,12 +150,12 @@ bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID, char c
             break;
             
         default:
-            OTLog::vError("%s: Expected key type of A, E, or S, but instead found: %c (bad data or error)\n",
-                          __FUNCTION__, cMetaKeyType);
+			otErr << __FUNCTION__ << ": Expected key type of A, E, or S, but instead found: "
+				<< cMetaKeyType << " (bad data or error)\n";
             return false;
     }
-    // -------------------------
-    std::string str_verify_base62;
+
+	std::string str_verify_base62;
     
     str_verify_base62 += cMetaNymID;         
     str_verify_base62 += cMetaMasterCredID;  
@@ -163,18 +163,17 @@ bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID, char c
     
     if (false == OTCrypto::It()->IsBase62(str_verify_base62))
     {
-        OTLog::vError("%s: Metadata for signature failed base62 validation: %s\n",
-                      __FUNCTION__, str_verify_base62.c_str());
+		otErr << __FUNCTION__ << ": Metadata for signature failed base62 validation: " << str_verify_base62 << "\n";
         return false;
     }
-    // --------------------------
-    m_cMetaKeyType       = cMetaKeyType;
+
+	m_cMetaKeyType       = cMetaKeyType;
     m_cMetaNymID         = cMetaNymID;
     m_cMetaMasterCredID  = cMetaMasterCredID;
     m_cMetaSubCredID     = cMetaSubCredID;
     m_bHasMetadata       = true; // <==== Success.
-    // --------------------------
-    return true;
+
+	return true;
 }
 
 
@@ -340,7 +339,7 @@ bool OTSignature::CalculateDigest(OTData & dataInput)
 	
 	if(!md) 
 	{
-		OTLog::vError("Unknown message digest algorithm in OTSignature::CalculateDigest: %s\n", 
+		otErr << "Unknown message digest algorithm in OTSignature::CalculateDigest: %s\n", 
 				hashAlgorithm);
 		return false;
 	}
@@ -351,12 +350,12 @@ bool OTSignature::CalculateDigest(OTData & dataInput)
 	EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 	EVP_MD_CTX_cleanup(&mdctx);
 	
-	OTLog::Output(5, "Calculated digest: ");
+	otLog5 << "Calculated digest: ");
 	
 	for (i = 0; i < md_len; i++)
-		OTLog::vOutput(5, "%02x", md_value[i]);
+		otLog5 << "%02x", md_value[i]);
 		
-	OTLog::Output(5, "\n");
+	otLog5 << "\n");
 	
 	Assign(md_value, md_len);
 	
