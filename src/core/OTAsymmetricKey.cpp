@@ -159,11 +159,11 @@ OTAsymmetricKey * OTAsymmetricKey::KeyFactory() // Caller IS responsible to dele
     pKey = new OTAsymmetricKey_OpenSSL;    
 #elif defined (OT_CRYPTO_USING_GPG)
 //  pKey = new OTAsymmetricKey_GPG;
-    otErr << "%s: Open-Transactions doesn't support GPG (yet), "
-                  "so it's impossible to instantiate a key.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                  "so it's impossible to instantiate a key.\n";
 #else
-    otErr << "%s: Open-Transactions isn't built with any crypto engine, "
-                  "so it's impossible to instantiate a key.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions isn't built with any crypto engine, "
+                  "so it's impossible to instantiate a key.\n";
 #endif
     return pKey;
 }
