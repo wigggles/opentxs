@@ -265,11 +265,11 @@ void OTData::Release_Data()
        //
        OTPassword::zeroMemory(m_pData, m_lSize);
 //	   memset(m_pData, 0, m_lSize);
-       // --------------------------------------
+
        
 	   delete [] (static_cast<uint8_t *>(m_pData));
 	   
-       // --------------------------------------
+
        // inline void Initialize() { m_pData = NULL; m_lSize = 0; m_lPosition = 0; }
        //
 	   Initialize(); // If m_pData was already NULL, no need to re-Initialize().
@@ -344,7 +344,7 @@ bool OTData::Randomize(uint32_t lNewSize)
 	{
 		m_pData = static_cast<void*>(new uint8_t[lNewSize]);
 		OT_ASSERT(NULL != m_pData);
-        // ---------------------------------        
+
         if (!OTPassword::randomizeMemory_uint8(static_cast<uint8_t*>(m_pData), lNewSize))
         {
             // randomizeMemory already logs, so I'm not logging again twice here.
@@ -353,7 +353,7 @@ bool OTData::Randomize(uint32_t lNewSize)
             m_pData = NULL;
             return false;
         }
-        // --------------------------------------------------
+
         m_lSize  = lNewSize;
         return true;        
 	}
@@ -366,19 +366,19 @@ void OTData::Concatenate(const void * pAppendData, uint32_t lAppendSize)
 {
     OT_ASSERT(NULL != pAppendData);
     OT_ASSERT(lAppendSize > 0);
-    // -------------------------
+
     if (lAppendSize == 0) // It's unsigned, so it CAN'T be less than 0.
     {
-        OTLog::Error("OTData::Concatenate: Error: lAppendSize is unexpectedly 0.\n");
+        otErr << "OTData::Concatenate: Error: lAppendSize is unexpectedly 0.\n";
         return;
     }
-    // -------------------------
+
     if (0 == m_lSize)
     {
         this->Assign(pAppendData, lAppendSize);
         return;
     }
-    // -------------------------
+
 	void *   pNewData   = NULL;
 	uint32_t lTotalSize	= GetSize() + lAppendSize;
 	
@@ -388,7 +388,7 @@ void OTData::Concatenate(const void * pAppendData, uint32_t lAppendSize)
 		OT_ASSERT(NULL != pNewData);
         OTPassword::zeroMemory(pNewData, lTotalSize);
 	}
-    // -----------------------------------
+
     
 	if (NULL != pNewData) // If there's a new memory buffer (for the combined..)
 	{
@@ -405,7 +405,7 @@ void OTData::Concatenate(const void * pAppendData, uint32_t lAppendSize)
                                 lTotalSize - GetSize(),
                                 pAppendData, lAppendSize);	
 	}
-    // ---------------------------------------
+
 	if (NULL != m_pData) // If I wasn't already empty, then erase whatever I had in there before...
 		delete [] static_cast<uint8_t *>(m_pData);
         

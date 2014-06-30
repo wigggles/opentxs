@@ -145,15 +145,15 @@ void AppendChecksum( OT_BYTE* buffer, uint32_t & size )
 	OT_BYTE total = 0;
 	
 	OT_ASSERT(NULL != buffer);
-//	OTLog::vError("Appending checksum. Size: %d ", size);
+//	otErr << "Appending checksum. Size: %d ", size);
 
 	for( i = 0; i < size; i++ )
 	{
 		total += buffer[i];
-//		OTLog::vError("%d ", buffer[i]);
+//		otErr << "%d ", buffer[i]);
 	}
 	
-//	OTLog::vError("  VALUE: %d\n", (255 - total));
+//	otErr << "  VALUE: %d\n", (255 - total));
 
 	buffer[size++] = 255 - total;
 }
@@ -166,14 +166,14 @@ OT_BYTE CalcChecksum( OT_BYTE* buffer, uint32_t size )
 	
 	OT_ASSERT(NULL != buffer);
 
-//	OTLog::vError("Calculating checksum. Size: %d ", size);
+//	otErr << "Calculating checksum. Size: %d ", size);
 	
 	for( i = 0; i < size; i++ )
 	{
 		total += buffer[i];
-//		OTLog::vError("%d ", buffer[i]);
+//		otErr << "%d ", buffer[i]);
 	}
-//	OTLog::vError( "  VALUE: %d\n", (255 - total));
+//	otErr << "  VALUE: %d\n", (255 - total));
 	
 	return (255 - total);
 }
@@ -186,14 +186,14 @@ OT_BYTE CalcChecksum( const OT_BYTE * const buffer, const uint32_t size )
 	
 	OT_ASSERT(NULL != buffer);
 
-//	OTLog::vError("Calculating checksum. Size: %d\n", size);
+//	otErr << "Calculating checksum. Size: %d\n", size);
 	
 	for( i = 0; i < size; i++ )
 	{
 		total += buffer[i];
-//		OTLog::vError("%d ", buffer[i]);
+//		otErr << "%d ", buffer[i]);
 	}
-//	OTLog::vError("  TOTAL: %d\n", (255 - total));
+//	otErr << "  TOTAL: %d\n", (255 - total));
 	
 	return (255 - total);
 }
@@ -206,22 +206,22 @@ OT_BOOL IsChecksumValid( OT_BYTE* buffer, uint32_t size )
 
 	OT_ASSERT(NULL != buffer);
 
-//	OTLog::vError(Validating checksum. Size: %d\n", size);
+//	otErr << Validating checksum. Size: %d\n", size);
 
 	for( i = 0; i < size; i++ )
 	{
 		total += buffer[i];
 		
-//		OTLog::vError("%d ", buffer[i]);
+//		otErr << "%d ", buffer[i]);
 	}
 	if( total == 255 )
 	{
-//		OTLog::Error("VALID\n");
+//		otErr << "VALID\n";
 		return true;
 	}
 	else
 	{
-//		OTLog::vError("INVALID:  %d\n", total);
+//		otErr << "INVALID:  %d\n", total);
 		return false;
 	}
 }
