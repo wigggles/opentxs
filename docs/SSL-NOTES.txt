@@ -1,22 +1,9 @@
-
-There are certain files (keys, etc) that need to be in the SSL-Example folder 
-(for client AND server -- both have their own different versions of that folder).
-
-You can generate those files in the ssl folder by typing make. (Already done FYI.) 
-Then copy the appropriate files to the client and server SSL-Example folders.
-
-
-** I have generated these files already and put them in the appropriate directories,
-with all the test passwords set to "test". So if you just want to try it out, you're
-already GOOD TO GO! 
-
-** But if you would like to erase all the certs, these are the instructions for
-re-creating them in a format that the software will use.
+** These are the instructions for re-creating the SSL certs in a format that the software will use.
 
 
 ===> HOW IS THIS ALL DONE?
 
-1) Go to the main project folder and then:  cd ssl
+1) Go to the main project folder and then:  mkdir ssl && cd ssl
 
 
 1.1 (optional) To erase the certs that I generated: 
