@@ -558,12 +558,14 @@ bool OTRecordList::PerformAutoAccept()
     // LOOP NYMS
     //
     int32_t nNymIndex = -1;
-    if (m_bAutoAcceptCheques || m_bAutoAcceptCash) FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
+    if (m_bAutoAcceptCheques || m_bAutoAcceptCash)
     {
+      FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
+      {
         ++nNymIndex;
         // ------------------------------------------------
         if (0 == nNymIndex)
-            OTLog::vOutput(0, "======================================\n %s: Beginning auto-accept loop through Nyms...\n", __FUNCTION__);
+          OTLog::vOutput(0, "======================================\n %s: Beginning auto-accept loop through Nyms...\n", __FUNCTION__);
         // ------------------------------------------------
         const std::string  & str_nym_id(*it_nym);
         const OTIdentifier   theNymID  (str_nym_id);
@@ -601,8 +603,10 @@ bool OTRecordList::PerformAutoAccept()
 
             int32_t  nIndex = (-1);
             // It loaded up, so let's loop through it.
-            if (NULL != pInbox) FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+            if (NULL != pInbox)
             {
+              FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+              {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
                 // ------------------------------
@@ -679,7 +683,7 @@ bool OTRecordList::PerformAutoAccept()
                 }
                 else
                     OTLog::vOutput(0, "%s: Failed in pPayment->IsValid or pPayment->SetTempValues()\n", __FUNCTION__);
-                // ------------------------------
+              }
             } // looping through payments inbox.
             else
                 OTLog::vOutput(1, "%s: Failed loading payments inbox. (Probably just doesn't exist yet.)\n", __FUNCTION__);
@@ -797,8 +801,10 @@ bool OTRecordList::PerformAutoAccept()
                 thePaymentMap.clear();
             } // if (!thePaymentMap.empty())
             // ------------------------------------------------
-        } // FOR_EACH_IT(list_of_strings, m_servers, it_server)
-    } // FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
+          } // FOR_EACH_IT(list_of_strings, m_servers, it_server)
+        } // FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
+    }
+
     // ------------------------------------------------
     // ASSET ACCOUNT -- INBOX
     //
@@ -806,8 +812,10 @@ bool OTRecordList::PerformAutoAccept()
     //
     // ------------------------------------------------
     int32_t nAccountIndex = -1;
-    if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers) FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
+    if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers)
     {
+      FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
+      {
         ++nAccountIndex; // (0 on first iteration.)
         // ------------------
         if (0 == nAccountIndex)
@@ -983,7 +991,8 @@ bool OTRecordList::PerformAutoAccept()
                 OTLog::vOutput(0, "%s retrieving intermediary files for account.\n", (bRetrieved ? "Success" : "Failed"));
             }
         }
-    } // FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
+      } // FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
+    }
     // ------------------------------------------------
     return true;
 }
@@ -1462,8 +1471,10 @@ bool OTRecordList::Populate()
 
             int32_t  nIndex = (-1);
             // It loaded up, so let's loop through it.
-            if (NULL != pInbox) FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+            if (NULL != pInbox)
             {
+              FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+              {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
                 // ------------------------------
@@ -1680,7 +1691,8 @@ bool OTRecordList::Populate()
                 m_contents.push_back(sp_Record);
                 // ------------------------------
 
-            } // looping through inbox.
+              } // looping through inbox.
+            }
             else
                 OTLog::vOutput(1, "%s: Failed loading payments inbox. (Probably just doesn't exist yet.)\n", __FUNCTION__);
             // ------------------------------------------------
@@ -1694,8 +1706,10 @@ bool OTRecordList::Populate()
             OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
 
             // It loaded up, so let's loop through it.
-            if (NULL != pRecordbox) FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
+            if (NULL != pRecordbox)
             {
+              FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
+              {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
                 // ------------------------------
@@ -2017,9 +2031,10 @@ bool OTRecordList::Populate()
                 m_contents.push_back(sp_Record);
                 // ------------------------------
 
-            } // Loop through Recordbox
+              } // Loop through Recordbox
+            }
             else
-                OTLog::vOutput(1, "%s: Failed loading payments record box. (Probably just doesn't exist yet.)\n", __FUNCTION__);
+              OTLog::vOutput(1, "%s: Failed loading payments record box. (Probably just doesn't exist yet.)\n", __FUNCTION__);
             // ------------------------------------------------
 
             // ------------------------------------------------
@@ -2033,8 +2048,10 @@ bool OTRecordList::Populate()
             OTCleanup<OTLedger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
-            if (NULL != pExpiredbox) FOR_EACH(mapOfTransactions, pExpiredbox->GetTransactionMap())
+            if (NULL != pExpiredbox)
             {
+              FOR_EACH(mapOfTransactions, pExpiredbox->GetTransactionMap())
+              {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
                 // ------------------------------
@@ -2358,13 +2375,13 @@ bool OTRecordList::Populate()
                 m_contents.push_back(sp_Record);
                 // ------------------------------
 
-            } // Loop through ExpiredBox
+              } // Loop through ExpiredBox
+            }
             else
                 OTLog::vOutput(1, "%s: Failed loading expired payments box. (Probably just doesn't exist yet.)\n", __FUNCTION__);
             // ------------------------------------------------
 
-        } // Loop through servers for each Nym.
-
+            } // Loop through servers for each Nym.
     } // Loop through Nyms.
     // ------------------------------------------------
     // ASSET ACCOUNT -- INBOX/OUTBOX + RECORD BOX
@@ -2445,8 +2462,10 @@ bool OTRecordList::Populate()
         // ------------------------------------------------
         int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
-        if (NULL != pInbox) FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+        if (NULL != pInbox)
         {
+          FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
+          {
             ++nInboxIndex; // (0 on first iteration.)
             // ------------------------------------------------
             if (0 == nInboxIndex)
@@ -2676,6 +2695,7 @@ bool OTRecordList::Populate()
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
             // -------------------------------------------------
             m_contents.push_back(sp_Record);
+          }
         }
         // ------------------------------------------------
         // OPTIMIZE FYI:
@@ -2689,8 +2709,10 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         int32_t nOutboxIndex = -1;
-        if (NULL != pOutbox) FOR_EACH(mapOfTransactions, pOutbox->GetTransactionMap())
+        if (NULL != pOutbox)
         {
+          FOR_EACH(mapOfTransactions, pOutbox->GetTransactionMap())
+          {
             ++nOutboxIndex; // (0 on first iteration.)
             // ------------------------------------------------
             if (0 == nOutboxIndex)
@@ -2842,6 +2864,7 @@ bool OTRecordList::Populate()
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
             // -------------------------------------------------
             m_contents.push_back(sp_Record);
+          }
         }
         // ------------------------------------------------
         // For this record box, pass a NymID AND an AcctID,
@@ -2858,8 +2881,10 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         int32_t nRecordIndex = -1;
-        if (NULL != pRecordbox) FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
+        if (NULL != pRecordbox)
         {
+          FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
+          {
             ++nRecordIndex;
             // -----------------------------
             OTTransaction * pBoxTrans = (*it).second;
@@ -3223,6 +3248,7 @@ bool OTRecordList::Populate()
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
             // -------------------------------------------------
             m_contents.push_back(sp_Record);
+          }
         }
         // ------------------------------------------------
 

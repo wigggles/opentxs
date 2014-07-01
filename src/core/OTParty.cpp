@@ -1169,6 +1169,7 @@ bool OTParty::SendNoticeToParty(bool bSuccessMsg,
 	const int64_t lOpeningTransNo = this->GetOpeningTransNo();
 
     if (lOpeningTransNo > 0)
+    {
         FOR_EACH(mapOfAgents, m_mapAgents)
         {
             OTAgent * pAgent = (*it).second;
@@ -1184,7 +1185,7 @@ bool OTParty::SendNoticeToParty(bool bSuccessMsg,
             else
                 bSuccess = true;
         }
-
+    }
 	return bSuccess;
 }
 

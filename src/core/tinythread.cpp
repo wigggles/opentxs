@@ -214,6 +214,7 @@ thread::thread(void (*aFunction)(void *), void * aArg)
     mNotAThread = true;
     delete ti;
   }
+  // cppcheck-suppress memleak
 }
 
 thread::~thread()
