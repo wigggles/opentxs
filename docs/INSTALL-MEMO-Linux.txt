@@ -29,10 +29,12 @@ Build Multithreaded, need about 1gb of ram per thread.
 
 ##############   CMake Options:   ##############
 
-Signal Handling: -DSIGNAL_HANLDER=ON
+Build static:	 -DBUILD_SHARED_LIBS=OFF
 
-Debug Mode:    -DCMAKE_BUILD_TYPE=Debug
+Debug Mode:	 -DCMAKE_BUILD_TYPE=Debug
 (Default is Release)
+
+Signal Handling: -DSIGNAL_HANLDER=ON
 
 System Keyring (Optional):
     Windows     : -DKEYRING_WINDOWS=ON
