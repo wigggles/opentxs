@@ -14,4 +14,4 @@ enabled="--enable=warning --enable=information --enable=performance \
          --enable=portability --enable=missingInclude --enable=style"
 # Exit code '1' is returned if arguments are not valid or if no input
 # files are provided. Compare 'cppcheck --help'.
-cppcheck -f -q --error-exitcode=2 $enabled $suppress "$@"
+cppcheck -f -q --inline-suppr --error-exitcode=2 $enabled $suppress "$@"

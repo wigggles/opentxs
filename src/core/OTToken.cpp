@@ -350,8 +350,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine, const OTId
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre(SERVER_ID, ASSET_ID);		OT_ASSERT(NULL != pToken); }
 #else
-    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
-                  __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital cash algorithms. (Failure.)";
 #endif // defined (OT_CASH_USING_LUCRE)
 
     return pToken;
@@ -372,8 +371,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine, const OTPu
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre(thePurse);		OT_ASSERT(NULL != pToken); }
 #else
-    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
-                  __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital cash algorithms. (Failure.)";
 #endif // defined (OT_CASH_USING_LUCRE)
 
     return pToken;
@@ -388,8 +386,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTPurse & thePurse)
     pToken = new OTToken_Lucre(thePurse);
     OT_ASSERT(NULL != pToken);
 #else
-    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
-                  __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital cash algorithms. (Failure.)";
 #endif // defined (OT_CASH_USING_LUCRE)
 
     return pToken;
@@ -410,8 +407,7 @@ OTToken * OTToken::LowLevelInstantiate(const OTString & strFirstLine)
 	else if (strFirstLine.Contains("-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string is 39 chars long.
 	{	pToken = new OTToken_Lucre;		OT_ASSERT(NULL != pToken); }
 #else
-    otErr << "%s: Open-Transactions is not built for any digital cash algorithms. (Failure.)",
-                  __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions is not built for any digital cash algorithms. (Failure.)";
 #endif // defined (OT_CASH_USING_LUCRE)
 
     return pToken;

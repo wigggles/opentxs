@@ -160,11 +160,11 @@ OTMint * OTMint::MintFactory()
     pMint = new OTMint_Lucre;
 #elif defined (OT_CASH_USING_MAGIC_MONEY)
 //  pMint = new OTMint_MagicMoney;
-    otErr << "%s: Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUCNTION__ << ": Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
+          << "so it's impossible to instantiate a mint.\n";
 #else
-    otErr << "%s: Open-Transactions isn't built with any digital cash algorithms, "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions isn't built with any digital cash algorithms, "
+          << "so it's impossible to instantiate a mint.\n";
 #endif
     return pMint;
 }
@@ -179,11 +179,11 @@ OTMint * OTMint::MintFactory(const OTString & strServerID, const OTString & strA
     pMint = new OTMint_Lucre(strServerID, strAssetTypeID);
 #elif defined (OT_CASH_USING_MAGIC_MONEY)
 //  pMint = new OTMint_MagicMoney;
-    otErr << "%s: Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
+          << "so it's impossible to instantiate a mint.\n";
 #else
-    otErr << "%s: Open-Transactions isn't built with any digital cash algorithms, "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions isn't built with any digital cash algorithms, "
+          << "so it's impossible to instantiate a mint.\n";
 #endif
     return pMint;
 }
@@ -198,11 +198,11 @@ OTMint * OTMint::MintFactory(const OTString & strServerID, const OTString & strS
     pMint = new OTMint_Lucre(strServerID, strServerNymID, strAssetTypeID);
 #elif defined (OT_CASH_USING_MAGIC_MONEY)
 //  pMint = new OTMint_MagicMoney;
-    otErr << "%s: Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money by Pr0duct Cypher (yet), "
+          << "so it's impossible to instantiate a mint.\n";
 #else
-    otErr << "%s: Open-Transactions isn't built with any digital cash algorithms, "
-                  "so it's impossible to instantiate a mint.\n", __FUNCTION__);
+    otErr << __FUNCTION__ << ": Open-Transactions isn't built with any digital cash algorithms, "
+          << "so it's impossible to instantiate a mint.\n";
 #endif
     return pMint;
 }

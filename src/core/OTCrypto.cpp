@@ -506,8 +506,8 @@ bool OTCrypto::GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
 	}
 #else
 	{
-		otErr << "%s: Open-Transactions is not compiled to collect "
-			"the passphrase from the console!\n", __FUNCTION__);
+		otErr << "__FUNCTION__: Open-Transactions is not compiled to collect "
+          << "the passphrase from the console!\n";
 		return false;
 	}
 #endif
@@ -1965,8 +1965,8 @@ void OTCrypto_OpenSSL::Init_Override()
 #else
     // no thread support
 
-    otErr << "%s: WARNING: OpenSSL was NOT compiled with thread support. "
-                 "(Also: Master Key will not expire.)\n", szFunc);
+    otErr << __FUNCTION__ << ": WARNING: OpenSSL was NOT compiled with thread support. "
+          << "(Also: Master Key will not expire.)\n";
 
 #endif
 
