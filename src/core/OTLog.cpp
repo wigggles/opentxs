@@ -132,8 +132,6 @@
 
 #include "stdafx.hpp"
 
-#define OTLOG_IMPORT
-
 #include "OTLog.hpp"
 
 #include "OTPaths.hpp"
@@ -1070,202 +1068,6 @@ void OTLog::SetupSignalHandler()
 }
 
 
-LONG Win32FaultHandler(struct _EXCEPTION_POINTERS *  ExInfo)
-{
-	char  *FaultTx = "";
-
-	switch(ExInfo->ExceptionRecord->ExceptionCode)
-	{
-	case EXCEPTION_ACCESS_VIOLATION          : FaultTx = "ACCESS VIOLATION"         ; break;
-	case EXCEPTION_DATATYPE_MISALIGNMENT     : FaultTx = "DATATYPE MISALIGNMENT"    ; break;
-	case EXCEPTION_BREAKPOINT                : FaultTx = "BREAKPOINT"               ; break;
-	case EXCEPTION_SINGLE_STEP               : FaultTx = "SINGLE STEP"              ; break;
-	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED     : FaultTx = "ARRAY BOUNDS EXCEEDED"    ; break;
-	case EXCEPTION_FLT_DENORMAL_OPERAND      : FaultTx = "FLT DENORMAL OPERAND"     ; break;
-	case EXCEPTION_FLT_DIVIDE_BY_ZERO        : FaultTx = "FLT DIVIDE BY ZERO"       ; break;
-	case EXCEPTION_FLT_INEXACT_RESULT        : FaultTx = "FLT INEXACT RESULT"       ; break;
-	case EXCEPTION_FLT_INVALID_OPERATION     : FaultTx = "FLT INVALID OPERATION"    ; break;
-	case EXCEPTION_FLT_OVERFLOW              : FaultTx = "FLT OVERFLOW"             ; break;
-	case EXCEPTION_FLT_STACK_CHECK           : FaultTx = "FLT STACK CHECK"          ; break;
-	case EXCEPTION_FLT_UNDERFLOW             : FaultTx = "FLT UNDERFLOW"            ; break;
-	case EXCEPTION_INT_DIVIDE_BY_ZERO        : FaultTx = "INT DIVIDE BY ZERO"       ; break;
-	case EXCEPTION_INT_OVERFLOW              : FaultTx = "INT OVERFLOW"             ; break;
-	case EXCEPTION_PRIV_INSTRUCTION          : FaultTx = "PRIV INSTRUCTION"         ; break;
-	case EXCEPTION_IN_PAGE_ERROR             : FaultTx = "IN PAGE ERROR"            ; break;
-	case EXCEPTION_ILLEGAL_INSTRUCTION       : FaultTx = "ILLEGAL INSTRUCTION"      ; break;
-	case EXCEPTION_NONCONTINUABLE_EXCEPTION  : FaultTx = "NONCONTINUABLE EXCEPTION" ; break;
-	case EXCEPTION_STACK_OVERFLOW            : FaultTx = "STACK OVERFLOW"           ; break;
-	case EXCEPTION_INVALID_DISPOSITION       : FaultTx = "INVALID DISPOSITION"      ; break;
-	case EXCEPTION_GUARD_PAGE                : FaultTx = "GUARD PAGE"               ; break;
-	default: FaultTx = "(unknown)";           break;
-	}
-	int32_t    wsFault    = ExInfo->ExceptionRecord->ExceptionCode;
-	void * CodeAdress = ExInfo->ExceptionRecord->ExceptionAddress;
-
-	// (using stderr.)
-	//  sgLogFile = fopen("Win32Fault.log", "w");
-
-	if(stderr != NULL)
-	{
-		fprintf(stderr, "****************************************************\n");
-		fprintf(stderr, "*** A Programm Fault occured:\n");
-		fprintf(stderr, "*** Error code %08X: %s\n", wsFault, FaultTx);
-		fprintf(stderr, "****************************************************\n");
-		fprintf(stderr, "***   Address: %08X\n", (int32_t)CodeAdress);
-		fprintf(stderr, "***     Flags: %08X\n", ExInfo->ExceptionRecord->ExceptionFlags);
-
-#if defined (_CONSOLE)
-		printf("\n");
-		printf("*** A Programm Fault occured:\n");
-		printf("*** Error code %08X: %s\n", wsFault, FaultTx);
-#endif
-		/* This infomation ssems to be wrong
-		if(ExInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
-		{
-		fprintf(stderr, "****************************************************\n");
-		fprintf(stderr, "*** Attempted to %s to address %08LX \n",
-		ExInfo->ExceptionRecord->ExceptionInformation[0] ? "write" : "read",
-		ExInfo->ExceptionRecord->ExceptionInformation[1]);
-
-		}
-		*/
-#ifdef _WIN64
-		//		LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Rbp);
-#else
-		LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Ebp);
-#endif
-
-		//      fclose(sgLogFile);
-	}
-
-
-
-	/*if(want to continue)
-	{
-	ExInfo->ContextRecord->Eip++;
-	#if defined (_CONSOLE)
-	printf("*** Trying to continue\n");
-	printf("\n");
-	#endif
-	return EXCEPTION_CONTINUE_EXECUTION;
-	}
-	*/
-
-	printf("*** Terminating\n");
-	printf("\n");
-	return EXCEPTION_EXECUTE_HANDLER;
-}
-/////////////////////////////////////////////////////////////////////////////
-// Unwind the stack and save its return addresses to the logfile
-/////////////////////////////////////////////////////////////////////////////
-
-
-void   LogStackFrames(void *FaultAdress, char *eNextBP)
-
-{
-#if defined(_WIN64)
-
-	typedef USHORT (WINAPI *CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
-
-	HMODULE lLoadedLib = LoadLibrary(L"kernel32.dll");
-	if (NULL == lLoadedLib) OT_FAIL;
-	CaptureStackBackTraceType func = (CaptureStackBackTraceType)
-		(GetProcAddress(lLoadedLib, "RtlCaptureStackBackTrace"));
-
-	if(func == NULL)
-		return;
-
-	// Quote from Microsoft Documentation:
-	// ## Windows Server 2003 and Windows XP:
-	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
-	const int32_t kMaxCallers = 62;
-
-	void* callers[kMaxCallers];
-	int32_t count = (func)(0, kMaxCallers, callers, NULL);
-	for(int32_t i = 0; i < count; i++)
-		fprintf(stderr, "*** %d called from %p\n", i, callers[i]);
-
-#elif defined (_WIN32) // not _WIN64 ? Must be _WIN32
-
-	char *p = NULL, *pBP = NULL;
-	uint32_t i = 0, x = 0, BpPassed = 0;
-	static int32_t  CurrentlyInTheStackDump = 0;
-
-	if(CurrentlyInTheStackDump)
-	{
-		fprintf(stderr, "\n***\n*** Recursive Stack Dump skipped\n***\n");
-		return;
-	}
-
-	fprintf(stderr, "****************************************************\n");
-	fprintf(stderr, "*** CallStack:\n");
-	fprintf(stderr, "****************************************************\n");
-
-	/* ====================================================================== */
-	/*                                                                        */
-	/*      BP +x ...    -> == SP (current top of stack)                      */
-	/*            ...    -> Local data of current function                    */
-	/*      BP +4 0xabcd -> 32 address of calling function                    */
-	/*  +<==BP    0xabcd -> Stack address of next stack frame (0, if end)     */
-	/*  |   BP -1 ...    -> Aruments of function call                         */
-	/*  Y                                                                     */
-	/*  |   BP -x ...    -> Local data of calling function                    */
-	/*  |                                                                     */
-	/*  Y  (BP)+4 0xabcd -> 32 address of calling function                    */
-	/*  +==>BP)   0xabcd -> Stack address of next stack frame (0, if end)     */
-	/*            ...                                                         */
-	/* ====================================================================== */
-	CurrentlyInTheStackDump = 1;
-
-
-	BpPassed = (eNextBP != NULL);
-
-	if(! eNextBP)
-	{
-		_asm mov     eNextBP, eBp
-	}
-	else
-		fprintf(stderr, "\n  Fault Occured At $ADDRESS:%08LX\n", (int32_t)FaultAdress);
-
-
-	// prevent infinite loops
-	for(i = 0; eNextBP && i < 100; i++)
-	{
-		pBP = eNextBP;           // keep current BasePointer
-		eNextBP = *(char **)pBP; // dereference next BP
-
-		p = pBP + 8;
-
-		// Write 20 Bytes of potential arguments
-		fprintf(stderr, "         with ");
-		for(x = 0; p < eNextBP && x < 20; p++, x++)
-			fprintf(stderr, "%02X ", *(uint8_t *)p);
-
-		fprintf(stderr, "\n\n");
-
-		if(i == 1 && ! BpPassed)
-			fprintf(stderr, "****************************************************\n"
-			"         Fault Occured Here:\n");
-
-		// Write the backjump address
-		fprintf(stderr, "*** %2d called from $ADDRESS:%08X\n", i, *(char **)(pBP + 4));
-
-		if(*(char **)(pBP + 4) == NULL)
-			break;
-	}
-
-
-	fprintf(stderr, "************************************************************\n");
-	fprintf(stderr, "\n\n");
-
-
-	CurrentlyInTheStackDump = 0;
-
-	fflush(stderr);
-#endif // _WIN64 else (_WIN32) endif
-}
-
-
 #else  // if _WIN32, else:      UNIX -- SIGNALS
 
 
@@ -1644,3 +1446,204 @@ void OTLog::SetupSignalHandler()
 #endif  // #if windows, #else (unix) #endif. (SIGNAL handling.)
 
 } // namespace opentxs
+
+
+#ifdef _WIN32   // Windows SIGNALS
+
+LONG Win32FaultHandler(struct _EXCEPTION_POINTERS *  ExInfo)
+{
+    char  *FaultTx = "";
+
+    switch(ExInfo->ExceptionRecord->ExceptionCode)
+    {
+    case EXCEPTION_ACCESS_VIOLATION          : FaultTx = "ACCESS VIOLATION"         ; break;
+    case EXCEPTION_DATATYPE_MISALIGNMENT     : FaultTx = "DATATYPE MISALIGNMENT"    ; break;
+    case EXCEPTION_BREAKPOINT                : FaultTx = "BREAKPOINT"               ; break;
+    case EXCEPTION_SINGLE_STEP               : FaultTx = "SINGLE STEP"              ; break;
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED     : FaultTx = "ARRAY BOUNDS EXCEEDED"    ; break;
+    case EXCEPTION_FLT_DENORMAL_OPERAND      : FaultTx = "FLT DENORMAL OPERAND"     ; break;
+    case EXCEPTION_FLT_DIVIDE_BY_ZERO        : FaultTx = "FLT DIVIDE BY ZERO"       ; break;
+    case EXCEPTION_FLT_INEXACT_RESULT        : FaultTx = "FLT INEXACT RESULT"       ; break;
+    case EXCEPTION_FLT_INVALID_OPERATION     : FaultTx = "FLT INVALID OPERATION"    ; break;
+    case EXCEPTION_FLT_OVERFLOW              : FaultTx = "FLT OVERFLOW"             ; break;
+    case EXCEPTION_FLT_STACK_CHECK           : FaultTx = "FLT STACK CHECK"          ; break;
+    case EXCEPTION_FLT_UNDERFLOW             : FaultTx = "FLT UNDERFLOW"            ; break;
+    case EXCEPTION_INT_DIVIDE_BY_ZERO        : FaultTx = "INT DIVIDE BY ZERO"       ; break;
+    case EXCEPTION_INT_OVERFLOW              : FaultTx = "INT OVERFLOW"             ; break;
+    case EXCEPTION_PRIV_INSTRUCTION          : FaultTx = "PRIV INSTRUCTION"         ; break;
+    case EXCEPTION_IN_PAGE_ERROR             : FaultTx = "IN PAGE ERROR"            ; break;
+    case EXCEPTION_ILLEGAL_INSTRUCTION       : FaultTx = "ILLEGAL INSTRUCTION"      ; break;
+    case EXCEPTION_NONCONTINUABLE_EXCEPTION  : FaultTx = "NONCONTINUABLE EXCEPTION" ; break;
+    case EXCEPTION_STACK_OVERFLOW            : FaultTx = "STACK OVERFLOW"           ; break;
+    case EXCEPTION_INVALID_DISPOSITION       : FaultTx = "INVALID DISPOSITION"      ; break;
+    case EXCEPTION_GUARD_PAGE                : FaultTx = "GUARD PAGE"               ; break;
+    default: FaultTx = "(unknown)";           break;
+    }
+    int32_t    wsFault    = ExInfo->ExceptionRecord->ExceptionCode;
+    void * CodeAdress = ExInfo->ExceptionRecord->ExceptionAddress;
+
+    // (using stderr.)
+    //  sgLogFile = fopen("Win32Fault.log", "w");
+
+    if(stderr != NULL)
+    {
+        fprintf(stderr, "****************************************************\n");
+        fprintf(stderr, "*** A Programm Fault occured:\n");
+        fprintf(stderr, "*** Error code %08X: %s\n", wsFault, FaultTx);
+        fprintf(stderr, "****************************************************\n");
+        fprintf(stderr, "***   Address: %08X\n", (int32_t)CodeAdress);
+        fprintf(stderr, "***     Flags: %08X\n", ExInfo->ExceptionRecord->ExceptionFlags);
+
+#if defined (_CONSOLE)
+        printf("\n");
+        printf("*** A Programm Fault occured:\n");
+        printf("*** Error code %08X: %s\n", wsFault, FaultTx);
+#endif
+        /* This infomation ssems to be wrong
+        if(ExInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+        {
+        fprintf(stderr, "****************************************************\n");
+        fprintf(stderr, "*** Attempted to %s to address %08LX \n",
+        ExInfo->ExceptionRecord->ExceptionInformation[0] ? "write" : "read",
+        ExInfo->ExceptionRecord->ExceptionInformation[1]);
+
+        }
+        */
+#ifdef _WIN64
+        //		LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Rbp);
+#else
+        LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Ebp);
+#endif
+
+        //      fclose(sgLogFile);
+    }
+
+
+
+    /*if(want to continue)
+    {
+    ExInfo->ContextRecord->Eip++;
+    #if defined (_CONSOLE)
+    printf("*** Trying to continue\n");
+    printf("\n");
+    #endif
+    return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    */
+
+    printf("*** Terminating\n");
+    printf("\n");
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+/////////////////////////////////////////////////////////////////////////////
+// Unwind the stack and save its return addresses to the logfile
+/////////////////////////////////////////////////////////////////////////////
+
+
+void   LogStackFrames(void *FaultAdress, char *eNextBP)
+
+{
+#if defined(_WIN64)
+
+    typedef USHORT (WINAPI *CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
+
+    HMODULE lLoadedLib = LoadLibrary(L"kernel32.dll");
+    if (NULL == lLoadedLib) OT_FAIL;
+    CaptureStackBackTraceType func = (CaptureStackBackTraceType)
+        (GetProcAddress(lLoadedLib, "RtlCaptureStackBackTrace"));
+
+    if(func == NULL)
+        return;
+
+    // Quote from Microsoft Documentation:
+    // ## Windows Server 2003 and Windows XP:
+    // ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
+    const int32_t kMaxCallers = 62;
+
+    void* callers[kMaxCallers];
+    int32_t count = (func)(0, kMaxCallers, callers, NULL);
+    for(int32_t i = 0; i < count; i++)
+        fprintf(stderr, "*** %d called from %p\n", i, callers[i]);
+
+#elif defined (_WIN32) // not _WIN64 ? Must be _WIN32
+
+    char *p = NULL, *pBP = NULL;
+    uint32_t i = 0, x = 0, BpPassed = 0;
+    static int32_t  CurrentlyInTheStackDump = 0;
+
+    if(CurrentlyInTheStackDump)
+    {
+        fprintf(stderr, "\n***\n*** Recursive Stack Dump skipped\n***\n");
+        return;
+    }
+
+    fprintf(stderr, "****************************************************\n");
+    fprintf(stderr, "*** CallStack:\n");
+    fprintf(stderr, "****************************************************\n");
+
+    /* ====================================================================== */
+    /*                                                                        */
+    /*      BP +x ...    -> == SP (current top of stack)                      */
+    /*            ...    -> Local data of current function                    */
+    /*      BP +4 0xabcd -> 32 address of calling function                    */
+    /*  +<==BP    0xabcd -> Stack address of next stack frame (0, if end)     */
+    /*  |   BP -1 ...    -> Aruments of function call                         */
+    /*  Y                                                                     */
+    /*  |   BP -x ...    -> Local data of calling function                    */
+    /*  |                                                                     */
+    /*  Y  (BP)+4 0xabcd -> 32 address of calling function                    */
+    /*  +==>BP)   0xabcd -> Stack address of next stack frame (0, if end)     */
+    /*            ...                                                         */
+    /* ====================================================================== */
+    CurrentlyInTheStackDump = 1;
+
+
+    BpPassed = (eNextBP != NULL);
+
+    if(! eNextBP)
+    {
+        _asm mov     eNextBP, eBp
+    }
+    else
+        fprintf(stderr, "\n  Fault Occured At $ADDRESS:%08LX\n", (int32_t)FaultAdress);
+
+
+    // prevent infinite loops
+    for(i = 0; eNextBP && i < 100; i++)
+    {
+        pBP = eNextBP;           // keep current BasePointer
+        eNextBP = *(char **)pBP; // dereference next BP
+
+        p = pBP + 8;
+
+        // Write 20 Bytes of potential arguments
+        fprintf(stderr, "         with ");
+        for(x = 0; p < eNextBP && x < 20; p++, x++)
+            fprintf(stderr, "%02X ", *(uint8_t *)p);
+
+        fprintf(stderr, "\n\n");
+
+        if(i == 1 && ! BpPassed)
+            fprintf(stderr, "****************************************************\n"
+            "         Fault Occured Here:\n");
+
+        // Write the backjump address
+        fprintf(stderr, "*** %2d called from $ADDRESS:%08X\n", i, *(char **)(pBP + 4));
+
+        if(*(char **)(pBP + 4) == NULL)
+            break;
+    }
+
+
+    fprintf(stderr, "************************************************************\n");
+    fprintf(stderr, "\n\n");
+
+
+    CurrentlyInTheStackDump = 0;
+
+    fflush(stderr);
+#endif // _WIN64 else (_WIN32) endif
+}
+
+#endif
+

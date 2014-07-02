@@ -32,6 +32,9 @@ add_library(opentxs-ext
 
 if(APPLE)
   target_link_libraries(opentxs-ext opentxs-core ZeroMQ)
+elseif(MSVC)
+  # Windows ZMQ library has a difficult name
+  target_link_libraries(opentxs-ext opentxs-core libzmq-mt-gd-4_1_0)
 else()
   target_link_libraries(opentxs-ext opentxs-core zmq)
 endif()
