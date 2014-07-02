@@ -840,7 +840,6 @@ bool OTKeyring::Gnome_RetrieveSecret(const OTString    & strUser,
                                      const std::string & str_display)
 {
     OT_ASSERT(strUser.Exists());
-    const char * szFunc = "OTKeyring::Gnome_RetrieveSecret";
 
     GnomeKeyringResult theResult = GNOME_KEYRING_RESULT_IO_ERROR;
     gchar * gchar_p_password     = NULL;
@@ -920,7 +919,7 @@ bool OTKeyring::Gnome_RetrieveSecret(const OTString    & strUser,
                 ascData.zeroMemory();
                 if (thePayload.IsEmpty())
                   otErr << __FUNCTION__ << ": Failed trying to decode secret OTPayload from OTASCIIArmor "
-                        << "from Gnome Keyring contents:\n\n" << strData.Get() "\n\n";
+                        << "from Gnome Keyring contents:\n\n" << strData.Get() << "\n\n";
                 else
                 {
                     thePassword.setMemory(thePayload.GetPayloadPointer(), thePayload.GetSize());

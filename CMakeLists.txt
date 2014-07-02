@@ -26,6 +26,7 @@ option(SIGNAL_HANLDER      "Enable Signal Handler" OFF)
 
 option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
 option(KEYRING_MAC         "Build with Mac OSX Keyring" OFF)
+option(KEYRING_IOS         "Build with iOS Keyring" OFF)
 option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
@@ -67,6 +68,7 @@ message(STATUS "CL autocompletion:      ${AUTOCOMPLETION}")
 message(STATUS "Keyrings ------------------------------------")
 message(STATUS "Keyring Windows:        ${KEYRING_WINDOWS}")
 message(STATUS "Keyring MAC:            ${KEYRING_MAC}")
+message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
 message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
@@ -224,7 +226,7 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Build source
+# Source Definitions
 
 if(SIGNAL_HANLDER)
   add_definitions(-DOT_SIGNAL_HANDLING)
@@ -232,6 +234,35 @@ endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
+#Keyrings
+if(KEYRING_WINDOWS AND WIN32)
+  add_definitions(-DOT_KEYRING_WINDOWS)
+endif()
+
+if(KEYRING_MAC AND APPLE)
+  add_definitions(-DOT_KEYRING_MAC)
+endif()
+
+if(KEYRING_IOS)
+  add_definitions(-DOT_KEYRING_IOS)
+endif()
+
+if(KEYRING_GNOME)
+  add_definitions(-DOT_KEYRING_GNOME)
+endif()
+
+if(KEYRING_KWALLET)
+  add_definitions(-DOT_KEYRING_KWALLET)
+endif()
+
+if(KEYRING_FLATFILE)
+  add_definitions(-DOT_KEYRING_FLATFILE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Build source
+
+#Fix RPATH
 if(APPLE)
   set(CMAKE_INSTALL_NAME_DIR @rpath)
 endif()

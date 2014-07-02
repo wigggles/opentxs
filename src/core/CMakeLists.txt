@@ -110,6 +110,12 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/core/otprotob
 )
 
+if(KEYRING_GNOME)
+  include(GNUInstallDirs)
+  include_directories(${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/glib-2.0/ /usr/${CMAKE_INSTALL_LIBDIR}/glib-2.0/include/ ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/gnome-keyring-1/)
+  set(keyring libgnome-keyring.so)
+endif()
+
 if(MSVC)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -132,13 +138,13 @@ if(MSVC)
     OTWindowsRegistryTools.cpp
   )
 
-  target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${LIB_EAY_RELEASE} ${SSL_EAY_RELEASE} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES})
+  target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${LIB_EAY_RELEASE} ${SSL_EAY_RELEASE} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 else()
   add_library(opentxs-core
     ${cxx-sources}
   )
 
-  target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
+  target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 endif()
 
 if(MSVC)
