@@ -256,6 +256,10 @@ install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
          DESTINATION include/irrxml
 	 FILES_MATCHING PATTERN "*.hpp")
 
+install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ot/
+         DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs
+	 FILES_MATCHING PATTERN "*.ot")
+
 # opentxs CL client autocompletion
 if(AUTOCOMPLETION)
   install (FILES
