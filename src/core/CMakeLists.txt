@@ -110,8 +110,30 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/core/otprotob
 )
 
-add_library(opentxs-core
-  ${cxx-sources}
-)
+if(MSVC)
+  # suppress warnings about exported internal symbols (global log stream objects)
+  add_definitions(-DOTLOG_IMPORT)
 
-target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
+  # suppress warnings about strcpy being unsafe in anyoption.cpp
+  add_definitions(/wd4996)
+
+  include_directories(
+    ${OPENSSL_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIRS}
+  )
+
+  # we have an extra Windows-specific file to compile
+  add_library(opentxs-core
+    ${cxx-sources}
+    OTWindowsRegistryTools.cpp
+  )
+
+  target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${LIB_EAY_RELEASE} ${SSL_EAY_RELEASE} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES})
+else()
+  add_library(opentxs-core
+    ${cxx-sources}
+  )
+
+  target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
+endif(MSVC)

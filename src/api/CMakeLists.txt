@@ -18,6 +18,11 @@ set(cxx-sources
   OTServerConnection.cpp
 )
 
+if (MSVC)
+  # suppress "decorated name length exceeded, name was truncated" warnings 
+  add_Definitions("/wd4503")
+endif()
+
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )

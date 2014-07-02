@@ -104,10 +104,16 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
 endif()
 
 if(BUILD_SHARED_LIBS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  # Windows would complain about unknown flag -fPIC
+  if (NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  endif()
 endif()
 
-if (NOT MSVC)
+
+if (MSVC)
+  add_definitions(-D_UNICODE)
+else()
   set(PEDANTIC_CXX_FLAGS "-Wall -Werror ${WARN_CXX_FLAGS} -Wextra -pedantic -Wno-vla")
 endif()
 
@@ -129,22 +135,6 @@ if(UNIX AND NOT APPLE)
   list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
   list(APPEND OPENTXS_SYSTEM_LIBRARIES dl)
 endif()
-
-if (MSVC)
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  add_definitions(-D_UNICODE)
-  if (WIN32)
-    add_definitions(-D_WIN32_WINNT=0x0501)
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    link_directories(${OPENSSL_INCLUDE_DIR}/../lib/VC)
-  else()
-    include_directories("${OPENSSL_INCLUDE_DIR}/../../OpenSSL-Win64/include")
-    link_directories("${OPENSSL_INCLUDE_DIR}/../../OpenSSL-Win64/lib/VC")
-  endif(WIN32)
-  include_directories(${PROTOBUF_INCLUDE_DIR})
-  include_directories(${ZLIB_INCLUDE_DIRS})
-  link_directories(${ZLIB_LIBRARIES})
-endif(MSVC)
 
 
 #-----------------------------------------------------------------------------
