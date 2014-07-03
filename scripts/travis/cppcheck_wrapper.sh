@@ -7,7 +7,7 @@ sup_info="--suppress=ConfigurationNotChecked"
 sup_perf="--suppress=stlSize --suppress=redundantAssignment \
           --suppress=passedByValue --suppress=postfixOperator"
 sup_style="--suppress=variableScope --suppress=unreadVariable \
-           --suppress=noCopyConstructor --suppress=unusedVariable \
+           --suppress=noCopyConstructor \
            --suppress=cstyleCast --suppress=multiCondition"
 suppress="$sup_warn $sup_info $sup_perf $sup_style"
 enabled="--enable=warning --enable=information --enable=performance \
