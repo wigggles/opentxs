@@ -617,7 +617,6 @@ bool OTRecordList::PerformAutoAccept()
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
                 // ------------------------------------------------
-                std::string str_amount;  // <========== AMOUNT
                 std::string str_type;    // Instrument type.
                 // ------------------------------------------------
                 OTPayment * pPayment = pInbox->GetInstrument(*pNym,

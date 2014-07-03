@@ -775,8 +775,6 @@ void OTLog::vOutput(int32_t nVerbosity, const char *szOutput, ...)
 	if (((0 != LogLevel()) && (nVerbosity > LogLevel())) || (NULL == szOutput))
 		return;
 
-	std::string str_output;
-
 	va_list args;
 	va_start(args, szOutput);
 
