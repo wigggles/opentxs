@@ -231,14 +231,23 @@ install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs
 if (NOT WIN32)
   include(GNUInstallDirs)
 
-  install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.so
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.so
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.so
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.so
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.so
-  ${CMAKE_CURRENT_BINARY_DIR}/lib/libgtest.so
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
+  if (LINUX)
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.so
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.so
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.so
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.so
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.so
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
+  else()
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.dylib
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.dylib
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.dylib
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.dylib
+      ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.dylib
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
+  endif()
 endif()
 
 install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
@@ -290,7 +299,7 @@ if(RPM)
   set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec")
 endif(RPM)
 
-#DEB
+# DEB
 if(DEB)
   set(CPACK_GENERATOR "${CPACK_GENERATOR};DEB")
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "openssl, libprotobuf")
