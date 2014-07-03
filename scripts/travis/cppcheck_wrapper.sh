@@ -8,7 +8,7 @@ sup_perf="--suppress=stlSize --suppress=redundantAssignment \
           --suppress=passedByValue --suppress=postfixOperator"
 sup_style="--suppress=variableScope --suppress=unreadVariable \
            --suppress=noCopyConstructor \
-           --suppress=cstyleCast --suppress=multiCondition"
+           --suppress=multiCondition"
 suppress="$sup_warn $sup_info $sup_perf $sup_style"
 enabled="--enable=warning --enable=information --enable=performance \
          --enable=portability --enable=missingInclude --enable=style"

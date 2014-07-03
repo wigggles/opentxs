@@ -1105,7 +1105,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
 
 	tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
-	uc = (sig_ucontext_t *)ucontext;
+	uc = static_cast<sig_ucontext_t *>(ucontext);
 
 	// Get the address at the time the signal was raised from the EIP (x86)
 	caller_address = (void *) uc->uc_mcontext.eip;

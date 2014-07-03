@@ -161,7 +161,7 @@ void * thread::wrapper_function(void * aArg)
 #endif
 {
   // Get thread startup information
-  _thread_start_info * ti = (_thread_start_info *) aArg;
+  _thread_start_info * ti = static_cast<_thread_start_info *>(aArg);
 
   try
   {
