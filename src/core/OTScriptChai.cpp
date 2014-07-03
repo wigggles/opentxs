@@ -422,7 +422,7 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
 }
 
 
-#if !defined(OT_USE_CHAI_STDLIB) || defined(_WIN32)
+#if !defined(OT_USE_CHAI_STDLIB)
 
 
 OTScriptChai::OTScriptChai() : OTScript(), chai(new chaiscript::ChaiScript())
