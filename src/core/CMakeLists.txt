@@ -117,6 +117,9 @@ if(MSVC)
   # suppress warnings about strcpy being unsafe in anyoption.cpp
   add_definitions(/wd4996)
 
+  # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
+  add_definitions(/bigobj)
+
   include_directories(
     ${OPENSSL_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIR}
