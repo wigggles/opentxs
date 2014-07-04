@@ -38,3 +38,8 @@ elseif(MSVC)
 else()
   target_link_libraries(opentxs-ext opentxs-core zmq)
 endif()
+
+if (NOT WIN32)
+  include(GNUInstallDirs)
+  install(TARGETS opentxs-ext DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()

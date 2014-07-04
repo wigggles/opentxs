@@ -49,3 +49,8 @@ add_library(opentxs-api
 )
 
 target_link_libraries(opentxs-api opentxs-ext opentxs-core)
+
+if (NOT WIN32)
+  include(GNUInstallDirs)
+  install(TARGETS opentxs-api DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()

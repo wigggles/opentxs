@@ -53,6 +53,9 @@ Build Multithreaded, need about 1gb of ram per thread.
 
 ##############   CMake Options:   ##############
 
+Set install dir: -DCMAKE_INSTALL_PREFIX=/home/your/prefix/
+(Default is /usr/local)
+
 Build static:	 -DBUILD_SHARED_LIBS=OFF
 
 Debug Mode:	 -DCMAKE_BUILD_TYPE=Debug
@@ -84,6 +87,8 @@ Enable OTAPI support for swig wrapper:
 Build Packages:
        RPM:      -DRPM=ON
        DEB:      -DDEB=ON
+
+You can't build an RPM and use an install to a custom directory (CMAKE_INSTALL_PREFIX).
 
 
 ##################   Install   #################

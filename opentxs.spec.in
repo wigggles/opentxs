@@ -34,11 +34,11 @@ mv "@CMAKE_CURRENT_BINARY_DIR@/_CPack_Packages/Linux/RPM/tmpBBroot" $RPM_BUILD_R
 %files
 %defattr(-,root,root,-)
 #%doc %{_mandir}/@CPACK_PACKAGE_NAME@
-@CMAKE_INSTALL_FULL_LIBDIR@/opentxs/libopentxs-core.so
-@CMAKE_INSTALL_FULL_LIBDIR@/opentxs/libopentxs-ext.so
-@CMAKE_INSTALL_FULL_LIBDIR@/opentxs/libopentxs-api.so
-@CMAKE_INSTALL_FULL_LIBDIR@/bin/@CPACK_PACKAGE_NAME@
- 
+@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libopentxs-core.so
+@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libopentxs-ext.so
+@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libopentxs-api.so
+@CPACK_PACKAGING_INSTALL_PREFIX@/bin/@CPACK_PACKAGE_NAME@
+
 %changelog
 * Thu Jun 26 2014 <lucas@monetas.net> 0.0.1-1
 - First RPM-Package

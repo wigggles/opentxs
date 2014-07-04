@@ -42,3 +42,5 @@ if(MSVC)
     "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>"
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
 endif(MSVC)
+
+install(TARGETS opentxs DESTINATION bin)
