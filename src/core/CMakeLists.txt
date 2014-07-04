@@ -141,6 +141,19 @@ else()
   target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
 endif(MSVC)
 
+if(MSVC)
+  add_custom_command(TARGET opentxs-core POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-core.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-core.dll")
+
+  add_custom_command(TARGET opentxs-core POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-core.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-core.pdb")
+endif(MSVC)
+
+
 if (NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS opentxs-core DESTINATION ${CMAKE_INSTALL_LIBDIR})
