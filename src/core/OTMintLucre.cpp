@@ -177,7 +177,7 @@ OTMint_Lucre::~OTMint_Lucre() { }
 void SetMonitor(const char *filepathexact)
 {
     BIO *out = new BIO;
-    out = BIO_new_file(filepathexact, "r");
+    out = BIO_new_file(filepathexact, "w");
     assert(out);
     SetDumper(out);
 }
