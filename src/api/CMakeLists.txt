@@ -50,7 +50,21 @@ add_library(opentxs-api
 
 target_link_libraries(opentxs-api opentxs-ext opentxs-core)
 
+if(MSVC)
+  add_custom_command(TARGET opentxs-api POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-api.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-api.dll")
+
+  add_custom_command(TARGET opentxs-api POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-api.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-api.pdb")
+endif(MSVC)
+
+
 if (NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS opentxs-api DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
