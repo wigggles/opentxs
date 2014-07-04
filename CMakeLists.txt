@@ -217,6 +217,13 @@ endif(SIGNAL_HANLDER)
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
+if(APPLE)
+  set(CMAKE_INSTALL_NAME_DIR @rpath)
+endif()
+if(NOT RPM)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+
 add_subdirectory(deps)
 add_subdirectory(src)
 add_subdirectory(tests)
@@ -224,31 +231,6 @@ add_subdirectory(tests)
 
 #-----------------------------------------------------------------------------
 # Install
-
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/opentxs
-	DESTINATION bin)
-
-if (NOT WIN32)
-  include(GNUInstallDirs)
-
-  if (LINUX)
-    install(FILES
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.so
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.so
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.so
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.so
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.so
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
-  else()
-    install(FILES
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-core.dylib
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-ext.dylib
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libopentxs-api.dylib
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/liblucre.dylib
-      ${CMAKE_CURRENT_BINARY_DIR}/lib/libbigint.dylib
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs)
-  endif()
-endif()
 
 install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
          DESTINATION include)

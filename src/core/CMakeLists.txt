@@ -140,3 +140,8 @@ else()
 
   target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES})
 endif(MSVC)
+
+if (NOT WIN32)
+  include(GNUInstallDirs)
+  install(TARGETS opentxs-core DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
