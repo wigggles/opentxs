@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 2.8)
 project(opentxs)
 
 set(VERSION_MAJOR  0)
-set(VERSION_MINOR  92)
+set(VERSION_MINOR  93)
 set(VERSION_BUGFIX 0)
-set(VERSION "0.92.0")
+set(VERSION "0.93.0")
 
 
 #-----------------------------------------------------------------------------
