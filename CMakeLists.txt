@@ -293,8 +293,8 @@ You can use it for issuing currencies/stock, paying dividends, creating asset ac
 # RPM
 if(RPM)
   set(CPACK_GENERATOR "${CPACK_GENERATOR};RPM")
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/opentxs.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec" @ONLY IMMEDIATE)
-  set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/opentxs.spec")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/package/opentxs.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/package/opentxs.spec" @ONLY IMMEDIATE)
+  set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/package/opentxs.spec")
 endif()
 
 # DEB
