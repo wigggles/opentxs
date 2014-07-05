@@ -1947,7 +1947,6 @@ public:
 
 } // namespace OTDB
 
-} // namespace opentxs
 
 // IStorable-derived types...
 //
@@ -1967,6 +1966,10 @@ public:
     using IStorable::hookAfterUnpack
 
 #endif // (not) SWIG
+
+
+} // namespace opentxs
+
 
 #if __clang__
 #pragma clang diagnostic pop
