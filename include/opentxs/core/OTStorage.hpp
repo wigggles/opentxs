@@ -1947,7 +1947,6 @@ public:
 
 } // namespace OTDB
 
-
 // IStorable-derived types...
 //
 //
@@ -1967,9 +1966,7 @@ public:
 
 #endif // (not) SWIG
 
-
 } // namespace opentxs
-
 
 #if __clang__
 #pragma clang diagnostic pop
