@@ -49,10 +49,9 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-ext.pdb"
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-ext.pdb")
-endif(MSVC)
+endif()
 
-
-if (NOT WIN32)
+if(NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS opentxs-ext DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

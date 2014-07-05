@@ -18,7 +18,7 @@ set(cxx-sources
   OTServerConnection.cpp
 )
 
-if (MSVC)
+if(MSVC)
   # suppress "decorated name length exceeded, name was truncated" warnings 
   add_Definitions("/wd4503")
 endif()
@@ -60,10 +60,9 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-api.pdb"
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-api.pdb")
-endif(MSVC)
+endif()
 
-
-if (NOT WIN32)
+if(NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS opentxs-api DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

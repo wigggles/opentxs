@@ -38,7 +38,6 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ZLIB_INCLUDE_DIR}/../bin/zlib1.dll"
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/zlib1.dll")
-endif(MSVC)
-
+endif()
 
 install(TARGETS opentxs DESTINATION bin)
