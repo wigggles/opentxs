@@ -43,13 +43,13 @@
 #include <vector>
 #include <map>
 
-#include "../../include/opentxs/core/OTPassword.hpp"
-#include "../../include/opentxs/api/OTAPI.hpp"
-#include "../../include/opentxs/api/OT_ME.hpp"
-#include "../../include/opentxs/core/OTStorage.hpp"
-#include "../../include/opentxs/core/OTAsymmetricKey.hpp"
-#include "../../include/opentxs/api/OTRecord.hpp"
-#include "../../include/opentxs/api/OTRecordList.hpp"
+#include "../include/opentxs/core/OTPassword.hpp"
+#include "../include/opentxs/api/OTAPI.hpp"
+#include "../include/opentxs/api/OT_ME.hpp"
+#include "../include/opentxs/core/OTStorage.hpp"
+#include "../include/opentxs/core/OTAsymmetricKey.hpp"
+#include "../include/opentxs/api/OTRecord.hpp"
+#include "../include/opentxs/api/OTRecordList.hpp"
     
 %}
 
@@ -604,13 +604,13 @@ OT_IS_ELEMENT_TYPE(TradeListNym)
 
 /* Parse the header file to generate wrappers */
 
-%include "../../include/opentxs/core/ExportWrapper.h"
-%include "../../include/opentxs/core/OTPassword.hpp"
-%include "../../include/opentxs/api/OTAPI.hpp"
-%include "../../include/opentxs/api/OT_ME.hpp"
-%include "../../include/opentxs/core/OTStorage.hpp"
-%include "../../include/opentxs/api/OTRecord.hpp"
-%include "../../include/opentxs/api/OTRecordList.hpp"
+%include "../include/opentxs/core/ExportWrapper.h"
+%include "../include/opentxs/core/OTPassword.hpp"
+%include "../include/opentxs/api/OTAPI.hpp"
+%include "../include/opentxs/api/OT_ME.hpp"
+%include "../include/opentxs/core/OTStorage.hpp"
+%include "../include/opentxs/api/OTRecord.hpp"
+%include "../include/opentxs/api/OTRecordList.hpp"
 
 
 bool opentxs::OT_API_Set_PasswordCallback(OTCaller & theCaller);
