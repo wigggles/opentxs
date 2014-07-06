@@ -176,6 +176,10 @@
 #include <OTTrade.hpp>
 #include <OTWallet.hpp>
 
+#if defined(OT_KEYRING_FLATFILE)
+#include <OTKeyring.hpp>
+#endif
+
 #include <Socket_ZMQ4.hpp>
 
 #include <cassert>
