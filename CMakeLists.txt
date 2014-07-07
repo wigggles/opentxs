@@ -271,7 +271,7 @@ endif()
 add_subdirectory(deps)
 add_subdirectory(src)
 add_subdirectory(tests)
-
+add_subdirectory(swig)
 
 #-----------------------------------------------------------------------------
 # Install

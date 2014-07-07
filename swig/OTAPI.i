@@ -8,12 +8,6 @@
 
 
 
-%include "inttypes.i"
-%include "std_string.i";
-%include "std_vector.i";
-%include "std_map.i"
-%include "typemaps.i"
-
 
 #ifdef SWIGPERL
 %{
@@ -31,6 +25,12 @@
 %}
 #endif // SWIGPERL
 
+%include "inttypes.i"
+%include "std_string.i";
+%include "std_vector.i";
+%include "std_map.i"
+%include "typemaps.i"
+
 
 // ALL
 %{
@@ -43,13 +43,13 @@
 #include <vector>
 #include <map>
 
-#include "../../include/otlib/OTPassword.hpp"
-#include "../../include/otapi/OTAPI.hpp"
-#include "../../include/otapi/OT_ME.hpp"
-#include "../../include/otlib/OTStorage.hpp"
-#include "../../include/otlib/OTAsymmetricKey.hpp"
-#include "../../include/otapi/OTRecord.hpp"
-#include "../../include/otapi/OTRecordList.hpp"
+#include "../include/opentxs/core/OTPassword.hpp"
+#include "../include/opentxs/api/OTAPI.hpp"
+#include "../include/opentxs/api/OT_ME.hpp"
+#include "../include/opentxs/core/OTStorage.hpp"
+#include "../include/opentxs/core/OTAsymmetricKey.hpp"
+#include "../include/opentxs/api/OTRecord.hpp"
+#include "../include/opentxs/api/OTRecordList.hpp"
     
 %}
 
@@ -584,10 +584,10 @@ OT_IS_ELEMENT_TYPE(TradeListNym)
 %ignore map_of_strings;
 
 
-
+%rename(OTRecordLessThan) opentxs::OTRecord::operator<(const OTRecord& rhs); 
 
 // The Callback definitions here, must appear BELOW the above SWIG directives that apply to them.
-// The actual HEADER these definitions come from (OTStorage.h) must be included ABOVE THAT so that
+// The actual HEADER these definitions come from (OTStorage.hpp) must be included ABOVE THAT so that
 // the SWIG directives will know what the hell we are talking about. Then those directives are actually
 // applied here.
 // Even below this section, you will see MORE SWIG directives, and then the definitions below those
@@ -604,20 +604,22 @@ OT_IS_ELEMENT_TYPE(TradeListNym)
 
 /* Parse the header file to generate wrappers */
 
-%include "../../include/otlib/ExportWrapper.h"
-%include "../../include/otlib/OTPassword.hpp"
-%include "../../include/otapi/OTAPI.hpp"
-%include "../../include/otapi/OT_ME.hpp"
-%include "../../include/otlib/OTStorage.hpp"
-%include "../../include/otapi/OTRecord.hpp"
-%include "../../include/otapi/OTRecordList.hpp"
+%include "../include/opentxs/core/ExportWrapper.h"
+%include "../include/opentxs/core/OTPassword.hpp"
+%include "../include/opentxs/api/OTAPI.hpp"
+%include "../include/opentxs/api/OT_ME.hpp"
+%include "../include/opentxs/core/OTStorage.hpp"
+%include "../include/opentxs/api/OTRecord.hpp"
+%include "../include/opentxs/api/OTRecordList.hpp"
 
 
-bool OT_API_Set_PasswordCallback(OTCaller & theCaller);
-bool OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
+bool opentxs::OT_API_Set_PasswordCallback(OTCaller & theCaller);
+bool opentxs::OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller);
+
 
 // add the follwing to every .cxx file.
 %inline %{
+	using namespace opentxs;
 	using namespace OTDB;
 	%}
 
