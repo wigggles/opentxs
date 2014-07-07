@@ -207,7 +207,7 @@ OT_UTILITY_OT bool VerifyStorable(OTDB::Storable * theStorableObjectRef, const s
 //{
 //    OTAPI_Wrap::Output(1, "Supposedly: Copy constructor. rhs type actually is: " + rhs.get_type_info().name() + "\n");
 //
-//    // ---------------------------
+//    
 //the_ref: = rhs.the_ref // by REFERENCE :-)
 //}
 //
@@ -224,7 +224,7 @@ OT_UTILITY_OT bool VerifyStorable(OTDB::Storable * theStorableObjectRef, const s
 //    // By this point we know that rhs is NOT an ObjRef.
 //
 //    OTAPI_Wrap::Output(1, "(Version of ObjRef::setRef with non-ObjRef arg. Good: creating a new wrapper around some unknown type. Specifically, " + rhs.get_type_info().name() + ".)\n");
-//    // ---------------------------
+//    
 //    // if the_ref exists but doesn't match rhs's type...
 //    //
 //    if (VerifyNotNull(the_ref) && !(the_ref.get_type_info().bare_equal(rhs.get_type_info())))
@@ -234,7 +234,7 @@ OT_UTILITY_OT bool VerifyStorable(OTDB::Storable * theStorableObjectRef, const s
 //
 //            OTAPI_Wrap::Output(0, "ERROR: object being copied is not an ObjRef like I am, neither is it the same type as the_ref is! (Which does exist.) You are passing an object of the wrong type--or someone is. ASSERT!\n");
 //    }
-//    // ---------------------------
+//    
 //    // We know that the_ref is either NULL... or if it's not NULL,
 //    // then at least rhs is of the same data type that the_ref is.
 //    // Either way, now we can copy it's reference over.
@@ -245,7 +245,7 @@ OT_UTILITY_OT bool VerifyStorable(OTDB::Storable * theStorableObjectRef, const s
 //        OTAPI_Wrap::Output(1, "Assigned the_ref to a reference to rhs. Type is: " + rhs.get_type_info().name());
 //
 //    }
-//    // ---------------------------
+//    
 //}
 //// -------------------------------------------
 //
@@ -400,7 +400,7 @@ OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string & SERVER_ID, con
 //        OTAPI_Wrap::Output(0, "ifB: ERROR: SHOULD NEVER HAPPEN: the_expression isn't a boolean.\n");
 //        exit(-1)
 //    }
-//    // --------------------
+//    
 //    var theReturnValue
 //
 //    if (the_expression)
@@ -1410,7 +1410,7 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_3(const string & serverID, co
 //
 //public static int32_t processNymbox(String    serverID, String nymID,
 //                                OTBool    bWasMsgSent,
-//                                // --------------------------------
+//                                
 //                                OTInteger nMsgSentRequestNumOut,
 //                                OTInteger nReplySuccessOut,
 //                                OTInteger nBalanceSuccessOut,
@@ -1520,12 +1520,12 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(const string & serverID
     {
         OTAPI_Wrap::Output(0, strLocation + ": Failure sending. OT_API_processNymbox() returned -1. \n");
         return -1; // no need to check for any reply.
-    } // ------------------------------------------
+    } 
     if (nRequestNum < 0)
     {
         OTAPI_Wrap::Output(0, strLocation + ": Failure: OT_API_processNymbox() returned unexpected value: " + to_string(nRequestNum) + "\n");
         return -1; // no need to check for any reply.
-    } // ------------------------------------------
+    } 
     if (0 == nRequestNum)
     {
         OTAPI_Wrap::Output(0, strLocation + ": Nymbox was empty; no need to process it. \n");

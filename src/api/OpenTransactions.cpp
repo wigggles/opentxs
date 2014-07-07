@@ -2141,7 +2141,7 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier & NYM_ID, OTString & strOutput)
                 OTLog::vError("%s: Error: failed trying to load or create a STORED_OBJ_STRING_MAP.\n",
                               __FUNCTION__);
             else // It instantiated.
-            {    // -----------------------------------------------
+            {    
                 OTString       strCredList;
                 mapOfStrings & theMap = pMap->the_map;
 

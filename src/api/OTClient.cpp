@@ -531,7 +531,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger                & theNymbox,
             // Therefore I will check to see if the request number for this replyNotice is in my list of "replies I've
             // already seen." If it is, I can entirely skip this step, which would otherwise end up trying erroneously
             // to process a server reply even though I had already processed it before.
-        {    // -----------------------------------------------
+        {    
 
             const bool bAlreadySeenIt = pNym->VerifyAcknowledgedNum(strServerID, pTransaction->GetRequestNum()); // Client verifies it has already seen a server reply. 
 
@@ -3191,7 +3191,7 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                 OTLog::vError("%s: @getBoxReceipt: Error instantiating transaction "
                 "type based on decoded theReply.m_ascPayload:\n\n%s\n",
                 __FUNCTION__, strTransType.Get());
-            else // --------------------------------------------------------------------
+            else 
             {
                 OTTransaction * pBoxReceipt = dynamic_cast<OTTransaction *>(pTransType);
 
@@ -5936,7 +5936,7 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
                 OTLog::vError("%s: Error: failed trying to load or create a STORED_OBJ_STRING_MAP.\n",
                 __FUNCTION__);        
             else // It instantiated.
-            {    // -----------------------------------------------
+            {    
                 OTString       strCredList;
                 mapOfStrings & theMap = pMap->the_map;
 

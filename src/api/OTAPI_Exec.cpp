@@ -6625,10 +6625,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(const std::string & THE_MESSAGE,
 //    OT_ASSERT_MSG("" != SERVER_ID, "OTAPI_Exec::HarvestClosingNumbers: Null SERVER_ID passed in.");
 //    OT_ASSERT_MSG("" != NYM_ID, "OTAPI_Exec::HarvestClosingNumbers: Null NYM_ID passed in.");
 //    OT_ASSERT_MSG("" != THE_CRON_ITEM, "OTAPI_Exec::HarvestClosingNumbers: Null THE_CRON_ITEM passed in.");
-//    // -----------------------------------------------------
+//    
 //    const OTIdentifier    theNymID(NYM_ID), theServerID(SERVER_ID);
 //    const OTString        strContract(THE_CRON_ITEM);
-//    // -----------------------------------------------------
+//    
 //    const bool & bHarvested = OTAPI()->HarvestClosingNumbers(theServerID, theNymID, strContract);
 //
 //    return bHarvested ? true : false;
@@ -6652,10 +6652,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(const std::string & THE_MESSAGE,
 //    OT_ASSERT_MSG("" != SERVER_ID, "OTAPI_Exec::HarvestAllNumbers: Null SERVER_ID passed in.");
 //    OT_ASSERT_MSG("" != NYM_ID, "OTAPI_Exec::HarvestAllNumbers: Null NYM_ID passed in.");
 //    OT_ASSERT_MSG("" != THE_CRON_ITEM, "OTAPI_Exec::HarvestAllNumbers: Null THE_CRON_ITEM passed in.");
-//    // -----------------------------------------------------
+//    
 //    const OTIdentifier    theNymID(NYM_ID), theServerID(SERVER_ID);
 //    const OTString        strContract(THE_CRON_ITEM);
-//    // -----------------------------------------------------
+//    
 //    const bool & bHarvested = OTAPI()->HarvestAllNumbers(theServerID, theNymID, strContract);
 //
 //    return bHarvested ? true : false;
@@ -7765,7 +7765,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(const std::string & SERVER_
         // serialized abbreviated version.)
         //        OTPseudonym * pNym = OTAPI()->GetNym(theUserID, "OTAPI_Exec::Ledger_GetTransactionByIndex");
         //        if (NULL == pNym) return "";
-        //        // -------------------------
+        //        
         //        pTransaction->ReleaseSignatures();
         //        pTransaction->SignContract(*pNym);
         //        pTransaction->SaveContract();
@@ -11442,7 +11442,7 @@ int32_t OTAPI_Exec::sendUserInstrument(const std::string & SERVER_ID,
     //
 //  OTASCIIArmor ascRecipPubkey;
 //  const bool bLoadedArmor = OTASCIIArmor::LoadFromString(ascRecipPubkey, strRecipPubkey); // str_bookend="-----BEGIN" by default
-//    // -----------------------------------------------------
+//    
 //  if (!bLoadedArmor || !ascRecipPubkey.Exists())
 //  {
 //      OTLog::vError("%s: Failure loading string into OTASCIIArmor object:\n\n%s\n\n",

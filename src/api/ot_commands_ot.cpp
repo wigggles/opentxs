@@ -1835,17 +1835,17 @@ OT_COMMANDS_OT int32_t OT_Command::details_propose_plan(const string & strServer
 
     // std::string EasyProposePlan(
     //    const std::string & SERVER_ID,
-    //    // ----------------------------------------
+    //    
     //    const std::string & DATE_RANGE,           // "from,to"  Default 'from' (0 or "") == NOW,
     //    // ---------------------------------------- // and default 'to' (0 or "") == no expiry / cancel anytime
     //    const std::string & SENDER_ACCT_ID,     // strHisAcctID. Mandatory parameters.
     //    const std::string & SENDER_USER_ID,     // strHisNymID. Both sender and recipient must sign before submitting.
-    //    // ----------------------------------------
+    //    
     //    const std::string & PLAN_CONSIDERATION, // Like a memo.
-    //    // ----------------------------------------
+    //    
     //    const std::string & RECIPIENT_ACCT_ID, // strMyAcctID. NOT optional.
     //    const std::string & RECIPIENT_USER_ID, // strMyNymID. Both sender and recipient must sign before submitting.
-    //    // -------------------------------
+    //    
     //    const std::string & INITIAL_PAYMENT, // "amount,delay"  Default 'amount' (0 or "") == no initial payment.
     //    // ------------------------------- // Default 'delay' (0 or NULL) is seconds from creation date.
     //    const std::string & PAYMENT_PLAN,   // "amount,delay,period" 'amount' is a recurring payment.
@@ -2856,7 +2856,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_confirm_smart_contract(string & strSm
                 }
             }
         }
-    } // ---------------------------------------
+    } 
     // else there aren't any unconfirmed parties, and it already displayed an error message related to that.
 
     return -1;
@@ -6371,7 +6371,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_refresh_nym()
 //def OT_ME::get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID, nBoxType, STR_TRANS_NUM)
 //{
 //    var ot_Msg := OTAPI_Func()
-//    // -------------------------
+//    
 //    var theRequest := OTAPI_Func(ot_Msg.GET_BOX_RECEIPT, SERVER_ID, NYM_ID, ACCT_ID, nBoxType, STR_TRANS_NUM)
 //    string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT")
 //
@@ -8309,19 +8309,19 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string & strServerID, c
 
         //      const char * OTPayment::_TypeStrings[] =
         //      {
-        //          // ------------------
+        //          
         //          // OTCheque is derived from OTTrackable, which is derived from OTInstrument, which is
         //          // derived from OTScriptable, which is derived from OTContract.
-        //          // ------------------
+        //          
         //          "CHEQUE",         // A cheque drawn on a user's account.
         //          "VOUCHER",        // A cheque drawn on a server account (cashier's cheque aka banker's cheque)
         //          "INVOICE",        // A cheque with a negative amount. (Depositing this causes a payment out, instead of a deposit in.)
-        //          // ------------------
+        //          
         //          "PAYMENT_PLAN",   // An OTCronItem-derived OTPaymentPlan, related to a recurring payment plan.
         //          "SMART_CONTRACT", // An OTCronItem-derived OTSmartContract, related to a smart contract.
-        //          // ------------------
+        //          
         //          "PURSE",          // An OTContract-derived OTPurse containing a list of cash OTTokens.
-        //          // ------------------
+        //          
         //          "ERROR_STATE"
         //; };
 

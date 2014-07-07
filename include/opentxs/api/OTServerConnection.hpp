@@ -165,7 +165,7 @@ class OTServerConnection
 //    SFSocket *                m_pSocket;     // For TCP / SSL mode.
 
     bool                    m_bFocused;     // For RPC / HTTP mode.
-    TransportCallback    *    m_pCallback; // --------------------
+    TransportCallback    *    m_pCallback; 
 
     OTPseudonym            *    m_pNym;
     OTServerContract    *    m_pServerContract;
