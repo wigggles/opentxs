@@ -189,7 +189,6 @@ private:
     OTString m_strRoleID;        // If agent is Nym working in a role on behalf of an entity, then this is its RoleID in Entity.
     OTString m_strGroupName;    // If agent is a voting group in an Entity, this is group's Name (inside Entity.)
 
-    // ------------------------------------------------
 
 public:
     OTAgent();
@@ -216,7 +215,6 @@ public:
     //
     void ClearTemporaryPointers() { m_pNym = NULL; } /* Someday clear entity/role ptr here? And do NOT
                                                         clear party ptr here (since it's not temporary.)  */
-    // ---------------------------------
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
     // They will definitely fail if you haven't already loaded the Nym.
     //
@@ -233,16 +231,13 @@ public:
                                   bool bSave=false, // Each agent's nym is used if pSignerNym is NULL, whereas the server
                                   OTPseudonym * pSignerNym=NULL); // uses this optional arg to substitute serverNym as signer.
 
-    // ---------------------------------
     bool ReserveOpeningTransNum(const OTString & strServerID);
     bool ReserveClosingTransNum(const OTString & strServerID, OTPartyAccount & thePartyAcct);
-    // ---------------------------------
 EXPORT    bool SignContract(OTContract & theInput);
 
     // Verify that this agent somehow has legitimate agency over this account. (According to the account.)
     //
     bool VerifyAgencyOfAccount(const OTAccount & theAccount) const;
-    // ---------------------------------
     bool VerifySignature(OTContract & theContract); // Have the agent try to verify his own signature against any contract.
 
     void SetParty(OTParty & theOwnerParty); // This happens when the agent is added to the party.
@@ -255,7 +250,6 @@ EXPORT    bool IsValidSignerID(const OTIdentifier & theNymID);
     bool IsAuthorizingAgentForParty();    // true/false whether THIS agent is the authorizing agent for his party.
     int32_t  GetCountAuthorizedAccts();        // The number of accounts, owned by this agent's party, that this agent is the authorized agent FOR.
 
-    // ---------------------------------
     // Only one of these can be true:
     // (I wrestle with making these 2 calls private, since technically it should be irrelevant to the external.)
     //
@@ -263,7 +257,6 @@ EXPORT    bool IsValidSignerID(const OTIdentifier & theNymID);
     // ** OR **
     bool DoesRepresentAnEntity() const; // Whether the agent is a voting group acting for an entity, or is a Nym acting in a Role for an entity, this will be true either way. (Otherwise, if agent is a Nym acting for himself, then this will be false.)
 
-    // --------------------
     // Only one of these can be true:
     // - Agent is either a Nym acting for himself or some entity,
     // - or agent is a group acting for some entity.
@@ -272,7 +265,6 @@ EXPORT    bool IsAnIndividual() const;    // Agent is an individual Nym. (Meanin
     // ** OR **
     bool IsAGroup() const;            // OR: Agent is a voting group, which cannot take proactive or instant action, but only passive and delayed. Entity-ONLY. (A voting group cannot decide on behalf of individual, but only on behalf of the entity it belongs to.)
 
-    // ---------------------
 
     // FYI: A Nym cannot act as agent for another Nym.
     // Nor can a Group act as agent for a Nym.
@@ -281,14 +273,12 @@ EXPORT    bool IsAnIndividual() const;    // Agent is an individual Nym. (Meanin
     // then groups and nyms can act as agents for that entity. You cannot have
     // an agent without an entity formed by contract, since you otherwise have no agency agreement.
 
-    // ----------------------
     // For when the agent is an individual:
     //
 EXPORT    bool GetNymID(OTIdentifier& theOutput) const;        // If IsIndividual(), then this is his own personal NymID, (whether he DoesRepresentHimself() or DoesRepresentAnEntity() -- either way). Otherwise if IsGroup(), this returns false.
 
     bool GetRoleID(OTIdentifier& theOutput) const;        // IF IsIndividual() AND DoesRepresentAnEntity(), then this is his RoleID within that Entity. Otherwise, if IsGroup() or DoesRepresentHimself(), then this returns false.
 
-    // --------------------------------------
     // Notice if the agent is a voting group, then it has no signer. (Instead it will have an election.)
     // That is why certain agents are unacceptable in certain scripts.
     // There is an "active" agent who has a signerID, but there is also a "passive" agent who only has
@@ -302,7 +292,6 @@ EXPORT    bool GetNymID(OTIdentifier& theOutput) const;        // If IsIndividua
     // else if Individual() and DoesRepresentHimself() then this returns GetNymID().
     // else (if IsGroup()) then return false;
 
-    // --------------------------------------------------
     // For when the agent DoesRepresentAnEntity():
     //
     // Whether this agent IsGroup() (meaning he is a voting group that DoesRepresentAnEntity()),
@@ -315,14 +304,12 @@ EXPORT    bool GetNymID(OTIdentifier& theOutput) const;        // If IsIndividua
     bool GetEntityID(OTIdentifier& theOutput) const; // IF represents an entity, this is its ID. Else fail.
 
 EXPORT    const OTString & GetName() { return m_strName; } // agent's name as used in a script.
-    // ------------------------------------------
     // For when the agent is a voting group:
     //
     bool GetGroupName(OTString & strGroupName); // The GroupName group will be found in the EntityID entity.
     //
     // If !IsGroup() aka IsIndividual(), then this will return false.
     //
-    // --------------------
 
 //  bool DoesRepresentHimself();
 //  bool DoesRepresentAnEntity();
@@ -346,7 +333,6 @@ EXPORT    const OTString & GetName() { return m_strName; } // agent's name as us
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-    // ----------------
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level function
     // will ask an OTParty for a list of all the Nym pointers that it already has,
     // so they can be checked for various things if they are already loaded (when they are needed)

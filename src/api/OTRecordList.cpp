@@ -161,7 +161,6 @@ namespace opentxs {
 //#define MC_UI_TEXT_FROM "<font color='grey'>From:</font> %s"
 
 
-// -------------------------------------------------------------------------------------------
 
 
 bool OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller) // OTLookupCaller must have OTNameLookup attached already.
@@ -242,7 +241,6 @@ OTLookupCaller::~OTLookupCaller()
     delCallback();
 }
 
-// ------------------------------------------------
 
 void OTLookupCaller::delCallback()
 {
@@ -252,11 +250,9 @@ void OTLookupCaller::delCallback()
     if (isCallbackSet())
         OTLog::Output(0, "OTLookupCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
                       "(This message doesn't trigger if it was already NULL.)\n");
-    //--------------------------------
     _callback = NULL;
 }
 
-// ------------------------------------------------
 
 void OTLookupCaller::setCallback(OTNameLookup *cb)
 {
@@ -269,19 +265,16 @@ void OTLookupCaller::setCallback(OTNameLookup *cb)
     }
 
     delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
-    // -----------------------------
     _callback = cb;
     OTLog::Output(0, "OTLookupCaller::setCallback: FYI, the OTNameLookup pointer was set.\n");
 }
 
-// ------------------------------------------------
 
 bool OTLookupCaller::isCallbackSet() const
 {
     return (NULL == _callback) ? false : true;
 }
 
-// ------------------------------------------------
 
 std::string OTLookupCaller::GetNymName(const std::string & str_id, // NymID
                                        const std::string * p_server_id/*=NULL*/) const
@@ -299,7 +292,6 @@ std::string OTLookupCaller::GetNymName(const std::string & str_id, // NymID
     return "";
 }
 
-// ------------------------------------------------
 
 std::string OTLookupCaller::GetAcctName(const std::string & str_id, // AcctID
                                         const std::string * p_nym_id/*=NULL*/,
@@ -319,7 +311,6 @@ std::string OTLookupCaller::GetAcctName(const std::string & str_id, // AcctID
     return "";
 }
 
-// ------------------------------------------------
 
 std::string OTLookupCaller::GetAddressName(const std::string & str_address) const
 {
@@ -336,7 +327,6 @@ std::string OTLookupCaller::GetAddressName(const std::string & str_address) cons
     return "";
 }
 
-// ------------------------------------------------
 //static
 
 const std::string  OTRecordList::s_blank("");
@@ -374,13 +364,11 @@ bool OTRecordList::setAddrBookCaller(OTLookupCaller & theCaller)
     }
     
     s_pCaller = &theCaller;
-    // ---------------------------
     OTLog::vOutput(1, "%s: FYI, Successfully set the address book caller object from "
                    "Java (or from another SWIG language.) Returning true.\n", __FUNCTION__);
     
     return true;
 }
-// --------------------------------------------------------
 // static
 OTLookupCaller * OTRecordList::getAddrBookCaller()
 {
@@ -392,7 +380,6 @@ OTLookupCaller * OTRecordList::getAddrBookCaller()
 
 
 
-// ------------------------------------------------
 // SETUP:
 
 // Set the default server here.
@@ -400,7 +387,6 @@ OTLookupCaller * OTRecordList::getAddrBookCaller()
 void OTRecordList::SetServerID(const std::string str_id)
 {
     ClearServers();
-    // -----------------------
     AddServerID(str_id);
 }
 
@@ -417,119 +403,92 @@ void OTRecordList::AddServerID(const std::string str_id)
 void OTRecordList::ClearServers()
 {
     ClearContents();
-    // -----------------------
     m_servers.clear();
 }
 
-// ------------------------------------------------
 
 
 void OTRecordList::SetAssetID(const std::string str_id)
 {
     ClearAssets();
-    // -----------------------
     AddAssetID(str_id);
 }
 
 
 void OTRecordList::AddAssetID(const std::string str_id)
 {
-    // -------------------------
     OTWallet * pWallet = OTAPI_Wrap::OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    // -------------------------
     OT_ASSERT_MSG(NULL != pWallet, "Wallet was NULL. Should never happen.");
-    // ------------------------------------------------
     const OTString     strAssetTypeID(str_id);
     const OTIdentifier theAssetTypeID(strAssetTypeID);
-    // ------------------------------------------------
     std::string str_asset_name;
-    // ------------------------------------------------
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
     OTAssetContract * pAssetContract = pWallet->GetAssetContract(theAssetTypeID);
-    // ------------------------------------------------
     if (NULL != pAssetContract)
     {
         str_asset_name = pAssetContract->GetCurrencyTLA().Get();  // This might be "USD" -- preferable that this works.
-        // ------------------------------------------------
         if (str_asset_name.empty())
             str_asset_name = pAssetContract->GetCurrencySymbol().Get();  // This might be "$".
-        // ------------------------------------------------
         if (str_asset_name.empty())
             str_asset_name = pAssetContract->GetCurrencyName().Get();  // This might be "dollars".
     }
-    // ------------------------------------------------
     if (str_asset_name.empty())
         str_asset_name = OTAPI_Wrap::GetAssetType_Name(str_id); // Otherwise we try to grab the name.
-    // ------------------------------------------------
     // (Otherwise we just leave it blank. The ID is too big to cram in here.)
-    // ------------------------------------------------
     m_assets.insert(std::pair<std::string, std::string>(str_id, str_asset_name));
 }
 
-// ------------------------------------------------
 
 void OTRecordList::ClearAssets()
 {
     ClearContents();
-    // -----------------------
     m_assets.clear();
 }
 
-// ------------------------------------------------
 
 
 void OTRecordList::SetNymID(const std::string str_id)
 {
     ClearNyms();
-    // -----------------------
     AddNymID(str_id);
 }
 
-// ------------------------------------------------
 
 void OTRecordList::AddNymID(const std::string str_id)
 {
     m_nyms.insert(m_nyms.end(), str_id);
 }
 
-// ------------------------------------------------
 
 void OTRecordList::ClearNyms()
 {
     ClearContents();
-    // -----------------------
     m_nyms.clear();
 }
 
-// ------------------------------------------------
 
 
 void OTRecordList::SetAccountID(const std::string str_id)
 {
     ClearAccounts();
-    // -----------------------
     AddAccountID(str_id);
 }
 
-// ------------------------------------------------
 
 void OTRecordList::AddAccountID(const std::string str_id)
 {
     m_accounts.insert(m_accounts.end(), str_id);
 }
 
-// ------------------------------------------------
 
 void OTRecordList::ClearAccounts()
 {
     ClearContents();
-    // -----------------------
     m_accounts.clear();
 }
 
-// ------------------------------------------------
 
  void OTRecordList::AcceptChequesAutomatically  (bool bVal/*=true*/) { m_bAutoAcceptCheques   = bVal; }
  void OTRecordList::AcceptReceiptsAutomatically (bool bVal/*=true*/) { m_bAutoAcceptReceipts  = bVal; }
@@ -546,15 +505,12 @@ typedef std::map<int32_t, OTPayment *> mapOfPayments;
 
 bool OTRecordList::PerformAutoAccept()
 {
-    // -------------------------
     OTWallet * pWallet = OTAPI_Wrap::OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    // -------------------------
     if (NULL == pWallet)
     {
         OTLog::vError("OTRecordList::%s: Error: Wallet is NULL.\n", __FUNCTION__);
         return false;
     }
-    // ------------------------------------------------
     // LOOP NYMS
     //
     int32_t nNymIndex = -1;
@@ -563,16 +519,13 @@ bool OTRecordList::PerformAutoAccept()
       FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
       {
         ++nNymIndex;
-        // ------------------------------------------------
         if (0 == nNymIndex)
           OTLog::vOutput(0, "======================================\n %s: Beginning auto-accept loop through Nyms...\n", __FUNCTION__);
-        // ------------------------------------------------
         const std::string  & str_nym_id(*it_nym);
         const OTIdentifier   theNymID  (str_nym_id);
         const OTString       strNymID  (theNymID);
         OTPseudonym * pNym = pWallet->GetNymByID(theNymID);
         if (NULL == pNym) continue;
-        // ------------------------------------------------
         // LOOP SERVERS
         //
         // For each nym, for each server, loop through its payments inbox
@@ -581,17 +534,13 @@ bool OTRecordList::PerformAutoAccept()
         FOR_EACH_IT(list_of_strings, m_servers, it_server)
         {
             ++nServerIndex;
-            // --------------------------
             const std::string  & str_server_id(*it_server);
             const OTIdentifier   theServerID(str_server_id);
             OTServerContract *   pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(NULL != pServer);
-            // ------------------------------------------------
             const OTString strServerID(theServerID);
             OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__, nServerIndex, strServerID.Get());
-            // ------------------------------------------------
             mapOfPayments thePaymentMap;
-            // ------------------------------------------------
             // OPTIMIZE FYI:
             // The "NoVerify" version is much faster, but you will lose the ability to get the
             // sender/recipient name from the receipts in the box. The code will, however, work
@@ -609,25 +558,18 @@ bool OTRecordList::PerformAutoAccept()
               {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
-                // ------------------------------
                 ++nIndex; // 0 on first iteration.
-                // ------------------------------------------------
                 OTLog::vOutput(0, "%s: Incoming payment: %d\n", __FUNCTION__, nIndex);
-                // ------------------------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
-                // ------------------------------------------------
                 std::string str_type;    // Instrument type.
-                // ------------------------------------------------
                 OTPayment * pPayment = pInbox->GetInstrument(*pNym,
                                                              nIndex);     // ===> Returns financial instrument by index.
                 OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                // ------------------------------
                 if (NULL == pPayment) // then we treat it like it's abbreviated.
                 {
                     OTLog::vError("%s: Payment retrieved from payments inbox was NULL. (It's abbreviated?) Skipping.\n", __FUNCTION__);
                 }
-                // ---------------------------------------------------
                 // We have pPayment, the instrument accompanying the receipt in the payments inbox.
                 //
                 else if (pPayment->IsValid() && pPayment->SetTempValues())
@@ -638,9 +580,7 @@ bool OTRecordList::PerformAutoAccept()
                     {
                         OTString strTemp(theAssetTypeID);
                         const std::string str_inpmt_asset(strTemp.Get()); // The asset type we found on the payment (if we found anything.)
-                        // -----------------------------
                         map_of_strings::iterator it_asset = m_assets.find(str_inpmt_asset);
-                        // -----------------------------
                         if (it_asset != m_assets.end()) // Found it on the map of asset types we care about.
                         {
                             p_str_asset_type = &(it_asset->first);   // Set the asset type ID.
@@ -660,12 +600,10 @@ bool OTRecordList::PerformAutoAccept()
                     // By this point, p_str_asset_type and p_str_asset_name are definitely set.
                     OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or it's one of the asset types we care about.
                     OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or it's one of the asset types we care about.
-                    // ---------------------------------------------------
                     // Instrument type (cheque, voucher, etc)
                     int32_t nType = static_cast<int32_t> (pPayment->GetType());
 
                     str_type = OTRecord_GetTypeString(nType);
-                    // ------------------------------
                     // For now, we only accept cash, cheques and vouchers.
                     //
                     if ( (m_bAutoAcceptCheques && ((0 == str_type.compare("cheque")) || (0 == str_type.compare("voucher")))) ||
@@ -673,7 +611,6 @@ bool OTRecordList::PerformAutoAccept()
                     {
                         OTLog::vOutput(0, "%s: Adding to acceptance list: pending incoming %s.\n",
                                        __FUNCTION__, str_type.c_str());
-                        // -------------------------
                         thePaymentMap.insert(std::pair<int32_t, OTPayment *>(nIndex, pPayment));
                         thePaymentAngel.SetCleanupTargetPointer(NULL); // Now we HAVE to cleanup, below... Otherwise pPayment will leak.
                     }
@@ -686,7 +623,6 @@ bool OTRecordList::PerformAutoAccept()
             } // looping through payments inbox.
             else
                 OTLog::vOutput(1, "%s: Failed loading payments inbox. (Probably just doesn't exist yet.)\n", __FUNCTION__);
-            // --------------------------------------------------------------------------
             // Above we compiled a list of purses, cheques / vouchers to accept.
             // If there are any on that list, then ACCEPT them here.
             //
@@ -696,13 +632,11 @@ bool OTRecordList::PerformAutoAccept()
                 {
                     int32_t     lIndex   = it->first;
                     OTPayment * pPayment = it->second;
-                    // -------------------------
                     if (NULL == pPayment)
                     {
                         OTLog::vError("%s: Error: payment pointer was NULL! (Should never happen.) Skipping.\n", __FUNCTION__);
                         continue;
                     }
-                    // -------------------------
                     OTString strPayment;
                     std::string str_payment_contents;
 
@@ -715,7 +649,6 @@ bool OTRecordList::PerformAutoAccept()
                         OTLog::vError("%s: Error: Failed while trying to get payment string contents. (Skipping.)\n", __FUNCTION__);
                         continue;
                     }
-                    // ---------------------------------
                     OTIdentifier paymentAssetType;
                     bool bGotAsset = pPayment->GetAssetTypeID(paymentAssetType);
 
@@ -726,13 +659,11 @@ bool OTRecordList::PerformAutoAccept()
                         const OTString strAssetTypeID(paymentAssetType);
                         str_asset_type_id = strAssetTypeID.Get();
                     }
-                    // -------------------------------------------
                     if (str_asset_type_id.empty())
                     {
                         OTLog::vError("%s: Error: Failed while trying to get asset type ID from payment. (Skipping.)\n", __FUNCTION__);
                         continue;
                     }
-                    // -------------------------------------------
                     // pick an account to deposit the cheque into.
                     //
                     FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
@@ -741,17 +672,13 @@ bool OTRecordList::PerformAutoAccept()
                         const OTIdentifier   theAccountID  (str_account_id);
                         OTAccount * pAccount = pWallet->GetAccount(theAccountID);
                         OT_ASSERT(NULL != pAccount);
-                        // ------------------------------------------------
                         const OTIdentifier & theAcctNymID    = pAccount->GetUserID();
                         const OTIdentifier & theAcctServerID = pAccount->GetPurportedServerID();
                         const OTIdentifier & theAcctAssetID  = pAccount->GetAssetTypeID();
-                        // -----------------------------------
                         const std::string    str_acct_type   = pAccount->GetTypeString();
-                        // -----------------------------------
 //                      const OTString       strAcctNymID   (theAcctNymID);
                         const OTString       strAcctServerID(theAcctServerID);
                         const OTString       strAcctAssetID (theAcctAssetID);
-                        // ------------------------------------------------
                         // If the current account is owned by the Nym, AND it has the same asset type ID
                         // as the cheque being deposited, then let's deposit the cheque into that account.
                         //
@@ -778,7 +705,6 @@ bool OTRecordList::PerformAutoAccept()
                                     OTLog::vOutput(0, "%s: This instrument was expired, so it was moved to the record box.\n", __FUNCTION__);
                                 case 1: // success
                                     break;
-                                    // ----------------------------------
                                 default:
                                     OTLog::vError("%s: Error while trying to accept this instrument.\n", __FUNCTION__);
                                     break;
@@ -787,7 +713,6 @@ bool OTRecordList::PerformAutoAccept()
                         }
                     } // loop through accounts to find one to deposit cheque into.
                 } // Loop through payments to deposit.
-                // ------------------------------------------
                 // Empty the list and delete the payments inside.
                 //
                 FOR_EACH(mapOfPayments, thePaymentMap)
@@ -799,50 +724,40 @@ bool OTRecordList::PerformAutoAccept()
                 }
                 thePaymentMap.clear();
             } // if (!thePaymentMap.empty())
-            // ------------------------------------------------
           } // FOR_EACH_IT(list_of_strings, m_servers, it_server)
         } // FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
     }
 
-    // ------------------------------------------------
     // ASSET ACCOUNT -- INBOX
     //
     // Loop through the Accounts.
     //
-    // ------------------------------------------------
     int32_t nAccountIndex = -1;
     if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers)
     {
       FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
       {
         ++nAccountIndex; // (0 on first iteration.)
-        // ------------------
         if (0 == nAccountIndex)
             OTLog::vOutput(0, "---------------------------------\n %s: Beginning auto-accept loop through the accounts in the wallet...\n",
                            __FUNCTION__);
-        // ------------------------------------------------
         // For each account, loop through its inbox, outbox, and record box.
         //
         const std::string  & str_account_id(*it_acct);
         const OTIdentifier   theAccountID  (str_account_id);
         OTAccount * pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(NULL != pAccount);
-        // ------------------------------------------------
         const OTIdentifier & theNymID    = pAccount->GetUserID();
         const OTIdentifier & theServerID = pAccount->GetPurportedServerID();
         const OTIdentifier & theAssetID  = pAccount->GetAssetTypeID();
-        // ------------------------------------------------
         const OTString       strNymID   (theNymID);
         const OTString       strServerID(theServerID);
         const OTString       strAssetID (theAssetID);
-        // ------------------------------------------------
         OTLog::vOutput(0, "------------\n%s: Account: %d, ID: %s\n", __FUNCTION__,
                        nAccountIndex, str_account_id.c_str());
-        // ------------------------------------------------
         const std::string    str_nym_id    (strNymID   .Get());
         const std::string    str_server_id (strServerID.Get());
         const std::string    str_asset_id  (strAssetID .Get());
-        // ------------------------------------------------
         // NOTE: Since this account is already on my "care about" list for accounts,
         // I wouldn't bother double-checking my "care about" lists for servers, nyms,
         // and asset types. But I still look up the appropriate string for each, since
@@ -853,7 +768,6 @@ bool OTRecordList::PerformAutoAccept()
         list_of_strings::iterator it_nym    = std::find(m_nyms   .begin(),    m_nyms.end(),    str_nym_id);
         list_of_strings::iterator it_server = std::find(m_servers.begin(), m_servers.end(), str_server_id);
          map_of_strings::iterator it_asset  = m_assets.find(str_asset_id);
-        // ------------------------------------------------
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) || (m_assets.end() == it_asset))
         {
             OTLog::vOutput(0, "%s: Skipping an account (%s) since its Nym, or Server, "
@@ -861,7 +775,6 @@ bool OTRecordList::PerformAutoAccept()
                            str_account_id.c_str());
             continue;
         }
-        // ------------------------------------------------
         // Loop through asset account INBOX.
         //
         // OPTIMIZE FYI:
@@ -872,52 +785,40 @@ bool OTRecordList::PerformAutoAccept()
         OTLedger * pInbox = m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(theServerID, theNymID, theAccountID) :
                                          OTAPI_Wrap::OTAPI()->LoadInbox        (theServerID, theNymID, theAccountID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
-        // ------------------------------------------------
         if (NULL == pInbox)
         {
             OTLog::vOutput(0, "%s: Skipping an account (%s) since its inbox failed to load (have you downloaded the latest one?)\n", __FUNCTION__,
                            str_account_id.c_str());
             continue;
         }
-        // ------------------------------------------------
         const OTString    strInbox(*pInbox);
         const std::string str_inbox(strInbox.Get());
-        // ------------------------------------------------
         bool bFoundAnyToAccept = false;
         std::string strResponseLedger;
-        // ------------------------------------------------
         int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
         FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
         {
             ++nInboxIndex; // (0 on first iteration.)
-            // ------------------------------------------------
             if (0 == nInboxIndex)
                 OTLog::vOutput(0, "%s: Beginning loop through asset account INBOX...\n", __FUNCTION__);
-            // --------------------------------
             OTTransaction * pBoxTrans = (*it).second;
             OT_ASSERT(NULL != pBoxTrans);
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__, nInboxIndex);
-            // ------------------------------------------------
             const std::string str_type(pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
-            // ------------------------------------------------
             const bool bIsTransfer = (OTTransaction::pending == pBoxTrans->GetType());
             const bool bIsReceipt  = !bIsTransfer;
-            // ------------------------------------------------
             if ((m_bAutoAcceptReceipts  &&  bIsReceipt)   ||
                 (m_bAutoAcceptTransfers &&  bIsTransfer))
             {
                 OTLog::vOutput(0, "%s: Auto-accepting: incoming %s (str_type: %s)\n",
                                __FUNCTION__, bIsTransfer ? "pending transfer" : "receipt",
                                str_type.c_str());
-                // ------------------------------------------------
                 // If we haven't found any yet, then this must be the first one!
                 //
                 if (!bFoundAnyToAccept)
                 {
                     bFoundAnyToAccept = true;
-                    // ------------------------
                     OT_ME madeEasy;
 
                     int32_t nNumberNeeded = 20;
@@ -928,7 +829,6 @@ bool OTRecordList::PerformAutoAccept()
                                        str_account_id.c_str());
                         continue;
                     }
-                    // ---------------------------------
                     strResponseLedger = OTAPI_Wrap::It()->Ledger_CreateResponse(str_server_id, str_nym_id, str_account_id, str_inbox);
 
                     if (strResponseLedger.empty())
@@ -938,7 +838,6 @@ bool OTRecordList::PerformAutoAccept()
                         continue;
                     }
                 }
-                // -------------------------
                 const OTString strTrans(*pBoxTrans);
                 const std::string str_trans(strTrans.Get());
                 std::string strNEW_ResponseLEDGER = OTAPI_Wrap::It()->Transaction_CreateResponse(str_server_id, str_nym_id, str_account_id, strResponseLedger, str_trans, true); // accept = true (versus rejecting a pending transfer, for example.)
@@ -952,7 +851,6 @@ bool OTRecordList::PerformAutoAccept()
                 strResponseLedger = strNEW_ResponseLEDGER;
             }
         } // if (NULL != pInbox) FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
-        // -------------------------------------------------
         // Okay now we have the response ledger all ready to go, let's process it!
         //
         if (bFoundAnyToAccept && !strResponseLedger.empty())
@@ -992,7 +890,6 @@ bool OTRecordList::PerformAutoAccept()
         }
       } // FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
     }
-    // ------------------------------------------------
     return true;
 }
 
@@ -1014,9 +911,7 @@ bool compare_records (shared_ptr_OTRecord i, shared_ptr_OTRecord j)
 bool OTRecordList::Populate()
 {
     OT_ASSERT(NULL != m_pLookup);
-    // -----------------------
     ClearContents();
-    // -----------------------
     // Loop through all the accounts.
     //
     // From Open-Transactions.h:
@@ -1025,19 +920,15 @@ bool OTRecordList::Populate()
     // From OTAPI.h:
     // OTAPI_Wrap::GetServerCount()  // wraps the above call.
     //
-    // -------------------------
     OTWallet * pWallet = OTAPI_Wrap::OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
-    // -------------------------
     if (NULL == pWallet)
     {
         OTLog::vError("OTRecordList::%s: Error: Wallet is NULL.\n", __FUNCTION__);
         return false;
     }
-    // ------------------------------------------------
     // Before populating, process out any items we're supposed to accept automatically.
     //
     PerformAutoAccept();
-    // ------------------------------------------------
     // OUTPAYMENTS, OUTMAIL, MAIL, PAYMENTS INBOX, and RECORD BOX (2 kinds.)
     // Loop through the Nyms.
     //
@@ -1045,31 +936,24 @@ bool OTRecordList::Populate()
     FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
     {
         ++nNymIndex;
-        // ------------------------------------------------
         if (0 == nNymIndex)
             OTLog::vOutput(0, "=============== %s: Beginning loop through Nyms...\n", __FUNCTION__);
-        // ------------------------------------------------
         const std::string  & str_nym_id(*it_nym);
         const OTIdentifier   theNymID  (str_nym_id);
         const OTString       strNymID  (theNymID);
         OTPseudonym * pNym = pWallet->GetNymByID(theNymID);
         if (NULL == pNym) continue;
-        // ------------------------------------------------
         // For each Nym, loop through his OUTPAYMENTS box.
         //
         const int32_t nOutpaymentsCount  = OTAPI_Wrap::GetNym_OutpaymentsCount(str_nym_id);
 
         OTLog::vOutput(0, "--------\n%s: Nym %d, nOutpaymentsCount: %d, ID: %s\n",
                        __FUNCTION__, nNymIndex, nOutpaymentsCount, strNymID.Get());
-        // ------------------------------------------------
         for ( int32_t nCurrentOutpayment = 0; nCurrentOutpayment < nOutpaymentsCount; ++nCurrentOutpayment)
         {
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Outpayment instrument: %d\n", __FUNCTION__, nCurrentOutpayment);
-            // ------------------------------------------------
             const OTString strOutpayment(
                 OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(str_nym_id, nCurrentOutpayment));
-            // ----------------------------------
             std::string str_memo;
             OTPayment   theOutPayment(strOutpayment);
 
@@ -1079,7 +963,6 @@ bool OTRecordList::Populate()
                               __FUNCTION__, strOutpayment.Get());
                 continue;
             }
-            // ----------------------------------
             int64_t lAmount = 0;
             std::string str_amount;  // <========== AMOUNT
 
@@ -1097,7 +980,6 @@ bool OTRecordList::Populate()
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            // ----------------------------------
             OTIdentifier        theAssetTypeID;
             const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
             const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
@@ -1107,9 +989,7 @@ bool OTRecordList::Populate()
             {
                 OTString strTemp(theAssetTypeID);
                 str_outpmt_asset = strTemp.Get();
-                // -----------------------------
                 map_of_strings::iterator it_asset = m_assets.find(str_outpmt_asset);
-                // -----------------------------
                 if (it_asset != m_assets.end()) // Found it on the map of asset types we care about.
                 {
                     p_str_asset_type = &(it_asset->first);   // Set the asset type ID.
@@ -1129,7 +1009,6 @@ bool OTRecordList::Populate()
             // By this point, p_str_asset_type and p_str_asset_name are definitely set.
             OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or it's one of the asset types we care about.
             OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or it's one of the asset types we care about.
-            // ----------------------------------
             OTIdentifier theAccountID;
             const std::string * p_str_account = &OTRecordList::s_blank; // <========== ACCOUNT
             std::string str_outpmt_account; // The accountID we found on the payment (if we found anything.)
@@ -1138,9 +1017,7 @@ bool OTRecordList::Populate()
             {                                             // (In Outpayments, the SENDER's account is MY acct.)
                 OTString strTemp(theAccountID);
                 str_outpmt_account = strTemp.Get();
-                // -----------------------------
                 list_of_strings::iterator it_acct = std::find(m_accounts.begin(), m_accounts.end(), str_outpmt_account);
-                // -----------------------------
                 if (it_acct != m_accounts.end()) // Found it on the list of accounts we care about.
                 {
                     p_str_account = &(*it_acct);
@@ -1163,15 +1040,12 @@ bool OTRecordList::Populate()
             }
             // By this point, p_str_account is definitely set.
             OT_ASSERT(NULL != p_str_account); // and it's either blank, or it's one of the accounts we care about.
-            // ----------------------------------
             // strOutpayment contains the actual outgoing payment instrument.
             //
             const std::string str_outpmt_server =
                 OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(str_nym_id, nCurrentOutpayment);
-            // ----------------------------------
             const std::string str_outpmt_recipientID =
                 OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(str_nym_id, nCurrentOutpayment);
-            // ----------------------------------
             // str_outpmt_server is the server for this outpayment.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip it.)
@@ -1181,7 +1055,6 @@ bool OTRecordList::Populate()
 
             if (it_server != m_servers.end()) // Found the serverID on the list of servers we care about.
             {
-                // ---------------------------------------------------
                 // TODO OPTIMIZE: instead of looking up the Nym's name every time, look it
                 // up ONCE when first adding the NymID. Add it to a map, instead of a list,
                 // and add the Nym's name as the second item in the map's pair.
@@ -1196,13 +1069,11 @@ bool OTRecordList::Populate()
                     strNameTemp.Format(OTRecordList::textTo(), str_outpmt_recipientID.c_str());
 
                 str_name = strNameTemp.Get();
-                // ---------------------------------------------------
                 OTString strMemo;
                 if (theOutPayment.GetMemo(strMemo))
                 {
                     str_memo = strMemo.Get();
                 }
-                // ----------------------------------
                 // For the "date" on this record we're using the "valid from" date on the instrument.
                 std::string str_date = "0";
                 time64_t tFrom = OT_TIME_ZERO;
@@ -1216,13 +1087,11 @@ bool OTRecordList::Populate()
                     str_date = strFrom.Get();
                 }
                 theOutPayment.GetValidTo(tTo);
-                // ---------------------------------------------------
                 // Instrument type (cheque, voucher, etc)
                 //
                 int32_t nType = static_cast<int32_t> (theOutPayment.GetType());
 
                 const std::string & str_type = OTRecord_GetTypeString(nType);
-                // ---------------------------------------------------
                 // CREATE A OTRecord AND POPULATE IT...
                 //
                 OTLog::vOutput(0, "%s: ADDED: pending outgoing instrument (str_type: %s)\n",
@@ -1234,7 +1103,6 @@ bool OTRecordList::Populate()
                                                             str_nym_id,    // This is the Nym WHOSE BOX IT IS.
                                                            *p_str_account, // This is the Nym's account according to the payment instrument, IF that account was found on our list of accounts we care about. Or it's blank if no account was found on the payment instrument.
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name, // name of recipient (since its in outpayments box.)
                                                            str_date, // the "valid from" date on the instrument.
@@ -1246,20 +1114,14 @@ bool OTRecordList::Populate()
                                                            false,//IsReceipt
                                                            OTRecord::Instrument
                                                            ));
-                // -------------------------------------------------
                 sp_Record->SetContents(strOutpayment.Get());
-                // -------------------------------------------------
                 sp_Record->SetOtherNymID(str_outpmt_recipientID);
-                // -------------------------------------------------
                 if (!str_memo.empty())
                     sp_Record->SetMemo(str_memo);
-                // -------------------------------------------------
                 sp_Record->SetDateRange(tFrom, tTo);
                 sp_Record->SetBoxIndex(nCurrentOutpayment);
-                // -------------------------------------------------
                 int64_t lTransNum = 0;
                 theOutPayment.GetOpeningNum(lTransNum, theNymID);
-                // -------------------------------------------------
                 sp_Record->SetTransactionNum(lTransNum);
                 m_contents.push_back(sp_Record);
             }
@@ -1270,24 +1132,18 @@ bool OTRecordList::Populate()
                 continue;
             }
         } // for outpayments.
-        // ------------------------------------------------
         // For each Nym, loop through his MAIL box.
         //
         const int32_t nMailCount  = OTAPI_Wrap::GetNym_MailCount(str_nym_id);
         for ( int32_t nCurrentMail = 0; nCurrentMail < nMailCount; ++nCurrentMail)
         {
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Mail index: %d\n", __FUNCTION__, nCurrentMail);
-            // ------------------------------------------------
             OTMessage *    pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(NULL != pMsg);
-            // ------------------------------------------------
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_MailServerIDByIndex(str_nym_id, nCurrentMail);
-            // ----------------------------------
             const std::string str_mail_senderID =
                 OTAPI_Wrap::GetNym_MailSenderIDByIndex(str_nym_id, nCurrentMail);
-            // ----------------------------------
             // str_mail_server is the server for this mail.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip it.)
@@ -1296,7 +1152,6 @@ bool OTRecordList::Populate()
 
             if (it_server != m_servers.end()) // Found the serverID on the list of servers we care about.
             {
-                // ---------------------------------------------------
                 // TODO OPTIMIZE: instead of looking up the Nym's name every time, look it
                 // up ONCE when first adding the NymID. Add it to a map, instead of a list,
                 // and add the Nym's name as the second item in the map's pair.
@@ -1311,7 +1166,6 @@ bool OTRecordList::Populate()
                     strNameTemp.Format(OTRecordList::textFrom(), str_mail_senderID.c_str());
 
                 str_name = strNameTemp.Get();
-                // ---------------------------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
                 const std::string * p_str_account    = &OTRecordList::s_blank; // <========== ACCOUNT
@@ -1322,7 +1176,6 @@ bool OTRecordList::Populate()
                 OTString strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
-                // ---------------------------------------------------
                 // CREATE A OTRecord AND POPULATE IT...
                 //
                 OTLog::vOutput(0, "%s: ADDED: incoming mail.\n", __FUNCTION__);
@@ -1333,7 +1186,6 @@ bool OTRecordList::Populate()
                                                            str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                                                            *p_str_account, // This is the Nym's account according to the payment instrument, IF that account was found on our list of accounts we care about. Or it's blank if no account was found on the payment instrument.
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name, // name of sender (since its in incoming mail box.)
                                                            str_date, // How do we get the date from a mail?
@@ -1347,34 +1199,24 @@ bool OTRecordList::Populate()
                                                            ));
                 const OTString strMail(OTAPI_Wrap::GetNym_MailContentsByIndex(str_nym_id, nCurrentMail));
                 sp_Record->SetContents(strMail.Get());
-                // -------------------------------------------------
                 sp_Record->SetOtherNymID(str_mail_senderID);
-                // -------------------------------------------------
                 sp_Record->SetBoxIndex(nCurrentMail);
-                // -------------------------------------------------
                 sp_Record->SetDateRange(OTTimeGetTimeFromSeconds(pMsg->m_lTime), OTTimeGetTimeFromSeconds(pMsg->m_lTime));
-                // -------------------------------------------------
                 m_contents.push_back(sp_Record);
             }
         } // loop through incoming Mail.
-        // ------------------------------------------------
         // Outmail
         //
         const int32_t nOutmailCount   = OTAPI_Wrap::GetNym_OutmailCount(str_nym_id);
         for ( int32_t nCurrentOutmail = 0; nCurrentOutmail < nOutmailCount; ++nCurrentOutmail)
         {
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Outmail index: %d\n", __FUNCTION__, nCurrentOutmail);
-            // ------------------------------------------------
             OTMessage *    pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(NULL != pMsg);
-            // ------------------------------------------------
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_OutmailServerIDByIndex(str_nym_id, nCurrentOutmail);
-            // ----------------------------------
             const std::string str_mail_recipientID =
                 OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(str_nym_id, nCurrentOutmail);
-            // ----------------------------------
             // str_mail_server is the server for this mail.
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip it.)
@@ -1383,7 +1225,6 @@ bool OTRecordList::Populate()
 
             if (it_server != m_servers.end()) // Found the serverID on the list of servers we care about.
             {
-                // ---------------------------------------------------
                 // TODO OPTIMIZE: instead of looking up the Nym's name every time, look it
                 // up ONCE when first adding the NymID. Add it to a map, instead of a list,
                 // and add the Nym's name as the second item in the map's pair.
@@ -1398,7 +1239,6 @@ bool OTRecordList::Populate()
                     strNameTemp.Format(OTRecordList::textTo(), str_mail_recipientID.c_str());
 
                 str_name = strNameTemp.Get();
-                // ---------------------------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
                 const std::string * p_str_account    = &OTRecordList::s_blank; // <========== ACCOUNT
@@ -1409,7 +1249,6 @@ bool OTRecordList::Populate()
                 OTString strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
-                // ---------------------------------------------------
                 // CREATE A OTRecord AND POPULATE IT...
                 //
                 OTLog::vOutput(0, "%s: ADDED: sent mail.\n", __FUNCTION__);
@@ -1420,7 +1259,6 @@ bool OTRecordList::Populate()
                                                            str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                                                            *p_str_account, // This is the Nym's account according to the payment instrument, IF that account was found on our list of accounts we care about. Or it's blank if no account was found on the payment instrument.
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name, // name of recipient (since its in outgoing mail box.)
                                                            str_date, // How do we get the date from a mail?
@@ -1434,31 +1272,23 @@ bool OTRecordList::Populate()
                                                            ));
                 const OTString strOutmail(OTAPI_Wrap::GetNym_OutmailContentsByIndex(str_nym_id, nCurrentOutmail));
                 sp_Record->SetContents(strOutmail.Get());
-                // -------------------------------------------------
                 sp_Record->SetBoxIndex(nCurrentOutmail);
-                // -------------------------------------------------
                 sp_Record->SetOtherNymID(str_mail_recipientID);
-                // -------------------------------------------------
                 sp_Record->SetDateRange(OTTimeGetTimeFromSeconds(pMsg->m_lTime), OTTimeGetTimeFromSeconds(pMsg->m_lTime));
-                // -------------------------------------------------
                 m_contents.push_back(sp_Record);
             }
         } // loop through outgoing Mail.
-        // ------------------------------------------------
         // For each nym, for each server, loop through its payments inbox and record box.
         //
         int32_t nServerIndex = -1;
         FOR_EACH_IT(list_of_strings, m_servers, it_server)
         {
             ++nServerIndex;
-            // --------------------------
             const OTIdentifier theServerID(*it_server);
             OTServerContract * pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(NULL != pServer);
-            // ------------------------------------------------
             const OTString strServerID(theServerID);
             OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__, nServerIndex, strServerID.Get());
-            // ------------------------------------------------
             // OPTIMIZE FYI:
             // The "NoVerify" version is much faster, but you will lose the ability to get the
             // sender/recipient name from the receipts in the box. The code will, however, work
@@ -1476,11 +1306,8 @@ bool OTRecordList::Populate()
               {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
-                // ------------------------------
                 ++nIndex; // 0 on first iteration.
-                // ------------------------------------------------
                 OTLog::vOutput(0, "%s: Incoming payment: %d\n", __FUNCTION__, nIndex);
-                // ------------------------------------------------
                 std::string  str_name; // name of sender (since its in the payments inbox.)
                 std::string  str_sender_nym_id;
                 std::string  str_sender_acct_id;
@@ -1512,9 +1339,7 @@ bool OTRecordList::Populate()
                         str_sender_acct_id = strSenderID.Get();
                     }
                 }
-                // ------------------------------
                 time64_t  tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-                // ----------------------------------
                 std::string str_date    = "0"; // the "date signed" on the transaction receipt.
                 time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -1526,10 +1351,8 @@ bool OTRecordList::Populate()
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
-                // ----------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
-                // ----------------------------------
                 std::string str_amount;   // <========== AMOUNT
                 std::string str_type;     // Instrument type.
                 std::string str_memo;
@@ -1538,7 +1361,6 @@ bool OTRecordList::Populate()
                 if (pBoxTrans->IsAbbreviated())
                 {
                     str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                    // --------------------------------------------------
                     int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                     if (0 != lAmount)
@@ -1553,16 +1375,13 @@ bool OTRecordList::Populate()
                     OTPayment * pPayment = pInbox->GetInstrument(*pNym,
                                                                  nIndex);     // ===> Returns financial instrument by index.
                     OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                    // ------------------------------
                     if (NULL == pPayment) // then we treat it like it's abbreviated.
                     {
                         str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                        // --------------------------------------------------
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 == lAmount)
                             lAmount = pBoxTrans->GetReceiptAmount();
-                        // -----------------------------------------
                         if (0 != lAmount)
                         {
                             OTString strTemp;
@@ -1570,12 +1389,10 @@ bool OTRecordList::Populate()
                             str_amount = strTemp.Get();
                         }
                     }
-                    // ---------------------------------------------------
                     // We have pPayment, the instrument accompanying the receipt in the payments inbox.
                     //
                     else if (pPayment->SetTempValues())
                     {
-                        // ----------------------------------
                         pPayment->GetValidFrom(tValidFrom);
                         pPayment->GetValidTo  (tValidTo);
 
@@ -1586,24 +1403,19 @@ bool OTRecordList::Populate()
                             strFrom.Format("%" PRIu64 "", lFrom);
                             str_date = strFrom.Get();
                         }
-                        // ----------------------------------
                         OTString strMemo;
                         if (pPayment->GetMemo(strMemo))
                         {
                             str_memo = strMemo.Get();
                         }
-                        // ----------------------------------
                         pPayment->GetPaymentContents(strContents);
-                        // -----------------------------
                         OTIdentifier theAssetTypeID, theSenderAcctID;
 
                         if (pPayment->GetAssetTypeID(theAssetTypeID))
                         {
                             OTString strTemp(theAssetTypeID);
                             const std::string str_inpmt_asset(strTemp.Get()); // The asset type we found on the payment (if we found anything.)
-                            // -----------------------------
                             map_of_strings::iterator it_asset = m_assets.find(str_inpmt_asset);
-                            // -----------------------------
                             if (it_asset != m_assets.end()) // Found it on the map of asset types we care about.
                             {
                                 p_str_asset_type = &(it_asset->first);   // Set the asset type ID.
@@ -1620,22 +1432,18 @@ bool OTRecordList::Populate()
                                 continue;
                             }
                         }
-                        // --------------------------------------------------
                         if (str_sender_acct_id.empty() && pPayment->GetSenderAcctIDForDisplay(theSenderAcctID))
                         {
                             OTString strTemp(theSenderAcctID);
                             str_sender_acct_id = strTemp.Get();
                         }
-                        // --------------------------------------------------
                         // By this point, p_str_asset_type and p_str_asset_name are definitely set.
                         OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or it's one of the asset types we care about.
                         OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or it's one of the asset types we care about.
-                        // ---------------------------------------------------
                         // Instrument type (cheque, voucher, etc)
                         int32_t nType = static_cast<int32_t> (pPayment->GetType());
 
                         str_type = OTRecord_GetTypeString(nType);
-                        // ---------------------------------------------------
                         int64_t lAmount = 0;
 
                         if (pPayment->GetAmount(lAmount))
@@ -1646,7 +1454,6 @@ bool OTRecordList::Populate()
                         }
                     }
                 }
-                // ------------------------------
                 OTLog::vOutput(0, "%s: ADDED: pending incoming payment (str_type: %s)\n",
                                __FUNCTION__, str_type.c_str());
 
@@ -1656,7 +1463,6 @@ bool OTRecordList::Populate()
                                                            str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                                                            OTRecordList::s_blank, // This is the Nym's account for this box. (Blank for payments inbox.)
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name, // name of sender (since its in the inbox.)
                                                            str_date, // the "valid from" date on the instrument.
@@ -1667,34 +1473,25 @@ bool OTRecordList::Populate()
                                                            false, //bIsRecord
                                                            false, //bIsReceipt
                                                            OTRecord::Instrument));
-                // -------------------------------------------------
                 if (strContents.Exists())
                     sp_Record->SetContents(strContents.Get());
-                // -------------------------------------------------
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
-                // -------------------------------------------------
                 sp_Record->SetBoxIndex(nIndex);
-                // -------------------------------------------------
                 if (!str_memo.empty())
                     sp_Record->SetMemo(str_memo);
-                // -------------------------------------------------
                 if (!str_sender_nym_id.empty())
                     sp_Record->SetOtherNymID(str_sender_nym_id);
-                // -------------------------------------------------
                 if (!str_sender_acct_id.empty())
                     sp_Record->SetOtherAccountID(str_sender_acct_id);
-                // -------------------------------------------------
                 sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                 sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
 
                 m_contents.push_back(sp_Record);
-                // ------------------------------
 
               } // looping through inbox.
             }
             else
                 OTLog::vOutput(1, "%s: Failed loading payments inbox. (Probably just doesn't exist yet.)\n", __FUNCTION__);
-            // ------------------------------------------------
             nIndex = (-1);
 
             // Also loop through its record box. For this record box, pass the USER_ID twice,
@@ -1711,13 +1508,9 @@ bool OTRecordList::Populate()
               {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
-                // ------------------------------
                 bool bOutgoing = false;
-                // ----------------------------------
                 ++nIndex; // 0 on first iteration.
-                // ------------------------------------------------
                 OTLog::vOutput(0, "%s: Payment RECORD index: %d\n", __FUNCTION__, nIndex);
-                // ------------------------------------------------
                 std::string  str_name; // name of sender OR recipient (depending on whether it was originally incoming or outgoing.)
                 std::string  str_other_nym_id;
                 std::string  str_other_acct_id;
@@ -1755,7 +1548,6 @@ bool OTRecordList::Populate()
 
                                 str_name         = strNameTemp.Get();
                                 str_other_nym_id = str_recipient_id;
-                                // -------------------------------------------
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                                 {
                                     const OTString strRecipientAcctID(theRecipientAcctID);
@@ -1775,7 +1567,6 @@ bool OTRecordList::Populate()
 
                             str_name         = strNameTemp.Get();
                             str_other_nym_id = str_sender_id;
-                            // -------------------------------------------
                             if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID))
                             {
                                 const OTString strSenderAcctID(theSenderAcctID);
@@ -1805,7 +1596,6 @@ bool OTRecordList::Populate()
 
                             str_name         = strNameTemp.Get();
                             str_other_nym_id = str_recipient_id;
-                            // -------------------------------------------
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                             {
                                 const OTString strRecipientAcctID(theRecipientAcctID);
@@ -1814,9 +1604,7 @@ bool OTRecordList::Populate()
                         }
                     }
                 } // if not abbreviated.
-                // ------------------------------
                 time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-                // ------------------------------
                 std::string str_date    = "0"; // the "date signed" on the transaction receipt.
                 time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -1828,11 +1616,9 @@ bool OTRecordList::Populate()
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
-                // ----------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
                 const std::string * p_str_account    = &OTRecordList::s_blank; // <========== ACCOUNT
-                // ----------------------------------
                 std::string str_amount;  // <========== AMOUNT
                 std::string str_type;    // Instrument type.
                 std::string str_memo;    // Instrument memo (if applicable.)
@@ -1841,7 +1627,6 @@ bool OTRecordList::Populate()
                 if (pBoxTrans->IsAbbreviated())
                 {
                     str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                    // --------------------------------------------------
                     int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                     if (0 != lAmount)
@@ -1856,11 +1641,9 @@ bool OTRecordList::Populate()
                     OTPayment * pPayment = pRecordbox->GetInstrument(*pNym,
                                                                      nIndex);     // ===> Returns financial instrument by index.
                     OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                    // ------------------------------
                     if (NULL == pPayment) // then we treat it like it's abbreviated.
                     {
                         str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                        // --------------------------------------------------
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 != lAmount)
@@ -1870,11 +1653,9 @@ bool OTRecordList::Populate()
                             str_amount = strTemp.Get();
                         }
                     }
-                    // ---------------------------------------------------
                     // We have pPayment, the instrument accompanying the receipt in the payments recordbox.
                     else if (pPayment->SetTempValues())
                     {
-                        // ----------------------------------
                         pPayment->GetValidFrom(tValidFrom);
                         pPayment->GetValidTo  (tValidTo);
 
@@ -1885,9 +1666,7 @@ bool OTRecordList::Populate()
                             strFrom.Format("%" PRIu64 "", lFrom);
                             str_date = strFrom.Get();
                         }
-                        // ----------------------------------
                         pPayment->GetPaymentContents(strContents);
-                        // ------------------------------------
                         OTIdentifier theAccountID;
 
                         if (bOutgoing) // Nym is sender.
@@ -1896,9 +1675,7 @@ bool OTRecordList::Populate()
                             {                                            // (If this record was originally OUTgoing, then the SENDER's account is MY acct.)
                                 OTString strTemp(theAccountID);
                                 std::string str_outpmt_account = strTemp.Get(); // The accountID we found on the payment (only applies to outgoing payments.)
-                                // -----------------------------
                                 list_of_strings::iterator it_acct = std::find(m_accounts.begin(), m_accounts.end(), str_outpmt_account);
-                                // -----------------------------
                                 if (it_acct != m_accounts.end()) // Found it on the list of accounts we care about.
                                 {
                                     p_str_account = &(*it_acct);
@@ -1913,7 +1690,6 @@ bool OTRecordList::Populate()
                                                    __FUNCTION__, str_outpmt_account.c_str());
                                     continue;
                                 }
-                                // -------------------------------------------
                             }
                         }
                         else // Nym is recipient.
@@ -1932,19 +1708,15 @@ bool OTRecordList::Populate()
                                 str_other_acct_id = strTemp.Get();
                             }
                         }
-                        // ------------------------------------------
                         // By this point, p_str_account is definitely set.
                         OT_ASSERT(NULL != p_str_account); // and it's either blank, or it's one of the accounts we care about.
-                        // ---------------------------------------------------
                         OTIdentifier theAssetTypeID;
 
                         if (pPayment->GetAssetTypeID(theAssetTypeID))
                         {
                             OTString strTemp(theAssetTypeID);
                             const std::string str_inpmt_asset(strTemp.Get()); // The asset type we found on the payment (if we found anything.)
-                            // -----------------------------
                             map_of_strings::iterator it_asset = m_assets.find(str_inpmt_asset);
-                            // -----------------------------
                             if (it_asset != m_assets.end()) // Found it on the map of asset types we care about.
                             {
                                 p_str_asset_type = &(it_asset->first);   // Set the asset type ID.
@@ -1964,18 +1736,15 @@ bool OTRecordList::Populate()
                         // By this point, p_str_asset_type and p_str_asset_name are definitely set.
                         OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or it's one of the asset types we care about.
                         OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or it's one of the asset types we care about.
-                        // ----------------------------------
                         OTString strMemo;
                         if (pPayment->GetMemo(strMemo))
                         {
                             str_memo = strMemo.Get();
                         }
-                        // ----------------------------------
                         // Instrument type (cheque, voucher, etc)
                         int32_t nType = static_cast<int32_t> (pPayment->GetType());
 
                         str_type = OTRecord_GetTypeString(nType);
-                        // ---------------------------------------------------
                         int64_t lAmount = 0;
 
                         if (pPayment->GetAmount(lAmount))
@@ -1986,7 +1755,6 @@ bool OTRecordList::Populate()
                         }
                     }
                 }
-                // ------------------------------
                 OTLog::vOutput(0, "%s: ADDED: Payment record %s (str_type: %s)\n",
                                __FUNCTION__, bOutgoing ? "(sent)" : "(received)", str_type.c_str());
 
@@ -1996,7 +1764,6 @@ bool OTRecordList::Populate()
                                                            str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                                                            *p_str_account, // This is the Nym's account for this box. (Blank for incoming, set for outgoing.)
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name,    // name of sender or recipient (since its in the recordbox.)
                                                            str_date,    // the "date signed" on the receipt.
@@ -2007,36 +1774,26 @@ bool OTRecordList::Populate()
                                                            true, //IsRecord
                                                            false,//IsReceipt,
                                                            OTRecord::Instrument));
-                // -------------------------------------------------
                 if (strContents.Exists())
                     sp_Record->SetContents(strContents.Get());
-                // -------------------------------------------------
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
-                // -------------------------------------------------
                 sp_Record->SetBoxIndex(nIndex);
-                // -------------------------------------------------
                 if (!str_memo.empty())
                     sp_Record->SetMemo(str_memo);
-                // -------------------------------------------------
                 if (!str_other_nym_id.empty())
                     sp_Record->SetOtherNymID(str_other_nym_id);
-                // -------------------------------------------------
                 if (!str_other_acct_id.empty())
                     sp_Record->SetOtherAccountID(str_other_acct_id);
-                // -------------------------------------------------
                 sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                 sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
 
                 m_contents.push_back(sp_Record);
-                // ------------------------------
 
               } // Loop through Recordbox
             }
             else
               OTLog::vOutput(1, "%s: Failed loading payments record box. (Probably just doesn't exist yet.)\n", __FUNCTION__);
-            // ------------------------------------------------
 
-            // ------------------------------------------------
             // EXPIRED RECORDS:
             nIndex = (-1);
 
@@ -2053,13 +1810,9 @@ bool OTRecordList::Populate()
               {
                 OTTransaction * pBoxTrans = (*it).second;
                 OT_ASSERT(NULL != pBoxTrans);
-                // ------------------------------
                 bool bOutgoing = false;
-                // ----------------------------------
                 ++nIndex; // 0 on first iteration.
-                // ------------------------------------------------
                 OTLog::vOutput(0, "%s: Expired payment RECORD index: %d\n", __FUNCTION__, nIndex);
-                // ------------------------------------------------
                 std::string  str_name; // name of sender OR recipient (depending on whether it was originally incoming or outgoing.)
                 std::string  str_other_nym_id;
                 std::string  str_other_acct_id;
@@ -2097,7 +1850,6 @@ bool OTRecordList::Populate()
 
                                 str_name         = strNameTemp.Get();
                                 str_other_nym_id = str_recipient_id;
-                                // -------------------------------------------
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                                 {
                                     const OTString strRecipientAcctID(theRecipientAcctID);
@@ -2117,7 +1869,6 @@ bool OTRecordList::Populate()
 
                             str_name         = strNameTemp.Get();
                             str_other_nym_id = str_sender_id;
-                            // -------------------------------------------
                             if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID))
                             {
                                 const OTString strSenderAcctID(theSenderAcctID);
@@ -2147,7 +1898,6 @@ bool OTRecordList::Populate()
 
                             str_name         = strNameTemp.Get();
                             str_other_nym_id = str_recipient_id;
-                            // -------------------------------------------
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                             {
                                 const OTString strRecipientAcctID(theRecipientAcctID);
@@ -2156,9 +1906,7 @@ bool OTRecordList::Populate()
                         }
                     }
                 } // if not abbreviated.
-                // ------------------------------
                 time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-                // ------------------------------
                 std::string str_date    = "0"; // the "date signed" on the transaction receipt.
                 time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -2170,11 +1918,9 @@ bool OTRecordList::Populate()
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
-                // ----------------------------------
                 const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
                 const std::string * p_str_account    = &OTRecordList::s_blank; // <========== ACCOUNT
-                // ----------------------------------
                 std::string str_amount;  // <========== AMOUNT
                 std::string str_type;    // Instrument type.
                 std::string str_memo;    // Instrument memo (if applicable.)
@@ -2183,7 +1929,6 @@ bool OTRecordList::Populate()
                 if (pBoxTrans->IsAbbreviated())
                 {
                     str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                    // --------------------------------------------------
                     int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                     if (0 != lAmount)
@@ -2198,11 +1943,9 @@ bool OTRecordList::Populate()
                     OTPayment * pPayment = pExpiredbox->GetInstrument(*pNym,
                                                                       nIndex);     // ===> Returns financial instrument by index.
                     OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                    // ------------------------------
                     if (NULL == pPayment) // then we treat it like it's abbreviated.
                     {
                         str_type = pBoxTrans->GetTypeString(); // instrumentNotice, etc.
-                        // --------------------------------------------------
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 != lAmount)
@@ -2212,11 +1955,9 @@ bool OTRecordList::Populate()
                             str_amount = strTemp.Get();
                         }
                     }
-                    // ---------------------------------------------------
                     // We have pPayment, the instrument accompanying the receipt in the payments recordbox.
                     else if (pPayment->SetTempValues())
                     {
-                        // ----------------------------------
                         pPayment->GetValidFrom(tValidFrom);
                         pPayment->GetValidTo  (tValidTo);
 
@@ -2227,9 +1968,7 @@ bool OTRecordList::Populate()
                             strFrom.Format("%" PRIu64 "", lFrom);
                             str_date = strFrom.Get();
                         }
-                        // ----------------------------------
                         pPayment->GetPaymentContents(strContents);
-                        // ------------------------------------
                         OTIdentifier theAccountID;
 
                         if (bOutgoing) // Nym is sender.
@@ -2238,9 +1977,7 @@ bool OTRecordList::Populate()
                             {                                            // (If this record was originally OUTgoing, then the SENDER's account is MY acct.)
                                 OTString strTemp(theAccountID);
                                 std::string str_outpmt_account = strTemp.Get(); // The accountID we found on the payment (only applies to outgoing payments.)
-                                // -----------------------------
                                 list_of_strings::iterator it_acct = std::find(m_accounts.begin(), m_accounts.end(), str_outpmt_account);
-                                // -----------------------------
                                 if (it_acct != m_accounts.end()) // Found it on the list of accounts we care about.
                                 {
                                     p_str_account = &(*it_acct);
@@ -2255,7 +1992,6 @@ bool OTRecordList::Populate()
                                                    __FUNCTION__, str_outpmt_account.c_str());
                                     continue;
                                 }
-                                // -------------------------------------------
                             }
                         }
                         else // Nym is recipient.
@@ -2274,19 +2010,15 @@ bool OTRecordList::Populate()
                                 str_other_acct_id = strTemp.Get();
                             }
                         }
-                        // ------------------------------------------
                         // By this point, p_str_account is definitely set.
                         OT_ASSERT(NULL != p_str_account); // and it's either blank, or it's one of the accounts we care about.
-                        // ---------------------------------------------------
                         OTIdentifier theAssetTypeID;
 
                         if (pPayment->GetAssetTypeID(theAssetTypeID))
                         {
                             OTString strTemp(theAssetTypeID);
                             const std::string str_inpmt_asset(strTemp.Get()); // The asset type we found on the payment (if we found anything.)
-                            // -----------------------------
                             map_of_strings::iterator it_asset = m_assets.find(str_inpmt_asset);
-                            // -----------------------------
                             if (it_asset != m_assets.end()) // Found it on the map of asset types we care about.
                             {
                                 p_str_asset_type = &(it_asset->first);   // Set the asset type ID.
@@ -2306,18 +2038,15 @@ bool OTRecordList::Populate()
                         // By this point, p_str_asset_type and p_str_asset_name are definitely set.
                         OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or it's one of the asset types we care about.
                         OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or it's one of the asset types we care about.
-                        // ----------------------------------
                         OTString strMemo;
                         if (pPayment->GetMemo(strMemo))
                         {
                             str_memo = strMemo.Get();
                         }
-                        // ----------------------------------
                         // Instrument type (cheque, voucher, etc)
                         int32_t nType = static_cast<int32_t> (pPayment->GetType());
 
                         str_type = OTRecord_GetTypeString(nType);
-                        // ---------------------------------------------------
                         int64_t lAmount = 0;
 
                         if (pPayment->GetAmount(lAmount))
@@ -2328,7 +2057,6 @@ bool OTRecordList::Populate()
                         }
                     }
                 }
-                // ------------------------------
                 OTLog::vOutput(0, "%s: ADDED: Expired payment record %s (str_type: %s)\n",
                                __FUNCTION__, bOutgoing ? "(sent)" : "(received)", str_type.c_str());
 
@@ -2338,7 +2066,6 @@ bool OTRecordList::Populate()
                                                            str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                                                            *p_str_account, // This is the Nym's account for this box. (Blank for incoming, set for outgoing.)
                                                            // Everything above this line, it stores a reference to an external string.
-                                                           // -----------------------------
                                                            // Everything below this line, it makes its own internal copy of the string.
                                                            str_name,    // name of sender or recipient (since its in the recordbox.)
                                                            str_date,    // the "date signed" on the receipt.
@@ -2349,78 +2076,58 @@ bool OTRecordList::Populate()
                                                            true, //IsRecord
                                                            false,//IsReceipt,
                                                            OTRecord::Instrument));
-                // -------------------------------------------------
                 if (strContents.Exists())
                     sp_Record->SetContents(strContents.Get());
-                // -------------------------------------------------
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
-                // -------------------------------------------------
                 sp_Record->SetExpired();
-                // -------------------------------------------------
                 sp_Record->SetBoxIndex(nIndex);
-                // -------------------------------------------------
                 if (!str_memo.empty())
                     sp_Record->SetMemo(str_memo);
-                // -------------------------------------------------
                 if (!str_other_nym_id.empty())
                     sp_Record->SetOtherNymID(str_other_nym_id);
-                // -------------------------------------------------
                 if (!str_other_acct_id.empty())
                     sp_Record->SetOtherAccountID(str_other_acct_id);
-                // -------------------------------------------------
                 sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
                 sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
 
                 m_contents.push_back(sp_Record);
-                // ------------------------------
 
               } // Loop through ExpiredBox
             }
             else
                 OTLog::vOutput(1, "%s: Failed loading expired payments box. (Probably just doesn't exist yet.)\n", __FUNCTION__);
-            // ------------------------------------------------
 
             } // Loop through servers for each Nym.
     } // Loop through Nyms.
-    // ------------------------------------------------
     // ASSET ACCOUNT -- INBOX/OUTBOX + RECORD BOX
     // Loop through the Accounts.
     //
-    // ------------------------------------------------
     OTLog::vOutput(0, "================ %s: Looping through the accounts in the wallet...\n", __FUNCTION__);
-    // ------------------------------------------------
     int32_t nAccountIndex = -1;
     FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
     {
         ++nAccountIndex; // (0 on first iteration.)
-        // ------------------
         // For each account, loop through its inbox, outbox, and record box.
         //
         const std::string  & str_account_id(*it_acct);
         const OTIdentifier   theAccountID  (str_account_id);
         OTAccount * pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(NULL != pAccount);
-        // ------------------------------------------------
         const OTIdentifier & theNymID    = pAccount->GetUserID();
         const OTIdentifier & theServerID = pAccount->GetPurportedServerID();
         const OTIdentifier & theAssetID  = pAccount->GetAssetTypeID();
-        // ------------------------------------------------
         const OTString       strNymID   (theNymID);
         const OTString       strServerID(theServerID);
         const OTString       strAssetID (theAssetID);
-        // ------------------------------------------------
         OTLog::vOutput(0, "------------\n%s: Account: %d, ID: %s\n", __FUNCTION__,
                        nAccountIndex, str_account_id.c_str());
-        // ------------------------------------------------
         const std::string    str_nym_id   (strNymID.Get());
         const std::string    str_server_id(strServerID.Get());
         const std::string    str_asset_id (strAssetID.Get());
-        // ------------------------------------------------
         const std::string  * pstr_nym_id     = &OTRecordList::s_blank;
         const std::string  * pstr_server_id  = &OTRecordList::s_blank;
         const std::string  * pstr_asset_id   = &OTRecordList::s_blank;
         const std::string  * pstr_asset_name = &OTRecordList::s_blank;
-        // ------------------------------------------------
         // NOTE: Since this account is already on my "care about" list for accounts,
         // I wouldn't bother double-checking my "care about" lists for servers, nyms,
         // and asset types. But I still look up the appropriate string for each, since
@@ -2431,7 +2138,6 @@ bool OTRecordList::Populate()
         list_of_strings::iterator it_nym    = std::find(m_nyms.begin(),    m_nyms.end(),    str_nym_id);
         list_of_strings::iterator it_server = std::find(m_servers.begin(), m_servers.end(), str_server_id);
          map_of_strings::iterator it_asset  = m_assets.find(str_asset_id);
-        // ------------------------------------------------
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) || (m_assets.end() == it_asset))
         {
             OTLog::vOutput(0, "%s: Skipping an account (%s) since its Nym, or Server, "
@@ -2439,14 +2145,12 @@ bool OTRecordList::Populate()
                            str_account_id.c_str());
             continue;
         }
-        // ------------------------------------------------
         // These pointers are what we'll use to construct each OTRecord.
         //
         pstr_nym_id     = &(*it_nym);
         pstr_server_id  = &(*it_server);
         pstr_asset_id   = &(it_asset->first);
         pstr_asset_name = &(it_asset->second);
-        // ------------------------------------------------
         // Loop through asset account INBOX.
         //
         // OPTIMIZE FYI:
@@ -2458,7 +2162,6 @@ bool OTRecordList::Populate()
                                          OTAPI_Wrap::OTAPI()->LoadInbox        (theServerID, theNymID, theAccountID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
 
-        // ------------------------------------------------
         int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
         if (NULL != pInbox)
@@ -2466,17 +2169,12 @@ bool OTRecordList::Populate()
           FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
           {
             ++nInboxIndex; // (0 on first iteration.)
-            // ------------------------------------------------
             if (0 == nInboxIndex)
                 OTLog::vOutput(0, "%s: Beginning loop through asset account INBOX...\n", __FUNCTION__);
-            // --------------------------------
             OTTransaction * pBoxTrans = (*it).second;
             OT_ASSERT(NULL != pBoxTrans);
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__, nInboxIndex);
-            // ------------------------------------------------
             bool bCanceled = false;
-            // ------------------------------------------------
             std::string  str_name; // name of sender (since its in the inbox.)
             std::string  str_other_nym_id;
             std::string  str_other_acct_id;
@@ -2488,7 +2186,6 @@ bool OTRecordList::Populate()
 
                 if (pBoxTrans->GetMemo(strMemo))
                     str_memo = strMemo.Get();
-                // ------------------------------------------------
                 if (OTTransaction::pending == pBoxTrans->GetType())
                 {
                     // NOTE: REMOVE THE BELOW CODE. (Found a better way, above this block.)
@@ -2496,7 +2193,6 @@ bool OTRecordList::Populate()
 //
 //                    if (strBoxTrans.Exists())
 //                        str_memo = OTAPI_Wrap::Pending_GetNote(*pstr_server_id, *pstr_nym_id, str_account_id, strBoxTrans.Get());
-                    // ------------------------------
                     OTIdentifier theSenderID, theSenderAcctID;
 
                     if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID)) // ACCOUNT name.
@@ -2506,7 +2202,6 @@ bool OTRecordList::Populate()
                             const OTString strSenderID(theSenderID);
                             str_other_nym_id = strSenderID.Get();
                         }
-                        // ------------------------------------
                         const OTString    strSenderAcctID(theSenderAcctID);
                         const std::string str_sender_acct_id(strSenderAcctID.Get());
 
@@ -2534,7 +2229,6 @@ bool OTRecordList::Populate()
                                 str_name = strNameTemp.Get();
                             }
                         }
-                        // ---------------------------------------
                         if (str_name.empty())
                         {
                             strNameTemp.Format(OTRecordList::textFrom(), str_sender_acct_id.c_str());
@@ -2587,7 +2281,6 @@ bool OTRecordList::Populate()
 
                         str_name         = strNameTemp.Get();
                         str_other_nym_id = str_recipient_user_id;
-                        // ------------------------------------
                         if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                         {
                             const OTString strRecipientAcctID(theRecipientAcctID);
@@ -2615,11 +2308,8 @@ bool OTRecordList::Populate()
                     }
                 } //end: (else it's a receipt.)
             }
-            // ------------------------------
             bCanceled = pBoxTrans->IsCancelled();
-            // ------------------------------
             time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-            // ------------------------------
             std::string str_date    = "0"; // the "date signed" on the transaction receipt.
             time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -2631,22 +2321,18 @@ bool OTRecordList::Populate()
                 strDateSigned.Format("%" PRIu64 "", lDateSigned);
                 str_date = strDateSigned.Get();
             }
-            // ------------------------------
             std::string str_amount;  // <========== AMOUNT
             int64_t        lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
             if (0 == lAmount)
                 lAmount = pBoxTrans->GetReceiptAmount();
-            // ------------------------------------------
             if (0 != lAmount)
             {
                 OTString strTemp;
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            // ------------------------------
             const std::string str_type(pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
-            // ------------------------------
             OTLog::vOutput(0, "%s: ADDED: incoming %s (str_type: %s)\n",
                            __FUNCTION__,
                            (OTTransaction::pending == pBoxTrans->GetType()) ? "pending transfer" : "receipt",
@@ -2658,7 +2344,6 @@ bool OTRecordList::Populate()
                                                        *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                                                        str_account_id, // This is the Nym's account for this box.
                                                        // Everything above this line, it stores a reference to an external string.
-                                                       // -----------------------------
                                                        // Everything below this line, it makes its own internal copy of the string.
                                                        str_name, // name of sender (since its in the inbox.)
                                                        str_date, // the "valid from" date on the instrument.
@@ -2670,33 +2355,23 @@ bool OTRecordList::Populate()
                                                        (OTTransaction::pending != pBoxTrans->GetType()), //IsReceipt,
                                                        (OTTransaction::pending == pBoxTrans->GetType()) ?
                                                             OTRecord::Transfer : OTRecord::Receipt ));
-            // -------------------------------------------------
             const OTString strContents(*pBoxTrans);
             sp_Record->SetContents(strContents.Get());
-            // -------------------------------------------------
             sp_Record->SetDateRange(tValidFrom, tValidTo);
-            // -------------------------------------------------
             sp_Record->SetBoxIndex(nInboxIndex);
-            // -------------------------------------------------
             if (bCanceled)
                 sp_Record->SetCanceled();
-            // -------------------------------------------------
             if (!str_memo.empty())
                 sp_Record->SetMemo(str_memo);
-            // -------------------------------------------------
             if (!str_other_nym_id.empty())
                 sp_Record->SetOtherNymID(str_other_nym_id);
-            // -------------------------------------------------
             if (!str_other_acct_id.empty())
                 sp_Record->SetOtherAccountID(str_other_acct_id);
-            // -------------------------------------------------
             sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
-            // -------------------------------------------------
             m_contents.push_back(sp_Record);
           }
         }
-        // ------------------------------------------------
         // OPTIMIZE FYI:
         // NOTE: LoadOutbox is much SLOWER than LoadOutboxNoVerify, but it also lets you get
         // the NAME off of the box receipt. So if you are willing to GIVE UP the NAME, in
@@ -2713,15 +2388,11 @@ bool OTRecordList::Populate()
           FOR_EACH(mapOfTransactions, pOutbox->GetTransactionMap())
           {
             ++nOutboxIndex; // (0 on first iteration.)
-            // ------------------------------------------------
             if (0 == nOutboxIndex)
                 OTLog::vOutput(0, "%s: Beginning loop through asset account OUTBOX...\n", __FUNCTION__);
-            // --------------------------------
             OTTransaction * pBoxTrans = (*it).second;
             OT_ASSERT(NULL != pBoxTrans);
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Outbox index: %d\n", __FUNCTION__, nOutboxIndex);
-            // ------------------------------------------------
             std::string  str_name; // name of recipient (since its in the outbox.)
             std::string  str_other_nym_id;
             std::string  str_other_acct_id;
@@ -2745,7 +2416,6 @@ bool OTRecordList::Populate()
 
                     str_name         = strNameTemp.Get();
                     str_other_nym_id = str_recipient_id;
-                    // ------------------------------------
                     if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                     {
                         const OTString strRecipientAcctID(theRecipientAcctID);
@@ -2771,7 +2441,6 @@ bool OTRecordList::Populate()
                     str_name          = strNameTemp.Get();
                     str_other_acct_id = str_recipient_acct_id;
                 }
-                // --------------------------
                 if (OTTransaction::pending == pBoxTrans->GetType())
                 {
                     OTString strMemo;
@@ -2786,9 +2455,7 @@ bool OTRecordList::Populate()
 //                        str_memo = OTAPI_Wrap::Pending_GetNote(*pstr_server_id, *pstr_nym_id, str_account_id, strBoxTrans.Get());
                 }
             }
-            // ------------------------------
             time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-            // ------------------------------
             std::string str_date    = "0"; // the "date signed" on the transaction receipt.
             time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -2800,27 +2467,22 @@ bool OTRecordList::Populate()
                 strDateSigned.Format("%" PRIu64 "", lDateSigned);
                 str_date = strDateSigned.Get();
             }
-            // ------------------------------
             std::string str_amount;  // <========== AMOUNT
             int64_t        lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
             if (0 == lAmount)
                 lAmount = pBoxTrans->GetReceiptAmount();
-            // -------------------------------------------
             if (lAmount > 0) // Outgoing transfer should display with negative amount
                 lAmount *= (-1);
-            // -------------------------------------------
             if (0 != lAmount)
             {
                 OTString strTemp;
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            // ------------------------------
             std::string str_type(pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
             if (0 == str_type.compare("pending"))
                 str_type = "transfer";
-            // ------------------------------
             OTLog::vOutput(0, "%s: ADDED: %s outgoing transfer (str_type: %s).\n", __FUNCTION__,
                            (OTTransaction::pending == pBoxTrans->GetType()) ? "pending" : "ERROR", str_type.c_str());
 
@@ -2830,7 +2492,6 @@ bool OTRecordList::Populate()
                                                        *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                                                        str_account_id, // This is the Nym's account for this box.
                                                        // Everything above this line, it stores a reference to an external string.
-                                                       // -----------------------------
                                                        // Everything below this line, it makes its own internal copy of the string.
                                                        str_name, // name of recipient (since its in the outbox.)
                                                        str_date, // the "valid from" date on the instrument.
@@ -2842,30 +2503,21 @@ bool OTRecordList::Populate()
                                                        false, //IsReceipt
                                                        OTRecord::Transfer
                                                        ));
-            // -------------------------------------------------
             const OTString strContents(*pBoxTrans);
             sp_Record->SetContents(strContents.Get());
-            // -------------------------------------------------
             sp_Record->SetDateRange(tValidFrom, tValidTo);
-            // -------------------------------------------------
             sp_Record->SetBoxIndex(nOutboxIndex);
-            // -------------------------------------------------
             if (!str_memo.empty())
                 sp_Record->SetMemo(str_memo);
-            // -------------------------------------------------
             if (!str_other_nym_id.empty())
                 sp_Record->SetOtherNymID(str_other_nym_id);
-            // -------------------------------------------------
             if (!str_other_acct_id.empty())
                 sp_Record->SetOtherAccountID(str_other_acct_id);
-            // -------------------------------------------------
             sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
-            // -------------------------------------------------
             m_contents.push_back(sp_Record);
           }
         }
-        // ------------------------------------------------
         // For this record box, pass a NymID AND an AcctID,
         // since it's the recordbox for a specific account.
         //
@@ -2885,15 +2537,11 @@ bool OTRecordList::Populate()
           FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
           {
             ++nRecordIndex;
-            // -----------------------------
             OTTransaction * pBoxTrans = (*it).second;
             OT_ASSERT(NULL != pBoxTrans);
-            // ------------------------------------------------
             OTLog::vOutput(0, "%s: Account RECORD index: %d\n", __FUNCTION__, nRecordIndex);
-            // ------------------------------------------------
             bool bOutgoing = false;
             bool bCanceled = false;
-            // ------------------------------
             std::string  str_name; // name of sender OR recipient (depending on whether it was originally incoming or outgoing.)
             std::string  str_other_nym_id;
             std::string  str_other_acct_id;
@@ -2934,7 +2582,6 @@ bool OTRecordList::Populate()
                                 theRecipientID.GetString(strRecipientUserID);
                                 str_recip_user_id = strRecipientUserID.Get();
                             }
-                            // ---------------------------------------
                             // NOTE: We check for cancelled here so we don't accidentally
                             // cause the address book to falsely believe that str_recip_user_id
                             // is the owner of str_recip_acct_id. (If the cheque/invoice is cancelled,
@@ -2965,7 +2612,6 @@ bool OTRecordList::Populate()
                             }
                             str_other_acct_id = str_recip_acct_id;
                         }
-                        // -----------------------------------------
                         if (bGotRecipientUserIDForDisplay)
                         {
                             const OTString strRecipientID(theRecipientID);
@@ -2994,7 +2640,6 @@ bool OTRecordList::Populate()
                             const OTString strSenderUserID(theSenderID);
                             str_other_nym_id = strSenderUserID.Get();
                         }
-                        // ------------------------------------
                         OTString strName(m_pLookup->GetAcctName(str_sender_acct_id,
                                                                 str_other_nym_id.empty() ? NULL :
                                                                     &str_other_nym_id, // nym ID if known
@@ -3022,7 +2667,6 @@ bool OTRecordList::Populate()
 
                         str_other_nym_id = str_recipient_user_id;
                     }
-                    // --------------------------------------------------------
                     const OTString strRecipientAcctID(theRecipientAcctID);
                     const std::string str_recipient_acct_id(strRecipientAcctID.Get());
 
@@ -3076,7 +2720,6 @@ bool OTRecordList::Populate()
 
                             str_name         = strNameTemp.Get();
                             str_other_nym_id = str_recipient_id;
-                            // ------------------------------------
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                             {
                                 const OTString strRecipientAcctID(theRecipientAcctID);
@@ -3096,7 +2739,6 @@ bool OTRecordList::Populate()
 
                         str_name         = strNameTemp.Get();
                         str_other_nym_id = str_sender_id;
-                        // ------------------------------------
                         if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID))
                         {
                             const OTString strSenderAcctID(theSenderAcctID);
@@ -3126,7 +2768,6 @@ bool OTRecordList::Populate()
 
                         str_name         = strNameTemp.Get();
                         str_other_nym_id = str_recipient_id;
-                        // ------------------------------------
                         if (pBoxTrans->GetRecipientAcctIDForDisplay(theRecipientAcctID))
                         {
                             const OTString strRecipientAcctID(theRecipientAcctID);
@@ -3134,7 +2775,6 @@ bool OTRecordList::Populate()
                         }
                     }
                 }
-                // ---------------------
                 // Get the Memo field for a transferReceipt and also for other receipts.
                 //
                 OTString strMemo;
@@ -3143,11 +2783,8 @@ bool OTRecordList::Populate()
                     str_memo = strMemo.Get();
 
             } // if not abbreviated.
-            // ------------------------------
             bCanceled = pBoxTrans->IsCancelled();
-            // ------------------------------
             time64_t tValidFrom = OT_TIME_ZERO, tValidTo = OT_TIME_ZERO;
-            // ------------------------------
             std::string str_date    = "0"; // the "date signed" on the transaction receipt.
             time64_t      tDateSigned = pBoxTrans->GetDateSigned();
 
@@ -3159,20 +2796,16 @@ bool OTRecordList::Populate()
                 strDateSigned.Format("%" PRIu64 "", lDateSigned);
                 str_date = strDateSigned.Get();
             }
-            // ------------------------------
             std::string str_amount;  // <========== AMOUNT
             int64_t        lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
             if (0 == lAmount)
                 lAmount = pBoxTrans->GetReceiptAmount();
-            // ------------------------------------------
             const std::string str_type(pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
-            // ------------------------------
             if (0 == str_type.compare("transferReceipt"))
                 bOutgoing = true; // only the sender of a transfer will have a transferReceipt.
             else if (0 == str_type.compare("pending"))
                 bOutgoing = false; // only the recipient of a transfer will have a pending in his recordbox.
-            // ------------------------------
             if (0 != lAmount)
             {
 
@@ -3192,7 +2825,6 @@ bool OTRecordList::Populate()
                 str_amount = strTemp.Get();
 
             }
-            // ------------------------------
             OTLog::vOutput(0, "%s: ADDED: %s (asset account) record (str_type: %s)\n",
                            __FUNCTION__,
                            // This line means: If it's a receipt, use a blank string. Otherwise if
@@ -3211,7 +2843,6 @@ bool OTRecordList::Populate()
                                                        *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                                                        str_account_id, // This is the Nym's account for this box.
                                                        // Everything above this line, it stores a reference to an external string.
-                                                       // -----------------------------
                                                        // Everything below this line, it makes its own internal copy of the string.
                                                        str_name, // name of sender or recipient (whichever is NOT the current Nym.)
                                                        str_date, // the "valid from" date on the instrument.
@@ -3223,40 +2854,28 @@ bool OTRecordList::Populate()
                                                        pBoxTrans->GetType() != OTTransaction::pending, //IsReceipt
                                                        pBoxTrans->GetType() == OTTransaction::pending ?
                                                             OTRecord::Transfer : OTRecord::Receipt));
-            // -------------------------------------------------
             const OTString strContents(*pBoxTrans);
             sp_Record->SetContents(strContents.Get());
-            // -------------------------------------------------
             if (bCanceled)
                 sp_Record->SetCanceled();
-            // -------------------------------------------------
             sp_Record->SetDateRange(tValidFrom, tValidTo);
-            // -------------------------------------------------
             sp_Record->SetBoxIndex(nRecordIndex);
-            // -------------------------------------------------
             if (!str_memo.empty())
                 sp_Record->SetMemo(str_memo);
-            // -------------------------------------------------
             if (!str_other_nym_id.empty())
                 sp_Record->SetOtherNymID(str_other_nym_id);
-            // -------------------------------------------------
             if (!str_other_acct_id.empty())
                 sp_Record->SetOtherAccountID(str_other_acct_id);
-            // -------------------------------------------------
             sp_Record->SetTransNumForDisplay(pBoxTrans->GetReferenceNumForDisplay());
             sp_Record->SetTransactionNum(pBoxTrans->GetTransactionNum());
-            // -------------------------------------------------
             m_contents.push_back(sp_Record);
           }
         }
-        // ------------------------------------------------
 
     } // loop through the accounts.
-    // ------------------------------------------------
     // SORT the vector.
     //
     SortRecords();
-    // ------------------------------------------------
     return true;
 }
 
@@ -3281,7 +2900,6 @@ void OTRecordList::SortRecords()
     std::sort (m_contents.begin(), m_contents.end(), compare_records); // Todo optimize: any faster sorting algorithms?
 }
 
-// ---------------------------------------
 
 // Let's say you also want to add some Bitmessages. (Or any other external
 // source.) This is where you do that. Make sure to call Populate, then use
@@ -3300,11 +2918,8 @@ void OTRecordList::AddSpecialMsg(
     time64_t            tDate         /*=OT_TIME_ZERO*/
 )
 {
-    // ------------------------------------------------
     const char * pToFrom = bIsOutgoing ? OTRecordList::textTo() : OTRecordList::textFrom();
-    // ------------------------------------------------
     const std::string * p_str_server = &OTRecordList::s_blank; // <========== Bitmessage doesn't use OT servers.
-    // ---------------------------------------------------
     // TODO OPTIMIZE: instead of looking up the Nym's name every time, look it
     // up ONCE when first adding the NymID. Add it to a map, instead of a list,
     // and add the Nym's name as the second item in the map's pair.
@@ -3314,7 +2929,6 @@ void OTRecordList::AddSpecialMsg(
     
     if (!str_other_address.empty())
         str_other_name = m_pLookup->GetAddressName(str_other_address);
-    // ---------------------------------------------------
     OTString     strNameTemp;
     std::string  str_name("");
     
@@ -3324,7 +2938,6 @@ void OTRecordList::AddSpecialMsg(
         strNameTemp.Format(pToFrom, str_other_address.c_str());
     
     str_name = strNameTemp.Get();
-    // ---------------------------------------------------
     const std::string * p_str_nym_id     = &OTRecordList::s_blank; // <========== MY NYM ID
     const std::string * p_str_asset_type = &OTRecordList::s_blank; // <========== ASSET TYPE
     const std::string * p_str_asset_name = &OTRecordList::s_blank; // asset type display name.
@@ -3336,7 +2949,6 @@ void OTRecordList::AddSpecialMsg(
     OTString strDate;
     strDate.Format("%" PRIu64 "", lDate);
     const std::string str_date(strDate.Get());
-    // ---------------------------------------------------
     // CREATE AN OTRecord AND POPULATE IT...
     //
     // This loop is here because normally an OTRecord's "nym id" is
@@ -3358,14 +2970,12 @@ void OTRecordList::AddSpecialMsg(
             }
         }
     }
-    // ----------------------------------------------------
     shared_ptr_OTRecord sp_Record(new OTRecord(*p_str_server,
                                                *p_str_asset_type,
                                                *p_str_asset_name,
                                                *p_str_nym_id,  // This is "me" (the sender Nym, if outgoing, or recipient, if incoming.)
                                                *p_str_account, // No OT asset account on any mail, much less on a "bitmessage" mail.
                                                // Everything above this line, it stores a reference to an external string.
-                                               // -----------------------------
                                                // Everything below this line, it makes its own internal copy of the string.
                                                str_name, // name of sender for incoming, otherwise name of recipient for outgoing.
                                                str_date,
@@ -3378,30 +2988,20 @@ void OTRecordList::AddSpecialMsg(
                                                OTRecord::Mail
                                                ));
     sp_Record->SetSpecialMail(); //true by default. This means it's not an OT message, but a Bitmessage (or something like that.)
-    // -------------------------------------------------
     sp_Record->SetContents(str_contents.c_str()); // "Subject: %s\n[Contents]"
-    // -------------------------------------------------
     sp_Record->SetMsgID(str_msg_id);
-    // -------------------------------------------------
     sp_Record->SetDateRange(OTTimeGetTimeFromSeconds(tDate), OTTimeGetTimeFromSeconds(tDate));
-    // -------------------------------------------------
     sp_Record->SetMethodID(nMethodID);
-    // -------------------------------------------------
     sp_Record->SetAddress(str_address);
-    // -------------------------------------------------
     sp_Record->SetOtherAddress(str_other_address);
-    // -------------------------------------------------
     sp_Record->SetMsgType(str_type);
-    // -------------------------------------------------
     sp_Record->SetMsgTypeDisplay(str_type_display);
-    // -------------------------------------------------
     OTLog::vOutput(1, "%s: ADDED: %s special mail.\n", __FUNCTION__,
                    bIsOutgoing ? "outgoing" : "incoming");
 
     m_contents.push_back(sp_Record);
 }
 
-// ------------------------------------------------
 
 // This one expects that s_pCaller is not NULL.
 //
@@ -3415,10 +3015,8 @@ OTRecordList::OTRecordList() :
 {
     OT_ASSERT_MSG( (NULL != s_pCaller), "Address Book Caller was NULL! "
                   "On app startup, did you forget to call OT_API_Set_AddrBookCallback ?\n");
-    // -----------------------------------
     OT_ASSERT_MSG( (s_pCaller->isCallbackSet()), "Address Book Callback was NULL! "
                     "On app startup, did you forget to call OT_API_Set_AddrBookCallback ?\n");
-    // -----------------------------------
     m_pLookup = s_pCaller->getCallback();  // <==========
 }
 
@@ -3450,7 +3048,6 @@ void OTRecordList::ClearContents()
     m_contents.clear();
 }
 
-// ------------------------------------------------
 // RETRIEVE:
 //
 
@@ -3477,7 +3074,6 @@ shared_ptr_OTRecord OTRecordList::GetRecord(int32_t nIndex)
     return sp_record;
 }
 
-// ------------------------------------------------
 
 
 

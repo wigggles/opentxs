@@ -205,7 +205,6 @@ EXPORT    void SetScript(const std::string & new_string);
 
     void SetDisplayFilename(const std::string str_display_filename)
     { m_str_display_filename = str_display_filename;}
-    // ---------------------------------------------------
 
     // The same OTSmartContract that loads all the clauses (scripts) will
     // also load all the parties, so it will call this function whenever before it

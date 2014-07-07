@@ -912,7 +912,6 @@ int64_t OTAgreement::GetRecipientClosingNum() const
 }
 
 
-// ------------------------------------------------------------
 // These are for finalReceipt
 // The Cron Item stores a list of these closing transaction numbers,
 // used for closing a transaction.

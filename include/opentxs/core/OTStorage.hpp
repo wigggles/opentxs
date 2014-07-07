@@ -223,7 +223,6 @@ namespace OTDB
 
     // ENUMS:    PackType, StorageType, and StoredObjectType.
 
-    // ---------------------------------------------------
     // Currently supporting MsgPack and Protocol Buffers.
     //
     enum PackType // PACKING TYPE
@@ -233,7 +232,6 @@ namespace OTDB
         PACK_TYPE_ERROR            // (Should never be.)
     };
 
-    // ------------------------------
     // Currently supporting filesystem, with subclasses possible via API.
     //
     enum StorageType  // STORAGE TYPE
@@ -244,7 +242,6 @@ namespace OTDB
     };
 
 #ifndef SWIG
-    // -------------------------------------
     //
     // STORED OBJECT TYPES...
     //
@@ -299,7 +296,6 @@ namespace OTDB
         InitOTDBDetails();  // See implementation of this in CPP file for namespace construction.
         ~InitOTDBDetails(); // Ditto.
     };
-    // -------------------------------
 
     // As far as the USERS of the Storage API are concerned, the above classes are nearly everything.
     // (In addition to the "Pure Data" classes such as ContactNym, BitcoinAcct, etc.)
@@ -307,7 +303,6 @@ namespace OTDB
     // subclasses based on specific packers, such as ContactNymMsgpack, or WalletDataProtobuf. But these
     // are hidden, and are not seen outside of OTStorage in its actual USE.
 
-    // ------------------------------------------------
     //
     // OTDB Namespace internal typedefs
     //
@@ -341,7 +336,6 @@ namespace OTDB
 
 
 
-    // ----------------------------------------------------
 
     // All of the class hierarchy under Storable is based on OT data design. (Not packing and such implementation details.)
     // So when we need to add custom behavior that's common to groups of the final subclasses,
@@ -361,7 +355,6 @@ namespace OTDB
     DeclareInterface(IStorable)
         virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj) = 0; // buffer is output, inObj is input.
     virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj) = 0; // buffer is input, outObj is output.
-    // ------------------------------------------
     virtual void hookBeforePack() {} // This is called just before packing a storable. (Opportunity to copy values...)
     virtual void hookAfterUnpack() {} // This is called just after unpacking a storable. (Opportunity to copy values...)
     EndInterface
@@ -390,7 +383,6 @@ namespace OTDB
 
 
 
-        // -------------------
         //
         // STORABLE
         //
@@ -441,7 +433,6 @@ namespace OTDB
         virtual    void SetData(const uint8_t * pData, size_t theSize)=0;
     };
 
-    // --------------------------------
     //
     // SUBCLASSES (the actual declarations are at the bottom of this file.)
     //
@@ -506,7 +497,6 @@ namespace OTDB
     };
 
 
-    // ----------------------------------------------------
     // For declaring subclasses of OTPacker.
 
     template<class theBufferType>
@@ -524,7 +514,6 @@ namespace OTDB
     // To use:
     // typedef PackerSubclass<theBufferType> theType;
     //
-    // ----------------------------------------------------
 
     // SUBCLASSES:
     //
@@ -586,7 +575,6 @@ namespace OTDB
         virtual bool onEraseValueByKey(std::string strFolder, std::string oneStr="",
             std::string twoStr="", std::string threeStr="")=0;
 
-        // -------------------------------------
 
     public:
         // Use GetPacker() to access the Packer, throughout duration of this Storage object.
@@ -605,7 +593,6 @@ namespace OTDB
         //virtual bool Init(std::string oneStr="", std::string twoStr="", std::string threeStr="",
         //                  std::string fourStr="", std::string fiveStr="", std::string sixStr="")=0;
 
-        // -----------------------------------------
         // See if the file is there.
         virtual bool Exists(std::string strFolder,
             std::string oneStr="", std::string twoStr="", std::string threeStr="")=0;
@@ -618,7 +605,6 @@ namespace OTDB
 
         virtual ~Storage() { if (NULL != m_pPacker) delete m_pPacker; m_pPacker = NULL; }
 
-        // -----------------------------------------
         // Store/Retrieve a string.
 
         EXPORT        bool StoreString(std::string strContents, std::string strFolder,
@@ -633,7 +619,6 @@ namespace OTDB
         EXPORT        std::string QueryPlainString(std::string strFolder, std::string oneStr="",
             std::string twoStr="", std::string threeStr="");
 
-        // -----------------------------------------
         // Store/Retrieve an object. (Storable.)
 
         EXPORT        bool StoreObject(Storable & theContents, std::string strFolder,
@@ -643,7 +628,6 @@ namespace OTDB
         EXPORT        Storable * QueryObject(StoredObjectType theObjectType,
             std::string strFolder, std::string oneStr="",
             std::string twoStr="", std::string threeStr="");
-        // -----------------------------------------
         // Store/Retrieve a Storable object inside an OTASCIIArmor object.
 
         EXPORT        std::string EncodeObject(Storable & theContents);
@@ -651,13 +635,11 @@ namespace OTDB
         // Use %newobject OTDB::Storage::DecodeObject();
         EXPORT        Storable * DecodeObject(StoredObjectType theObjectType, std::string strInput);
 
-        // -----------------------------------------
         // Erase any value based on its location.
 
         EXPORT        bool EraseValueByKey(std::string strFolder,
             std::string oneStr="", std::string twoStr="", std::string threeStr="");
 
-        // --------------------------
         // Note:
         // Make sure to use: %newobject Factory::createObj();  IN OTAPI.i file!
         //
@@ -667,7 +649,6 @@ namespace OTDB
         // Factory for Storable objects.   %newobject Factory::createObj();
         EXPORT        Storable * CreateObject(StoredObjectType eType);
 
-        // --------------------------
 
         // Factory for Storage itself.  %ignore this in OTAPI.i  (It's accessed through
         // a namespace-level function, whereas this is for internal purposes.)
@@ -701,12 +682,10 @@ namespace OTDB
 
     // BELOW FUNCTIONS use the DEFAULT Storage context for the OTDB Namespace
 
-    // --------
     // Check if the values are good.
     //
     EXPORT  bool CheckStringsExistInOrder(std::string & strFolder, std::string & oneStr, std::string & twoStr, std::string & threeStr, const char * szFuncName = NULL);
 
-    // --------
     // See if the file is there.
     //
     EXPORT    bool Exists(std::string strFolder,
@@ -715,7 +694,6 @@ namespace OTDB
     EXPORT  int64_t FormPathString(std::string & strOutput,
                                 std::string   strFolder,   std::string oneStr="",
                                 std::string   twoStr="",   std::string threeStr="");
-    // --------
     // Store/Retrieve a string.
     //
     EXPORT    bool StoreString(std::string strContents, std::string strFolder,
@@ -730,7 +708,6 @@ namespace OTDB
     EXPORT    std::string QueryPlainString(std::string strFolder, std::string oneStr="",
         std::string twoStr="", std::string threeStr="");
 
-    // --------
     // Store/Retrieve an object. (Storable.)
     //
     EXPORT    bool StoreObject(Storable & theContents, std::string strFolder,
@@ -740,7 +717,6 @@ namespace OTDB
     EXPORT    Storable * QueryObject(StoredObjectType theObjectType,
         std::string strFolder, std::string oneStr="",
         std::string twoStr="", std::string threeStr="");
-    // -----------------------------------------
     // Store/Retrieve a Storable object inside an OTASCIIArmor object.
 
     EXPORT    std::string EncodeObject(Storable & theContents);
@@ -748,7 +724,6 @@ namespace OTDB
     // Use %newobject OTDB::Storage::DecodeObject();
     EXPORT    Storable * DecodeObject(StoredObjectType theObjectType, std::string strInput);
 
-    // -----------------------------------------
     // Erase any value based on its location.
 
     EXPORT    bool EraseValueByKey(std::string strFolder,
@@ -814,7 +789,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(OTDBString)
     };
 
-    // ------------------------------------------------
 
 
     class Blob : public Storable
@@ -832,7 +806,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(Blob)
     };
 
-    // ------------------------------------------------
 
 
     // The most useful generic data object... a map of strings, key/value pairs.
@@ -860,7 +833,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(StringMap)
     };
 
-    // ------------------------------------------------
 
     class Displayable : public Storable
     {
@@ -927,7 +899,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(MarketData)
     };
 
-    // ------------------------------------------------------
 
     class MarketList : public Storable {
         // You never actually get an instance of this, only its subclasses.
@@ -979,7 +950,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(OfferDataMarket)
     };
 
-    // ------------------------------------------------------
 
     class BidData : public OfferDataMarket
     {
@@ -1003,7 +973,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(BidData)
     };
 
-    // ------------------------------------------------------
 
     class AskData : public OfferDataMarket
     {
@@ -1027,7 +996,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(AskData)
     };
 
-    // ------------------------------------------------------
 
     class OfferListMarket : public Storable {
         // You never actually get an instance of this, only its subclasses.
@@ -1069,7 +1037,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(TradeDataMarket)
     };
 
-    // ------------------------------------------------------
 
     class TradeListMarket : public Storable {
         // You never actually get an instance of this, only its subclasses.
@@ -1140,7 +1107,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(OfferDataNym)
     };
 
-    // ------------------------------------------------------
 
     class OfferListNym : public Storable
     {
@@ -1192,7 +1158,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
     };
 
-    // ------------------------------------------------------
 
     class TradeListNym : public Storable {
         // You never actually get an instance of this, only its subclasses.
@@ -1230,7 +1195,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(Acct)
     };
 
-    // ----------------------------
 
     class BitcoinAcct : public Acct
     {
@@ -1274,7 +1238,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(ServerInfo)
     };
 
-    // ----------------------------
 
     class Server : public ServerInfo
     {
@@ -1297,7 +1260,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(Server)
     };
 
-    // ----------------------------
 
     class BitcoinServer : public Server
     {
@@ -1323,7 +1285,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(BitcoinServer)
     };
 
-    // ----------------------------
 
     class RippleServer : public Server
     {
@@ -1352,7 +1313,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(RippleServer)
     };
 
-    // ----------------------------
 
     class LoomServer : public Server
     {
@@ -1379,7 +1339,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(LoomServer)
     };
 
-    // ----------------------------
 
     class ContactNym : public Displayable
     {
@@ -1404,7 +1363,6 @@ public: \
     };
 
 
-    // ------------------------------------------------
 
     class WalletData : public Storable
     {
@@ -1429,7 +1387,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(WalletData)
     };
 
-    // ----------------------------
 
     class ContactAcct : public Displayable {
         // You never actually get an instance of this, only its subclasses.
@@ -1453,7 +1410,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(ContactAcct)
     };
 
-    // ----------------------------
 
 
     class Contact : public Displayable {
@@ -1478,7 +1434,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(Contact)
     };
 
-    // ----------------------------
 
     class AddressBook : public Storable {
         // You never actually get an instance of this, only its subclasses.
@@ -1559,7 +1514,6 @@ namespace OTDB
         virtual bool onEraseValueByKey(std::string strFolder, std::string oneStr="",
             std::string twoStr="", std::string threeStr="");
 
-        // -----------------------------------------------------
 
     public:
         //virtual bool Init_Basic(OTString strWalletFilename);  // OTLog::Path must be first set to use this command
@@ -1567,7 +1521,6 @@ namespace OTDB
         //virtual bool Init(std::string oneStr="", std::string twoStr="", std::string threeStr="",
         //    std::string fourStr="", std::string fiveStr="", std::string sixStr="");
 
-        // -----------------------------------------
         // See if the file is there.
         virtual bool Exists(std::string strFolder,
             std::string oneStr="", std::string twoStr="", std::string threeStr="");
@@ -1582,7 +1535,6 @@ namespace OTDB
 
         virtual ~StorageFS();
 
-        // -----------------------------------------
         // lower level calls.
 
         bool ConfirmOrCreateFolder(const char * szFolderName, struct stat *pst=NULL); // local to data_folder
@@ -1591,7 +1543,6 @@ namespace OTDB
         /*
         IN BASE CLASS:
 
-        // -----------------------------------------
         // Store/Retrieve a string.
 
         bool StoreString(std::string strContents, std::string strFolder,
@@ -1606,7 +1557,6 @@ namespace OTDB
         std::string QueryPlainString(std::string strFolder, std::string oneStr="",
         std::string twoStr="", std::string threeStr="");
 
-        // -----------------------------------------
         // Store/Retrieve an object. (Storable.)
 
         bool StoreObject(Storable & theContents, std::string strFolder,

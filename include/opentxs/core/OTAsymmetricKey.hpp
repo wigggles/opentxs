@@ -195,7 +195,6 @@ EXPORT    OT_OPENSSL_CALLBACK souped_up_pass_cb;
 
 class OTAsymmetricKey   // <========= OT ASYMMETRIC KEY
 {
-// ---------------------------------------------------------------
 public: // INSTANTIATION
 EXPORT  static  OTAsymmetricKey * KeyFactory();        // Caller IS responsible to delete!
         virtual OTAsymmetricKey * ClonePubKey() const; // Caller IS responsible to delete!
@@ -212,10 +211,8 @@ protected: // PASSWORD CALLBACK
 // ********************************************
 protected: // PROTECTED MEMBER DATA
     OTASCIIArmor * m_p_ascKey; // base64-encoded, string form of key. (Encrypted too, for private keys. Should store it in this form most of the time.)
-    // ---------------------------------------------------------------
     bool        m_bIsPublicKey;
     bool        m_bIsPrivateKey;
-    // ---------------------------------------------------------------
     Timer       m_timer;       // Useful for keeping track how long since I last entered my passphrase...
 public:
     OTSignatureMetadata *  m_pMetadata;  // Just access this directly, like a struct. (Check for NULL.)
@@ -238,7 +235,6 @@ public:
 protected:
             void ReleaseKeyLowLevel();        // call this.
     virtual void ReleaseKeyLowLevel_Hook()=0; // override this.
-    // ---------------------------------------------------------------
     // CONSTRUCTION (PROTECTED)
 EXPORT     OTAsymmetricKey();
          OTAsymmetricKey(const OTAsymmetricKey & rhs);
@@ -252,15 +248,11 @@ EXPORT    virtual ~OTAsymmetricKey();
 
 // ********************************************
     // PUBLIC METHODS
-    // ---------------------------------------------------------------
     inline bool IsEmpty()   const  { return (NULL == m_p_ascKey); } // m_p_ascKey is the most basic value. m_pKey is derived from it, for example.
-    // ---------------------------------------------------------------
     inline bool IsPublic()  const  { return m_bIsPublicKey;  }
     inline bool IsPrivate() const  { return m_bIsPrivateKey; }
-        // ---------------------------------------------------------------
     inline void SetAsPublic ()     { m_bIsPublicKey = true;  m_bIsPrivateKey = false; } // Don't use this, normally it's not necessary.
     inline void SetAsPrivate()     { m_bIsPublicKey = false; m_bIsPrivateKey = true;  } // (Only if you really know what you are doing.)
-    // ---------------------------------------------------------------
     // We're moving to a system where the actual key isn't kept loaded in
     // memory except under 2 circumstances:   1. We are using it currently,
     // and we're going to destroy it when we're done with it.  2. A timer
@@ -330,10 +322,8 @@ EXPORT    virtual ~OTAsymmetricKey();
                                              const OTString   & strFilename,
                                              const OTString   * pstrReason=NULL,
                                                    OTPassword * pImportPassword=NULL); // DOES handle bookends.
-    // ---------------------------------------------------------------
     virtual bool SaveCertToString      (OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL)=0;
     virtual bool SavePrivateKeyToString(OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL)=0;
-    // ---------------------------------------------------------------
     virtual bool ReEncryptPrivateKey   (OTPassword & theExportPassword, bool bImporting)=0;
     // ***************************************************************************************
     // PUBLIC KEY
@@ -344,7 +334,6 @@ EXPORT    virtual ~OTAsymmetricKey();
     //       Notice the "- " before the rest of the bookend starts.
 EXPORT    bool GetPublicKey(OTASCIIArmor & strKey) const;
 EXPORT    bool GetPublicKey(OTString & strKey, bool bEscaped=true) const;
-    // -----------------------------------------------------------------------
     // (Below) Decodes a public key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
 EXPORT    bool SetPublicKey(const OTASCIIArmor & strKey);

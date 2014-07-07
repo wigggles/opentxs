@@ -192,25 +192,19 @@ typedef std::list<OTAsymmetricKey *>    listOfAsymmetricKeys;
 class OTKeypair
 {
     friend class OTLowLevelKeyData;
-    // --------------------------------------
     OTAsymmetricKey * m_pkeyPublic;     // This nym's public key
     OTAsymmetricKey * m_pkeyPrivate; // This nym's private key
 public:
     EXPORT bool MakeNewKeypair(int32_t nBits=1024);
     EXPORT bool ReEncrypt(OTPassword & theExportPassword, bool bImporting, OTString & strOutput); // Used when importing/exporting a Nym to/from the wallet.
-    // ---------------------------------------------------------------
     EXPORT bool HasPublicKey();
     EXPORT bool HasPrivateKey();
-    // -------------------------------------
     EXPORT const OTAsymmetricKey & GetPublicKey()  const;
     EXPORT const OTAsymmetricKey & GetPrivateKey() const;
-    // ------------------------------------------
     EXPORT bool CalculateID(OTIdentifier & theOutput) const;
-    // ---------------------------------------------------------------
     EXPORT bool SaveCertToString             (OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
     EXPORT bool SavePrivateKeyToString       (OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
     EXPORT bool SaveCertAndPrivateKeyToString(OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
-    // ---------------------------------------------------------------
     // Load from local storage.
     EXPORT bool LoadPrivateKey(const OTString & strFoldername,
                                const OTString & strFilename, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
@@ -234,9 +228,7 @@ public:
                                             const OTString   & strFilename,
                                             const OTString   * pstrReason=NULL,
                                                   OTPassword * pImportPassword=NULL); // DOES handle bookends.
-    // ---------------------------------------------------------------
     EXPORT bool LoadCertAndPrivateKeyFromString(const OTString & strInput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
-    // ---------------------------------------------------------------
     // LOAD BOTH KEYS FROM CERT FILE
     //
     EXPORT bool LoadBothKeysFromCertFile(const OTString & strFoldername,
@@ -252,7 +244,6 @@ public:
     //       Notice the "- " before the rest of the bookend starts.
     EXPORT bool GetPublicKey(OTASCIIArmor & strKey) const;
     EXPORT bool GetPublicKey(OTString & strKey, bool bEscaped=true) const;
-    // -----------------------------------------------------------------------
     // (Below) Decodes a public key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
     EXPORT bool SetPublicKey(const OTASCIIArmor & strKey);
@@ -268,22 +259,17 @@ public:
     // Notice the "- " before the rest of the bookend starts.
     EXPORT bool GetPrivateKey(OTString & strKey, bool bEscaped=true) const;
     EXPORT bool GetPrivateKey(OTASCIIArmor & strKey) const;  // Get the private key in ASCII-armored format
-    // ------------------------------------------------
     // Decodes a private key from ASCII armor into an actual key pointer
     // and sets that as the m_pPrivateKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED PRIVATE KEY-----)
     EXPORT bool SetPrivateKey(const OTString & strKey, bool bEscaped=false);
     EXPORT bool SetPrivateKey(const OTASCIIArmor & strKey); // Decodes a private key from ASCII armor into an actual key pointer and sets that as the m_pKey on this object.
-    // ------------------------------------------------
     // Only works if a private key is present.
     //
     EXPORT bool SignContract(OTContract & theContract, OTPasswordData * pPWData=NULL);
-    // ------------------------------------------------
     EXPORT void SetMetadata(const OTSignatureMetadata & theMetadata);
-    // ------------------------------------------------
     EXPORT int32_t GetPublicKeyBySignature(listOfAsymmetricKeys & listOutput, // inclusive means, return keys when theSignature has no metadata.
         const OTSignature & theSignature, bool bInclusive=false) const;
-    // ------------------------------------------------
     EXPORT OTKeypair();
     EXPORT ~OTKeypair();
 };

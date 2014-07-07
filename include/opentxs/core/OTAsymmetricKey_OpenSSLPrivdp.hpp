@@ -160,7 +160,6 @@ public:
     OTAsymmetricKey_OpenSSL * backlink;
     explicit OTAsymmetricKey_OpenSSLPrivdp() : backlink( 0 ){}
 
-    // -----------------------------------------------------
     // STATIC METHODS
     //
     // Create base64-encoded version of an EVP_PKEY
@@ -168,13 +167,11 @@ public:
     //
     static bool ArmorPrivateKey(EVP_PKEY & theKey, OTASCIIArmor & ascKey, Timer & theTimer, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);
     static bool ArmorPublicKey (EVP_PKEY & theKey, OTASCIIArmor & ascKey);
-    // -------------------------------------
     static EVP_PKEY *  CopyPublicKey (EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
     static EVP_PKEY *  CopyPrivateKey(EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
 // ***************************************************************
 private:
     // INSTANCES...
-    // -----------------------------------------------------
     // PRIVATE MEMBER DATA
     X509         *  m_pX509;
     EVP_PKEY     *  m_pKey;    // Instantiated form of key. (For private keys especially, we don't want it instantiated for any longer than absolutely necessary, when we have to use it.)
@@ -183,20 +180,17 @@ private:
     EVP_PKEY *  InstantiateKey       (OTPasswordData * pPWData=NULL);
     EVP_PKEY *  InstantiatePublicKey (OTPasswordData * pPWData=NULL);
     EVP_PKEY *  InstantiatePrivateKey(OTPasswordData * pPWData=NULL);
-    // ---------------------------------------------------------------
     // HIGH LEVEL (internal) METHODS
     //
 EXPORT const EVP_PKEY * GetKey(OTPasswordData * pPWData=NULL);
 
     void SetKeyAsCopyOf(EVP_PKEY & theKey, bool bIsPrivateKey=false, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);
-    // ---------------------------------------------------------------
     // LOW LEVEL (internal) METHODS
     //
     EVP_PKEY *  GetKeyLowLevel();
 
     X509     *  GetX509() { return m_pX509; }
     void        SetX509(X509 * x509);
-    // -----------------------------------------------------
 };
 
 

@@ -355,7 +355,6 @@ private:
 
 public:
         const        BlockSize    m_theBlockSize;
-    // -----------------
 EXPORT    bool        isPassword() const;
 EXPORT    const        uint8_t *    getPassword_uint8() const; // asserts if m_bIsText is false.
 
@@ -366,42 +365,30 @@ EXPORT                char *        getPasswordWritable_char(); // asserts if m_
 EXPORT                int32_t            setPassword(const char * szInput, int32_t nInputSize); // (FYI, truncates if nInputSize larger than getBlockSize.)
 EXPORT                int32_t        setPassword_uint8(const uint8_t * szInput, uint32_t nInputSize); // (FYI, truncates if nInputSize larger than getBlockSize.)
 EXPORT                bool        addChar(uint8_t theChar);
-    // ---------------------
 EXPORT                int32_t        randomizePassword(uint32_t nNewSize=DEFAULT_SIZE);
-    // -----------------
 EXPORT    static        bool        randomizePassword_uint8(uint8_t * szDestination, uint32_t nNewSize);
 EXPORT    static        bool        randomizePassword(char * szDestination, uint32_t nNewSize);
-    // -----------------
 EXPORT                bool        isMemory()    const;
 EXPORT    const        void *        getMemory() const; // asserts if m_bIsBinary is false.
 EXPORT    const        uint8_t *    getMemory_uint8() const; // asserts if m_bIsBinary is false.
 EXPORT                void *        getMemoryWritable(); // asserts if m_bIsBinary is false.
 EXPORT                int32_t        setMemory(const void * vInput,  uint32_t nInputSize);  // (FYI, truncates if nInputSize larger than getBlockSize.)
 EXPORT                int32_t        addMemory(const void * vAppend, uint32_t nAppendSize); // (FYI, truncates if nInputSize + getPasswordSize() is larger than getBlockSize.)
-    // ---------------------
 EXPORT                int32_t        randomizeMemory(uint32_t nNewSize=DEFAULT_SIZE);
-    // -----------------
 EXPORT    static        bool        randomizeMemory_uint8(uint8_t * szDestination, uint32_t nNewSize);
-    // -----------------
 EXPORT    static        bool        randomizeMemory(void * szDestination, uint32_t nNewSize);
-    // -----------------
 EXPORT                uint32_t    getBlockSize()    const;
 EXPORT                bool        Compare(OTPassword & rhs) const;
-    // ----------------------
 EXPORT                uint32_t    getPasswordSize() const; // asserts if m_bIsText is false.
 EXPORT                uint32_t    getMemorySize()   const; // asserts if m_bIsBinary is false.
-    // -----------------
 EXPORT                void        zeroMemory();
-    // -----------------
 EXPORT    static        void        zeroMemory(uint8_t * szMemory, uint32_t theSize);
 EXPORT    static        void        zeroMemory(void * vMemory,     uint32_t theSize);
-    // -----------------
 EXPORT    static        void *        safe_memcpy(void *            dest,
                                             uint32_t        dest_size,
                                             const void *    src,
                                             uint32_t        src_length,
                                             bool            bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-    // ---------------------------------------
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
     // a text buffer of size (versus a 0 size.) This is for
@@ -419,7 +406,6 @@ EXPORT  static OTPassword * CreateTextBuffer(); // asserts already.
     // those odd cases where it's necessary. That being said, YOU should normally NEVER
     // need to use this function, so just pretend it doesn't exist.
 EXPORT  bool SetSize(uint32_t uSize);
-    // ---------------------------------------
 EXPORT
     OTPassword & operator=(const OTPassword & rhs);
 EXPORT    OTPassword(BlockSize theBlockSize=DEFAULT_SIZE);
@@ -427,7 +413,6 @@ EXPORT    OTPassword(const OTPassword & rhs);
 EXPORT    OTPassword(const char    * szInput, uint32_t nInputSize, BlockSize theBlockSize=DEFAULT_SIZE);  // text   / password stored.
 EXPORT    OTPassword(const uint8_t * szInput, uint32_t nInputSize, BlockSize theBlockSize=DEFAULT_SIZE);  // text   / password stored.
 EXPORT    OTPassword(const void    * vInput,  uint32_t nInputSize, BlockSize theBlockSize=DEFAULT_SIZE);  // binary / symmetric key stored.
-    // -----------------
 EXPORT    ~OTPassword();
 };
 

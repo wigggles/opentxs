@@ -273,27 +273,16 @@ bool OTTransaction::VerifyAccount(OTPseudonym & theNym)
 //                      **** MESSAGE TRANSACTIONS ****
 // --------------------------------------------------------------------------------------        
         processNymbox,    // process nymbox transaction     // comes from client
-// --------------------------------------------------------------------------------------
         processInbox,    // process inbox transaction     // comes from client
-// --------------------------------------------------------------------------------------
         transfer,        // or "spend". This transaction is a request to transfer from one account to another
-// --------------------------------------------------------------------------------------
         deposit,        // this transaction is a deposit (cash or cheque)
-// --------------------------------------------------------------------------------------
         withdrawal,        // this transaction is a withdrawal (cash or voucher)
-// --------------------------------------------------------------------------------------
         marketOffer,    // this transaction is a market offer
-// --------------------------------------------------------------------------------------
         paymentPlan,    // this transaction is a payment plan
-// --------------------------------------------------------------------------------------
         smartContract,    // this transaction is a smart contract
-// --------------------------------------------------------------------------------------
         cancelCronItem,    // this transaction is intended to cancel a market offer or payment plan.
-// --------------------------------------------------------------------------------------
         exchangeBasket,    // this transaction is an exchange in/out of a basket currency.
-// --------------------------------------------------------------------------------------
         payDividend,    // this transaction is a dividend payment (to shareholders.)
-// --------------------------------------------------------------------------------------
  
 
  HarvestOpeningNumber:
@@ -3324,7 +3313,6 @@ OTTransaction::OTTransaction() : ot_super(),
 //
 OTTransaction::OTTransaction(const OTLedger & theOwner)
 : ot_super(theOwner.GetUserID(), theOwner.GetPurportedAccountID(), theOwner.GetPurportedServerID()),
-// --------
     m_pParent(&theOwner),
     m_bIsAbbreviated(false), m_lAbbrevAmount(0), m_lDisplayAmount(0), m_lInRefDisplay(0),
     m_DATE_SIGNED(OT_TIME_ZERO), m_Type(OTTransaction::error_state),
@@ -3345,7 +3333,6 @@ OTTransaction::OTTransaction(const OTLedger & theOwner)
 //      Then it can grab whatever it needs from those. I'm doing something similar in OTItem
 OTTransaction::OTTransaction(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID)
 : ot_super(theUserID, theAccountID, theServerID),
-// --------------------------------------------
     m_pParent(NULL),
     m_bIsAbbreviated(false), m_lAbbrevAmount(0), m_lDisplayAmount(0), m_lInRefDisplay(0),
     m_DATE_SIGNED(OT_TIME_ZERO), m_Type(OTTransaction::error_state),
@@ -3365,7 +3352,6 @@ OTTransaction::OTTransaction(const OTIdentifier & theUserID,
                              const OTIdentifier & theServerID,
                              int64_t lTransactionNum)
 : ot_super(theUserID, theAccountID, theServerID, lTransactionNum),
-// --------------------------------------------
     m_pParent(NULL),
     m_bIsAbbreviated(false), m_lAbbrevAmount(0), m_lDisplayAmount(0), m_lInRefDisplay(0),
     m_DATE_SIGNED(OT_TIME_ZERO), m_Type(OTTransaction::error_state), m_lClosingTransactionNo(0), m_lRequestNumber(0),
@@ -3415,7 +3401,6 @@ OTTransaction::OTTransaction(const OTIdentifier    & theUserID,
                              const bool           bReplyTransSuccess,
                              OTNumList          * pNumList/*=NULL*/)
 : ot_super(theUserID, theAccountID, theServerID, lTransactionNum), 
-//--------------------------------------------------------------------------
     m_pParent(NULL),
     m_bIsAbbreviated(true), m_lAbbrevAmount(lAdjustment), m_lDisplayAmount(lDisplayValue), 
     m_lInRefDisplay(lInRefDisplay), m_Hash(strHash),
@@ -4673,7 +4658,6 @@ void OTTransaction::UpdateContents()
  Question note to self:  Which of the above transaction types can be found inside:
  paymentInbox ledger, paymentOutbox ledger, and recordBox ledger?
 
-// --------------------------------------------------------------------------------------
  void SaveAbbrevPaymentInboxRecord(OTString & strOutput);    
  void SaveAbbrevPaymentOutboxRecord(OTString & strOutput);
  void SaveAbbrevRecordBoxRecord(OTString & strOutput);    

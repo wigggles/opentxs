@@ -175,27 +175,20 @@ protected:
                                 // HE KNOWS THE MESSAGE CAN ONLY BE DECRYPTED BY THE SAME PERSON WHO SIGNED THAT CONTRACT.
     listOfSignatures    m_listSignatures;  // The PGP signatures at the bottom of the XML file.
     OTString            m_strVersion;      // The version of this Contract file, in case the format changes in the future.
-    // -------------------------------------------------------------------
     // todo: perhaps move these to a common ancestor for OTServerContract and OTAssetContract.
     // Maybe call it OTHardContract (since it should never change.)
     //
     OTString        m_strEntityShortName;
     OTString        m_strEntityLongName;
     OTString        m_strEntityEmail;
-    // -------------------------------------------------------------------
     mapOfStrings    m_mapConditions; // The legal conditions, usually human-readable, on a contract.
-    // -------------------------------------------------------------------
     bool LoadContractXML(); // The XML file is in m_xmlUnsigned. Load it from there into members here.
-    // -------------------------------------------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    // -------------------------------------------------------------------
 //    virtual bool SignContract(const EVP_PKEY * pkey, OTSignature & theSignature,
 //                              const OTString & strHashType);
-    // -------------------------------------------------------------------
 //    bool VerifySignature(const EVP_PKEY * pkey, const OTSignature & theSignature,
 //                         const OTString & strHashType) const;
-    // -------------------------------------------------------------------
     // The default hash scheme involves combining 2 other hashes
     // If a hash with one of the special names comes through, it will
     // be processed here instead of the normal code. The above two functions
@@ -204,7 +197,6 @@ protected:
     //
 //    bool SignContractDefaultHash  (const EVP_PKEY * pkey, OTSignature & theSignature);
 //    bool VerifyContractDefaultHash(const EVP_PKEY * pkey, const OTSignature & theSignature) const;
-    // -------------------------------------------------------------------
 public:
         // Used by OTTransactionType::Factory and OTToken::Factory.
         // In both cases, it takes the input string, trims it, and if it's
@@ -230,20 +222,15 @@ EXPORT  static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml, OTString  
                                                const char *& szName, mapOfStrings * pmapExtraVars = NULL);
         static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml, OTString &strOutput,
                                                const char *& szName, mapOfStrings * pmapExtraVars = NULL);
-        // -------------------------------------------------------------------
         static bool SkipToElement(irr::io::IrrXMLReader*& xml);
         static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
         static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
-        // -------------------------------------------------------------------
         inline const char * GetHashType() const { return m_strSigHashType.Get(); }
-        // -------------------------------------------------------------------
         inline void SetIdentifier(const OTIdentifier & theID) { m_ID = theID; }
-        // -------------------------------------------------------------------
         OTContract();
         OTContract(const OTString & name, const OTString & foldername, const OTString & filename, const OTString & strID);
         OTContract(const OTString & strID);
         OTContract(const OTIdentifier & theID);
-        // -------------------------------------------------------------------
         void Initialize();
 
         // TODO: a contract needs to have certain required fields in order to be accepted for notarization.
@@ -364,24 +351,18 @@ EXPORT    bool SaveContract(const char * szFoldername, const char * szFilename);
 
         // Save m_xmlUnsigned to a string that's passed in
         virtual bool SaveContents(OTString & strContents) const;
-        // ------------------------------------------------------------
 EXPORT    virtual bool SignContract(const OTPseudonym & theNym,
                                   OTPasswordData    * pPWData=NULL);
-        // ------------------------------------------------------------
 EXPORT  bool SignContractAuthent(const OTPseudonym & theNym,
                                  OTPasswordData    * pPWData=NULL);
-        // ------------------------------------------------------------
 EXPORT  bool SignWithKey(const OTAsymmetricKey & theKey,
                                OTPasswordData  * pPWData=NULL);
-        // ------------------------------------------------------------
         bool SignContract(const OTPseudonym & theNym,
                           OTSignature       & theSignature,
                           OTPasswordData    * pPWData=NULL);
-        // ------------------------------------------------------------
         bool SignContractAuthent(const OTPseudonym & theNym,        // Uses authentication key instead of signing key.
                                  OTSignature       & theSignature,
                                  OTPasswordData    * pPWData=NULL);
-        // ----------------------------------------------------
         bool SignContract(const OTAsymmetricKey & theKey,
                           OTSignature           & theSignature,
                           const OTString        & strHashType,

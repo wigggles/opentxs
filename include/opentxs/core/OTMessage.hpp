@@ -154,7 +154,6 @@ protected:
     virtual void UpdateContents();
 
     bool m_bIsSigned;
-// -------------------------------
 public:
 EXPORT    OTMessage();
 EXPORT    virtual ~OTMessage();
@@ -166,7 +165,6 @@ EXPORT    virtual bool SignContract(const OTPseudonym & theNym,
 EXPORT    virtual bool VerifySignature(const OTPseudonym & theNym,
                                      OTPasswordData    * pPWData=NULL);
 
-// -------------------------------
 EXPORT    bool HarvestTransactionNumbers(  OTPseudonym &  theNym,
                                            const bool     bHarvestingForRetry,     // false until positively asserted.
                                            const bool     bReplyWasSuccess,        // false until positively asserted.
@@ -183,7 +181,6 @@ EXPORT    bool HarvestTransactionNumbers(  OTPseudonym &  theNym,
     //
 EXPORT    void SetAcknowledgments(OTPseudonym & theNym);
 
-    // ----------------------------------------------------------
 
     OTString    m_strCommand;        // perhaps @register is the string for "reply to register" a-ha
     OTString    m_strServerID;        // This is sent with every message for security reasons.
@@ -221,7 +218,6 @@ EXPORT    void SetAcknowledgments(OTPseudonym & theNym);
 
     bool        m_bSuccess;            // When the server replies to the client, this may be true or false
     bool        m_bBool;            // Some commands need to send a bool. This variable is for those.
-    // ----------------------------------------------------------
     int64_t        m_lTime;            // Timestamp when the message was signed.
 };
 

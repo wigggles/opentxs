@@ -612,7 +612,6 @@ CALLBACKS
 DONE party_may_cancel_contract(party_name)                (See if a party is allowed to cancel the contract from processing.)
 DONE party_may_execute_clause(party_name, clause_name)    (See if a party is allowed to execute any given clause.)
 
-// ---------------------------------------------------------
 NATIVE CALLS
 
 DONE move_funds(from_acct, to_acct, amount)        (from_acct and to_acct must be a party to the agreement)
@@ -628,7 +627,6 @@ DONE send_notice_to_parties()    (Does a send_notice to ALL parties.)
 
 DONE deactivate_contract()        (Deactivates and finalizes the smart contract.)
 
-// ---------------------------------------------------------
 HOOKS
 
 DONE cron_process        (Triggers every time the smart contract "processes" on cron.)
@@ -776,15 +774,12 @@ void OTSmartContract::DeactivateSmartContract() // Called from within script.
 OTParty        * GetParty    (const std::string str_party_name);
 OTBylaw        * GetBylaw    (const std::string str_bylaw_name);
 OTClause    * GetClause    (const std::string str_clause_name);
-// ----------------------------------------------------
 OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL);
 OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL);
 OTParty * FindPartyBasedOnAccount(OTAccount & theAccount, OTPartyAccount ** ppPartyAccount=NULL);
-// ----------------------------------------------------
 OTParty * FindPartyBasedOnNymIDAsAgent(const OTIdentifier & theNymID, OTAgent ** ppAgent=NULL);
 OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier & theNymID, OTAgent ** ppAgent=NULL);
 OTParty * FindPartyBasedOnAccountID(const OTIdentifier & theAcctID, OTPartyAccount ** ppPartyAccount=NULL);
-// ----------------------------------------------------
 OTAgent            * GetAgent(const std::string str_agent_name);
 OTPartyAccount    * GetPartyAccount(const std::string str_acct_name);
 OTPartyAccount    * GetPartyAccountByID(const OTIdentifier & theAcctID);

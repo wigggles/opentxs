@@ -147,15 +147,12 @@ private: // PRIVATE MEMBERS
     char m_cMetaSubCredID;      // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
     
 public:  // PUBLIC INTERFACE
-    // ---------------------------------------------------------------------------
     bool SetMetadata(char cMetaKeyType, char cMetaNymID, char cMetaMasterCredID, char cMetaSubCredID);
-    // ---------------------------------------------------------------------------
     inline bool HasMetadata()           const { return m_bHasMetadata;       }
     inline char GetKeyType()            const { return m_cMetaKeyType;       }
     inline char FirstCharNymID()        const { return m_cMetaNymID;         }
     inline char FirstCharMasterCredID() const { return m_cMetaMasterCredID;  }
     inline char FirstCharSubCredID()    const { return m_cMetaSubCredID;     }
-    // ---------------------------------------------------------------------------
     // ...Sticking with the default destructor and operator=
     OTSignatureMetadata();
     bool operator==(const OTSignatureMetadata & rhs) const;

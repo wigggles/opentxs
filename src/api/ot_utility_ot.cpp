@@ -1,4 +1,3 @@
-// ------------------------------------------------------------------
 //  ot_ot
 //
 // This is part of a library written in OTScript, which makes the OT-API

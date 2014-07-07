@@ -180,17 +180,12 @@ private:  // Private prevents erroneous use by other classes.
     typedef OTKeyCredential ot_super;
     friend class OTCredential;
 public:
-    // ------------------------------
     virtual bool VerifySignedByMaster();
-    // ------------------------------
     OTSubkey();
     OTSubkey(OTCredential & theOwner);
-    // ------------------------------
     virtual ~OTSubkey();
-    // ------------------------------
     virtual void UpdateContents();
     virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    // ------------------------------
 };
 
 

@@ -174,20 +174,15 @@ protected:
 
     bool        m_bIsCurrency; // default: true.  (default.)
     bool        m_bIsShares;   // default: false. (defaults to currency, not shares.)
-    // ----------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-// ----------------------------------
 public:
     virtual void CreateContents(); // Only used when first generating an asset or server contract. Meant for contracts which never change after that point.  Otherwise does the same thing as UpdateContents. (But meant for a different purpose.)
-    // ----------------------------------
 EXPORT    bool CreateBasket(OTBasket & theBasket, OTPseudonym & theSigner);
 inline const OTString & GetBasketInfo() const { return m_strBasketInfo; }
-    // ----------------------------------
 EXPORT    OTAssetContract();
 EXPORT    OTAssetContract(OTString & name, OTString & foldername, OTString & filename, OTString & strID);
 EXPORT    virtual ~OTAssetContract();
-    // ----------------------------------
 EXPORT    bool IsShares() const { return m_bIsShares; }
     // Some asset types keep a list of "simple" accounts (the complete set of that type.)
     // This is called when the user creates a new asset account, in order to add it to that list.
@@ -198,28 +193,22 @@ EXPORT    bool AddAccountRecord  (const OTAccount    & theAccount); // adds the 
 EXPORT    bool EraseAccountRecord(const OTIdentifier & theAcctID);  // removes the account from the list. (When account is deleted.)
 
 EXPORT    bool ForEachAccountRecord(OTAcctFunctor & theAction); // Loops through all the accounts for a given asset type, and calls Functor on each.
-    // ----------------------------------
 EXPORT    static std::string formatLongAmount(int64_t & lOriginalValue, int32_t nFactor=100, int32_t nPower=2, const char * szSymbol="",
                                               const char * szSeparator=",", const char * szDecimalPoint=".");
 EXPORT    static bool        ParseFormatted(int64_t & lResult, const std::string & str_input, int32_t nFactor=100, int32_t nPower=2,
                                             const char * szSeparator=",", const char * szDecimalPoint=".");
-    // ----------------------------------
     // For parsing and formatting amounts based on the currency contract.
     //
 EXPORT    bool FormatAmount(const OTAmount & theInput,        std::string & str_output) const; // Convert 545 to $5.45.
 EXPORT    bool StringToAmount(    OTAmount & theOutput, const std::string & str_input)  const; // Convert $5.45 to 545.
-    // ----------------------------------
 EXPORT    int64_t GetDollarsOnly(const OTAmount & theInput) const; // Given input of 545, GetDollarsOnly returns 5
 EXPORT    int64_t CentsOnly     (const OTAmount & theInput) const; // Given input of 545, GetCentsOnly returns 45.
-    // ----------------------------------
 EXPORT    const OTString & GetCurrencyName     () const { return m_strCurrencyName;     }  // "dollars"  (for example)
 EXPORT    const OTString & GetCurrencyFraction () const { return m_strCurrencyFraction; }  // "cents"    (for example)
 EXPORT    const OTString & GetCurrencySymbol   () const { return m_strCurrencySymbol;   }  // "$"        (for example)
 EXPORT    const OTString & GetCurrencyTLA      () const { return m_strCurrencyTLA;      }  // "USD""     (for example)
-    // ----------------------------------
     virtual bool SaveContractWallet(OTString & strContents) const;
     virtual bool SaveContractWallet(std::ofstream & ofs);
-    // ----------------------------------
     virtual bool DisplayStatistics(OTString & strContents) const;
 };
 

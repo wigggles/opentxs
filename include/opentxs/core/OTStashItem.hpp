@@ -145,12 +145,9 @@ class OTStashItem
 public:
     int64_t GetAmount() const { return m_lAmount; }
     void SetAmount(const int64_t lAmount) { m_lAmount = lAmount; }
-    //------------------
     bool CreditStash(const int64_t &lAmount);
     bool DebitStash(const int64_t &lAmount);
-    //------------------
     const OTString & GetAssetTypeID() { return m_strAssetTypeID; }
-    //------------------
     OTStashItem();
     OTStashItem(const OTString & strAssetTypeID, const int64_t lAmount=0);
     OTStashItem(const OTIdentifier & theAssetTypeID, const int64_t lAmount=0);

@@ -976,7 +976,6 @@ OTItem * OTItem::GetFinalReceiptItemByReferenceNum(const int64_t lReferenceNumbe
         
         if (OTItem::finalReceipt != pItem->GetType())
             continue;
-        //----------------------
         if (pItem->GetReferenceToNum() == lReferenceNumber)
             return pItem;
     }

@@ -523,7 +523,6 @@ bool OTServerConnection::ProcessType1Cmd(u_header & theCMD, OTMessage & theServe
             break;
     }
 
-    // ------------------------------------------------------------
 
     switch (theCMD.fields.command_id) {
         case TYPE_1_CMD_1:
@@ -536,7 +535,6 @@ bool OTServerConnection::ProcessType1Cmd(u_header & theCMD, OTMessage & theServe
             break;
     }
 
-    // ------------------------------------------------------------
 
     if (theCMD.fields.size == 0)
     {
@@ -553,7 +551,6 @@ bool OTServerConnection::ProcessType1Cmd(u_header & theCMD, OTMessage & theServe
     {
         OTLog::vOutput(4,  "Loaded a payload, size: %d\n", theCMD.fields.size);
     }
-    // ------------------------------------------------------------
 
 
     // a signed OTMessage
@@ -884,9 +881,7 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
 
     // Above are various test messages.
 
-    // ------------------------------------------------------------------------------
 
-    // ------------------------------------------------------------------------------
 
     // This section for commands that involve building full XML messages,
     // that is, most of the real implementation of the transaction protocol.
@@ -902,7 +897,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::vOutput(0, "(User has instructed to send a checkServerID command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::checkServerID, theMessage,
@@ -914,7 +908,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing checkServerID command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // register new user account
@@ -922,7 +915,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a createUserAccount command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::createUserAccount, theMessage,
@@ -934,7 +926,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing createUserAccount command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // ALL MESSAGES BELOW THIS POINT SHOULD ATTACH A REQUEST NUMBER IF THEY EXPECT THE SERVER TO PROCESS THEM.
@@ -945,7 +936,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a checkUser command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::checkUser, theMessage,
@@ -957,7 +947,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing checkUser command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // register new asset account
@@ -965,7 +954,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a createAccount command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::createAccount, theMessage,
@@ -977,7 +965,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing createAccount command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // issue a new asset type
@@ -985,7 +972,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send an issueAssetType command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::issueAssetType, theMessage,
@@ -997,7 +983,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing issueAssetType command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // issue a new basket asset type
@@ -1005,7 +990,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send an issueBasket command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::issueBasket, theMessage,
@@ -1017,7 +1001,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing issueBasket command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // exchange in/out of a basket currency
@@ -1025,7 +1008,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send an exchangeBasket command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::exchangeBasket, theMessage,
@@ -1037,7 +1019,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing exchangeBasket command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // make an offer and put it onto a market.
@@ -1045,7 +1026,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a marketOffer command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::marketOffer, theMessage,
@@ -1057,7 +1037,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing marketOffer command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // set asset contract's name
@@ -1065,7 +1044,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to set an Asset Contract's client-side name...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::setAssetName, theMessage,
@@ -1075,7 +1053,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
             }
-            // ------------------------------------------------------------------------
         }
 
         // set server contract's name
@@ -1083,7 +1060,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to set a Server Contract's client-side name...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::setServerName, theMessage,
@@ -1093,7 +1069,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
             }
-            // ------------------------------------------------------------------------
         }
 
         // set nym name
@@ -1101,7 +1076,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to set a Nym's client-side name...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::setNymName, theMessage,
@@ -1111,7 +1085,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
             }
-            // ------------------------------------------------------------------------
         }
 
         // set account name
@@ -1119,7 +1092,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User wants to set an Asset Account's client-side name...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::setAccountName, theMessage,
@@ -1129,7 +1101,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
             }
-            // ------------------------------------------------------------------------
         }
 
         // sendUserMessage
@@ -1137,7 +1108,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a sendUserMessage command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::sendUserMessage, theMessage,
@@ -1149,7 +1119,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing sendUserMessage command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // get nymbox
@@ -1157,7 +1126,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getNymbox command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getNymbox, theMessage,
@@ -1169,7 +1137,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getNymbox command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // get inbox
@@ -1177,7 +1144,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getInbox command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getInbox, theMessage,
@@ -1189,7 +1155,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getInbox command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // get outbox
@@ -1197,7 +1162,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getOutbox command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getOutbox, theMessage,
@@ -1209,7 +1173,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getOutbox command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
 
@@ -1218,7 +1181,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "User has instructed to deposit a cheque...\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeCheque, theMessage,
@@ -1230,7 +1192,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing deposit cheque command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // withdraw voucher
@@ -1238,7 +1199,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "User has instructed to withdraw a voucher (like a cashier's cheque)...\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::withdrawVoucher, theMessage,
@@ -1250,7 +1210,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing withdraw voucher command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // withdraw cash
@@ -1258,7 +1217,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to withdraw cash...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeWithdrawal, theMessage,
@@ -1270,7 +1228,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing withdraw command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // deposit tokens
@@ -1278,7 +1235,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to deposit cash tokens...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeDeposit, theMessage,
@@ -1290,7 +1246,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing deposit command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // activate payment plan
@@ -1298,7 +1253,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "User has instructed to activate a payment plan...\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::paymentPlan, theMessage,
@@ -1310,7 +1264,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing payment plan command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // deposit purse
@@ -1318,7 +1271,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to deposit a purse containing cash...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizePurse, theMessage,
@@ -1330,7 +1282,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing deposit command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // get account
@@ -1338,7 +1289,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::vOutput(0, "(User has instructed to perform a test...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pNym)
@@ -1402,7 +1352,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
 
             }
 
-            // ------------------------------------------------------------------------
         }
 
         // get account
@@ -1410,7 +1359,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getAccount command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getAccount, theMessage,
@@ -1422,7 +1370,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getAccount command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // get contract
@@ -1430,7 +1377,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getContract command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getContract, theMessage,
@@ -1442,7 +1388,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getContract command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
 
@@ -1461,7 +1406,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                 if ('S' == cContractType || 's' == cContractType)
                     bIsAssetContract = false;
             }
-            // ----------------------------
             OTLog::Output(0, "Is the contract properly escaped already? (If escaped, all lines beginning with ----- will instead appear as - ----- ) [y\n]: ");
             // User input.
             // I need a from account, Yes even in a deposit, it's still the "From" account.
@@ -1516,7 +1460,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
 
             OTLog::vOutput(0, ".\n..\n...\n....\n.....\n......\n.......\n........\n.........\n\n"
                     "NEW CONTRACT:\n\n%s\n", strContract.Get());
-            // ------------------------------------------------------------------------
         }
 
         // get mint
@@ -1524,7 +1467,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getMint command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getMint, theMessage,
@@ -1536,7 +1478,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getMint command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // notarize transfer
@@ -1544,7 +1485,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a Transfer command (Notarize Transactions) to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeTransfer, theMessage,
@@ -1556,7 +1496,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing notarizeTransactions command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // getRequest
@@ -1564,7 +1503,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
         {
             OTLog::Output(0, "(User has instructed to send a getRequest command to the server...)\n");
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (m_pClient->ProcessUserCommand(OTClient::getRequest, theMessage,
@@ -1576,7 +1514,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             }
             else
                 OTLog::vError("Error processing getRequest command in ProcessMessage: %c\n", buf[0]);
-            // ------------------------------------------------------------------------
         }
 
         // getTransactionNum
@@ -1610,7 +1547,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
             {
                 OTLog::Output(0, "(User has instructed to send a getTransactionNum command to the server...)\n");
 
-                // ------------------------------------------------------------------------------
                 // if successful setting up the command payload...
 
                 if (m_pClient->ProcessUserCommand(OTClient::getTransactionNum, theMessage,
@@ -1624,7 +1560,6 @@ void OTServerConnection::ProcessMessageOut(char *buf, int32_t *)
                     OTLog::vError("Error processing getTransactionNum command in ProcessMessage: %c\n", buf[0]);
             }
 
-        // ------------------------------------------------------------------------
         }
 
         else

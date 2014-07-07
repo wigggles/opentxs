@@ -15,7 +15,6 @@ namespace opentxs {
 
 #define OT_OPENTXS_OT
 
-// ---------------------------------
 
 
 typedef enum

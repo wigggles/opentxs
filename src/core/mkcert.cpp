@@ -6,7 +6,6 @@
 
 #include <OTString.hpp>
 
-// -----------------------------------------------
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +33,6 @@ extern "C" {
 }
 #endif
 
-// -----------------------------------------------
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,7 +93,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
 {
     bool bCreatedKey  = false;
     bool bCreatedX509 = false;
-        // -----------------
         X509      * x    = NULL;
         EVP_PKEY  * pk   = NULL;
         RSA       * rsa  = NULL;
@@ -112,7 +109,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
         }
         else
             pk = *pkeyp;
-        // -----------------------------------------
         if ((x509p == NULL) || (*x509p == NULL))
         {
             if ((x = X509_new()) == NULL)
@@ -128,7 +124,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
         }
         else
             x = *x509p;
-        // -----------------------------------------
 //        pRsaKey = RSA_generate_key(1024, 0x010001, NULL, NULL);
 
 #ifdef ANDROID
@@ -148,13 +143,11 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
 #else
         rsa = RSA_generate_key(bits, RSA_F4, callback, NULL);
 #endif
-        // -----------------------------------------
         if (!EVP_PKEY_assign_RSA(pk, rsa))
         {
             abort();  // todo
             //return(0); undeeded after abort.
         }
-        // ------------------------------
         rsa = NULL;
 
         X509_set_version(x, 2);
@@ -182,7 +175,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
          * subject.
          */
         X509_set_issuer_name(x, name);
-        // ----------------------------------------------------------------------------
         /* Add various extensions: standard extensions */
 
         char * szConstraints  = new char[100]();
@@ -190,25 +182,21 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
         char * szSubjectKeyID = new char[100]();
         char * szCertType     = new char[100]();
         char * szComment      = new char[100]();
-        // ----------------------------------------------------------------------------
         opentxs::OTString::safe_strcpy(szConstraints,  "critical,CA:TRUE",             99);
         opentxs::OTString::safe_strcpy(szKeyUsage,     "critical,keyCertSign,cRLSign", 99);
         opentxs::OTString::safe_strcpy(szSubjectKeyID, "hash",                         99);
         opentxs::OTString::safe_strcpy(szCertType,     "sslCA",                        99);
         opentxs::OTString::safe_strcpy(szComment,      "example comment extension",    99);
-        // ----------------------------------------------------------------------------
         add_ext(x, NID_basic_constraints,      szConstraints);
         add_ext(x, NID_key_usage,              szKeyUsage);
         add_ext(x, NID_subject_key_identifier, szSubjectKeyID);
         add_ext(x, NID_netscape_cert_type,     szCertType); // Some Netscape specific extensions
         add_ext(x, NID_netscape_comment,       szComment);  // Some Netscape specific extensions
-        // ----------------------------------------------------------------------------
         delete [] szConstraints;   szConstraints  = NULL;
         delete [] szKeyUsage;      szKeyUsage     = NULL;
         delete [] szSubjectKeyID;  szSubjectKeyID = NULL;
         delete [] szCertType;      szCertType     = NULL;
         delete [] szComment;       szComment      = NULL;
-        // ----------------------------------------------------------------------------
 
 #ifdef CUSTOM_EXT
         // Maybe even add our own extension based on existing
@@ -219,7 +207,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
                 add_ext(x, nid, "example comment alias");
         }
 #endif
-        // ------------------------------
         if (!X509_sign(x, pk, EVP_md5()) || // TODO security:  md5 ???
             (NULL == x509p)              ||
             (NULL == pkeyp))
@@ -241,7 +228,6 @@ int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int
 
             return 0;
         }
-        // ------------------------------
         *x509p = x;
         *pkeyp = pk;
 

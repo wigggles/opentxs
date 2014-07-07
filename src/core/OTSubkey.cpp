@@ -176,9 +176,7 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (0 != nReturnVal)
        return nReturnVal;
     // else it was 0 (continue...)
-    // --------------------------------------------------
     const OTString strNodeName(xml->getNodeName());
-    // --------------------------------------------------
     if (strNodeName.Compare("keyCredential"))
     {
         m_strNymID            = xml->getAttributeValue("nymID");
@@ -188,7 +186,6 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         
         nReturnVal = 1;
     }
-    // ----------------------------------
     else if (strNodeName.Compare("masterSigned"))
     {
         if (false == OTContract::LoadEncodedTextField(xml, m_strMasterSigned))
@@ -200,7 +197,6 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         
         nReturnVal = 1;
     }
-    // ------------------
     return nReturnVal;
 }
 
@@ -219,18 +215,14 @@ void OTSubkey::UpdateContents()
         ascSource.SetString(this->GetNymIDSource()); // A nym should always verify through its own source. (Whatever that may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n", ascSource.Get());
     }
-    // --------------------------------------------
     // MASTER-SIGNED INFO
     //
     if ((OTSubcredential::credMasterSigned == m_StoreAs) || // MASTER-SIGNED INFO
         (OTSubcredential::credPrivateInfo  == m_StoreAs))
     {
-        // --------------------------------------------
         this->UpdateMasterPublicToString(m_xmlUnsigned);
-        // --------------------------------------------
         this->UpdatePublicContentsToString(m_xmlUnsigned);
     }
-    // --------------------------------------------
     // PUBLIC INFO
     //
     if ((OTSubcredential::credPublicInfo  == m_StoreAs)  || // PUBLIC INFO (signed by subkey, contains master signed info.)
@@ -240,7 +232,6 @@ void OTSubkey::UpdateContents()
         m_xmlUnsigned.Concatenate("<masterSigned>\n%s</masterSigned>\n\n", // Contains all the public info, signed by the master key.
                                   ascMasterSigned.Get());                  // Packaged up here inside a final, subkey-signed credential.
     }
-    // -------------------------------------------------
     // PRIVATE INFO
     //
     // If we're saving the private credential info...
@@ -248,12 +239,10 @@ void OTSubkey::UpdateContents()
     if (OTSubcredential::credPrivateInfo == m_StoreAs)  // PRIVATE INFO
     {
         this->UpdatePublicCredentialToString(m_xmlUnsigned);
-        // -------------------------------------
         this->UpdatePrivateContentsToString(m_xmlUnsigned);
     }
     // -------------------------------------------------    
     m_xmlUnsigned.Concatenate("</keyCredential>\n");
-    // --------------------------------------------
     m_StoreAs = OTSubcredential::credPrivateInfo;  // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state processes ONCE, and then goes back to this again.
 }
 

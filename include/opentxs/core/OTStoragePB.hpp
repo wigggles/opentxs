@@ -187,7 +187,6 @@
 // Also, REMEMBER for each object type declared, to add the hooks to the CPP file.
 // (Instructions are below.)
 //
-// ----------------------------------------------------
 /*
 REPLACING OT_PROTOBUF_DECLARE() WITH A TEMPLATE FOR NOW...
 
@@ -241,19 +240,16 @@ namespace OTDB
     OT_USING_ISTORABLE_HOOKS;
     EndInterface
 
-        // ----------------------------------------------------
         // BUFFER for Protocol Buffers.
         // Google's protocol buffers serializes to std::strings and streams. How conveeeeeenient.
         //
         //typedef PackedBufferSubclass<PackerPB, IStorablePB, std::string> BufferPB;
         DECLARE_PACKED_BUFFER_SUBCLASS(BufferPB, PackerSubclass<BufferPB>, IStorablePB, std::string);
 
-    // ---------------
     // Protocol Buffers packer.
     //
     typedef PackerSubclass<BufferPB> PackerPB;
 
-    // ----------------------------------------------------
     // Used for subclassing IStorablePB:
     //
     template<class theBaseType, class theInternalType, StoredObjectType theObjectType>
@@ -315,7 +311,6 @@ namespace OTDB
     template<> void ProtobufSubclass<theBaseType, theInternalType, theObjectType>::hookAfterUnpack(); \
     typedef ProtobufSubclass<theBaseType, theInternalType, theObjectType>    theNewType
 
-    // ---------------------------------------------
     // THE ACTUAL SUBCLASSES:
 
     DECLARE_PROTOBUF_SUBCLASS(OTDBString,    String_InternalPB,            StringPB,            STORED_OBJ_STRING);

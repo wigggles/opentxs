@@ -611,15 +611,12 @@ bool OTToken::RecordTokenAsSpent(OTString & theCleartextToken)
 //bool Decrypt(      OTString & theOutput, const OTSymmetricKey & theKey, const OTPassword & thePassword);
 
 //OTNym_or_SymmetricKey:
-// ---------------------------------
 //const OTPseudonym    * GetNym()      const { return m_pNym;      }
 //const OTSymmetricKey * GetKey()      const { return m_pKey;      }
 //const OTPassword     * GetPassword() const { return m_pPassword; } // for symmetric key (optional)
-// ---------------------------------
 //bool  IsNym()       const { return (NULL != m_pNym);      }
 //bool  IsKey()       const { return (NULL != m_pKey);      }
 //bool  HasPassword() const { return (NULL != m_pPassword); } // for symmetric key (optional)
-// ---------------------------------
 
 /*
  NOTE: OTNym_or_SymmetricKey is passed in here as a reference.

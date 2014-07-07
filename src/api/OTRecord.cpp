@@ -151,27 +151,20 @@ namespace opentxs {
 
 const std::string Instrument_TypeStrings[] =
 {
-    // ------------------
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument, which is
     // derived from OTScriptable, which is derived from OTContract.
-    // ------------------
     "cheque",         // A cheque drawn on a user's account.
     "voucher",        // A cheque drawn on a server account (cashier's cheque aka banker's cheque)
     "invoice",        // A cheque with a negative amount. (Depositing this causes a payment out, instead of a deposit in.)
-    // ------------------
     "payment plan",   // An OTCronItem-derived OTPaymentPlan, related to a recurring payment plan.
     "smart contract", // An OTCronItem-derived OTSmartContract, related to a smart contract.
-    // ------------------
     "cash",           // An OTContract-derived OTPurse containing a list of cash OTTokens.
-    // ------------------
     "ERROR_STATE"
 };
-// ---------------------------------------
 const std::string & OTRecord_GetTypeString(int theType)
 {
     return Instrument_TypeStrings[theType];
 }
-// ---------------------------------------
 bool OTRecord::FormatAmount(std::string & str_output)
 {
     if (m_str_amount.empty() || m_str_asset_id.empty()) // Need these to do the formatting.
@@ -180,16 +173,13 @@ bool OTRecord::FormatAmount(std::string & str_output)
 //                     __FUNCTION__, m_str_type.c_str(), m_str_amount.c_str(), m_str_asset_id.c_str());
         return false;
     }
-    // -----------------------------------
     str_output = OTAPI_Wrap::It()->FormatAmount(m_str_asset_id,
                                                 OTAPI_Wrap::It()->StringToLong(m_str_amount));
     return (!str_output.empty());
 }
-// ---------------------------------------
 bool OTRecord::FormatMailSubject(std::string & str_output)
 {
     str_output.clear();
-    // ------------------------
     if (IsMail())
     {
         if (!HasContents())
@@ -203,11 +193,9 @@ bool OTRecord::FormatMailSubject(std::string & str_output)
                 // Make the replacement.
                 str_temp_contents.replace(0, 8, "");
             }
-            // -----------------------------------
             // Trim it, since there is probably a space after "Subject:"
             // (Plus we want it trimmed anyway.)
             std::string str_contents = OTString::trim(str_temp_contents);
-            // -----------------------------------
             // Cut the string at the first newline.
             //
             std::string::size_type pos_start = 0;
@@ -215,18 +203,14 @@ bool OTRecord::FormatMailSubject(std::string & str_output)
 
             if (std::string::npos == pos) // Didn't find anything.
                 pos = str_contents.find ("\n", pos_start);
-            // -----------------------------------
             if (std::string::npos != pos) // We found a newline.
                 str_contents.erase(pos, std::string::npos);
-            // -----------------------------------
             // Trim it again, just for good measure.
             str_output = OTString::trim(str_contents);
         }
     }
-    // -----------------------------
     return (!str_output.empty());
 }
-// ---------------------------------------
 bool OTRecord::FormatShortMailDescription(std::string & str_output)
 {
     OTString strDescription;
@@ -245,7 +229,6 @@ bool OTRecord::FormatShortMailDescription(std::string & str_output)
                 // Make the replacement.
                 str_contents.replace(0, 8, "");
             }
-            // -----------------------------------
             bool bTruncated = false;
 
             if (str_contents.size() > 30)
@@ -253,7 +236,6 @@ bool OTRecord::FormatShortMailDescription(std::string & str_output)
                 str_contents.erase(30, std::string::npos);
                 bTruncated = true;
             }
-            // -----------------------------------
             // Replace any newlines with spaces...
             //
             std::replace( str_contents.begin(), str_contents.end(), '\r', ' ');
@@ -261,17 +243,13 @@ bool OTRecord::FormatShortMailDescription(std::string & str_output)
 
 //          str_contents.erase(std::remove(str_contents.begin(), str_contents.end(), '\n'), str_contents.end());
 //          str_contents.erase(std::remove(str_contents.begin(), str_contents.end(), '\r'), str_contents.end());
-            // -----------------------------------
             strDescription.Format("%s%s", OTString::trim(str_contents).c_str(),
                                   bTruncated ? "..." : "");
         }
     }
-    // -----------------------------
     str_output = strDescription.Get();
-    // -----------------------------
     return (!str_output.empty());
 }
-// ---------------------------------------
 bool OTRecord::FormatDescription(std::string & str_output)
 {
     OTString strDescription, strStatus, strKind;
@@ -286,7 +264,6 @@ bool OTRecord::FormatDescription(std::string & str_output)
             strStatus = "";
 //          strStatus = "(record)";
     }
-    // -----------------------------
     else if (IsPending())
     {
         if (IsExpired())
@@ -296,7 +273,6 @@ bool OTRecord::FormatDescription(std::string & str_output)
         else if (!IsCash())
             strStatus = "(pending)";
     }
-    // -----------------------------
     if (IsCanceled())
     {
         strStatus = "(CANCELED)";
@@ -304,7 +280,6 @@ bool OTRecord::FormatDescription(std::string & str_output)
         if (IsOutgoing() || IsReceipt())
             strKind.Format("%s", "sent ");
     }
-    // -----------------------------
     else
     {
         if (IsOutgoing())
@@ -314,12 +289,10 @@ bool OTRecord::FormatDescription(std::string & str_output)
             strKind.Format("%s",
                            IsPending() ? "incoming " : (IsReceipt() ? "" : "received "));
     }
-    // -----------------------------
     OTString strTransNumForDisplay;
 
     if (!IsCash())
         strTransNumForDisplay.Format(" #%ld", GetTransNumForDisplay());
-    // -----------------------------
     if (IsRecord())
     {
         if (this->IsTransfer())
@@ -453,12 +426,9 @@ bool OTRecord::FormatDescription(std::string & str_output)
         else
             strDescription.Format("%s %s%s%s", strStatus.Get(), strKind.Get(), GetInstrumentType().c_str(), strTransNumForDisplay.Get());
     }
-    // -----------------------------
     str_output = strDescription.Get();
-    // -----------------------------
     return (!str_output.empty());
 }
-// ---------------------------------------
 bool OTRecord::HasInitialPayment()
 {
     if (!IsPaymentPlan())
@@ -571,9 +541,7 @@ int32_t OTRecord::GetMaximumNoPayments()
         return thePlan.GetMaximumNoPayments();
     return 0;
 }
-// ---------------------------------------
 OTRecord::OTRecordType OTRecord::GetRecordType() const { return m_RecordType; }
-// ---------------------------------------
 // For completed records (not pending.)
 //
 bool OTRecord::CanDeleteRecord() const
@@ -589,7 +557,6 @@ bool OTRecord::CanDeleteRecord() const
 
     return true;
 }
-// ---------------------------------------
 // For incoming, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::CanAcceptIncoming() const
@@ -615,7 +582,6 @@ bool OTRecord::CanAcceptIncoming() const
 
     return true;
 }
-// ---------------------------------------
 // For INcoming, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::CanDiscardIncoming() const
@@ -640,7 +606,6 @@ bool OTRecord::CanDiscardIncoming() const
 
     return true;
 }
-// ---------------------------------------
 bool OTRecord::CanDiscardOutgoingCash() const  // For OUTgoing cash. (No way to see if it's been accepted, so this lets you erase the record of sending it.)
 {
     if (false == this->IsOutgoing())
@@ -657,7 +622,6 @@ bool OTRecord::CanDiscardOutgoingCash() const  // For OUTgoing cash. (No way to 
 
     return true;
 }
-// ---------------------------------------
 // For OUTgoing, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::CanCancelOutgoing() const
@@ -692,7 +656,6 @@ bool OTRecord::DiscardOutgoingCash()
 {
     if (!this->CanDiscardOutgoingCash())
         return false;
-    // -----------------------------
     return OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex(m_str_nym_id, GetBoxIndex());
 }
 
@@ -702,14 +665,12 @@ bool OTRecord::DeleteRecord()
 {
     if (!this->CanDeleteRecord())
         return false;
-    // -----------------------------
     if (!m_bIsSpecialMail && (m_str_server_id.empty() || m_str_nym_id.empty()))
     {
         OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
                       __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
         return false;
     }
-    // ------------------------------
     std::string str_using_account;
 
     if ((OTRecord::Transfer == this->GetRecordType()) ||
@@ -725,7 +686,6 @@ bool OTRecord::DeleteRecord()
     }
     else
         str_using_account = m_str_nym_id; // For instruments.
-    // ------------------------------
     switch (this->GetRecordType())
     {
         // Delete from in-mail or out-mail.
@@ -773,42 +733,35 @@ bool OTRecord::DeleteRecord()
             return false;
         }
             break;
-        // --------------------------------------------
         case OTRecord::Transfer:   // Delete from asset account recordbox.
         case OTRecord::Receipt:    // Delete from asset account recordbox.
         case OTRecord::Instrument: // Delete from Nym's recordbox.
             break;
-        // --------------------------------------------
         default:
             OTLog::vError("%s: Unexpected type: %s\n",
                           __FUNCTION__, this->GetInstrumentType().c_str());
             return false;
     }
-    // --------------------------------------------
     // The below section handles both the Nym's recordbox AND the Asset Account recordbox.
     //
-    // ------------------------------
     if (0 == m_lTransactionNum)
     {
         OTLog::vError("%s: Error: Transaction number is 0, in recordbox for server id (%s), nym id (%s), acct id ()\n",
                       __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str(), str_using_account.c_str());
         return false;
     }
-    // ------------------------------
     const OTIdentifier  theServerID(m_str_server_id),
                         theNymID(m_str_nym_id),
                         theAcctID(str_using_account); // this last one sometimes contains NymID (see above.)
 
     OTLedger * pRecordbox = OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID, theAcctID);
     OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
-    // --------------------------------------------
     if (NULL == pRecordbox)
     {
         OTLog::vError("%s: Failed loading record box for server ID (%s) nymID (%s) accountID (%s)\n",
                       __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str(), str_using_account.c_str());
         return false;
     }
-    // ------------------------------------------
     // Find the receipt in the recordbox that correlates to this OTRecord.
     //
     int nIndex = pRecordbox->GetTransactionIndex(m_lTransactionNum);
@@ -819,15 +772,12 @@ bool OTRecord::DeleteRecord()
                       __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(), m_str_nym_id.c_str(), str_using_account.c_str());
         return false;
     }
-    // ------------------------------------------
     // Accept it.
     //
     return OTAPI_Wrap::ClearRecord(m_str_server_id, m_str_nym_id, str_using_account, nIndex, false); //clear all = false. We're only clearing one record.
 }
-// ---------------------------------------
 bool OTRecord::AcceptIncomingTransfer() { return this->AcceptIncomingTransferOrReceipt(); } // For incoming, pending (not-yet-accepted) transfers.
 bool OTRecord::AcceptIncomingReceipt()  { return this->AcceptIncomingTransferOrReceipt(); } // For incoming, (not-yet-accepted) receipts.
-// ---------------------------------------
 bool OTRecord::AcceptIncomingTransferOrReceipt()
 {
     if (!this->CanAcceptIncoming())
@@ -835,7 +785,6 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
 
     switch (this->GetRecordType())
     {
-        // --------------------------------------------
         // Accept transfer or receipt from asset account inbox.
         //
         case OTRecord::Transfer:
@@ -847,27 +796,23 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str(), m_str_account_id.c_str());
                 return false;
             }
-            // ------------------------------
             if (0 == m_lTransactionNum)
             {
                 OTLog::vError("%s: Error: Transaction number is 0, in asset account inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------
             const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id), theAcctID(m_str_account_id);
 
             // Open the Nym's asset account inbox.
             OTLedger * pInbox = OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID, theAcctID);
             OTCleanup<OTLedger> theInboxAngel(pInbox);
-            // ------------------------------------------
             if (NULL == pInbox)
             {
                 OTLog::vError("%s: Error: Unable to load asset account inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Find the transfer/receipt therein that correlates to this OTRecord.
             //
             int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
@@ -878,7 +823,6 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
                               __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(), m_str_nym_id.c_str(), m_str_account_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Accept it.
             //
             OTString strIndices;
@@ -890,7 +834,6 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
             return madeEasy.accept_inbox_items(m_str_account_id, 0, str_indices);
         }
             break;
-        // --------------------------------------------
         default:
             OTLog::vError("%s: Unexpected type: %s\n",
                           __FUNCTION__, this->GetInstrumentType().c_str());
@@ -899,7 +842,6 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
 
     return true;
 }
-// ---------------------------------------
 // For incoming, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
@@ -909,7 +851,6 @@ bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
 
     switch (this->GetRecordType())
     {
-        // --------------------------------------------
         // Accept from Nym's payments inbox.
         //
         case OTRecord::Instrument:
@@ -920,27 +861,23 @@ bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------
             if (0 == m_lTransactionNum)
             {
                 OTLog::vError("%s: Error: Transaction number is 0, in payment inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------
             const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
 
             // Open the Nym's payments inbox.
             OTLedger * pInbox = OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
             OTCleanup<OTLedger> theInboxAngel(pInbox);
-            // ------------------------------------------
             if (NULL == pInbox)
             {
                 OTLog::vError("%s: Error: Unable to load payment inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Find the payment therein that correlates to this OTRecord.
             //
             int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
@@ -951,7 +888,6 @@ bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
                               __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Accept it.
             //
             OTString strIndices;
@@ -969,14 +905,12 @@ bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
 
                 case 1: // success
                     break;
-                // ----------------------------------
                 default:
                     OTLog::vError("%s: Error while trying to accept this instrument.\n", __FUNCTION__);
                     return false;
             } // switch
         } // case: instrument
             break;
-        // --------------------------------------------
         default:
             OTLog::vError("%s: Unexpected type: %s\n",
                           __FUNCTION__, this->GetInstrumentType().c_str());
@@ -985,7 +919,6 @@ bool OTRecord::AcceptIncomingInstrument(const std::string & str_into_acct)
 
     return true;
 }
-// ---------------------------------------
 // For incoming, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::DiscardIncoming()
@@ -1003,27 +936,23 @@ bool OTRecord::DiscardIncoming()
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------
             if (0 == m_lTransactionNum)
             {
                 OTLog::vError("%s: Error: Transaction number is 0, in payment inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------
             const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
 
             // Open the Nym's payments inbox.
             OTLedger * pInbox = OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
             OTCleanup<OTLedger> theInboxAngel(pInbox);
-            // ------------------------------------------
             if (NULL == pInbox)
             {
                 OTLog::vError("%s: Error: Unable to load payment inbox for server id (%s), nym id (%s)\n",
                               __FUNCTION__, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Find the payment therein that correlates to this OTRecord.
             //
             int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
@@ -1034,7 +963,6 @@ bool OTRecord::DiscardIncoming()
                               __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(), m_str_nym_id.c_str());
                 return false;
             }
-            // ------------------------------------------
             // Accept it.
             //
             OTString strIndices;
@@ -1047,7 +975,6 @@ bool OTRecord::DiscardIncoming()
 
         } // case: instrument
             break;
-        // --------------------------------------------
         default:
             OTLog::vError("%s: Unexpected type: %s\n",
                           __FUNCTION__, this->GetInstrumentType().c_str());
@@ -1056,16 +983,13 @@ bool OTRecord::DiscardIncoming()
 
     return true;
 }
-// --------------------------------------------
 bool OTRecord::IsTransfer()    const  { return (OTRecord::Transfer == m_RecordType); }
-// --------------------------------------------
 bool OTRecord::IsCash()        const  { return m_bIsCash;          }
 bool OTRecord::IsInvoice()     const  { return m_bIsInvoice;       }
 bool OTRecord::IsCheque()      const  { return m_bIsCheque;        }
 bool OTRecord::IsVoucher()     const  { return m_bIsVoucher;       }
 bool OTRecord::IsContract()    const  { return m_bIsSmartContract; }
 bool OTRecord::IsPaymentPlan() const  { return m_bIsPaymentPlan;   }
-// ---------------------------------------
 // For outgoing, pending (not-yet-accepted) instruments.
 //
 bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be blank if it's a cheque.
@@ -1085,7 +1009,6 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
             }
 
             const OTIdentifier theNymID(m_str_nym_id);
-            // ------------------------------
             std::string str_using_acct;
 
             if (this->IsCheque())
@@ -1096,13 +1019,11 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
             {
                 str_using_acct = str_via_acct;
             }
-            // ---------------------------------------
             if (str_using_acct.empty())
             {
                 OTLog::vError("%s: Error: Missing account ID (FAILURE)\n", __FUNCTION__);
                 return false;
             }
-            // ------------------------------
             if (0 == m_lTransactionNum)
             {
                 if (IsCash())
@@ -1116,7 +1037,6 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
                         OTLog::vError("%s: Error: Blank outpayment at index %d\n", __FUNCTION__, lIndex);
                         return false;
                     }
-                    // ------------------------
                     OTString  strPayment(strOutpayment);
                     OTPayment thePayment(strPayment);
 
@@ -1126,17 +1046,14 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
                         OTLog::vError("%s: Error: Invalid outpayment at index %d\n", __FUNCTION__, lIndex);
                         return false;
                     }
-                    // ------------------------
                     int64_t lTransNum = 0;
                     thePayment.GetOpeningNum(lTransNum, theNymID);
-                    // ------------------------
                     if (0 == lTransNum) // Found it.
                     {
                         int32_t lIndex = GetBoxIndex();
                         OTString strIndices;
                         strIndices.Format("%d", lIndex);
                         const std::string str_indices(strIndices.Get());
-                        // ---------------------------------
                         OT_ME madeEasy;
 
                         return madeEasy.cancel_outgoing_payments(m_str_nym_id, str_using_acct, str_indices);
@@ -1156,7 +1073,6 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
                     return false;
                 }
             }
-            // ---------------------------------------
             // Find the payment in the Nym's outpayments box that correlates to this OTRecord.
             //
             int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(m_str_nym_id);
@@ -1170,7 +1086,6 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
                     OTLog::vError("%s: Error: Blank outpayment at index %d\n", __FUNCTION__, nIndex);
                     return false;
                 }
-                // ------------------------
                 OTString  strPayment(strOutpayment);
                 OTPayment thePayment(strPayment);
 
@@ -1179,25 +1094,20 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
                     OTLog::vError("%s: Error: Invalid outpayment at index %d\n", __FUNCTION__, nIndex);
                     return false;
                 }
-                // ------------------------
                 int64_t lTransNum = 0;
                 thePayment.GetOpeningNum(lTransNum, theNymID);
-                // ------------------------
                 if (lTransNum == m_lTransactionNum) // Found it.
                 {
                     OTString strIndices;
                     strIndices.Format("%d", nIndex);
                     const std::string str_indices(strIndices.Get());
-                    // ---------------------------------
                     OT_ME madeEasy;
 
                     return madeEasy.cancel_outgoing_payments(m_str_nym_id, str_using_acct, str_indices);
                 }
             } // for
-            // ---------------------------------------------------
         }
             break;
-        // -----------------------------
         default:
             OTLog::vError("%s: Unexpected type: %s\n",
                           __FUNCTION__, this->GetInstrumentType().c_str());
@@ -1206,11 +1116,8 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be bla
 
     return true;
 }
-// ---------------------------------------
 int64_t  OTRecord::GetTransactionNum() const         { return m_lTransactionNum;      } // Trans Num of receipt in the box. (Unless outpayment, contains number for instrument.)
-// ---------------------------------------
 void  OTRecord::SetTransactionNum(int64_t lTransNum) { m_lTransactionNum = lTransNum; }
-// ---------------------------------------
 int64_t  OTRecord::GetTransNumForDisplay() const
 {
     if (m_lTransNumForDisplay > 0)
@@ -1219,22 +1126,17 @@ int64_t  OTRecord::GetTransNumForDisplay() const
     return m_lTransactionNum;
 }
 void  OTRecord::SetTransNumForDisplay(int64_t lTransNum) { m_lTransNumForDisplay = lTransNum; }
-// ---------------------------------------
 void  OTRecord::SetExpired()   { m_bIsExpired  = true; }
 void  OTRecord::SetCanceled()  { m_bIsCanceled = true; }
-// ---------------------------------------
 bool  OTRecord::IsMail()                           const { return OTRecord::Mail == this->GetRecordType(); }
-// ---------------------------------------
 bool  OTRecord::IsPending()                        const { return m_bIsPending;            }
 bool  OTRecord::IsOutgoing()                       const { return m_bIsOutgoing;           }
 bool  OTRecord::IsRecord()                         const { return m_bIsRecord;             }
 bool  OTRecord::IsReceipt()                        const { return m_bIsReceipt;            }
 bool  OTRecord::HasContents()                      const { return !m_str_contents.empty(); }
 bool  OTRecord::HasMemo()                          const { return !m_str_memo.empty();     }
-// ---------------------------------------
 bool  OTRecord::IsExpired()                        const { return m_bIsExpired;            }
 bool  OTRecord::IsCanceled()                       const { return m_bIsCanceled;           }
-// ---------------------------------------
 const std::string & OTRecord::GetServerID()        const { return m_str_server_id;         }
 const std::string & OTRecord::GetAssetID()         const { return m_str_asset_id;          }
 const std::string & OTRecord::GetCurrencyTLA()     const { return m_str_currency_tla;      }
@@ -1242,14 +1144,12 @@ const std::string & OTRecord::GetNymID()           const { return m_str_nym_id; 
 const std::string & OTRecord::GetAccountID()       const { return m_str_account_id;        }
 const std::string & OTRecord::GetOtherNymID()      const { return m_str_other_nym_id;      }
 const std::string & OTRecord::GetOtherAccountID()  const { return m_str_other_account_id;  }
-// ---------------------------------------
 const std::string & OTRecord::GetName()            const { return m_str_name;              }
 const std::string & OTRecord::GetDate()            const { return m_str_date;              }
 const std::string & OTRecord::GetAmount()          const { return m_str_amount;            }
 const std::string & OTRecord::GetInstrumentType()  const { return m_str_type;              }
 const std::string & OTRecord::GetMemo()            const { return m_str_memo;              }
 const std::string & OTRecord::GetContents()        const { return m_str_contents;          }
-// ---------------------------------------
 bool                OTRecord::IsSpecialMail()      const { return m_bIsSpecialMail;        }
 int32_t             OTRecord::GetMethodID()        const { return m_nMethodID;             }
 const std::string & OTRecord::GetAddress()         const { return m_str_my_address;        }
@@ -1257,23 +1157,18 @@ const std::string & OTRecord::GetOtherAddress()    const { return m_str_other_ad
 const std::string & OTRecord::GetMsgID()           const { return m_str_msg_id;            }
 const std::string & OTRecord::GetMsgType()         const { return m_str_msg_type;          }
 const std::string & OTRecord::GetMsgTypeDisplay()  const { return m_str_msg_type_display;  }
-// ---------------------------------------
 void  OTRecord::SetSpecialMail(bool bIsSpecial/*=true*/) { m_bIsSpecialMail = bIsSpecial;  }
-// ---------------------------------------
 void    OTRecord::SetMethodID      (int32_t nMethodID)                { m_nMethodID            = nMethodID;   }
 void    OTRecord::SetAddress       (const std::string & str_Address)  { m_str_my_address       = str_Address; }
 void    OTRecord::SetOtherAddress  (const std::string & str_Address)  { m_str_other_address    = str_Address; }
 void    OTRecord::SetMsgID         (const std::string & str_id)       { m_str_msg_id           = str_id;      }
 void    OTRecord::SetMsgType       (const std::string & str_type)     { m_str_msg_type         = str_type;    }
 void    OTRecord::SetMsgTypeDisplay(const std::string & str_type)     { m_str_msg_type_display = str_type;    }
-// ---------------------------------------
 int32_t OTRecord::GetBoxIndex() const             { return m_nBoxIndex;      }
 void    OTRecord::SetBoxIndex(int32_t nBoxIndex)  { m_nBoxIndex = nBoxIndex; }
-// ---------------------------------------
 void  OTRecord::SetMemo          (const std::string & str_memo) { m_str_memo             = str_memo; }
 void  OTRecord::SetOtherNymID    (const std::string & str_ID)   { m_str_other_nym_id     = str_ID;   }
 void  OTRecord::SetOtherAccountID(const std::string & str_ID)   { m_str_other_account_id = str_ID;   }
-// ---------------------------------------
 void  OTRecord::SetContents      (const std::string & str_contents)
 {
     m_str_contents = str_contents;
@@ -1300,25 +1195,18 @@ void  OTRecord::SetContents      (const std::string & str_contents)
         }
     }
 }
-// ---------------------------------------
 time64_t OTRecord::GetValidFrom() { return m_ValidFrom; }
-// ---------------------------------------
 time64_t OTRecord::GetValidTo()   { return m_ValidTo;   }
-// ---------------------------------------
 void OTRecord::SetDateRange(time64_t tValidFrom, time64_t tValidTo)
 {
     m_ValidFrom = tValidFrom;
     m_ValidTo   = tValidTo;
-    // ----------------------------------------------------------
     time64_t tCurrentTime = OTAPI_Wrap::GetTime();
-    // ----------------------------------------------------------
     if ((tValidTo > OT_TIME_ZERO) && (tCurrentTime > tValidTo) && !IsMail() && !IsRecord())
         SetExpired();
 }
-// ---------------------------------------
 bool OTRecord::operator<(const OTRecord& rhs)
 { return m_ValidFrom < rhs.m_ValidFrom; }
-// ---------------------------------------
 OTRecord::OTRecord(const std::string & str_server_id,
                    const std::string & str_asset_id,
                    const std::string & str_currency_tla,
@@ -1341,7 +1229,6 @@ m_str_asset_id(str_asset_id),
 m_str_currency_tla(str_currency_tla),
 m_str_nym_id(str_nym_id),
 m_str_account_id(str_account_id),
-// ------------------------------
 m_str_name(str_name),
 m_str_date(str_date),
 m_str_amount(str_amount),
@@ -1363,7 +1250,6 @@ m_bIsCash(false),
 m_bIsExpired(false),
 m_bIsCanceled(false),
 m_RecordType(eRecordType) { }
-// ---------------------------------------
 
 
 

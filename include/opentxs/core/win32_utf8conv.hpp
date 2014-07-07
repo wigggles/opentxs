@@ -41,9 +41,7 @@
 
 
 
-//------------------------------------------------------------------------
 //                              INCLUDES
-//------------------------------------------------------------------------
 
 #include <stdexcept>    // std::runtime_error
 #include <string>       // STL string classes
@@ -54,9 +52,7 @@ namespace utf8util {
 
 
 
-//------------------------------------------------------------------------
 // Exception class representing an error occurred during UTF-8 conversion.
-//------------------------------------------------------------------------
 class utf8_conversion_error
     : public std::runtime_error
 {
@@ -64,7 +60,6 @@ public:
 
     //
     // Naming convention note:
-    // -----------------------
     //
     // This exception class is derived from std::runtime_error class,
     // so I chose to use the same naming convention of STL classes
@@ -120,37 +115,28 @@ private:
     error_code_type m_error_code;   // error code
 };
 
-//------------------------------------------------------------------------
 
 
 
-//------------------------------------------------------------------------
 // Converts a string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
-//------------------------------------------------------------------------
 EXPORT    std::wstring UTF16FromUTF8(const std::string & utf8);
 
 
-//------------------------------------------------------------------------
 // Converts a raw C string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
-//------------------------------------------------------------------------
 EXPORT    std::wstring UTF16FromUTF8(const char * utf8);
 
 
-//------------------------------------------------------------------------
 // Converts a string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
-//------------------------------------------------------------------------
 EXPORT    std::string UTF8FromUTF16(const std::wstring & utf16);
 
 
-//------------------------------------------------------------------------
 // Converts a raw C string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
-//------------------------------------------------------------------------
 EXPORT std::string UTF8FromUTF16(const wchar_t * utf16);
 
 

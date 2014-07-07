@@ -34,9 +34,7 @@ freely, subject to the following restrictions:
 
 namespace tthread {
 
-//------------------------------------------------------------------------------
 // condition_variable
-//------------------------------------------------------------------------------
 // NOTE 1: The Win32 implementation of the condition_variable class is based on
 // the corresponding implementation in GLFW, which in turn is based on a
 // description by Douglas C. Schmidt and Irfan Pyarali:
@@ -46,7 +44,6 @@ namespace tthread {
 // (InitializeConditionVariable, WakeConditionVariable, etc), but we want to
 // be portable with pre-Vista Windows versions, so TinyThread++ does not use
 // Vista condition variables.
-//------------------------------------------------------------------------------
 
 #if defined(_TTHREAD_WIN32_)
   #define _CONDITION_EVENT_ONE 0
@@ -120,12 +117,10 @@ void condition_variable::notify_all()
 #endif
 
 
-//------------------------------------------------------------------------------
 // POSIX pthread_t to unique thread::id mapping logic.
 // Note: Here we use a global thread safe std::map to convert instances of
 // pthread_t to small thread identifier numbers (unique within one process).
 // This method should be portable across different POSIX implementations.
-//------------------------------------------------------------------------------
 
 #if defined(_TTHREAD_POSIX_)
 static thread::id _pthread_t_to_ID(const pthread_t &aHandle)
@@ -142,9 +137,7 @@ static thread::id _pthread_t_to_ID(const pthread_t &aHandle)
 #endif // _TTHREAD_POSIX_
 
 
-//------------------------------------------------------------------------------
 // thread
-//------------------------------------------------------------------------------
 
 /// Information to pass to the new thread (what to run).
 struct _thread_start_info {
@@ -298,9 +291,7 @@ unsigned thread::hardware_concurrency()
 }
 
 
-//------------------------------------------------------------------------------
 // this_thread
-//------------------------------------------------------------------------------
 
     // FellowTraveler: I had to add this function, for OpenSSL's multi-threaded code to work in OT.
     //

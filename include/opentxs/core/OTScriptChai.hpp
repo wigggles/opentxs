@@ -174,7 +174,6 @@ public:
     virtual ~OTScriptChai();
 
     virtual bool ExecuteScript(OTVariable * pReturnVar=NULL);
-    // ------------------------
     chaiscript::ChaiScript * const chai;
 };
 

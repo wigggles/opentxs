@@ -148,19 +148,13 @@ class OTSymmetricKey
 private:
     bool      m_bIsGenerated;     // GetKey asserts if this is false; GenerateKey asserts if it's true.
     bool      m_bHasHashCheck;    // If a hash-check fo the Derived Key has been made yet.
-    // ---------------------------------------------
     uint32_t  m_nKeySize;         // The size, in bits. For example, 128 bit key, 256 bit key, etc.
-    // ---------------------------------------------
     uint32_t  m_uIterationCount;  // Stores the iteration count, which should probably be at least 2000. (Number of iterations used while generating key from passphrase.)
-    // ---------------------------------------------
     OTPayload m_dataSalt;         // Stores the SALT (which is used with the password for generating / retrieving the key from m_dataEncryptedKey)
     OTPayload m_dataIV;           // Stores the IV used internally for encrypting / decrypting the actual key (using the derived key) from m_dataEncryptedKey.
     OTPayload m_dataEncryptedKey; // Stores only encrypted version of symmetric key.
-    // ---------------------------------------------
     OTPayload m_dataHashCheck;
-    // ---------------------------------------------
 public:
-    // ------------------------------------------------------------------------
     // The highest-level possible interface (used by the API)
 
     // Caller must delete.
@@ -169,7 +163,6 @@ public:
                                                       const bool         bAskTwice = false
                                                       ); // returns a text OTPassword, or NULL.
 
-    // ------------------------------------------------------------------------
     // If you already have the passphrase, you can pass it in as an optional arg.
     // That way if you have to use it 100 times in a row, the user doesn't actually have
     // to TYPE it 100 times in a row.
@@ -179,7 +172,6 @@ public:
                                      const OTString      * pstrDisplay       = NULL,
                                      const OTPassword * pAlreadyHavePW = NULL
                                      );
-    // ------------------------------------------------------------------------
     EXPORT    static bool Encrypt(
                                 const OTString     & strKey,
                                 const OTString     & strPlaintext,
@@ -197,7 +189,6 @@ public:
                                 const OTPassword * pAlreadyHavePW = NULL
                                 );
 
-    // ------------------------------------------------------------------------
     EXPORT    static bool Encrypt(
                                 const OTSymmetricKey & theKey,
                                 const OTString         & strPlaintext,
@@ -215,7 +206,6 @@ public:
                                 const OTPassword     * pAlreadyHavePW = NULL
                                 );
 
-    // ------------------------------------------------------------------------
     EXPORT    bool SerializeTo   (OTPayload & theOutput) const;
     EXPORT    bool SerializeFrom (OTPayload & theInput);
 
@@ -224,13 +214,10 @@ public:
 
     EXPORT    bool SerializeTo   (OTString & strOutput, bool bEscaped=false) const;
     EXPORT    bool SerializeFrom (const OTString & strInput, bool bEscaped=false);
-    // ------------------------------------------------------------------------
     inline    bool IsGenerated()  const { return m_bIsGenerated; }
     inline  bool HasHashCheck() const { return m_bHasHashCheck; }
-    // ------------------------------------------------------------------------
     EXPORT    void GetIdentifier(OTIdentifier & theIdentifier) const;
     EXPORT    void GetIdentifier(OTString & strIdentifier) const;
-    // ------------------------------------------------------------------------
     // The derived key is used for decrypting the actual symmetric key.
     // It's called the derived key because it is derived from the passphrase.
     //
@@ -248,7 +235,6 @@ public:
                                                               const OTPassword & thePassphrase
                                                               ); // not const!
 
-    // ------------------------------------------------------------------------
     // Assumes key is already generated. Tries to get the raw clear key from its
     // encrypted form, via its passphrase being used to derive a key for that purpose.
     //
@@ -265,29 +251,24 @@ public:
                                          const OTPassword & theDerivedKey,
                                                OTPassword & theRawKeyOutput
                                          ) const;
-    // ------------------------------------------------------------------------
     // Generates this OTSymmetricKey based on an OTPassword. The generated key is
     // stored in encrypted form, based on a derived key from that password.
     //
     EXPORT    bool GenerateKey(const OTPassword &  thePassphrase,
                                    OTPassword ** ppDerivedKey=NULL); // If you want, I can pass this back to you.
-    // ------------------------------------------------------------------------
     // Changes the passphrase on an existing symmetric key.
     //
     EXPORT    bool ChangePassphrase(const OTPassword & oldPassphrase,
                                   const OTPassword & newPassphrase);
-    // ------------------------------------------------------------------------
     // For old SymmetricKey's that do not yet have a hash-check.
     // This will generate a hash check for them.
     //
     EXPORT    bool GenerateHashCheck(const OTPassword & thePassphrase);
 
-    // ------------------------------------------------------------------------
     // Re-generates a hash-check for some reason. (maybe it was wrong?)
     //
     EXPORT    bool ReGenerateHashCheck(const OTPassword & thePassphrase);
 
-    // ------------------------------------------------------------------------
     EXPORT    OTSymmetricKey();
     EXPORT    OTSymmetricKey(const OTPassword & thePassword);
 
@@ -295,7 +276,6 @@ public:
     EXPORT    virtual void Release();
 
     EXPORT    void Release_SymmetricKey();
-    // ------------------------------------------------------------------------
 };
 
 

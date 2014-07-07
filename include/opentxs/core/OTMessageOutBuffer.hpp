@@ -163,7 +163,6 @@ typedef std::multimap <int64_t, OTMessage *> mapOfMessages;  // Your outgoing me
 class OTMessageOutbuffer
 {
     mapOfMessages m_mapMessages;
-    // --------------------------------
     // Just to keep you out of trouble.
     OTMessageOutbuffer  (const OTMessageOutbuffer &) {}
     OTMessageOutbuffer & operator=(const OTMessageOutbuffer &) { return *this; }

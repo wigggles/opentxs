@@ -158,13 +158,10 @@ public:
     inline void  SetAsVoucher(const OTIdentifier & remitterUserID, const OTIdentifier & remitterAcctID)
     { m_REMITTER_USER_ID = remitterUserID; m_REMITTER_ACCT_ID = remitterAcctID;
         m_bHasRemitter = true; m_strContractType = "VOUCHER";  }
-    // ---------------------------------------------------------------------------
     inline const OTString     &    GetMemo()             const { return m_strMemo;           }
     inline const int64_t         & GetAmount()           const { return m_lAmount;           }
-    // ---------------------------------------------------------------------------
     inline const OTIdentifier &    GetRecipientUserID()  const { return m_RECIPIENT_USER_ID; }
     inline bool                 HasRecipient()        const { return m_bHasRecipient;     }
-    // ---------------------------------------------------------------------------
     inline const OTIdentifier &    GetRemitterUserID()   const { return m_REMITTER_USER_ID;  }
     inline const OTIdentifier &    GetRemitterAcctID()   const { return m_REMITTER_ACCT_ID;  }
     inline bool                 HasRemitter()         const { return m_bHasRemitter;      }
@@ -172,7 +169,6 @@ public:
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account (where he deposits
     // the cheque) is not known UNTIL the time of the deposit. It's certain not known at the time 
     // that the cheque is written...
-    // --------------------------------------------------
     
     // Calling this function is like writing a check...
 EXPORT    bool IssueCheque(const int64_t      & lAmount,    const int64_t   & lTransactionNum,

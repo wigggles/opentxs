@@ -194,29 +194,22 @@ private:  // Private prevents erroneous use by other classes.
 public:
     enum paymentType
     {
-        // ------------------
         // OTCheque is derived from OTTrackable, which is derived from OTInstrument, which is
         // derived from OTScriptable, which is derived from OTContract.
-        // ------------------
         CHEQUE,         // A cheque drawn on a user's account.
         VOUCHER,        // A cheque drawn on a server account (cashier's cheque aka banker's cheque)
         INVOICE,        // A cheque with a negative amount. (Depositing this causes a payment out, instead of a deposit in.)
-        // ------------------
         PAYMENT_PLAN,   // An OTCronItem-derived OTPaymentPlan, related to a recurring payment plan.
         SMART_CONTRACT, // An OTCronItem-derived OTSmartContract, related to a smart contract.
-        // ------------------
         PURSE,          // An OTContract-derived OTPurse containing a list of cash OTTokens.
-        // ------------------
         ERROR_STATE
     };  // If you add any types to this list, update the list of strings at the top of the .CPP file.
 
 
 protected:
     virtual void UpdateContents();  // Before transmission or serialization, this is where the object saves its contents
-    // -----------------------------------------
     OTString        m_strPayment;   // Contains the cheque / payment plan / etc in string form.
     paymentType     m_Type;         // Default value is ERROR_STATE
-    // -----------------------------------------
     // Once the actual instrument is loaded up, we copy some temp values to *this
     // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
     //
@@ -235,21 +228,16 @@ protected:
 
     OTIdentifier    m_AssetTypeID;      // These are for convenience only, for caching once they happen to be loaded.
     OTIdentifier    m_ServerID;         // These values are NOT serialized other than via the payment instrument itself
-    // ----------------------------
     OTIdentifier    m_SenderUserID;     // (where they are captured from, whenever it is instantiated.) Until m_bAreTempValuesSet
     OTIdentifier    m_SenderAcctID;     // is set to true, these values can NOT be considered available. Use the accessing methods
     OTIdentifier    m_RecipientUserID;  // below. These values are not ALL always available, depending on the payment instrument
     OTIdentifier    m_RecipientAcctID;  // type. Different payment instruments support different temp values.
-    // -----------------------------------------
     OTIdentifier    m_RemitterUserID;   // A voucher (cashier's cheque) has the "bank" as the sender. Whereas the Nym who actually purchased the voucher is the remitter.
     OTIdentifier    m_RemitterAcctID;   // A voucher (cashier's cheque) has the "bank"s account as the sender acct. Whereas the account that was originally used to purchase the voucher is the remitter account.
-    // -----------------------------------------
     time64_t          m_VALID_FROM;       // Temporary values. Not always available.
     time64_t          m_VALID_TO;         // Temporary values. Not always available.
-    // -----------------------------------------
 public:
 EXPORT    bool SetPayment(const OTString & strPayment);
-    // -----------------------------------------
 
 EXPORT    bool IsCheque()        const { return (CHEQUE         == m_Type); }
 EXPORT    bool IsVoucher()       const { return (VOUCHER        == m_Type); }
@@ -260,10 +248,8 @@ EXPORT    bool IsPurse()         const { return (PURSE          == m_Type); }
 EXPORT    bool IsValid()         const { return (ERROR_STATE    != m_Type); }
 
 EXPORT    paymentType     GetType() const { return m_Type; }
-    // -------------------------------------------
 EXPORT    OTTrackable *   Instantiate() const;
 EXPORT    OTTrackable *   Instantiate(const OTString & strPayment);
-    // -------------------------------------------
 EXPORT    OTPurse * InstantiatePurse() const;
 //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID) const;
 //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) const;
@@ -273,7 +259,6 @@ EXPORT    OTPurse * InstantiatePurse(const OTString & strPayment);
 //                                   const OTString & strPayment);
 //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID,
 //                                   const OTString & strPayment);
-    // -------------------------------------------
 EXPORT    bool GetPaymentContents(OTString & strOutput) const { strOutput = m_strPayment; return true; }
 
     // Since the temp values are not available until at least ONE instantiating has occured,
@@ -287,14 +272,12 @@ EXPORT    bool SetTempValuesFromCheque        (const OTCheque         & theInput
 EXPORT    bool SetTempValuesFromPaymentPlan   (const OTPaymentPlan    & theInput);
 EXPORT    bool SetTempValuesFromSmartContract (const OTSmartContract  & theInput);
 EXPORT    bool SetTempValuesFromPurse         (const OTPurse          & theInput);
-    // ----------------------------
     // Once you "Instantiate" the first time, then these values are
     // set, if available, and can be queried thereafter from *this.
     // Otherwise, these functions will return false.
     //
 EXPORT    bool GetAmount        (int64_t & lOutput)              const;
 EXPORT    bool GetTransactionNum(int64_t & lOutput)              const;
-    // ----------------------------
 // Only works for payment plans and smart contracts. Gets the
 // opening transaction number for a given Nym, if applicable.
 // (Or closing number for a given asset account.)
@@ -302,9 +285,7 @@ EXPORT    bool GetOpeningNum(      int64_t         & lOutput,
                              const OTIdentifier & theNymID)   const;
 EXPORT    bool GetClosingNum(      int64_t         & lOutput,
                              const OTIdentifier & theAcctID)  const;
-    // ----------------------------
 EXPORT    bool GetAllTransactionNumbers(OTNumList & numlistOutput) const;
-    // ----------------------------
 EXPORT    bool HasTransactionNum(const int64_t & lInput)         const;
 EXPORT    bool GetMemo(OTString & strOutput)                  const;
 EXPORT    bool GetAssetTypeID    (OTIdentifier & theOutput)   const;
@@ -313,19 +294,14 @@ EXPORT    bool GetSenderUserID   (OTIdentifier & theOutput)   const;
 EXPORT    bool GetSenderAcctID   (OTIdentifier & theOutput)   const;
 EXPORT    bool GetRecipientUserID(OTIdentifier & theOutput)   const;
 EXPORT    bool GetRecipientAcctID(OTIdentifier & theOutput)   const;
-    // ----------------------------
 EXPORT    bool GetRemitterUserID (OTIdentifier & theOutput)   const;
 EXPORT    bool GetRemitterAcctID (OTIdentifier & theOutput)   const;
-    // ----------------------------
 EXPORT    bool GetSenderUserIDForDisplay(OTIdentifier & theOutput)   const;
 EXPORT    bool GetSenderAcctIDForDisplay(OTIdentifier & theOutput)   const;
-    // ----------------------------
 EXPORT    bool GetValidFrom(time64_t & tOutput)                 const;
 EXPORT    bool GetValidTo  (time64_t & tOutput)                 const;
-    // ------------------------------------------------------------------------
 EXPORT    bool VerifyCurrentDate(bool & bVerified); // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
 EXPORT  bool IsExpired        (bool & bExpired);  // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
-    // ------------------------------------------------------------------------
 EXPORT    OTPayment();
 EXPORT    OTPayment(const OTString & strPayment);
 EXPORT    virtual ~OTPayment();
@@ -335,7 +311,6 @@ EXPORT    void Release_Payment();
 
 EXPORT    virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 EXPORT    virtual bool SaveContractWallet(std::ofstream & ofs);
-    // ----------------------------
 EXPORT    static const char * _GetTypeString(paymentType theType);
 EXPORT  const char * GetTypeString() const { return OTPayment::_GetTypeString(m_Type); }
 EXPORT    static paymentType GetTypeFromString(const OTString & strType);

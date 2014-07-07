@@ -169,7 +169,6 @@ class OTBylaw
 public:
     EXPORT    const OTString & GetName()     const { return m_strName; }
     EXPORT  const char     * GetLanguage() const;
-    // ---------------------
     EXPORT  bool AddVariable(OTVariable & theVariable);
     EXPORT    bool AddVariable(const std::string str_Name, const std::string str_Value,
                              const OTVariable::OTVariable_Access theAccess=OTVariable::Var_Persistent);
@@ -177,46 +176,34 @@ public:
                              const OTVariable::OTVariable_Access theAccess=OTVariable::Var_Persistent);
     EXPORT    bool AddVariable(const std::string str_Name, const bool bValue,
                              const OTVariable::OTVariable_Access theAccess=OTVariable::Var_Persistent);
-    // ---------------------
     EXPORT  bool AddClause(OTClause& theClause);
     EXPORT    bool AddClause(const char * szName, const char * szCode);
-    // ---------------------
     EXPORT    bool AddHook(const std::string str_HookName,
         const std::string str_ClauseName); // name of hook such as cron_process or hook_activate, and name of clause, such as sectionA (corresponding to an actual script in the clauses map.)
-    // ---------------------
     EXPORT    bool AddCallback(const std::string str_CallbackName,
         const std::string str_ClauseName); // name of callback such as callback_party_may_execute_clause, and name of clause, such as custom_party_may_execute_clause (corresponding to an actual script in the clauses map.)
-    // ---------------------
     EXPORT    OTVariable        * GetVariable(const std::string str_Name); // not a reference, so you can pass in char *. Maybe that's bad? todo: research that.
     EXPORT    OTClause          * GetClause  (const std::string str_Name);
     EXPORT    OTClause          * GetCallback(const std::string str_CallbackName);
-    // ---------------------
     EXPORT    bool GetHooks(const std::string str_HookName, mapOfClauses & theResults); // Look up all clauses matching a specific hook.
-    // ---------------------
     EXPORT int32_t GetVariableCount() const { return static_cast<int32_t> (m_mapVariables.size()); }
     EXPORT int32_t GetClauseCount  () const { return static_cast<int32_t> (m_mapClauses.size());   }
     EXPORT int32_t GetCallbackCount() const { return static_cast<int32_t> (m_mapCallbacks.size()); }
     EXPORT int32_t GetHookCount    () const { return static_cast<int32_t> (m_mapHooks.size());     }
-    // ---------------------
     EXPORT  OTVariable        * GetVariableByIndex    (int32_t nIndex);
     EXPORT  OTClause          * GetClauseByIndex      (int32_t nIndex);
     EXPORT  OTClause          * GetCallbackByIndex    (int32_t nIndex);
     EXPORT  OTClause          * GetHookByIndex        (int32_t nIndex);
-    // ---------------------
     EXPORT  const std::string GetCallbackNameByIndex(int32_t nIndex);
     EXPORT  const std::string GetHookNameByIndex    (int32_t nIndex);
-    // ---------------------
     EXPORT    void RegisterVariablesForExecution(OTScript& theScript);
-    // ---------------------
     EXPORT    bool IsDirty() const;    // So you can tell if any of the persistent or important variables have CHANGED since it was last set clean.
     EXPORT    bool IsDirtyImportant() const;    // So you can tell if ONLY the IMPORTANT variables have CHANGED since it was last set clean.
     EXPORT    void SetAsClean();        // Sets the variables as clean, so you can check later and see if any have been changed (if it's DIRTY again.)
-    // ---------------------
     // This pointer isn't owned -- just stored for convenience.
     //
     EXPORT    OTScriptable * GetOwnerAgreement() { return m_pOwnerAgreement; }
     EXPORT    void SetOwnerAgreement(OTScriptable & theOwner) { m_pOwnerAgreement = &theOwner; }
-    // ---------------------
     EXPORT  OTBylaw();
     EXPORT    OTBylaw(const char * szName, const char * szLanguage);
     virtual ~OTBylaw();

@@ -1387,7 +1387,6 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 
 #endif // defined(OT_NO_DEMANGLING_STACK_TRACE)
 
-// --------------------------------------
 #ifndef OT_HANDLE_SIGNAL
 #define OT_HANDLE_SIGNAL(OT_SIGNAL_TYPE) \
 { \
@@ -1410,7 +1409,6 @@ struct sigaction new_action, old_action; \
 } \
 }
 #endif
-// --------------------------------------
 
 //static
 void OTLog::SetupSignalHandler()

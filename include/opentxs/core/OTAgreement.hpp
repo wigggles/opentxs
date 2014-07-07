@@ -184,9 +184,7 @@ protected:
     std::deque<int64_t> m_dequeRecipientClosingNumbers; // Numbers used for CLOSING a transaction. (finalReceipt.)
 
 public:
-    // --------------------------------------------------------------------------
     const OTString &  GetConsideration() const { return m_strConsideration; }
-    // --------------------------------------------------------------------------
     void SetMerchantSignedCopy(const OTString & strMerchantCopy) { m_strMerchantSignedCopy = strMerchantCopy; }
     const OTString & GetMerchantSignedCopy() { return m_strMerchantSignedCopy; }
 
@@ -216,15 +214,12 @@ EXPORT    bool    Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM=N
                                     pAccount->GetRealAccountID(),
                                     pAccount->GetUserID(),
                                     RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
-     // --------------------------------------------------------------------------------------------------------
      THEN:  (Agreement)
 
      bool bSuccessSetAgreement = pPlan->SetAgreement(lTransactionNumber, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
-     // --------------------------------------------------------------------------------------------------------
      THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each other):
 
      bool        SetInitialPayment(const int64_t & lAmount, time64_t tTimeUntilInitialPayment=0); // default: now.
-     // --------------------------------------------------------------------------------------------------------
      bool        SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
                                 time64_t tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
                                 time64_t tPlanLength=0, int32_t nMaxPayments=0);
@@ -288,14 +283,12 @@ EXPORT    bool    Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM=N
 
     virtual bool CompareAgreement(const OTAgreement & rhs) const;
 
-    // --------------------------------------------------------------------------
 
     inline const OTIdentifier &    GetRecipientAcctID() const { return m_RECIPIENT_ACCT_ID; }
     inline const OTIdentifier &    GetRecipientUserID() const { return m_RECIPIENT_USER_ID; }
     inline void        SetRecipientAcctID(const OTIdentifier & ACCT_ID)    { m_RECIPIENT_ACCT_ID = ACCT_ID; }
     inline void        SetRecipientUserID(const OTIdentifier & USER_ID)    { m_RECIPIENT_USER_ID = USER_ID; }
 
-    // --------------------------------------------------------------------------
 
     // The recipient must also provide an opening and closing transaction number(s).
     //
@@ -303,7 +296,6 @@ EXPORT    int64_t    GetRecipientClosingTransactionNoAt(uint32_t nIndex) const;
 EXPORT    int32_t     GetRecipientCountClosingNumbers() const;
 
     void    AddRecipientClosingTransactionNo(const int64_t & lClosingTransactionNo);
-    // ----------------------------------------------------------------------------
 
     // This is a higher-level than the above functions. It calls them.
     // Below is the abstraction, above is the implementation.
@@ -311,7 +303,6 @@ EXPORT    int32_t     GetRecipientCountClosingNumbers() const;
 EXPORT    int64_t    GetRecipientOpeningNum() const;
 EXPORT    int64_t    GetRecipientClosingNum() const;
 
-    // ----------------------------------------------------------------------------
     // From OTCronItem (parent class of this)
     /*
      inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
@@ -319,7 +310,6 @@ EXPORT    int64_t    GetRecipientClosingNum() const;
      inline void SetCreationDate(const time64_t & CREATION_DATE) { m_CREATION_DATE = CREATION_DATE; }
      inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
 
-     // ------------------------------------------------------
      // These are for:
      // std::deque<int64_t> m_dequeClosingNumbers;
      //
@@ -339,7 +329,6 @@ EXPORT  virtual void HarvestClosingNumbers(OTPseudonym & theNym);
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
 
-    // --------------------------------------------------------------------------
 
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
@@ -355,7 +344,6 @@ EXPORT  virtual void HarvestClosingNumbers(OTPseudonym & theNym);
     virtual bool HasTransactionNum(const int64_t & lInput) const;
     virtual void GetAllTransactionNumbers(OTNumList & numlistOutput) const;
 
-    // --------------------------------------------------------------------------
 
     // From OTInstrument (parent class of OTTrackable, parent class of OTCronItem, parent class of this)
     /*
@@ -403,7 +391,6 @@ EXPORT    bool SendNoticeToAllParties(bool bSuccessMsg,
                                     OTString * pstrAttachment=NULL,
                                     OTPseudonym * pActualNym=NULL);
 
-    // -----------------------------------------------
 EXPORT static bool DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or OTItem::rejection.
                                             OTPseudonym & theServerNym,
                                             const OTIdentifier & SERVER_ID,
@@ -414,7 +401,6 @@ EXPORT static bool DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an
                                             OTString * pstrNote=NULL,
                                             OTString * pstrAttachment=NULL,
                                             OTPseudonym * pActualNym=NULL);
-    // -----------------------------------------------
     OTAgreement();
     OTAgreement(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID);
     OTAgreement(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID,
@@ -426,12 +412,9 @@ EXPORT static bool DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an
 
     virtual void Release();
     void Release_Agreement();
-    // ------------------------------------------------------
     virtual bool IsValidOpeningNumber(const int64_t & lOpeningNum) const;
-    // ------------------------------------------------------
 EXPORT    virtual int64_t GetOpeningNumber(const OTIdentifier & theNymID) const;
     virtual int64_t GetClosingNumber(const OTIdentifier & theAcctID) const;
-    // ------------------------------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents

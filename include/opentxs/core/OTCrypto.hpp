@@ -243,33 +243,27 @@ protected:
     virtual void Cleanup_Override();
 public:
     virtual ~OTCrypto();
-    // ------------------------------------------------------------------------
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
     virtual OTPassword * InstantiateBinarySecret() const=0;
-    // ------------------------------------------------------------------------
     // GET PASSPHRASE FROM CONSOLE
     //
 EXPORT    bool GetPasswordFromConsole        (OTPassword & theOutput, bool bRepeat=false   ) const;
 EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char * szPrompt) const;
-    // ------------------------------------------------------------------------
     // RANDOM NUMBERS
     //
     virtual bool RandomizeMemory(uint8_t * szDestination, uint32_t nNewSize) const=0;
-    // ------------------------------------------------------------------------
     // HASHING
     //
     virtual bool CalculateDigest(const OTString & strInput,  const OTString & strHashAlgorithm, OTIdentifier & theOutput) const=0;
     virtual bool CalculateDigest(const OTData   & dataInput, const OTString & strHashAlgorithm, OTIdentifier & theOutput) const=0;
-    // ----------------------------------
     // BASE 62 ENCODING  (for IDs)
     //
     bool IsBase62(const std::string &str) const;
 
     virtual void SetIDFromBase62String(const OTString     & strInput, OTIdentifier & theOutput) const=0;
     virtual void SetBase62StringFromID(const OTIdentifier & theInput, OTString     & strOutput) const=0;
-    // ----------------------------------
     // BASE 64 ENCODING
     //
     virtual bool Base64Encode(const OTData   & theInput, OTString & strOutput, bool bLineBreaks=true) const;
@@ -279,7 +273,6 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char    * Base64Encode(const uint8_t * input, int32_t       in_len, bool bLineBreaks) const=0; // NOTE: the 'int32_t' here is very worrying to me. The reason it's here is because that's what OpenSSL uses. So we may need to find another way of doing it, so we can use a safer parameter here than what it currently is. Todo security.
     virtual uint8_t * Base64Decode(const char    * input, size_t * out_len, bool bLineBreaks) const=0;
-    // ----------------------------------
     // KEY DERIVATION
     //
     // DeriveKey derives a 128-bit symmetric key from a passphrase.
@@ -313,29 +306,21 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
                                       const uint32_t       uIterations,
                                       OTPayload        &   dataCheckHash) const=0;
 
-    // ------------------------------------------------------------------------
     // ENCRYPT / DECRYPT
     //
     // Symmetric (secret key) encryption / decryption
     //
     virtual bool Encrypt(const OTPassword & theRawSymmetricKey,  // The symmetric key, in clear form.
-                         // -------------------------------
                          const char      *  szInput,             // This is the Plaintext.
                          const uint32_t     lInputLength,
-                         // -------------------------------
                          const OTPayload &  theIV,               // (We assume this IV is already generated and passed in.)
-                         // -------------------------------
                          OTPayload &  theEncryptedOutput) const=0; // OUTPUT. (Ciphertext.)
 
     virtual bool Decrypt(const OTPassword & theRawSymmetricKey,  // The symmetric key, in clear form.
-                         // -------------------------------
                          const char       * szInput,             // This is the Ciphertext.
                          const uint32_t     lInputLength,
-                         // -------------------------------
                          const OTPayload  & theIV,               // (We assume this IV is already generated and passed in.)
-                         // -------------------------------
                          OTCrypto_Decrypt_Output theDecryptedOutput) const=0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR OTPayload& here (either will work.)
-    // ------------------------------------------------------------------------
     // SEAL / OPEN (RSA envelopes...)
     //
     // Asymmetric (public key) encryption / decryption
@@ -343,7 +328,6 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
     virtual bool Seal(mapOfAsymmetricKeys & RecipPubKeys, const OTString & theInput, OTData & dataOutput) const=0;
 
     virtual bool Open(OTData & dataInput, const OTPseudonym & theRecipient, OTString & theOutput, OTPasswordData * pPWData=NULL) const=0;
-    // ----------------------------------
     // SIGN / VERIFY
     //
     // Sign or verify using the Asymmetric Key itself.
@@ -359,7 +343,6 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
                                  const OTSignature     & theSignature,
                                  const OTString        & strHashType,
                                  OTPasswordData        * pPWData=NULL) const=0;
-    // ----------------------------------
     // Sign or verify using the contents of a Certfile.
     //
     virtual bool SignContract(const OTString    & strContractUnsigned,
@@ -373,12 +356,10 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
                                  const std::string & strCertFileContents,
                                  const OTSignature & theSignature,
                                  OTPasswordData    * pPWData=NULL) const=0;
-    // ----------------------------------
 EXPORT    static OTCrypto * It();
 
 EXPORT    void Init();
 EXPORT    void Cleanup();
-    // ----------------------------------
 };
 
 
@@ -404,37 +385,29 @@ class OTCrypto_OpenSSL : public OTCrypto
 
 protected:
     OTCrypto_OpenSSL();
-    // ----------------------------------
     virtual void Init_Override();
     virtual void Cleanup_Override();
-    // ----------------------------------
 
     class OTCrypto_OpenSSLdp;
     OTCrypto_OpenSSLdp *dp;
 
 public:
     static tthread::mutex * s_arrayMutex;
-    // ----------------------------------
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     virtual OTPassword * InstantiateBinarySecret() const;
-    // ------------------------------------------------------------------------
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t * szDestination, uint32_t nNewSize) const;
-    // ------------------------------------------------------------------------
     // HASHING
     virtual bool CalculateDigest(const OTString & strInput,  const OTString & strHashAlgorithm, OTIdentifier & theOutput) const;
     virtual bool CalculateDigest(const OTData   & dataInput, const OTString & strHashAlgorithm, OTIdentifier & theOutput) const;
-    // ----------------------------------
     // BASE 62 ENCODING  (for IDs)
     virtual void SetIDFromBase62String(const OTString     & strInput, OTIdentifier & theOutput) const;
     virtual void SetBase62StringFromID(const OTIdentifier & theInput, OTString     & strOutput) const;
-    // ----------------------------------
     // BASE 64 ENCODING
     // Lower-level version:
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char    * Base64Encode(const uint8_t * input, int32_t       in_len, bool bLineBreaks) const; // todo security ('int32_t')
     virtual uint8_t * Base64Decode(const char    * input, size_t * out_len, bool bLineBreaks) const;
-    // ----------------------------------
     // KEY DERIVATION
     // userPassword argument contains the user's password which is used to
     // derive the key. Presumably you already obtained this passphrase...
@@ -451,33 +424,24 @@ public:
                                       const OTPayload  &   dataSalt,
                                       const uint32_t       uIterations,
                                             OTPayload  &   dataCheckHash) const;
-    // ------------------------------------------------------------------------
     // ENCRYPT / DECRYPT
     // Symmetric (secret key) encryption / decryption
     virtual bool Encrypt(const OTPassword &  theRawSymmetricKey,  // The symmetric key, in clear form.
-                         // -------------------------------
                          const char       *  szInput,             // This is the Plaintext.
                          const uint32_t      lInputLength,
-                         // -------------------------------
                          const OTPayload  &  theIV,               // (We assume this IV is already generated and passed in.)
-                         // -------------------------------
                                OTPayload  &  theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
 
     virtual bool Decrypt(const OTPassword &  theRawSymmetricKey,  // The symmetric key, in clear form.
-                         // -------------------------------
                          const char       *  szInput,             // This is the Ciphertext.
                          const uint32_t      lInputLength,
-                         // -------------------------------
                          const OTPayload  &  theIV,               // (We assume this IV is already generated and passed in.)
-                         // -------------------------------
                          OTCrypto_Decrypt_Output theDecryptedOutput) const; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR OTPayload& here (either will work.)
-    // ------------------------------------------------------------------------
     // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
     virtual bool Seal(mapOfAsymmetricKeys & RecipPubKeys, const OTString & theInput, OTData & dataOutput) const;
 
     virtual bool Open(OTData & dataInput, const OTPseudonym & theRecipient, OTString & theOutput, OTPasswordData * pPWData=NULL) const;
-    // ----------------------------------
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
     virtual bool SignContract(const OTString        & strContractUnsigned,
@@ -491,7 +455,6 @@ public:
                                  const OTSignature     & theSignature,
                                  const OTString        & strHashType,
                                  OTPasswordData        * pPWData=NULL) const;
-    // ----------------------------------
     // Sign or verify using the contents of a Certfile.
     virtual bool SignContract(const OTString    & strContractUnsigned,
                               const OTString    & strSigHashType,
@@ -504,7 +467,6 @@ public:
                                  const std::string & strCertFileContents,
                                  const OTSignature & theSignature,
                                  OTPasswordData    * pPWData=NULL) const;
-    // ----------------------------------
     void thread_setup();
     void thread_cleanup();
 

@@ -156,14 +156,12 @@ typedef std::list<OTMessage *>       listOfMessages; // Incoming server replies 
 class OTMessageBuffer
 {
     listOfMessages m_listMessages;
-    // --------------------------------
     // Just to keep you out of trouble.
     OTMessageBuffer  (const OTMessageBuffer &) {}
     OTMessageBuffer & operator=(const OTMessageBuffer &) { return *this; }
 public:
     OTMessageBuffer() {}
 EXPORT    ~OTMessageBuffer();
-    // -------------------------------
 
 EXPORT    void        Clear   ();
 EXPORT    void        Push    (OTMessage & theMessage);     // Push: theMessage must be heap-allocated. Takes ownership.

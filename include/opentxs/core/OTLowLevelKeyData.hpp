@@ -182,7 +182,6 @@ class OTLowLevelKeyData
 {
 public:
     bool m_bCleanup; // By default, OTLowLevelKeyData cleans up the members. But if you set this to false, it will NOT cleanup.
-    // ---------------------
     bool MakeNewKeypair(int32_t nBits=1024);
     void Cleanup();
     bool SetOntoKeypair(OTKeypair & theKeypair);

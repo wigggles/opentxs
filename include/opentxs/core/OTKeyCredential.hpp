@@ -229,35 +229,25 @@ class OTKeyCredential : public OTSubcredential
 private:  // Private prevents erroneous use by other classes.
     typedef OTSubcredential ot_super;
     friend class OTCredential;
-    // ------------------------------
 protected:
     virtual bool SetPublicContents (const mapOfStrings & mapPublic);
     virtual bool SetPrivateContents(const mapOfStrings & mapPrivate,
                                           OTPassword   * pImportPassword=NULL); // if not NULL, it means to use this password by default.
-    // ------------------------------
 public:
     OTKeypair   m_SigningKey;  // Signing keys, for signing/verifying a "legal signature".
     OTKeypair   m_AuthentKey;  // Authentication keys, used for signing/verifying transmissions and stored files.
     OTKeypair   m_EncryptKey;  // Encryption keys, used for sealing/opening OTEnvelopes.
-    // ------------------------------
     bool GenerateKeys(int32_t nBits=1024);   // Gotta start somewhere.
     bool ReEncryptKeys(OTPassword & theExportPassword, bool bImporting); // Used when importing/exporting a Nym to/from the wallet.
-    // ------------------------------
     virtual bool VerifyInternally();     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also verify that *this == m_pOwner->m_MasterKey (the master credential.) Then verify the (self-signed) signature on *this.
-    // ------------------------------
     bool VerifySignedBySelf();
-    // ------------------------------
     virtual void SetMetadata();
-    // ------------------------------
     OTKeyCredential();
     OTKeyCredential(OTCredential & theOwner);
-    // ------------------------------
     bool SignContract(OTContract & theContract, OTPasswordData * pPWData=NULL);
-    // ------------------------------
 EXPORT int32_t GetPublicKeysBySignature(listOfAsymmetricKeys & listOutput,
                                     const OTSignature & theSignature,
                                     char cKeyType='0') const; // 'S' (signing key) or 'E' (encryption key) or 'A' (authentication key)
-    // ------------------------------
     virtual ~OTKeyCredential();
     virtual void Release();
     void Release_Subkey();

@@ -30,9 +30,7 @@
 namespace utf8util {
 
 
-//------------------------------------------------------------------------
 //      Implementation of utf8_conversion_error class methods
-//------------------------------------------------------------------------
 
 inline utf8_conversion_error::utf8_conversion_error(
     const char * message,
@@ -71,9 +69,7 @@ inline utf8_conversion_error::error_code_type utf8_conversion_error::error_code(
 
 
 
-//------------------------------------------------------------------------
 //              Implementation of module functions
-//------------------------------------------------------------------------
 
 
 inline std::wstring UTF16FromUTF8(const std::string & utf8)

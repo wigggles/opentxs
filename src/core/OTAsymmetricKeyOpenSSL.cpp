@@ -168,7 +168,6 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
     if (NULL != dp->m_pX509)  // Todo: figure out if I should put a copy of this into ReleaseKeyLowLevel_Hook as we are with m_pKey.
         X509_free(dp->m_pX509); // FYI: the reason it's not there already is because the original need was for wiping m_pKey when a private key timed out.
     dp->m_pX509 = NULL;         // ReleaseKeyLowLevel is used all over OTAsymmetricKey.cpp for the purpose of wiping that private key. The same need didn't exist with the x509 so it was never coded that way. As long as it's cleaned up here in the destructor, seems good enough?
-    //-------------------------
     // YOU MIGHT ASK... Why is m_pKey cleaned up here in the destructor, and ALSO in ReleaseKeyLowLevel_Hook ?
     // The answer is because if we call ReleaseKeyLowLevel_Hook from OTAsymmetricKey's destructor (down that chain)
     // then it will fail at runtime, since it is a pure virtual method. Since we still want the ABILITY to use ReleaseKeyLowLevel_Hook

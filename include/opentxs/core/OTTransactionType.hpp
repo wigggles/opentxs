@@ -249,7 +249,6 @@ protected:
     // contains a list of exactly the transaction #s that are still signed out to me. If the server
     // wishes to dispute this, then let it produce a newer receipt with my signature on it. (It cannot.)
     //
-    // -----------------
     //
     // Okay, then what if the server tricks me into signing for a transaction # that I ONCE signed out
     // BEFORE, years ago? For example, let's say I used #3 for a $10000 cheque, which was cashed 5 years
@@ -326,7 +325,6 @@ protected:
     //    it up.
     // For example: If you give me transaction #3, but it secretly has an item #5 in its list (where all other items are
     // supposed to be for #3), and then I load it up, I don't want to save #5 as a 3 when I save it again.
-    // ------------------
     // =========>  And I must reset the XML contents at the time the contract is signed! THAT is the
     // critical time when all  the data members are taken from the data object, and put into XML form -- just before
     // signing itself, which requires a hash, and if you are making decisions based on the data members of some contract,
@@ -471,7 +469,6 @@ protected:
         otOut << "Account ID fails to match receipt account ID.\n";
         return false;
     }
-    // -------------------------------------------------
 
 
      */
@@ -496,14 +493,12 @@ protected:
 
     OTIdentifier    m_AcctUserID;        // NymID of the user who created this item. (In the future, this item
                                         // might be the only reference someone has. They'll want my NymID.)
-    // ----------------------------------------------------------------
     // I put this in protected because there are now Get/Set methods...so use them!
     int64_t    m_lTransactionNum;    // The server issues this and it must be sent with transaction request.
     int64_t    m_lInReferenceToTransaction;
                                 // Sometimes an item is in reference to some other transaction, which does NOT need to be
                                 // included in the item (since the server already has it) but instead can be referenced by
                                 // transaction ID.
-    // ----------------------------------------------------------------
     // Let's say Alice sends a transfer #100 to Bob.
     // Then Bob receives a pending in his inbox, #800, which is in reference to #100.
     // Then Bob accepts the pending with processInbox #45, which is in reference to #800.
@@ -513,10 +508,8 @@ protected:
     // This:
     //
     int64_t            m_lNumberOfOrigin;  // In reference to in reference to in reference to in reference to the origin.
-    // ----------------------------------------------------------------
     OTASCIIArmor    m_ascInReferenceTo;    // This item may be in reference to a different item.
     bool            m_bLoadSecurely;    // Defaults to true.
-    // ----------------------------------------------------------------
     // For a "blank" or "successNotice" transaction, this contains the list of transaction
     // numbers that are either about to be signed out (blank) or have already just been signed-out
     // (successNotice). Either way, we used to have a separate transaction in the Nymbox for EACH
@@ -536,22 +529,17 @@ protected:
     // (Had to fix that... way too many box receipts were being downloaded.)
     // Note: I moved this to OTTransactionType so I can use it from within OTItem as well, so when I accept transaction
     // numbers, I am able to list them in the accept item.
-    // ----------------------------------------------------------------
 public:
 EXPORT    void GetNumList(OTNumList & theOutput);
-    // ------------------------------------------------------------------
 EXPORT    static OTTransactionType * TransactionFactory(OTString strInput);
-    // ------------------------------------------------------------------
         bool Contains(const OTString & strContains);    // Allows you to string-search the raw contract.
 EXPORT    bool Contains(const char * szContains);            // Allows you to string-search the raw contract.
-    // -------------------------------------------
     // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
     // this class (OTTransactionType). Therefore they can all quickly identify
     // whether one of the other components belongs to the same account.
     //
     bool IsSameAccount(const OTTransactionType & rhs) const;
 
-    // -------------------------------------------
     // This means, "I don't know the 'Real' IDs when I'm about to load this contract, so just
     // read the purported IDs (the ones inside the contract itself) and set the real IDs to match."
     //

@@ -179,28 +179,22 @@ private:
 
     OTString          m_strVersion;        // This goes with the Nymfile
     OTASCIIArmor      m_ascCert;           // Just the ascii-armor portion without BEGIN and END
-    // ----------------------------------------------------
     OTString          m_strSourceForNymID; // Hash this to form the NymID. Can be a public key, or a URL, or DN info from a cert, etc.
     OTString          m_strAltLocation;    // If the Nym's credential IDs cannot be directly downloaded from the source, the download location is placed here instead. For example, if the source is DN info from a cert, the alt location might contain the URL to download it from.
-    // ----------------------------------------------------
     OTIdentifier      m_nymID;             // Hashed-ID formed by hashing the Nym's public key.
     OTIdentifier      m_NymboxHash;        // (Server-side) Hash of the Nymbox
 
     mapOfIdentifiers  m_mapNymboxHash;     // (Client-side) Hash of latest DOWNLOADED Nymbox (OTIdentifier) mapped by ServerID (std::string)
     mapOfIdentifiers  m_mapRecentHash;     // (Client-side) Hash of Nymbox according to Server, based on some recent reply. (May be newer...)
-    // ----------------------------------------------------
     mapOfIdentifiers  m_mapInboxHash;  // Whenever client downloads Inbox, its hash is stored here. (When downloading account, can compare ITS inbox hash to this one, to see if I already have latest one.)
     mapOfIdentifiers  m_mapOutboxHash; // Whenever client downloads Outbox, its hash is stored here. (When downloading account, can compare ITS outbox hash to this one, to see if I already have latest one.)
-    // ----------------------------------------------------
     OTKeypair     * m_pkeypair;  // This nym's public key and private key
-    // ----------------------------------------------------
     // NOTE: these dequeOfMail objects are only currently stored in the Nym for convenience.
     // They don't have to be stored in here.
     //
     dequeOfMail        m_dequeMail;        // Any mail messages received by this Nym. (And not yet deleted.)
     dequeOfMail        m_dequeOutmail;     // Any mail messages sent by this Nym. (And not yet deleted.)
     dequeOfMail        m_dequeOutpayments;    // Any outoing payments sent by this Nym. (And not yet deleted.) (payments screen.)
-    // -----------------------------------------------
     mapOfRequestNums m_mapRequestNum;    // Whenever this user makes a request to a transaction server
                                         // he must use the latest request number. Each user has a request
                                         // number for EACH transaction server he accesses.
@@ -224,38 +218,31 @@ private:
     // the network fails before you get the server's reply.) I think this is also a GREAT backup plan for withdrawing CASH.
     //
     mapOfTransNums    m_mapTentativeNum;
-    // -----------------------------
     // We store the highest transaction number accepted for any given server, and we refuse, in the future, to accept anything lower.
     // This prevents a sneaky server from sending you an old number, getting you to sign it out again, then then using that to run
     // through an old instrument (such as a cheque) that still has your old (valid) signature on it.
     //
     mapOfHighestNums m_mapHighTransNo;  // Mapped, a single int64_t to each server (just like request numbers are.)
-    // -----------------------------
     // Although it says "mapOfTransNums", in this case, request numbers are stored. I used mapOfTransNums and its associated
     // generic manipulation functions, since they already existed. The AcknowledgedNums are for optimization only, as they enable
     // us to avoid downloading many Box Receipts we'd other have to download. (Specifically, replyNotices, which are referenced
     // by their request number.)
     //
     mapOfTransNums    m_mapAcknowledgedNum;
-    // -----------------------------
     // (SERVER side)
     std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed out, the server-side Nym keeps a list of them handy.
 
     // (SERVER side)
     // Using strings here to avoid juggling memory crap.
     std::set<std::string> m_setAccounts; // A list of asset account IDs. Server side only (client side uses wallet; has multiple servers.)
-    // ------------------------------------------
     // (SERVER side.)
     int64_t    m_lUsageCredits;    // Server-side. The usage credits available for this Nym. Infinite if negative.
-    // ------------------------------------------------
     mapOfCredentials    m_mapCredentials; // The credentials for this Nym. (Each with a master key and various subcredentials.)
     mapOfCredentials    m_mapRevoked;     // We keep track of old master credentials after they are revoked.
     listOfStrings       m_listRevokedIDs; // std::string list, any revoked Credential IDs. (Mainly for subcredentials / subkeys.)
-    // ------------------------------------------------
 public:
 EXPORT  void    GetPrivateCredentials(OTString & strCredList, mapOfStrings * pmapCredFiles=NULL);
 EXPORT  void    GetPublicCredentials (OTString & strCredList, mapOfStrings * pmapCredFiles=NULL); // If the Nym's source is a URL, he needs to post his valid master credential IDs there, so they can be verified against their source. This method is what creates the file which you can post at that URL. (Containing only the valid IDs, not the revoked ones.)
-    // -----------------------------------
 EXPORT  bool    AddNewMasterCredential(      OTString     & strOutputMasterCredID,   // The new ID, upon success, is returned here.
                                        const OTString     * pstrSourceForNymID=NULL, // If NULL, it uses the Nym's (presumed) existing pubkey as the source.
                                        const int32_t            nBits=1024,       // Ignored unless pmapPrivate is NULL.
@@ -274,43 +261,33 @@ EXPORT  bool    AddNewSubcredential(const OTIdentifier & idMasterCredential,
                                     const mapOfStrings * pmapPrivate=NULL,  // If NULL, then the keys are generated in here.
                                     const mapOfStrings * pmapPublic =NULL,  // In the case of key credentials, public is optional since it can already be derived from private. For now we pass it through... May eliminate this parameter later if not needed.
                                     OTPasswordData * pPWData=NULL); // Pass in the string to show users here, if/when asking for the passphrase.
-    // ------------------------------------------------
 EXPORT  size_t     GetMasterCredentialCount()  const;
 EXPORT  size_t     GetRevokedCredentialCount() const;
-    // ------------------------------------------------
 EXPORT  OTCredential    * GetMasterCredential (const OTString & strID);
 EXPORT  OTCredential    * GetRevokedCredential(const OTString & strID);
-    // ------------------------------------------------
 EXPORT  const OTCredential    * GetMasterCredentialByIndex (int32_t nIndex) const;
 EXPORT  const OTCredential    * GetRevokedCredentialByIndex(int32_t nIndex) const;
-    // ------------------------------------------------
 EXPORT  const OTSubcredential * GetSubcredential (const OTString & strMasterID,  const OTString & strSubCredID) const;
 EXPORT  const OTSubcredential * GetRevokedSubcred(const OTString & strRevokedID, const OTString & strSubCredID) const;
-    // ------------------------------------------------
 EXPORT    bool            GetNymboxHashServerSide(const OTIdentifier & theServerID, OTIdentifier & theOutput);    // server-side
 EXPORT    void            SetNymboxHashServerSide(const OTIdentifier & theInput); // server-side
-    // ------------------------------------------------
 private:
     // Generic function used by the below functions.
           bool            GetHash(const mapOfIdentifiers & the_map, const std::string & str_id, OTIdentifier & theOutput) const;   // client-side
           bool            SetHash(mapOfIdentifiers & the_map, const std::string & str_id, const OTIdentifier & theInput);    // client-side
-    // ------------------------------------------------
 //    OTIdentifier          m_NymboxHash;       // (Server-side) Hash of the Nymbox
 //  mapOfIdentifiers      m_mapNymboxHash;    // (Client-side) Hash of Nymbox (OTIdentifier) mapped by ServerID (std::string)
 public:
-    // ------------------------------------------------
     // This value is only updated on client side, when the actual latest
     // nymbox has been downloaded.
 EXPORT    bool            GetNymboxHash(const std::string & server_id,       OTIdentifier & theOutput) const;   // client-side
 EXPORT    bool            SetNymboxHash(const std::string & server_id, const OTIdentifier & theInput);    // client-side
-    // ------------------------------------------------
     // Whereas THIS value is updated when various server replies are received.
     // (So we can see the most recent version of the same hash on server side.)
     // If this doesn't match the hash above, then it's time to download your nymbox
     // because it's old.
 EXPORT    bool            GetRecentHash(const std::string & server_id, OTIdentifier & theOutput) const;   // client-side
 EXPORT    bool            SetRecentHash(const std::string & server_id, const OTIdentifier & theInput);    // client-side
-    // ------------------------------------------------
     // This functions are for the latest downloaded inbox's hash.
     // (If the hash that appears in the account is different, then
     // your inbox is old -- download it again.)
@@ -319,7 +296,6 @@ EXPORT    bool            SetRecentHash(const std::string & server_id, const OTI
     //
 EXPORT    bool            GetInboxHash(const std::string & acct_id, OTIdentifier & theOutput) const;   // client-side
 EXPORT    bool            SetInboxHash(const std::string & acct_id, const OTIdentifier & theInput);    // client-side
-    // ------------------------------------------------
     // This functions are for the latest downloaded outbox's hash.
     // (If the hash that appears in the account is different, then
     // your outbox is old -- download it again.)
@@ -328,10 +304,8 @@ EXPORT    bool            SetInboxHash(const std::string & acct_id, const OTIden
     //
 EXPORT    bool            GetOutboxHash(const std::string & acct_id, OTIdentifier & theOutput) const;   // client-side
 EXPORT    bool            SetOutboxHash(const std::string & acct_id, const OTIdentifier & theInput);    // client-side
-    // ------------------------------------------------
 EXPORT    const int64_t & GetUsageCredits() const { return m_lUsageCredits; }
 EXPORT    void SetUsageCredits(const int64_t & lUsage) { m_lUsageCredits = lUsage; }
-    // ------------------------------------------------
     inline void MarkForDeletion() { m_bMarkForDeletion = true; }
     inline bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
     inline void MarkAsUndeleted() { m_bMarkForDeletion = false; }
@@ -339,10 +313,8 @@ EXPORT    void SetUsageCredits(const int64_t & lUsage) { m_lUsageCredits = lUsag
     // Server-side. Helps the server keep track of the accounts for a certain Nym, and the cron items.
     inline std::set<int64_t> &         GetSetOpenCronItems() { return m_setOpenCronItems; }
     inline std::set<std::string> &  GetSetAssetAccounts() { return m_setAccounts; } // stores acct IDs as std::string
-    // ------------------------------------------------
     inline OTString &    GetNymName() { return m_strName; }
     inline void            SetNymName(const OTString & strName) { m_strName = strName; }
-    // ------------------------------------------------
     // Old style: the user enters a passphrase for using the Nym.
     // New style: the user enters a passphrase which is used to derive a key,
     // which is used to decrypt the master key, which is used for using the Nym.
@@ -359,27 +331,21 @@ EXPORT    void SetUsageCredits(const int64_t & lUsage) { m_lUsageCredits = lUsag
     //
 
 //EXPORT    bool ConvertToCachedKey();  // Replaced by Savex509CertAndPrivateKey().
-    // ------------------------------------------------
 EXPORT    OTPseudonym();
 EXPORT    OTPseudonym(const OTIdentifier & nymID);
 EXPORT    OTPseudonym(const OTString & strNymID);
 EXPORT    OTPseudonym(const OTString & name, const OTString & filename, const OTString & nymID);
 EXPORT    virtual ~OTPseudonym();
-    // ------------------------------------------------
 EXPORT    void Initialize();
 EXPORT    void ReleaseTransactionNumbers();
-    // ------------------------------------------------
 EXPORT    bool VerifyPseudonym() const;
-    // ------------------------------------------------
     // Use this to actually generate a new key pair and assorted nym files.
     //
     EXPORT    bool GenerateNym(int32_t nBits=1024, bool bCreateFile=true, const std::string str_id_source="", const std::string str_alt_location="");
-    // ---------------------------------------------
     // Some messages require "transaction agreement" as opposed to "balance agreement."
     // That is, cases where only transactions change and not balances.
     //
 EXPORT    OTItem * GenerateTransactionStatement(const OTTransaction & theOwner); // like balance agreement
-    // ---------------------------------------------
     // SET PUBLIC KEY BASED ON INPUT STRING
 
         // This version WILL handle the bookends -----BEGIN PUBLIC KEY------
@@ -392,7 +358,6 @@ EXPORT    bool SetCertificate(const OTString & strCert, bool bEscaped=true);
         // This will set the public key on this Nym based on the public key as it
         // appears in an ascii-armored string.
 EXPORT    bool SetPublicKey(const OTASCIIArmor & strKey);
-    // ---------------------------------------------
     // SET PRIVATE KEY BASED ON INPUT STRING
 
         // This version WILL handle the bookends -----BEGIN ENCRYPTED PRIVATE KEY------
@@ -401,7 +366,6 @@ EXPORT    bool SetPrivateKey(const OTString & strKey, bool bEscaped=true);
         // This will set the private key on this Nym based on the private key as it
         // appears in an ascii-armored string.
 EXPORT    bool SetPrivateKey(const OTASCIIArmor & strKey);
-    // ------------------------------------------
     // LOAD PUBLIC / PRIVATE NYM
 
         // CALLER is responsible to delete the Nym ptr being returned
@@ -417,24 +381,18 @@ EXPORT    static OTPseudonym * LoadPrivateNym(const OTIdentifier & NYM_ID,
                                             const char         * szFuncName=NULL,
                                                 OTPasswordData * pPWData=NULL,
                                                   OTPassword   * pImportPassword=NULL);
-    // ------------------------------------------
 EXPORT    bool HasPublicKey();
 EXPORT    bool HasPrivateKey();
-    // -------------------------------------
 EXPORT    const OTAsymmetricKey & GetPublicAuthKey () const; // Authentication
         const OTAsymmetricKey & GetPrivateAuthKey() const;
-    // -------------------------------------
 EXPORT    const OTAsymmetricKey & GetPublicEncrKey () const; // Encryption
         const OTAsymmetricKey & GetPrivateEncrKey() const;
-    // -------------------------------------
 EXPORT    const OTAsymmetricKey & GetPublicSignKey () const; // Signing
         const OTAsymmetricKey & GetPrivateSignKey() const;
-    // -------------------------------------
     // OT uses the signature's metadata to narrow down its search for the correct public key.
 EXPORT    int32_t   GetPublicKeysBySignature(listOfAsymmetricKeys & listOutput,
                                        const OTSignature & theSignature,
                                        char cKeyType='0') const; // 'S' (signing key) or 'E' (encryption key) or 'A' (authentication key)
-    // ------------------------------------------
 EXPORT  bool SaveCredentialList();
 EXPORT  void SaveCredentialListToString(OTString & strOutput);
 EXPORT  void SaveCredentialsToString(OTString     & strOutput,
@@ -443,58 +401,44 @@ EXPORT  void SaveCredentialsToString(OTString     & strOutput,
 EXPORT  bool LoadCredentials(bool bLoadPrivate=false, // Loads public credentials by default. For private, pass true.
                              OTPasswordData * pPWData=NULL,
                              OTPassword * pImportPassword=NULL);
-    // ------------------------------------------
     // Like for when you are exporting a Nym from the wallet.
 EXPORT  bool ReEncryptPrivateCredentials(bool bImporting, OTPasswordData * pPWData=NULL, //bImporting=true, or false if exporting.
                                          OTPassword * pImportPassword=NULL);
-    // ------------------------------
     // The signer is whoever wanted to make sure these nym files haven't changed.
     // Usually that means the server nym.  Most of the time, m_nymServer will be used as signer.
 EXPORT    bool LoadSignedNymfile(OTPseudonym & SIGNER_NYM);
 EXPORT    bool SaveSignedNymfile(OTPseudonym & SIGNER_NYM);
-    // ------------------------------------------
 EXPORT    bool LoadNymfile(const char * szFilename=NULL);
 EXPORT    bool LoadFromString(const OTString & strNym,
                             mapOfStrings * pMapCredentials=NULL, //pMapCredentials can be passed, if you prefer to use a specific set, instead of just loading the actual set from storage (such as during registration, when the credentials have been sent inside a message.)
                             OTString     * pstrReason=NULL,
                             OTPassword   * pImportPassword=NULL);
-    // ------------------------------------------
     // pstrID is an output parameter.
 EXPORT    bool Server_PubKeyExists(OTString * pstrID=NULL); // Only used on server side.
-    // ------------------------------------------
 EXPORT    bool LoadPublicKey();
-    // ------------------------------------------
 EXPORT    static  bool DoesCertfileExist(const OTString & strNymID); // static version of the next function.
 EXPORT  bool CertfileExists(); // on the client side, this means it's a private Nym.
-    // ------------------------------------------
 EXPORT    bool Loadx509CertAndPrivateKey(const bool bChecking=false,
                                        OTPasswordData * pPWData=NULL,
                                        OTPassword * pImportPassword=NULL);
 EXPORT    bool Loadx509CertAndPrivateKeyFromString(const OTString & strInput,
                                                  OTPasswordData * pPWData=NULL,
                                                  OTPassword * pImportPassword=NULL);
-    // ------------------------------------------
 EXPORT    bool Savex509CertAndPrivateKey(bool bCreateFile=true, const OTString * pstrReason=NULL);
 EXPORT  bool Savex509CertAndPrivateKeyToString(OTString & strOutput, const OTString * pstrReason=NULL);
-    // ------------------------------------------
 EXPORT    bool SavePseudonymWallet(OTString & strOutput) const;
 EXPORT    bool SavePseudonymWallet(std::ofstream & ofs) const;
-    // ------------------------------------------
 EXPORT    bool SavePublicKey(const OTString & strPath) const;
 EXPORT    bool SavePublicKey(std::ofstream & ofs) const;
-    // ------------------------------------------
 EXPORT    bool SavePseudonym(); // saves to filename m_strNymfile
 EXPORT    bool SavePseudonym(const char * szFoldername, const char * szFilename);
 EXPORT    bool SavePseudonym(OTString & strNym);
 EXPORT    bool SavePseudonym(std::ofstream & ofs);
-    // ------------------------------------------
 EXPORT    bool SetIdentifierByPubkey();
-    // ------------------------------------------
 EXPORT    bool CompareID(const OTIdentifier & theIdentifier) const
         { return (theIdentifier == m_nymID); }
 
 EXPORT  bool CompareID(const OTPseudonym & RHS) const;
-    // ------------------------------------------
 EXPORT  const OTString & GetNymIDSource() const { return m_strSourceForNymID; } // Source for NymID for this credential. (Hash it to get ID.)
 EXPORT  const OTString & GetAltLocation() const { return m_strAltLocation;    } // Alternate download location for Nym's credential IDs. (Primary location being the source itself, but sometimes that's not feasible.)
 
@@ -502,7 +446,6 @@ EXPORT  void  SetNymIDSource(const OTString & strSource)   { m_strSourceForNymID
 EXPORT  void  SetAltLocation(const OTString & strLocation) { m_strAltLocation    = strLocation; }
 
 EXPORT  void  SerializeNymIDSource(OTString & strOutput);
-    // ------------------------------------------
 EXPORT    const OTIdentifier & GetConstID() const { return m_nymID; } // CONST VERSION
 
 EXPORT    void GetIdentifier(OTIdentifier & theIdentifier) const;  // BINARY VERSION
@@ -510,7 +453,6 @@ EXPORT    void SetIdentifier(const OTIdentifier & theIdentifier);
 
 EXPORT    void GetIdentifier(OTString & theIdentifier) const; // STRING VERSION
 EXPORT    void SetIdentifier(const OTString & theIdentifier);
-    // --------------------------------------------
 EXPORT    void HarvestTransactionNumbers(const OTIdentifier & theServerID, OTPseudonym & SIGNER_NYM,
                                        OTPseudonym & theOtherNym, // OtherNym is used as a container for the server to send
                                        bool bSave=true);          // us new transaction numbers.
@@ -524,7 +466,6 @@ EXPORT    bool ClawbackTransactionNumber(const OTIdentifier & theServerID,
                                    const int64_t & lTransClawback, // the number being clawed back.
                                    bool bSave=false,
                                    OTPseudonym * pSIGNER_NYM=NULL);
-    // ---------------------------------------------
 EXPORT  void IncrementRequestNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID); // Increment the counter or create a new one for this serverID starting at 1
 EXPORT    void OnUpdateRequestNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, int64_t lNewRequestNumber); // if the server sends us a @getRequest
 EXPORT    bool GetCurrentRequestNum(const OTString & strServerID, int64_t &lReqNum); // get the current request number for the serverID
@@ -543,10 +484,8 @@ EXPORT    int64_t UpdateHighestNum(OTPseudonym & SIGNER_NYM,
 
 EXPORT    void RemoveAllNumbers(const OTString * pstrServerID=NULL, const bool bRemoveHighestNum=true); // for transaction numbers
 EXPORT    void RemoveReqNumbers(const OTString * pstrServerID=NULL); // for request numbers (entirely different animal)
-    // -----------------------------------------------------
 EXPORT    bool    UnRegisterAtServer(const OTString & strServerID); // Removes the request num for a specific server, if it was there before.
 EXPORT    bool    IsRegisteredAtServer(const OTString & strServerID); // You can't go using a Nym at a certain server, if it's not registered there...
-    // -----------------------------------------------------
     //
     // ** ResyncWithServer **
     //
@@ -559,27 +498,22 @@ EXPORT    bool    IsRegisteredAtServer(const OTString & strServerID); // You can
     // you can pass both of those objects into this function, which must assume that those pieces were already done
     // just prior to this call.
 EXPORT    bool    ResyncWithServer(OTLedger & theNymbox, OTPseudonym & theMessageNym);
-    // -----------------------------------------------------
     // HIGH LEVEL:
 EXPORT    bool    AddTransactionNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, int64_t lTransNum, bool bSave); // We have received a new trans num from server. Store it.
 EXPORT    bool    GetNextTransactionNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, int64_t &lTransNum,
                                       bool bSave=true); // Get the next available transaction number for the serverID passed. Saves by default.
-    // --------------------
 EXPORT    bool    RemoveIssuedNum      (OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum,   bool bSave); // SAVE OR NOT (your choice)
         bool    RemoveTentativeNum   (OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum,   bool bSave);
 EXPORT    bool    RemoveAcknowledgedNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lRequestNum, bool bSave); // Used on both client and server sides for optimization.
-    // --------------------
 EXPORT    bool    VerifyIssuedNum      (const OTString & strServerID, const int64_t & lTransNum);   // verify user is still responsible for (signed for) a certain trans# that was previous issued to him. (i.e. it's been used, but not yet accepted receipt through inbox.)
 EXPORT    bool    VerifyTransactionNum (const OTString & strServerID, const int64_t & lTransNum);   // server verifies that nym has this TransNum available for use.
 EXPORT    bool    VerifyTentativeNum   (const OTString & strServerID, const int64_t & lTransNum);   // Client-side verifies that it actually tried to sign for this number (so it knows if the reply is valid.)
 EXPORT    bool    VerifyAcknowledgedNum(const OTString & strServerID, const int64_t & lRequestNum); // Client verifies it has already seen a server reply. Server acknowledges client has seen reply (so client can remove from list, so server can as well.)
-    // --------------------
     // These two functions are for when you re-download your nym/account/inbox/outbox, and you
     // need to verify it against the last signed receipt to make sure you aren't getting screwed.
     //
 EXPORT    bool VerifyIssuedNumbersOnNym(OTPseudonym & THE_NYM);
 EXPORT    bool VerifyTransactionStatementNumbersOnNym(OTPseudonym & THE_NYM);
-    // -------------------------------------
     // These functions are for transaction numbers that were assigned to me,
     // until I accept the receipts or put stop payment onto them.
     //
@@ -590,7 +524,6 @@ EXPORT    bool    AddIssuedNum(const OTString & strServerID, const int64_t & lTr
 
 EXPORT    bool    RemoveIssuedNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum); // saves
 EXPORT    bool    RemoveIssuedNum(const OTString & strServerID, const int64_t & lTransNum); // doesn't save
-    // -------------------------------------
     // These functions are for transaction numbers that I still have available to use.
     //
 EXPORT    int32_t  GetTransactionNumCount(const OTIdentifier & theServerID); // count
@@ -600,7 +533,6 @@ EXPORT    bool AddTransactionNum(const OTString & strServerID, const int64_t lTr
 
 EXPORT    bool RemoveTransactionNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum); // server removes spent number from nym file. Saves.
 EXPORT    bool RemoveTransactionNum(const OTString & strServerID, const int64_t & lTransNum); // doesn't save.
-    // -------------------------------------
     // These functions are for tentative transaction numbers that I am trying to sign for.
     // They are in my Nymbox. I sign to accept them, and then store them here. The server
     // replies with success, and then I remove them from this list, and move them onto the
@@ -622,7 +554,6 @@ EXPORT    bool AddTentativeNum(const OTString & strServerID, const int64_t &lTra
 
 EXPORT    bool RemoveTentativeNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lTransNum);
 EXPORT    bool RemoveTentativeNum(const OTString & strServerID, const int64_t & lTransNum); // doesn't save.
-    // ---------------------------------------------
     // On the client side, whenever the client is DEFINITELY made aware of the existence of a
     // server reply, he adds its request number to this list, which is sent along with all client-side
     // requests to the server.
@@ -648,7 +579,6 @@ EXPORT    bool AddAcknowledgedNum(const OTString & strServerID, const int64_t &l
 
 EXPORT    bool RemoveAcknowledgedNum(OTPseudonym & SIGNER_NYM, const OTString & strServerID, const int64_t & lRequestNum);
 EXPORT    bool RemoveAcknowledgedNum(const OTString & strServerID, const int64_t & lRequestNum); // doesn't save.
-    // ---------------------------------------------
     // The "issued" numbers and the "transaction" numbers both use these functions
     // to do the actual work (just avoiding code duplication.) "tentative" as well,
     // and "Acknowledged". (For acknowledged replies.)
@@ -662,7 +592,6 @@ EXPORT    bool AddGenericNum(mapOfTransNums & THE_MAP, const OTString & strServe
 
 EXPORT    int32_t  GetGenericNumCount(mapOfTransNums & THE_MAP, const OTIdentifier & theServerID);
 EXPORT    int64_t GetGenericNum(mapOfTransNums & THE_MAP, const OTIdentifier & theServerID, int32_t nIndex);
-    // -------------------------------------
     // Whenever a Nym receives a message via his Nymbox, and then the Nymbox is processed, (which happens automatically)
     // that processing will drop all mail messages into this deque for safe-keeping, after Nymbox is cleared.
     //
@@ -672,7 +601,6 @@ EXPORT    OTMessage *    GetMailByIndex(const int32_t nIndex); // Get a specific
 EXPORT    bool        RemoveMailByIndex(const int32_t nIndex); // if returns false, mail index was bad (or something else must have gone seriously wrong.)
 
 EXPORT    void        ClearMail(); // called by the destructor. (Not intended to erase messages from local storage.)
-    // -------------------------------------
     // Whenever a Nym sends a message, a copy is dropped into his Outmail.
     //
 EXPORT    void        AddOutmail(OTMessage & theMessage); // a mail message is the original OTMessage that this Nym sent.
@@ -681,7 +609,6 @@ EXPORT    OTMessage *    GetOutmailByIndex(const int32_t nIndex); // Get a speci
 EXPORT    bool        RemoveOutmailByIndex(const int32_t nIndex); // if returns false, outmail index was bad (or something else must have gone seriously wrong.)
 
 EXPORT    void        ClearOutmail(); // called by the destructor. (Not intended to erase messages from local storage.)
-    // -------------------------------------
     // Whenever a Nym sends a payment, a copy is dropped into his Outpayments. (Payments screen.)
     //
 EXPORT    void        AddOutpayments(OTMessage & theMessage); // a payments message is the original OTMessage that this Nym sent.
@@ -691,10 +618,8 @@ EXPORT    bool        RemoveOutpaymentsByIndex(const int32_t nIndex, bool bDelet
 
 EXPORT    void        ClearOutpayments(); // called by the destructor. (Not intended to erase messages from local storage.)
 EXPORT  int32_t         GetOutpaymentsIndexByTransNum(const int64_t lTransNum); // Returns -1 on failure.
-    // -------------------------------------
     void ClearCredentials();
     void ClearAll();
-    // -------------------------------------
 EXPORT    void DisplayStatistics(OTString & strOutput);
 };
 

@@ -185,13 +185,11 @@ EXPORT    OTASCIIArmor & operator=(const OTData & theValue);
 EXPORT    OTASCIIArmor & operator=(const OTString & strValue);
 EXPORT    OTASCIIArmor & operator=(const OTASCIIArmor & strValue);
 
-    // ----------------------------------------------
 EXPORT    bool LoadFromFile(const OTString & foldername, const OTString & filename);
 EXPORT    bool LoadFrom_ifstream(std::ifstream & fin);
 EXPORT  bool SaveTo_ofstream(std::ofstream & fout);
 EXPORT    bool LoadFromExactPath(const std::string & filename);
 EXPORT    bool SaveToExactPath(const std::string & filename);
-    // ----------------------------------------------
     // Let's say you don't know if the input string is raw base64, or if it has bookends
     // on it like -----BEGIN BLAH BLAH ...
     // And if it DOES have Bookends, you don't know if they are escaped:  - -----BEGIN ...
@@ -205,17 +203,14 @@ EXPORT  bool LoadFromString(      OTString  & theStr,
                             const // This sub-string determines where the content starts, when loading.
                                   std::string str_override="-----BEGIN"); // "-----BEGIN" is the default "content start" substr. Todo: hardcoding.
 
-    // ----------------------------------------------
 EXPORT  bool WriteArmoredString(      OTString    & strOutput,
                                 const // for "-----BEGIN OT LEDGER-----", str_type would contain ==> "LEDGER" <==
                                       std::string   str_type, // There's no default, to force you to enter the right string.
                                       bool          bEscaped=false);
-    // ----------------------------------------------
 EXPORT  bool WriteArmoredFile(const OTString & foldername, const OTString & filename,
                               const // for "-----BEGIN OT LEDGER-----", str_type would contain ==> "LEDGER" <==
                                     std::string      str_type, // There's no default, to force you to enter the right string.
                                     bool             bEscaped=false);
-    // ----------------------------------------------
     // This function will base64 DECODE the string contents (This class is a string)
     // and return them as BINARY in theData
     // Should be called "Get From Internal String Into Data"

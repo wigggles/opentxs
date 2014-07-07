@@ -244,7 +244,6 @@ private:
     bool    m_bInitialPaymentDone;            // Has the initial payment been made?
     int32_t        m_nNumberInitialFailures;        // If we've tried to process this multiple times, we'll know.
 
-    // --------------------------------------------------------------------------
     // "INITIAL PAYMENT" protected SET METHODS
 protected:
     inline void SetInitialPaymentDate(const time64_t & tInitialPaymentDate) { m_tInitialPaymentDate = tInitialPaymentDate; }
@@ -262,7 +261,6 @@ protected:
     inline void    IncrementNoInitialFailures()                    { m_nNumberInitialFailures++; }
 
 
-// --------------------------------------------------------------------------
 
 
 
@@ -281,7 +279,6 @@ public:
     inline int32_t                GetNoPaymentsDone()         const    { return m_nNoPaymentsDone; }
     inline int32_t                GetNoFailedPayments()     const    { return m_nNoFailedPayments; }
 
-    // --------------------------------------------------------------------------
     // "PAYMENT PLAN" private MEMBERS
 private:
     bool    m_bPaymentPlan;            // Will there be a payment plan?
@@ -296,7 +293,6 @@ private:
     int32_t        m_nNoPaymentsDone;        // Recording of the number of payments already processed.
     int32_t        m_nNoFailedPayments;    // Every time a payment fails, we record that here.
 
-    // --------------------------------------------------------------------------
     // "PAYMENT PLAN" protected SET METHODS
 protected:
     inline void SetPaymentPlanAmount(const         int64_t &    lAmount)        { m_lPaymentPlanAmount        = lAmount; }
@@ -314,14 +310,12 @@ protected:
     inline void IncrementNoPaymentsDone()                                { m_nNoPaymentsDone++; }
     inline void IncrementNoFailedPayments()                                { m_nNoFailedPayments++; }
 
-// --------------------------------------------------------------------------------------------------
 
 private:    // These are NOT stored as part of the payment plan. They are merely used during execution.
     bool    m_bProcessingInitialPayment;
     bool    m_bProcessingPaymentPlan;
 
 public:
-    // --------------------------------------------------------------------------
 
     // From OTAgreement (parent class of this)
     /*
@@ -336,7 +330,6 @@ public:
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
 
-    // --------------------------------------------------------------------------
 
     // From OTCronItem (parent class of OTAgreement, parent class of this)
 
@@ -347,7 +340,6 @@ public:
      inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
      */
 
-    // --------------------------------------------------------------------------
 
     // From OTTrackable (parent class of OTCronItem, parent class of OTAgreement, parent of this)
     /*
@@ -360,7 +352,6 @@ public:
      inline void    SetSenderUserID(const OTIdentifier & USER_ID)    { m_SENDER_USER_ID = USER_ID; }
      */
 
-    // --------------------------------------------------------------------------
 
     // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of OTAgreement, parent of this)
     /*
@@ -381,7 +372,6 @@ public:
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
      bool IsExpired()
      */
-    // --------------------------------------------
 protected:
 //  virtual void onFinalReceipt();        // Now handled in the parent class.
 //  virtual void onRemovalFromCron();     // Now handled in the parent class.
@@ -389,7 +379,6 @@ protected:
     bool ProcessPayment(const int64_t & lAmount);
     void ProcessInitialPayment();
     void ProcessPaymentPlan();
-    // --------------------------------------------
 public:
 EXPORT  OTPaymentPlan();
 EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID);
@@ -397,12 +386,9 @@ EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,            const OTIdentif
                       const OTIdentifier & SENDER_ACCT_ID,        const OTIdentifier & SENDER_USER_ID,
                       const OTIdentifier & RECIPIENT_ACCT_ID,    const OTIdentifier & RECIPIENT_USER_ID);
 EXPORT    virtual ~OTPaymentPlan();
-    // --------------------------------------------
     void InitPaymentPlan();
-    // --------------------------------------------
     virtual void Release();
     void Release_PaymentPlan();
-    // --------------------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents

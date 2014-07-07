@@ -166,7 +166,6 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // and similarly, the closing Recipient transaction numbers are read in OTAgreement::ProcessXMLNode.
     
     
-// ----------------------------------------------------
     
     if (!strcmp("initialPayment", xml->getNodeName())) 
     {

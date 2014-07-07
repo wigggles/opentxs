@@ -185,12 +185,9 @@ public:
     /// in string form, or whatever is easiest.
     ///
     int64_t m_lMostRecentRequestNumber;
-    // ---------------------------------------------
     int32_t  CalcReturnVal(const int64_t & lRequestNumber);
-    // ---------------------------------------------
     bool IsRunningAsScript() const { return m_bRunningAsScript; }
     void SetRunningAsScript()      { m_bRunningAsScript = true; } // (default is false.)
-    // ------------------------
     enum OT_CLIENT_CMD_TYPE 
     {
         checkServerID, // Your public key is sent along with this message so the server can reply to 
@@ -246,19 +243,16 @@ public:
         getAccount, // Grab the server's copy of my asset account file, in case mine is lost.
         getContract, // Grab the server's copy of any asset contract. Input is the asset type ID.
         getMint, // Grab the server's copy of any mint based on Asset ID. (For blinded tokens.)
-        // ------------------------------------------------------------------------------
         writeCheque, // Write a cheque. (Actually sends no message to the server -- returns false.)
         signContract, // Sign a contract. (Sends no message to the server.)
         proposePaymentPlan, // (Merchant) Propose a payment plan. (Sends no message to the server.)
         confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no message to the server.)
-        // ------------------------------------------------------------------------------
         notarizeTransfer, // Request the server to transfer from one account to another.
         notarizeWithdrawal, // Request the server to withdraw from an asset account and return digital cash tokens to the wallet.
         withdrawVoucher, // Request the server to withdraw from an asset account and issue a voucher (cashier's cheque)
         notarizeDeposit, // Request the server to accept some digital cash and deposit it to an asset account.
         notarizePurse, // Same as the above, but sends an entire purse of tokens at once instead of sending individual tokens.
         notarizeCheque, // Deposit like the above, but deposits a cheque instead of cash tokens.
-        // ------------------------------------------------------------------------------
         marketOffer, // Create an Offer object and add it to one of the server's Market objects.
         // This will also create a Trade object and add it to the server's Cron object.
         // (The Trade provides the payment authorization for the Offer, as well as the rules
@@ -268,12 +262,10 @@ public:
         // The test client will ask you to input the plan, which you must already have (like a cheque).
         // The Payee must create it and sign it, then he sends it to the Payer, who uses this command
         // to sign it and submit it to the server.
-        // ------------------------------------------------------------------------------
         setAccountName, // For setting the client-side label on an asset account.
         setNymName, // For setting the client-side label on a Nym.
         setServerName, // For setting the client-side label on a server contract.
         setAssetName, // For setting the client-side label on an asset contract.
-        // ------------------------------------------------------------------------------
         badID
     };
 
@@ -314,12 +306,10 @@ public:
 
     bool InitClient(OTWallet & theWallet); // Need to call this before using.
     bool m_bInitialized; // this will be false until InitClient() is called.
-    // ------------------------------------------------------------
     // These functions manipulate the internal m_pConnection member:
     void ProcessMessageOut(char *buf, int32_t * pnExpectReply);
     void ProcessMessageOut(OTMessage & theMessage);
     bool ProcessInBuffer(OTMessage & theServerReply);
-    // ------------------------------------------------------------
     // These functions are for command processing:
 
     EXPORT int32_t ProcessUserCommand(

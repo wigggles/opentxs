@@ -154,12 +154,10 @@ class OTMint_Lucre : public OTMint
 private:  // Private prevents erroneous use by other classes.
     typedef OTMint ot_super;
     friend class OTMint; // for the factory.
-// ------------------------------------------------------------------------------
 protected:
         OTMint_Lucre();
 EXPORT    OTMint_Lucre(const OTString & strServerID, const OTString & strAssetTypeID);
 EXPORT    OTMint_Lucre(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
-// ------------------------------------------------------------------------------
 public:
 virtual bool AddDenomination(OTPseudonym & theNotary, int64_t lDenomination, int32_t nPrimeLength=1024);
 
@@ -167,7 +165,6 @@ EXPORT    virtual bool SignToken(OTPseudonym & theNotary, OTToken & theToken, OT
 EXPORT    virtual bool VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination);
 
 EXPORT    virtual ~OTMint_Lucre();
-// ------------------------------------------------------------------------------
 };
 
 #endif // Lucre

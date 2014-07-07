@@ -178,9 +178,7 @@ protected:
     OTIdentifier    m_UserID;     // Optional
     OTIdentifier    m_ServerID;   // Mandatory
     OTIdentifier    m_AssetID;    // Mandatory
-    // ----------------------------------------------
     int64_t            m_lTotalValue;   // Push increments this by denomination, and Pop decrements it by denomination.
-    // ----------------------------------------------
     bool            m_bPasswordProtected;  // this purse might be encrypted to a passphrase, instead of a Nym.
     // If that's the case, BTW, then there will be a Symmetric Key and a Master Key.
     // The symmetric key is used to store the actual key for encrypting/decrypting the tokens in this purse.
@@ -189,17 +187,12 @@ protected:
     // internal symmetric key. In order to unlock it, OTCachedKey may occasionally ask the user to enter a
     // passphrase, which is used to derived a key to unlock it. This key may then be cached in memory by
     // OTCachedKey until a timeout, and later be zapped by a thread for that purpose.
-    // ----------------------------------------------
     bool            m_bIsNymIDIncluded; // It's possible to use a purse WITHOUT attaching the relevant NymID. (The holder of the purse just has to "know" what the correct NymID is, or it won't work.) This bool tells us whether the ID is attached, or not.
-    // ----------------------------------------------
     OTSymmetricKey        * m_pSymmetricKey;    // If this purse contains its own symmetric key (instead of using an owner Nym)...
     _SharedPtr<OTCachedKey>   m_pCachedKey;       // ...then it will have a master key as well, for unlocking that symmetric key, and managing timeouts, etc.
-    // ----------------------------------------------
     time64_t  m_tLatestValidFrom;  // The tokens in the purse may become valid on different dates. This stores the latest one.
     time64_t  m_tEarliestValidTo;  // The tokens in the purse may have different expirations. This stores the earliest one.
-    // ----------------------------------------------
     void    RecalculateExpirationDates(OTNym_or_SymmetricKey & theOwner);
-    // ----------------------------------------------
     OTPurse(); // private
 
 public:
@@ -211,9 +204,7 @@ public:
     EXPORT    static OTPurse * LowLevelInstantiate(const OTString & strFirstLine);
     EXPORT    static OTPurse * LowLevelInstantiate(const OTString & strFirstLine, const OTIdentifier & SERVER_ID);
     EXPORT    static OTPurse * LowLevelInstantiate(const OTString & strFirstLine, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-    // ----------------------------------------------
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    // ----------------------------------------------
     // What if you DON'T want to encrypt the purse to your Nym??
     // What if you just want to use a passphrase instead?
     // That's what these functions are for. OT just generates
@@ -225,37 +216,27 @@ public:
     EXPORT    OTSymmetricKey        * GetInternalKey() { return m_pSymmetricKey; } // symmetric key for this purse.
     EXPORT    _SharedPtr<OTCachedKey>   GetInternalMaster();  // stores the passphrase for the symmetric key.
     EXPORT    bool                    GetPassphrase(OTPassword & theOutput, const char * szDisplay=NULL); // Retrieves the passphrase for this purse (which is cached by the master key.) Prompts the user to enter his actual passphrase, if necessary to unlock it. (May not need unlocking yet -- there is a timeout.)
-    // ----------------------------------------------
     EXPORT    bool             IsNymIDIncluded() const { return m_bIsNymIDIncluded; } // NymID may be left blank, with user left guessing.
-    // ----------------------------------------------
     EXPORT    bool             IsPasswordProtected() const { return m_bPasswordProtected; }
-    // ----------------------------------------------
     // This will return false every time, if IsNymIDIncluded() is false.
     EXPORT  bool         GetNymID(OTIdentifier & theOutput) const;
-    // ----------------------------------------------
     // FYI: OTPurse::Push makes its own copy of theToken and does NOT take ownership of the one passed in.
     EXPORT    bool         Push(OTNym_or_SymmetricKey theOwner, const OTToken & theToken);
     EXPORT    OTToken *    Pop (OTNym_or_SymmetricKey theOwner); // Caller IS responsible to delete. (Peek
     EXPORT    OTToken *    Peek(OTNym_or_SymmetricKey theOwner) const; // Caller IS responsible to delete. (Peek returns a copy of the token.)
-    // ----------------------------------------------
     EXPORT    int32_t             Count() const;
     EXPORT    bool         IsEmpty() const;
-    // ----------------------------------------------
     inline int64_t    GetTotalValue() const { return m_lTotalValue; }
-    // ----------------------------------------------
     EXPORT  time64_t GetLatestValidFrom() const;
     EXPORT  time64_t GetEarliestValidTo() const;
-    // ----------------------------------------------
     // NOTE: Keep in mind that a purse's expiration dates are based on ALL the tokens within.
     // Therefore this will never be as accurate as individually examining those tokens...
     //
     EXPORT    bool VerifyCurrentDate();    // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT  bool IsExpired();            // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
-    // ----------------------------------------------
     EXPORT    bool Merge(const OTPseudonym     & theSigner,
                        OTNym_or_SymmetricKey   theOldNym,
                        OTNym_or_SymmetricKey   theNewNym, OTPurse & theNewPurse);
-    // ----------------------------------------------
     EXPORT    OTPurse(const OTPurse & thePurse); // just for copy another purse's Server and Asset ID
     EXPORT    OTPurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID); // similar thing
     EXPORT    OTPurse(const OTIdentifier & SERVER_ID); // Don't use this unless you really don't know the asset type
@@ -263,7 +244,6 @@ public:
     // Normally you really really want to set the asset type.
     EXPORT    OTPurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID, const OTIdentifier & USER_ID); // UserID optional
     EXPORT    virtual ~OTPurse();
-    // ----------------------------------------------
     EXPORT    bool LoadPurse(const char * szServerID=NULL, const char * szUserID=NULL, const char * szAssetTypeID=NULL);
     EXPORT    bool SavePurse(const char * szServerID=NULL, const char * szUserID=NULL, const char * szAssetTypeID=NULL);
 
@@ -271,7 +251,6 @@ public:
 
     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
     inline const OTIdentifier & GetAssetID () const { return m_AssetID;  }
-    // ----------------------------------------------
     EXPORT    void InitPurse();
     virtual void Release();
     EXPORT    void Release_Purse();

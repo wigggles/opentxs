@@ -451,7 +451,6 @@ public:
 };
 
 
-// ------------------------------------------------------------------------
 
 
 OSStatus OTMacKeychain::FindSecret(CFTypeRef    keychainOrArray,
@@ -472,7 +471,6 @@ OSStatus OTMacKeychain::FindSecret(CFTypeRef    keychainOrArray,
                                           passwordData,
                                           itemRef);
 }
-// ------------------------------------------------------------------------
 
 OSStatus OTMacKeychain::AddSecret(SecKeychainRef keychain,
                                   uint32_t       serviceNameLength,
@@ -493,13 +491,11 @@ OSStatus OTMacKeychain::AddSecret(SecKeychainRef keychain,
                                          itemRef);
 }
 
-// ------------------------------------------------------------------------
 
 OSStatus OTMacKeychain::ItemDelete(SecKeychainItemRef itemRef) const
 {
     return SecKeychainItemDelete(itemRef);
 }
-// ------------------------------------------------------------------------
 
 OSStatus OTMacKeychain::SearchCreateFromAttributes(CFTypeRef keychainOrArray,
                                                    CFTypeRef SecItemClass,
@@ -511,21 +507,18 @@ OSStatus OTMacKeychain::SearchCreateFromAttributes(CFTypeRef keychainOrArray,
     return SecKeychainSearchCreateFromAttributes(keychainOrArray, itemClass,
                                                  attrList,        searchRef);
 }
-// ------------------------------------------------------------------------
 
 OSStatus OTMacKeychain::SearchCopyNext(SecKeychainSearchRef  searchRef,
                                        SecKeychainItemRef  * itemRef) const
 {
     return SecKeychainSearchCopyNext(searchRef, itemRef);
 }
-// ------------------------------------------------------------------------
 
 OSStatus OTMacKeychain::ItemFreeContent(SecKeychainAttributeList * attrList, void * data) const
 {
     return SecKeychainItemFreeContent(attrList, data);
 }
 
-// ------------------------------------------------------------------------
 
 //static
 bool OTKeyring::Mac_StoreSecret(const OTString    & strUser,
@@ -1083,7 +1076,6 @@ KWallet::Wallet * OTKeyring::OpenKWallet()
 //    return false;
 //}
 
-// -----------------------
 
 //static
 bool OTKeyring::KWallet_StoreSecret(const OTString    & strUser,
@@ -1233,7 +1225,6 @@ void OTKeyring::FlatFile_SetPasswordFolder(const std::string folder)
     OTKeyring::s_str_passwd_folder = folder;
 }
 
-// -----------------------
 
 //static
 const char * OTKeyring::FlatFile_GetPasswordFolder()
@@ -1241,7 +1232,6 @@ const char * OTKeyring::FlatFile_GetPasswordFolder()
     return s_str_passwd_folder.c_str();
 }
 
-// -----------------------
 
 //static
 bool OTKeyring::FlatFile_StoreSecret(const OTString    & strUser,

@@ -160,11 +160,9 @@ EXPORT    friend std::ostream & operator << (std::ostream & os, const OTString &
     // like SAMY hash.
 EXPORT    bool CalculateDigestInternal(const OTString & strInput,  const OTString & strHashAlgorithm);
 EXPORT    bool CalculateDigestInternal(const OTData   & dataInput, const OTString & strHashAlgorithm);
-    // ----------------------------------------------
 EXPORT    static const OTString DefaultHashAlgorithm;
 EXPORT    static const OTString HashAlgorithm1;
 EXPORT    static const OTString HashAlgorithm2;
-    // ----------------------------------------------
 EXPORT    OTIdentifier();
 
 EXPORT    OTIdentifier(const OTIdentifier   & theID);
@@ -177,13 +175,10 @@ EXPORT    OTIdentifier(const OTOffer        & theOffer);
 EXPORT    OTIdentifier(const OTMarket       & theMarket);
 EXPORT    OTIdentifier(const OTSymmetricKey & theKey);
 EXPORT    OTIdentifier(const OTCachedKey    & theKey);
-    // ----------------------------------------------
 
 EXPORT    virtual ~OTIdentifier();
-    // ----------------------------------------------
     using OTData::swap;
     using OTData::operator=;
-    // ----------------------------------------------
 EXPORT    bool operator==(const OTIdentifier &s2) const;
 EXPORT    bool operator!=(const OTIdentifier &s2) const;
 
@@ -191,25 +186,19 @@ EXPORT    bool operator > (const OTIdentifier &s2) const;
 EXPORT    bool operator < (const OTIdentifier &s2) const;
 EXPORT    bool operator <=(const OTIdentifier &s2) const;
 EXPORT    bool operator >=(const OTIdentifier &s2) const;
-    // ----------------------------------------------
 EXPORT    bool CalculateDigest(const OTData & dataInput);
 EXPORT    bool CalculateDigest(const OTString & strInput);
 
 EXPORT    bool CalculateDigest(const OTString & strInput,  const OTString & strHashAlgorithm);
 EXPORT    bool CalculateDigest(const OTData   & dataInput, const OTString & strHashAlgorithm);
-    // ----------------------------------------------
 EXPORT    bool XOR(const OTIdentifier & theInput);
-    // ----------------------------------------------
 EXPORT    void CopyTo(uint8_t * szNewLocation) const;
-    // ----------------------------------------------
     // If someone passes in the pretty string of hex digits,
     // convert it to the actual binary hash and set it internally.
 EXPORT    void SetString(const char * szString);
 EXPORT    void SetString(const OTString & theStr);
-    // ----------------------------------------------
     // theStr will contain pretty hex string after call.
 EXPORT    void GetString(OTString & theStr) const;
-    // ----------------------------------------------
 };
 
 

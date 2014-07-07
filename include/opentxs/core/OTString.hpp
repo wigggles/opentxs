@@ -332,31 +332,24 @@ EXPORT    OTString& operator=(OTString rhs);
 //    OTString& operator=(const char * new_string);       // Many unexpected side-effects if you mess with this.  }:-)
 //    OTString& operator=(const std::string & strValue);
 
-    // ----------------------------------------------
 static   bool vformat(const char * fmt, std::va_list * pvl, std::string & str_output);
 
          void swap(OTString & rhs);
-    // ----------------------------------------------
          bool operator >(const OTString &s2) const;
          bool operator <(const OTString &s2) const;
          bool operator <=(const OTString &s2) const;
          bool operator >=(const OTString &s2) const;
 EXPORT   bool operator ==(const OTString &s2) const;
-    // ----------------------------------------------
 EXPORT    static       std::string & trim(std::string& str);
-    // ----------------------------------------------
 EXPORT  static const std::string   replace_chars
                                     (const std::string & str,
                                      const std::string & charsFrom,
                                      const char & charTo);
-// ----------------------------------------------
 #ifdef _WIN32
 EXPORT static std::wstring s2ws(const std::string  & s);
 EXPORT static std::string  ws2s(const std::wstring & s);
 #endif
-// ----------------------------------------------
 
-    // ----------------------------------------------
     // from: http://www.cplusplus.com/faq/sequences/strings/split/
     //
     struct split
@@ -389,7 +382,6 @@ EXPORT static std::string  ws2s(const std::wstring & s);
         while (static_cast<size_t>(next) != Container::value_type::npos);
         return result;
     }
-    // ----------------------------------------------
 
 private:     // Implementation
     // You better have called Initialize() or Release() before you dare call this.
@@ -398,18 +390,14 @@ private:     // Implementation
     // Only call this right after calling Initialize() or Release().
     // Also, this function ASSUMES the new_string pointer is good.
     void LowLevelSet(const char * new_string, uint32_t nEnforcedMaxLength);
-    // ----------------------------------------------
     // Operations
 public:
 EXPORT    static bool safe_strcpy(char * dest,
                                   const
                                   char * src,
-                                  // -----------------
                                   size_t dest_size, // max size of destination must be passed here.
                                   bool   bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-    // ----------------------------------------------
     static size_t safe_strlen(const char * s, size_t max);
-    // ----------------------------
 
 EXPORT  static int64_t StringToLong(const std::string & strNumber);
 
@@ -420,16 +408,11 @@ EXPORT  static uint64_t StringToUlong(const std::string & strNumber);
 
 EXPORT  uint64_t ToUlong() const;
 
-    // ----------------------------
 
 EXPORT    bool At    (uint32_t lIndex, char &c) const;
-    // ----------------------------------------------
 EXPORT    bool Exists() const;
-       // ----------------------------------------------
 EXPORT  bool DecodeIfArmored(bool bEscapedIsAllowed=true);
-       // ----------------------------------------------
 EXPORT uint32_t GetLength(void) const;
-    // ----------------------------------------------
 EXPORT        bool   Compare(const char     * strCompare) const;
 EXPORT        bool   Compare(const OTString & strCompare) const;
 
@@ -437,7 +420,6 @@ EXPORT          bool   Contains(const char     * strCompare) const;
               bool   Contains(const OTString & strCompare) const;
 
 EXPORT    const char * Get(void) const;
-    // ----------------------------
     // new_string MUST be at least nEnforcedMaxLength in size if
     // nEnforcedMaxLength is passed in at all.
     //
@@ -448,25 +430,17 @@ EXPORT    const char * Get(void) const;
     //
 EXPORT    void   Set         (const char     * new_string, uint32_t nEnforcedMaxLength=0);
 EXPORT    void   Set         (const OTString & strBuf);
-    // ----------------------------
     // For a straight-across, exact-size copy of bytes.
     // Source not expected to be null-terminated.
 EXPORT    bool   MemSet      (const char     * pMem, uint32_t theSize);
-    // ----------------------------
 EXPORT    void   Concatenate (const char     * arg, ...);
         void   Concatenate (const OTString & strBuf);
-    // ----------------------------
         void   Truncate    (      uint32_t   lAt);
-    // ----------------------------
 EXPORT    void   Format      (const char     * fmt, ...);
-       // ----------------------------------------------
         void ConvertToLowerCase();
         void ConvertToUpperCase();
-    // ----------------------------------------------
 EXPORT    bool TokenizeIntoKeyValuePairs(mapOfStrings & mapOutput) const;
-    // ----------------------------------------------
 EXPORT    void OTfgets(std::istream & ofs);
-    // ----------------------------------------------
     // true  == there are more lines to read.
     // false == this is the last line. Like EOF.
     bool sgets(char * szBuffer, uint32_t nBufSize);
@@ -476,18 +450,14 @@ EXPORT    void OTfgets(std::istream & ofs);
     void reset(void);
 
     void WriteToFile(std::ostream & ofs) const;
-    // ----------------------------------------------
     EXPORT   virtual void Release(void);
     void Release_String(void);
-    // ----------------------------------------------
     EXPORT   void zeroMemory();
-    // ----------------------------------------------
    // Internal properties
 protected:
    uint32_t  m_lLength;
    uint32_t  m_lPosition;
    char    * m_strBuffer;
-    // ----------------------------------------------
 };
 
 

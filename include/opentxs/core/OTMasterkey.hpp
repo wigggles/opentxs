@@ -181,11 +181,8 @@ private:  // Private prevents erroneous use by other classes.
     typedef OTKeyCredential ot_super;
     friend class OTCredential;
 public:
-    // ------------------------------
     virtual bool VerifyInternally();    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also verify that *this == m_pOwner->m_MasterKey (the master credential.) Then verify the (self-signed) signature on *this.
-    // ------------------------------
     bool VerifyAgainstSource() const; // Should actually curl the URL, or lookup the blockchain value, or verify Cert against Cert Authority, etc. Due to the network slowdown of this step, we will eventually make a separate identity verification server.
-    // -------------------------------
     bool VerifySource_HTTP      (const OTString strSource) const;
     bool VerifySource_HTTPS     (const OTString strSource) const;  // It's deliberate that strSource isn't passed by reference here.
     bool VerifySource_Bitcoin   (const OTString strSource) const;
@@ -195,15 +192,11 @@ public:
     bool VerifySource_I2P       (const OTString strSource) const;
     bool VerifySource_CA        (const OTString strSource) const;
     bool VerifySource_Pubkey    (const OTString strSource) const;
-    // ------------------------------
     OTMasterkey();
     OTMasterkey(OTCredential & theOwner);
-    // ------------------------------
     virtual ~OTMasterkey();
-    // ------------------------------
     virtual void UpdateContents();
     virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    // ------------------------------
 };
 
 

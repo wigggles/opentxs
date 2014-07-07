@@ -349,18 +349,13 @@ private:
 
     _SharedPtr<OTCachedKey> m_pCachedKey;  // If m_pMasterPW is set, this must be set as well.
 public:
-    // --------------------------------
 EXPORT    bool            isForNormalNym()   const;
 EXPORT    bool            isForCachedKey()   const;
-    // --------------------------------
 EXPORT    const char *    GetDisplayString() const;
-    // --------------------------------
 EXPORT    bool            isUsingOldSystem() const;
 EXPORT    void            setUsingOldSystem(bool bUsing=true);
-    // --------------------------------
     OTPassword          * GetMasterPW () { return m_pMasterPW;  }
     _SharedPtr<OTCachedKey> GetCachedKey() { return m_pCachedKey; }
-    // --------------------------------
 EXPORT    OTPasswordData(const char        *   szDisplay, OTPassword * pMasterPW=NULL, _SharedPtr<OTCachedKey> pCachedKey=_SharedPtr<OTCachedKey>());
 EXPORT    OTPasswordData(const std::string & str_Display, OTPassword * pMasterPW=NULL, _SharedPtr<OTCachedKey> pCachedKey=_SharedPtr<OTCachedKey>());
 EXPORT    OTPasswordData(const OTString    &  strDisplay, OTPassword * pMasterPW=NULL, _SharedPtr<OTCachedKey> pCachedKey=_SharedPtr<OTCachedKey>());

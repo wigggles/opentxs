@@ -161,7 +161,6 @@ private:  // Private prevents erroneous use by other classes.
 protected:
     mapOfParties        m_mapParties;    // The parties to the contract. Could be Nyms, or other entities. May be rep'd by an Agent.
     mapOfBylaws            m_mapBylaws;    // The Bylaws for this contract.
-    // -------------------------------------------------------------------
 
     // While calculating the ID of smart contracts (and presumably other scriptables)
     // we remove specifics such as asset types, asset accounts, Nym IDs, stashes, etc.
@@ -214,43 +213,32 @@ protected:
 
     OTString  m_strLabel; // OTSmartContract can put its trans# here. (Allowing us to use it in the OTScriptable methods where any smart contract would normally want to log its transaction #, not just the clause name.)
 public:
-    // ----------------------------------------------------
     virtual void SetDisplayLabel(const std::string * pstrLabel=NULL);
-    // ----------------------------------------------------
     int32_t GetPartyCount() const { return static_cast<int32_t> (m_mapParties.size()); }
     int32_t GetBylawCount() const { return static_cast<int32_t> (m_mapBylaws.size()); }
-    // ----------------------------------------------------
     virtual bool AddParty(OTParty & theParty); // Takes ownership.
     virtual bool AddBylaw(OTBylaw & theBylaw); // takes ownership.
-    // ----------------------------------------------------
     virtual bool ConfirmParty(OTParty & theParty); // Takes ownership.
-    // ----------------------------------------------------
 EXPORT    OTParty  * GetParty    (const std::string str_party_name );
 EXPORT    OTBylaw  * GetBylaw    (const std::string str_bylaw_name );
 EXPORT    OTClause * GetClause(const std::string str_clause_name);
-    // ----------------------------------------------------
 EXPORT    OTParty  * GetPartyByIndex(int32_t nIndex);
 EXPORT    OTBylaw  * GetBylawByIndex(int32_t nIndex);
-    // ----------------------------------------------------
 EXPORT    OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL);
 EXPORT    OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym & theNym, OTAgent ** ppAgent=NULL);
         OTParty * FindPartyBasedOnAccount(OTAccount & theAccount, OTPartyAccount ** ppPartyAccount=NULL);
-    // ----------------------------------------------------
         OTParty * FindPartyBasedOnNymIDAsAgent(const OTIdentifier & theNymID, OTAgent ** ppAgent=NULL) const;
         OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier & theNymID, OTAgent ** ppAgent=NULL);
         OTParty * FindPartyBasedOnAccountID(const OTIdentifier & theAcctID, OTPartyAccount ** ppPartyAccount=NULL);
-    // ----------------------------------------------------
         OTAgent            * GetAgent(const std::string str_agent_name);
         OTPartyAccount    * GetPartyAccount(const std::string str_acct_name);
         OTPartyAccount    * GetPartyAccountByID(const OTIdentifier & theAcctID) const;
-    // -----------------------------------------------------------------
     // This function returns the count of how many trans#s a Nym needs in order to confirm as
     // a specific agent for a contract. (An opening number is needed for every party of which
     // agent is the authorizing agent, plus a closing number for every acct of which agent is the
     // authorized agent.)
     //
 EXPORT    int32_t  GetCountTransNumsNeededForAgent(const std::string str_agent_name);
-    // ----------------------------------------------------
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a payment plan, OR
     // that the authorizing agent for Nym's party has done so,
@@ -267,7 +255,6 @@ EXPORT    int32_t  GetCountTransNumsNeededForAgent(const std::string str_agent_n
     // Also verifies that theNym is an agent for theAccount, according to the ACCOUNT.
     //
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym & theNym, OTAccount & theAccount);
-    // -----------------------------------------------------------------
     bool VerifyPartyAuthorization(OTParty            & theParty,        // The party that supposedly is authorized for this supposedly executed agreement.
                                   OTPseudonym        & theSignerNym,    // For verifying signature on the authorizing Nym, when loading it
                                   const OTString    & strServerID,  // For verifying issued num, need the serverID the # goes with.
@@ -279,10 +266,8 @@ EXPORT    int32_t  GetCountTransNumsNeededForAgent(const std::string str_agent_n
                                       OTPseudonym        & theSignerNym,    // For verifying signature on the authorized Nym
                                       const OTString    & strServerID, // For verifying issued num, need the serverID the # goes with.
                                       const bool          bBurnTransNo=false); // In OTServer::VerifySmartContract(), it not only wants to verify the closing # is properly issued, but it additionally wants to see that it hasn't been USED yet -- AND it wants to burn it, so it can't be used again!  This bool allows you to tell the function whether or not to do that.
-    // -----------------------------------------------------------------------------------
 EXPORT  bool VerifyThisAgainstAllPartiesSignedCopies();
 EXPORT    bool AllPartiesHaveSupposedlyConfirmed();
-    // -----------------------------------------------------------------------------------
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level function
     // will ask an OTScriptable for a list of all the Nym pointers that it already has,
     // so they can be checked for various things if they are already loaded (when they are needed)
@@ -292,7 +277,6 @@ EXPORT    bool AllPartiesHaveSupposedlyConfirmed();
     void RetrieveNymPointers(mapOfNyms & map_Nyms_Already_Loaded);
 
     void ClearTemporaryPointers();
-    // ----------------
     // Look up all clauses matching a specific hook.
     // (Across all Bylaws) Automatically removes any duplicates.
     // That is, you can have multiple clauses registered to the same
@@ -301,14 +285,11 @@ EXPORT    bool AllPartiesHaveSupposedlyConfirmed();
     //
     bool GetHooks(const std::string str_HookName,
                   mapOfClauses & theResults);
-    // ------------------------------------------------------------
     OTClause    * GetCallback(const std::string str_CallbackName);  // See if a scripted clause was provided for any given callback name.
     OTVariable    * GetVariable(const std::string str_VarName);       // See if a variable exists for a given variable name.
-    // ---------------------------------
     bool IsDirty() const;           // So you can tell if any of the persistent or important variables have CHANGED since it was last set clean.
     bool IsDirtyImportant() const;    // So you can tell if ONLY the IMPORTANT variables have CHANGED since it was last set clean.
     void SetAsClean();              // Sets the variables as clean, so you can check later and see if any have been changed (if it's DIRTY again.)
-    // --------------------------------------------------------------------
 EXPORT    bool SendNoticeToAllParties(bool bSuccessMsg,
                                     OTPseudonym & theServerNym,
                                     const OTIdentifier & theServerID,
@@ -318,7 +299,6 @@ EXPORT    bool SendNoticeToAllParties(bool bSuccessMsg,
                                     OTString * pstrNote=NULL,
                                     OTString * pstrAttachment=NULL,
                                     OTPseudonym * pActualNym=NULL);
-    // ----------------
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.
@@ -334,20 +314,16 @@ EXPORT    bool CanExecuteClause(const std::string str_party_name, const std::str
     bool ExecuteCallback (OTClause & theCallbackClause, mapOfVariables & theParameters, OTVariable & varReturnVal);
 
     virtual void RegisterOTNativeCallsWithScript(OTScript & theScript);
-    // ----------------
     virtual bool Compare(OTScriptable & rhs);
-    // ----------------
 EXPORT    static OTScriptable * InstantiateScriptable(const OTString & strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'
     // And make sure it's not blank. This is for script variable names, clause names, party names, etc.
     //
     static bool ValidateName(const std::string str_name);
-    // ------------------------
     // For use from inside server-side scripts.
     //
     static std::string GetTime(); // Returns a string, containing seconds as int32_t. (Time in seconds.)
-    // ------------------------
     OTScriptable();
     virtual ~OTScriptable();
 

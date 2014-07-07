@@ -180,20 +180,13 @@ private:  // Private prevents erroneous use by other classes.
 protected:
     int32_t        m_nSubCount;
     int64_t    m_lMinimumTransfer;            // used in the actual basket
-    // -------------------------------------------------------------------------
     int32_t        m_nTransferMultiple;        // used in a request basket. If non-zero, that means this is a request basket.
-    // -------------------------------------------------------------------------
     OTIdentifier m_RequestAccountID;    // used in a request basket so the server knows your acct ID.
-    // -------------------------------------------------------------------------
     dequeOfBasketItems    m_dequeItems;
-    // -------------------------------------------------------------------------
     bool    m_bHideAccountID;    // When saving, we might wish to produce a version without Account IDs
                                 // So that the resulting hash will be a consistent ID across different servers.
-    // -------------------------------------------------------------------------
     bool    m_bExchangingIn;    // True if exchanging INTO the basket, False if exchanging OUT of the basket.
-    // -------------------------------------------------------------------------
     int64_t    m_lClosingTransactionNo;  // For the main (basket) account, in a request basket (for exchanges.)
-    // -------------------------------------------------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 public:
@@ -242,7 +235,6 @@ EXPORT    void AddRequestSubContract(const OTIdentifier & SUB_CONTRACT_ID,
     virtual void Release();
     void Release_Basket();
 
-    // -----------------------------------------------------------------------------
     //
     // NOTE: Experimental / new (here):
 

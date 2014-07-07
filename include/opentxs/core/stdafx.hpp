@@ -16,7 +16,6 @@
 #define OT_USE_CXX11
 #endif
 
-// ------------------------------------
 #ifndef OT_USE_SCRIPT_CHAI
 #define OT_USE_SCRIPT_CHAI
 
@@ -25,7 +24,6 @@
 #endif
 
 #endif
-// ------------------------------------
 #if defined(ANDROID) || defined(OT_KEYRING_IOS)
 
 // DON'T use ChaiScript on mobile devices
@@ -36,7 +34,6 @@
 #endif
 
 #endif
-// ------------------------------------
 
 #ifdef OT_USE_CHAI_STDLIB
 #undef OT_USE_CHAI_STDLIB
@@ -46,7 +43,6 @@
 #define OT_USE_CHAI_STDLIB
 #endif
 
-// ------------------------------------
 
 #ifndef OT_CRYPTO_USING_OPENSSL
 #define OT_CRYPTO_USING_OPENSSL 1
@@ -56,7 +52,6 @@
 #define OT_CASH_USING_LUCRE 1
 #endif
 
-// ------------------------------------
 
 // for mac, this enables deprecated functions. (aka, for pthread)
 #ifdef _XOPEN_SOURCE

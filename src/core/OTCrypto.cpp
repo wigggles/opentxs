@@ -1317,7 +1317,6 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString & strInput, OTIdenti
 
     // I would rather use stringToBigUnsigned and then convert that to data.
     // But apparently this class has no conversion back to data, I will contact the author.
-    //---------------------------------------------------------------
     BIGNUM * pBigNum = BN_new();
     OT_ASSERT(NULL != pBigNum);
 

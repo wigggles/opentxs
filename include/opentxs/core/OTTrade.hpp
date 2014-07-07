@@ -212,16 +212,13 @@ EXPORT    bool  IssueTrade(OTOffer & theOffer, char cStopSign=0, int64_t lStopPr
 
     // optionally returns the offer's market ID and a pointer to the market.
     OTOffer    * GetOffer(OTIdentifier * pOFFER_MARKET_ID=NULL, OTMarket ** ppMarket=NULL);
-    // --------------------------------------------------------------------------
     inline const OTIdentifier & GetCurrencyID() const { return m_CURRENCY_TYPE_ID; }
     inline void SetCurrencyID(const OTIdentifier & CURRENCY_ID) { m_CURRENCY_TYPE_ID = CURRENCY_ID; }
 
     inline const OTIdentifier & GetCurrencyAcctID() const { return m_CURRENCY_ACCT_ID; }
     inline void SetCurrencyAcctID(const OTIdentifier & CURRENCY_ACCT_ID) { m_CURRENCY_ACCT_ID = CURRENCY_ACCT_ID; }
-    // --------------------------------------------------------------------------
     inline void IncrementTradesAlreadyDone() { m_nTradesAlreadyDone++;      }
     inline int32_t  GetCompletedCount()          { return m_nTradesAlreadyDone; }
-    // --------------------------------------------------------------------------
 EXPORT    int64_t GetAssetAcctClosingNum() const;
 EXPORT    int64_t GetCurrencyAcctClosingNum() const;
 
@@ -236,7 +233,6 @@ EXPORT    int64_t GetCurrencyAcctClosingNum() const;
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
     virtual bool CanRemoveItemFromCron(OTPseudonym & theNym);
-    // --------------------------------------------------------------------------
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
      inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
@@ -247,7 +243,6 @@ EXPORT    int64_t GetCurrencyAcctClosingNum() const;
      inline void    SetSenderAcctID(const OTIdentifier & ACCT_ID)    { m_SENDER_ACCT_ID = ACCT_ID; }
      inline void    SetSenderUserID(const OTIdentifier & USER_ID)    { m_SENDER_USER_ID = USER_ID; }
      */
-    // --------------------------------------------------------------------------
     // From OTInstrument (parent class of OTTrackable, parent class of OTCronItem, parent class of this)
     /*
      OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : OTContract()
@@ -266,7 +261,6 @@ EXPORT    int64_t GetCurrencyAcctClosingNum() const;
 
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
      */
-    //----------------------------------------------------------------------
     // From OTScriptable, we override this function. OTScriptable now does fancy stuff like checking to see
     // if the Nym is an agent working on behalf of a party to the contract. That's how all OTScriptable-derived
     // objects work by default.  But OTAgreement (payment plan) and OTTrade do it the old way: they just check to
@@ -277,7 +271,6 @@ EXPORT    int64_t GetCurrencyAcctClosingNum() const;
                                   mapOfNyms    * pmap_ALREADY_LOADED=NULL);
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym & theNym, OTAccount & theAccount);
-    //----------------------------------------------------------------------
 EXPORT  OTTrade();
         OTTrade(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
 EXPORT  OTTrade(const OTIdentifier & SERVER_ID,
@@ -290,9 +283,7 @@ EXPORT    virtual ~OTTrade();
 
     void Release_Trade();
     virtual void Release();
-    // ------------------------------------------------------
     virtual int64_t GetClosingNumber(const OTIdentifier    & theAcctID) const;
-    // ------------------------------------------------------
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 

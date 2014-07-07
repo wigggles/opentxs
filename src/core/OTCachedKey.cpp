@@ -952,7 +952,6 @@ bool OTCachedKey::GetMasterPassword(_SharedPtr<OTCachedKey> & mySharedPtr,
 // ************************************************************************
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-// -------------------------------------------------
 #if defined(OPENSSL_THREADS)
         // thread support enabled
 

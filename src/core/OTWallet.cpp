@@ -1424,7 +1424,6 @@ _SharedPtr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(const std::string & str
 }
 
 
-// ------------------------------------------------------------------------
 // The "extra" symmetric keys in the wallet are all, like the Nyms, encrypted
 // to the wallet's master key. So whenever the wallet's master key is changed,
 // this method needs to be called as well, to update those extra symmetric keys
@@ -1488,7 +1487,6 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword & oldPassphrase,
     return true;
 }
 
-// ------------------------------------------------------------------------
 
 bool OTWallet::Encrypt_ByKeyID(
                        const std::string & key_id,
@@ -1519,7 +1517,6 @@ bool OTWallet::Encrypt_ByKeyID(
     }
     return false;
 }
-// ------------------------------------------------------------------------
 bool OTWallet::Decrypt_ByKeyID(
                        const std::string & key_id,
                              OTString    & strCiphertext,
@@ -1546,7 +1543,6 @@ bool OTWallet::Decrypt_ByKeyID(
     }
     return false;
 }
-// ------------------------------------------------------------------------
 
 _SharedPtr<OTSymmetricKey> OTWallet::getExtraKey(const std::string & str_id)
 {

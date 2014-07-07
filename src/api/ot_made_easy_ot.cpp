@@ -1,4 +1,3 @@
-// ------------------------------------------------------------------
 // This is a library written in OTScript, which makes the OT-API
 // much easier to use from inside your own OTScripts, by providing
 // a higher-level layer.

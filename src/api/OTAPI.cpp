@@ -176,7 +176,6 @@
 //#endif
 //}
 
-// ---------------------------------------------------------------
 
 namespace opentxs {
 
@@ -184,7 +183,6 @@ namespace opentxs {
 #define OT_BOOL int32_t
 #endif
 
-// ---------------------------------------------------------------
 
 // singleton object !!!
 static OTAPI_Exec singleton;
@@ -243,7 +241,6 @@ bool OTAPI_Wrap::AppCleanup()
     return exec->AppCleanup();
 }
 
-// --------------------------------------------------------------------
 // SetAppBinaryFolder
 // OPTIONAL. Used in Android and Qt.
 //
@@ -266,7 +263,6 @@ void OTAPI_Wrap::SetAppBinaryFolder(const std::string & strFolder)
     return exec->SetAppBinaryFolder(strFolder);
 }
 
-// --------------------------------------------------------------------
 // SetHomeFolder
 // OPTIONAL. Used in Android.
 //

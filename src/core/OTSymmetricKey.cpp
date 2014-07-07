@@ -175,7 +175,6 @@ void OTSymmetricKey::GetIdentifier(OTString & strIdentifier) const
         theIdentifier.GetString(strIdentifier);
 }
 
-// ------------------------------------------------------------------------
 // Changes the passphrase on an existing symmetric key.
 //
 bool OTSymmetricKey::ChangePassphrase(const OTPassword & oldPassphrase,
@@ -254,7 +253,6 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword & oldPassphrase,
 
     return m_bIsGenerated;
 }
-// ------------------------------------------------------------------------
 
 // Generates this OTSymmetricKey based on an OTPassword. The generated key is
 // stored in encrypted form, based on a derived key from that password.

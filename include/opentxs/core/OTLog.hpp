@@ -231,7 +231,6 @@ public:
 
     EXPORT static bool Cleanup();
 
-    // ------------------------------------------------------------
     // OTLog Constants.
     //
 
@@ -253,13 +252,11 @@ public:
     EXPORT static int32_t        LogLevel();
     EXPORT static bool       SetLogLevel(const int32_t & nLogLevel);
 
-    // --------------------------------------------------------
     // OTLog Functions:
     //
 
     EXPORT static bool        LogToFile(const OTString & strOutput);
 
-    // --------------------------------------------------
     // We keep 1024 logs in memory, to make them available via the API.
     EXPORT static int32_t        GetMemlogSize(); 
     EXPORT static const OTString    GetMemlogAtIndex(const int32_t nIndex);
@@ -269,7 +266,6 @@ public:
     EXPORT static bool        PopMemlogBack();
     EXPORT static bool        PushMemlogFront(const OTString & strLog);
     EXPORT static bool        PushMemlogBack(const OTString & strLog);
-    // -------------------------------------------------
     EXPORT static bool        SleepSeconds(const int64_t lSeconds);
     EXPORT static bool        SleepMilliseconds(const int64_t lMilliseconds);
 
@@ -306,7 +302,6 @@ public:
     // String Helpers
     EXPORT static bool StringFill(OTString & out_strString, const char * szString, const int32_t iLength, const char * szAppend = NULL);
 
-    // -------------------------------------------------
     EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above OT_Init.
 
 };

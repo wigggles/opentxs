@@ -1468,7 +1468,6 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTSt
     return NULL;
 }
 
-// -------------------------------------------
 
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID, const OTString & strPayment)
 {

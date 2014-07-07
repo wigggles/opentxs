@@ -9006,7 +9006,6 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(const string & strSe
                 }
                 string strStatus = (lTime > tValidTo) ? "expired" : "valid";
 
-                // ------------------------------------------
                 // lLoopAmount is where we will start at 0, and keep the running total of the value for the selected indices, as we loop.
                 // lAmountRemaining is where we will start at lAmount, and then SUBTRACT the value of each selected index, as we loop.
                 // If we are trying to determine the indices based on lAmount, we'll SEE if value at the current index is less-than-or-equal-to
@@ -9833,7 +9832,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
         "and smart contracts. Also useful for displaying contents by ID.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
-    // --------------------------------------------------------------------
     //
     int64_t lTransNum = 0;
     bool bDetailMode = false;
@@ -9847,7 +9845,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
         if (VerifyExists("Args", false))
         {
             string strTransNum = OT_CLI_GetValueByKey(Args, "id"); // transaction number.
-            // -----------------------------
             if (VerifyStringVal(strTransNum))
             {
                 lTransNum = to_long(strTransNum);
@@ -9863,13 +9860,11 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
                 }
             }
         }
-        // -----------------------------
         if (!bDetailMode && !VerifyExists("MyNym"))
         {
             OTAPI_Wrap::Output(0, "Missing argument (2): " + strError);
             return -1;
         }
-        // -----------------------------
         // By this point, we know for a fact that either MyNym was supplied, and thus we need to display a list
         // of active transactions for the given nym/server, or otherwise, bDetailMode will be true, and lTransNum
         // contains a greater-than-zero value in int64_t form, in which case, we need to display the details
@@ -9909,7 +9904,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
                 for (size_t nIndex = 0; nIndex < vecIDs.size(); ++nIndex)
                 {
                     string strTransNum = vecIDs[nIndex];
-                    // -----------------------------
                     if (VerifyStringVal(strTransNum))
                     {
                         lTransNum = to_long(strTransNum);
@@ -9926,18 +9920,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
                                 {
                                     strType = "UNKNOWN";
                                 }
-                                // ----------------------------------
                                 if (0 == nIndex)
                                 {
                                     OTAPI_Wrap::Output(0, "\n Found " + to_string((int64_t)vecIDs.size()) + " active transactions:\n\n");
                                 }
-                                // ----------------------------------
                                 print("ID: " + strTransNum + "  Type: " + strType + "\n");
                             }
                         }
                     }
                 } // for
-                // -----------------------------------
                 OTAPI_Wrap::Output(0, "\n");
             }
             else
@@ -9945,11 +9936,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
                 OTAPI_Wrap::Output(0, "\nFound no active transactions. Perhaps try 'opentxs refresh' first?\n");
             }
         } // list mode (not detail mode.)
-        // -----------------------------------
         return 1;
 
     } // if (VerifyExists("Server"))
-    // -------------------
     return -1;
 }
 

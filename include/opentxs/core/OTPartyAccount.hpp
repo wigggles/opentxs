@@ -172,18 +172,15 @@ typedef std::map<std::string, OTPseudonym *>    mapOfNyms;
 class OTPartyAccount
 {
     OTParty *    m_pForParty; // When being added to a party, this pointer will be set.
-    // -------------------------
     // NOTE: each party needs to have a list of partyaccounts, AND each account on that list needs to have a CLOSING #!!! Ahh...
     OTAccount * m_pAccount;
     int64_t        m_lClosingTransNo; // Any account that is party to an agreement, must have a closing transaction # for finalReceipt.
-    // -------------------------
     // account name (inside the script language, "gold_acct_A" could be used to reference this acct.)
     //
     OTString    m_strName;            // Name of the account (for use in scripts.)
     OTString    m_strAcctID;        // The Account ID itself.
     OTString    m_strAssetTypeID;    // The asset type ID for the account. Stored because parties agree on this even before the account ID is selected. Compare() uses this even when the account ID is blank, and when acct ID *is* added, its asset type must match this.
     OTString    m_strAgentName;        // The name of the agent who has rights to this account.
-    // -------------------------
     // Entity, role, and Nym information are not stored here.
     // Entity is already known on the party who owns this account (and I should have a ptr to him.)
     // Role is already known on the agent who is presumably on the party's list of agents.
@@ -205,22 +202,15 @@ EXPORT    const OTString & GetName()            const    { return m_strName; }  
 
     void SetAgentName(const OTString & strAgentName)    { m_strAgentName    = strAgentName; }
     void SetAcctID(const OTString & strAccountID)        { m_strAcctID        = strAccountID; }
-    // ----------------------------
 EXPORT    OTAgent   * GetAuthorizedAgent();
-    // ----------------------------
     OTAccount * LoadAccount(OTPseudonym & theSignerNym, const OTString & strServerID);
-    // ----------------------------
     bool IsAccount(OTAccount & theAccount);
     bool IsAccountByID(const OTIdentifier & theAcctID) const;
-    // ----------------------------
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well as to the actual account. I will ask him to verify whether he actually owns it.
     bool VerifyAgency(); // I can get a ptr to my agent, and I have one to the actual account. I will ask him to verify whether he actually has agency over it.
-    // -------------------
     int64_t GetClosingTransNo() const { return m_lClosingTransNo; }
     void SetClosingTransNo(const int64_t lTransNo) { m_lClosingTransNo = lTransNo; }
-    // -----------
     bool Compare(const OTPartyAccount & rhs) const;
-    // -----------
     bool DropFinalReceiptToInbox(mapOfNyms * pNymMap,
                                  const OTString & strServerID,
                                  OTPseudonym & theServerNym,
@@ -229,7 +219,6 @@ EXPORT    OTAgent   * GetAuthorizedAgent();
                                  const OTString & strOrigCronItem,
                                  OTString * pstrNote=NULL,
                                  OTString * pstrAttachment=NULL);
-    // ------------------------------------------------------------
     OTPartyAccount();
     OTPartyAccount(const std::string str_account_name, const OTString & strAgentName, OTAccount & theAccount, int64_t lClosingTransNo);
     OTPartyAccount(const OTString & strName, const OTString & strAgentName, const OTString & strAcctID, const OTString & strAssetTypeID, int64_t lClosingTransNo);

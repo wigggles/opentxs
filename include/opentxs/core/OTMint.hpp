@@ -148,7 +148,6 @@ class OTMint : public OTContract
 {
 private:  // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
-// ------------------------------------------------------------------------------
 protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
@@ -191,7 +190,6 @@ protected:
                                         // of the same reserve account and goes into the depositor's account. This way,
                                         // all tokens will have 1-for-1 funds backing them, and any funds left over after
                                         // the tokens expire, is the server operator's money to keep!
-// ------------------------------------------------------------------------------
 public:
     inline    int32_t        GetSeries()        const { return m_nSeries; }        // The series ID
     inline    time64_t    GetValidFrom()    const { return m_VALID_FROM; }    // The token "valid from" date for this series
@@ -202,25 +200,21 @@ EXPORT    bool Expired() const;    // true or false. Expired?
                                 // Valid range is GetValidFrom() through GetExpiration().
     // Server-side only.
     inline OTAccount * GetCashReserveAccount() const { return m_pReserveAcct; }
-// ------------------------------------------------------------------------------
 public:
     // Caller is responsible to delete.
     //
 EXPORT    static OTMint * MintFactory();
 EXPORT    static OTMint * MintFactory(const OTString & strServerID, const OTString & strAssetTypeID);
 EXPORT    static OTMint * MintFactory(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
-// ------------------------------------------------------------------------------
 protected:
         OTMint();
 EXPORT    OTMint(const OTString & strServerID, const OTString & strAssetTypeID);
 EXPORT    OTMint(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
-// ------------------------------------------------------------------------------
 public:
 EXPORT    virtual ~OTMint();
     virtual void Release();
     void Release_Mint();
     void ReleaseDenominations();
-// ------------------------------------------------------------------------------
 EXPORT    bool LoadMint(const char * szAppend=NULL);
 EXPORT    bool SaveMint(const char * szAppend=NULL);
 

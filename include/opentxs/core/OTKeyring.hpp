@@ -205,7 +205,6 @@ EXPORT    static bool RetrieveSecret( const OTString      & strUser,
 EXPORT    static bool DeleteSecret(   const OTString      & strUser,
                                       const std::string   & str_display);
 private:
-    // -------------------------------------------------------
 #if defined(OT_KEYRING_WINDOWS) && defined(_WIN32)
 EXPORT    static bool Windows_StoreSecret(    const OTString      & strUser,
                                               const OTPassword    & thePassword,
@@ -218,7 +217,6 @@ EXPORT    static bool Windows_RetrieveSecret( const OTString      & strUser,
 EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
                                               const std::string   & str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_MAC) && defined(__APPLE__)
     static bool Mac_StoreSecret(    const OTString      & strUser,
                                     const OTPassword    & thePassword,
@@ -231,7 +229,6 @@ EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
     static bool Mac_DeleteSecret(   const OTString      & strUser,
                                     const std::string   & str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_IOS) && defined(__APPLE__)
     static bool IOS_StoreSecret(    const OTString      & strUser,
                                     const OTPassword    & thePassword,
@@ -244,7 +241,6 @@ EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
     static bool IOS_DeleteSecret(   const OTString      & strUser,
                                     const std::string   & str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_GNOME)
     static bool Gnome_StoreSecret(   const OTString     & strUser,
                                      const OTPassword   & thePassword,
@@ -257,11 +253,9 @@ EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
     static bool Gnome_DeleteSecret(  const OTString     & strUser,
                                      const std::string  & str_display); // unused
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_KWALLET)
     static KWallet::Wallet * s_pWallet;
     static KApplication    * s_pApp;
-    // -------------------------------------
     static bool KWallet_StoreSecret(   const OTString     & strUser,
                                        const OTPassword   & thePassword,
                                        const std::string  & str_display);
@@ -272,9 +266,7 @@ EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
 
     static bool KWallet_DeleteSecret(  const OTString     & strUser,
                                        const std::string  & str_display);
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_FLATFILE)  // Do not use! Unsafe! For testing only!
-    // -------------------------------------
     static bool FlatFile_StoreSecret(   const OTString     & strUser,
                                         const OTPassword   & thePassword,
                                         const std::string  & str_display);

@@ -188,7 +188,6 @@ public:
 
     EXPORT const bool & IsLoaded() const;
 
-    // --------------------------------------------------
     // Configuration Helpers
     //
 

@@ -260,41 +260,30 @@ private:
     OTSymmetricKey        *  m_pSymmetricKey;   // Encrypted form of the master key. Serialized by OTWallet or OTServer.
     tthread::mutex           m_Mutex;           // Mutex used for serializing access to this instance.
     bool                     m_bPaused;         // If you want to force the old system, PAUSE the master key (REMEMBER to Unpause when done!)
-    // -----------------------------------------------------------
     OTCachedKey(int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT);
-    // -----------------------------------------------------------
     static tthread::mutex   s_mutexThreadTimeout;
-    // -----------------------------------------------------------
     static tthread::mutex   s_mutexCachedKeys;
     static mapOfCachedKeys  s_mapCachedKeys;  // Now we have many "master keys," mapped by their symmetric key ID. These are actually temps, just so we can safely cache the passphrases for various symmetric keys, between uses of that symmetric key. Such as Pop'ing tokens off of a purse, over and over again. Normally in the API, this would have to load the key each time. By caching here, we can exploit all the cool master key code, with its security, and threads, and timeouts, etc for every symmetric key we use. Just pass an ID into It() and if it's on the map, a pointer will be returned. Pass NULL into It() (no arguments) to get a pointer to the global Master Key (for Nyms.)
 public:
     tthread::mutex       * GetMutex() { return &m_Mutex; } // So static functions using this CachedKey can also lock its mutex.
-    // -----------------------------------------------------------
     EXPORT    OTCachedKey(const OTASCIIArmor & ascCachedKey);
     EXPORT    ~OTCachedKey();
-    // -----------------------------------------------------------
     EXPORT    static _SharedPtr<OTCachedKey> It(OTIdentifier * pIdentifier=NULL); // if you pass in a master key ID, it will look it up on an existing cached map of master keys. Otherwise it will use "the" global Master Key (the one used for the Nyms.)
 
     EXPORT    static _SharedPtr<OTCachedKey> It(OTCachedKey & theSourceKey); // if you pass in a master key, it will look it up on an existing cached map of master keys, based on the ID of the master key passed in. If not there, it copies the one passed in, and returns a pointer to the copy. (Do NOT delete it.)
 
     EXPORT    static void Cleanup(); // Call on application shutdown. Called in CleanupOTAPI and also in OTServer wherever it cleans up.
-    // ------------------------------------------------------------------------
     EXPORT    bool   GetIdentifier(OTIdentifier & theIdentifier) const;
     EXPORT    bool   GetIdentifier(OTString     & strIdentifier) const;
-    // ------------------------------------------------------------------------
     EXPORT    bool   IsGenerated();
     EXPORT      bool     HasHashCheck();
-    // --------------------------------
     EXPORT    bool   IsUsingSystemKeyring() { return m_bUse_System_Keyring; }
     EXPORT    void   UseSystemKeyring(bool bUsing=true) { m_bUse_System_Keyring = bUsing; } // Start using system keyring.
-    // --------------------------------
     EXPORT    bool   Pause();
     EXPORT    bool   Unpause();
     EXPORT    bool   isPaused();
-    // --------------------------------
     EXPORT    bool   SerializeTo   (      OTASCIIArmor & ascOutput);
     EXPORT    bool   SerializeFrom (const OTASCIIArmor & ascInput );
-    // --------------------------------
 
     // These two functions are used by the OTServer or OTWallet that actually keeps
     // the master key. The owner sets the master key pointer on initialization, and then
@@ -302,7 +291,6 @@ public:
     // key, it can use GetMasterPassword to access it.
     //
     EXPORT    void   SetCachedKey(const OTASCIIArmor & ascCachedKey); // OTServer/OTWallet calls this, I instantiate.
-    // --------------------------------
 
     EXPORT    int32_t    GetTimeoutSeconds();
     EXPORT    void   SetTimeoutSeconds(int32_t nTimeoutSeconds); // So we can load from the config file.
@@ -325,7 +313,6 @@ public:
     EXPORT  static _SharedPtr<OTCachedKey> CreateMasterPassword(OTPassword & theOutput,
                                                               const char * szDisplay=NULL,
                                                               int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT);
-    // --------------------------------
 
     EXPORT   void DestroyMasterPassword(); // The thread, when the time comes, calls this method using the instance pointer that was passed into the thread originally. The actual encrypted version is kept -- only the temporary cleartext version is destroyed.
 

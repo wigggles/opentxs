@@ -164,7 +164,6 @@ protected:
     // the attacker has write/erase access to the filesystem. I'd like to make it impervious even to that.
 
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-// ----------------------------------
 public:
         // These assume SetFilename() was already called,
         // or at least one of the constructors that uses it.
@@ -173,17 +172,13 @@ public:
         OTSignedFile(const OTString & LOCAL_SUBDIR, const OTString & FILE_NAME);
         OTSignedFile(const char     * LOCAL_SUBDIR, const OTString & FILE_NAME);
 EXPORT    OTSignedFile(const char     * LOCAL_SUBDIR, const char     * FILE_NAME);
-// ----------------------------------
 EXPORT    bool LoadFile();
 EXPORT    bool SaveFile();
-// ----------------------------------
         bool VerifyFile();    // Returns true or false, whether actual subdir/file matches purported subdir/file.
                             // (You should still verify the signature on it as well, if you are doing this.)
         void SetFilename(const OTString & LOCAL_SUBDIR, const OTString & FILE_NAME);
-// ----------------------------------
 inline OTString & GetFilePayload()                       { return m_strSignedFilePayload;   }
 inline void       SetFilePayload(const OTString &strArg) { m_strSignedFilePayload = strArg; }
-// ----------------------------------
 EXPORT    virtual ~OTSignedFile();
         virtual void Release();
                 void Release_SignedFile();
