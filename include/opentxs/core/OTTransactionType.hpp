@@ -422,7 +422,6 @@ protected:
     // signed receipts for that account -- THAT is the real account as far as anyone is concerned, when it
     // comes to moving any money out of it, certainly! Any jackass could replace a receipt with another.
     //
-    // ***********************************************************************
     // How do I want to use Real versus Purported, as a general rule of thumb?
     //
     // Purported is where I load to and save from. It's also what I distrust. In fact I verify it the

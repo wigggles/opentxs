@@ -249,7 +249,6 @@ class OTRecordList
     vec_OTRecordList          m_contents;
     static const std::string  s_blank;
     static const std::string  s_message_type;
-    // ********************************************
 public: // ADDRESS BOOK CALLBACK
     
     static bool setAddrBookCaller(OTLookupCaller & theCaller);
@@ -257,7 +256,6 @@ public: // ADDRESS BOOK CALLBACK
 
 protected: // ADDRESS BOOK CALLER
     static OTLookupCaller * s_pCaller;
-// ********************************************
 public:
 EXPORT  OTRecordList(); // This one expects that s_pCaller is not NULL.
 EXPORT  OTRecordList(OTNameLookup & theLookup);

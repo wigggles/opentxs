@@ -985,7 +985,6 @@ std::string OT_ME::adjust_usage_credits(const std::string & SERVER_ID,
 }
 
 
-//************************************************************************************
 
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string & str_Message)
@@ -2071,7 +2070,6 @@ bool OT_ME::Register_API_With_Script_Chai(OTScriptChai & theScript)
         theScript.chai->add(fun(&OTAPI_Wrap::activateSmartContract), "OT_API_activateSmartContract");
         theScript.chai->add(fun(&OTAPI_Wrap::triggerClause), "OT_API_triggerClause");
 
-        // ******************************************************************
 
         return true; // Success (hopefully!)
     }
@@ -2080,7 +2078,6 @@ bool OT_ME::Register_API_With_Script_Chai(OTScriptChai & theScript)
 #endif // OT_USE_SCRIPT_CHAI
 
 
-// ********************************************************************
 
 // Used in RegisterAPIWithScript.
 // (In D, this would be a nested function, but C++ doesn't support that
@@ -2180,7 +2177,6 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai & theScript)
         // and will be seen as one from inside the scripts, where script programmers can
         // pick and choose which level of abstraction that they need.
         // 
-        // ******************************************************************
         //
         //  SCRIPT HEADERS
         //

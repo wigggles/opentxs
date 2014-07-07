@@ -396,7 +396,6 @@ bool OTCredential::SignNewMaster(OTPasswordData * pPWData/*=NULL*/)
     if (bSignedPublic)
     {
         m_Masterkey.SaveContract();
-        // ***********************************************************
         // THE OFFICIAL "PUBLIC CREDENTIAL" FOR THE MASTER KEY
         // (Copied from the raw contents here into a member variable for safe-keeping.)
         // Future verifiers can hash it and the output should match the master credential ID.
@@ -406,7 +405,6 @@ bool OTCredential::SignNewMaster(OTPasswordData * pPWData/*=NULL*/)
         if (m_Masterkey.SaveContractRaw(strPublicCredential))
         {
             m_Masterkey.SetContents(strPublicCredential); // <=== The "master public credential" string.
-            // ***********************************************************
             // NEW MASTER CREDENTIAL ID.
             //
             // Only now can we calculate the master key's ID, since the ID is a hash of
@@ -564,7 +562,6 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
     // ELSE It's a subkey...
     else // Subkeys must be self-signed, and must contain a master-signed version of themselves where the data is actually stored.
     {
-        // ***********************************************************
         pSubkey->StoreAsMasterSigned(); // So the version we create here only contains public keys, not private. (And so it won't include
                                         // the "master signed" version in what it stores, since that's what we're creating now.)
 
@@ -594,7 +591,6 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
 
         pSubkey->ReleaseSignatures();
     }
-    // ***********************************************************
     theSubCred.StoreAsPublic(); // So the version we create here only contains public keys, not private.
     
     // Here, dynamic cast theSubCred to a subkey and if successful, use it to sign itself.
@@ -620,7 +616,6 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
     else
     {
         theSubCred.SaveContract();
-        // ***********************************************************
         // THE OFFICIAL "PUBLIC CREDENTIAL STRING" FOR THIS NEW SUB-CREDENTIAL
         // Set it aside for safe-keeping as the official contents, hashable to form
         // the ID for this sub-credential.
@@ -629,7 +624,6 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
         if (theSubCred.SaveContractRaw(strPublicCredential))
         {
             theSubCred.SetContents(strPublicCredential); // <=== The "public credential" string aka the contents.
-            // ***********************************************************
             // NEW SUB-CREDENTIAL ID.
             //
             // Only now that the contents have been set, can we calculate the ID, which
@@ -645,7 +639,6 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
             otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling theSubCred.SaveContractRaw.\n";
             return false;
         }
-        // **********************************************************
         // CREATE THE PRIVATE FORM.
         //
         // Next, we sign / save it again, this time in its private form, and also

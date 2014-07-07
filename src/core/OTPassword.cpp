@@ -966,7 +966,6 @@ int32_t OTPassword::addMemory(const void * vAppend, uint32_t nAppendSize)
     //
     if (m_nPasswordSize == 0)
         return this->setMemory(vAppend, nAppendSize);
-    // ***********************************************
     //
     // By this point, I know I already have some memory allocated,
     // and I'm actually appending some other memory onto the end of it.

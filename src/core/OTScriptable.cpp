@@ -398,7 +398,6 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
     // anyway (it won't be from within some script...) then just call VerifyPartyAuthorization() yourself in
     // that code, wherever you need to.
 
-    // *****************************************************************************
     //
     // DISALLOW parties to directly execute any clauses named similarly to callbacks, hooks, or cron hooks!
     // Only allow this for normal clauses.
@@ -420,7 +419,6 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
         otOut << "OTScriptable::CanExecuteClause: Parties may not directly trigger clauses beginning in callback_\n";
         return false;
     }
-    // *****************************************************************************
 
     // IF NO CALLBACK IS PROVIDED, The default answer to this function is:
     //     YES, this party MAY run this clause!
@@ -452,7 +450,6 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name, const std:
         theParameters.insert(std::pair<std::string, OTVariable *>("param_party_name",  &param1));
         theParameters.insert(std::pair<std::string, OTVariable *>("param_clause_name", &param2));
 
-        // ****************************************
 
         if (false == this->ExecuteCallback(*pCallbackClause, theParameters, theReturnVal)) // <============================================
         {
@@ -572,7 +569,6 @@ bool OTScriptable::ExecuteCallback (OTClause & theCallbackClause, mapOfVariables
         //
         pBylaw->RegisterVariablesForExecution(*pScript); // This sets all the variables as CLEAN so we can check for dirtiness after execution.
         //
-        // ****************************************
 
         this->SetDisplayLabel(&str_clause_name);
 

@@ -250,7 +250,6 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(const OTString & strC
     {
         strWithBookends = strCert;
     }
-    // *****************************************************
     
     // Create a new memory buffer on the OpenSSL side.
     //

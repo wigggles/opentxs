@@ -186,7 +186,6 @@ bool OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller) // OTLookupCaller m
     return bSuccess;
 }
 
-// ***************************************************
 
 // OTNameLookup CLASS
 
@@ -230,7 +229,6 @@ std::string OTNameLookup::GetAddressName(const std::string &) const
     return ""; // There are no native OT lookups for a Bitmessage address. (Only useful when overriding.)
 }
 
-// ***************************************************
 
 // OTLookupCaller CLASS
 
@@ -375,7 +373,6 @@ OTLookupCaller * OTRecordList::getAddrBookCaller()
     return s_pCaller;
 }
 
-// ***************************************************
 
 
 
@@ -863,7 +860,6 @@ bool OTRecordList::PerformAutoAccept()
                                str_account_id.c_str());
                 continue;
             }
-            // ***************************************************************
             // Instantiate the "OT Made Easy" object.
             //
             OT_ME madeEasy;
@@ -873,7 +869,6 @@ bool OTRecordList::PerformAutoAccept()
             std::string strResponse = madeEasy.process_inbox(str_server_id, str_nym_id, str_account_id, strFinalizedResponse);
             std::string strAttempt  = "process_inbox";
 
-            // ***************************************************************
 
             int32_t nInterpretReply = madeEasy.InterpretTransactionMsgReply(str_server_id, str_nym_id, str_account_id, strAttempt, strResponse);
 
@@ -903,7 +898,6 @@ bool compare_records (shared_ptr_OTRecord i, shared_ptr_OTRecord j)
 }
 
 
-// ***************************************************
 // POPULATE:
 
 // Populates m_contents from OT API. Calls ClearContents().

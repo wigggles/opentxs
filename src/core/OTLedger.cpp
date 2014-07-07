@@ -398,7 +398,6 @@ bool OTLedger::LoadBoxReceipt(const int64_t & lTransactionNum)
             ": couldn't find abbreviated version already on this ledger.\n";
         return false;
     }
-    // ****************************************************************
     // Todo: security analysis. By this point we've verified the hash of the transaction against the stored
     // hash inside the abbreviated version. (VerifyBoxReceipt) We've also verified a few other values like transaction
     // number, and the "in ref to" display number. We're then assuming based on those, that the adjustment and display

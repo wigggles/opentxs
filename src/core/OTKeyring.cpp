@@ -288,7 +288,6 @@ bool OTKeyring::Windows_StoreSecret(const OTString    & strUser,
 
     // Success encrypting to ciphertext (std::string or OTData)
 
-    // *******************************
     //
     // Write it to local storage.
     //
@@ -332,7 +331,6 @@ bool OTKeyring::Windows_RetrieveSecret(const OTString    & strUser,
     // key loaded, and exists.
     //
     const OTPayload theCipherblob(ascFileContents);
-    // *******************************
     //
     if (theCipherblob.IsEmpty())
     {
@@ -399,7 +397,6 @@ bool OTKeyring::Windows_DeleteSecret(const OTString    & strUser,
 
 
 //#endif
-// ***************************************************************
 #elif defined(OT_KEYRING_MAC) && defined(__APPLE__)
 
 //
@@ -646,7 +643,6 @@ bool OTKeyring::Mac_DeleteSecret(const OTString    & strUser,
 }
 
 //#endif
-// ***************************************************************
 #elif defined(OT_KEYRING_IOS) && defined(__APPLE__)
 
 //
@@ -744,7 +740,6 @@ bool OTKeyring::IOS_DeleteSecret(const OTString    & strUser,
 }
 
 //#endif
-// ***************************************************************
 #elif defined (OT_KEYRING_GNOME)
 
 //
@@ -960,7 +955,6 @@ bool OTKeyring::Gnome_DeleteSecret(const OTString    & strUser,
     return false;
 }
 
-// ***************************************************************
 #elif defined(OT_KEYRING_KWALLET)
 
 //
@@ -1206,7 +1200,6 @@ bool OTKeyring::KWallet_DeleteSecret(const OTString    & strUser,
 }
 
 
-// ***************************************************************
 
 #elif defined(OT_KEYRING_FLATFILE)
 

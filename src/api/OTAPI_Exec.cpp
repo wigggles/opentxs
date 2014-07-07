@@ -204,7 +204,6 @@ OTAPI_Exec::~OTAPI_Exec()
 }
 
 
-// **********************************************************************
 
 bool OTAPI_Exec::AppInit()    // Call this ONLY ONCE, when your App first starts up.
 {
@@ -2962,7 +2961,6 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(const std::string & NYM_ID, const 
 
 
 
-// ******************************************************************************
 
 
 
@@ -8765,7 +8763,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string & SERVER_ID,
 
                 switch (pItem->GetType())
                 {
-                    // ************************************************************
 
                 case OTItem::acceptCronReceipt:
                     // pServerTransaction is a marketReceipt or paymentReceipt
@@ -8782,7 +8779,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string & SERVER_ID,
                     // state of things, in the event of success--a signed record of those things.)
                     break;
 
-                    // ************************************************************
 
                 case OTItem::acceptFinalReceipt:
                     // pServerTransaction is a finalReceipt
@@ -8896,7 +8892,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string & SERVER_ID,
                         pServerTransaction->GetClosingNum());
                     break;
 
-                    // ************************************************************
 
                 default:
                     {
@@ -8940,7 +8935,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string & SERVER_ID,
             OTLog::vError("%s: Failed removing receipt from temporary Inbox: %lld \n", __FUNCTION__, lTemp);
     }
 
-    // *****************************************************************
 
     // SET UP NYM FOR BALANCE AGREEMENT.
 
@@ -8970,7 +8964,6 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string & SERVER_ID,
         pNym->AddIssuedNum(strServerID, static_cast<int64_t>(lTemp));
     }
 
-    // *****************************************************************
 
     if (NULL == pBalanceItem)
     {

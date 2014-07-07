@@ -304,7 +304,6 @@ public:
     // const std::string & OT_CLI_ReadUntilEOF();    // Reads from cin until EOF.
 
 
-    // ********************************************************************
 
     //OTNumList is a class that encapsulates working with a comma-separated list
     // of int64_t integers, stored in a std::set and easily serializable in/out of a string.
@@ -1320,7 +1319,6 @@ public:
     EXPORT static int32_t     Bylaw_GetCallbackCount       (const std::string & THE_CONTRACT, const std::string & BYLAW_NAME);
     EXPORT static std::string Callback_GetNameByIndex      (const std::string & THE_CONTRACT, const std::string & BYLAW_NAME, const int32_t & nIndex); // returns the name of the callback.
     EXPORT static std::string Callback_GetClause           (const std::string & THE_CONTRACT, const std::string & BYLAW_NAME, const std::string & CALLBACK_NAME); // returns name of clause attached to callback.
-    // **********************************************************
     EXPORT static int32_t     Smart_GetPartyCount          (const std::string & THE_CONTRACT);
     EXPORT static std::string Smart_GetPartyByIndex        (const std::string & THE_CONTRACT, const int32_t & nIndex); // returns the name of the party.
     EXPORT static bool        Smart_IsPartyConfirmed       (const std::string & THE_CONTRACT, const std::string & PARTY_NAME); // true or false?

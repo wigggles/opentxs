@@ -11,7 +11,6 @@
 //  http://www.chaiscript.com/doxygen/namespace_chai_script___language.html
 //
 
-// *************************************************************************************
 
 #include <stdafx.hpp>
 
@@ -632,7 +631,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string & p_serverID,
 }
 
 
-// **********************************************************************
 
 
 OT_OTAPI_OT int32_t OTAPI_Func::Run()
@@ -721,7 +719,6 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
 }
 
 
-// **********************************************************************
 
 
 OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func & theFunction, const string & IN_FUNCTION)
@@ -768,7 +765,6 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func & theFunction, co
     return theFunction.nRequestNum;
 }
 
-// **********************************************************************
 
 OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func & theFunction, const string & IN_FUNCTION)
 {
@@ -788,7 +784,6 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func & theFunction, const s
         return "";
     }
 
-    // **********************************************************************
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
     int32_t getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(theFunction.serverID, theFunction.nymID);
@@ -851,7 +846,6 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func & theFunction, const s
         OTAPI_Wrap::Output(0, strLocation + ", third failure: MsgUtil.getTransactionNumbers. (Giving up.)\n");
         return "";
     }
-    // ************************************************************************
 
     bool bCanRetryAfterThis = false;
 
@@ -932,7 +926,6 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func & theFunction, const s
 }
 
 
-// **********************************************************************
 
 
 OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func & theFunction, const string & IN_FUNCTION)
@@ -954,7 +947,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func & theFunction, const strin
 }
 
 
-// **********************************************************************
 
 
 OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func & theFunction, const string & IN_FUNCTION, const bool bIsTransaction, const bool bWillRetryAfterThis, bool & bCanRetryAfterThis)
@@ -1112,7 +1104,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func & theFunction, const s
         bMsgAllSuccess = (bMsgReplySuccess);
 
     }
-    // ****************************************************************************
 
     // We know the message SENT. The above logic is about figuring out whether the reply message,
     // the transaction inside it, and the balance agreement inside that transaction, whether
@@ -1211,7 +1202,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func & theFunction, const s
                 {
                     string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(theFunction.serverID, theFunction.nymID); // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
-                    // *******************************************************
                     if (VerifyStringVal(strNymbox))
                     {
                         OTAPI_Wrap::FlushSentMessages(false, /*harvesting-for-retry==OT_FALSE*/ theFunction.serverID, theFunction.nymID, strNymbox);

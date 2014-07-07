@@ -650,7 +650,6 @@ bool OTRecord::CanCancelOutgoing() const
     return true;
 }
 
-// ***********************************************************
 
 bool OTRecord::DiscardOutgoingCash()
 {

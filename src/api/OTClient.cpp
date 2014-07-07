@@ -772,7 +772,6 @@ bool OTClient::AcceptEntireNymbox(OTLedger                & theNymbox,
                 pNym->SaveSignedNymfile(*pNym); 
             }            
         }
-        //*********************************************************************************
 
         if (ProcessUserCommand(OTClient::processNymbox, theMessage, 
             *pNym, 
@@ -805,13 +804,11 @@ bool OTClient::AcceptEntireNymbox(OTLedger                & theNymbox,
                 pNym->AddIssuedNum(strServerID, lTemp); // doesn't save.
             }
 
-            //*********************************************************************************
             // TRANSACTION STATEMENT
             // The item is signed and saved within this call as well. No need to do that again.
             //
             OTItem * pBalanceItem = pNym->GenerateTransactionStatement(*pAcceptTransaction);
 
-            //*********************************************************************************
 
             // Here I am removing the new numbers again, now that the statement has been generated.
             // If the message is successful, then I will need to add them for real.
@@ -995,7 +992,6 @@ bool OTClient::AcceptEntireInbox(OTLedger            & theInbox,
             // a message, but rather, we are in Cron, processing a trade or some
             // other sort of cron item.
 
-            // ************************************************************************
 
             // PAYMENT RECEIPT, MARKET RECEIPT
             //
@@ -1045,7 +1041,6 @@ bool OTClient::AcceptEntireInbox(OTLedger            & theInbox,
                 pAcceptItem->SaveContract();
             } // if market receipt or payment receipt (cron receipt)
 
-            // ************************************************************************
 
             // FINAL RECEIPT, BASKET RECEIPT
             //
@@ -1133,7 +1128,6 @@ bool OTClient::AcceptEntireInbox(OTLedger            & theInbox,
 
             } // if finalReceipt or basketReceipt
 
-            // ************************************************************************
 
             // PENDING (incoming transfer)
             //
@@ -1205,7 +1199,6 @@ bool OTClient::AcceptEntireInbox(OTLedger            & theInbox,
                 }
             } // else if pending
 
-            // ************************************************************************
 
             // TRANSFER RECEIPT, CHEQUE RECEIPT
             //
@@ -1362,7 +1355,6 @@ bool OTClient::AcceptEntireInbox(OTLedger            & theInbox,
                 }                
             } // else if transfer receipt or cheque receipt. (item receipt)
 
-            // ************************************************************************
 
         } // if pTransaction
 
@@ -1668,14 +1660,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection & theConnection, O
                 pNym->RemoveIssuedNum(*pNym, strServerID, pTransaction->GetTransactionNum(), true); // bool bSave=true    
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atPayDividend:
                 ProcessPayDividendResponse(*pTransaction, theConnection, theReply);
                 pNym->RemoveIssuedNum(*pNym, strServerID, pTransaction->GetTransactionNum(), true); // bool bSave=true    
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atExchangeBasket:
                 pNym->RemoveIssuedNum(*pNym, strServerID, pTransaction->GetTransactionNum(), true); // bool bSave=true    
@@ -1716,7 +1706,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection & theConnection, O
                 }
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atCancelCronItem:
                 pNym->RemoveIssuedNum(*pNym, strServerID, pTransaction->GetTransactionNum(), true); // bool bSave=true    
@@ -1759,14 +1748,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection & theConnection, O
                 }
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atWithdrawal:
                 ProcessWithdrawalResponse(*pTransaction, theConnection, theReply);
                 pNym->RemoveIssuedNum(*pNym, strServerID, pTransaction->GetTransactionNum(), true); // bool bSave=true
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atTransfer:
                 // Nothing removed here since the transaction number is still in play, in this cases.
@@ -1791,7 +1778,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection & theConnection, O
                 }
                 break;
 
-                // ********************************************************************
 
             case OTTransaction::atMarketOffer:
             case OTTransaction::atPaymentPlan:
@@ -3292,7 +3278,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
 
                         } // --- ELSE --- Success loading the payment inbox and verifying its contractID and signature, OR success generating the ledger.
                     } // if pBoxReceipt is instrumentNotice or instrumentRejection...
-                    // *********************************************************************
 
                     //                    pBoxReceipt->ReleaseSignatures();
 
@@ -4080,7 +4065,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                         } // if pReplyTransaction
                     } // if pTransaction                    
                 }
-                // *********************************************************************************
                 //
                 else  // @processNymbox.  // We're processing the SERVER's REPLY to our processNymbox request.
                 {
@@ -4165,7 +4149,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                             }
                         }
 
-                        // *******************************************************************************
                         //
                         // REMOVE VARIOUS ITEMS FROM THE LOCAL NYMBOX (THEIR TIME IS DONE.)
 
@@ -4826,7 +4809,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                     } // pTransaction and pReplyTransaction are both NOT NULL.
                 }
 
-                // *******************************************************************************
                 //
                 // The below happens BOTH for Inbox AND Nymbox.
 
@@ -4936,7 +4918,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                     strInbox = it_inbox->second.c_str();
                 if ((theMap.end() != it_outbox) && (it_outbox->second.size() > 0))
                     strOutbox = it_outbox->second.c_str();
-                // ********************************************************************************************************
                 if (strAccount.Exists())
                 {
                     // Load the account object from that string.
@@ -4964,7 +4945,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                         }
                     }
                 }
-                // ********************************************************************************************************
                 
                 const OTString    strAcctID   (ACCOUNT_ID);
                 const std::string str_acct_id (strAcctID.Get());
@@ -5059,7 +5039,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                                       __FUNCTION__, strInbox.Get());
                     }
                 }
-                // ********************************************************************************************************
                 if (strOutbox.Exists())
                 {
                     // Load the ledger object from strOutbox.
@@ -5100,7 +5079,6 @@ bool OTClient::ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox/*=NUL
                                       __FUNCTION__, strOutbox.Get());
                     }
                 }
-                // ********************************************************************************************************
             } // pMap loaded successfully.
         } // Has the files.
 
@@ -6043,7 +6021,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
         }
 
 
-        // **************************************************************************************
         // EVERY COMMAND BELOW THIS POINT (THEY ARE ALL OUTGOING TO THE SERVER) MUST INCLUDE THE
         // CORRECT REQUEST NUMBER, OR BE REJECTED BY THE SERVER.
         //
@@ -6517,7 +6494,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
                                 theRequestBasket.SignContract(theNym);
                                 theRequestBasket.SaveContractRaw(strBasketInfo);
 
-                                //***********************************************************************
 
                                 pItem->SetAttachment(strBasketInfo);
 
@@ -6526,7 +6502,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
                                 pItem->SignContract(theNym);
                                 pItem->SaveContract();
 
-                                //***********************************************************************
 
                                 // BALANCE AGREEMENT!
                                 //
@@ -9798,7 +9773,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
 
             const time64_t VALID_TO = OTTimeAddTimeInterval(VALID_FROM, lExpirationInSeconds); // now + 86400
 
-            // ************************************************************************
             // This pulls two transaction numbers off of pMerchantNym.
             // (So we have to put them back if there is some early failure and crap-out...)
             //
@@ -9810,7 +9784,6 @@ int32_t OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE requestedComma
 
                 return -1;
             }
-            // ************************************************************************
 
             bool bSuccessSetInitialPayment    = true; // the default, in case user chooses not to even have this payment.
             bool bSuccessSetPaymentPlan        = true; // the default, in case user chooses not to have a payment plan

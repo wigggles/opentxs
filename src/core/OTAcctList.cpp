@@ -397,7 +397,6 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(OTPseudonym            & th
         //
     } // (Asset Type ID was found on the AcctID Map -- a corresponding Account ID is already there for that asset type.)
 
-    // ******************************************************************************
 
     // Not found... There's no account ID yet for that asset type ID.
     // That means we can create it...

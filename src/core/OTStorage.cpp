@@ -407,7 +407,6 @@ namespace OTDB
 #endif
     }
 
-    // ********************************************************************
 
     // INTERFACE for the Namespace (for coders to use.)
 
@@ -1067,7 +1066,6 @@ namespace OTDB
 
 
 
-    // ********************************************************************
     //
     // Interface:  IStorableMsgpack
     //
@@ -1079,7 +1077,6 @@ namespace OTDB
 
 
 #endif  // defined (OTDB_MESSAGE_PACK)
-    // ********************************************************************
 
 
 
@@ -2040,7 +2037,6 @@ namespace OTDB
 
 
 #endif // defined (OTDB_PROTOCOL_BUFFERS)
-    // ********************************************************************
 
 
 
@@ -2050,7 +2046,6 @@ namespace OTDB
 
 
 
-    // ********************************************************************
     //
     // STORAGE :: GetPacker
     //
@@ -2473,7 +2468,6 @@ namespace OTDB
         return pStorable; // caller is responsible to delete.
     }
 
-    // *****************************************************************************
 
     bool Storage::EraseValueByKey(std::string strFolder,
                                   std::string oneStr/*=""*/, std::string twoStr/*=""*/, std::string threeStr/*=""*/)
@@ -2487,7 +2481,6 @@ namespace OTDB
     }
 
 
-    // *****************************************************************************
 
     // STORAGE FS  (OTDB::StorageFS is the filesystem version of OTDB::Storage.)
 

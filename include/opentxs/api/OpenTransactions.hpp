@@ -700,7 +700,6 @@ EXPORT    OTServerContract * LoadServerContract(const OTIdentifier & SERVER_ID);
 
     EXPORT    bool ResyncNymWithServer(OTPseudonym & theNym, OTLedger & theNymbox, OTPseudonym & theMessageNym);
 
-    // ****************************************************
     // These commands below send messages to the server:
 
     EXPORT    int32_t checkServerID(OTIdentifier & SERVER_ID,

@@ -2029,7 +2029,6 @@ bool OTTransaction::VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, // For verify
             lTempTransactionNum    = pSubItem->GetTransactionNum();
             pTransaction        = pLedger->GetTransaction(lTempTransactionNum);
         }
-        // *******************************************************************
         
         if (NULL != pTransaction)
         {
@@ -3749,7 +3748,6 @@ bool OTTransaction::GetSuccess()
                     //
                     continue;
                     
-                // **************************************************************************
                     
                     // PROCESS NYMBOX
                     
@@ -3869,7 +3867,6 @@ bool OTTransaction::GetSuccess()
                 //
                 continue;
                 
-            // **************************************************************************
                 /*
                  atProcessNymbox,   // process nymbox reply             // comes from server
                  atProcessInbox,    // process inbox reply             // comes from server
@@ -3927,7 +3924,6 @@ bool OTTransaction::GetSuccess()
             case OTItem::finalReceipt:    // Used for actual final receipt (I think) as well as for balance agreement sub item (I think.)
             case OTItem::basketReceipt:   // Used for basket receipt (I think) as well as for balance agreement sub-item (I think.)
                 
-            // **************************************************************************
                 
                 if (OTItem::acknowledgement == pItem->GetStatus())
                 {
@@ -3940,7 +3936,6 @@ bool OTTransaction::GetSuccess()
                 
                 break;
                 
-            // **************************************************************************
                 
             default:
                 otErr << "Wrong transaction type passed to OTTransaction::GetSuccess()\n";
@@ -4278,7 +4273,6 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     
-    // ******************************************************
     // THIS PART is probably what you're looking for.
     //
     else if (strNodeName.Compare("transaction")) // Todo:  notice how this "else if" uses OTString::Compare, where most other ProcessXMLNode functions in OT use !strcmp()? (That's right: Buffer overflow. Need to fix elsewhere as it is fixed here.)
@@ -4796,7 +4790,6 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
 
     switch (m_Type) 
     {
-        // ******************************************
         // PAYMENT INBOX / PAYMENT OUTBOX
         case OTTransaction::instrumentNotice:
             if (IsAbbreviated())                // not the actual value of 0.
@@ -4810,14 +4803,12 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString & strOutput)
             else
                 lDisplayValue    = 0;
             break;                
-        // ******************************************
         case OTTransaction::notice:            // A notice from the server. Used in Nymbox. Probably contains an updated smart contract.
             if (IsAbbreviated())            // not the actual value of 0.
                 lDisplayValue    = GetAbbrevDisplayAmount();
             else
                 lDisplayValue    = 0;
             break;
-        // ******************************************
         default: // All other types are irrelevant for inbox reports
         {
             otErr << "OTTransaction::" << __FUNCTION__ << ": Unexpected " << GetTypeString() << " transaction "
@@ -5001,7 +4992,6 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
 
     switch (m_Type) 
     {
-            // ******************************************
             // ASSET ACCOUNT INBOX
             // -- In inbox, pending hasn't been accepted yet. In outbox, it's already gone. Either
             // way, it will have a 0 adjustment amount, even though perhaps 500 clams display amount. Here I use the 500
@@ -5054,7 +5044,6 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
                 lDisplayValue    = 0;
             }
             break;
-        // ******************************************
         // NYMBOX
         case OTTransaction::notice:            // A notice from the server. Used in Nymbox. Probably contains an updated smart contract.
             if (IsAbbreviated())            // not the actual value of 0.
@@ -5068,7 +5057,6 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
                 lDisplayValue    = 0;
             }
             break;                
-        // ******************************************
         // PAYMENT INBOX / PAYMENT OUTBOX
         case OTTransaction::instrumentNotice:
             if (IsAbbreviated())                // not the actual value of 0.
@@ -5094,7 +5082,6 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString & strOutput)
                 lDisplayValue    = 0; 
             }
             break;                
-        // ******************************************
         default: // All other types are irrelevant for inbox reports
         {
             otErr << "OTTransaction::SaveAbbrevRecordBoxRecord: Unexpected " << GetTypeString() << " transaction "

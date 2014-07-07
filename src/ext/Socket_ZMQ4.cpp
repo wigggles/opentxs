@@ -435,7 +435,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor & ascEnvelope)
     BUT -- what if the failure was an errno==EAGAIN ?
     In that case, it's not a REAL failure, but rather, a "failure right now, try again in a sec."
     */
-    // ***********************************
 
     if (bSuccessSending)
         OTLog::SleepMilliseconds(m_lLatencyDelayAfter > 0 ? m_lLatencyDelayAfter : 1);
@@ -470,7 +469,6 @@ bool OTSocket_ZMQ_4::Receive(OTString & strServerReply)
     // -----------------------------------    
     const int64_t lLatencyRecvMilliSec = m_lLatencyReceiveMs;
 
-    // ***********************************
     //  Get the reply.
     zmq::message_t zmq_message;
 
@@ -544,7 +542,6 @@ bool OTSocket_ZMQ_4::Receive(OTString & strServerReply)
             --nReceiveTries;
         }
     }
-    // ***********************************
 
     if (bSuccessReceiving && (zmq_message.size() > 0))
         strServerReply.MemSet(static_cast<const char*>(zmq_message.data()), static_cast<uint32_t> (zmq_message.size()));

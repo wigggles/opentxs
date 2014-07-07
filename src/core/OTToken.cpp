@@ -657,19 +657,15 @@ bool OTToken::ReassignOwnership(OTNym_or_SymmetricKey & oldOwner,  // must be pr
         // Remember, OTPurse can store its own internal symmetric key, for cases
         // where the purse is "password protected" instead of belonging to a specific Nym.
         // Therefore the old or new "owner" might actually be a symmetric key.
-        // ******************************************
         // Decrypt/Open the Envelope into theString
         //
         bSuccess = oldOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay);
-        // ******************************************
         if (bSuccess)
         {
             OTEnvelope theNewEnvelope;
             bSuccess = newOwner.Seal_or_Encrypt(theNewEnvelope, theString, &strDisplay);
-            // ******************************************
             if (bSuccess)
                 bSuccess = theNewEnvelope.GetAsciiArmoredData(m_ascSpendable);
-            // ******************************************
         }
     }
     return bSuccess;

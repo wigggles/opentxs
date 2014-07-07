@@ -244,7 +244,6 @@ bool TransportCallback::operator() (OTServerContract& theserverContract,OTEnvelo
     else return false;
 }
 
-// ***************************************************************************
 
 // Call this once per run of the software. (enforced by a static value)
 //
@@ -1009,7 +1008,6 @@ bool OT_API::TransportFunction(OTServerContract & theServerContract, OTEnvelope 
                     OTLog::vError("%s: Error: Unknown reply type received from server. (Expected envelope or message.)\n"
                         "\n\n PERHAPS YOU ARE RUNNING AN OLD VERSION OF THE SERVER ????? \n\n", szFunc);
                 }
-                // **********************************************************************
                 OTMessage * pServerReply(new OTMessage());
                 OT_ASSERT(NULL != pServerReply);
 
@@ -1035,7 +1033,6 @@ bool OT_API::TransportFunction(OTServerContract & theServerContract, OTEnvelope 
 
 
 
-// *************************************************************************
 
 
 int32_t OT_API::GetNymCount()
@@ -1074,7 +1071,6 @@ int32_t OT_API::GetAccountCount()
     return 0;
 }
 
-// *************************************************************************
 
 bool OT_API::GetNym(int32_t iIndex, OTIdentifier & NYM_ID, OTString & NYM_NAME)
 {
@@ -1112,7 +1108,6 @@ bool OT_API::GetAccount(int32_t iIndex, OTIdentifier & THE_ID, OTString & THE_NA
     return false;
 }
 
-// *************************************************************************
 
 
 OTWallet * OT_API::GetWallet(const char * szFuncName/*=NULL*/)
@@ -1127,7 +1122,6 @@ OTWallet * OT_API::GetWallet(const char * szFuncName/*=NULL*/)
     return pWallet;
 }
 
-// *************************************************************************
 
 
 OTPseudonym * OT_API::GetNym(const OTIdentifier & NYM_ID, const char * szFuncName/*=NULL*/)
@@ -1203,7 +1197,6 @@ OTAccount * OT_API::GetAccount(const OTIdentifier & THE_ID, const char * szFuncN
     return NULL;
 }
 
-// *************************************************************************
 
 
 
@@ -1247,7 +1240,6 @@ OTAccount * OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID, const c
     return NULL;
 }
 
-// *************************************************************************
 
 
 
@@ -1564,7 +1556,6 @@ bool OT_API::Wallet_ChangePassphrase()
     // By this point, if there were credentials on any of the Nyms, they are all now converted
     // (in RAM, not in local storage) to the temp password, and OUT of the wallet's master key
     // (which we're about to destroy and re-create.)
-    // ****************************************************************************
     // Destroy the wallet's cached master key (in Ram, not on disk--yet.)
     //
     OTASCIIArmor ascBackup;
@@ -2109,7 +2100,6 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier & NYM_ID, OTString & strOutput)
     bool         bSavedCert = false;
     if (!bHasCredentials)
     {
-        // *****************************************************************
         if (false == OTCachedKey::It()->isPaused())
         {
             OTCachedKey::It()->Pause();
@@ -2119,7 +2109,6 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier & NYM_ID, OTString & strOutput)
         {
             OTCachedKey::It()->Unpause();
         }
-        // *****************************************************************
     }
     else
     {
@@ -2327,7 +2316,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
 
     pNym->SetNymName(strNymName);
 
-    // *****************************************************************
 
     // The Nym being imported has its own password. We ask for that here,
     // so we can preserve it in an OTPassword object and pass it around to
@@ -2351,7 +2339,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
         return false;
     }
 
-    // *****************************************************************
     // Pause the master key, since this Nym is coming from outside
     // the wallet. We'll let it load with its own key. (No point using
     // the internal wallet master key here, since the Nym is coming from
@@ -2363,7 +2350,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
     {
         OTCachedKey::It()->Pause();   // BELOW THIS POINT, CACHED MASTER KEY IS DISABLED.
     }
-    // *****************************************************************
     // Set the credentials or keys on the new Nym object based on the
     // certfile from the StringMap.
     //
@@ -2430,7 +2416,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
         const OTString strCert(theMap["certfile"]);
         bIfNymLoadKeys = pNym->Loadx509CertAndPrivateKeyFromString(strCert, &thePWDataLoad, pExportPassphrase); // <============
     }
-    // *****************************************************************
     // Unpause the OTCachedKey (wallet master key.)
     // Now that we've loaded up the "outsider" using its own key,
     // we now resume normal wallet master key operations so that when
@@ -2441,7 +2426,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
     {
         OTCachedKey::It()->Unpause();   // BELOW THIS POINT, CACHED MASTER KEY IS BACK IN EFFECT. (Disabled above.)
     }
-    // *****************************************************************
     //
     if (bIfNymLoadKeys && pNym->VerifyPseudonym())
     {
@@ -2481,7 +2465,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
             OTLog::vError("%s: Failed loading nymfile from string.\n", __FUNCTION__);
             return false;
         }
-        // ***********************************************************
         //
         if (bLoaded && bConverted) // bLoaded is probably superfluous here.
         {
@@ -2501,7 +2484,6 @@ bool OT_API::Wallet_ImportNym(const OTString & FILE_CONTENTS, OTIdentifier * pNy
 
             return true;   // <========= Success!
         }
-        // ***********************************************************
     }
     else
         OTLog::vError("%s: Failed loading or verifying keys|credentials|pseudonym.\n", __FUNCTION__);
@@ -4420,7 +4402,6 @@ OTPaymentPlan * OT_API::ProposePaymentPlan(const OTIdentifier & SERVER_ID,
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal =
             pPlan->SetProposal(*pNym, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
-    // ************************************************
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT. (*pNym)
     // BELOW THIS POINT, if you have an error, then you must retrieve those numbers from
     // the plan, and set them BACK on pNym before you return!!!
@@ -4563,7 +4544,6 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier & SERVER_ID,
 //    }
     // pMerchantNym is also good, and has an angel. (No need to cleanup.)
     //
-    // *******************************************************
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(*pNym, pMerchantNym, &RECIPIENT_USER_ID);
@@ -4840,7 +4820,6 @@ OTNym_or_SymmetricKey * OT_API::LoadPurseAndOwnerFromString(const OTIdentifier &
             OTLog::vError("%s: Failed: The purse is not password-protected, but rather, is locked by a Nym. "
                           "However, no USER_ID was passed in! Please supply a USER_ID in order "
                           "to open this purse.\n", szFunc);
-        // ************************************************************************************
         // (By this point, pOwner is all set up and ready to go.)
     }
     else
@@ -4936,7 +4915,6 @@ OTNym_or_SymmetricKey * OT_API::LoadPurseAndOwnerForMerge(const OTString     & s
         else
             OTLog::vError("%s: Failed: Somehow this purse is not password-protected, nor is it "
                           "Nym-protected. (This error should never actually happen.)\n", szFunc);
-        // ************************************************************************************
         // (By this point, pOwner is all set up and ready to go.)
     }
     else
@@ -5343,7 +5321,6 @@ OTToken * OT_API::Token_ChangeOwner(const OTIdentifier & SERVER_ID,
     OTCleanup<OTNym_or_SymmetricKey> theNewOwnerAngel;
     const bool bOldOwnerIsPurse = OLD_OWNER.Contains("PURSE");
     const bool bNewOwnerIsPurse = NEW_OWNER.Contains("PURSE");
-    // ********************************************************************************
     if (!bOldOwnerIsPurse) // The old owner is a NYM (public/private keys.)
     {
         oldOwnerNymID.SetString(OLD_OWNER);
@@ -5366,7 +5343,6 @@ OTToken * OT_API::Token_ChangeOwner(const OTIdentifier & SERVER_ID,
         theOldOwnerAngel.SetCleanupTargetPointer(pOldOwner);
         if (NULL == pOldOwner) return NULL; // This already logs, no need for more logs.
     }
-    // ********************************************************************************
     if (!bNewOwnerIsPurse) // The new owner is a NYM
     {
         newOwnerNymID.SetString(NEW_OWNER);
@@ -5388,7 +5364,6 @@ OTToken * OT_API::Token_ChangeOwner(const OTIdentifier & SERVER_ID,
         theNewOwnerAngel.SetCleanupTargetPointer(pNewOwner);
         if (NULL == pNewOwner) return NULL; // This already logs, no need for more logs.
     }
-    // ********************************************************************************
     //
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
@@ -5745,7 +5720,6 @@ OTLedger * OT_API::LoadOutboxNoVerify(const OTIdentifier & SERVER_ID,
 
 
 
-// ***************************************************************************
 
 
 
@@ -6839,7 +6813,6 @@ bool OT_API::RecordPayment(const OTIdentifier & SERVER_ID,
 
         // Anything else?
     } // outpayments box.
-    // ***********************************************************
     //
     // Okay by this point, whether the payment was in the payments inbox, or
     // whether it was in the outpayments box, either way, it has now been removed
@@ -7018,7 +6991,6 @@ bool OT_API::ResyncNymWithServer(OTPseudonym & theNym, OTLedger & theNymbox, OTP
 //                      id1.Get(), id2.Get());
 //        return false;
 //    }
-    // *****************************************************
 
     return theNym.ResyncWithServer(theNymbox, theMessageNym);
 }
@@ -7865,7 +7837,6 @@ int32_t OT_API::exchangeBasket(OTIdentifier    & SERVER_ID,
                     OTString strBasketInfo;
                     theRequestBasket.SaveContractRaw(strBasketInfo);
 
-                    //***********************************************************************
 
                     pItem->SetAttachment(strBasketInfo);
 
@@ -7874,7 +7845,6 @@ int32_t OT_API::exchangeBasket(OTIdentifier    & SERVER_ID,
                     pItem->SignContract(*pNym);
                     pItem->SaveContract();
 
-                    //***********************************************************************
 
                     // BALANCE AGREEMENT!
                     //
@@ -9517,7 +9487,6 @@ int32_t OT_API::activateSmartContract(const OTIdentifier & SERVER_ID,
                             "for this reason. (See code comment below this message, in the code.)\n", __FUNCTION__);
             return -1;
         }
-        // *************************************************************************************
         //
         // REQUIREMENT:  The ACTIVATOR aka the Originator Nym (the party who activates the smart
         // contract on the server) must have at least one asset account as part of the smart contract,
@@ -9554,7 +9523,6 @@ int32_t OT_API::activateSmartContract(const OTIdentifier & SERVER_ID,
         // --- THE ACTIVATING NYM *MUST* ALSO BE THE AUTHORIZED AGENT
         //     FOR AT LEAST ONE ASSET ACCOUNT, FOR THAT PARTY. ---
         //
-        // *************************************************************************************
 
         const std::string str_agent_name(pAgent->GetName().Get());
         OTPartyAccount * pAcct = pParty->GetAccountByAgent(str_agent_name);
@@ -10013,7 +9981,6 @@ int32_t OT_API::issueMarketOffer( const OTIdentifier    & SERVER_ID,
                 if (bCreateOffer)
                 {
                     bIssueTrade = theTrade.IssueTrade(theOffer, cStopSign, lActivationPrice); // <==== ISSUE TRADE <=====
-                    // ******************************************************************************
                     // This is new: the closing transaction number is now used for CLOSING recurring
                     // cron items, like market offers and payment plans. It's also useful for baskets.
                     // Since this is a market offer, it needs a closing number (for later cancellation

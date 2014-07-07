@@ -2026,7 +2026,6 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym & theNym)
     if (false == IsNymOnCachedKey(theNym.GetConstID()))
     {        
         bool bConverted = false;
-        // **************************************************************************
         // The Nym has credentials.
         // 
         if (theNym.GetMasterCredentialCount() > 0)

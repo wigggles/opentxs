@@ -680,7 +680,6 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript & theScript)
 
     OTScriptChai * pScript = dynamic_cast<OTScriptChai *> (&theScript);
 
-    // *******************************************************************
     if (NULL != pScript)
     {
         OT_ASSERT(NULL != pScript->chai)
@@ -738,10 +737,8 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript & theScript)
 //FYI:    #define SMARTCONTRACT_HOOK_ON_PROCESS        "cron_process"        // Called regularly in OTSmartContract::ProcessCron() based on SMART_CONTRACT_PROCESS_INTERVAL.
 //FYI:    #define SMARTCONTRACT_HOOK_ON_ACTIVATE        "cron_activate"        // Done. This is called when the contract is first activated.
     }
-    // *******************************************************************
 //    else if (NULL != (pScript = dynamic_cast<OTScriptSomeOtherScriptingLanguageSubClass_GOES_HERE *> (&theScript)) )
 //    { }
-    // *******************************************************************
     else
 #endif // OT_USE_SCRIPT_CHAI
     {
@@ -1074,7 +1071,6 @@ std::string OTSmartContract::GetAcctBalance(const std::string from_acct_name)
 //                      pFromParty->GetPartyName().c_str());
 //        return 0;
 //    }
-    // *****************************************************************************
 
     // A party might have many agents who are only voting groups, and cannot actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym -- because there must have been
@@ -1272,7 +1268,6 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(const std::string from_acct_na
 //                      pFromParty->GetPartyName().c_str());
 //        return str_return_value;
 //    }
-    // *****************************************************************************
 
     // A party might have many agents who are only voting groups, and cannot actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym -- because there must have been
@@ -1409,7 +1404,6 @@ std::string OTSmartContract::GetStashBalance(const std::string from_stash_name, 
     //        asset_type_id
     //        pServerNym, pCron.
     //
-    // ****************************************************************************
     OTString strBalance;
     strBalance.Format("%lld", pStash->GetAmount(asset_type_id));
     return strBalance.Get();
@@ -1708,7 +1702,6 @@ bool OTSmartContract::StashAcctFunds(const std::string from_acct_name, const std
 //                      pFromParty->GetPartyName().c_str());
 //        return false;
 //    }
-    // *****************************************************************************
 
     // A party might have many agents who are only voting groups, and cannot actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym -- because there must have been
@@ -1927,7 +1920,6 @@ bool OTSmartContract::UnstashAcctFunds(const std::string to_acct_name, const std
 //                      pToParty->GetPartyName().c_str());
 //        return false;
 //    }
-    // *****************************************************************************
 
     // A party might have many agents who are only voting groups, and cannot actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym -- because there must have been
@@ -2905,7 +2897,6 @@ bool OTSmartContract::MoveAcctFundsStr(const std::string from_acct_name, const s
 //                     pToParty->GetPartyName().c_str());
 //        return false;
 //    }
-    // *****************************************************************************
 
     // A party might have many agents who are only voting groups, and cannot actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym -- because there must have been
@@ -3087,7 +3078,6 @@ void OTSmartContract::onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t
         {
             pPartyNym = pServerNym; // Just in case the party's agent's Nym is also the server Nym.
         }
-        // *******************************************************
         //
         // If pActingNym is NOT NULL, and HE is an agent on this party...
         // then set the pointer accordingly.
@@ -3118,7 +3108,6 @@ void OTSmartContract::onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t
         // Every party SHOULD have an authorizing agent (otherwise how did that party sign on in the first
         // place??) So this should never fail. That's why there's an error message below if it's still NULL.
         //
-        // ***********************************************
 
         if ((NULL != pPartyNym) &&
             (pParty->GetOpeningTransNo() > 0) &&
@@ -3471,7 +3460,6 @@ void OTSmartContract::ExecuteClauses (mapOfClauses & theClauses, OTString * pPar
         }
     } // FOR_EACH clauses...
 
-    // ***************************************************************
 
     // "Important" variables.
     // (If any of them have changed, then I need to notice the parties.)
@@ -4322,7 +4310,6 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym & theNym, OTAccount & theA
     OTSmartContract::CleanupNyms (map_Nyms_Loaded_In_This_Function);  // HAVE to do this, or we'll leak. Even if something returned
     OTSmartContract::CleanupAccts(map_Accts_Loaded_In_This_Function); // false, some objects may have been loaded before it failed.
 
-    // ********************************************************************************
 
     // DONE: if the above loop fails halfway through, then we should really PUT BACK the closing
     // transaction #s that we removed. After all, we have a list of them. Otherwise the only way

@@ -199,7 +199,6 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym & theNym, const OTIdentifier & 
 //            otErr << "OTBasket::HarvestClosingNumbers: Number (%lld) failed as issued. (Thus didn't bother 'adding it back'.)\n",
 //                          lClosingTransNo);
     } // for
-    // *************************************************************************
     // Then the BASKET currency itself...
     //
     const int64_t lClosingTransNo = this->GetClosingNum();
@@ -213,7 +212,6 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym & theNym, const OTIdentifier & 
     if (bClawedBack)
         bNeedToSave = true;
 
-    // *************************************************************************
     // Until I put this down here, there were subtle cases where the Nym wouldn't get saved.
     // Therefore another vote for my "dirty instances" theory.
     //

@@ -198,7 +198,6 @@ class OTAsymmetricKey   // <========= OT ASYMMETRIC KEY
 public: // INSTANTIATION
 EXPORT  static  OTAsymmetricKey * KeyFactory();        // Caller IS responsible to delete!
         virtual OTAsymmetricKey * ClonePubKey() const; // Caller IS responsible to delete!
-// ********************************************
 public: // PASSWORD CALLBACK
        static void SetPasswordCallback(OT_OPENSSL_CALLBACK * pCallback);
 EXPORT static OT_OPENSSL_CALLBACK * GetPasswordCallback();
@@ -208,7 +207,6 @@ EXPORT static OT_OPENSSL_CALLBACK * GetPasswordCallback();
 protected: // PASSWORD CALLBACK
        static OT_OPENSSL_CALLBACK    * s_pwCallback;
        static OTCaller                * s_pCaller;
-// ********************************************
 protected: // PROTECTED MEMBER DATA
     OTASCIIArmor * m_p_ascKey; // base64-encoded, string form of key. (Encrypted too, for private keys. Should store it in this form most of the time.)
     bool        m_bIsPublicKey;
@@ -230,7 +228,6 @@ public:
     // so we don't have to verify the signature against every single subkey available for that Nym.
     // In practice, however, we are adding metadata to every single signature (except possibly cash...)
     // (And we will make it mandatory for Nyms who use credentials.)
-// ********************************************
     // PROTECTED MEMBER FUNCTIONS
 protected:
             void ReleaseKeyLowLevel();        // call this.
@@ -239,14 +236,12 @@ protected:
 EXPORT     OTAsymmetricKey();
          OTAsymmetricKey(const OTAsymmetricKey & rhs);
          OTAsymmetricKey & operator=(const OTAsymmetricKey & rhs);
-// ********************************************
 public: // DESTRUCTION
 EXPORT    virtual ~OTAsymmetricKey();
     virtual void Release();
     void Release_AsymmetricKey();
     void ReleaseKey();
 
-// ********************************************
     // PUBLIC METHODS
     inline bool IsEmpty()   const  { return (NULL == m_p_ascKey); } // m_p_ascKey is the most basic value. m_pKey is derived from it, for example.
     inline bool IsPublic()  const  { return m_bIsPublicKey;  }
@@ -297,14 +292,12 @@ EXPORT    virtual ~OTAsymmetricKey();
 
     virtual bool CalculateID(OTIdentifier & theOutput) const; // Only works for public keys.
 
-    // ***************************************************************
     // Load private or public key from local storage.
     //
     bool LoadPrivateKey(const OTString & strFoldername, const OTString & strFilename, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
     bool LoadPublicKey (const OTString & strFoldername, const OTString & strFilename);
 
     virtual bool LoadPublicKeyFromPGPKey(const OTASCIIArmor & strKey)=0; // does NOT handle bookends.
-    // ***************************************************************
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
@@ -312,7 +305,6 @@ EXPORT    virtual ~OTAsymmetricKey();
     virtual bool LoadPrivateKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
                                               const OTString   * pstrReason=NULL,
                                                     OTPassword * pImportPassword=NULL)=0; // Used when importing an exported Nym into a wallet.
-    // ***************************************************************
     // Load Public Key from Cert (file or string)
     //
     virtual bool LoadPublicKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
@@ -325,7 +317,6 @@ EXPORT    virtual ~OTAsymmetricKey();
     virtual bool SaveCertToString      (OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL)=0;
     virtual bool SavePrivateKeyToString(OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL)=0;
     virtual bool ReEncryptPrivateKey   (OTPassword & theExportPassword, bool bImporting)=0;
-    // ***************************************************************************************
     // PUBLIC KEY
 
     // * Get the public key in ASCII-armored format                 -- OTASCIIArmor
@@ -342,7 +333,6 @@ EXPORT    bool SetPublicKey(const OTString & strKey, bool bEscaped=false);
     // pointer, and sets that as the m_pKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN PUBLIC KEY-----)
 
-    // ***************************************************************************************
     // PRIVATE KEY
     // Get the private key in ASCII-armored format with bookends
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
@@ -355,7 +345,6 @@ EXPORT    bool SetPublicKey(const OTString & strKey, bool bEscaped=false);
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED PRIVATE KEY-----)
     bool SetPrivateKey(const OTString & strKey, bool bEscaped=false);
     bool SetPrivateKey(const OTASCIIArmor & strKey); // Decodes a private key from ASCII armor into an actual key pointer and sets that as the m_pKey on this object.
-    // ***************************************************************************************
 };
 
 

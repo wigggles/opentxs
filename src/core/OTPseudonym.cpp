@@ -516,7 +516,6 @@ bool OTPseudonym::AddNewMasterCredential(      OTString & strOutputMasterCredID,
         // Thus the Nym should have some other source besides his own key, or at least he
         // should be a new Nym being created.
     }
-    // ************************************************************************************
     //
     // SOURCE
     //
@@ -3939,7 +3938,6 @@ void OTPseudonym::SaveCredentialsToString(OTString     & strOutput,
 
         pCredential->SerializeIDs(strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true, false); // bShowRevoked=false by default. (Here it's true.) bValid=true by default. Here is for revoked, so false.
     }
-    // *************************************************************************
 }
 
 
@@ -3967,7 +3965,6 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
                            nymID.Get(),
                            m_lUsageCredits
                            );
-    // *************************************************************************
 
 
     this->SerializeNymIDSource(strNym);
@@ -3981,7 +3978,6 @@ bool OTPseudonym::SavePseudonym(OTString & strNym)
 
 //  this->SaveCredentialsToString(strNym);
 
-    // *************************************************************************
     int64_t lRequestNum;
 
     FOR_EACH(mapOfRequestNums, m_mapRequestNum)

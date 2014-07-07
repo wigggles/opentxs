@@ -593,7 +593,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_exchange_basket(const string & strSer
     //
     string strResponse = MadeEasy::exchange_basket_currency(strServer, strNym, strBasketType, strBasket, strAcct, bExchangingIn);
     string strAttempt = "exchange_basket";
-    // ***************************************************************
 
     // Interpret the server reply...
 
@@ -610,7 +609,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_exchange_basket(const string & strSer
         OTAPI_Wrap::Output(0, string(bRetrieved ? "Success" : "Failed") + " retrieving intermediary files for account.\n");
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -1891,7 +1889,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
     string strUsage = concat(strUsage4, "Also: --args \" plan_expiry \\\"length,number\\\" \" \n'length' is maximum lifetime in seconds. 'number' is maximum number of payments. 0 or \"\" is unlimited (for both.)\n\n");
 
     OTAPI_Wrap::Output(0, strUsage);
-    // **************************************************************
     // recipient nym        // recipient acct        // sender nym             // sender acct
     if (VerifyExists("Server") && VerifyExists("MyNym") && VerifyExists("MyAcct") && VerifyExists("HisNym") && VerifyExists("HisAcct"))
     {
@@ -1922,7 +1919,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
             if (VerifyStringVal(strTempExpiry)) { strExpiry = strTempExpiry; }
         }
         OTAPI_Wrap::Output(0, "\n"); // stderr
-        // ***************************************************************
 
         if (!VerifyStringVal(strConsideration))
         {
@@ -1936,7 +1932,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
             }
         }
 
-        // ***************************************************************
         OTAPI_Wrap::Output(0, "date_range (from,to): " + strDates + "\n"); // stderr
         OTAPI_Wrap::Output(0, "consideration: " + strConsideration + "\n"); // stderr
         OTAPI_Wrap::Output(0, "initial_payment (amount,delay): " + strInitialPayment + "\n"); // stderr
@@ -1995,7 +1990,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_confirm_plan(const string & strPlan, 
             //
             string strResponse = MadeEasy::deposit_payment_plan(strServerID, strSenderUserID, strConfirmed);
             string strAttempt = "deposit_payment_plan";
-            // ***************************************************************
             int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
 
             // These are cases where the transaction never even got to TRY to run, since the message itself
@@ -2704,7 +2698,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_confirm_smart_contract(string & strSm
                     //
                     string strResponse = MadeEasy::activate_smart_contract(strServerID, strNymID, strMyAcctID, strMyAcctAgentName, strSmartContract);
                     string strAttempt = "activate_smart_contract";
-                    // ***************************************************************
                     int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
 
                     if (-1 == nMessageSuccess)
@@ -2749,7 +2742,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_confirm_smart_contract(string & strSm
                     //
                     return nInterpretReply;
                 } // if (all parties are confirmed)
-                // ***************************************************************
                 else // SEND INSTRUMENT TO NEXT PARTY.
                 {
                     // But if all the parties are NOT confirmed, then we need to send it to the next guy. In that case:
@@ -2888,7 +2880,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_confirm() // smart contract and payment 
         }
     }
     OTAPI_Wrap::Output(0, "\n\n"); // stderr
-    // ***************************************************************
     string strInstrument = "";
 
     if (-1 == nIndex) // No index provided, so they need to paste the smart contract...
@@ -3404,7 +3395,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_send_transfer(const string & strMyAcc
         OTAPI_Wrap::Output(0, "\n\nFailure: HisAcct is not on the same server as MyAcct (he's on " + strHisServerID + " but MyAcct is on " + strMyServerID + "). You must choose either a different sender account (using --myacct ACCT_ID) or a different recipient account (using --hisacct ACCT_ID)\n\n");
         return -1;
     }
-    // ***************************************************************
 
     string strAssetTypeID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcctID);
 
@@ -3422,7 +3412,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_send_transfer(const string & strMyAcc
     const std::string AMOUNT,
     const std::string NOTE);
     */
-    // ***************************************************************
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -3439,7 +3428,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_send_transfer(const string & strMyAcc
         OTAPI_Wrap::Output(0, string(bRetrieved ? "Success" : "Failed") + " retrieving intermediary files for account.\n");
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -3635,7 +3623,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_account()
             OTAPI_Wrap::Output(0, "\n\nFailure: MyNym was provided, but didn't match the Nym who owns MyAcct. To override, use: --mynym " + strMyNymID + "\n\n");
             return -1;
         }
-        // ***************************************************************
         //
         string strLabel = "";
 
@@ -3922,7 +3909,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_write_cheque(string & strCheque, cons
             OTAPI_Wrap::Output(0, "\n\nFailure: Server was provided (" + Server + "), but didn't match the Server where MyAcct is based. To override, use: --server " + strMyServerID + "\n\n");
             return -1;
         }
-        // ***************************************************************
         //
         // When we pass in HisNym at the command line, using this option:  --hisnym HIS_NYM_ID
         // then OT internally TRIES to look it up on the wallet (and someday on the address
@@ -4658,7 +4644,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_create_offer(const string & strScale,
             OTAPI_Wrap::Output(0, strLocation + ": FYI, there don't seem to be any existing offers for this nym, so I won't be erasing any older ones.\n");
         }
     }
-    // ********************************************************************
 
     // OKAY! Now that we've cleaned out any undesirable offers, let's place the
     // the offer itself!
@@ -4674,7 +4659,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_create_offer(const string & strScale,
     // syncing transaction number, download / process nymbox, etc! It's all
     // handled at a lower level!  Instead, simply check for success or failure:
 
-    // ***************************************************************
 
     int32_t nInterpretReply = InterpretTransactionMsgReply(strMyServerID, strMyNymID, MyAcct, strAttempt, strResponse);
 
@@ -5782,14 +5766,12 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string & strMyAcctID
                 OTAPI_Wrap::Output(0, "\n\nFailure: OT_API_Ledger_FinalizeResponse returned NULL.\n");
                 return -1;
             }
-            // ***************************************************************
 
             // Server communications are handled here...
             //
             string strResponse = MadeEasy::process_inbox(strServerID, strMyNymID, strMyAcctID, strFinalizedResponse);
             string strAttempt = "process_inbox";
 
-            // ***************************************************************
 
             int32_t nInterpretReply = InterpretTransactionMsgReply(strServerID, strMyNymID, strMyAcctID, strAttempt, strResponse);
 
@@ -5804,7 +5786,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string & strMyAcctID
                 OTAPI_Wrap::Output(0, string(bRetrieved ? "Success" : "Failed") + " retrieving intermediary files for account.\n");
             }
 
-            // ***************************************************************
             //
             // Success!
             //
@@ -6228,7 +6209,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_verify_last_receipt()
             OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT will find the Nym based on the account.\n\n");
             return -1;
         }
-        // ***************************************************************
 
         bool bSuccess = OTAPI_Wrap::VerifyAccountReceipt(Server, strMyNymID, MyAcct);
 
@@ -6423,14 +6403,12 @@ OT_COMMANDS_OT int32_t OT_Command::details_download_box_receipt(const string & s
             }
         }
     }
-    // ***************************************************************
 
     // HERE, WE SEND THE 'GET BOX RECEIPT' REQUEST TO THE SERVER
     //
     string strResponse = MadeEasy::get_box_receipt(Server, strMyNymID, strAcctID, nBoxType, strID);
     //  string strAttempt = "get_box_receipt"; // unused here.
 
-    // ***************************************************************
     // NOTICE: No need here to deal with retries, timeouts, request number,
     // syncing transaction number, download / process nymbox, etc! It's all
     // handled at a lower level!
@@ -6451,7 +6429,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_download_box_receipt(const string & s
         OTAPI_Wrap::Output(0, "\n\n");
         return 1;
     }
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -6499,7 +6476,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_box_receipt()
                 OTAPI_Wrap::Output(0, "\n\nMissing --args \"id TRANSACTION_ID_HERE\"\n\n");
                 return -1;
             }
-            // **************************************************************
             //
             if (VerifyStringVal(strNewType))
             {
@@ -6610,13 +6586,11 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_cash(const string & strMyAcc
     // By this point, we know we can successfully load both:
     // 1. the proper asset contract.
     // 2. the proper (unexpired) mint file.
-    // ***************************************************************
     // HERE, WE SEND THE WITHDRAWAL REQUEST TO THE SERVER
     //
 
     string strResponse = MadeEasy::withdraw_cash(strServerID, strMyNymID, strMyAcctID, lAmount);
     string strAttempt = "withdraw_cash";
-    // ***************************************************************
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -6634,7 +6608,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_cash(const string & strMyAcc
         OTAPI_Wrap::Output(0, string(bRetrieved ? "Success" : "Failed") + " retrieving intermediary files for account.\n");
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -6791,7 +6764,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string & strOutput)
 
     }
 
-    // ***************************************************************
     //
     // strAmount and strMemo...
     //
@@ -6855,7 +6827,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string & strOutput)
         strMemo = strDefaultMemo;
     }
 
-    // ***************************************************************
 
     // HERE, WE SEND THE VOUCHER WITHDRAWAL REQUEST TO THE SERVER
     //
@@ -6868,7 +6839,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string & strOutput)
     //                             const std::string RECIPIENT_USER_ID,
     //                             const std::string CHEQUE_MEMO,
     //                             const std::string AMOUNT)
-    // ***************************************************************
     //
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -6930,7 +6900,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string & strOutput)
         return 1;
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -7172,7 +7141,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_market_list()
         // syncing transaction number, download / process nymbox, etc! It's all
         // handled at a lower level!  Instead, simply check for success or failure:
 
-        // ***************************************************************
 
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
@@ -7424,7 +7392,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_market_offers()
         // syncing transaction number, download / process nymbox, etc! It's all
         // handled at a lower level!  Instead, simply check for success or failure:
 
-        // ***************************************************************
 
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
@@ -7678,7 +7645,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_nym_market_offers()
         // syncing transaction number, download / process nymbox, etc! It's all
         // handled at a lower level!  Instead, simply check for success or failure:
 
-        // ***************************************************************
 
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
@@ -7744,7 +7710,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_pay_dividend(const string & strAmount
         }
     }
 
-    // ***************************************************************
 
     // HERE, WE SEND THE PAY DIVIDEND REQUEST TO THE SERVER
     //
@@ -7761,7 +7726,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_pay_dividend(const string & strAmount
     //                       const std::string SHARES_ASSET_TYPE_ID,
     //                       const std::string DIVIDEND_MEMO,
     //                       const std::string AMOUNT_PER_SHARE);
-    // ***************************************************************
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -8042,7 +8006,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit_cheque(const string & strServ
     string strResponse = MadeEasy::deposit_cheque(strServerID, strMyNymID, strMyAcct, strInstrument);
     string strAttempt = "deposit_cheque";
 
-    // ***************************************************************
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -8059,7 +8022,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit_cheque(const string & strServ
         OTAPI_Wrap::Output(0, string(bRetrieved ? "Success" : "Failed") + " retrieving intermediary files for account.\n");
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //
@@ -9307,7 +9269,6 @@ OT_COMMANDS_OT int32_t OT_Command::handle_payment_index(const string & strMyAcct
         OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT will find the Server based on the account.\n\n");
         return -1;
     }
-    // ***************************************************************
     string strInstrument = "";
 
     if (-1 == nIndex) // paste an instrument
@@ -9338,7 +9299,6 @@ OT_COMMANDS_OT int32_t OT_Command::handle_payment_index(const string & strMyAcct
             return -1;
         }
     }
-    // ***************************************************************
     // By this point, strInstrument is a valid string (whether we got it from the payments inbox,
     // or whether we got it from stdin.)
     //
@@ -9522,7 +9482,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_from_paymentbox(const string & strMyAc
         OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT will find the Server based on the account.\n\n");
         return -1;
     }
-    // ******************************************************************
     //
     string strInbox = OTAPI_Wrap::LoadPaymentInbox(strServerID, strMyNymID); // Returns NULL, or an inbox.
 
@@ -9672,7 +9631,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_payinvoice()
     {
         return -1;
     }
-    // ***************************************************************
     int32_t nIndex = -1;
 
     if (VerifyExists("Args"))
@@ -9696,7 +9654,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_payinvoice()
         }
     }
     OTAPI_Wrap::Output(0, "\n\n"); // stderr
-    // ***************************************************************
     //
     int32_t nPaidInvoice = handle_payment_index(MyAcct, nIndex, "INVOICE", "");
 
@@ -9870,7 +9827,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
         // contains a greater-than-zero value in int64_t form, in which case, we need to display the details
         // of that cron item.
         //
-        // ***************************************************************
 
         if (bDetailMode)
         {
@@ -9986,7 +9942,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
                 nIndex = nTempIndex;
             }
         }
-        // ***************************************************************
 
         string strInbox = OTAPI_Wrap::LoadPaymentInbox(Server, MyNym); // Returns NULL, or an inbox.
 
@@ -10197,7 +10152,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payments_inbox()
 
     if (VerifyExists("Server") && VerifyExists("MyNym"))
     {
-        // ***************************************************************
 
         string strInbox = OTAPI_Wrap::LoadPaymentInbox(Server, MyNym); // Returns NULL, or an inbox.
 
@@ -10456,7 +10410,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_records()
         OTAPI_Wrap::Output(0, strLocation + ": Unable to find Server ID.\nTry: --server SERVER_ID\nYou might also try: --myacct ACCT_ID  (It will find the server ID based on the account.)\n");
         return -1;
     }
-    // ***************************************************************
     //
     // REMEMBER, recordbox for MyAcct contains the old inbox receipts.
     // Whereas recordbox for MyNym contains the old payments (in and out.)
@@ -10574,7 +10527,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_clear_records()
         OTAPI_Wrap::Output(0, strLocation + ": Unable to find Server ID.\nTry: --server SERVER_ID\nYou might also try: --myacct ACCT_ID  (It will find the server ID based on the account.)\n");
         return -1;
     }
-    // ***************************************************************
     //
     // REMEMBER, recordbox for MyAcct contains the old inbox receipts.
     // Whereas recordbox for MyNym contains the old payments (in and out.)
@@ -10779,7 +10731,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_inbox()
             OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT will find the Server based on the account.\n\n");
             return -1;
         }
-        // ***************************************************************
 
         string strInbox = OTAPI_Wrap::LoadInbox(strServerID, strMyNymID, MyAcct); // Returns NULL, or an inbox.
 
@@ -10895,7 +10846,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outbox()
             OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT will find the Server based on the account.\n\n");
             return -1;
         }
-        // ***************************************************************
 
         string strOutbox = OTAPI_Wrap::LoadOutbox(strServerID, strMyNymID, MyAcct); // Returns NULL, or an outbox.
 

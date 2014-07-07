@@ -738,7 +738,6 @@ void OTServerConnection::ProcessMessageOut(OTMessage & theMessage)
         SetupHeader(theCMD, CMD_TYPE_1, TYPE_1_CMD_1, thePayload);
     }
 
-    // ******************************************************************************
 
     if (IsFocused()) // RPC / HTTP mode... ----------
     {
@@ -756,7 +755,6 @@ void OTServerConnection::ProcessMessageOut(OTMessage & theMessage)
                        theMessage.m_strCommand.Get(),
                        theMessage.m_strRequestNum.Get());
     }
-    // ******************************************************************************
 
     else            // TCP / SSL mode... -----------
     {

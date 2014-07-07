@@ -210,7 +210,6 @@ public:
                                const OTString & strFilename, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
     EXPORT bool LoadPublicKey (const OTString & strFoldername,
                                const OTString & strFilename);
-    // ***************************************************************
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
@@ -218,7 +217,6 @@ public:
     EXPORT bool LoadPrivateKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
                                              const OTString   * pstrReason=NULL,
                                                    OTPassword * pImportPassword=NULL);
-    // ***************************************************************
     // Load Public Key from Cert (file or string)
     //
     EXPORT bool LoadPublicKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
@@ -235,7 +233,6 @@ public:
                                          const OTString & strFilename, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
 
     EXPORT bool SaveAndReloadBothKeysFromTempFile(OTString * pstrOutputCert=NULL, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
-    // ***************************************************************************************
     // PUBLIC KEY
 
     // * Get the public key in ASCII-armored format                 -- OTASCIIArmor
@@ -252,7 +249,6 @@ public:
     // pointer, and sets that as the m_pPublicKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN PUBLIC KEY-----)
 
-    // ***************************************************************************************
     // PRIVATE KEY
     // Get the private key in ASCII-armored format with bookends 
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------

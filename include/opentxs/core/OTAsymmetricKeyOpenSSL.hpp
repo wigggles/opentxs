@@ -186,7 +186,6 @@ private:  // Private prevents erroneous use by other classes.
     friend class OTLowLevelKeyData;  // For access to OpenSSL-specific calls that are otherwise private.
     friend class OTCrypto_OpenSSL;   // For OpenSSL-specific crypto functions to access OpenSSL-specific methods.
 public:
-    // ***************************************************************
     // Load Private Key From Cert String
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
@@ -194,7 +193,6 @@ public:
     virtual bool LoadPrivateKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
                                               const OTString   * pstrReason=NULL,
                                                     OTPassword * pImportPassword=NULL);
-    // ***************************************************************
     // Load Public Key from Cert String
     //
     virtual bool LoadPublicKeyFromCertString(const OTString   & strCert, bool bEscaped=true,

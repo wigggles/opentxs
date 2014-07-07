@@ -305,12 +305,10 @@ void OTSubcredential::UpdateContents()
 
 //  if (OTSubcredential::credPublicInfo == m_StoreAs)  // (Always saving public info.)
     {
-        // *****************************************************
         // PUBLIC INFO
         this->UpdateMasterPublicToString(m_xmlUnsigned);
 
         this->UpdatePublicContentsToString(m_xmlUnsigned);
-        // *****************************************************
     }
 
     // If we're saving the private credential info...

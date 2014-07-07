@@ -224,7 +224,6 @@ EXPORT    bool    Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM=N
                                 time64_t tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
                                 time64_t tPlanLength=0, int32_t nMaxPayments=0);
 
-     // ********************************************************************************
 
      The new process is the same, but it adds some additional transaction numbers...
 

@@ -558,7 +558,6 @@ OTOffer    * OTTrade::GetOffer(OTIdentifier * pOFFER_MARKET_ID/*=NULL*/, OTMarke
         return m_pOffer;
     }
 
-    // ************************************************************************
 
     // Okay so the offer ISN'T already on the market. If it's not a stop order, let's ADD the one we
     // allocated to the market now! (Stop orders are activated through their own logic, which is below

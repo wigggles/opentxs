@@ -11,7 +11,6 @@
 //  http://www.chaiscript.com/doxygen/namespace_chai_script___language.html
 //
 
-// *************************************************************************************
 
 // This is even HIGHER level than otapi.ot!!  This uses those calls to provide a
 // single function interface to most of OT.  Like, "WithdrawVoucher" would go here,
@@ -902,7 +901,6 @@ OT_MADE_EASY_OT string MadeEasy::adjust_usage_credits(const string & SERVER_ID, 
 }
 
 
-// ******************************************************************************************
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.
@@ -1399,7 +1397,6 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(const string & serverID, cons
 
     string strAttempt = "deposit_cash";
 
-    // ***************************************************************
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
@@ -1446,7 +1443,6 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(const string & serverID, cons
         return -1;
     }
 
-    // ***************************************************************
     //
     // Return status to caller.
     //

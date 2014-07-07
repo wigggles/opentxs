@@ -369,7 +369,6 @@ bool OTEnvelope::Decrypt(OTString & theOutput, const OTSymmetricKey & theKey, co
     
     m_dataContents.reset(); // Reset the fread position on this object to 0.
 
-    // ****************************************************************************
     //
     // Read the ENVELOPE TYPE (as network order version -- and convert to host version.)
     //

@@ -546,7 +546,6 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
     {
         pRecipient = pServerNym; // Just in case the recipient Nym is also the server Nym.
     }
-    // *******************************************************
     //
     // If pRemover is NOT NULL, and he has the Recipient's ID...
     // then set the pointer accordingly.
@@ -1215,7 +1214,6 @@ bool OTAgreement::Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM/*
     this->SaveContractRaw(strTemp);
     this->SetMerchantSignedCopy(strTemp);
 
-    // *******************************************************************
     
     // The payer has to submit TWO transaction numbers in order to activate this agreement...
     //

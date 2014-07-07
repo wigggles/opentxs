@@ -1757,7 +1757,6 @@ void OTCrypto_OpenSSL::Init_Override()
 #endif
 
 
-    // *********************************************************************************
     /* Todo FYI:
      - One final comment about compiling applications linked to the OpenSSL library.
      - If you don't use the multithreaded DLL runtime library (/MD option) your
@@ -1779,13 +1778,11 @@ void OTCrypto_OpenSSL::Init_Override()
     // Therefore if any weird errors crop in the server, just be aware. This call might have been
     // specifically for DLLs or something.
 #endif
-    // *********************************************************************************
     // SSL_library_init() must be called before any other action takes place.
     // SSL_library_init() is not reentrant.
     //
     SSL_library_init();                               //     #0
 
-    // *********************************************************************************
 
     /*
      We all owe a debt of gratitude to the OpenSSL team but fuck is their documentation
@@ -1828,7 +1825,6 @@ void OTCrypto_OpenSSL::Init_Override()
     // NOTE: the below sections are numbered #1, #2, #3, etc so that they can be UNROLLED
     // IN THE OPPOSITE ORDER when we get to OT_Cleanup().
 
-    // *********************************************************************************
     /*
      - ERR_load_crypto_strings() registers the error strings for all libcrypto functions.
      - SSL_load_error_strings() does the same, but also registers the libssl error strings.
@@ -1839,7 +1835,6 @@ void OTCrypto_OpenSSL::Init_Override()
     SSL_load_error_strings();    // DONE -- corresponds to ERR_free_strings in OT_Cleanup()   #1
 
 //  ERR_load_crypto_strings();   // Redundant -- SSL_load_error_strings does this already.
-    // *********************************************************************************
     //
     /*
      OpenSSL keeps an internal table of digest algorithms and ciphers.
@@ -1887,7 +1882,6 @@ void OTCrypto_OpenSSL::Init_Override()
     OpenSSL_add_all_algorithms();   // DONE -- corresponds to EVP_cleanup() in OT_Cleanup().    #2
 
     //
-    // *********************************************************************************
     //
     // RAND
     //
@@ -2557,7 +2551,6 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys & RecipPubKeys, const OTString &
 //    EVP_PKEY      ** array_pubkey = NULL;  // These will be pointers we use, but do NOT need to clean-up.
 //    uint8_t ** ek           = NULL;  // These we DO need to cleanup...
 //    int32_t           *  eklen        = NULL;  // This will just be an array of integers.
-    // **********************************************************
 
     if (!EVP_SealInit(&ctx, cipher_type,
                       ek,   eklen, // array of buffers for output of encrypted copies of the symmetric "session key". (Plus array of ints, to receive the size of each key.)
@@ -2886,7 +2879,6 @@ bool OTCrypto_OpenSSL::Open(OTData & dataInput, const OTPseudonym & theRecipient
 
     // So here we go...
 
-    // ****************************************************************************
     //
     // Read the ENVELOPE TYPE (as network order version -- and convert to host version.)
     //

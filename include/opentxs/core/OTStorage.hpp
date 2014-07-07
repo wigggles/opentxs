@@ -321,7 +321,6 @@ namespace OTDB
 
 
 
-    // ********************************************************************
 
     // OTDB Namespace PRIVATE MEMBERS
     // this "details" naming is a common C++ idiom for "private" in a namespace.
@@ -361,7 +360,6 @@ namespace OTDB
 
 #endif // (not) SWIG
 
-    // ********************************************************************
     //
     // use this without a semicolon:
     //
@@ -407,7 +405,6 @@ namespace OTDB
 
 #ifndef SWIG
 
-    // ********************************************************************
 
     // PACKED BUFFER (for storing PACKED DATA)
     //
@@ -463,11 +460,9 @@ namespace OTDB
     theInternalType & GetBuffer() { return m_buffer; } \
     }
 
-    // ********************************************************************
 
 
 
-    // ********************************************************************
 
     // PACKER (now OTPacker since MsgPack also has a "Packer" in a #define).
     //
@@ -525,12 +520,10 @@ namespace OTDB
     // Coming soon:
     //    typedef PackerSubclass<BufferJSON>        PackerJSON;
     //
-    // ********************************************************************
 
 
 
 #endif
-    // ********************************************************************
     //
     // STORAGE  -- abstract base class
     //
@@ -548,7 +541,6 @@ namespace OTDB
         // This is called once, in the factory.
         void SetPacker(OTPacker & thePacker) { OT_ASSERT(NULL == m_pPacker); m_pPacker =  &thePacker; }
 
-        // ********************************************************
         // OVERRIDABLES
         //
         // If you wish to MAKE YOUR OWN subclass of Storage (to provide your own storage system)
@@ -601,7 +593,6 @@ namespace OTDB
                                     std::string   strFolder,   std::string oneStr="",
                                     std::string   twoStr="",   std::string threeStr="")=0;
 
-        // ********************************************************
 
         virtual ~Storage() { if (NULL != m_pPacker) delete m_pPacker; m_pPacker = NULL; }
 
@@ -659,7 +650,6 @@ namespace OTDB
     };
 
 
-    // ********************************************************************
     //
     // OTDB Namespace PUBLIC INTERFACE
     //
@@ -729,7 +719,6 @@ namespace OTDB
     EXPORT    bool EraseValueByKey(std::string strFolder,
         std::string oneStr="", std::string twoStr="", std::string threeStr="");
 
-    // ********************************************************************
     /*
     typedef template<class T>
     T * OT_DYNAMIC_CAST(Storable * pObject)
@@ -849,7 +838,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(Displayable)
     };
 
-    // *************************************************
 
     class MarketData : public Displayable
     {
@@ -915,7 +903,6 @@ public: \
     };
 
 
-    // ******************************************************
 
     class OfferDataMarket : public Displayable
     {
@@ -1012,7 +999,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(OfferListMarket)
     };
 
-    // ******************************************************
 
     class TradeDataMarket : public Displayable
     {
@@ -1052,7 +1038,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(TradeListMarket)
     };
 
-    // ******************************************************
 
     class OfferDataNym : public Displayable
     {
@@ -1123,7 +1108,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(OfferListNym)
     };
 
-    // ******************************************************
 
     class TradeDataNym : public Displayable
     {
@@ -1173,7 +1157,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(TradeListNym)
     };
 
-    // *************************************************
 
     // ACCOUNT (GUI local storage about my own accounts, in my wallet.)
 
@@ -1216,7 +1199,6 @@ public: \
         DEFINE_OT_DYNAMIC_CAST(BitcoinAcct)
     };
 
-    // **************************************************
 
     // SERVER (GUI local storage about servers.)
 
@@ -1495,7 +1477,6 @@ namespace OTDB
 
     protected:
 
-        // **********************************************************
         // If you wish to make your own subclass of OTDB::Storage, then use StorageFS as an example.
         // The below 6 methods are the only overrides you need to copy.
         //
@@ -1529,7 +1510,6 @@ namespace OTDB
                                     std::string   strFolder,   std::string oneStr="",
                                     std::string   twoStr="",   std::string threeStr="");
 
-        // **********************************************************
 
         static StorageFS * Instantiate() { return new StorageFS; }
 

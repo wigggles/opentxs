@@ -169,13 +169,11 @@ public:
     static bool ArmorPublicKey (EVP_PKEY & theKey, OTASCIIArmor & ascKey);
     static EVP_PKEY *  CopyPublicKey (EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
     static EVP_PKEY *  CopyPrivateKey(EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
-// ***************************************************************
 private:
     // INSTANCES...
     // PRIVATE MEMBER DATA
     X509         *  m_pX509;
     EVP_PKEY     *  m_pKey;    // Instantiated form of key. (For private keys especially, we don't want it instantiated for any longer than absolutely necessary, when we have to use it.)
-    // ***************************************************************
     // PRIVATE METHODS
     EVP_PKEY *  InstantiateKey       (OTPasswordData * pPWData=NULL);
     EVP_PKEY *  InstantiatePublicKey (OTPasswordData * pPWData=NULL);

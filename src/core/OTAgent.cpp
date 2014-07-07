@@ -709,7 +709,6 @@ bool OTAgent::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
             else
                 theNymAngel.SetCleanupTarget(*pNym); // CLEANUP  :-)
         }
-        // ************************************************************
 
         // I call this because LoadNym sets my internal Nym pointer to pNym, and then
         // it goes out of scope before the end of this function and gets cleaned-up.
