@@ -137,8 +137,8 @@
 
 #include "OTRecord.hpp"
 
-#include _CINTTYPES
-#include _MEMORY
+#include <cinttypes>
+#include <memory>
 
 #include <iostream>
 #include <vector>

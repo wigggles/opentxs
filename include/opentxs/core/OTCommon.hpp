@@ -8,8 +8,8 @@
 #include "ExportWrapper.h"
 #include "WinsockWrapper.h"
 #include "TR1_Wrapper.hpp"
-#include _CINTTYPES
-#include _MEMORY
+#include <cinttypes>
+#include <memory>
 
 #ifdef _WIN32
 #include <time.h>
