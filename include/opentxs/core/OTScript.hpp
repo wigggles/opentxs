@@ -159,9 +159,9 @@ class OTPartyAccount;
 class OTString;
 class OTVariable;
 
-typedef std::map<std::string, OTParty *>		mapOfParties;
+typedef std::map<std::string, OTParty *>        mapOfParties;
 typedef std::map<std::string, OTPartyAccount *> mapOfPartyAccounts;
-typedef std::map<std::string, OTVariable *>		mapOfVariables;
+typedef std::map<std::string, OTVariable *>        mapOfVariables;
 
 
 // A script should be "Dumb", meaning that you just stick it with its
@@ -186,26 +186,26 @@ protected:
     mapOfPartyAccounts  m_mapAccounts; // no need to clean this up. Script doesn't own the accounts, just references them.
     mapOfVariables      m_mapVariables; // no need to clean this up. Script doesn't own the variables, just references them.
 
-	// List
-	// Construction -- Destruction
+    // List
+    // Construction -- Destruction
 public:
 
-	OTScript();
-	OTScript(const OTString & strValue);
-	OTScript(const char * new_string);
-	OTScript(const char * new_string, size_t sizeLength);
-	OTScript(const std::string & new_string);
+    OTScript();
+    OTScript(const OTString & strValue);
+    OTScript(const char * new_string);
+    OTScript(const char * new_string, size_t sizeLength);
+    OTScript(const std::string & new_string);
 
-	virtual ~OTScript();
+    virtual ~OTScript();
 
-EXPORT	void SetScript(const OTString & strValue);
-EXPORT	void SetScript(const char * new_string);
-EXPORT	void SetScript(const char * new_string, size_t sizeLength);
-EXPORT	void SetScript(const std::string & new_string);
+EXPORT    void SetScript(const OTString & strValue);
+EXPORT    void SetScript(const char * new_string);
+EXPORT    void SetScript(const char * new_string, size_t sizeLength);
+EXPORT    void SetScript(const std::string & new_string);
 
     void SetDisplayFilename(const std::string str_display_filename)
     { m_str_display_filename = str_display_filename;}
-	// ---------------------------------------------------
+    // ---------------------------------------------------
 
     // The same OTSmartContract that loads all the clauses (scripts) will
     // also load all the parties, so it will call this function whenever before it

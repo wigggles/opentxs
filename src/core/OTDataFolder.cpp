@@ -219,8 +219,8 @@ bool OTDataFolder::Init(const OTString & strThreadContext)
 {
     if (NULL != pDataFolder) return true; // we already have a data dir setup.
 
-	if (!strThreadContext.Exists())       { otErr << __FUNCTION__ << ": Null: " << "strThreadContext" << " passed in!\n"; OT_FAIL; }
-	if (3 > strThreadContext.GetLength())       { otErr << __FUNCTION__ << ": Too Short: " << "strThreadContext" << " !\n"; OT_FAIL; }
+    if (!strThreadContext.Exists())       { otErr << __FUNCTION__ << ": Null: " << "strThreadContext" << " passed in!\n"; OT_FAIL; }
+    if (3 > strThreadContext.GetLength())       { otErr << __FUNCTION__ << ": Too Short: " << "strThreadContext" << " !\n"; OT_FAIL; }
 
     pDataFolder = new OTDataFolder;  // make the new instance
 

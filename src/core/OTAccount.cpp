@@ -160,63 +160,63 @@ namespace opentxs {
 
 char const * const __TypeStrings[] =
 {
-	"simple",	// used by users
-	"issuer",	// used by issuers	(these can only go negative.)
-	"basket",	// issuer acct used by basket currencies (these can only go negative)
-	"basketsub",// used by the server (to store backing reserves for basket sub-accounts)
-	"mint",		// used by mints (to store backing reserves for cash)
-	"voucher",	// used by the server (to store backing reserves for vouchers)
-	"stash",	// used by the server (to store backing reserves for stashes, for smart contracts.)
-	"err_acct"
+    "simple",    // used by users
+    "issuer",    // used by issuers    (these can only go negative.)
+    "basket",    // issuer acct used by basket currencies (these can only go negative)
+    "basketsub",// used by the server (to store backing reserves for basket sub-accounts)
+    "mint",        // used by mints (to store backing reserves for cash)
+    "voucher",    // used by the server (to store backing reserves for vouchers)
+    "stash",    // used by the server (to store backing reserves for stashes, for smart contracts.)
+    "err_acct"
 };
 
 
 char const * OTAccount::_GetTypeString(AccountType theType) {
-	int32_t nType = static_cast<int32_t> (theType);
-	return __TypeStrings[nType];
+    int32_t nType = static_cast<int32_t> (theType);
+    return __TypeStrings[nType];
 }
 
 
 // Caller responsible to delete.
 OTLedger * OTAccount::LoadInbox(OTPseudonym & theNym)
 {
-	OTLedger * pBox = new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
-	OT_ASSERT(NULL != pBox);
+    OTLedger * pBox = new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
+    OT_ASSERT(NULL != pBox);
 
-	if (pBox->LoadInbox() && pBox->VerifyAccount(theNym))
-	{
-		return pBox;
-	}
-	else
-	{
-		OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    if (pBox->LoadInbox() && pBox->VerifyAccount(theNym))
+    {
+        return pBox;
+    }
+    else
+    {
+        OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
 
-		otInfo << "Unable to load or verify inbox:\n" << strAcctID
-			<< "\n For user:\n" << strUserID << "\n";
-	}
+        otInfo << "Unable to load or verify inbox:\n" << strAcctID
+            << "\n For user:\n" << strUserID << "\n";
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
 // Caller responsible to delete.
 OTLedger * OTAccount::LoadOutbox(OTPseudonym & theNym)
 {
-	OTLedger * pBox = new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
-	OT_ASSERT(NULL != pBox);
+    OTLedger * pBox = new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
+    OT_ASSERT(NULL != pBox);
 
-	if (pBox->LoadOutbox() && pBox->VerifyAccount(theNym))
-	{
-		return pBox;
-	}
-	else
-	{
-		OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    if (pBox->LoadOutbox() && pBox->VerifyAccount(theNym))
+    {
+        return pBox;
+    }
+    else
+    {
+        OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
 
-		otInfo << "Unable to load or verify outbox:\n" << strAcctID << "\n For user:\n" << strUserID << "\n";
-	}
+        otInfo << "Unable to load or verify outbox:\n" << strAcctID << "\n For user:\n" << strUserID << "\n";
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
@@ -229,7 +229,7 @@ bool OTAccount::SaveInbox (OTLedger &theBox, OTIdentifier * pHash/*=NULL*/)
         const OTString  strAcctID(GetRealAccountID()),              strServerID(GetRealServerID()),
                         strBoxAcctID(theBox.GetRealAccountID()),    strBoxSvrID(theBox.GetRealServerID());
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't even for this account!\n"
-			"   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID << "\n Server ID: " << strServerID << "\n Other ID: " << strBoxSvrID << "\n";
+            "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID << "\n Server ID: " << strServerID << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }
 
@@ -255,8 +255,8 @@ bool OTAccount::SaveOutbox(OTLedger &theBox, OTIdentifier * pHash/*=NULL*/)  // 
         const OTString  strAcctID(GetRealAccountID()),              strServerID(GetRealServerID()),
                         strBoxAcctID(theBox.GetRealAccountID()),    strBoxSvrID(theBox.GetRealServerID());
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't even for this account!\n"
-			"   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID << "\n Server ID: "
-			<< strServerID << "\n Other ID: " << strBoxSvrID << "\n";
+            "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID << "\n Server ID: "
+            << strServerID << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }
 
@@ -349,92 +349,92 @@ bool  OTAccount::GetOutboxHash(OTIdentifier & theOutput)
  // overriding this so I can set the filename automatically inside based on ID.
 bool OTAccount::LoadContract()
 {
-	OTString strID;
-	GetIdentifier(strID);
+    OTString strID;
+    GetIdentifier(strID);
 
-	return OTContract::LoadContract(OTFolders::Account().Get(), strID.Get());
+    return OTContract::LoadContract(OTFolders::Account().Get(), strID.Get());
 }
 
 
 bool OTAccount::SaveAccount()
 {
-	OTString strID;
-	GetIdentifier(strID);
+    OTString strID;
+    GetIdentifier(strID);
 
-	return SaveContract(OTFolders::Account().Get(), strID.Get());
+    return SaveContract(OTFolders::Account().Get(), strID.Get());
 }
 
 
 // Debit a certain amount from the account (presumably the same amount is being credited somewhere else)
 bool OTAccount::Debit(const int64_t & lAmount)
 {
-	/* // TODO: Decide whether or not to allow negative Debits and negative Credits.
-	  // (Currrently allowed -- a negative cheque is the same thing as an invoice.)
-	if (lAmount < 0)
-		return false;
-	 */
+    /* // TODO: Decide whether or not to allow negative Debits and negative Credits.
+      // (Currrently allowed -- a negative cheque is the same thing as an invoice.)
+    if (lAmount < 0)
+        return false;
+     */
 
-	int64_t lOldBalance = atol(m_BalanceAmount.Get());
+    int64_t lOldBalance = atol(m_BalanceAmount.Get());
 
-	int64_t lNewBalance = lOldBalance - lAmount;	// The MINUS here is the big difference between Debit and Credit
+    int64_t lNewBalance = lOldBalance - lAmount;    // The MINUS here is the big difference between Debit and Credit
 
-	// This is where issuer accounts get a pass. They just go negative.
-	if ((lNewBalance < 0)				&&	// IF the new balance is less than zero...
-		! IsAllowedToGoNegative()		&&	// AND it's a normal account... (not an issuer)
-		(lNewBalance < lOldBalance))		// AND the new balance is even less than the old balance...
-		return false;						// THEN FAIL. The "new less than old" requirement is recent,
-	else									// and it means that we now allow <0 debits on normal accounts,
-	{										// AS LONG AS the result is a HIGHER BALANCE  :-)
-		m_BalanceAmount.Format("%lld", lNewBalance);
+    // This is where issuer accounts get a pass. They just go negative.
+    if ((lNewBalance < 0)                &&    // IF the new balance is less than zero...
+        ! IsAllowedToGoNegative()        &&    // AND it's a normal account... (not an issuer)
+        (lNewBalance < lOldBalance))        // AND the new balance is even less than the old balance...
+        return false;                        // THEN FAIL. The "new less than old" requirement is recent,
+    else                                    // and it means that we now allow <0 debits on normal accounts,
+    {                                        // AS LONG AS the result is a HIGHER BALANCE  :-)
+        m_BalanceAmount.Format("%lld", lNewBalance);
 
-		const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-		m_BalanceDate.Format("%d", tDate);
+        const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
+        m_BalanceDate.Format("%d", tDate);
 
-		return true;
-	}
+        return true;
+    }
 }
 
 
 // Credit a certain amount to the account (presumably the same amount is being debited somewhere else)
 bool OTAccount::Credit(const int64_t & lAmount)
 {
-	/* // TODO: Decide whether or not to allow negative Debits and negative Credits. (Currrently allowed.)
-	 if (lAmount < 0)
-	 return false;
-	 */
+    /* // TODO: Decide whether or not to allow negative Debits and negative Credits. (Currrently allowed.)
+     if (lAmount < 0)
+     return false;
+     */
 
-	int64_t lOldBalance = atol(m_BalanceAmount.Get());
+    int64_t lOldBalance = atol(m_BalanceAmount.Get());
 
-	int64_t lNewBalance = lOldBalance + lAmount;  // The PLUS here is the big difference between Debit and Credit.
+    int64_t lNewBalance = lOldBalance + lAmount;  // The PLUS here is the big difference between Debit and Credit.
 
-	// If the balance gets too big, it may flip to negative due to us using int64_t int32_t.
-	// We'll maybe explicitly check that it's not negative in order to prevent that. TODO.
-//	if (lNewBalance > 0 || (OTAccount::simple != m_AcctType))
-//	{
-//		m_BalanceAmount.Format("%lld", lNewBalance);
-//		return true;
-//	}
+    // If the balance gets too big, it may flip to negative due to us using int64_t int32_t.
+    // We'll maybe explicitly check that it's not negative in order to prevent that. TODO.
+//    if (lNewBalance > 0 || (OTAccount::simple != m_AcctType))
+//    {
+//        m_BalanceAmount.Format("%lld", lNewBalance);
+//        return true;
+//    }
 
-	// This is where issuer accounts get a pass. They just go negative.
-	if ((lNewBalance < 0)				&&	// IF the new balance is less than zero...
-		! IsAllowedToGoNegative()		&&	// AND it's a normal account... (not an issuer)
-		(lNewBalance < lOldBalance))		// AND the new balance is even less than the old balance...
-		return false;						// THEN FAIL. The "new less than old" requirement is recent,
-	else									// and it means that we now allow <0 credits on normal accounts,
-	{										// AS LONG AS the result is a HIGHER BALANCE  :-)
-		m_BalanceAmount.Format("%lld", lNewBalance);
+    // This is where issuer accounts get a pass. They just go negative.
+    if ((lNewBalance < 0)                &&    // IF the new balance is less than zero...
+        ! IsAllowedToGoNegative()        &&    // AND it's a normal account... (not an issuer)
+        (lNewBalance < lOldBalance))        // AND the new balance is even less than the old balance...
+        return false;                        // THEN FAIL. The "new less than old" requirement is recent,
+    else                                    // and it means that we now allow <0 credits on normal accounts,
+    {                                        // AS LONG AS the result is a HIGHER BALANCE  :-)
+        m_BalanceAmount.Format("%lld", lNewBalance);
 
-		const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-		m_BalanceDate.Format("%d", tDate);
+        const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
+        m_BalanceDate.Format("%d", tDate);
 
-		return true;
-	}
+        return true;
+    }
 }
 
 
 const OTIdentifier & OTAccount::GetAssetTypeID() const
 {
-	return m_AcctAssetTypeID;
+    return m_AcctAssetTypeID;
 }
 
 
@@ -442,26 +442,26 @@ const OTIdentifier & OTAccount::GetAssetTypeID() const
 OTAccount::OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theServerID)
 : ot_super(), m_lStashTransNum(0), m_bMarkForDeletion(false)
 {
-	InitAccount();
+    InitAccount();
 
-	SetUserID(theUserID);
-	SetRealServerID(theServerID);
-	SetPurportedServerID(theServerID);
+    SetUserID(theUserID);
+    SetRealServerID(theServerID);
+    SetPurportedServerID(theServerID);
 }
 
 
 void OTAccount::InitAccount()
 {
-	m_strContractType	= "ACCOUNT";
+    m_strContractType    = "ACCOUNT";
 
-	m_AcctType			= OTAccount::simple;
+    m_AcctType            = OTAccount::simple;
 }
 
 
 // this is private for now. hopefully keep that way.
 OTAccount::OTAccount() : ot_super(), m_lStashTransNum(0), m_bMarkForDeletion(false)
 {
-	InitAccount();
+    InitAccount();
 }
 
 
@@ -469,15 +469,15 @@ OTAccount::OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theAcc
                      const OTIdentifier & theServerID, const OTString & name)
 : ot_super (theUserID, theAccountID, theServerID), m_lStashTransNum(0), m_bMarkForDeletion(false)
 {
-	InitAccount();
+    InitAccount();
 
-	m_strName = name;
+    m_strName = name;
 }
 
 OTAccount::OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID)
 : ot_super (theUserID, theAccountID, theServerID), m_lStashTransNum(0), m_bMarkForDeletion(false)
 {
-	InitAccount();
+    InitAccount();
 }
 
 
@@ -486,14 +486,14 @@ OTAccount::OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theAcc
 //
 bool OTAccount::VerifyOwner(const OTPseudonym & theCandidate) const
 {
-	OTIdentifier ID_CANDIDATE;
-	theCandidate.GetIdentifier(ID_CANDIDATE); // ID_CANDIDATE now contains the ID of the Nym we're testing.
+    OTIdentifier ID_CANDIDATE;
+    theCandidate.GetIdentifier(ID_CANDIDATE); // ID_CANDIDATE now contains the ID of the Nym we're testing.
 
-	if (m_AcctUserID == ID_CANDIDATE)
-	{
-		return true;
-	}
-	return false;
+    if (m_AcctUserID == ID_CANDIDATE)
+    {
+        return true;
+    }
+    return false;
 }
 
 
@@ -501,7 +501,7 @@ bool OTAccount::VerifyOwner(const OTPseudonym & theCandidate) const
 //
 bool OTAccount::VerifyOwnerByID(const OTIdentifier & theNymID) const
 {
-	return (theNymID == m_AcctUserID);
+    return (theNymID == m_AcctUserID);
 }
 
 
@@ -510,73 +510,73 @@ bool OTAccount::VerifyOwnerByID(const OTIdentifier & theNymID) const
 
 OTAccount * OTAccount::LoadExistingAccount(const OTIdentifier & theAccountID, const OTIdentifier & theServerID)
 {
-	bool bFolderAlreadyExist=false, bFolderIsNew=false;
+    bool bFolderAlreadyExist=false, bFolderIsNew=false;
 
-	OTString strDataFolder = "", strAccountPath = "";
-	if (!OTDataFolder::Get(strDataFolder)) { OT_FAIL; };
-	if (!OTPaths::AppendFolder(strAccountPath,strDataFolder,OTFolders::Account())) { OT_FAIL; };
+    OTString strDataFolder = "", strAccountPath = "";
+    if (!OTDataFolder::Get(strDataFolder)) { OT_FAIL; };
+    if (!OTPaths::AppendFolder(strAccountPath,strDataFolder,OTFolders::Account())) { OT_FAIL; };
 
-	if (!OTPaths::ConfirmCreateFolder(strAccountPath,bFolderAlreadyExist,bFolderIsNew))
-	{
-		otErr << "Unable to find or create accounts folder: " << OTFolders::Account() << "\n";
-		return NULL;
-	}
+    if (!OTPaths::ConfirmCreateFolder(strAccountPath,bFolderAlreadyExist,bFolderIsNew))
+    {
+        otErr << "Unable to find or create accounts folder: " << OTFolders::Account() << "\n";
+        return NULL;
+    }
 
-	OTAccount * pAccount = new OTAccount();
+    OTAccount * pAccount = new OTAccount();
 
-	OT_ASSERT(NULL != pAccount);
+    OT_ASSERT(NULL != pAccount);
 
-	pAccount->SetRealAccountID(theAccountID);
-	pAccount->SetRealServerID(theServerID);
+    pAccount->SetRealAccountID(theAccountID);
+    pAccount->SetRealServerID(theServerID);
 
-	OTString strAcctID(theAccountID);
+    OTString strAcctID(theAccountID);
 
-	pAccount->m_strFoldername	= OTFolders::Account().Get();
-	pAccount->m_strFilename		= strAcctID.Get();
-
-
-
-	if (false == OTDB::Exists(pAccount->m_strFoldername.Get(), pAccount->m_strFilename.Get()))
-	{
-		otInfo << "OTAccount::LoadExistingAccount: File does not exist: " << pAccount->m_strFoldername << OTLog::PathSeparator() << pAccount->m_strFilename << "\n";
-		return NULL;
-	}
+    pAccount->m_strFoldername    = OTFolders::Account().Get();
+    pAccount->m_strFilename        = strAcctID.Get();
 
 
 
-	if (pAccount->LoadContract() && pAccount->VerifyContractID())
-		return pAccount;
-	else
-	{
-		delete pAccount;
-		pAccount = NULL;
-	}
+    if (false == OTDB::Exists(pAccount->m_strFoldername.Get(), pAccount->m_strFilename.Get()))
+    {
+        otInfo << "OTAccount::LoadExistingAccount: File does not exist: " << pAccount->m_strFoldername << OTLog::PathSeparator() << pAccount->m_strFilename << "\n";
+        return NULL;
+    }
 
-	return NULL;
+
+
+    if (pAccount->LoadContract() && pAccount->VerifyContractID())
+        return pAccount;
+    else
+    {
+        delete pAccount;
+        pAccount = NULL;
+    }
+
+    return NULL;
 }
 
 
 // static method (call it without an instance, using notation: OTAccount::GenerateNewAccount)
-OTAccount * OTAccount::GenerateNewAccount(const OTIdentifier & theUserID,	const OTIdentifier & theServerID,
-										  const OTPseudonym & theServerNym,	const OTMessage & theMessage,
-										  const OTAccount::AccountType eAcctType/*=OTAccount::simple*/,
-										  int64_t lStashTransNum/*=0*/)
+OTAccount * OTAccount::GenerateNewAccount(const OTIdentifier & theUserID,    const OTIdentifier & theServerID,
+                                          const OTPseudonym & theServerNym,    const OTMessage & theMessage,
+                                          const OTAccount::AccountType eAcctType/*=OTAccount::simple*/,
+                                          int64_t lStashTransNum/*=0*/)
 {
-	OTAccount * pAccount = new OTAccount(theUserID, theServerID);
+    OTAccount * pAccount = new OTAccount(theUserID, theServerID);
 
-	if (pAccount)
-	{
-		if (pAccount->GenerateNewAccount(theServerNym, theMessage, eAcctType,
-										 lStashTransNum)) // This is only for stash accounts.
-			return pAccount;
-		else
-		{
-			delete pAccount;
-			pAccount = NULL;
-		}
-	}
+    if (pAccount)
+    {
+        if (pAccount->GenerateNewAccount(theServerNym, theMessage, eAcctType,
+                                         lStashTransNum)) // This is only for stash accounts.
+            return pAccount;
+        else
+        {
+            delete pAccount;
+            pAccount = NULL;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
@@ -589,264 +589,264 @@ theMessage.m_strServerID;
  */
 // The above method uses this one internally...
 bool OTAccount::GenerateNewAccount(const OTPseudonym & theServer, const OTMessage & theMessage,
-								   const OTAccount::AccountType eAcctType/*=OTAccount::simple*/,
-								   int64_t lStashTransNum/*=0*/)
+                                   const OTAccount::AccountType eAcctType/*=OTAccount::simple*/,
+                                   int64_t lStashTransNum/*=0*/)
 {
-	// First we generate a secure random number into a binary object...
+    // First we generate a secure random number into a binary object...
     //
     OTPayload thePayload;
 
     if (false == thePayload.Randomize(100)) // todo hardcoding. Plus: is 100 bytes of random a little much here?
     {
-		otErr << __FUNCTION__ << ": Failed trying to acquire random numbers.\n";
-		return false;
+        otErr << __FUNCTION__ << ": Failed trying to acquire random numbers.\n";
+        return false;
     }
 
     //
-	// Next we calculate that binary object into a message digest (an OTIdentifier).
+    // Next we calculate that binary object into a message digest (an OTIdentifier).
     //
-	OTIdentifier newID;
-	if (!newID.CalculateDigest(thePayload))
-	{
-		otErr << __FUNCTION__ << ": Error generating new account ID.\n";
-		return false;
-	}
+    OTIdentifier newID;
+    if (!newID.CalculateDigest(thePayload))
+    {
+        otErr << __FUNCTION__ << ": Error generating new account ID.\n";
+        return false;
+    }
 
-	// Next we get that digest (which is a binary hash number)
-	// and extract a human-readable standard string format of that hash,
-	// into an OTString.
+    // Next we get that digest (which is a binary hash number)
+    // and extract a human-readable standard string format of that hash,
+    // into an OTString.
     //
-	OTString strID(newID);
+    OTString strID(newID);
 
-	SetRealAccountID(newID);		// Set the account number based on what we just generated.
-	SetPurportedAccountID(newID);	// Might as well set them both. (Safe here to do so, for once.)
+    SetRealAccountID(newID);        // Set the account number based on what we just generated.
+    SetPurportedAccountID(newID);    // Might as well set them both. (Safe here to do so, for once.)
 
-	m_strName.Set(strID); // So it's not blank. The user can always change it.
+    m_strName.Set(strID); // So it's not blank. The user can always change it.
 
-	// Next we create the full path filename for the account using the ID.
+    // Next we create the full path filename for the account using the ID.
     //
-	m_strFoldername = OTFolders::Account().Get();
-	m_strFilename = strID.Get();
+    m_strFoldername = OTFolders::Account().Get();
+    m_strFilename = strID.Get();
 
-	// Then we try to load it, in order to make sure that it doesn't already exist.
-
-
-	if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get()))
-	{
-		otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename << "\n";
-		return false;
-	}
+    // Then we try to load it, in order to make sure that it doesn't already exist.
 
 
-	// Set up the various important starting values of the account.
-	m_AcctType = eAcctType; // account type defaults to OTAccount::simple. But there are also issuer accts...
+    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get()))
+    {
+        otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename << "\n";
+        return false;
+    }
 
 
-	if (IsInternalServerAcct())  // basket, basketsub, mint, voucher, and stash accounts are all "owned" by the server.
-	{
-		theServer.GetIdentifier(m_AcctUserID);
-	}
-	else
-	{
-		m_AcctUserID.SetString(theMessage.m_strNymID);
-	}
+    // Set up the various important starting values of the account.
+    m_AcctType = eAcctType; // account type defaults to OTAccount::simple. But there are also issuer accts...
 
 
-	m_AcctAssetTypeID.SetString(theMessage.m_strAssetID);
-
-	otLog3 << __FUNCTION__ << ": Creating new account, type:\n" << theMessage.m_strAssetID << "\n";
-
-	OTIdentifier SERVER_ID(theMessage.m_strServerID);
-	SetRealServerID(SERVER_ID);			// todo this assumes the serverID on the message is correct. It's vetted, but still...
-	SetPurportedServerID(SERVER_ID);
-
-	const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-	m_BalanceDate.Format("%d", tDate);
-
-	m_BalanceAmount.Set("0");
+    if (IsInternalServerAcct())  // basket, basketsub, mint, voucher, and stash accounts are all "owned" by the server.
+    {
+        theServer.GetIdentifier(m_AcctUserID);
+    }
+    else
+    {
+        m_AcctUserID.SetString(theMessage.m_strNymID);
+    }
 
 
-	if (IsStashAcct())
-	{
-		OT_ASSERT_MSG(lStashTransNum > 0,
-					  "You created a stash account, but with a zero-or-negative transaction number for its cron item.");
-		m_lStashTransNum	= lStashTransNum;
-	}
+    m_AcctAssetTypeID.SetString(theMessage.m_strAssetID);
+
+    otLog3 << __FUNCTION__ << ": Creating new account, type:\n" << theMessage.m_strAssetID << "\n";
+
+    OTIdentifier SERVER_ID(theMessage.m_strServerID);
+    SetRealServerID(SERVER_ID);            // todo this assumes the serverID on the message is correct. It's vetted, but still...
+    SetPurportedServerID(SERVER_ID);
+
+    const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
+    m_BalanceDate.Format("%d", tDate);
+
+    m_BalanceAmount.Set("0");
 
 
-	// Sign the Account (so we know that we did)... Otherwise someone could put a fake
-	// account file on the server if the code wasn't designed to verify the signature on the
-	// account.
-	SignContract(theServer);
-	SaveContract();
+    if (IsStashAcct())
+    {
+        OT_ASSERT_MSG(lStashTransNum > 0,
+                      "You created a stash account, but with a zero-or-negative transaction number for its cron item.");
+        m_lStashTransNum    = lStashTransNum;
+    }
 
-	// Save the Account to storage (based on its ID.)
-	SaveAccount();
 
-	// Don't know why I had this here. Putting SaveAccount() instead.
-//	OTString strFilename(m_strFilename);
-//	SaveContract(strFilename.Get()); // Saves the account to a specific filename
+    // Sign the Account (so we know that we did)... Otherwise someone could put a fake
+    // account file on the server if the code wasn't designed to verify the signature on the
+    // account.
+    SignContract(theServer);
+    SaveContract();
 
-	// No need to create the inbox and outbox ledgers...they will be created automatically
-	// if they do not exist when they are needed.
+    // Save the Account to storage (based on its ID.)
+    SaveAccount();
 
-	return true;
+    // Don't know why I had this here. Putting SaveAccount() instead.
+//    OTString strFilename(m_strFilename);
+//    SaveContract(strFilename.Get()); // Saves the account to a specific filename
+
+    // No need to create the inbox and outbox ledgers...they will be created automatically
+    // if they do not exist when they are needed.
+
+    return true;
 }
 
 
 int64_t OTAccount::GetBalance() const
 {
-	if (m_BalanceAmount.Exists())
-		return atol(m_BalanceAmount.Get());
+    if (m_BalanceAmount.Exists())
+        return atol(m_BalanceAmount.Get());
 
-	return 0;
+    return 0;
 }
 
 
 OTAccount::AccountType TranslateAccountTypeStringToEnum(const OTString & strAcctType)
 {
-	OTAccount::AccountType theReturnVal = OTAccount::err_acct;
+    OTAccount::AccountType theReturnVal = OTAccount::err_acct;
 
-	if (strAcctType.Compare("simple"))
-		theReturnVal = OTAccount::simple;
-	else if (strAcctType.Compare("issuer"))
-		theReturnVal = OTAccount::issuer;
-	else if (strAcctType.Compare("basket"))
-		theReturnVal = OTAccount::basket;
-	else if (strAcctType.Compare("basketsub"))
-		theReturnVal = OTAccount::basketsub;
-	else if (strAcctType.Compare("mint"))
-		theReturnVal = OTAccount::mint;
-	else if (strAcctType.Compare("voucher"))
-		theReturnVal = OTAccount::voucher;
-	else if (strAcctType.Compare("stash"))
-		theReturnVal = OTAccount::stash;
-	else
-		otErr << "Error: Unknown account type: " << strAcctType << "\n";
+    if (strAcctType.Compare("simple"))
+        theReturnVal = OTAccount::simple;
+    else if (strAcctType.Compare("issuer"))
+        theReturnVal = OTAccount::issuer;
+    else if (strAcctType.Compare("basket"))
+        theReturnVal = OTAccount::basket;
+    else if (strAcctType.Compare("basketsub"))
+        theReturnVal = OTAccount::basketsub;
+    else if (strAcctType.Compare("mint"))
+        theReturnVal = OTAccount::mint;
+    else if (strAcctType.Compare("voucher"))
+        theReturnVal = OTAccount::voucher;
+    else if (strAcctType.Compare("stash"))
+        theReturnVal = OTAccount::stash;
+    else
+        otErr << "Error: Unknown account type: " << strAcctType << "\n";
 
-	return theReturnVal;
+    return theReturnVal;
 }
 
 
 void TranslateAccountTypeToString(OTAccount::AccountType theType, OTString & strAcctType)
 {
-	switch (theType)
-	{
-		case OTAccount::simple:
-			strAcctType.Set("simple");
-			break;
-		case OTAccount::issuer:
-			strAcctType.Set("issuer");
-			break;
-		case OTAccount::basket:
-			strAcctType.Set("basket");
-			break;
-		case OTAccount::basketsub:
-			strAcctType.Set("basketsub");
-			break;
-		case OTAccount::mint:
-			strAcctType.Set("mint");
-			break;
-		case OTAccount::voucher:
-			strAcctType.Set("voucher");
-			break;
-		case OTAccount::stash:
-			strAcctType.Set("stash");
-			break;
-		default:
-			strAcctType.Set("err_acct");
-			break;
-	}
+    switch (theType)
+    {
+        case OTAccount::simple:
+            strAcctType.Set("simple");
+            break;
+        case OTAccount::issuer:
+            strAcctType.Set("issuer");
+            break;
+        case OTAccount::basket:
+            strAcctType.Set("basket");
+            break;
+        case OTAccount::basketsub:
+            strAcctType.Set("basketsub");
+            break;
+        case OTAccount::mint:
+            strAcctType.Set("mint");
+            break;
+        case OTAccount::voucher:
+            strAcctType.Set("voucher");
+            break;
+        case OTAccount::stash:
+            strAcctType.Set("stash");
+            break;
+        default:
+            strAcctType.Set("err_acct");
+            break;
+    }
 }
 
 
 bool OTAccount::DisplayStatistics(OTString & strContents) const
 {
-	const OTString	strAccountID(GetPurportedAccountID()), strServerID(GetPurportedServerID()),
-					strUserID(GetUserID()), strAssetTypeID(m_AcctAssetTypeID);
+    const OTString    strAccountID(GetPurportedAccountID()), strServerID(GetPurportedServerID()),
+                    strUserID(GetUserID()), strAssetTypeID(m_AcctAssetTypeID);
 
-	OTString strAcctType;
-	TranslateAccountTypeToString(m_AcctType, strAcctType);
+    OTString strAcctType;
+    TranslateAccountTypeToString(m_AcctType, strAcctType);
 
-	strContents.Concatenate(
-							" Asset Account (%s) Name: %s\n"
-							" Last retrieved Balance: %s  on date: %s\n"
-							" accountID: %s\n"
-							" userID: %s\n"
-							" serverID: %s\n"
-							" assetTypeID: %s\n"
-							"\n",
-							strAcctType.Get(),
-							m_strName.Get(),
-							m_BalanceAmount.Get(),
-							m_BalanceDate.Get(),
-							strAccountID.Get(),
-							strUserID.Get(),
-							strServerID.Get(),
-							strAssetTypeID.Get());
+    strContents.Concatenate(
+                            " Asset Account (%s) Name: %s\n"
+                            " Last retrieved Balance: %s  on date: %s\n"
+                            " accountID: %s\n"
+                            " userID: %s\n"
+                            " serverID: %s\n"
+                            " assetTypeID: %s\n"
+                            "\n",
+                            strAcctType.Get(),
+                            m_strName.Get(),
+                            m_BalanceAmount.Get(),
+                            m_BalanceDate.Get(),
+                            strAccountID.Get(),
+                            strUserID.Get(),
+                            strServerID.Get(),
+                            strAssetTypeID.Get());
 
-	return true;
+    return true;
 }
 
 
 bool OTAccount::SaveContractWallet(OTString & strContents) const
 {
-	const OTString	strAccountID(GetPurportedAccountID()),
-					strServerID(GetPurportedServerID()),
-					strUserID(GetUserID()),
-					strAssetTypeID(m_AcctAssetTypeID);
+    const OTString    strAccountID(GetPurportedAccountID()),
+                    strServerID(GetPurportedServerID()),
+                    strUserID(GetUserID()),
+                    strAssetTypeID(m_AcctAssetTypeID);
 
-	OTString strAcctType;
-	TranslateAccountTypeToString(m_AcctType, strAcctType);
+    OTString strAcctType;
+    TranslateAccountTypeToString(m_AcctType, strAcctType);
 
-	OTASCIIArmor ascName;
+    OTASCIIArmor ascName;
 
-	if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
-	{
-		ascName.SetString(m_strName, false); // linebreaks == false
-	}
+    if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
+    {
+        ascName.SetString(m_strName, false); // linebreaks == false
+    }
 
-	strContents.Concatenate("<!-- Last retrieved balance: %s on date: %s -->\n"
-							"<!-- Account type: %s --><assetAccount name=\"%s\"\n"
-							" accountID=\"%s\"\n"
-							" userID=\"%s\"\n"
-							" serverID=\"%s\" />\n"
-							"<!-- assetTypeID: %s -->\n\n",
-							m_BalanceAmount.Get(),
-							m_BalanceDate.Get(),
-							strAcctType.Get(),
-							m_strName.Exists() ? ascName.Get() : "",
-							strAccountID.Get(),
-							strUserID.Get(),
-							strServerID.Get(),
-							strAssetTypeID.Get());
-	return true;
+    strContents.Concatenate("<!-- Last retrieved balance: %s on date: %s -->\n"
+                            "<!-- Account type: %s --><assetAccount name=\"%s\"\n"
+                            " accountID=\"%s\"\n"
+                            " userID=\"%s\"\n"
+                            " serverID=\"%s\" />\n"
+                            "<!-- assetTypeID: %s -->\n\n",
+                            m_BalanceAmount.Get(),
+                            m_BalanceDate.Get(),
+                            strAcctType.Get(),
+                            m_strName.Exists() ? ascName.Get() : "",
+                            strAccountID.Get(),
+                            strUserID.Get(),
+                            strServerID.Get(),
+                            strAssetTypeID.Get());
+    return true;
 }
 
 
 bool OTAccount::SaveContractWallet(std::ofstream & ofs)
 {
-	OTString strOutput;
+    OTString strOutput;
 
-	if (SaveContractWallet(strOutput))
-	{
-		ofs << strOutput;
-		return true;
-	}
+    if (SaveContractWallet(strOutput))
+    {
+        ofs << strOutput;
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 
 /*
 bool OTAccount::SaveContractWallet(FILE * fl)
 {
-	OTString strAccountID(GetPurportedAccountID()), strServerID(GetPurportedServerID()), strUserID(GetUserID());
+    OTString strAccountID(GetPurportedAccountID()), strServerID(GetPurportedServerID()), strUserID(GetUserID());
 
-	fprintf(fl, "<assetAccount name=\"%s\"\n file=\"%s\"\n userID=\"%s\"\n serverID=\"%s\"\n accountID=\"%s\"  /> "
-			"\n\n", m_strName.Get(), m_strFilename.Get(), strUserID.Get(), strServerID.Get(), strAccountID.Get());
+    fprintf(fl, "<assetAccount name=\"%s\"\n file=\"%s\"\n userID=\"%s\"\n serverID=\"%s\"\n accountID=\"%s\"  /> "
+            "\n\n", m_strName.Get(), m_strFilename.Get(), strUserID.Get(), strServerID.Get(), strAccountID.Get());
 
-	return true;
+    return true;
 }
 */
 
@@ -862,139 +862,139 @@ bool OTAccount::SaveContractWallet(FILE * fl)
 
 void OTAccount::UpdateContents()
 {
-	OTString strAssetTYPEID(m_AcctAssetTypeID); // asset type
+    OTString strAssetTYPEID(m_AcctAssetTypeID); // asset type
 
-	OTString ACCOUNT_ID(GetPurportedAccountID()), SERVER_ID(GetPurportedServerID()), USER_ID(GetUserID());
+    OTString ACCOUNT_ID(GetPurportedAccountID()), SERVER_ID(GetPurportedServerID()), USER_ID(GetUserID());
 
-	OTString strAcctType;
-	TranslateAccountTypeToString(m_AcctType, strAcctType);
+    OTString strAcctType;
+    TranslateAccountTypeToString(m_AcctType, strAcctType);
 
-	// I release this because I'm about to repopulate it.
-	m_xmlUnsigned.Release();
+    // I release this because I'm about to repopulate it.
+    m_xmlUnsigned.Release();
 
-	m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
+    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-	m_xmlUnsigned.Concatenate("<assetAccount\n version=\"%s\"\n type=\"%s\"\n accountID=\"%s\"\n userID=\"%s\"\n"
-							  " serverID=\"%s\"\n assetTypeID=\"%s\" >\n\n", m_strVersion.Get(), strAcctType.Get(),
-							  ACCOUNT_ID.Get(), USER_ID.Get(), SERVER_ID.Get(), strAssetTYPEID.Get());
-	if (IsStashAcct())
-		m_xmlUnsigned.Concatenate("<stashinfo cronItemNum=\"%lld\"/>\n\n", m_lStashTransNum);
+    m_xmlUnsigned.Concatenate("<assetAccount\n version=\"%s\"\n type=\"%s\"\n accountID=\"%s\"\n userID=\"%s\"\n"
+                              " serverID=\"%s\"\n assetTypeID=\"%s\" >\n\n", m_strVersion.Get(), strAcctType.Get(),
+                              ACCOUNT_ID.Get(), USER_ID.Get(), SERVER_ID.Get(), strAssetTYPEID.Get());
+    if (IsStashAcct())
+        m_xmlUnsigned.Concatenate("<stashinfo cronItemNum=\"%lld\"/>\n\n", m_lStashTransNum);
 
 
-	if (!m_InboxHash.IsEmpty())
+    if (!m_InboxHash.IsEmpty())
     {
         const OTString strHash(m_InboxHash);
-		m_xmlUnsigned.Concatenate("<inboxHash value=\"%s\"/>\n\n", strHash.Get());
+        m_xmlUnsigned.Concatenate("<inboxHash value=\"%s\"/>\n\n", strHash.Get());
     }
-	if (!m_OutboxHash.IsEmpty())
+    if (!m_OutboxHash.IsEmpty())
     {
         const OTString strHash(m_OutboxHash);
-		m_xmlUnsigned.Concatenate("<outboxHash value=\"%s\"/>\n\n", strHash.Get());
+        m_xmlUnsigned.Concatenate("<outboxHash value=\"%s\"/>\n\n", strHash.Get());
     }
 
 
-//	m_xmlUnsigned.Concatenate("<balance amount=\"%s\"/>\n\n", m_BalanceAmount.Get());
-	m_xmlUnsigned.Concatenate("<balance date=\"%s\" amount=\"%s\"/>\n\n", m_BalanceDate.Get(), m_BalanceAmount.Get());
+//    m_xmlUnsigned.Concatenate("<balance amount=\"%s\"/>\n\n", m_BalanceAmount.Get());
+    m_xmlUnsigned.Concatenate("<balance date=\"%s\" amount=\"%s\"/>\n\n", m_BalanceDate.Get(), m_BalanceAmount.Get());
 
     if (m_bMarkForDeletion)
         m_xmlUnsigned.Concatenate("<MARKED_FOR_DELETION>\n"
                                   "%s</MARKED_FOR_DELETION>\n\n",
                                   "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
 
-	m_xmlUnsigned.Concatenate("</assetAccount>\n");
+    m_xmlUnsigned.Concatenate("</assetAccount>\n");
 }
 
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
 {
-	int32_t nReturnVal = 0;
+    int32_t nReturnVal = 0;
 
     const OTString strNodeName(xml->getNodeName());
 
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	// As I do below, in the case of OTAccount.
-	//if (nReturnVal = OTTransactionType::ProcessXMLNode(xml))
-	//	return nReturnVal;
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    // As I do below, in the case of OTAccount.
+    //if (nReturnVal = OTTransactionType::ProcessXMLNode(xml))
+    //    return nReturnVal;
 
-	if (strNodeName.Compare("assetAccount"))
-	{
-		OTString strAcctType;
+    if (strNodeName.Compare("assetAccount"))
+    {
+        OTString strAcctType;
 
-		m_strVersion	= xml->getAttributeValue("version");
-		strAcctType		= xml->getAttributeValue("type");
+        m_strVersion    = xml->getAttributeValue("version");
+        strAcctType        = xml->getAttributeValue("type");
 
-		if (!strAcctType.Exists())
-		{
-			otErr << "OTAccount::ProcessXMLNode: Failed: Empty assetAccount 'type' attribute.\n";
-			return (-1);
-		}
+        if (!strAcctType.Exists())
+        {
+            otErr << "OTAccount::ProcessXMLNode: Failed: Empty assetAccount 'type' attribute.\n";
+            return (-1);
+        }
 
-		m_AcctType = TranslateAccountTypeStringToEnum(strAcctType);
+        m_AcctType = TranslateAccountTypeStringToEnum(strAcctType);
 
-		if (OTAccount::err_acct == m_AcctType)
-		{
-			otErr << "OTAccount::ProcessXMLNode: Failed: assetAccount 'type' attribute contains unknown value.\n";
-			return (-1);
-		}
+        if (OTAccount::err_acct == m_AcctType)
+        {
+            otErr << "OTAccount::ProcessXMLNode: Failed: assetAccount 'type' attribute contains unknown value.\n";
+            return (-1);
+        }
 
 
-        const OTString strAcctAssetType	= xml->getAttributeValue("assetTypeID");
+        const OTString strAcctAssetType    = xml->getAttributeValue("assetTypeID");
 
         if (strAcctAssetType.Exists())
             m_AcctAssetTypeID.SetString(strAcctAssetType);
 
 
-		OTString	strAccountID(xml->getAttributeValue("accountID")),
+        OTString    strAccountID(xml->getAttributeValue("accountID")),
         strServerID(xml->getAttributeValue("serverID")),
         strAcctUserID(xml->getAttributeValue("userID"));
 
-		OTIdentifier	ACCOUNT_ID(strAccountID),
+        OTIdentifier    ACCOUNT_ID(strAccountID),
                         SERVER_ID(strServerID),
                         USER_ID(strAcctUserID);
 
-		SetPurportedAccountID(ACCOUNT_ID);
-		SetPurportedServerID(SERVER_ID);
-		SetUserID(USER_ID);
+        SetPurportedAccountID(ACCOUNT_ID);
+        SetPurportedServerID(SERVER_ID);
+        SetUserID(USER_ID);
 
-		OTString strAssetTypeID(m_AcctAssetTypeID);
-		otLog3 << 
-                       //	"\n===> Loading XML for Account into memory structures..."
-					   "\n\nAccount Type: " << strAcctType << "\nAccountID: " << strAccountID << "\nUserID: "
-					   << strAcctUserID << "\n" "AssetTypeID: " << strAssetTypeID << "\nServerID: " << strServerID << "\n";
+        OTString strAssetTypeID(m_AcctAssetTypeID);
+        otLog3 << 
+                       //    "\n===> Loading XML for Account into memory structures..."
+                       "\n\nAccount Type: " << strAcctType << "\nAccountID: " << strAccountID << "\nUserID: "
+                       << strAcctUserID << "\n" "AssetTypeID: " << strAssetTypeID << "\nServerID: " << strServerID << "\n";
 
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
-	else if (strNodeName.Compare("inboxHash"))
-	{
+    else if (strNodeName.Compare("inboxHash"))
+    {
 
-        const OTString strHash	= xml->getAttributeValue("value");
+        const OTString strHash    = xml->getAttributeValue("value");
         if (strHash.Exists())
             m_InboxHash.SetString(strHash);
 
-		otLog3 << "Account inboxHash: " << strHash << "\n";
+        otLog3 << "Account inboxHash: " << strHash << "\n";
 
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
-	else if (strNodeName.Compare("outboxHash"))
-	{
+    else if (strNodeName.Compare("outboxHash"))
+    {
 
-        const OTString strHash	= xml->getAttributeValue("value");
+        const OTString strHash    = xml->getAttributeValue("value");
         if (strHash.Exists())
             m_OutboxHash.SetString(strHash);
 
-		otLog3 << "Account outboxHash: " << strHash << "\n";
+        otLog3 << "Account outboxHash: " << strHash << "\n";
 
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
     else if (strNodeName.Compare("MARKED_FOR_DELETION"))
     {
@@ -1005,125 +1005,125 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     }
 
     else if (strNodeName.Compare("balance"))
-	{
-		m_BalanceDate	= xml->getAttributeValue("date");
-		m_BalanceAmount	= xml->getAttributeValue("amount");
+    {
+        m_BalanceDate    = xml->getAttributeValue("date");
+        m_BalanceAmount    = xml->getAttributeValue("amount");
 
-		// I convert to integer / int64_t and back to string.
-		// (Just an easy way to keep the data clean.)
+        // I convert to integer / int64_t and back to string.
+        // (Just an easy way to keep the data clean.)
 
-		int32_t nDate		= atoi(m_BalanceDate.Get());
-		int64_t lAmount	= atol(m_BalanceAmount.Get());
+        int32_t nDate        = atoi(m_BalanceDate.Get());
+        int64_t lAmount    = atol(m_BalanceAmount.Get());
 
-		m_BalanceDate.Format("%d", nDate);
-		m_BalanceAmount.Format("%lld", lAmount);
+        m_BalanceDate.Format("%d", nDate);
+        m_BalanceAmount.Format("%lld", lAmount);
 
-//		otWarn << "\nBALANCE  --  %s\n",
-//					   m_BalanceAmount.Get());
-		otLog3 << "\nBALANCE  --  " << m_BalanceAmount << "\nDATE     --  " << m_BalanceDate << "\n";
+//        otWarn << "\nBALANCE  --  %s\n",
+//                       m_BalanceAmount.Get());
+        otLog3 << "\nBALANCE  --  " << m_BalanceAmount << "\nDATE     --  " << m_BalanceDate << "\n";
 
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
     else if (strNodeName.Compare("stashinfo"))
-	{
-		if (!IsStashAcct())
-		{
-			otErr << "OTAccount::ProcessXMLNode: Error: Encountered stashinfo tag while loading NON-STASH account. \n";
-			return (-1);
-		}
+    {
+        if (!IsStashAcct())
+        {
+            otErr << "OTAccount::ProcessXMLNode: Error: Encountered stashinfo tag while loading NON-STASH account. \n";
+            return (-1);
+        }
 
-		int64_t lTransNum = 0;
-		const OTString	strStashTransNum	= xml->getAttributeValue("cronItemNum");
-		if (!strStashTransNum.Exists() || ((lTransNum = atol(strStashTransNum.Get())) <= 0))
-		{
-			m_lStashTransNum = 0;
-			otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number for supposed corresponding cron item: " << lTransNum << " \n";
-			return (-1);
-		}
-		else
-			m_lStashTransNum = lTransNum;
+        int64_t lTransNum = 0;
+        const OTString    strStashTransNum    = xml->getAttributeValue("cronItemNum");
+        if (!strStashTransNum.Exists() || ((lTransNum = atol(strStashTransNum.Get())) <= 0))
+        {
+            m_lStashTransNum = 0;
+            otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number for supposed corresponding cron item: " << lTransNum << " \n";
+            return (-1);
+        }
+        else
+            m_lStashTransNum = lTransNum;
 
 
-		otLog3 << "\nSTASH INFO:   CronItemNum     --  " << m_lStashTransNum << "\n";
+        otLog3 << "\nSTASH INFO:   CronItemNum     --  " << m_lStashTransNum << "\n";
 
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
-	return nReturnVal;
+    return nReturnVal;
 }
 
 
 /*
- simple,		// used by users
- issuer,		// used by issuers	(these can only go negative.)
+ simple,        // used by users
+ issuer,        // used by issuers    (these can only go negative.)
 
- basket,		// used by basket currencies (for basket issuer account)
- basketsub,		// used by server to store backing reserves for basket sub accounts.
- mint,		// used by mints (to store backing reserves for cash)
- voucher,	// used by the server (to store backing reserves for vouchers)
- stash,		// used by the server (to store backing reserves for stashes, for smart contracts.)
+ basket,        // used by basket currencies (for basket issuer account)
+ basketsub,        // used by server to store backing reserves for basket sub accounts.
+ mint,        // used by mints (to store backing reserves for cash)
+ voucher,    // used by the server (to store backing reserves for vouchers)
+ stash,        // used by the server (to store backing reserves for stashes, for smart contracts.)
 
  err_acct
  */
 
 bool OTAccount::IsInternalServerAcct() const
 {
-	bool bReturnVal = false;
+    bool bReturnVal = false;
 
-	switch (m_AcctType)
-	{
-		case OTAccount::simple:
-		case OTAccount::issuer:
-			bReturnVal = false;
-			break;
-		case OTAccount::basket:
-		case OTAccount::basketsub:
-		case OTAccount::mint:
-		case OTAccount::voucher:
-		case OTAccount::stash:
-			bReturnVal = true;
-			break;
-		default:
-			otErr << "OTAccount::IsInternalServerAcct: Unknown account type.\n";
-			bReturnVal = false;
-			break;
-	}
+    switch (m_AcctType)
+    {
+        case OTAccount::simple:
+        case OTAccount::issuer:
+            bReturnVal = false;
+            break;
+        case OTAccount::basket:
+        case OTAccount::basketsub:
+        case OTAccount::mint:
+        case OTAccount::voucher:
+        case OTAccount::stash:
+            bReturnVal = true;
+            break;
+        default:
+            otErr << "OTAccount::IsInternalServerAcct: Unknown account type.\n";
+            bReturnVal = false;
+            break;
+    }
 
-	return bReturnVal;
+    return bReturnVal;
 }
 
 
 bool OTAccount::IsOwnedByUser() const
 {
-	bool bReturnVal = false;
+    bool bReturnVal = false;
 
-	switch (m_AcctType)
-	{
-		case OTAccount::simple:
-		case OTAccount::issuer:
-			bReturnVal = true;
-			break;
-		case OTAccount::basket:
-		case OTAccount::basketsub:
-		case OTAccount::mint:
-		case OTAccount::voucher:
-		case OTAccount::stash:
-			bReturnVal = false;
-			break;
-		default:
-			otErr << "OTAccount::IsOwnedByUser: Unknown account type.\n";
-			bReturnVal = false;
-			break;
-	}
+    switch (m_AcctType)
+    {
+        case OTAccount::simple:
+        case OTAccount::issuer:
+            bReturnVal = true;
+            break;
+        case OTAccount::basket:
+        case OTAccount::basketsub:
+        case OTAccount::mint:
+        case OTAccount::voucher:
+        case OTAccount::stash:
+            bReturnVal = false;
+            break;
+        default:
+            otErr << "OTAccount::IsOwnedByUser: Unknown account type.\n";
+            bReturnVal = false;
+            break;
+    }
 
-	return bReturnVal;
+    return bReturnVal;
 }
 
 
 bool OTAccount::IsOwnedByEntity() const
 {
-	return false;
+    return false;
 }
 
 
@@ -1135,35 +1135,35 @@ bool OTAccount::IsIssuer() const
 
 bool OTAccount::IsAllowedToGoNegative() const
 {
-	bool bReturnVal = false;
+    bool bReturnVal = false;
 
-	switch (m_AcctType)
-	{
-		case OTAccount::issuer:		// issuer acct controlled by a user
-		case OTAccount::basket:		// basket issuer acct controlled by the server (for a basket currency)
-			bReturnVal = true;
-			break;
-		case OTAccount::simple:		// user asset acct
-		case OTAccount::basketsub:	// internal server acct for storing reserves for basket sub currencies
-		case OTAccount::mint:		// internal server acct for storing reserves for cash withdrawals
-		case OTAccount::voucher:	// internal server acct for storing reserves for vouchers (like cashier's cheques)
-		case OTAccount::stash:		// internal server acct for storing reserves for smart contract stashes. (Money stashed IN the contract.)
-			bReturnVal = false;
-			break;
-		default:
-			otErr << "OTAccount::IsAllowedToGoNegative: Unknown account type.\n";
-			bReturnVal = false;
-			break;
-	}
+    switch (m_AcctType)
+    {
+        case OTAccount::issuer:        // issuer acct controlled by a user
+        case OTAccount::basket:        // basket issuer acct controlled by the server (for a basket currency)
+            bReturnVal = true;
+            break;
+        case OTAccount::simple:        // user asset acct
+        case OTAccount::basketsub:    // internal server acct for storing reserves for basket sub currencies
+        case OTAccount::mint:        // internal server acct for storing reserves for cash withdrawals
+        case OTAccount::voucher:    // internal server acct for storing reserves for vouchers (like cashier's cheques)
+        case OTAccount::stash:        // internal server acct for storing reserves for smart contract stashes. (Money stashed IN the contract.)
+            bReturnVal = false;
+            break;
+        default:
+            otErr << "OTAccount::IsAllowedToGoNegative: Unknown account type.\n";
+            bReturnVal = false;
+            break;
+    }
 
-	return bReturnVal;
+    return bReturnVal;
 }
 
 
 void OTAccount::Release_Account()
 {
     m_BalanceDate.Release();
-	m_BalanceAmount.Release();
+    m_BalanceAmount.Release();
 
     m_InboxHash.Release();
     m_OutboxHash.Release();

@@ -195,9 +195,9 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym & theNym, const OTIdentifier & 
 
         if (bClawedBack)
             bNeedToSave = true;
-//		else 
-//			otErr << "OTBasket::HarvestClosingNumbers: Number (%lld) failed as issued. (Thus didn't bother 'adding it back'.)\n",
-//						  lClosingTransNo);
+//        else 
+//            otErr << "OTBasket::HarvestClosingNumbers: Number (%lld) failed as issued. (Thus didn't bother 'adding it back'.)\n",
+//                          lClosingTransNo);
     } // for
     // *************************************************************************
     // Then the BASKET currency itself...
@@ -231,25 +231,25 @@ void OTBasket::AddRequestSubContract(const OTIdentifier & SUB_CONTRACT_ID,
                                      const OTIdentifier & SUB_ACCOUNT_ID,
                                      const int64_t & lClosingTransactionNo)
 {
-	BasketItem * pItem = new BasketItem;
-	
-	OT_ASSERT_MSG(NULL != pItem, 
+    BasketItem * pItem = new BasketItem;
+    
+    OT_ASSERT_MSG(NULL != pItem, 
                   "Error allocating memory in OTBasket::AddRequestSubContract\n");
-		
-	// Minimum transfer amount is not set on a request. The server already knows its value.
-	// Also there is no multiple on the item, only on the basket as a whole.
-	// ALL items are multiplied by the same multiple. Even the basket amount itself is also.
-	
-	m_dequeItems.push_back(pItem);
+        
+    // Minimum transfer amount is not set on a request. The server already knows its value.
+    // Also there is no multiple on the item, only on the basket as a whole.
+    // ALL items are multiplied by the same multiple. Even the basket amount itself is also.
+    
+    m_dequeItems.push_back(pItem);
 
-	pItem->SUB_CONTRACT_ID		= SUB_CONTRACT_ID;
-	pItem->SUB_ACCOUNT_ID		= SUB_ACCOUNT_ID;
+    pItem->SUB_CONTRACT_ID        = SUB_CONTRACT_ID;
+    pItem->SUB_ACCOUNT_ID        = SUB_ACCOUNT_ID;
 
     // When the basketReceipts are accepted in all the asset accounts,
     // each one will have a transaction number, lClosingTransactionNo,
     // which the user will finally clear from his record by accepting
     // from his inbox.
-	pItem->lClosingTransactionNo    = lClosingTransactionNo;
+    pItem->lClosingTransactionNo    = lClosingTransactionNo;
 }
 
 
@@ -257,16 +257,16 @@ void OTBasket::AddRequestSubContract(const OTIdentifier & SUB_CONTRACT_ID,
 void OTBasket::AddSubContract(const OTIdentifier & SUB_CONTRACT_ID, 
                               int64_t lMinimumTransferAmount)
 {
-	BasketItem * pItem = new BasketItem;
-	
-	OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::AddSubContract\n");
-	
-	pItem->SUB_CONTRACT_ID			= SUB_CONTRACT_ID;
-	// server adds this later. Client can't know it in advance.
-//	pItem->SUB_ACCOUNT_ID			= SUB_ACCOUNT_ID; 
-	pItem->lMinimumTransferAmount	= lMinimumTransferAmount;
+    BasketItem * pItem = new BasketItem;
+    
+    OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::AddSubContract\n");
+    
+    pItem->SUB_CONTRACT_ID            = SUB_CONTRACT_ID;
+    // server adds this later. Client can't know it in advance.
+//    pItem->SUB_ACCOUNT_ID            = SUB_ACCOUNT_ID; 
+    pItem->lMinimumTransferAmount    = lMinimumTransferAmount;
 
-	m_dequeItems.push_back(pItem);
+    m_dequeItems.push_back(pItem);
 }
 
 
@@ -290,16 +290,16 @@ int64_t OTBasket::GetClosingTransactionNoAt(uint32_t nIndex)
 
 BasketItem * OTBasket::At(uint32_t nIndex)
 {
-	if (nIndex < m_dequeItems.size())
-		return m_dequeItems.at(nIndex);
-	
-	return NULL;
+    if (nIndex < m_dequeItems.size())
+        return m_dequeItems.at(nIndex);
+    
+    return NULL;
 }
 
 
 int32_t OTBasket::Count() const
 {
-	return static_cast<int32_t> (m_dequeItems.size());
+    return static_cast<int32_t> (m_dequeItems.size());
 }
 
 
@@ -308,7 +308,7 @@ int32_t OTBasket::Count() const
  {
  OTIdentifier SUB_CONTRACT_ID;
  OTIdentifier SUB_ACCOUNT_ID;
- int64_t		lMinimumTransferAmount;
+ int64_t        lMinimumTransferAmount;
  
  BasketItem() { lMinimumTransferAmount = 0; }
  ~BasketItem();
@@ -322,108 +322,108 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const OTString strNodeName(xml->getNodeName());
 
-	if (strNodeName.Compare("currencyBasket"))
-	{		
-		OTString strSubCount, strMinTrans;
-		strSubCount			= xml->getAttributeValue("contractCount");
-		strMinTrans			= xml->getAttributeValue("minimumTransfer"); 
-		
-		m_nSubCount			= atoi(strSubCount.Get());
-		m_lMinimumTransfer	= atol(strMinTrans.Get()); 
-		
-		otWarn << "Loading currency basket...\n";
-		
-		return 1;
-	}
-	else if (strNodeName.Compare("requestExchange"))
-	{		
-		OTString strTransferMultiple, strRequestAccountID, strDirection, strTemp;
-		
-		strTransferMultiple	= xml->getAttributeValue("transferMultiple");
-		strRequestAccountID	= xml->getAttributeValue("transferAccountID");
+    if (strNodeName.Compare("currencyBasket"))
+    {        
+        OTString strSubCount, strMinTrans;
+        strSubCount            = xml->getAttributeValue("contractCount");
+        strMinTrans            = xml->getAttributeValue("minimumTransfer"); 
+        
+        m_nSubCount            = atoi(strSubCount.Get());
+        m_lMinimumTransfer    = atol(strMinTrans.Get()); 
+        
+        otWarn << "Loading currency basket...\n";
+        
+        return 1;
+    }
+    else if (strNodeName.Compare("requestExchange"))
+    {        
+        OTString strTransferMultiple, strRequestAccountID, strDirection, strTemp;
+        
+        strTransferMultiple    = xml->getAttributeValue("transferMultiple");
+        strRequestAccountID    = xml->getAttributeValue("transferAccountID");
         strDirection        = xml->getAttributeValue("direction"); 
         strTemp             = xml->getAttributeValue("closingTransactionNo");
-		
+        
         if (strTransferMultiple.Exists())
-            m_nTransferMultiple	= atoi(strTransferMultiple.Get());
+            m_nTransferMultiple    = atoi(strTransferMultiple.Get());
         if (strRequestAccountID.Exists())
             m_RequestAccountID.SetString(strRequestAccountID);
         if (strDirection.Exists())
             m_bExchangingIn = strDirection.Compare("in");
         if (strTemp.Exists())
-            SetClosingNum(atol(	strTemp.Get()	));
+            SetClosingNum(atol(    strTemp.Get()    ));
 
-		otInfo << "Basket Transfer multiple is " << m_nTransferMultiple << ". Direction is " << strDirection <<
-			". Closing number is " << m_lClosingTransactionNo << ". Target account is:\n" << strRequestAccountID << "\n";
-		
-		return 1;
-	}
-	else if (strNodeName.Compare("basketItem"))
-	{
-		BasketItem * pItem = new BasketItem;
-		
-		OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::ProcessXMLNode\n");
-		
+        otInfo << "Basket Transfer multiple is " << m_nTransferMultiple << ". Direction is " << strDirection <<
+            ". Closing number is " << m_lClosingTransactionNo << ". Target account is:\n" << strRequestAccountID << "\n";
+        
+        return 1;
+    }
+    else if (strNodeName.Compare("basketItem"))
+    {
+        BasketItem * pItem = new BasketItem;
+        
+        OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::ProcessXMLNode\n");
+        
         OTString strTemp;
         
-		strTemp = xml->getAttributeValue("minimumTransfer");
+        strTemp = xml->getAttributeValue("minimumTransfer");
         if (strTemp.Exists())
-            pItem->lMinimumTransferAmount	= atol(	strTemp.Get()	);
+            pItem->lMinimumTransferAmount    = atol(    strTemp.Get()    );
 
         strTemp = xml->getAttributeValue("closingTransactionNo");
         if (strTemp.Exists())
-            pItem->lClosingTransactionNo	= atol(	strTemp.Get()	);
+            pItem->lClosingTransactionNo    = atol(    strTemp.Get()    );
         
-		OTString	strSubAccountID(xml->getAttributeValue("accountID")),
-					strContractID(xml->getAttributeValue("assetID"));
-		pItem->SUB_ACCOUNT_ID.SetString(strSubAccountID); 
-		pItem->SUB_CONTRACT_ID.SetString(strContractID);
-		
-		m_dequeItems.push_back(pItem);
+        OTString    strSubAccountID(xml->getAttributeValue("accountID")),
+                    strContractID(xml->getAttributeValue("assetID"));
+        pItem->SUB_ACCOUNT_ID.SetString(strSubAccountID); 
+        pItem->SUB_CONTRACT_ID.SetString(strContractID);
+        
+        m_dequeItems.push_back(pItem);
 
-		otInfo << "Loaded basket item.\n";
-		
-		return 1;
-	}
-	
-	return 0;	
+        otInfo << "Loaded basket item.\n";
+        
+        return 1;
+    }
+    
+    return 0;    
 }
 
 
 void OTBasket::UpdateContents() // Before transmission or serialization, this is where the basket updates its contents 
-{		
-	// I release this because I'm about to repopulate it.
-	m_xmlUnsigned.Release();
-	
-	m_xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n" 
-							  " minimumTransfer=\"%lld\" >\n\n", 
-							  m_nSubCount, m_lMinimumTransfer);
-	
+{        
+    // I release this because I'm about to repopulate it.
+    m_xmlUnsigned.Release();
+    
+    m_xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n" 
+                              " minimumTransfer=\"%lld\" >\n\n", 
+                              m_nSubCount, m_lMinimumTransfer);
+    
     // Only uesd in Request Basket (requesting an exchange in/out.)
     // (Versus a basket object used for ISSUING a basket currency, this is EXCHANGING instead.)
     //
-	if (IsExchanging())
-	{
-		OTString strRequestAcctID(m_RequestAccountID);
-		m_xmlUnsigned.Concatenate("<requestExchange "
+    if (IsExchanging())
+    {
+        OTString strRequestAcctID(m_RequestAccountID);
+        m_xmlUnsigned.Concatenate("<requestExchange "
                                   "transferMultiple=\"%d\"\n "
                                   "transferAccountID=\"%s\"\n "
                                   "closingTransactionNo=\"%lld\"\n "                               
                                   "direction=\"%s\" />\n\n", 
-								  m_nTransferMultiple,
+                                  m_nTransferMultiple,
                                   strRequestAcctID.Get(),
                                   m_lClosingTransactionNo,
                                   m_bExchangingIn ? "in" : "out");
-	}
+    }
 
-	for (int32_t i = 0; i < Count(); i++)
-	{
-		BasketItem * pItem = m_dequeItems[i];
-		
-		OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::UpdateContents\n");
-		
-		OTString strAcctID(pItem->SUB_ACCOUNT_ID), strContractID(pItem->SUB_CONTRACT_ID);
-		
+    for (int32_t i = 0; i < Count(); i++)
+    {
+        BasketItem * pItem = m_dequeItems[i];
+        
+        OT_ASSERT_MSG(NULL != pItem, "Error allocating memory in OTBasket::UpdateContents\n");
+        
+        OTString strAcctID(pItem->SUB_ACCOUNT_ID), strContractID(pItem->SUB_CONTRACT_ID);
+        
         if (IsExchanging())
             m_xmlUnsigned.Concatenate("<basketItem minimumTransfer=\"%lld\"\n"
                                   " closingTransactionNo=\"%lld\"\n"
@@ -433,16 +433,16 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
                                   pItem->lClosingTransactionNo,
                                   m_bHideAccountID ? "" : strAcctID.Get(),
                                   strContractID.Get());
-		else
+        else
             m_xmlUnsigned.Concatenate("<basketItem minimumTransfer=\"%lld\"\n"
                                   " accountID=\"%s\"\n"
                                   " assetID=\"%s\" />\n\n", 
                                   pItem->lMinimumTransferAmount,
                                   m_bHideAccountID ? "" : strAcctID.Get(),
                                   strContractID.Get());
-	}
-	
-	m_xmlUnsigned.Concatenate("</currencyBasket>\n");					
+    }
+    
+    m_xmlUnsigned.Concatenate("</currencyBasket>\n");                    
 }
 
 
@@ -451,20 +451,20 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
 // This way, the basket will produce a consistent ID across multiple different servers.
 void OTBasket::CalculateContractID(OTIdentifier & newID)
 {
-	const OTString strContents(m_xmlUnsigned);
-	
-	// Produce a version of the file without account IDs (which are different from server to server.)
-	//
-	m_bHideAccountID	= true;
-	
-	UpdateContents();  // <=========
-	
-	newID.CalculateDigest(m_xmlUnsigned);
+    const OTString strContents(m_xmlUnsigned);
+    
+    // Produce a version of the file without account IDs (which are different from server to server.)
+    //
+    m_bHideAccountID    = true;
+    
+    UpdateContents();  // <=========
+    
+    newID.CalculateDigest(m_xmlUnsigned);
 
-	// Put it back the way it was.
-	m_bHideAccountID	= false;
-//	UpdateContents(); // No need to do this, we already had this string before (above).
-	m_xmlUnsigned = strContents; // Here we just set it back again.
+    // Put it back the way it was.
+    m_bHideAccountID    = false;
+//    UpdateContents(); // No need to do this, we already had this string before (above).
+    m_xmlUnsigned = strContents; // Here we just set it back again.
 }
 
 
@@ -494,27 +494,27 @@ OTBasket::OTBasket() :  ot_super(),
 
 OTBasket::~OTBasket()
 {
-	Release_Basket();
+    Release_Basket();
 }
 
 
 void OTBasket::Release_Basket()
 {
-	BasketItem * pItem = NULL;
-	
-	m_RequestAccountID.Release();
-	
-	while (!m_dequeItems.empty()) 
-	{
-		pItem = m_dequeItems.front();
-		m_dequeItems.pop_front();
-		delete pItem;
-	}
+    BasketItem * pItem = NULL;
     
-	m_nSubCount			= 0;
-	m_lMinimumTransfer	= 0;
-	m_nTransferMultiple	= 0;
-	m_bHideAccountID	= false;
+    m_RequestAccountID.Release();
+    
+    while (!m_dequeItems.empty()) 
+    {
+        pItem = m_dequeItems.front();
+        m_dequeItems.pop_front();
+        delete pItem;
+    }
+    
+    m_nSubCount            = 0;
+    m_lMinimumTransfer    = 0;
+    m_nTransferMultiple    = 0;
+    m_bHideAccountID    = false;
     m_bExchangingIn     = false;
     m_lClosingTransactionNo = 0;
 }
@@ -530,7 +530,7 @@ void OTBasket::Release()
 
 bool OTBasket::SaveContractWallet(std::ofstream &)
 {
-	return true;
+    return true;
 }
 
 } // namespace opentxs

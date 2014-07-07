@@ -149,22 +149,22 @@ namespace opentxs {
 template <class T> class OTCleanup
 {
 private:
-	const T * m_pCharge;
+    const T * m_pCharge;
 
 public:
-	// Use this as much as you can.
-	inline void SetCleanupTarget(const T & theTarget) { m_pCharge = &theTarget; }
+    // Use this as much as you can.
+    inline void SetCleanupTarget(const T & theTarget) { m_pCharge = &theTarget; }
 
-	// Use this when you want it to work even if pTarget is NULL.
-	// (Like, it will accept the NULL pointer, and just be smart
-	// enough NOT to delete it, since it's already NULL.)
-	inline void SetCleanupTargetPointer(const T * pTarget) { m_pCharge = pTarget; }
+    // Use this when you want it to work even if pTarget is NULL.
+    // (Like, it will accept the NULL pointer, and just be smart
+    // enough NOT to delete it, since it's already NULL.)
+    inline void SetCleanupTargetPointer(const T * pTarget) { m_pCharge = pTarget; }
 
-	OTCleanup()                    : m_pCharge(NULL) { }
-	OTCleanup(const T & theTarget) : m_pCharge(&theTarget) {  }
-	OTCleanup(const T * pTarget)   : m_pCharge(pTarget) {  }
+    OTCleanup()                    : m_pCharge(NULL) { }
+    OTCleanup(const T & theTarget) : m_pCharge(&theTarget) {  }
+    OTCleanup(const T * pTarget)   : m_pCharge(pTarget) {  }
 
-	~OTCleanup() { if (m_pCharge) delete const_cast<T *>(m_pCharge); m_pCharge = NULL; }
+    ~OTCleanup() { if (m_pCharge) delete const_cast<T *>(m_pCharge); m_pCharge = NULL; }
 };
 
 } // namespace opentxs

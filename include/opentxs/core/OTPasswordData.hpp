@@ -149,8 +149,8 @@ class OTString;
  (Or...)
  OTPassword thePass(strPassword, strPassword.length());
 
- const char * szPassword	= thePass.getPassword();
- const int32_t    nPassLength	= thePass.getPasswordSize();
+ const char * szPassword    = thePass.getPassword();
+ const int32_t    nPassLength    = thePass.getPasswordSize();
 
  If the instance of OTPassword is not going to be destroyed immediately
  after the password is used, then make sure to call zeroMemory() after
@@ -167,12 +167,12 @@ class OTString;
 
 #define OT_PW_DISPLAY  "Enter master passphrase for wallet."
 
-#define OTPASSWORD_BLOCKSIZE    128		// (128 bytes max length for a password.)
-#define OTPASSWORD_MEMSIZE		129		// +1 for null terminator.
+#define OTPASSWORD_BLOCKSIZE    128        // (128 bytes max length for a password.)
+#define OTPASSWORD_MEMSIZE        129        // +1 for null terminator.
 
 // UPDATE: Increasing the size here, so we can accommodate private keys (in addition to passphrases.)
-#define OT_LARGE_BLOCKSIZE	32767		// (32767 bytes max length for a password.)
-#define OT_LARGE_MEMSIZE	32768		// +1 for null terminator.
+#define OT_LARGE_BLOCKSIZE    32767        // (32767 bytes max length for a password.)
+#define OT_LARGE_MEMSIZE    32768        // +1 for null terminator.
 
 // Default is the smaller size.
 #define OT_DEFAULT_BLOCKSIZE  128
@@ -248,7 +248,7 @@ void main()
     //  Memory to encrypt must be a multiple of CRYPTPROTECTMEMORY_BLOCK_SIZE.
     if (dwMod = cbPlainText % CRYPTPROTECTMEMORY_BLOCK_SIZE)
         cbSensitiveText = cbPlainText +
-		(CRYPTPROTECTMEMORY_BLOCK_SIZE - dwMod);
+        (CRYPTPROTECTMEMORY_BLOCK_SIZE - dwMod);
     else
         cbSensitiveText = cbPlainText;
 
@@ -262,7 +262,7 @@ void main()
     //  Place sensitive string to encrypt in pSensitiveText.
 
     if (!CryptProtectMemory(pSensitiveText, cbSensitiveText,
-		CRYPTPROTECTMEMORY_SAME_PROCESS))
+        CRYPTPROTECTMEMORY_SAME_PROCESS))
     {
         wprintf(L"CryptProtectMemory failed: %d\n", GetLastError());
         SecureZeroMemory(pSensitiveText, cbSensitiveText);
@@ -297,17 +297,17 @@ void main()
 {
     LPWSTR pEncryptedText;  // contains the encrypted text
     DWORD cbEncryptedText;  // number of bytes to which
-	                        // pEncryptedText points
+                            // pEncryptedText points
 
     if (CryptUnprotectMemory(pEncryptedText, cbEncryptedText,
-		CRYPTPROTECTMEMORY_SAME_PROCESS))
+        CRYPTPROTECTMEMORY_SAME_PROCESS))
     {
         // Use the decrypted string.
     }
     else
     {
         wprintf(L"CryptUnprotectMemory failed: %d\n",
-			GetLastError());
+            GetLastError());
     }
 
     // Clear and free memory after using

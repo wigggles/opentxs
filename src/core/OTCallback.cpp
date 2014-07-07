@@ -165,8 +165,8 @@ namespace opentxs {
 
 OTCallback::~OTCallback()
 {
-	otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- as the application is closing.)\n";
-//	std::cout << "OTCallback::~OTCallback()" << std:: endl;
+    otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- as the application is closing.)\n";
+//    std::cout << "OTCallback::~OTCallback()" << std:: endl;
 }
 
 
@@ -174,7 +174,7 @@ OTCallback::~OTCallback()
 //
 void OTCallback::runOne(const char *, OTPassword &) // child class will override.
 {
-	OT_FAIL_MSG("OTCallback::runOne: ASSERT (The child class was supposed to override this method.)\n");
+    OT_FAIL_MSG("OTCallback::runOne: ASSERT (The child class was supposed to override this method.)\n");
 }
 
 
@@ -182,7 +182,7 @@ void OTCallback::runOne(const char *, OTPassword &) // child class will override
 //
 void OTCallback::runTwo(const char *, OTPassword &) // child class will override.
 {
-	OT_FAIL_MSG("OTCallback::runTwo: ASSERT (The child class was supposed to override this method.)\n");
+    OT_FAIL_MSG("OTCallback::runTwo: ASSERT (The child class was supposed to override this method.)\n");
 }
 
 } // namespace opentxs

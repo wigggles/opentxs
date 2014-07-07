@@ -147,7 +147,7 @@ class OTPartyAccount;
 class OTPseudonym;
 class OTSmartContract;
 
-typedef std::map<std::string, OTPseudonym *>	mapOfNyms;
+typedef std::map<std::string, OTPseudonym *>    mapOfNyms;
 
 
 // Agent is always either the Owner Nym acting in his own interests,
@@ -164,113 +164,113 @@ private:
     bool m_bNymRepresentsSelf; // Whether this agent represents himself (a nym) or whether he represents an entity of some sort.
     bool m_bIsAnIndividual; // Whether this agent is a voting group or Nym (whether Nym acting for himself or for some entity.)
 
-	// If agent is active (has a nym), here is the sometimes-available pointer to said Agent Nym.
-    OTPseudonym *	m_pNym; // this pointer is not owned by this object, and is here for convenience only.
-	// someday may add a "role" pointer here.
+    // If agent is active (has a nym), here is the sometimes-available pointer to said Agent Nym.
+    OTPseudonym *    m_pNym; // this pointer is not owned by this object, and is here for convenience only.
+    // someday may add a "role" pointer here.
 
-	OTParty *		m_pForParty; // The agent probably has a pointer to the party it acts on behalf of.
+    OTParty *        m_pForParty; // The agent probably has a pointer to the party it acts on behalf of.
 
-	/*
-	 <Agent type=“group”// could be “nym”, or “role”, or “group”.
-			Nym_id=“” // In case of “nym”, this is the Nym’s ID. If “role”, this is NymID of employee in role.
-			Role_id=“” // In case of “role”, this is the Role’s ID.
-			Entity_id=“this” // same as OwnerID if ever used. Should remove.
-			Group_Name=“class_A” // “class A shareholders” are the voting group that controls this agent.
-	 */
+    /*
+     <Agent type=“group”// could be “nym”, or “role”, or “group”.
+            Nym_id=“” // In case of “nym”, this is the Nym’s ID. If “role”, this is NymID of employee in role.
+            Role_id=“” // In case of “role”, this is the Role’s ID.
+            Entity_id=“this” // same as OwnerID if ever used. Should remove.
+            Group_Name=“class_A” // “class A shareholders” are the voting group that controls this agent.
+     */
 
-	OTString m_strName; // agent name (accessible within script language.)
+    OTString m_strName; // agent name (accessible within script language.)
 
-	// info about agent.
-	//
-	OTString m_strNymID;		// If agent is a Nym, then this is the NymID of that Nym (whether that Nym is owner or not.)
-								// If agent is a group (IsAGroup()) then this will be blank. This is different than the
-								// Nym stored in OTParty, which if present ALWAYS refers to the OWNER Nym (Though this Nym
-								// MAY ALSO be the owner, that fact is purely incidental here AND this NymID could be blank.)
-	OTString m_strRoleID;		// If agent is Nym working in a role on behalf of an entity, then this is its RoleID in Entity.
-	OTString m_strGroupName;	// If agent is a voting group in an Entity, this is group's Name (inside Entity.)
+    // info about agent.
+    //
+    OTString m_strNymID;        // If agent is a Nym, then this is the NymID of that Nym (whether that Nym is owner or not.)
+                                // If agent is a group (IsAGroup()) then this will be blank. This is different than the
+                                // Nym stored in OTParty, which if present ALWAYS refers to the OWNER Nym (Though this Nym
+                                // MAY ALSO be the owner, that fact is purely incidental here AND this NymID could be blank.)
+    OTString m_strRoleID;        // If agent is Nym working in a role on behalf of an entity, then this is its RoleID in Entity.
+    OTString m_strGroupName;    // If agent is a voting group in an Entity, this is group's Name (inside Entity.)
 
     // ------------------------------------------------
 
 public:
-	OTAgent();
-	OTAgent(const std::string str_agent_name, OTPseudonym & theNym, bool bNymRepresentsSelf=true);
-	/*IF false, then: ENTITY and ROLE parameters go here.*/
-	//
-	// Someday another constructor here like the above, for
-	// instantiating with an Entity/Group instead of with a Nym.
+    OTAgent();
+    OTAgent(const std::string str_agent_name, OTPseudonym & theNym, bool bNymRepresentsSelf=true);
+    /*IF false, then: ENTITY and ROLE parameters go here.*/
+    //
+    // Someday another constructor here like the above, for
+    // instantiating with an Entity/Group instead of with a Nym.
 
-	OTAgent(bool bNymRepresentsSelf,
-			bool bIsAnIndividual,
-			const OTString& strName,
-			const OTString& strNymID,
-			const OTString& strRoleID,
-			const OTString& strGroupName);
+    OTAgent(bool bNymRepresentsSelf,
+            bool bIsAnIndividual,
+            const OTString& strName,
+            const OTString& strNymID,
+            const OTString& strRoleID,
+            const OTString& strGroupName);
 
-	virtual ~OTAgent();
+    virtual ~OTAgent();
 
-	void Serialize(OTString & strAppend);
+    void Serialize(OTString & strAppend);
 
-	// For pointers I don't own, but store for convenience.
-	// This clears them once we're done processing, so I don't
-	// end up stuck with bad pointers on the next go-around.
-	//
-	void ClearTemporaryPointers() { m_pNym = NULL; } /* Someday clear entity/role ptr here? And do NOT
-													    clear party ptr here (since it's not temporary.)  */
+    // For pointers I don't own, but store for convenience.
+    // This clears them once we're done processing, so I don't
+    // end up stuck with bad pointers on the next go-around.
+    //
+    void ClearTemporaryPointers() { m_pNym = NULL; } /* Someday clear entity/role ptr here? And do NOT
+                                                        clear party ptr here (since it's not temporary.)  */
     // ---------------------------------
-	// NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
-	// They will definitely fail if you haven't already loaded the Nym.
-	//
-	bool VerifyIssuedNumber(const int64_t & lNumber, const OTString & strServerID);
-	bool VerifyTransactionNumber(const int64_t & lNumber, const OTString & strServerID);
+    // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
+    // They will definitely fail if you haven't already loaded the Nym.
+    //
+    bool VerifyIssuedNumber(const int64_t & lNumber, const OTString & strServerID);
+    bool VerifyTransactionNumber(const int64_t & lNumber, const OTString & strServerID);
 
-	bool RemoveIssuedNumber(const int64_t & lNumber,
+    bool RemoveIssuedNumber(const int64_t & lNumber,
                             const OTString & strServerID,
                             bool bSave=false,
                             OTPseudonym * pSignerNym=NULL);
-	bool RemoveTransactionNumber(const int64_t & lNumber, const OTString & strServerID, OTPseudonym & SIGNER_NYM, bool bSave=true);
+    bool RemoveTransactionNumber(const int64_t & lNumber, const OTString & strServerID, OTPseudonym & SIGNER_NYM, bool bSave=true);
 
-	bool HarvestTransactionNumber(const int64_t & lNumber, const OTString & strServerID,
+    bool HarvestTransactionNumber(const int64_t & lNumber, const OTString & strServerID,
                                   bool bSave=false, // Each agent's nym is used if pSignerNym is NULL, whereas the server
                                   OTPseudonym * pSignerNym=NULL); // uses this optional arg to substitute serverNym as signer.
 
     // ---------------------------------
-	bool ReserveOpeningTransNum(const OTString & strServerID);
-	bool ReserveClosingTransNum(const OTString & strServerID, OTPartyAccount & thePartyAcct);
+    bool ReserveOpeningTransNum(const OTString & strServerID);
+    bool ReserveClosingTransNum(const OTString & strServerID, OTPartyAccount & thePartyAcct);
     // ---------------------------------
-EXPORT	bool SignContract(OTContract & theInput);
+EXPORT    bool SignContract(OTContract & theInput);
 
-	// Verify that this agent somehow has legitimate agency over this account. (According to the account.)
-	//
-	bool VerifyAgencyOfAccount(const OTAccount & theAccount) const;
+    // Verify that this agent somehow has legitimate agency over this account. (According to the account.)
+    //
+    bool VerifyAgencyOfAccount(const OTAccount & theAccount) const;
     // ---------------------------------
-	bool VerifySignature(OTContract & theContract); // Have the agent try to verify his own signature against any contract.
+    bool VerifySignature(OTContract & theContract); // Have the agent try to verify his own signature against any contract.
 
     void SetParty(OTParty & theOwnerParty); // This happens when the agent is added to the party.
 
-	void SetNymPointer(OTPseudonym & theNym) { m_pNym = &theNym; }
+    void SetNymPointer(OTPseudonym & theNym) { m_pNym = &theNym; }
 
-EXPORT	bool IsValidSigner(OTPseudonym & theNym);
-EXPORT	bool IsValidSignerID(const OTIdentifier & theNymID);
+EXPORT    bool IsValidSigner(OTPseudonym & theNym);
+EXPORT    bool IsValidSignerID(const OTIdentifier & theNymID);
 
-	bool IsAuthorizingAgentForParty();	// true/false whether THIS agent is the authorizing agent for his party.
-	int32_t  GetCountAuthorizedAccts();		// The number of accounts, owned by this agent's party, that this agent is the authorized agent FOR.
+    bool IsAuthorizingAgentForParty();    // true/false whether THIS agent is the authorizing agent for his party.
+    int32_t  GetCountAuthorizedAccts();        // The number of accounts, owned by this agent's party, that this agent is the authorized agent FOR.
 
-	// ---------------------------------
+    // ---------------------------------
     // Only one of these can be true:
     // (I wrestle with making these 2 calls private, since technically it should be irrelevant to the external.)
     //
     bool DoesRepresentHimself() const; // If the agent is a Nym acting for himself, this will be true. Otherwise, if agent is a Nym acting in a role for an entity, or if agent is a voting group acting for the entity to which it belongs, either way, this will be false.
-	// ** OR **
+    // ** OR **
     bool DoesRepresentAnEntity() const; // Whether the agent is a voting group acting for an entity, or is a Nym acting in a Role for an entity, this will be true either way. (Otherwise, if agent is a Nym acting for himself, then this will be false.)
 
-	// --------------------
-	// Only one of these can be true:
+    // --------------------
+    // Only one of these can be true:
     // - Agent is either a Nym acting for himself or some entity,
     // - or agent is a group acting for some entity.
 
-EXPORT	bool IsAnIndividual() const;	// Agent is an individual Nym. (Meaning either he IS ALSO the party and thus represents himself, OR he is an agent for an entity who is the party, and he's acting in a role for that entity.) If agent were a group, this would be false.
-	// ** OR **
-    bool IsAGroup() const;			// OR: Agent is a voting group, which cannot take proactive or instant action, but only passive and delayed. Entity-ONLY. (A voting group cannot decide on behalf of individual, but only on behalf of the entity it belongs to.)
+EXPORT    bool IsAnIndividual() const;    // Agent is an individual Nym. (Meaning either he IS ALSO the party and thus represents himself, OR he is an agent for an entity who is the party, and he's acting in a role for that entity.) If agent were a group, this would be false.
+    // ** OR **
+    bool IsAGroup() const;            // OR: Agent is a voting group, which cannot take proactive or instant action, but only passive and delayed. Entity-ONLY. (A voting group cannot decide on behalf of individual, but only on behalf of the entity it belongs to.)
 
     // ---------------------
 
@@ -281,12 +281,12 @@ EXPORT	bool IsAnIndividual() const;	// Agent is an individual Nym. (Meaning eith
     // then groups and nyms can act as agents for that entity. You cannot have
     // an agent without an entity formed by contract, since you otherwise have no agency agreement.
 
-	// ----------------------
-	// For when the agent is an individual:
-	//
-EXPORT	bool GetNymID(OTIdentifier& theOutput) const;		// If IsIndividual(), then this is his own personal NymID, (whether he DoesRepresentHimself() or DoesRepresentAnEntity() -- either way). Otherwise if IsGroup(), this returns false.
+    // ----------------------
+    // For when the agent is an individual:
+    //
+EXPORT    bool GetNymID(OTIdentifier& theOutput) const;        // If IsIndividual(), then this is his own personal NymID, (whether he DoesRepresentHimself() or DoesRepresentAnEntity() -- either way). Otherwise if IsGroup(), this returns false.
 
-	bool GetRoleID(OTIdentifier& theOutput) const;		// IF IsIndividual() AND DoesRepresentAnEntity(), then this is his RoleID within that Entity. Otherwise, if IsGroup() or DoesRepresentHimself(), then this returns false.
+    bool GetRoleID(OTIdentifier& theOutput) const;        // IF IsIndividual() AND DoesRepresentAnEntity(), then this is his RoleID within that Entity. Otherwise, if IsGroup() or DoesRepresentHimself(), then this returns false.
 
     // --------------------------------------
     // Notice if the agent is a voting group, then it has no signer. (Instead it will have an election.)
@@ -298,9 +298,9 @@ EXPORT	bool GetNymID(OTIdentifier& theOutput) const;		// If IsIndividual(), then
     // script would also therefore be impossible.
     //
     bool GetSignerID(OTIdentifier& theOutput) const;
-	// If IsIndividual() and DoesRepresentAnEntity() then this returns GetRoleID().
-	// else if Individual() and DoesRepresentHimself() then this returns GetNymID().
-	// else (if IsGroup()) then return false;
+    // If IsIndividual() and DoesRepresentAnEntity() then this returns GetRoleID().
+    // else if Individual() and DoesRepresentHimself() then this returns GetNymID().
+    // else (if IsGroup()) then return false;
 
     // --------------------------------------------------
     // For when the agent DoesRepresentAnEntity():
@@ -312,17 +312,17 @@ EXPORT	bool GetNymID(OTIdentifier& theOutput) const;		// If IsIndividual(), then
     // Otherwise, if the agent DoesRepresentHimself(), then this returns false.
     // I'm debating making this function private along with DoesRepresentHimself / DoesRepresentAnEntity().
     //
-	bool GetEntityID(OTIdentifier& theOutput) const; // IF represents an entity, this is its ID. Else fail.
+    bool GetEntityID(OTIdentifier& theOutput) const; // IF represents an entity, this is its ID. Else fail.
 
-EXPORT	const OTString & GetName() { return m_strName; } // agent's name as used in a script.
+EXPORT    const OTString & GetName() { return m_strName; } // agent's name as used in a script.
     // ------------------------------------------
-	// For when the agent is a voting group:
+    // For when the agent is a voting group:
     //
-	bool GetGroupName(OTString & strGroupName); // The GroupName group will be found in the EntityID entity.
-	//
+    bool GetGroupName(OTString & strGroupName); // The GroupName group will be found in the EntityID entity.
+    //
     // If !IsGroup() aka IsIndividual(), then this will return false.
     //
-	// --------------------
+    // --------------------
 
 //  bool DoesRepresentHimself();
 //  bool DoesRepresentAnEntity();
@@ -337,7 +337,7 @@ EXPORT	const OTString & GetName() { return m_strName; } // agent's name as used 
     //
     bool GetPartyID(OTIdentifier& theOutput) const;
 
-	OTParty * GetParty() { return m_pForParty; }
+    OTParty * GetParty() { return m_pForParty; }
 
     // IDEA: Put a Nym in the Nyms folder for each entity. While it may
     // not have a public key in the pubkey folder, or embedded within it,
@@ -346,43 +346,43 @@ EXPORT	const OTString & GetName() { return m_strName; } // agent's name as used 
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-	// ----------------
-	// Often we endeavor to avoid loading the same Nym twice, and a higher-level function
-	// will ask an OTParty for a list of all the Nym pointers that it already has,
-	// so they can be checked for various things if they are already loaded (when they are needed)
-	// without having to load them again in order to check those things, purely out of blindness
-	// to the fact that they had infact already been loaded and were floating around in memory somewhere.
-	//
-	void RetrieveNymPointer(mapOfNyms & map_Nyms_Already_Loaded);
+    // ----------------
+    // Often we endeavor to avoid loading the same Nym twice, and a higher-level function
+    // will ask an OTParty for a list of all the Nym pointers that it already has,
+    // so they can be checked for various things if they are already loaded (when they are needed)
+    // without having to load them again in order to check those things, purely out of blindness
+    // to the fact that they had infact already been loaded and were floating around in memory somewhere.
+    //
+    void RetrieveNymPointer(mapOfNyms & map_Nyms_Already_Loaded);
 
-	OTPseudonym * LoadNym(OTPseudonym & theServerNym);
+    OTPseudonym * LoadNym(OTPseudonym & theServerNym);
 
-	bool DropFinalReceiptToNymbox(OTSmartContract & theSmartContract,
-								  const int64_t & lNewTransactionNumber,
-								  const OTString & strOrigCronItem,
-								  OTString      * pstrNote=NULL,
-								  OTString      * pstrAttachment=NULL,
+    bool DropFinalReceiptToNymbox(OTSmartContract & theSmartContract,
+                                  const int64_t & lNewTransactionNumber,
+                                  const OTString & strOrigCronItem,
+                                  OTString      * pstrNote=NULL,
+                                  OTString      * pstrAttachment=NULL,
                                   OTPseudonym   * pActualNym=NULL);
 
-	bool DropFinalReceiptToInbox(mapOfNyms * pNymMap,
-								 const OTString & strServerID,
-								 OTPseudonym & theServerNym,
-								 OTSmartContract & theSmartContract,
-								 const OTIdentifier & theAccountID,
-								 const int64_t & lNewTransactionNumber,
-								 const int64_t & lClosingNumber,
-								 const OTString & strOrigCronItem,
-								 OTString * pstrNote=NULL,
-								 OTString * pstrAttachment=NULL);
+    bool DropFinalReceiptToInbox(mapOfNyms * pNymMap,
+                                 const OTString & strServerID,
+                                 OTPseudonym & theServerNym,
+                                 OTSmartContract & theSmartContract,
+                                 const OTIdentifier & theAccountID,
+                                 const int64_t & lNewTransactionNumber,
+                                 const int64_t & lClosingNumber,
+                                 const OTString & strOrigCronItem,
+                                 OTString * pstrNote=NULL,
+                                 OTString * pstrAttachment=NULL);
 
-	bool DropServerNoticeToNymbox(bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
+    bool DropServerNoticeToNymbox(bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
                                   OTPseudonym & theServerNym,
-								  const OTIdentifier & theServerID,
-								  const int64_t & lNewTransactionNumber,
-								  const int64_t & lInReferenceTo,
-								  const OTString & strReference,
-								  OTString      * pstrNote=NULL,
-								  OTString      * pstrAttachment=NULL,
+                                  const OTIdentifier & theServerID,
+                                  const int64_t & lNewTransactionNumber,
+                                  const int64_t & lInReferenceTo,
+                                  const OTString & strReference,
+                                  OTString      * pstrNote=NULL,
+                                  OTString      * pstrAttachment=NULL,
                                   OTPseudonym   * pActualNym=NULL);
 
 };

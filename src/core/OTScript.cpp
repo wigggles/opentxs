@@ -224,7 +224,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type)
     }
 #endif
 
-	otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
+    otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
     
     _SharedPtr<OTScript> retVal;
     return retVal;
@@ -243,7 +243,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type,
         return pChaiScript;
     }
 
-	//#elif OT_USE_SCRIPT_LUA
+    //#elif OT_USE_SCRIPT_LUA
     //  if (script_type =="lua") // todo no hardcoding.
     //  {
     //      _SharedPtr<OTScript> pLuaScript(new OTScriptLua(script_contents));
@@ -261,7 +261,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string & script_type,
     }
 #endif
 
-	otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
+    otErr << __FUNCTION__ << ": Script language (" << script_type << ") not found.\n";
     
     _SharedPtr<OTScript> retVal;
     return retVal;

@@ -157,14 +157,14 @@ class OTPurse;
 6) When token is redeemed, it has already been unblinded. So Server simply verifies it.
 
  LAST NAGGING QUESTION:  Should the server sign the other 99 tokens before unblinding them and verifying?
-						In fact, what is it verifying at all?? Certainly not the amount, which is not even in
-						the Lucre token. If all it does is verify its signature, then why sign it just to
-						verify it?  Why exactly am I sending 99 tokens? What is the server unblinding them
-						to look for??  Just to make sure all the IDs are random?  That they aren't spent
-						already?
-						I think that's it.  The client has assurance he chose his own random IDs, the server
-						verifies they are random and not spent already, and the ID portion is the only part
-						that has to be randomized.
+                        In fact, what is it verifying at all?? Certainly not the amount, which is not even in
+                        the Lucre token. If all it does is verify its signature, then why sign it just to
+                        verify it?  Why exactly am I sending 99 tokens? What is the server unblinding them
+                        to look for??  Just to make sure all the IDs are random?  That they aren't spent
+                        already?
+                        I think that's it.  The client has assurance he chose his own random IDs, the server
+                        verifies they are random and not spent already, and the ID portion is the only part
+                        that has to be randomized.
 
  UPDATE:
  Ben Laurie has confirmed that the Chaumian 99 token requirement does not exist with Lucre. All I have to
@@ -189,11 +189,11 @@ private:  // Private prevents erroneous use by other classes.
 
 
 protected:
-EXPORT	OTToken_Lucre();
-EXPORT	OTToken_Lucre(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-EXPORT	OTToken_Lucre(const OTPurse & thePurse);
+EXPORT    OTToken_Lucre();
+EXPORT    OTToken_Lucre(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
+EXPORT    OTToken_Lucre(const OTPurse & thePurse);
 
-EXPORT	virtual bool GenerateTokenRequest(const OTPseudonym & theNym,
+EXPORT    virtual bool GenerateTokenRequest(const OTPseudonym & theNym,
                                           OTMint & theMint,
                                           int64_t lDenomination,
                                           int32_t nTokenCount=OTToken::GetMinimumPrototokenCount()
@@ -203,7 +203,7 @@ EXPORT	virtual bool GenerateTokenRequest(const OTPseudonym & theNym,
 public:
 EXPORT  virtual bool ProcessToken(const OTPseudonym & theNym, OTMint & theMint, OTToken & theRequest);
 
-EXPORT	virtual ~OTToken_Lucre();
+EXPORT    virtual ~OTToken_Lucre();
 
 };
 

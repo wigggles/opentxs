@@ -192,40 +192,40 @@ OTStashItem::~OTStashItem()
 
 bool OTStashItem::CreditStash(const int64_t &lAmount)
 {
-	if (lAmount < 0)
-	{
-		otOut << "OTStashItem::CreditStash: Failed attempt to credit a negative amount ("
-			<< lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
-		return false;
-	}
+    if (lAmount < 0)
+    {
+        otOut << "OTStashItem::CreditStash: Failed attempt to credit a negative amount ("
+            << lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
+        return false;
+    }
 
-	m_lAmount += lAmount;
+    m_lAmount += lAmount;
 
-	return true;
+    return true;
 }
 
 
 bool OTStashItem::DebitStash(const int64_t &lAmount)
 {
-	if (lAmount < 0)
-	{
-		otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative amount ("
-			<< lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
-		return false;
-	}
+    if (lAmount < 0)
+    {
+        otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative amount ("
+            << lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
+        return false;
+    }
 
-	const int64_t lTentativeNewBalance = (m_lAmount - lAmount);
+    const int64_t lTentativeNewBalance = (m_lAmount - lAmount);
 
-	if (lTentativeNewBalance < 0)
-	{
-		otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) " << lAmount << ": New stash balance would have been a negative "
-			"amount (" << lTentativeNewBalance << "). Asset Type: " << m_strAssetTypeID << " \n";
-		return false;
-	}
+    if (lTentativeNewBalance < 0)
+    {
+        otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) " << lAmount << ": New stash balance would have been a negative "
+            "amount (" << lTentativeNewBalance << "). Asset Type: " << m_strAssetTypeID << " \n";
+        return false;
+    }
 
-	m_lAmount = lTentativeNewBalance;
+    m_lAmount = lTentativeNewBalance;
 
-	return true;
+    return true;
 }
 
 } // namespace opentxs

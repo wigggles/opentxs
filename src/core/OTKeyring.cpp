@@ -822,16 +822,16 @@ bool OTKeyring::Gnome_StoreSecret(const OTString    & strUser,
 
 /*
  typedef enum {
-	GNOME_KEYRING_RESULT_OK,
-	GNOME_KEYRING_RESULT_DENIED,
-	GNOME_KEYRING_RESULT_NO_KEYRING_DAEMON,
-	GNOME_KEYRING_RESULT_ALREADY_UNLOCKED,
-	GNOME_KEYRING_RESULT_NO_SUCH_KEYRING,
-	GNOME_KEYRING_RESULT_BAD_ARGUMENTS,
-	GNOME_KEYRING_RESULT_IO_ERROR,
-	GNOME_KEYRING_RESULT_CANCELLED,
-	GNOME_KEYRING_RESULT_KEYRING_ALREADY_EXISTS,
-	GNOME_KEYRING_RESULT_NO_MATCH
+    GNOME_KEYRING_RESULT_OK,
+    GNOME_KEYRING_RESULT_DENIED,
+    GNOME_KEYRING_RESULT_NO_KEYRING_DAEMON,
+    GNOME_KEYRING_RESULT_ALREADY_UNLOCKED,
+    GNOME_KEYRING_RESULT_NO_SUCH_KEYRING,
+    GNOME_KEYRING_RESULT_BAD_ARGUMENTS,
+    GNOME_KEYRING_RESULT_IO_ERROR,
+    GNOME_KEYRING_RESULT_CANCELLED,
+    GNOME_KEYRING_RESULT_KEYRING_ALREADY_EXISTS,
+    GNOME_KEYRING_RESULT_NO_MATCH
 } GnomeKeyringResult;
  */
 //static
@@ -982,34 +982,34 @@ KApplication    * OTKeyring::s_pApp    = NULL;
 
 bool OTKeyring::InitKApp()
 {
-	static bool bInitialized = false;
+    static bool bInitialized = false;
 
-	if (! bInitialized)
-	{
-		if (! KApplication::instance())
-		{
-			static char kdeAppName[] = "opentxs-kwallet";
-			int32_t argc = 1;
-			char *argv[2] = { kdeAppName, NULL };
-			QByteArray qbApp(kdeAppName);
-			KAboutData about(qbApp, qbApp, KLocalizedString(),QByteArray("1.0"));
-			KCmdLineArgs::init(argc, argv, &about);
-			if (! qApp)
-				OTKeyring::s_pApp = new KApplication(true); // todo  cleanup ?
+    if (! bInitialized)
+    {
+        if (! KApplication::instance())
+        {
+            static char kdeAppName[] = "opentxs-kwallet";
+            int32_t argc = 1;
+            char *argv[2] = { kdeAppName, NULL };
+            QByteArray qbApp(kdeAppName);
+            KAboutData about(qbApp, qbApp, KLocalizedString(),QByteArray("1.0"));
+            KCmdLineArgs::init(argc, argv, &about);
+            if (! qApp)
+                OTKeyring::s_pApp = new KApplication(true); // todo  cleanup ?
             else
                 otErr << "OTKeyring::InitKApp: Error: qApp already existed.\n";
-		}
+        }
 
-		bInitialized = true;
-	}
+        bInitialized = true;
+    }
 
-	return bInitialized;
+    return bInitialized;
 }
 
 
 KWallet::Wallet * OTKeyring::OpenKWallet()
 {
-	if (OTKeyring::InitKApp())
+    if (OTKeyring::InitKApp())
     {
         OT_ASSERT(NULL != OTKeyring::s_pApp);
         // Below this point, we know OTKeyring::s_pApp is created.
@@ -1064,21 +1064,21 @@ KWallet::Wallet * OTKeyring::OpenKWallet()
 
     }
 
-	return OTKeyring::s_pWallet;
+    return OTKeyring::s_pWallet;
 }
 
 
 //bool OTKeyring::DoesPasswordExist(const QString key)
 //{
-//	KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
+//    KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
 //
-//	if (NULL != pWallet)
-//	{
-//		if (pWallet->hasEntry(key) == 0)
-//			return true;
-//		else
-//			return false;
-//	}
+//    if (NULL != pWallet)
+//    {
+//        if (pWallet->hasEntry(key) == 0)
+//            return true;
+//        else
+//            return false;
+//    }
 //
 //    return false;
 //}
@@ -1093,10 +1093,10 @@ bool OTKeyring::KWallet_StoreSecret(const OTString    & strUser,
     OT_ASSERT(strUser.Exists());
     OT_ASSERT(thePassword.getMemorySize() > 0);
 
-	KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
+    KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
 
-	if (NULL != pWallet)
-	{
+    if (NULL != pWallet)
+    {
         const QString qstrKey(strUser.Get());
 
         OTData       theData(thePassword.getMemory(), thePassword.getMemorySize());
@@ -1110,19 +1110,19 @@ bool OTKeyring::KWallet_StoreSecret(const OTString    & strUser,
         ascData.zeroMemory();
 
 
-		// Set the password
+        // Set the password
         //
         bool bReturnVal = false;
 
-		if (bSuccess && strOutput.Exists() && pWallet->writePassword(qstrKey, QString::fromUtf8(strOutput.Get())) == 0)
-			bReturnVal = true;
-		else
-			otErr << "OTKeyring::KWallet_StoreSecret: Failed trying to store secret into KWallet.\n";
+        if (bSuccess && strOutput.Exists() && pWallet->writePassword(qstrKey, QString::fromUtf8(strOutput.Get())) == 0)
+            bReturnVal = true;
+        else
+            otErr << "OTKeyring::KWallet_StoreSecret: Failed trying to store secret into KWallet.\n";
 
         strOutput.zeroMemory();
 
         return bReturnVal;
-	}
+    }
 
     otErr << "OTKeyring::KWallet_StoreSecret: Unable to open kwallet.\n";
 
@@ -1137,18 +1137,18 @@ bool OTKeyring::KWallet_RetrieveSecret(const OTString    & strUser,
     OT_ASSERT(strUser.Exists());
     const char * szFunc = "OTKeyring::KWallet_RetrieveSecret";
 
-	KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
+    KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
 
-	if (NULL != pWallet)
-	{
+    if (NULL != pWallet)
+    {
         const
         QString qstrKey(strUser.Get());
         QString qstrPwd;
 
-		// Get the password
+        // Get the password
         //
-		if (pWallet->readPassword(qstrKey, qstrPwd) == 0)
-		{
+        if (pWallet->readPassword(qstrKey, qstrPwd) == 0)
+        {
             const std::string str_password = qstrPwd.toStdString(); // todo security: notice str_password isn't zero'd here.
 
             OTString     strData(str_password);
@@ -1172,10 +1172,10 @@ bool OTKeyring::KWallet_RetrieveSecret(const OTString    & strUser,
                     return true;
                 }
             }
-		}
-		else
-			otErr << __FUNCITON__ << ": Failed trying to retrieve secret from KWallet.\n";
-	}
+        }
+        else
+            otErr << __FUNCITON__ << ": Failed trying to retrieve secret from KWallet.\n";
+    }
 
 
     // Not an error: what if it just hasn't been set there yet?
@@ -1191,22 +1191,22 @@ bool OTKeyring::KWallet_DeleteSecret(const OTString    & strUser,
 {
     OT_ASSERT(strUser.Exists());
 
-	KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
+    KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
 
-	if (NULL != pWallet)
-	{
+    if (NULL != pWallet)
+    {
         const
         QString qstrKey(strUser.Get());
 
         bool bResult = false;
 
-		if (pWallet->removeEntry(qstrKey) == 0) // delete the entry
-			bResult = true;
-		else
-			otErr << "OTKeyring::KWallet_DeleteSecret: Failed trying to erase secret from KWallet.\n";
+        if (pWallet->removeEntry(qstrKey) == 0) // delete the entry
+            bResult = true;
+        else
+            otErr << "OTKeyring::KWallet_DeleteSecret: Failed trying to erase secret from KWallet.\n";
 
         return bResult;
-	}
+    }
 
     otErr << "OTKeyring::KWallet_DeleteSecret: Unable to open kwallet.\n";
 
@@ -1252,8 +1252,8 @@ bool OTKeyring::FlatFile_StoreSecret(const OTString    & strUser,
     OT_ASSERT(thePassword.getMemorySize() > 0);
 
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
-	if (!str_pw_folder.empty())
-	{
+    if (!str_pw_folder.empty())
+    {
         OTString strExactPath;
         strExactPath.Format("%s%s%s", str_pw_folder.c_str(), OTLog::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
@@ -1262,16 +1262,16 @@ bool OTKeyring::FlatFile_StoreSecret(const OTString    & strUser,
         OTASCIIArmor ascData(theData);
         theData.zeroMemory(); // security reasons.
 
-		// Save the password
+        // Save the password
         //
         const bool bSaved = ascData.Exists() && ascData.SaveToExactPath(str_ExactPath);
         ascData.zeroMemory();
 
-		if (!bSaved)
-			otErr << "OTKeyring::FlatFile_StoreSecret: Failed trying to store secret.\n";
+        if (!bSaved)
+            otErr << "OTKeyring::FlatFile_StoreSecret: Failed trying to store secret.\n";
 
         return bSaved;
-	}
+    }
 
     otErr << "OTKeyring::FlatFile_StoreSecret: Unable to cache derived key, since password_folder not provided in config file.\n";
 
@@ -1288,17 +1288,17 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString    & strUser,
     const char * szFunc = "OTKeyring::FlatFile_RetrieveSecret";
 
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
-	if (!str_pw_folder.empty())
-	{
+    if (!str_pw_folder.empty())
+    {
         OTString strExactPath;
         strExactPath.Format("%s%s%s",str_pw_folder.c_str(), OTLog::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
 
-		// Get the password
+        // Get the password
         //
         OTASCIIArmor ascData;
 
-		if (!ascData.LoadFromExactPath(str_ExactPath))
+        if (!ascData.LoadFromExactPath(str_ExactPath))
       otErr << szFunc << ": Failed trying to decode secret from flat file contents.\n";
         else
         {
@@ -1312,8 +1312,8 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString    & strUser,
                 thePayload.zeroMemory(); // for security.
                 return true;
             }
-		}
-	}
+        }
+    }
 
 
     // Not an error: what if it just hasn't been set there yet?
@@ -1331,25 +1331,25 @@ bool OTKeyring::FlatFile_DeleteSecret(const OTString    & strUser,
     OT_ASSERT(strUser.Exists());
 
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
-	if (!str_pw_folder.empty())
-	{
+    if (!str_pw_folder.empty())
+    {
         OTString strExactPath;
         strExactPath.Format("%s%s%s", str_pw_folder.c_str(), OTLog::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
 
         std::ofstream ofs(str_ExactPath.c_str(), std::ios::out | std::ios::binary);
 
-		if (ofs.fail())
-		{
-			otErr << __FUNCTION__ << ": Error opening file (to delete it): " << str_ExactPath.c_str() << '\n';
-			return false;
-		}
-		ofs.clear();
-		ofs << "(This space intentionally left blank.)\n";
+        if (ofs.fail())
+        {
+            otErr << __FUNCTION__ << ": Error opening file (to delete it): " << str_ExactPath.c_str() << '\n';
+            return false;
+        }
+        ofs.clear();
+        ofs << "(This space intentionally left blank.)\n";
 
-		bool bSuccess = ofs.good() ? true : false;
-		ofs.close();
-		// Note: I bet you think I should be overwriting the file 7 times here with
+        bool bSuccess = ofs.good() ? true : false;
+        ofs.close();
+        // Note: I bet you think I should be overwriting the file 7 times here with
         // random data, right? Wrong: YOU need to override OTKeyring and create your
         // own subclass, where you can override DeleteSecret and do that stuff
         // yourself. It's outside of the scope of OT.
@@ -1369,7 +1369,7 @@ bool OTKeyring::FlatFile_DeleteSecret(const OTString    & strUser,
         }
 
         return bSuccess;
-	}
+    }
 
     otErr << "OTKeyring::FlatFile_DeleteSecret: Unable to delete any derived key, since password_folder not provided in config file.\n";
 

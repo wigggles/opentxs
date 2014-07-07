@@ -147,52 +147,52 @@ namespace opentxs {
 
 bool OTInstrument::IsExpired()
 {
-	const time64_t CURRENT_TIME =	OTTimeGetCurrentTime();
-	
-	// If the current time is AFTER the valid-TO date,
-	// AND the valid_to is a nonzero number (0 means "doesn't expire")
-	// THEN return true (it's expired.)
-	//
+    const time64_t CURRENT_TIME =    OTTimeGetCurrentTime();
+    
+    // If the current time is AFTER the valid-TO date,
+    // AND the valid_to is a nonzero number (0 means "doesn't expire")
+    // THEN return true (it's expired.)
+    //
     if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > OT_TIME_ZERO))
-		return true;
-	else
-		return false;
+        return true;
+    else
+        return false;
 }
 
 
 // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
 bool OTInstrument::VerifyCurrentDate()
 {
-	const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-	
-	if ((CURRENT_TIME >= m_VALID_FROM) && 
+    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    
+    if ((CURRENT_TIME >= m_VALID_FROM) && 
         ((CURRENT_TIME <= m_VALID_TO) || (OT_TIME_ZERO == m_VALID_TO)))
-		return true;
-	else
-		return false;
+        return true;
+    else
+        return false;
 }
 
 
 void OTInstrument::InitInstrument()
-{	
-	m_strContractType.Set("INSTRUMENT");
+{    
+    m_strContractType.Set("INSTRUMENT");
 }
 
 
 OTInstrument::OTInstrument()
 : ot_super(), m_VALID_FROM(OT_TIME_ZERO), m_VALID_TO(OT_TIME_ZERO)
 {
-	InitInstrument();
+    InitInstrument();
 }
 
 
 OTInstrument::OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
 : ot_super(), m_AssetTypeID(ASSET_ID), m_ServerID(SERVER_ID), m_VALID_FROM(OT_TIME_ZERO), m_VALID_TO(OT_TIME_ZERO)
 {
-	InitInstrument();
+    InitInstrument();
 //
-//	m_ServerID		= SERVER_ID;
-//	m_AssetTypeID	= ASSET_ID;
+//    m_ServerID        = SERVER_ID;
+//    m_AssetTypeID    = ASSET_ID;
 }
 
 
@@ -200,32 +200,32 @@ OTInstrument::~OTInstrument()
 {
     Release_Instrument();
     
-	m_VALID_FROM	= OT_TIME_ZERO;
-	m_VALID_TO		= OT_TIME_ZERO;	
+    m_VALID_FROM    = OT_TIME_ZERO;
+    m_VALID_TO        = OT_TIME_ZERO;    
 }
 
 
 void OTInstrument::Release_Instrument()
 {
-	// Release any dynamically allocated instrument members here.    
+    // Release any dynamically allocated instrument members here.    
 }
 
 
 void OTInstrument::Release()
-{		
-	Release_Instrument(); // My own cleanup is performed here.
+{        
+    Release_Instrument(); // My own cleanup is performed here.
     
-	// Next give the base class a chance to do the same...
-	ot_super::Release(); // since I've overridden the base class, I call it now...
+    // Next give the base class a chance to do the same...
+    ot_super::Release(); // since I've overridden the base class, I call it now...
     
-	// Initialize everything back to 0
-//	InitInstrument(); // unnecessary.
+    // Initialize everything back to 0
+//    InitInstrument(); // unnecessary.
 }
 
 
 bool OTInstrument::SaveContractWallet(std::ofstream &)
 {
-	return true;
+    return true;
 }
 
 
@@ -233,46 +233,46 @@ bool OTInstrument::SaveContractWallet(std::ofstream &)
 int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
 //    otErr << "OTInstrument::ProcessXMLNode...\n";
-	int32_t nReturnVal = 0;
+    int32_t nReturnVal = 0;
     
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	//
-	
-	nReturnVal = ot_super::ProcessXMLNode(xml);
-	
-	if (nReturnVal != 0) // -1 is error, and 1 is "found it". Either way, return.
-		return nReturnVal;	// 0 means "nothing happened, keep going."
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    //
+    
+    nReturnVal = ot_super::ProcessXMLNode(xml);
+    
+    if (nReturnVal != 0) // -1 is error, and 1 is "found it". Either way, return.
+        return nReturnVal;    // 0 means "nothing happened, keep going."
     
 
-	
+    
     // This is from OTCronItem. It's only here as sample code.
     //
 //  if (!strcmp("closingTransactionNumber", xml->getNodeName())) 
-//	{		
+//    {        
 //        OTString strClosingNumber = xml->getAttributeValue("value");
 //        
 //        if (strClosingNumber.Exists())
 //        {
-//            const int64_t lClosingNumber = atol(strClosingNumber.Get());					
+//            const int64_t lClosingNumber = atol(strClosingNumber.Get());                    
 //            
 //            this->AddClosingTransactionNo(lClosingNumber);
 //        }
 //        else
-//		{
-//			otErr << "Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n";
-//			return (-1); // error condition
-//		}
+//        {
+//            otErr << "Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n";
+//            return (-1); // error condition
+//        }
 //        
-//		nReturnVal = 1;
-//	}
+//        nReturnVal = 1;
+//    }
     
-	return nReturnVal;
+    return nReturnVal;
 }
 
 } // namespace opentxs

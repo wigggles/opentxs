@@ -154,7 +154,7 @@ namespace opentxs {
 
 void OTMessageBuffer::Push(OTMessage & theMessage)
 {
-	m_listMessages.push_back(&theMessage);
+    m_listMessages.push_back(&theMessage);
 }
 
 
@@ -224,10 +224,10 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
         }
         else // Server/Nym IDs match, BUT -- Wrong request num! (Discard message and skip.)
         {
-			otOut << "OTMessageBuffer::Pop: Warning: While looking for server (" << strServerID <<
-				") reply to request number " << lRequestNum << " for Nym (" << strNymID << "), "
-				"discovered (and discarded) an old server reply for request number " << lMsgRequest << " "
-				"(A " << pMsg->m_strCommand << " command. The client should have flushed it by now anyway, so it was probably slow on the network "
+            otOut << "OTMessageBuffer::Pop: Warning: While looking for server (" << strServerID <<
+                ") reply to request number " << lRequestNum << " for Nym (" << strNymID << "), "
+                "discovered (and discarded) an old server reply for request number " << lMsgRequest << " "
+                "(A " << pMsg->m_strCommand << " command. The client should have flushed it by now anyway, so it was probably slow on the network "
                 "and then assumed to have been dropped. It's okay--the protocol is designed to handle these occurrences.)\n";
             delete pMsg; pMsg = NULL;
             continue;
@@ -246,19 +246,19 @@ OTMessage * OTMessageBuffer::Pop(const int64_t & lRequestNum, const OTString & s
     }
 
 
-	return pReturnValue;
+    return pReturnValue;
 }
 
 
 OTMessageBuffer::~OTMessageBuffer()
 {
-	Clear();
+    Clear();
 }
 
 
 void OTMessageBuffer::Clear()
 {
-	while (!m_listMessages.empty()) 
+    while (!m_listMessages.empty()) 
     {
         OTMessage * pMsg = m_listMessages.front();
         m_listMessages.pop_front();
@@ -284,7 +284,7 @@ void OTMessageBuffer::Clear()
 
 OTMessageOutbuffer::OTMessageOutbuffer() : m_strDataFolder(OTDataFolder::Get())
 {
-	OT_ASSERT(m_strDataFolder.Exists());
+    OT_ASSERT(m_strDataFolder.Exists());
 }
 
 
@@ -354,15 +354,15 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage & theMessage) // must be heap 
                      theMessage.m_strNymID.Get());
 
 
-	OTString strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
+    OTString strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
-	OTPaths::AppendFolder(strFolderPath,  m_strDataFolder,strFolder );
-	OTPaths::AppendFolder(strFolder1Path, m_strDataFolder,strFolder1);
-	OTPaths::AppendFolder(strFolder2Path, m_strDataFolder,strFolder2);
+    OTPaths::AppendFolder(strFolderPath,  m_strDataFolder,strFolder );
+    OTPaths::AppendFolder(strFolder1Path, m_strDataFolder,strFolder1);
+    OTPaths::AppendFolder(strFolder2Path, m_strDataFolder,strFolder2);
 
-	OTPaths::ConfirmCreateFolder(strFolderPath,bAlreadyExists,bIsNewFolder);
-	OTPaths::ConfirmCreateFolder(strFolder1Path,bAlreadyExists,bIsNewFolder);
-	OTPaths::ConfirmCreateFolder(strFolder2Path,bAlreadyExists,bIsNewFolder);
+    OTPaths::ConfirmCreateFolder(strFolderPath,bAlreadyExists,bIsNewFolder);
+    OTPaths::ConfirmCreateFolder(strFolder1Path,bAlreadyExists,bIsNewFolder);
+    OTPaths::ConfirmCreateFolder(strFolder2Path,bAlreadyExists,bIsNewFolder);
     
     OTString strFile;
     strFile.Format("%s.msg", theMessage.m_strRequestNum.Get());
@@ -508,7 +508,7 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
 
     // STILL didn't find it? (Failure.)
     //
-	return NULL;
+    return NULL;
 }
 
 
@@ -518,7 +518,7 @@ OTMessage * OTMessageOutbuffer::GetSentMessage(const int64_t & lRequestNum, cons
 void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTString * pstrNymID/*=NULL*/, OTPseudonym * pNym/*=NULL*/,
                                const bool     * pbHarvestingForRetry/*=NULL*/)
 {
-//  const char * szFuncName		= "OTMessageOutbuffer::Clear";
+//  const char * szFuncName        = "OTMessageOutbuffer::Clear";
 
     
     mapOfMessages::iterator it = m_mapMessages.begin();
@@ -592,15 +592,15 @@ void OTMessageOutbuffer::Clear(const OTString * pstrServerID/*=NULL*/, const OTS
                 OT_ASSERT(NULL != pbHarvestingForRetry);
 
                 /*
-                 getNymbox			-- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getNymbox reply
-                 getRequest			-- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getRequest reply
+                 getNymbox            -- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getNymbox reply
+                 getRequest            -- client is NOT sending hash, server is NOT rejecting bad hashes, server IS SENDING HASH in the @getRequest reply
                  
-                 processNymbox		-- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @processNymbox  reply
-                 notarizeTransactions	-- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @notarizeTransactions  reply
-                 processInbox 		-- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @processInbox  reply
-                 triggerClause 		-- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @triggerClause reply
+                 processNymbox        -- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @processNymbox  reply
+                 notarizeTransactions    -- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @notarizeTransactions  reply
+                 processInbox         -- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @processInbox  reply
+                 triggerClause         -- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @triggerClause reply
                  
-                 getTransactionNum 	-- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @getTransactionNum reply
+                 getTransactionNum     -- client is SENDING HASH, server is REJECTING BAD HASHES, server is SENDING HASH in the @getTransactionNum reply
                  
                  Already covered in NotarizeTransaction: 
                     transfer, withdrawal, deposit, marketOffer, paymentPlan, smartContract, cancelCronItem, exchangeBasket
@@ -857,7 +857,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t & lRequestNum, const OT
         return true;
     }
 
-	return bReturnValue;
+    return bReturnValue;
 }
 
 
@@ -885,7 +885,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction & theTransaction)
 
 OTMessageOutbuffer::~OTMessageOutbuffer()
 {
-	Clear();
+    Clear();
 }
 
 } // namespace opentxs

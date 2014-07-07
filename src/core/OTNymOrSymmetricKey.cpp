@@ -341,8 +341,8 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTString & strIdentifier) const
 
 
 // From OTEnvelope:
-//	bool GetAsBookendedString  (      OTString     & strArmorWithBookends, bool bEscaped    = false ) const;
-//	bool SetFromBookendedString(const OTString     & strArmorWithBookends, bool bEscaped    = false );
+//    bool GetAsBookendedString  (      OTString     & strArmorWithBookends, bool bEscaped    = false ) const;
+//    bool SetFromBookendedString(const OTString     & strArmorWithBookends, bool bEscaped    = false );
 
 bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
                                                   OTString   & strOutput,
@@ -353,7 +353,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
     bool bSuccess                  = false;
     bool bHadToInstantiatePassword = false;
 
-	// Decrypt/Open inputEnvelope into strOutput
+    // Decrypt/Open inputEnvelope into strOutput
     //    
     if (this->IsNym()) // *this is a Nym.
     {
@@ -376,7 +376,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope & inputEnvelope,
             
             if (NULL == pPassword) // Unable to retrieve passphrase from user.
             {
-				otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
+                otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
                                "Returning false.\n";
                 return false;
             }
@@ -419,7 +419,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
     bool bSuccess                  = false;
     bool bHadToInstantiatePassword = false;
 
-	// Encrypt/Seal strInput into outputEnvelope
+    // Encrypt/Seal strInput into outputEnvelope
     //
     if (this->IsNym())
     {
@@ -443,7 +443,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
             
             if (NULL == pPassword) // Unable to retrieve passphrase from user.
             {
-				otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
+                otOut << szFunc << ": Failed trying to retrieve passphrase for key. "
                                "Returning false.\n";
                 return false;
             }
@@ -473,7 +473,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(      OTEnvelope & outputEnvelope,
     }
     // else ? should never happen.
 
-	return bSuccess;
+    return bSuccess;
 }
 
 } // namespace opentxs

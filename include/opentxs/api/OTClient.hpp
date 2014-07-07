@@ -165,35 +165,35 @@ class OTWallet;
 class OTClient
 {
 private:
-	OTWallet * m_pWallet; // NOT owned, but this pointer is here for convenience.
+    OTWallet * m_pWallet; // NOT owned, but this pointer is here for convenience.
 
-	OTMessageBuffer     m_MessageBuffer;    // Incoming server replies are copied here for easy access.
-	OTMessageOutbuffer  m_MessageOutbuffer; // Outgoing messages are copied here for easy access. 
+    OTMessageBuffer     m_MessageBuffer;    // Incoming server replies are copied here for easy access.
+    OTMessageOutbuffer  m_MessageOutbuffer; // Outgoing messages are copied here for easy access. 
 
-	bool m_bRunningAsScript; // This is used to determine whether to activate certain messages automatically in
-	// the client based on various server replies to previous requests (based on what mode it's being used in...
-	// if we're using the API, then NO auto-messages!) Similarly, if we're using the interpreted script, then NO auto
-	// messages. But if we are using the test client, aka the command line in --prompt mode, and the --script switch
-	// wasn't used to startup, (which would mean we're executing a script) then it's A-Okay to fire those auto messages.
+    bool m_bRunningAsScript; // This is used to determine whether to activate certain messages automatically in
+    // the client based on various server replies to previous requests (based on what mode it's being used in...
+    // if we're using the API, then NO auto-messages!) Similarly, if we're using the interpreted script, then NO auto
+    // messages. But if we are using the test client, aka the command line in --prompt mode, and the --script switch
+    // wasn't used to startup, (which would mean we're executing a script) then it's A-Okay to fire those auto messages.
 
 public:
 
-	/// Any time a message is sent to the server, its request number is copied here.
-	/// Most server message functions return int32_t, but technically a request number can
-	/// be int64_t. So if the number being returned is too large for that int32_t, it will return
-	/// -2 instead, and then another function can be called that returns lMostRecentRequestNumber
-	/// in string form, or whatever is easiest.
-	///
-	int64_t m_lMostRecentRequestNumber;
-	// ---------------------------------------------
-	int32_t  CalcReturnVal(const int64_t & lRequestNumber);
-	// ---------------------------------------------
-	bool IsRunningAsScript() const { return m_bRunningAsScript; }
-	void SetRunningAsScript()      { m_bRunningAsScript = true; } // (default is false.)
-	// ------------------------
-	enum OT_CLIENT_CMD_TYPE 
-	{
-		checkServerID, // Your public key is sent along with this message so the server can reply to 
+    /// Any time a message is sent to the server, its request number is copied here.
+    /// Most server message functions return int32_t, but technically a request number can
+    /// be int64_t. So if the number being returned is too large for that int32_t, it will return
+    /// -2 instead, and then another function can be called that returns lMostRecentRequestNumber
+    /// in string form, or whatever is easiest.
+    ///
+    int64_t m_lMostRecentRequestNumber;
+    // ---------------------------------------------
+    int32_t  CalcReturnVal(const int64_t & lRequestNumber);
+    // ---------------------------------------------
+    bool IsRunningAsScript() const { return m_bRunningAsScript; }
+    void SetRunningAsScript()      { m_bRunningAsScript = true; } // (default is false.)
+    // ------------------------
+    enum OT_CLIENT_CMD_TYPE 
+    {
+        checkServerID, // Your public key is sent along with this message so the server can reply to 
                        // you even without your being a registered user. Other than these top two commands,
                        // all other commands can only be executed by registered users.
                        //
@@ -213,155 +213,155 @@ public:
                        // It is the server operator's responsibility to secure the domain name and web host
                        // that users will connect to when they import the contract, as well as the private
                        // key that matches the public key from the contract.
-		createUserAccount, // Create user account on a specific server, with public key. User ID will be hash of said public key.
-		deleteUserAccount, // Delete user account from a specific server.
-		checkUser, // Request a user's public key based on User ID included with the request.
+        createUserAccount, // Create user account on a specific server, with public key. User ID will be hash of said public key.
+        deleteUserAccount, // Delete user account from a specific server.
+        checkUser, // Request a user's public key based on User ID included with the request.
                    // (If you want to send him cash or a check, your wallet will encrypt portions
                    // of the tokens, etc, to the Nym of the recipient.)
-		sendUserMessage, // Send a message to another user, encrypted to his public key and dropped into his nymbox.
-		getRequest, // Get the next request number from the server (for this user). Most requests must be
+        sendUserMessage, // Send a message to another user, encrypted to his public key and dropped into his nymbox.
+        getRequest, // Get the next request number from the server (for this user). Most requests must be
                     // accompanied by a request number, which increments for each Nym with each request.
-		issueAssetType, // Upload a currency contract to the server and create an asset ID from a hash of that. 
-		                // contract. Also creates an issuer account for that asset ID. This ONLY works if public
-		                // key of the user matches the contract key found in the currency contract, AND if the
-		                // contract is signed by the same key.
-		createAccount,  // Create an asset account for a certain serverID, UserID, and Asset Type ID.
+        issueAssetType, // Upload a currency contract to the server and create an asset ID from a hash of that. 
+                        // contract. Also creates an issuer account for that asset ID. This ONLY works if public
+                        // key of the user matches the contract key found in the currency contract, AND if the
+                        // contract is signed by the same key.
+        createAccount,  // Create an asset account for a certain serverID, UserID, and Asset Type ID.
                         // These accounts are where users actually store their digital assets of various
-		                // types. Account files are stored on user's computer, signed by notary server.
-		                // Server also maintains its own copy. Users can create an unlimited number of accounts
-		                // for any asset type that they choose.
-		issueBasket, // Create a basket account, which is like an issuer account, but based on a basket of 
+                        // types. Account files are stored on user's computer, signed by notary server.
+                        // Server also maintains its own copy. Users can create an unlimited number of accounts
+                        // for any asset type that they choose.
+        issueBasket, // Create a basket account, which is like an issuer account, but based on a basket of 
                      // other asset types. This way, users can trade with what is apparently a single currency,
                      // when in fact the issuence is delegated and distributed across multiple issuers.
-		exchangeBasket, // Use this to exchange assets in and out of a basket currency.
-		getTransactionNum, // Every transaction requires a transaction number. If your wallet doesn't have one,
+        exchangeBasket, // Use this to exchange assets in and out of a basket currency.
+        getTransactionNum, // Every transaction requires a transaction number. If your wallet doesn't have one,
                            // then here it can request the server to send one over. (Or several.)
-		getNymbox, // Grab a copy of my nymbox (contains messages and new transaction numbers)
-		getInbox, // Grab a copy of my inbox from the server so I can decide what to do with it.
-		getOutbox, // Grab a copy of my outbox from the server so I can decide what to do with it.
-		processNymbox, // Used by AcceptEntireNymbox() as it's setting everything up.
-		processEntireNymbox,// Instruct the server what to do with the various items sitting in my nymbox. (per user)
-		processInbox, // Instruct the server what to do with the various items sitting in my inbox. (per asset acct)
-		processEntireInbox, // Just accept everything in the server (used in the command line test client.)
-		getAccount, // Grab the server's copy of my asset account file, in case mine is lost.
-		getContract, // Grab the server's copy of any asset contract. Input is the asset type ID.
-		getMint, // Grab the server's copy of any mint based on Asset ID. (For blinded tokens.)
-		// ------------------------------------------------------------------------------
-		writeCheque, // Write a cheque. (Actually sends no message to the server -- returns false.)
-		signContract, // Sign a contract. (Sends no message to the server.)
-		proposePaymentPlan, // (Merchant) Propose a payment plan. (Sends no message to the server.)
-		confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no message to the server.)
-		// ------------------------------------------------------------------------------
-		notarizeTransfer, // Request the server to transfer from one account to another.
-		notarizeWithdrawal, // Request the server to withdraw from an asset account and return digital cash tokens to the wallet.
-		withdrawVoucher, // Request the server to withdraw from an asset account and issue a voucher (cashier's cheque)
-		notarizeDeposit, // Request the server to accept some digital cash and deposit it to an asset account.
-		notarizePurse, // Same as the above, but sends an entire purse of tokens at once instead of sending individual tokens.
-		notarizeCheque, // Deposit like the above, but deposits a cheque instead of cash tokens.
-		// ------------------------------------------------------------------------------
-		marketOffer, // Create an Offer object and add it to one of the server's Market objects.
-		// This will also create a Trade object and add it to the server's Cron object.
-		// (The Trade provides the payment authorization for the Offer, as well as the rules
-		// for processing and expiring it.)
+        getNymbox, // Grab a copy of my nymbox (contains messages and new transaction numbers)
+        getInbox, // Grab a copy of my inbox from the server so I can decide what to do with it.
+        getOutbox, // Grab a copy of my outbox from the server so I can decide what to do with it.
+        processNymbox, // Used by AcceptEntireNymbox() as it's setting everything up.
+        processEntireNymbox,// Instruct the server what to do with the various items sitting in my nymbox. (per user)
+        processInbox, // Instruct the server what to do with the various items sitting in my inbox. (per asset acct)
+        processEntireInbox, // Just accept everything in the server (used in the command line test client.)
+        getAccount, // Grab the server's copy of my asset account file, in case mine is lost.
+        getContract, // Grab the server's copy of any asset contract. Input is the asset type ID.
+        getMint, // Grab the server's copy of any mint based on Asset ID. (For blinded tokens.)
+        // ------------------------------------------------------------------------------
+        writeCheque, // Write a cheque. (Actually sends no message to the server -- returns false.)
+        signContract, // Sign a contract. (Sends no message to the server.)
+        proposePaymentPlan, // (Merchant) Propose a payment plan. (Sends no message to the server.)
+        confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no message to the server.)
+        // ------------------------------------------------------------------------------
+        notarizeTransfer, // Request the server to transfer from one account to another.
+        notarizeWithdrawal, // Request the server to withdraw from an asset account and return digital cash tokens to the wallet.
+        withdrawVoucher, // Request the server to withdraw from an asset account and issue a voucher (cashier's cheque)
+        notarizeDeposit, // Request the server to accept some digital cash and deposit it to an asset account.
+        notarizePurse, // Same as the above, but sends an entire purse of tokens at once instead of sending individual tokens.
+        notarizeCheque, // Deposit like the above, but deposits a cheque instead of cash tokens.
+        // ------------------------------------------------------------------------------
+        marketOffer, // Create an Offer object and add it to one of the server's Market objects.
+        // This will also create a Trade object and add it to the server's Cron object.
+        // (The Trade provides the payment authorization for the Offer, as well as the rules
+        // for processing and expiring it.)
 
-		paymentPlan, // Send a payment plan to the server (request to activate one onto yourself, basically.)
-		// The test client will ask you to input the plan, which you must already have (like a cheque).
-		// The Payee must create it and sign it, then he sends it to the Payer, who uses this command
-		// to sign it and submit it to the server.
-		// ------------------------------------------------------------------------------
-		setAccountName, // For setting the client-side label on an asset account.
-		setNymName, // For setting the client-side label on a Nym.
-		setServerName, // For setting the client-side label on a server contract.
-		setAssetName, // For setting the client-side label on an asset contract.
-		// ------------------------------------------------------------------------------
-		badID
-	};
+        paymentPlan, // Send a payment plan to the server (request to activate one onto yourself, basically.)
+        // The test client will ask you to input the plan, which you must already have (like a cheque).
+        // The Payee must create it and sign it, then he sends it to the Payer, who uses this command
+        // to sign it and submit it to the server.
+        // ------------------------------------------------------------------------------
+        setAccountName, // For setting the client-side label on an asset account.
+        setNymName, // For setting the client-side label on a Nym.
+        setServerName, // For setting the client-side label on a server contract.
+        setAssetName, // For setting the client-side label on an asset contract.
+        // ------------------------------------------------------------------------------
+        badID
+    };
 
-	// Right now this wallet just supports a SINGLE server connection.
-	// Eventually it will be a whole list of server connections.
-	// For now one is good enough for testing.
-	// All commands for the server will be sent here.
-	//
-	// Here was the problem, you see: You can't attach the connection to the Nym,
-	// because the same Nym might have connections to different servers. And you can't
-	// attach it to the server contract, because the user might access that server
-	// through multiple nym accounts on the same server.
-	// So I decided the wallet should manage the connections, and when new connections
-	// are made, the serverconnection object will be given a pointer at that time to
-	// the server and nym for that connection. That way the two are always available
-	// for processing the commands.
+    // Right now this wallet just supports a SINGLE server connection.
+    // Eventually it will be a whole list of server connections.
+    // For now one is good enough for testing.
+    // All commands for the server will be sent here.
+    //
+    // Here was the problem, you see: You can't attach the connection to the Nym,
+    // because the same Nym might have connections to different servers. And you can't
+    // attach it to the server contract, because the user might access that server
+    // through multiple nym accounts on the same server.
+    // So I decided the wallet should manage the connections, and when new connections
+    // are made, the serverconnection object will be given a pointer at that time to
+    // the server and nym for that connection. That way the two are always available
+    // for processing the commands.
 
-	OTServerConnection * m_pConnection;
+    OTServerConnection * m_pConnection;
 
-	inline OTMessageBuffer & GetMessageBuffer() { return m_MessageBuffer; }
-	inline OTMessageOutbuffer & GetMessageOutbuffer() { return m_MessageOutbuffer; }
+    inline OTMessageBuffer & GetMessageBuffer() { return m_MessageBuffer; }
+    inline OTMessageOutbuffer & GetMessageOutbuffer() { return m_MessageOutbuffer; }
 
 //  inline bool IsConnected() { return m_pConnection->IsConnected(); }
 
-	// For RPC mode
-	EXPORT bool SetFocusToServerAndNym(OTServerContract & theServerContract, OTPseudonym & theNym, TransportCallback * pCallback);
+    // For RPC mode
+    EXPORT bool SetFocusToServerAndNym(OTServerContract & theServerContract, OTPseudonym & theNym, TransportCallback * pCallback);
 
-	// For the test client in SSL / TCP mode.
-	bool ConnectToTheFirstServerOnList(OTPseudonym & theNym, OTString & strCA_FILE, OTString & strKEY_FILE, OTString & strKEY_PASSWORD);
+    // For the test client in SSL / TCP mode.
+    bool ConnectToTheFirstServerOnList(OTPseudonym & theNym, OTString & strCA_FILE, OTString & strKEY_FILE, OTString & strKEY_PASSWORD);
 
-	// Eventually, the wallet will have a LIST of these server connections,
-	// and any use of the connection will first require to look up the right one
-	// on that list, based on ID. This will return a pointer, and then you do the
-	// same call you normally did from there.
+    // Eventually, the wallet will have a LIST of these server connections,
+    // and any use of the connection will first require to look up the right one
+    // on that list, based on ID. This will return a pointer, and then you do the
+    // same call you normally did from there.
 
-	OTClient();
-	~OTClient();
+    OTClient();
+    ~OTClient();
 
-	bool InitClient(OTWallet & theWallet); // Need to call this before using.
-	bool m_bInitialized; // this will be false until InitClient() is called.
-	// ------------------------------------------------------------
-	// These functions manipulate the internal m_pConnection member:
-	void ProcessMessageOut(char *buf, int32_t * pnExpectReply);
-	void ProcessMessageOut(OTMessage & theMessage);
-	bool ProcessInBuffer(OTMessage & theServerReply);
-	// ------------------------------------------------------------
-	// These functions are for command processing:
+    bool InitClient(OTWallet & theWallet); // Need to call this before using.
+    bool m_bInitialized; // this will be false until InitClient() is called.
+    // ------------------------------------------------------------
+    // These functions manipulate the internal m_pConnection member:
+    void ProcessMessageOut(char *buf, int32_t * pnExpectReply);
+    void ProcessMessageOut(OTMessage & theMessage);
+    bool ProcessInBuffer(OTMessage & theServerReply);
+    // ------------------------------------------------------------
+    // These functions are for command processing:
 
-	EXPORT int32_t ProcessUserCommand(
-		OT_CLIENT_CMD_TYPE requestedCommand,
-		OTMessage & theMessage,
-		OTPseudonym & theNym,
-		// OTAssetContract & theContract,
-		OTServerContract & theServer,
-		OTAccount * pAccount=NULL,
-		int64_t lTransactionAmount = 0,
-		OTAssetContract * pMyAssetContract=NULL,
-		OTIdentifier * pHisNymID=NULL,
-		OTIdentifier * pHisAcctID=NULL
-		);
+    EXPORT int32_t ProcessUserCommand(
+        OT_CLIENT_CMD_TYPE requestedCommand,
+        OTMessage & theMessage,
+        OTPseudonym & theNym,
+        // OTAssetContract & theContract,
+        OTServerContract & theServer,
+        OTAccount * pAccount=NULL,
+        int64_t lTransactionAmount = 0,
+        OTAssetContract * pMyAssetContract=NULL,
+        OTIdentifier * pHisNymID=NULL,
+        OTIdentifier * pHisAcctID=NULL
+        );
 
-	bool ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox=NULL); // IF the Nymbox is passed in, then use that one, where appropriate, instead of loading it internally.
-	void ProcessIncomingTransactions(OTServerConnection & theConnection, OTMessage & theReply);
-	void ProcessWithdrawalResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
-	void ProcessDepositResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
-	void ProcessPayDividendResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
+    bool ProcessServerReply(OTMessage & theReply, OTLedger * pNymbox=NULL); // IF the Nymbox is passed in, then use that one, where appropriate, instead of loading it internally.
+    void ProcessIncomingTransactions(OTServerConnection & theConnection, OTMessage & theReply);
+    void ProcessWithdrawalResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
+    void ProcessDepositResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
+    void ProcessPayDividendResponse(OTTransaction & theTransaction, OTServerConnection & theConnection, OTMessage & theReply);
 
 //  void AcceptEntireInbox (OTLedger & theInbox,  OTServerConnection & theConnection);
 //  void AcceptEntireNymbox(OTLedger & theNymbox, OTServerConnection & theConnection);
 
-	bool AcceptEntireInbox(
-		OTLedger & theInbox, 
-		const OTIdentifier & theServerID,
-		OTServerContract & theServerContract, 
-		OTPseudonym & theNym,
-		OTMessage & theMessage,
-		OTAccount & theAccount
-		);
+    bool AcceptEntireInbox(
+        OTLedger & theInbox, 
+        const OTIdentifier & theServerID,
+        OTServerContract & theServerContract, 
+        OTPseudonym & theNym,
+        OTMessage & theMessage,
+        OTAccount & theAccount
+        );
 
-	bool AcceptEntireNymbox(
-		OTLedger & theNymbox, 
-		const OTIdentifier & theServerID,
-		OTServerContract & theServerContract, 
-		OTPseudonym & theNym,
-		OTMessage & theMessage
-		);
+    bool AcceptEntireNymbox(
+        OTLedger & theNymbox, 
+        const OTIdentifier & theServerID,
+        OTServerContract & theServerContract, 
+        OTPseudonym & theNym,
+        OTMessage & theMessage
+        );
 
-	// void HarvestTransactionNumbers(OTTransaction & theTransaction, OTPseudonym & theNym); 
+    // void HarvestTransactionNumbers(OTTransaction & theTransaction, OTPseudonym & theNym); 
 
 };
 

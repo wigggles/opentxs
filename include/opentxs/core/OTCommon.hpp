@@ -23,14 +23,14 @@
 
 // forward decleration.  (need to match what is in the irr source code). Cam.
 namespace irr{
-	namespace io{
-		template<class char_type, class super_class>
-		class IIrrXMLReader;
-		class IFileReadCallBack;
-		class IXMLBase;
+    namespace io{
+        template<class char_type, class super_class>
+        class IIrrXMLReader;
+        class IFileReadCallBack;
+        class IXMLBase;
 
-		typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
-	}
+        typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+    }
 }
 
 

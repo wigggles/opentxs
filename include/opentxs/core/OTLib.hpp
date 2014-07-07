@@ -144,8 +144,8 @@ namespace opentxs {
 
 class OTLib
 {
-	public:
-		void HelloWorld(const char *);
+    public:
+        void HelloWorld(const char *);
 };
 
 #pragma GCC visibility pop

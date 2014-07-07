@@ -143,8 +143,8 @@ namespace opentxs {
 
 class OTLibPriv
 {
-	public:
-		void HelloWorldPriv(const char *);
+    public:
+        void HelloWorldPriv(const char *);
 };
 
 #pragma GCC visibility pop

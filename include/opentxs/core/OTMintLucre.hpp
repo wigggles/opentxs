@@ -157,16 +157,16 @@ private:  // Private prevents erroneous use by other classes.
 // ------------------------------------------------------------------------------
 protected:
         OTMint_Lucre();
-EXPORT	OTMint_Lucre(const OTString & strServerID, const OTString & strAssetTypeID);
-EXPORT	OTMint_Lucre(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
+EXPORT    OTMint_Lucre(const OTString & strServerID, const OTString & strAssetTypeID);
+EXPORT    OTMint_Lucre(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
 // ------------------------------------------------------------------------------
 public:
 virtual bool AddDenomination(OTPseudonym & theNotary, int64_t lDenomination, int32_t nPrimeLength=1024);
 
-EXPORT	virtual bool SignToken(OTPseudonym & theNotary, OTToken & theToken, OTString & theOutput, int32_t nTokenIndex);
-EXPORT	virtual bool VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination);
+EXPORT    virtual bool SignToken(OTPseudonym & theNotary, OTToken & theToken, OTString & theOutput, int32_t nTokenIndex);
+EXPORT    virtual bool VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination);
 
-EXPORT	virtual ~OTMint_Lucre();
+EXPORT    virtual ~OTMint_Lucre();
 // ------------------------------------------------------------------------------
 };
 

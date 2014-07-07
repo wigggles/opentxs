@@ -139,12 +139,12 @@
 
 #include <tinythread.hpp>
 
-#define	KEY_LATENCY_SEND_MS			"latency_send_ms"
-#define	KEY_LATENCY_SEND_NO_TRIES		"latency_send_no_tries"
-#define	KEY_LATENCY_RECEIVE_MS			"latency_receive_ms"
-#define	KEY_LATENCY_RECEIVE_NO_TRIES		"latency_receive_no_tries"
-#define	KEY_LATENCY_DELAY_AFTER			"latency_delay_after"
-#define	KEY_IS_BLOCKING				"is_blocking"
+#define    KEY_LATENCY_SEND_MS            "latency_send_ms"
+#define    KEY_LATENCY_SEND_NO_TRIES        "latency_send_no_tries"
+#define    KEY_LATENCY_RECEIVE_MS            "latency_receive_ms"
+#define    KEY_LATENCY_RECEIVE_NO_TRIES        "latency_receive_no_tries"
+#define    KEY_LATENCY_DELAY_AFTER            "latency_delay_after"
+#define    KEY_IS_BLOCKING                "is_blocking"
 
 
 
@@ -196,7 +196,7 @@ OTSocket::Mutex::Mutex()
 
 OTSocket::Mutex::~Mutex()
 {
-    if (NULL != m_pMutex)	delete m_pMutex;	m_pMutex = NULL;
+    if (NULL != m_pMutex)    delete m_pMutex;    m_pMutex = NULL;
 }
 
 

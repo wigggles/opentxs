@@ -139,7 +139,7 @@
 #define    OT_FAIL                               { OTAssert::Assert(__FILE__, __LINE__, NULL);      std::terminate(); };
 #define    OT_FAIL_MSG(s)                        { OTAssert::Assert(__FILE__, __LINE__, (s)); std::terminate(); };
 
-#define    OT_ASSERT(x)			if(false == (x)) { OTAssert::Assert(__FILE__, __LINE__, NULL);      std::terminate(); };
+#define    OT_ASSERT(x)            if(false == (x)) { OTAssert::Assert(__FILE__, __LINE__, NULL);      std::terminate(); };
 #define    OT_ASSERT_MSG(x, s)  if(false == (x)) { OTAssert::Assert(__FILE__, __LINE__, (s)); std::terminate(); };
 
 

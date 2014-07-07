@@ -149,11 +149,11 @@ private: // BASE CLASS
 public:  // PUBLIC INTERFACE
     OTSignatureMetadata m_metadata;
 
-	OTSignature();
-	OTSignature(const char * szValue);
-	OTSignature(const OTString & strValue);
-	OTSignature(const OTASCIIArmor & strValue);
-	virtual ~OTSignature();
+    OTSignature();
+    OTSignature(const char * szValue);
+    OTSignature(const OTString & strValue);
+    OTSignature(const OTASCIIArmor & strValue);
+    virtual ~OTSignature();
 };
 
 

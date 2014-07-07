@@ -1,11 +1,11 @@
 /************************************************************
 *
 *  OTSettings.hpp
-*	This class has no static members;
-*	You must create a context.  Only one context, per
-*	 configuration file should exist at the same time,
-*	 it is the caller's responsibility for the
-*	 mutex locks / lock files and whatnot.
+*    This class has no static members;
+*    You must create a context.  Only one context, per
+*     configuration file should exist at the same time,
+*     it is the caller's responsibility for the
+*     mutex locks / lock files and whatnot.
 *
 */
 

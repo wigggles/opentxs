@@ -147,20 +147,20 @@ private:
     OTStringXMLPvt * const pvt;
 
 public:
-	OTStringXML();
-EXPORT	OTStringXML(const OTString & strValue);
-	OTStringXML(const OTStringXML & strValue);
-EXPORT	~OTStringXML();
+    OTStringXML();
+EXPORT    OTStringXML(const OTString & strValue);
+    OTStringXML(const OTStringXML & strValue);
+EXPORT    ~OTStringXML();
 
 EXPORT operator irr::io::IFileReadCallBack *();
-	
-	OTStringXML& operator=(const OTString & rhs);
-	OTStringXML& operator=(const OTStringXML & rhs);
+    
+    OTStringXML& operator=(const OTString & rhs);
+    OTStringXML& operator=(const OTStringXML & rhs);
 
-	using OTString::swap;
+    using OTString::swap;
 
-	int32_t read(void* buffer, uint32_t sizeToRead);
-	int32_t getSize();
+    int32_t read(void* buffer, uint32_t sizeToRead);
+    int32_t getSize();
 };
 
 

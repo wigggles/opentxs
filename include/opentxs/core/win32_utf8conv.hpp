@@ -128,7 +128,7 @@ private:
 // Converts a string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
 //------------------------------------------------------------------------
-EXPORT	std::wstring UTF16FromUTF8(const std::string & utf8);
+EXPORT    std::wstring UTF16FromUTF8(const std::string & utf8);
 
 
 //------------------------------------------------------------------------
@@ -136,14 +136,14 @@ EXPORT	std::wstring UTF16FromUTF8(const std::string & utf8);
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
 //------------------------------------------------------------------------
-EXPORT	std::wstring UTF16FromUTF8(const char * utf8);
+EXPORT    std::wstring UTF16FromUTF8(const char * utf8);
 
 
 //------------------------------------------------------------------------
 // Converts a string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
 //------------------------------------------------------------------------
-EXPORT	std::string UTF8FromUTF16(const std::wstring & utf16);
+EXPORT    std::string UTF8FromUTF16(const std::wstring & utf16);
 
 
 //------------------------------------------------------------------------

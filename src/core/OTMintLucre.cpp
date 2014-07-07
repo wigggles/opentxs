@@ -188,101 +188,101 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym & theNotary, int64_t lDenominatio
 {
     OT_ASSERT(NULL != m_pKeyPublic);
     
-	bool bReturnValue = false;
-	
-	// Let's make sure it doesn't already exist
-	OTASCIIArmor theArmor;
-	if (GetPublic(theArmor, lDenomination))
-	{
-		// it already exists.
-		otErr << "Error: Denomination public already exists in OTMint::AddDenomination\n";
-		return false;
-	}
-	if (GetPrivate(theArmor, lDenomination))
-	{
-		// it already exists.
-		otErr << "Error: Denomination private already exists in OTMint::AddDenomination\n";
-		return false;
-	}
-	
-	//		otErr << "%s <size of bank prime in bits> <bank data file> <bank public data file>\n",
-	
+    bool bReturnValue = false;
+    
+    // Let's make sure it doesn't already exist
+    OTASCIIArmor theArmor;
+    if (GetPublic(theArmor, lDenomination))
+    {
+        // it already exists.
+        otErr << "Error: Denomination public already exists in OTMint::AddDenomination\n";
+        return false;
+    }
+    if (GetPrivate(theArmor, lDenomination))
+    {
+        // it already exists.
+        otErr << "Error: Denomination private already exists in OTMint::AddDenomination\n";
+        return false;
+    }
+    
+    //        otErr << "%s <size of bank prime in bits> <bank data file> <bank public data file>\n",
+    
     if ((nPrimeLength/8) < (MIN_COIN_LENGTH+DIGEST_LENGTH))
-	{
-		otErr << "Prime must be at least " << (MIN_COIN_LENGTH+DIGEST_LENGTH)*8 << " bits\n";
-		return false;
-	}
-	
+    {
+        otErr << "Prime must be at least " << (MIN_COIN_LENGTH+DIGEST_LENGTH)*8 << " bits\n";
+        return false;
+    }
+    
     if (nPrimeLength%8)
-	{
-		otErr << "Prime length must be a multiple of 8\n";
-		return false;
-	}
-	
+    {
+        otErr << "Prime length must be a multiple of 8\n";
+        return false;
+    }
+    
 #ifdef _WIN32
-	SetMonitor("openssl.dump");
+    SetMonitor("openssl.dump");
 #else
-	SetMonitor(stderr);
+    SetMonitor(stderr);
 #endif
-	
-    OpenSSL_BIO bio		=	BIO_new(BIO_s_mem());
-    OpenSSL_BIO bioPublic	=	BIO_new(BIO_s_mem());
-	
-	// Generate the mint private key information
+    
+    OpenSSL_BIO bio        =    BIO_new(BIO_s_mem());
+    OpenSSL_BIO bioPublic    =    BIO_new(BIO_s_mem());
+    
+    // Generate the mint private key information
     Bank bank(nPrimeLength/8);
     bank.WriteBIO(bio);
-	
-	// Generate the mint public key information
+    
+    // Generate the mint public key information
     PublicBank pbank(bank);
-    pbank.WriteBIO(bioPublic);	
-	
-	// Copy from BIO back to a normal OTString or Ascii-Armor  
-	char privateBankBuffer[4096], publicBankBuffer[4096];   // todo stop hardcoding these string lengths
-	int32_t  privatebankLen	= BIO_read(bio, privateBankBuffer, 4000); // cutting it a little short on purpose, with the buffer.
-	int32_t  publicbankLen	= BIO_read(bioPublic, publicBankBuffer, 4000); // Just makes me feel more comfortable for some reason.
-	
-	if (privatebankLen && publicbankLen)
-	{
-		// With this, we have the Lucre public and private bank info converted to OTStrings
-		OTString strPublicBank;		strPublicBank.Set(publicBankBuffer, publicbankLen);
-		OTString strPrivateBank;	strPrivateBank.Set(privateBankBuffer, privatebankLen);
-		
-		OTASCIIArmor * pPublic	= new OTASCIIArmor();
-		OTASCIIArmor * pPrivate	= new OTASCIIArmor();
-		
-		OT_ASSERT(NULL != pPublic);
-		OT_ASSERT(NULL != pPrivate);
-		
-		// Set the public bank info onto pPublic
-		pPublic->SetString(strPublicBank, true); // linebreaks = true
-		
-		// Seal the private bank info up into an encrypted Envelope 
-		// and set it onto pPrivate
-		OTEnvelope theEnvelope;
-		theEnvelope.Seal(theNotary, strPrivateBank);	// Todo check the return values on these two functions
-		theEnvelope.GetAsciiArmoredData(*pPrivate);
-		
-		// Add the new key pair to the maps, using denomination as the key
-		m_mapPublic[lDenomination]	= pPublic;
-		m_mapPrivate[lDenomination]	= pPrivate;
-		
-		// Grab the Server Nym ID and save it with this Mint
-		theNotary.GetIdentifier(m_ServerNymID);
+    pbank.WriteBIO(bioPublic);    
+    
+    // Copy from BIO back to a normal OTString or Ascii-Armor  
+    char privateBankBuffer[4096], publicBankBuffer[4096];   // todo stop hardcoding these string lengths
+    int32_t  privatebankLen    = BIO_read(bio, privateBankBuffer, 4000); // cutting it a little short on purpose, with the buffer.
+    int32_t  publicbankLen    = BIO_read(bioPublic, publicBankBuffer, 4000); // Just makes me feel more comfortable for some reason.
+    
+    if (privatebankLen && publicbankLen)
+    {
+        // With this, we have the Lucre public and private bank info converted to OTStrings
+        OTString strPublicBank;        strPublicBank.Set(publicBankBuffer, publicbankLen);
+        OTString strPrivateBank;    strPrivateBank.Set(privateBankBuffer, privatebankLen);
+        
+        OTASCIIArmor * pPublic    = new OTASCIIArmor();
+        OTASCIIArmor * pPrivate    = new OTASCIIArmor();
+        
+        OT_ASSERT(NULL != pPublic);
+        OT_ASSERT(NULL != pPrivate);
+        
+        // Set the public bank info onto pPublic
+        pPublic->SetString(strPublicBank, true); // linebreaks = true
+        
+        // Seal the private bank info up into an encrypted Envelope 
+        // and set it onto pPrivate
+        OTEnvelope theEnvelope;
+        theEnvelope.Seal(theNotary, strPrivateBank);    // Todo check the return values on these two functions
+        theEnvelope.GetAsciiArmoredData(*pPrivate);
+        
+        // Add the new key pair to the maps, using denomination as the key
+        m_mapPublic[lDenomination]    = pPublic;
+        m_mapPrivate[lDenomination]    = pPrivate;
+        
+        // Grab the Server Nym ID and save it with this Mint
+        theNotary.GetIdentifier(m_ServerNymID);
 
-		// Grab the Server's public key and save it with this Mint
+        // Grab the Server's public key and save it with this Mint
         //
         const OTAsymmetricKey & theNotaryPubKey = theNotary.GetPublicSignKey();
         delete m_pKeyPublic;
         m_pKeyPublic = theNotaryPubKey.ClonePubKey();
 
-		m_nDenominationCount++;
-        // ---------------------------		
-		// Success!
-		bReturnValue = true;
-		otWarn << "Successfully added denomination: " << lDenomination << "\n";
-	}
-	
-	return bReturnValue;
+        m_nDenominationCount++;
+        // ---------------------------        
+        // Success!
+        bReturnValue = true;
+        otWarn << "Successfully added denomination: " << lDenomination << "\n";
+    }
+    
+    return bReturnValue;
 }
 
 
@@ -331,121 +331,121 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym & theNotary, int64_t lDenominatio
 // 
 bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTString & theOutput, int32_t nTokenIndex)
 {
-	bool bReturnValue = false;
-	
-	//otErr << "%s <bank file> <coin request> <coin signature> [<signature repeats>]\n",
+    bool bReturnValue = false;
+    
+    //otErr << "%s <bank file> <coin request> <coin signature> [<signature repeats>]\n",
     _OT_Lucre_Dumper setDumper;
-	
-//	otErr << "OTMint::SignToken!!\nnTokenIndex: %d\n Denomination: %lld\n", nTokenIndex, theToken.GetDenomination());
-	
-    OpenSSL_BIO bioBank		= BIO_new(BIO_s_mem()); // input
-    OpenSSL_BIO bioRequest		= BIO_new(BIO_s_mem()); // input
-    OpenSSL_BIO bioSignature	= BIO_new(BIO_s_mem()); // output
-	
-	OTASCIIArmor thePrivate;
-	GetPrivate(thePrivate, theToken.GetDenomination());
-	
-	// The Mint private info is encrypted in m_mapPrivates[theToken.GetDenomination()]. 
-	// So I need to extract that first before I can use it.
-	OTEnvelope theEnvelope(thePrivate);
+    
+//    otErr << "OTMint::SignToken!!\nnTokenIndex: %d\n Denomination: %lld\n", nTokenIndex, theToken.GetDenomination());
+    
+    OpenSSL_BIO bioBank        = BIO_new(BIO_s_mem()); // input
+    OpenSSL_BIO bioRequest        = BIO_new(BIO_s_mem()); // input
+    OpenSSL_BIO bioSignature    = BIO_new(BIO_s_mem()); // output
+    
+    OTASCIIArmor thePrivate;
+    GetPrivate(thePrivate, theToken.GetDenomination());
+    
+    // The Mint private info is encrypted in m_mapPrivates[theToken.GetDenomination()]. 
+    // So I need to extract that first before I can use it.
+    OTEnvelope theEnvelope(thePrivate);
 
-	OTString strContents; // output from opening the envelope.
-	// Decrypt the Envelope into strContents    
-	if (!theEnvelope.Open(theNotary, strContents))
-		return false;
+    OTString strContents; // output from opening the envelope.
+    // Decrypt the Envelope into strContents    
+    if (!theEnvelope.Open(theNotary, strContents))
+        return false;
 
-	// copy strContents to a BIO
-	BIO_puts(bioBank, strContents.Get());
-	
-//	otErr << "BANK CONTENTS:\n%s--------------------------------------\n", strContents.Get());
-	
-	// Instantiate the Bank with its private key
+    // copy strContents to a BIO
+    BIO_puts(bioBank, strContents.Get());
+    
+//    otErr << "BANK CONTENTS:\n%s--------------------------------------\n", strContents.Get());
+    
+    // Instantiate the Bank with its private key
     Bank bank(bioBank);
-//	otErr << "BANK INSTANTIATED.--------------------------------------\n";
+//    otErr << "BANK INSTANTIATED.--------------------------------------\n";
 
-	// I need the request. the prototoken.
-	OTASCIIArmor ascPrototoken;
-	bool bFoundToken = theToken.GetPrototoken(ascPrototoken, nTokenIndex);
-	
-	if (bFoundToken)
-	{
-		// base64-Decode the prototoken
-		OTString strPrototoken(ascPrototoken);
-		
-//		otErr << "\n--------------------------------------\nDEBUG:  PROTOTOKEN CONTENTS:\n"
-//				"-----------------%s---------------------\n", strPrototoken.Get() );
-		
-		// copy strPrototoken to a BIO
-		BIO_puts(bioRequest, strPrototoken.Get());
+    // I need the request. the prototoken.
+    OTASCIIArmor ascPrototoken;
+    bool bFoundToken = theToken.GetPrototoken(ascPrototoken, nTokenIndex);
+    
+    if (bFoundToken)
+    {
+        // base64-Decode the prototoken
+        OTString strPrototoken(ascPrototoken);
+        
+//        otErr << "\n--------------------------------------\nDEBUG:  PROTOTOKEN CONTENTS:\n"
+//                "-----------------%s---------------------\n", strPrototoken.Get() );
+        
+        // copy strPrototoken to a BIO
+        BIO_puts(bioRequest, strPrototoken.Get());
 
-		// Load up the coin request from the bio (the prototoken)
-		PublicCoinRequest req(bioRequest);
-//		otErr << "PROTOTOKEN INSTANTIATED.--------------------------------------\n";
+        // Load up the coin request from the bio (the prototoken)
+        PublicCoinRequest req(bioRequest);
+//        otErr << "PROTOTOKEN INSTANTIATED.--------------------------------------\n";
 
-		// Sign it with the bank we previously instantiated.
-		// results will be in bnSignature (BIGNUM)
-		BIGNUM * bnSignature = bank.SignRequest(req);
+        // Sign it with the bank we previously instantiated.
+        // results will be in bnSignature (BIGNUM)
+        BIGNUM * bnSignature = bank.SignRequest(req);
 
-		if (NULL == bnSignature)
-		{
-			otErr << "MAJOR ERROR!: Bank.SignRequest failed in OTMint_Lucre::SignToken\n";
-		}
-		
-		else 
-		{
-//			otErr << "BANK.SIGNREQUEST SUCCESSFUL.--------------------------------------\n";
+        if (NULL == bnSignature)
+        {
+            otErr << "MAJOR ERROR!: Bank.SignRequest failed in OTMint_Lucre::SignToken\n";
+        }
+        
+        else 
+        {
+//            otErr << "BANK.SIGNREQUEST SUCCESSFUL.--------------------------------------\n";
 
-			// Write the request contents, followed by the signature contents,
-			// to the Signature bio. Then free the BIGNUM.
-			req.WriteBIO(bioSignature); // the original request contents
-			DumpNumber(bioSignature,"signature=", bnSignature); // the new signature contents
-			BN_free(bnSignature);
+            // Write the request contents, followed by the signature contents,
+            // to the Signature bio. Then free the BIGNUM.
+            req.WriteBIO(bioSignature); // the original request contents
+            DumpNumber(bioSignature,"signature=", bnSignature); // the new signature contents
+            BN_free(bnSignature);
 
-			// Read the signature bio into a C-style buffer...
-			char sig_buf[1024];   // todo stop hardcoding these string lengths
-//			memset(sig_buf, 0, 1024); // zero it out. (I had this commented out, but the size was 2048, so maybe it's safe now at 1024.)
-			
-			int32_t sig_len	= BIO_read(bioSignature, sig_buf, 1000); // cutting it a little short on purpose, with the buffer. Just makes me feel more comfortable for some reason.
-			
-			
-			// Add the null terminator by hand (just in case.)
-			sig_buf[sig_len]	= '\0';
-			
-			if (sig_len)
-			{ // ***********************************************
-//				otErr << "\n--------------------------------------\n"
-//						"*** Siglen is %d. sig_str_len is %d.\nsig buf:\n------------%s------------\nLAST "
-//						"CHARACTER IS '%c'  SECOND TO LAST CHARACTER IS '%c'\n", 
-//						sig_len, sig_str_len, sig_buf, sig_buf[sig_str_len-1], sig_buf[sig_str_len-2]);
-				
-				// Copy the original coin request into the spendable field of the token object.
-				// (It won't actually be spendable until the client processes it, though.)
-				theToken.SetSpendable(ascPrototoken);
-				
-//				otErr << "*** SPENDABLE:\n-----------%s---------------------\n", ascPrototoken.Get());
-						
-						
-				// Base64-encode the signature contents into theToken.m_Signature.
-				OTString	strSignature(sig_buf);
-	//			strSignature.Set(sig_buf, sig_len-1); // sig_len includes null terminator, whereas Set() adds 1 for it.
-				
-//				otErr << "SIGNATURE:\n--------------------%s"
-//						"------------------\n", strSignature.Get());
+            // Read the signature bio into a C-style buffer...
+            char sig_buf[1024];   // todo stop hardcoding these string lengths
+//            memset(sig_buf, 0, 1024); // zero it out. (I had this commented out, but the size was 2048, so maybe it's safe now at 1024.)
+            
+            int32_t sig_len    = BIO_read(bioSignature, sig_buf, 1000); // cutting it a little short on purpose, with the buffer. Just makes me feel more comfortable for some reason.
+            
+            
+            // Add the null terminator by hand (just in case.)
+            sig_buf[sig_len]    = '\0';
+            
+            if (sig_len)
+            { // ***********************************************
+//                otErr << "\n--------------------------------------\n"
+//                        "*** Siglen is %d. sig_str_len is %d.\nsig buf:\n------------%s------------\nLAST "
+//                        "CHARACTER IS '%c'  SECOND TO LAST CHARACTER IS '%c'\n", 
+//                        sig_len, sig_str_len, sig_buf, sig_buf[sig_str_len-1], sig_buf[sig_str_len-2]);
+                
+                // Copy the original coin request into the spendable field of the token object.
+                // (It won't actually be spendable until the client processes it, though.)
+                theToken.SetSpendable(ascPrototoken);
+                
+//                otErr << "*** SPENDABLE:\n-----------%s---------------------\n", ascPrototoken.Get());
+                        
+                        
+                // Base64-encode the signature contents into theToken.m_Signature.
+                OTString    strSignature(sig_buf);
+    //            strSignature.Set(sig_buf, sig_len-1); // sig_len includes null terminator, whereas Set() adds 1 for it.
+                
+//                otErr << "SIGNATURE:\n--------------------%s"
+//                        "------------------\n", strSignature.Get());
 
-				// Here we pass the signature back to the caller.
-				// He will probably set it onto the token.
-				theOutput.Set(sig_buf, sig_len);
-				bReturnValue = true;
-				
-				// This is also where we set the expiration date on the token.
-				// The client should have already done this, but we are explicitly
-				// setting the values here to prevent any funny business.
-				theToken.SetSeriesAndExpiration(m_nSeries, m_VALID_FROM, m_VALID_TO);
-			}
-		}
-	}
+                // Here we pass the signature back to the caller.
+                // He will probably set it onto the token.
+                theOutput.Set(sig_buf, sig_len);
+                bReturnValue = true;
+                
+                // This is also where we set the expiration date on the token.
+                // The client should have already done this, but we are explicitly
+                // setting the values here to prevent any funny business.
+                theToken.SetSeriesAndExpiration(m_nSeries, m_VALID_FROM, m_VALID_TO);
+            }
+        }
+    }
 
-	return bReturnValue;
+    return bReturnValue;
 }
 
 
@@ -454,55 +454,55 @@ bool OTMint_Lucre::SignToken(OTPseudonym & theNotary, OTToken & theToken, OTStri
 // That's the one you should be calling, most likely, not this one.
 bool OTMint_Lucre::VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination)
 {
-	bool bReturnValue = false;
-//	otErr << "%s <bank info> <coin>\n", argv[0]);
+    bool bReturnValue = false;
+//    otErr << "%s <bank info> <coin>\n", argv[0]);
     _OT_Lucre_Dumper setDumper;
-	
-	OpenSSL_BIO bioBank	= BIO_new(BIO_s_mem()); // input
-	OpenSSL_BIO bioCoin	= BIO_new(BIO_s_mem()); // input
-	
-	// --- copy theCleartextToken to bioCoin so lucre can load it
-	BIO_puts(bioCoin, theCleartextToken.Get());
-		
-	// --- The Mint private info is encrypted in m_mapPrivate[lDenomination]. 
-	// So I need to extract that first before I can use it.
-	OTASCIIArmor theArmor;
-	GetPrivate(theArmor, lDenomination);
-	OTEnvelope theEnvelope(theArmor);
-	
-	OTString strContents; // will contain output from opening the envelope.
-	// Decrypt the Envelope into strContents    
-	if (theEnvelope.Open(theNotary, strContents))
-	{
-		// copy strContents to a BIO
-		BIO_puts(bioBank, strContents.Get());
-		
-		// ---- Now the bank and coin bios are both ready to go... 
-		
-		Bank bank(bioBank);
-		Coin coin(bioCoin);
-		
-		if (bank.Verify(coin))  // Here's the boolean output: coin is verified!
-		{
-			bReturnValue = true;
-			
-			// (Done): When a token is redeemed, need to store it in the spent token database.
-			// Right now I can verify the token, but unless I check it against a database, then 
-			// even though the signature verifies, it doesn't stop people from redeeming the same
-			// token again and again and again.
-			//
-			// (done): also need to make sure issuer has double-entries for total amount outstanding.
-			//
-			// UPDATE: These are both done now.  The Spent Token database is implemented in the transaction server,
-			// (not OTLib proper) and the same server also now keeps a cash account to match all cash withdrawals.
-			// (Meaning, if 10,000 clams total have been withdrawn by various users, then the server actually has
-			// a clam account containing 10,000 clams. As the cash comes in for redemption, the server debits it from
-			// this account again before sending it to its final destination. This way the server tracks total outstanding
-			// amount, as an additional level of security after the blind signature itself.)
-		}
-	}
+    
+    OpenSSL_BIO bioBank    = BIO_new(BIO_s_mem()); // input
+    OpenSSL_BIO bioCoin    = BIO_new(BIO_s_mem()); // input
+    
+    // --- copy theCleartextToken to bioCoin so lucre can load it
+    BIO_puts(bioCoin, theCleartextToken.Get());
+        
+    // --- The Mint private info is encrypted in m_mapPrivate[lDenomination]. 
+    // So I need to extract that first before I can use it.
+    OTASCIIArmor theArmor;
+    GetPrivate(theArmor, lDenomination);
+    OTEnvelope theEnvelope(theArmor);
+    
+    OTString strContents; // will contain output from opening the envelope.
+    // Decrypt the Envelope into strContents    
+    if (theEnvelope.Open(theNotary, strContents))
+    {
+        // copy strContents to a BIO
+        BIO_puts(bioBank, strContents.Get());
+        
+        // ---- Now the bank and coin bios are both ready to go... 
+        
+        Bank bank(bioBank);
+        Coin coin(bioCoin);
+        
+        if (bank.Verify(coin))  // Here's the boolean output: coin is verified!
+        {
+            bReturnValue = true;
+            
+            // (Done): When a token is redeemed, need to store it in the spent token database.
+            // Right now I can verify the token, but unless I check it against a database, then 
+            // even though the signature verifies, it doesn't stop people from redeeming the same
+            // token again and again and again.
+            //
+            // (done): also need to make sure issuer has double-entries for total amount outstanding.
+            //
+            // UPDATE: These are both done now.  The Spent Token database is implemented in the transaction server,
+            // (not OTLib proper) and the same server also now keeps a cash account to match all cash withdrawals.
+            // (Meaning, if 10,000 clams total have been withdrawn by various users, then the server actually has
+            // a clam account containing 10,000 clams. As the cash comes in for redemption, the server debits it from
+            // this account again before sending it to its final destination. This way the server tracks total outstanding
+            // amount, as an additional level of security after the blind signature itself.)
+        }
+    }
 
-	return bReturnValue;
+    return bReturnValue;
 }
 
 

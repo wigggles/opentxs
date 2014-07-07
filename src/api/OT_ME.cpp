@@ -1671,10 +1671,10 @@ bool OT_ME::Register_CLI_With_Script_Chai(OTScriptChai & theScript)
         theScript.chai->add(fun(&OT_CLI_ReadLine), "OT_CLI_ReadLine");   // String OT_CLI_ReadLine()  // Reads from cin until Newline.
         theScript.chai->add(fun(&OT_CLI_ReadUntilEOF), "OT_CLI_ReadUntilEOF"); // String OT_CLI_ReadUntilEOF() // Reads from cin until EOF or ~ on a line by itself.
         // For command-line option (for SCRIPTS):  ot --script <filename> [--args "key value key value ..."]
-        theScript.chai->add(fun(&OT_CLI_GetArgsCount), "OT_CLI_GetArgsCount");	// Get a count of key/value pairs from a string. Returns int32_t.
-        theScript.chai->add(fun(&OT_CLI_GetValueByKey), "OT_CLI_GetValueByKey");	// Returns a VALUE as string, BY KEY, from a map of key/value pairs (stored in a string.)
-        theScript.chai->add(fun(&OT_CLI_GetValueByIndex), "OT_CLI_GetValueByIndex");	// Returns a VALUE as string, BY INDEX, from a map of key/value pairs (stored in a string.)
-        theScript.chai->add(fun(&OT_CLI_GetKeyByIndex), "OT_CLI_GetKeyByIndex");	// Returns a KEY as string, BY INDEX, from a map of key/value pairs (stored in a string.)
+        theScript.chai->add(fun(&OT_CLI_GetArgsCount), "OT_CLI_GetArgsCount");    // Get a count of key/value pairs from a string. Returns int32_t.
+        theScript.chai->add(fun(&OT_CLI_GetValueByKey), "OT_CLI_GetValueByKey");    // Returns a VALUE as string, BY KEY, from a map of key/value pairs (stored in a string.)
+        theScript.chai->add(fun(&OT_CLI_GetValueByIndex), "OT_CLI_GetValueByIndex");    // Returns a VALUE as string, BY INDEX, from a map of key/value pairs (stored in a string.)
+        theScript.chai->add(fun(&OT_CLI_GetKeyByIndex), "OT_CLI_GetKeyByIndex");    // Returns a KEY as string, BY INDEX, from a map of key/value pairs (stored in a string.)
         return true; // Success (hopefully!)
     }
 }
@@ -2033,8 +2033,8 @@ bool OT_ME::Register_API_With_Script_Chai(OTScriptChai & theScript)
 
         theScript.chai->add(fun(&OTAPI_Wrap::Msg_HarvestTransactionNumbers), "OT_API_Msg_HarvestTransactionNumbers");
 
-//		theScript.chai->add(fun(&OTAPI_Wrap::HarvestClosingNumbers), "OT_API_HarvestClosingNumbers");
-//		theScript.chai->add(fun(&OTAPI_Wrap::HarvestAllNumbers), "OT_API_HarvestAllNumbers");
+//        theScript.chai->add(fun(&OTAPI_Wrap::HarvestClosingNumbers), "OT_API_HarvestClosingNumbers");
+//        theScript.chai->add(fun(&OTAPI_Wrap::HarvestAllNumbers), "OT_API_HarvestAllNumbers");
 
         theScript.chai->add(fun(&OTAPI_Wrap::Smart_AreAllPartiesConfirmed), "OT_API_Smart_AreAllPartiesConfirmed");
         theScript.chai->add(fun(&OTAPI_Wrap::Smart_IsPartyConfirmed), "OT_API_Smart_IsPartyConfirmed");
@@ -2103,7 +2103,7 @@ bool NewScriptExists(const OTString & strScriptFilename, bool bIsHeader, OTStrin
         OT_FAIL;
     }
 
-    OTString strScriptsFolder(OTPaths::ScriptsFolder()); //	/usr/local / lib / opentxs  OR (android) res/raw
+    OTString strScriptsFolder(OTPaths::ScriptsFolder()); //    /usr/local / lib / opentxs  OR (android) res/raw
     { bool bGetFolderSuccess = strScriptsFolder.Exists() && 3 < strScriptsFolder.GetLength();
     OT_ASSERT_MSG(bGetFolderSuccess, "NewScriptHeaderExists: Unalbe to Get Scripts Path"); }
 

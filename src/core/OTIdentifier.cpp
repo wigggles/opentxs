@@ -161,57 +161,57 @@ OTIdentifier::OTIdentifier(const OTIdentifier & theID) : OTData(theID) { }
 
 OTIdentifier::OTIdentifier(const char * szStr) : OTData()
 {
-	OT_ASSERT(NULL != szStr);
-	SetString(szStr);
+    OT_ASSERT(NULL != szStr);
+    SetString(szStr);
 }
 
 
 OTIdentifier::OTIdentifier(const std::string & theStr) : OTData()
 {
-	OT_ASSERT(!theStr.empty());
-	SetString(theStr.c_str());
+    OT_ASSERT(!theStr.empty());
+    SetString(theStr.c_str());
 }
 
 
 OTIdentifier::OTIdentifier(const OTString & theStr) : OTData()
 {
-	SetString(theStr);
+    SetString(theStr);
 }
 
 
 OTIdentifier::OTIdentifier(const OTContract &theContract)  : OTData() // Get the contract's ID into this identifier.
 {
-	(const_cast<OTContract &>(theContract)).GetIdentifier(*this);
+    (const_cast<OTContract &>(theContract)).GetIdentifier(*this);
 }
 
 
 OTIdentifier::OTIdentifier(const OTPseudonym &theNym)  : OTData() // Get the Nym's ID into this identifier.
 {
-	(const_cast<OTPseudonym &>(theNym)).GetIdentifier(*this);
+    (const_cast<OTPseudonym &>(theNym)).GetIdentifier(*this);
 }
 
 
 OTIdentifier::OTIdentifier(const OTOffer &theOffer)  : OTData() // Get the Offer's Market ID into this identifier.
 {
-	(const_cast<OTOffer &>(theOffer)).GetIdentifier(*this);
+    (const_cast<OTOffer &>(theOffer)).GetIdentifier(*this);
 }
 
 
 OTIdentifier::OTIdentifier(const OTMarket &theMarket)  : OTData() // Get the Market ID into this identifier.
 {
-	(const_cast<OTMarket &>(theMarket)).GetIdentifier(*this);
+    (const_cast<OTMarket &>(theMarket)).GetIdentifier(*this);
 }
 
 
 OTIdentifier::OTIdentifier(const OTSymmetricKey &theKey)  : OTData() // Get the Symmetric Key's ID into *this. (It's a hash of the encrypted form of the symmetric key.)
 {
-	(const_cast<OTSymmetricKey &>(theKey)).GetIdentifier(*this);
+    (const_cast<OTSymmetricKey &>(theKey)).GetIdentifier(*this);
 }
 
 
 OTIdentifier::OTIdentifier(const OTCachedKey &theKey)  : OTData() // Cached Key stores a symmetric key inside, so this actually captures the ID for that symmetrickey.
 {
-	const bool bSuccess = (const_cast<OTCachedKey &>(theKey)).GetIdentifier(*this);
+    const bool bSuccess = (const_cast<OTCachedKey &>(theKey)).GetIdentifier(*this);
     
     OT_ASSERT(bSuccess); // should never fail. If it does, then we are calling this function at a time we shouldn't, when we aren't sure the master key has even been generated yet. (If this asserts, need to examine the line of code that tried to do this, and figure out where its logic went wrong, since it should have made sure this would not happen, before constructing like this.)
 }
@@ -219,51 +219,51 @@ OTIdentifier::OTIdentifier(const OTCachedKey &theKey)  : OTData() // Cached Key 
 
 void OTIdentifier::SetString(const char * szString)
 {
-	OT_ASSERT(NULL != szString);
-	const OTString theStr(szString);
-	SetString(theStr);
+    OT_ASSERT(NULL != szString);
+    const OTString theStr(szString);
+    SetString(theStr);
 }
 
 
 bool OTIdentifier::operator==(const OTIdentifier &s2) const
 {
-	const OTString ots1(*this), ots2(s2);
-	return ots1.Compare(ots2);	
+    const OTString ots1(*this), ots2(s2);
+    return ots1.Compare(ots2);    
 }
 
 
 bool OTIdentifier::operator!=(const OTIdentifier &s2) const
 {
-	const OTString ots1(*this), ots2(s2);
-	return !(ots1.Compare(ots2));	
+    const OTString ots1(*this), ots2(s2);
+    return !(ots1.Compare(ots2));    
 }
 
 
 bool OTIdentifier::operator >(const OTIdentifier &s2) const 
 {
     const OTString ots1(*this), ots2(s2);
-	return ots1.operator>(ots2);
+    return ots1.operator>(ots2);
 }
 
 
 bool OTIdentifier::operator <(const OTIdentifier &s2)  const 
 {
     const OTString ots1(*this), ots2(s2);
-	return ots1.operator<(ots2);
+    return ots1.operator<(ots2);
 }
 
 
 bool OTIdentifier::operator <=(const OTIdentifier &s2)  const
 {
     const OTString ots1(*this), ots2(s2);
-	return ots1.operator<=(ots2);
+    return ots1.operator<=(ots2);
 }
 
 
 bool OTIdentifier::operator >=(const OTIdentifier &s2)  const
 {
     const OTString ots1(*this), ots2(s2);
-	return ots1.operator>=(ots2);
+    return ots1.operator>=(ots2);
 }
 
 
@@ -272,10 +272,10 @@ OTIdentifier::~OTIdentifier() { }
 
 void OTIdentifier::CopyTo(uint8_t * szNewLocation) const
 {
-	if (GetSize())
-	{
-		memcpy((void*)GetPointer(), szNewLocation, GetSize()); // todo cast
-	}
+    if (GetSize())
+    {
+        memcpy((void*)GetPointer(), szNewLocation, GetSize()); // todo cast
+    }
 }
 
 
@@ -304,25 +304,25 @@ const OTString OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 bool OTIdentifier::CalculateDigest(const OTString & strInput)
 {
 //#ifndef ANDROID // If NOT Android...
-	OTIdentifier idSecondHash;
-	
-	if (idSecondHash.CalculateDigest(strInput, HashAlgorithm2) &&
-		CalculateDigest(strInput, HashAlgorithm1))
-	{
-		// At this point, we have successfully generated the WHRLPOOL hash in 
-		// idSecondHash, and we've successfully generated the SHA-256 hash in 
-		// this object.
-		// Next we XOR them together for the final product.
-		return XOR(idSecondHash);
-	}
+    OTIdentifier idSecondHash;
+    
+    if (idSecondHash.CalculateDigest(strInput, HashAlgorithm2) &&
+        CalculateDigest(strInput, HashAlgorithm1))
+    {
+        // At this point, we have successfully generated the WHRLPOOL hash in 
+        // idSecondHash, and we've successfully generated the SHA-256 hash in 
+        // this object.
+        // Next we XOR them together for the final product.
+        return XOR(idSecondHash);
+    }
 //#else // SHA256 on Android; no whirlpool until OpenSSL 1.0.0 is added.
-//	if (CalculateDigest(strInput, HashAlgorithm1))
-//	{
-//		return true;
-//	}	
+//    if (CalculateDigest(strInput, HashAlgorithm1))
+//    {
+//        return true;
+//    }    
 //#endif // ANDROID
-	
-	return false;
+    
+    return false;
 }
 
 
@@ -330,25 +330,25 @@ bool OTIdentifier::CalculateDigest(const OTString & strInput)
 bool OTIdentifier::CalculateDigest(const OTData & dataInput)
 {
 //#ifndef ANDROID // SHA256 on Android; no whirlpool until OpenSSL 1.0.0 is added.
-	OTIdentifier idSecondHash;
-	
-	if (idSecondHash.CalculateDigest(dataInput, HashAlgorithm2) &&
-		CalculateDigest(dataInput, HashAlgorithm1))
-	{
-		// At this point, we have successfully generated the WHRLPOOL hash in 
-		// idSecondHash, and we've successfully generated the SHA-256 hash in 
-		// this object.
-		// Next we XOR them together for the final product.
-		return XOR(idSecondHash);
-	}
+    OTIdentifier idSecondHash;
+    
+    if (idSecondHash.CalculateDigest(dataInput, HashAlgorithm2) &&
+        CalculateDigest(dataInput, HashAlgorithm1))
+    {
+        // At this point, we have successfully generated the WHRLPOOL hash in 
+        // idSecondHash, and we've successfully generated the SHA-256 hash in 
+        // this object.
+        // Next we XOR them together for the final product.
+        return XOR(idSecondHash);
+    }
 //#else // ANDROID
-//	if (CalculateDigest(dataInput, HashAlgorithm1)) // SHA256 only until I add the new OpenSSL 1.0 for Android
-//	{
-//		return true;
-//	}	
+//    if (CalculateDigest(dataInput, HashAlgorithm1)) // SHA256 only until I add the new OpenSSL 1.0 for Android
+//    {
+//        return true;
+//    }    
 //#endif // ANDROID
-	
-	return false;
+    
+    return false;
 }
 
 
@@ -360,13 +360,13 @@ bool OTIdentifier::CalculateDigest(const OTData & dataInput)
 // instead.
 bool OTIdentifier::CalculateDigestInternal(const OTString & strInput, const OTString & strHashAlgorithm)
 {
-	// See if they wanted to use the SAMY hash
-	if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) 
-	{
-		return CalculateDigest(strInput);
-	}
-	
-	return false;
+    // See if they wanted to use the SAMY hash
+    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) 
+    {
+        return CalculateDigest(strInput);
+    }
+    
+    return false;
 }
 
 
@@ -379,13 +379,13 @@ bool OTIdentifier::CalculateDigestInternal(const OTString & strInput, const OTSt
 
 bool OTIdentifier::CalculateDigestInternal(const OTData & dataInput, const OTString & strHashAlgorithm)
 {
-	// See if they wanted to use the SAMY hash
-	if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) 
-	{
-		return CalculateDigest(dataInput);
-	}
-	
-	return false;	
+    // See if they wanted to use the SAMY hash
+    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) 
+    {
+        return CalculateDigest(dataInput);
+    }
+    
+    return false;    
 }
 
 
@@ -452,16 +452,16 @@ bool OTIdentifier::CalculateDigest(const OTData & dataInput, const OTString & st
 //
 bool OTIdentifier::XOR(const OTIdentifier & theInput)
 {
-	// Go with the smallest of the two
-	const int64_t lSize = (GetSize() > theInput.GetSize() ? theInput.GetSize() : GetSize());
-	
-	for (int32_t i = 0; i < lSize; i++)
-	{
-		// When converting to BigInteger internally, this will be a bit more efficient.
-		((char*)GetPointer())[i] ^= ((char*)theInput.GetPointer())[i]; // todo cast
-	}
-	
-	return true;
+    // Go with the smallest of the two
+    const int64_t lSize = (GetSize() > theInput.GetSize() ? theInput.GetSize() : GetSize());
+    
+    for (int32_t i = 0; i < lSize; i++)
+    {
+        // When converting to BigInteger internally, this will be a bit more efficient.
+        ((char*)GetPointer())[i] ^= ((char*)theInput.GetPointer())[i]; // todo cast
+    }
+    
+    return true;
 }
 
 

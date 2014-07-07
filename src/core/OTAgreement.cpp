@@ -151,13 +151,13 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
                                          OTPseudonym & theServerNym,
                                          const OTIdentifier & theServerID,
                                          const int64_t & lNewTransactionNumber,
-//                                       const int64_t & lInReferenceTo,	// Each party has its own opening trans #.
+//                                       const int64_t & lInReferenceTo,    // Each party has its own opening trans #.
                                          const OTString & strReference,
                                          OTString * pstrNote/*=NULL*/,
                                          OTString * pstrAttachment/*=NULL*/,
                                          OTPseudonym * pActualNym/*=NULL*/)
 {
-	bool bSuccess = true;  // Success is defined as ALL parties receiving a notice
+    bool bSuccess = true;  // Success is defined as ALL parties receiving a notice
 
     OTPseudonym   theRecipientNym; // Don't use this... use the pointer just below.
     OTPseudonym * pRecipient = NULL;
@@ -179,7 +179,7 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
         if (false == theRecipientNym.LoadPublicKey())
         {
             const OTString strNymID(NYM_ID);
-			otErr << __FUNCTION__ << ": Failure loading Recipient's public key: " << strNymID << "\n";
+            otErr << __FUNCTION__ << ": Failure loading Recipient's public key: " << strNymID << "\n";
             return false;
         }
         else if (theRecipientNym.VerifyPseudonym() &&
@@ -190,7 +190,7 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
         else
         {
             const OTString strNymID(NYM_ID);
-			otErr << __FUNCTION__ << ": Failure verifying Recipient's public key or loading signed nymfile: " << strNymID << "\n";
+            otErr << __FUNCTION__ << ": Failure verifying Recipient's public key or loading signed nymfile: " << strNymID << "\n";
             return false;
         }
     }
@@ -217,7 +217,7 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
         if (false == theSenderNym.LoadPublicKey())
         {
             const OTString strNymID(NYM_ID);
-			otErr << __FUNCTION__ << ": Failure loading Sender's public key: " << strNymID << "\n";
+            otErr << __FUNCTION__ << ": Failure loading Sender's public key: " << strNymID << "\n";
             return false;
         }
         else if (theSenderNym.VerifyPseudonym() &&
@@ -228,7 +228,7 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
         else
         {
             const OTString strNymID(NYM_ID);
-			otErr << __FUNCTION__ << ": Failure verifying Sender's public key or loading signed nymfile: " << strNymID << "\n";
+            otErr << __FUNCTION__ << ": Failure verifying Sender's public key or loading signed nymfile: " << strNymID << "\n";
             return false;
         }
     }
@@ -264,7 +264,7 @@ bool OTAgreement::SendNoticeToAllParties(bool bSuccessMsg,
                                                        pRecipient))
         bSuccess = false;
 
-	return bSuccess;
+    return bSuccess;
 }
 
 
@@ -283,17 +283,17 @@ bool OTAgreement::DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
     
     // Inbox will receive notification of something ALREADY DONE.
-	//
+    //
     bool bSuccessLoading = theLedger.LoadNymbox();
 
     if (true == bSuccessLoading)
-        bSuccessLoading		= theLedger.VerifyAccount(theServerNym);
+        bSuccessLoading        = theLedger.VerifyAccount(theServerNym);
     else
-		bSuccessLoading		= theLedger.GenerateLedger(USER_ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
+        bSuccessLoading        = theLedger.GenerateLedger(USER_ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
 
     if (false == bSuccessLoading)
     {
-		otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. (FAILED WRITING RECEIPT!!) \n";
+        otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. (FAILED WRITING RECEIPT!!) \n";
         return false;
     }
 
@@ -305,10 +305,10 @@ bool OTAgreement::DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an 
     {
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original OTScriptable
-		
+        
         // Set up the transaction items (each transaction may have multiple items... but not in this case.)
-		//
-        OTItem * pItem1	= OTItem::CreateItemFromTransaction(*pTransaction, OTItem::notice);
+        //
+        OTItem * pItem1    = OTItem::CreateItemFromTransaction(*pTransaction, OTItem::notice);
         OT_ASSERT(NULL != pItem1); // This may be unnecessary, I'll have to check CreateItemFromTransaction. I'll leave it for now.
 
         pItem1->SetStatus(bSuccessMsg ? OTItem::acknowledgement : OTItem::rejection); // ACKNOWLEDGMENT or REJECTION ?
@@ -368,12 +368,12 @@ bool OTAgreement::DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an 
         OTIdentifier theNymboxHash;
         
         // Save nymbox to storage. (File, DB, wherever it goes.)
-        theLedger.	SaveNymbox(&theNymboxHash);
+        theLedger.    SaveNymbox(&theNymboxHash);
         
-		// Corresponds to the AddTransaction() call just above. These
-		// are stored in a separate file now.
-		//
-		pTransaction->SaveBoxReceipt(theLedger);
+        // Corresponds to the AddTransaction() call just above. These
+        // are stored in a separate file now.
+        //
+        pTransaction->SaveBoxReceipt(theLedger);
 
         // Update the NymboxHash (in the nymfile.)
         //
@@ -396,19 +396,19 @@ bool OTAgreement::DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an 
                 if (false == theActualNym.LoadPublicKey()) // Note: this step may be unnecessary since we are only updating his Nymfile, not his key.
                 {
                     OTString strNymID(ACTUAL_NYM_ID);
-					otErr << __FUNCTION__ << ": Failure loading public key for Nym: " << strNymID << ". "
+                    otErr << __FUNCTION__ << ": Failure loading public key for Nym: " << strNymID << ". "
                                   "(To update his NymboxHash.) \n";
                 }
-                else if (theActualNym.VerifyPseudonym()	&& // this line may be unnecessary.
+                else if (theActualNym.VerifyPseudonym()    && // this line may be unnecessary.
                          theActualNym.LoadSignedNymfile(theServerNym)) // ServerNym here is not theActualNym's identity, but merely the signer on this file.
                 {
-					otLog3 << __FUNCTION__ << ": Loading actual Nym, since he wasn't already loaded. (To update his NymboxHash.)\n";
+                    otLog3 << __FUNCTION__ << ": Loading actual Nym, since he wasn't already loaded. (To update his NymboxHash.)\n";
                     pActualNym = &theActualNym; //  <=====
                 }
                 else
                 {
                     OTString strNymID(ACTUAL_NYM_ID);
-					otErr << __FUNCTION__ << ": Failure loading or verifying Actual Nym public key: " << strNymID << ". "
+                    otErr << __FUNCTION__ << ": Failure loading or verifying Actual Nym public key: " << strNymID << ". "
                                   "(To update his NymboxHash.)\n";
                 }
             }
@@ -430,7 +430,7 @@ bool OTAgreement::DropServerNoticeToNymbox(bool bSuccessMsg, // Nym receives an 
     }
     else
         otErr << __FUNCTION__ << ": Failed trying to create Nymbox.\n";
-	
+    
     return false; // unreachable.
 }
 
@@ -494,9 +494,9 @@ void OTAgreement::GetAllTransactionNumbers(OTNumList & numlistOutput) const
 //
 bool OTAgreement::VerifyNymAsAgent(OTPseudonym & theNym,
                                    OTPseudonym &, // Not needed in this override.
-                                   mapOfNyms	 * /*=NULL*/)
+                                   mapOfNyms     * /*=NULL*/)
 {
-	return this->VerifySignature(theNym);
+    return this->VerifySignature(theNym);
 }
 
 
@@ -504,7 +504,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym & theNym,
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym & theNym, OTAccount & theAccount)
 {
-	return theAccount.VerifyOwner(theNym);
+    return theAccount.VerifyOwner(theNym);
 }
 
 
@@ -568,8 +568,8 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
         if (false == theRecipientNym.LoadPublicKey())
         {
             const OTString strNymID(NYM_ID);
-			otErr << szFunc << ": Failure loading Recipient's public key:\n" << strNymID << "\n";
-        }		
+            otErr << szFunc << ": Failure loading Recipient's public key:\n" << strNymID << "\n";
+        }        
         else if (theRecipientNym.VerifyPseudonym() && 
                  theRecipientNym.LoadSignedNymfile(*pServerNym)) // ServerNym here is merely the signer on this file.
         {
@@ -578,7 +578,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
         else 
         {
             const OTString strNymID(NYM_ID);
-			otErr << szFunc << ": Failure verifying Recipient's public key or loading signed nymfile: " << strNymID << "\n";
+            otErr << szFunc << ": Failure verifying Recipient's public key or loading signed nymfile: " << strNymID << "\n";
         }
     }
 
@@ -635,20 +635,20 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
             if (false == theActualNym.LoadPublicKey()) // Note: this step may be unnecessary since we are only updating his Nymfile, not his key.
             {
                 OTString strNymID(ACTUAL_NYM_ID);
-				otErr << szFunc << ": Failure loading public key for Nym : " << strNymID << ". "
+                otErr << szFunc << ": Failure loading public key for Nym : " << strNymID << ". "
                               "(To update his NymboxHash.) \n";
             }
-            else if (theActualNym.VerifyPseudonym()	&& // this line may be unnecessary.
+            else if (theActualNym.VerifyPseudonym()    && // this line may be unnecessary.
                      theActualNym.LoadSignedNymfile(*pServerNym)) // ServerNym here is not theActualNym's identity, but merely the signer on this file.
             {
-				otLog3 << szFunc << ": Loading actual Nym, since he wasn't already loaded. "
+                otLog3 << szFunc << ": Loading actual Nym, since he wasn't already loaded. "
                               "(To update his NymboxHash.)\n";
                 pActualNym = &theActualNym; //  <=====
             }
             else
             {
                 OTString strNymID(ACTUAL_NYM_ID);
-				otErr << szFunc << ": Failure loading or verifying Actual Nym public key: " << strNymID << ". "
+                otErr << szFunc << ": Failure loading or verifying Actual Nym public key: " << strNymID << ". "
                               "(To update his NymboxHash.)\n";
             }
         }
@@ -660,12 +660,12 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
                                                     pstrAttachment,
                                                     pActualNym))
         {
-			otErr << szFunc << ": Failure dropping sender final receipt into nymbox.\n";
+            otErr << szFunc << ": Failure dropping sender final receipt into nymbox.\n";
         }        
     }
     else
     {
-		otErr << szFunc << ": Failure verifying sender's opening number.\n";
+        otErr << szFunc << ": Failure verifying sender's opening number.\n";
     }
     
    
@@ -683,7 +683,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
                                                    strOrigCronItem,
                                                    NULL, 
                                                    pstrAttachment)) // pActualAcct=NULL by default. (This call will load it up and update its inbox hash.)
-		otErr << szFunc << ": Failure dropping receipt into sender's inbox.\n";
+        otErr << szFunc << ": Failure dropping receipt into sender's inbox.\n";
 
         // This part below doesn't happen until theOriginator ACCEPTS the final receipt (when processing his inbox.)
         //
@@ -691,7 +691,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
     }
     else
     {
-		otErr << szFunc << ": Failed verifying lSenderClosingNumber=theOrigCronItem.GetClosingTransactionNoAt(0)>0 &&  "
+        otErr << szFunc << ": Failed verifying lSenderClosingNumber=theOrigCronItem.GetClosingTransactionNoAt(0)>0 &&  "
                       "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
@@ -721,7 +721,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
                                                     pstrAttachment,
                                                     pRecipient)) // NymboxHash is updated here in pRecipient.
         {
-			otErr << szFunc << ": Failure dropping recipient final receipt into nymbox.\n";
+            otErr << szFunc << ": Failure dropping recipient final receipt into nymbox.\n";
         }
 
 
@@ -735,7 +735,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
     }
     else
     {
-		otErr << szFunc << ": Failed verifying "
+        otErr << szFunc << ": Failed verifying "
                       "lRecipientClosingNumber=this->GetRecipientClosingTransactionNoAt(1)>0 &&  "
                       "pRecipient->VerifyTransactionNum(lRecipientClosingNumber) && VerifyIssuedNum(lRecipientOpeningNumber)\n";
     }
@@ -752,7 +752,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
                                                    strOrigCronItem,
                                                    NULL,
                                                    pstrAttachment))
-		otErr << szFunc << ": Failure dropping receipt into recipient's inbox.\n";
+        otErr << szFunc << ": Failure dropping receipt into recipient's inbox.\n";
 
         // This part below doesn't happen until pRecipient ACCEPTs the final receipt (when processing his inbox.)
         //
@@ -760,7 +760,7 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
     }
     else
     {
-		otErr << szFunc << ": Failed verifying "
+        otErr << szFunc << ": Failed verifying "
                       "lRecipientClosingNumber=this->GetRecipientClosingTransactionNoAt(1)>0 &&  "
                       "pRecipient->VerifyTransactionNum(lRecipientClosingNumber) && VerifyIssuedNum(lRecipientOpeningNumber)\n";
     }
@@ -774,16 +774,16 @@ void OTAgreement::onFinalReceipt(OTCronItem  & theOrigCronItem,
 
 
 /*
- inline const OTIdentifier &	GetRecipientAcctID() const { return m_RECIPIENT_ACCT_ID; }
- inline const OTIdentifier &	GetRecipientUserID() const { return m_RECIPIENT_USER_ID; }
+ inline const OTIdentifier &    GetRecipientAcctID() const { return m_RECIPIENT_ACCT_ID; }
+ inline const OTIdentifier &    GetRecipientUserID() const { return m_RECIPIENT_USER_ID; }
  */
 
 bool OTAgreement::IsValidOpeningNumber(const int64_t & lOpeningNum) const
 {
-	if (GetRecipientOpeningNum() == lOpeningNum)
-		return true;
-	
-	return ot_super::IsValidOpeningNumber(lOpeningNum);
+    if (GetRecipientOpeningNum() == lOpeningNum)
+        return true;
+    
+    return ot_super::IsValidOpeningNumber(lOpeningNum);
 }
 
 
@@ -854,8 +854,8 @@ void OTAgreement::HarvestClosingNumbers(OTPseudonym & theNym)
     ot_super::HarvestClosingNumbers(theNym);
 
     // The Nym is the original recipient. (If Compares true).
-	// FYI, if Nym is the original sender, then the above call will handle him.
-	//
+    // FYI, if Nym is the original sender, then the above call will handle him.
+    //
     // GetTransactionNum() is burned, but we can harvest the closing
     // numbers from the "Closing" list, which is only for the sender's numbers.
     // Subclasses will have to override this function for recipients, etc.
@@ -880,23 +880,23 @@ void OTAgreement::HarvestClosingNumbers(OTPseudonym & theNym)
 
 int64_t OTAgreement::GetOpeningNumber(const OTIdentifier & theNymID) const
 {
-	const OTIdentifier & theRecipientNymID = this->GetRecipientUserID();
-	
-	if (theNymID == theRecipientNymID)
-		return GetRecipientOpeningNum();
-	// else...
-	return ot_super::GetOpeningNumber(theNymID);
+    const OTIdentifier & theRecipientNymID = this->GetRecipientUserID();
+    
+    if (theNymID == theRecipientNymID)
+        return GetRecipientOpeningNum();
+    // else...
+    return ot_super::GetOpeningNumber(theNymID);
 }
 
 
 int64_t OTAgreement::GetClosingNumber(const OTIdentifier & theAcctID) const
 {
-	const OTIdentifier & theRecipientAcctID = this->GetRecipientAcctID();
-	
-	if (theAcctID == theRecipientAcctID)
-		return GetRecipientClosingNum();
-	// else...
-	return ot_super::GetClosingNumber(theAcctID);
+    const OTIdentifier & theRecipientAcctID = this->GetRecipientAcctID();
+    
+    if (theAcctID == theRecipientAcctID)
+        return GetRecipientClosingNum();
+    // else...
+    return ot_super::GetClosingNumber(theAcctID);
 }
 
 
@@ -929,7 +929,7 @@ int64_t OTAgreement::GetRecipientClosingTransactionNoAt(uint32_t nIndex) const
 
 int32_t OTAgreement::GetRecipientCountClosingNumbers() const
 {
-	return static_cast<int32_t> (m_dequeRecipientClosingNumbers.size());
+    return static_cast<int32_t> (m_dequeRecipientClosingNumbers.size());
 }
 
 
@@ -943,27 +943,27 @@ void OTAgreement::AddRecipientClosingTransactionNo(const int64_t & lClosingTrans
 // Child classes will override this, AND call it (to verify valid date range.)
 bool OTAgreement::ProcessCron()
 {
-	// END DATE --------------------------------
-	// First call the parent's version (which this overrides) so it has
-	// a chance to check its stuff. Currently it checks IsExpired().
-	if (!ot_super::ProcessCron())
-		return false;	// It's expired or flagged--removed it from Cron.
-	
-	
-	// START DATE --------------------------------
-	// Okay, so it's NOT expired. But might not have reached START DATE yet...
-	// (If not expired, yet current date is not verified, that means it hasn't
-	// ENTERED the date range YET.)
-	//
-	if (!VerifyCurrentDate())
-		return true;	// The Trade is not yet valid, so we return. BUT, we return 
-						//  true, so it will stay on Cron until it BECOMES valid.
-	
-	
-	// Process my Agreement-specific stuff below.--------------------------------
-	
-	
-	return true;
+    // END DATE --------------------------------
+    // First call the parent's version (which this overrides) so it has
+    // a chance to check its stuff. Currently it checks IsExpired().
+    if (!ot_super::ProcessCron())
+        return false;    // It's expired or flagged--removed it from Cron.
+    
+    
+    // START DATE --------------------------------
+    // Okay, so it's NOT expired. But might not have reached START DATE yet...
+    // (If not expired, yet current date is not verified, that means it hasn't
+    // ENTERED the date range YET.)
+    //
+    if (!VerifyCurrentDate())
+        return true;    // The Trade is not yet valid, so we return. BUT, we return 
+                        //  true, so it will stay on Cron until it BECOMES valid.
+    
+    
+    // Process my Agreement-specific stuff below.--------------------------------
+    
+    
+    return true;
 }
 
 
@@ -989,22 +989,22 @@ bool OTAgreement::CanRemoveItemFromCron(OTPseudonym & theNym)
     //
     if (false == theNym.CompareID(GetRecipientUserID()))
     {
-		otOut << "OTAgreement::" << __FUNCTION__ << " Weird: Nym tried to remove agreement (payment plan), even "
+        otOut << "OTAgreement::" << __FUNCTION__ << " Weird: Nym tried to remove agreement (payment plan), even "
                       "though he apparently wasn't the sender OR recipient.\n";
         return false;
     }
     
     else if (this->GetRecipientCountClosingNumbers() < 2)
     {
-		otOut << "OTAgreement::" << __FUNCTION__ << ": Weird: Recipient tried to remove agreement "
-			"(or payment plan); expected 2 closing numbers to be available--that weren't."
-			" (Found " << this->GetRecipientCountClosingNumbers() << ").\n";
+        otOut << "OTAgreement::" << __FUNCTION__ << ": Weird: Recipient tried to remove agreement "
+            "(or payment plan); expected 2 closing numbers to be available--that weren't."
+            " (Found " << this->GetRecipientCountClosingNumbers() << ").\n";
         return false;
     }
     
     if (false == theNym.VerifyIssuedNum(strServerID, this->GetRecipientClosingNum()))
     {
-		otOut << "OTAgreement::" << __FUNCTION__ << ": Recipient Closing number didn't verify (for removal from cron).\n";
+        otOut << "OTAgreement::" << __FUNCTION__ << ": Recipient Closing number didn't verify (for removal from cron).\n";
         return false;
     }
     
@@ -1066,95 +1066,95 @@ bool OTAgreement::SetProposal(OTPseudonym & MERCHANT_NYM,    const OTString & st
     
     if (GetRecipientUserID() != id_MERCHANT_NYM)
     {
-		otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
         return false;        
     }
     else if (GetRecipientUserID() == GetSenderUserID())
     {
-		otOut << __FUNCTION__ << ": Error: Sender and recipient have the same Nym ID (not allowed.)\n";
+        otOut << __FUNCTION__ << ": Error: Sender and recipient have the same Nym ID (not allowed.)\n";
         return false;        
     }
     else if (MERCHANT_NYM.GetTransactionNumCount(GetServerID()) < 2) // Need opening and closing numbers (that's 2)... 
     {
-		otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
-		return false;
+        otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
+        return false;
     }
 
-	// Set the CREATION DATE
+    // Set the CREATION DATE
     //
-	const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-	
-	// Set the Creation Date.
-	SetCreationDate(CURRENT_TIME);
+    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    
+    // Set the Creation Date.
+    SetCreationDate(CURRENT_TIME);
 
     // Putting this above here so I don't have to put the transaction numbers back if this fails:
 
     // VALID_FROM
     //
-	// The default "valid from" time is NOW.
+    // The default "valid from" time is NOW.
     if (OT_TIME_ZERO >= VALID_FROM) // if it's 0 or less, set to current time.
-		SetValidFrom(CURRENT_TIME);
-	else // Otherwise use whatever was passed in.
-		SetValidFrom(VALID_FROM);
+        SetValidFrom(CURRENT_TIME);
+    else // Otherwise use whatever was passed in.
+        SetValidFrom(VALID_FROM);
 
     // VALID_TO
     //
-	// The default "valid to" time is 0 (which means no expiration date / cancel anytime.)
+    // The default "valid to" time is 0 (which means no expiration date / cancel anytime.)
     if (OT_TIME_ZERO == VALID_TO) // VALID_TO is 0
-	{
-		SetValidTo(VALID_TO); // Keep it at zero then, so it won't expire.
-	}
+    {
+        SetValidTo(VALID_TO); // Keep it at zero then, so it won't expire.
+    }
     else if (OT_TIME_ZERO < VALID_TO) // VALID_TO is ABOVE zero...
-	{
-		SetValidTo(OTTimeAddTimeInterval(GetValidFrom(), OTTimeGetSecondsFromTime(VALID_TO))); // Set it to itself + valid_from.
-	}
-	else // VALID_TO is a NEGATIVE number... Error.
-	{
+    {
+        SetValidTo(OTTimeAddTimeInterval(GetValidFrom(), OTTimeGetSecondsFromTime(VALID_TO))); // Set it to itself + valid_from.
+    }
+    else // VALID_TO is a NEGATIVE number... Error.
+    {
         int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
-		otErr << __FUNCTION__ << ": Negative value for valid_to: " << lValidTo << "\n";
+        otErr << __FUNCTION__ << ": Negative value for valid_to: " << lValidTo << "\n";
         
-		return false;
-	}
+        return false;
+    }
 
     // Since we'll be needing 2 transaction numbers to do this, let's grab 'em...
     //
     OTString strServerID(GetServerID());
     
-	int64_t lTransactionNumber=0, lClosingTransactionNo=0;
-	
+    int64_t lTransactionNumber=0, lClosingTransactionNo=0;
+    
     if (MERCHANT_NYM.GetTransactionNumCount(GetServerID()) < 2) // Need opening and closing numbers (that's 2)... 
     {
-		otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
-		return false;
+        otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
+        return false;
     }
-	else if (false == MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID, lTransactionNumber))
-	{
-		otErr << __FUNCTION__ << ": Error: Strangely unable to get a transaction number.\n";
-		return false;
-	}
-	else if (false == MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID, lClosingTransactionNo))
-	{
-		otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing transaction number.\n";
+    else if (false == MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID, lTransactionNumber))
+    {
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a transaction number.\n";
+        return false;
+    }
+    else if (false == MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID, lClosingTransactionNo))
+    {
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing transaction number.\n";
         MERCHANT_NYM.AddTransactionNum(MERCHANT_NYM, strServerID, lTransactionNumber, true); // bSave=true
         // (Since the first one was successful, we just put it back before returning.)
-		return false;
-	}
+        return false;
+    }
 
     // At this point we now have 2 transaction numbers...
     // We can't return without either USING THEM, or PUTTING THEM BACK.
     //
 
-	// Set the Transaction Number and the Closing transaction number... (for merchant / recipient.)
+    // Set the Transaction Number and the Closing transaction number... (for merchant / recipient.)
     //
     this->AddRecipientClosingTransactionNo(lTransactionNumber);
     this->AddRecipientClosingTransactionNo(lClosingTransactionNo);
     // (They just both go onto this same list.)
 
-	// Set the Consideration memo...
-	m_strConsideration.Set(strConsideration);
+    // Set the Consideration memo...
+    m_strConsideration.Set(strConsideration);
 
-	otLog4 << "Successfully performed SetProposal.\n";	
-	return true;
+    otLog4 << "Successfully performed SetProposal.\n";    
+    return true;
 }
 
 
@@ -1169,33 +1169,33 @@ bool OTAgreement::Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM/*
     
     if (GetRecipientUserID() == GetSenderUserID())
     {
-		otOut << __FUNCTION__ << ": Error: Sender and recipient have the same Nym ID (not allowed.)\n";
+        otOut << __FUNCTION__ << ": Error: Sender and recipient have the same Nym ID (not allowed.)\n";
         return false;        
     }
     else if ((NULL != p_id_MERCHANT_NYM) && (this->GetRecipientUserID() != *p_id_MERCHANT_NYM))
     {
-		otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
         return false;
     }
     else if ((NULL != pMERCHANT_NYM) && (this->GetRecipientUserID() != pMERCHANT_NYM->GetConstID()))
     {
-		otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
+        otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same as RecipientUserID.)\n";
         return false;
     }
     else if (GetSenderUserID() != id_PAYER_NYM)
     {
-		otOut << __FUNCTION__ << ": Payer has wrong NymID (should be same as SenderUserID.)\n";
+        otOut << __FUNCTION__ << ": Payer has wrong NymID (should be same as SenderUserID.)\n";
         return false;        
     }
     else if (PAYER_NYM.GetTransactionNumCount(GetServerID()) < 2) // Need opening and closing numbers (that's 2)... 
     {
-		otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
-		return false;
+        otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction numbers available to do this.\n";
+        return false;
     }
     else if (GetRecipientCountClosingNumbers() < 2)
     {
-		otOut << __FUNCTION__ << ": Failure. (The merchant was supposed to attach 2 transaction numbers.)\n";
-		return false;
+        otOut << __FUNCTION__ << ": Failure. (The merchant was supposed to attach 2 transaction numbers.)\n";
+        return false;
     }
 
     // This is the single reason why MERCHANT_NYM was even passed in here!
@@ -1203,7 +1203,7 @@ bool OTAgreement::Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM/*
     //
     if ((NULL != pMERCHANT_NYM) && (false == this->VerifySignature(*pMERCHANT_NYM)))
     {
-		otOut << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
+        otOut << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
         return false;
     }
 
@@ -1221,38 +1221,38 @@ bool OTAgreement::Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM/*
     // The payer has to submit TWO transaction numbers in order to activate this agreement...
     //
     OTString strServerID(GetServerID());
-	int64_t lTransactionNumber=0, lClosingTransactionNo=0;
-	
-	if (false == PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID, lTransactionNumber))
-	{
-		otErr << __FUNCTION__ << ": Error: Strangely unable to get a transaction number.\n";
-		return false;
-	}
-	else if (false == PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID, lClosingTransactionNo))
-	{
-		otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing transaction number.\n";
+    int64_t lTransactionNumber=0, lClosingTransactionNo=0;
+    
+    if (false == PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID, lTransactionNumber))
+    {
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a transaction number.\n";
+        return false;
+    }
+    else if (false == PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID, lClosingTransactionNo))
+    {
+        otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing transaction number.\n";
         PAYER_NYM.AddTransactionNum(PAYER_NYM, strServerID, lTransactionNumber, true); // bSave=true
         // (Since the first one was successful, we just put it back before returning.)
-		return false;
-	}
+        return false;
+    }
     
     // At this point we now HAVE 2 transaction numbers (for payer / sender)...
     // We can't return without USING THEM or PUTTING THEM BACK.
     //
 
-	this->SetTransactionNum(lTransactionNumber); // Set the Transaction Number
+    this->SetTransactionNum(lTransactionNumber); // Set the Transaction Number
     this->AddClosingTransactionNo(lClosingTransactionNo); // and the Closing Number (both for sender)...
 
     // CREATION DATE was set in the Merchant's proposal, and it's RESET here in the Confirm.
     // This way, (since we still have the original proposal) we can see BOTH times.
     //
-	time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-	// Set the Creation Date.
-	SetCreationDate(CURRENT_TIME);
+    time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    // Set the Creation Date.
+    SetCreationDate(CURRENT_TIME);
 
-	otLog4 << __FUNCTION__ << "(): Success!\n";
+    otLog4 << __FUNCTION__ << "(): Success!\n";
     
-	return true;
+    return true;
 }
 
 
@@ -1260,99 +1260,99 @@ bool OTAgreement::Confirm(OTPseudonym & PAYER_NYM, OTPseudonym * pMERCHANT_NYM/*
 // THIS FUNCTION IS DEPRECATED
 //
 /*
-bool OTAgreement::SetAgreement(const int64_t & lTransactionNum,	const OTString & strConsideration,
-							   const time64_t & VALID_FROM=0,	const time64_t & VALID_TO=0)
+bool OTAgreement::SetAgreement(const int64_t & lTransactionNum,    const OTString & strConsideration,
+                               const time64_t & VALID_FROM=0,    const time64_t & VALID_TO=0)
 {
-	// Set the Transaction Number...
-	SetTransactionNum(lTransactionNum);
+    // Set the Transaction Number...
+    SetTransactionNum(lTransactionNum);
 
-	// Set the Consideration memo...
-	m_strConsideration.Set(strConsideration);
-
-
-	
-	time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-	
-	// Set the Creation Date.
-	SetCreationDate(CURRENT_TIME);
+    // Set the Consideration memo...
+    m_strConsideration.Set(strConsideration);
 
 
-
-	// The default "valid from" time is NOW.
-	if (0 >= VALID_FROM) // if it's 0 or less, set to current time.
-		SetValidFrom(CURRENT_TIME);
-	else // Otherwise use whatever was passed in.
-		SetValidFrom(VALID_FROM);
+    
+    time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    
+    // Set the Creation Date.
+    SetCreationDate(CURRENT_TIME);
 
 
 
-	// The default "valid to" time is 0 (which means no expiration date / cancel anytime.)
-	if (0 == VALID_TO) // VALID_TO is 0
-	{
-		SetValidTo(VALID_TO); // Keep it at zero then, so it won't expire.
-	}
-	else if (0 < VALID_TO) // VALID_TO is ABOVE zero...
-	{
-		if (VALID_TO < VALID_FROM) // If Valid-To date is EARLIER than Valid-From date...
-		{
-			int64_t lValidTo = VALID_TO, lValidFrom = VALID_FROM;
-			otErr << "VALID_TO is earlier than VALID_FROM in SetAgreement: %lld, %lld\n", lValidTo, lValidFrom);
-			return false;
-		}
-		
-		SetValidTo(VALID_TO); // Set it to whatever it is, since it is now validated as higher than Valid-From.
-	}
-	else // VALID_TO is a NEGATIVE number... Error.
-	{
-		int64_t lValidTo = VALID_TO;
-		otErr << "Negative value for valid_to in SetAgreement: %lld\n", lValidTo);
-		return false;
-	}
+    // The default "valid from" time is NOW.
+    if (0 >= VALID_FROM) // if it's 0 or less, set to current time.
+        SetValidFrom(CURRENT_TIME);
+    else // Otherwise use whatever was passed in.
+        SetValidFrom(VALID_FROM);
 
 
-	
-	otLog4 << "Successfully performed SetAgreement()\n");
-	
-	return true;
+
+    // The default "valid to" time is 0 (which means no expiration date / cancel anytime.)
+    if (0 == VALID_TO) // VALID_TO is 0
+    {
+        SetValidTo(VALID_TO); // Keep it at zero then, so it won't expire.
+    }
+    else if (0 < VALID_TO) // VALID_TO is ABOVE zero...
+    {
+        if (VALID_TO < VALID_FROM) // If Valid-To date is EARLIER than Valid-From date...
+        {
+            int64_t lValidTo = VALID_TO, lValidFrom = VALID_FROM;
+            otErr << "VALID_TO is earlier than VALID_FROM in SetAgreement: %lld, %lld\n", lValidTo, lValidFrom);
+            return false;
+        }
+        
+        SetValidTo(VALID_TO); // Set it to whatever it is, since it is now validated as higher than Valid-From.
+    }
+    else // VALID_TO is a NEGATIVE number... Error.
+    {
+        int64_t lValidTo = VALID_TO;
+        otErr << "Negative value for valid_to in SetAgreement: %lld\n", lValidTo);
+        return false;
+    }
+
+
+    
+    otLog4 << "Successfully performed SetAgreement()\n");
+    
+    return true;
 }
 */
 
 
 OTAgreement::OTAgreement() : ot_super()
 {
-	InitAgreement();
+    InitAgreement();
 }
 
 
 OTAgreement::OTAgreement(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) :
-			ot_super(SERVER_ID, ASSET_ID)
+            ot_super(SERVER_ID, ASSET_ID)
 {
-	InitAgreement();
+    InitAgreement();
 }
 
 
-OTAgreement::OTAgreement(const OTIdentifier & SERVER_ID,			const OTIdentifier & ASSET_ID,
-						 const OTIdentifier & SENDER_ACCT_ID,		const OTIdentifier & SENDER_USER_ID,
-						 const OTIdentifier & RECIPIENT_ACCT_ID,	const OTIdentifier & RECIPIENT_USER_ID) :
-			ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID)
+OTAgreement::OTAgreement(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID,
+                         const OTIdentifier & SENDER_ACCT_ID,        const OTIdentifier & SENDER_USER_ID,
+                         const OTIdentifier & RECIPIENT_ACCT_ID,    const OTIdentifier & RECIPIENT_USER_ID) :
+            ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID)
 {
-	InitAgreement();
-	
-	SetRecipientAcctID(RECIPIENT_ACCT_ID);
-	SetRecipientUserID(RECIPIENT_USER_ID);
+    InitAgreement();
+    
+    SetRecipientAcctID(RECIPIENT_ACCT_ID);
+    SetRecipientUserID(RECIPIENT_USER_ID);
 }
 
 
 OTAgreement::~OTAgreement()
 {
-	Release_Agreement();
+    Release_Agreement();
 }
 
 
 void OTAgreement::InitAgreement()
 {
-	m_strContractType = "AGREEMENT";
-	
+    m_strContractType = "AGREEMENT";
+    
 }
 
 
@@ -1360,12 +1360,12 @@ void OTAgreement::Release_Agreement()
 {
     // If there were any dynamically allocated objects, clean them up here.
     //
-	m_RECIPIENT_ACCT_ID.Release();	
-	m_RECIPIENT_USER_ID.Release();
-	
-	m_strConsideration.Release();
-	m_strMerchantSignedCopy.Release();
-	
+    m_RECIPIENT_ACCT_ID.Release();    
+    m_RECIPIENT_USER_ID.Release();
+    
+    m_strConsideration.Release();
+    m_strMerchantSignedCopy.Release();
+    
     m_dequeRecipientClosingNumbers.clear();
 }
 
@@ -1378,12 +1378,12 @@ void OTAgreement::Release()
     
 
     
-	ot_super::Release(); // since I've overridden the base class (OTCronItem), so I call it now...
-	
+    ot_super::Release(); // since I've overridden the base class (OTCronItem), so I call it now...
+    
 
 
-	// Then I call this to re-initialize everything
-	InitAgreement();
+    // Then I call this to re-initialize everything
+    InitAgreement();
 }
 
 
@@ -1397,24 +1397,24 @@ void OTAgreement::UpdateContents()
 int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
-	
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	// As I do below, in the case of OTAccount.
-	if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml)))
-		return nReturnVal;
+    
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    // As I do below, in the case of OTAccount.
+    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml)))
+        return nReturnVal;
 
 
     
     if (!strcmp("agreement", xml->getNodeName())) 
-	{		
-		m_strVersion		   = xml->getAttributeValue("version");
-		SetTransactionNum(	atol(xml->getAttributeValue("transactionNum")) );
+    {        
+        m_strVersion           = xml->getAttributeValue("version");
+        SetTransactionNum(    atol(xml->getAttributeValue("transactionNum")) );
 
         const OTString strCreation = xml->getAttributeValue("creationDate");
         int64_t tCreation = strCreation.ToLong();
@@ -1430,7 +1430,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
-		const OTString	strServerID       (xml->getAttributeValue("serverID")),
+        const OTString    strServerID       (xml->getAttributeValue("serverID")),
                         strAssetTypeID    (xml->getAttributeValue("assetTypeID")),
                         strSenderAcctID   (xml->getAttributeValue("senderAcctID")),
                         strSenderUserID   (xml->getAttributeValue("senderUserID")),
@@ -1453,78 +1453,78 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-		const OTIdentifier	SERVER_ID(strServerID),					ASSET_ID(strAssetTypeID),
-                            SENDER_ACCT_ID(strSenderAcctID),		SENDER_USER_ID(strSenderUserID),
-                            RECIPIENT_ACCT_ID(strRecipientAcctID),	RECIPIENT_USER_ID(strRecipientUserID);
-		
-		SetServerID(SERVER_ID);
-		SetAssetID(ASSET_ID);
-		SetSenderAcctID(SENDER_ACCT_ID);
-		SetSenderUserID(SENDER_USER_ID);
-		SetRecipientAcctID(RECIPIENT_ACCT_ID);
-		SetRecipientUserID(RECIPIENT_USER_ID);
+        const OTIdentifier    SERVER_ID(strServerID),                    ASSET_ID(strAssetTypeID),
+                            SENDER_ACCT_ID(strSenderAcctID),        SENDER_USER_ID(strSenderUserID),
+                            RECIPIENT_ACCT_ID(strRecipientAcctID),    RECIPIENT_USER_ID(strRecipientUserID);
+        
+        SetServerID(SERVER_ID);
+        SetAssetID(ASSET_ID);
+        SetSenderAcctID(SENDER_ACCT_ID);
+        SetSenderUserID(SENDER_USER_ID);
+        SetRecipientAcctID(RECIPIENT_ACCT_ID);
+        SetRecipientUserID(RECIPIENT_USER_ID);
 
-		otWarn << "\n\n" << (m_bCanceled ? "Canceled a" : "A") << "greement. Transaction Number: " << m_lTransactionNum << "\n";
-		
-		otInfo << " Creation Date: " << tCreation << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo << "\n"
-			" AssetTypeID: " << strAssetTypeID << "\n ServerID: " << strServerID << "\n"
-			" senderAcctID: " << strSenderAcctID << "\n senderUserID: " << strSenderUserID << "\n "
-			" recipientAcctID: " << strRecipientAcctID << "\n recipientUserID: " << strRecipientUserID << "\n ";
-		
-		nReturnVal = 1;
-	}
+        otWarn << "\n\n" << (m_bCanceled ? "Canceled a" : "A") << "greement. Transaction Number: " << m_lTransactionNum << "\n";
+        
+        otInfo << " Creation Date: " << tCreation << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo << "\n"
+            " AssetTypeID: " << strAssetTypeID << "\n ServerID: " << strServerID << "\n"
+            " senderAcctID: " << strSenderAcctID << "\n senderUserID: " << strSenderUserID << "\n "
+            " recipientAcctID: " << strRecipientAcctID << "\n recipientUserID: " << strRecipientUserID << "\n ";
+        
+        nReturnVal = 1;
+    }
     
-	else if (!strcmp("consideration", xml->getNodeName())) 
-	{		
-		if (false == OTContract::LoadEncodedTextField(xml, m_strConsideration))
-		{
-			otErr << "Error in OTPaymentPlan::ProcessXMLNode: consideration field without value.\n";
-			return (-1); // error condition
-		}
-		
-		nReturnVal = 1;
-	}
+    else if (!strcmp("consideration", xml->getNodeName())) 
+    {        
+        if (false == OTContract::LoadEncodedTextField(xml, m_strConsideration))
+        {
+            otErr << "Error in OTPaymentPlan::ProcessXMLNode: consideration field without value.\n";
+            return (-1); // error condition
+        }
+        
+        nReturnVal = 1;
+    }
     
-	else if (!strcmp("merchantSignedCopy", xml->getNodeName())) 
-	{		
-		if (false == OTContract::LoadEncodedTextField(xml, m_strMerchantSignedCopy))
-		{
-			otErr << "Error in OTPaymentPlan::ProcessXMLNode: merchant_signed_copy field without value.\n";
-			return (-1); // error condition
-		}
-		
-		nReturnVal = 1;
-	}
+    else if (!strcmp("merchantSignedCopy", xml->getNodeName())) 
+    {        
+        if (false == OTContract::LoadEncodedTextField(xml, m_strMerchantSignedCopy))
+        {
+            otErr << "Error in OTPaymentPlan::ProcessXMLNode: merchant_signed_copy field without value.\n";
+            return (-1); // error condition
+        }
+        
+        nReturnVal = 1;
+    }
 
 
 //  std::deque<int64_t>   m_dequeRecipientClosingNumbers; // Numbers used for CLOSING a transaction. (finalReceipt.)
 
     else if (!strcmp("closingRecipientNumber", xml->getNodeName())) 
-	{		
+    {        
         OTString strClosingNumber = xml->getAttributeValue("value");
         
         if (strClosingNumber.Exists())
         {
-            const int64_t lClosingNumber = atol(strClosingNumber.Get());					
+            const int64_t lClosingNumber = atol(strClosingNumber.Get());                    
 
             this->AddRecipientClosingTransactionNo(lClosingNumber);
         }
         else
-		{
-			otErr << "Error in OTAgreement::ProcessXMLNode: closingRecipientNumber field without value.\n";
-			return (-1); // error condition
-		}
+        {
+            otErr << "Error in OTAgreement::ProcessXMLNode: closingRecipientNumber field without value.\n";
+            return (-1); // error condition
+        }
         
-		nReturnVal = 1;
-	}
+        nReturnVal = 1;
+    }
 
-	return nReturnVal;
+    return nReturnVal;
 }
 
 
 bool OTAgreement::SaveContractWallet(std::ofstream &)
 {
-	return true;
+    return true;
 }
 
 } // namespace opentxs

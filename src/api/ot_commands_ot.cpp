@@ -9457,12 +9457,12 @@ OT_COMMANDS_OT int32_t OT_Command::handle_payment_index(const string & strMyAcct
     // They DO need to be removed from the payments inbox, but just not here in the script. (Rather,
     // internally by OT itself.)
     //
-	if ("CHEQUE" == strType || "VOUCHER" == strType || "INVOICE" == strType)
+    if ("CHEQUE" == strType || "VOUCHER" == strType || "INVOICE" == strType)
     {
         return details_deposit_cheque(strServerID, strMyAcctID, strMyNymID, strInstrument, strType);
     }
  
-	if ("PURSE" == strType)
+    if ("PURSE" == strType)
     {
         int32_t nDepositPurse = details_deposit_purse(strServerID, strMyAcctID, strMyNymID, strInstrument, ""); // strIndices is left blank in this case
 
@@ -9478,7 +9478,7 @@ OT_COMMANDS_OT int32_t OT_Command::handle_payment_index(const string & strMyAcct
         return nDepositPurse;
     }
 
-	OTAPI_Wrap::Output(0, "\nSkipping this instrument: Expected CHEQUE, VOUCHER, INVOICE, or (cash) PURSE.\n");
+    OTAPI_Wrap::Output(0, "\nSkipping this instrument: Expected CHEQUE, VOUCHER, INVOICE, or (cash) PURSE.\n");
 
     return -1;
 }

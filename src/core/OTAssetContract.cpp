@@ -180,7 +180,7 @@ bool OTAssetContract::ParseFormatted(int64_t & lResult,
     int32_t  nDigitsCollectedBeforeDot = 0;
     int32_t  nDigitsCollectedAfterDot  = 0;
 
-	// BUG: &mp isn't used.
+    // BUG: &mp isn't used.
     //const std::moneypunct<char, false> &mp = std::use_facet< std::moneypunct<char, false> >(std::locale ()); 
 
     std::deque<int64_t> deque_cents;
@@ -524,7 +524,7 @@ int64_t OTAssetContract::CentsOnly(const OTAmount &) const
 
 OTAssetContract::OTAssetContract() : OTContract(), m_bIsCurrency(true), m_bIsShares(false)
 {
-	
+    
 }
 
 
@@ -537,68 +537,68 @@ OTAssetContract::OTAssetContract(OTString & name, OTString & foldername, OTStrin
 
 OTAssetContract::~OTAssetContract()
 {
-	// OTContract::~OTContract is called here automatically, and it calls Release.
-	// So I don't need to call it here again when it's already called by the parent.
+    // OTContract::~OTContract is called here automatically, and it calls Release.
+    // So I don't need to call it here again when it's already called by the parent.
 }
 
 
 bool OTAssetContract::DisplayStatistics(OTString & strContents) const
 {
-	const OTString strID(m_ID);
-	
-	strContents.Concatenate(
-							" Asset Type:  %s\n"
-							" AssetTypeID: %s\n"
-							"\n",
-							m_strName.Get(),
-							strID.Get());
-	return true;
+    const OTString strID(m_ID);
+    
+    strContents.Concatenate(
+                            " Asset Type:  %s\n"
+                            " AssetTypeID: %s\n"
+                            "\n",
+                            m_strName.Get(),
+                            strID.Get());
+    return true;
 }
 
 
 bool OTAssetContract::SaveContractWallet(OTString & strContents) const
 {
-	const OTString strID(m_ID);
-	
-	OTASCIIArmor ascName;
-	
-	if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
-	{
-		ascName.SetString(m_strName, false); // linebreaks == false
-	}
-	
-	strContents.Concatenate("<assetType name=\"%s\"\n"
-							" assetTypeID=\"%s\" />\n\n",
-							m_strName.Exists() ? ascName.Get() : "",
-							strID.Get());
-	
-	return true;
+    const OTString strID(m_ID);
+    
+    OTASCIIArmor ascName;
+    
+    if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
+    {
+        ascName.SetString(m_strName, false); // linebreaks == false
+    }
+    
+    strContents.Concatenate("<assetType name=\"%s\"\n"
+                            " assetTypeID=\"%s\" />\n\n",
+                            m_strName.Exists() ? ascName.Get() : "",
+                            strID.Get());
+    
+    return true;
 }
 
 
 bool OTAssetContract::SaveContractWallet(std::ofstream & ofs)
 {
-	OTString strOutput;
-	
-	if (SaveContractWallet(strOutput))
-	{
-		ofs << strOutput;
-		return true;
-	}
-	
-	return false;
+    OTString strOutput;
+    
+    if (SaveContractWallet(strOutput))
+    {
+        ofs << strOutput;
+        return true;
+    }
+    
+    return false;
 }
 
 
 /*
 bool OTAssetContract::SaveContractWallet(FILE * fl)
 {
-	OTString strID(m_ID);
-	
-	fprintf(fl, "<assetType name=\"%s\"\n assetTypeID=\"%s\"\n contract=\"%s\" /> "
-			"\n\n", m_strName.Get(), strID.Get(), m_strFilename.Get());	
-	
-	return true;
+    OTString strID(m_ID);
+    
+    fprintf(fl, "<assetType name=\"%s\"\n assetTypeID=\"%s\"\n contract=\"%s\" /> "
+            "\n\n", m_strName.Get(), strID.Get(), m_strFilename.Get());    
+    
+    return true;
 }
 */
 
@@ -637,14 +637,14 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops 
         //
         FOR_EACH(mapOfStrings, theMap) 
         {
-            const std::string & str_acct_id  = (*it).first;	 // Containing the account ID.
+            const std::string & str_acct_id  = (*it).first;     // Containing the account ID.
             const std::string & str_asset_id = (*it).second; // Containing the asset type ID. (Just in case someone copied the wrong file here...)
 
             
             if (false == strAssetTypeID.Compare(str_asset_id.c_str()))
             {
-				otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong asset type ID (" << str_asset_id <<
-					") when expecting: " << strAssetTypeID << "\n";
+                otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong asset type ID (" << str_asset_id <<
+                    ") when expecting: " << strAssetTypeID << "\n";
             }
             else
             {
@@ -688,11 +688,11 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops 
                 if (bSuccessLoadingAccount)
                 {
                     const bool bTriggerSuccess = theAction.Trigger(*pAccount);
-					if (!bTriggerSuccess) otErr << __FUNCTION__ << ": Error: Trigger Failed.";
+                    if (!bTriggerSuccess) otErr << __FUNCTION__ << ": Error: Trigger Failed.";
                 }   
                 else
                 {
-					otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
+                    otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
                 }
 
             }
@@ -721,7 +721,7 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
     
     if (theAccount.GetAssetTypeID() != m_ID)
     {
-		otErr << szFunc << ": Error: theAccount doesn't have the same asset type ID as *this does.\n";
+        otErr << szFunc << ": Error: theAccount doesn't have the same asset type ID as *this does.\n";
         return false;
     }
 
@@ -748,7 +748,7 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
     //
     if (NULL == pMap) 
     {
-		otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
+        otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
         return false;
     }
 
@@ -766,8 +766,8 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
 
         if (false == strAssetTypeID.Compare(str2.c_str())) // should never happen.
         {
-			otErr << szFunc << ": Error: wrong asset type found in account records file...\n For asset type: " << strAssetTypeID << "\n "
-				"For account: " << strAcctID << "\n Found wrong asset type: " << str2 << "\n";
+            otErr << szFunc << ": Error: wrong asset type found in account records file...\n For asset type: " << strAssetTypeID << "\n "
+                "For account: " << strAcctID << "\n Found wrong asset type: " << str2 << "\n";
             return false;
         }
 
@@ -785,9 +785,9 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
     //
     if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get()))
     {
-		otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
-			"account records file for asset type: " << strAssetTypeID <<
-			"\n to contain account ID: " << strAcctID << "\n";
+        otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
+            "account records file for asset type: " << strAssetTypeID <<
+            "\n to contain account ID: " << strAcctID << "\n";
         return false;
     }
 
@@ -827,7 +827,7 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier & theAcctID)  // rem
     //
     if (NULL == pMap) 
     {
-		otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
+        otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
         return false;
     }
 
@@ -850,8 +850,8 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier & theAcctID)  // rem
     //
     if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get()))
     {
-		otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
-			"account records file for asset type: " << strAssetTypeID << "\n to erase account ID: " << strAcctID << "\n";
+        otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
+            "account records file for asset type: " << strAssetTypeID << "\n to erase account ID: " << strAcctID << "\n";
         return false;
     }
 
@@ -866,10 +866,10 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier & theAcctID)  // rem
 // a basket contract, we have to rewrite the contents, which is done here.
 bool OTAssetContract::CreateBasket(OTBasket & theBasket, OTPseudonym & theSigner)
 {
-	Release();
+    Release();
 
-	// Grab a string copy of the basket information.
-	theBasket.SaveContractRaw(m_strBasketInfo);
+    // Grab a string copy of the basket information.
+    theBasket.SaveContractRaw(m_strBasketInfo);
 
     OTString     strTemplate;
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
@@ -881,7 +881,7 @@ bool OTAssetContract::CreateBasket(OTBasket & theBasket, OTPseudonym & theSigner
 
     strTemplate.Concatenate("</%s>\n", "basketContract");
 
-	return this->CreateContract(strTemplate, theSigner);
+    return this->CreateContract(strTemplate, theSigner);
 }
 
 
@@ -890,7 +890,7 @@ void OTAssetContract::CreateContents()
 
     m_strVersion = "2.0";  // 2.0 since adding credentials.
 
- 	m_xmlUnsigned.Release();
+     m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
     if (m_strBasketInfo.Exists()) // Basket contract
@@ -946,7 +946,7 @@ void OTAssetContract::CreateContents()
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions, etc.
     this->CreateInnerContents();    
 
-	m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists() ? "basketContract" : "digitalAssetContract");
+    m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists() ? "basketContract" : "digitalAssetContract");
 
 }
 
@@ -955,82 +955,82 @@ void OTAssetContract::CreateContents()
 //
 int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 {
-	int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
+    int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
 
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	
-	if (nReturnVal == 1 || nReturnVal == (-1))
-		return nReturnVal;
-	
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    
+    if (nReturnVal == 1 || nReturnVal == (-1))
+        return nReturnVal;
+    
     const OTString strNodeName(xml->getNodeName());
     
-	if (strNodeName.Compare("digitalAssetContract"))
-	{
-		m_strVersion = xml->getAttributeValue("version");					
-		
-		otWarn << "\n"
-				"===> Loading XML portion of asset contract into memory structures...\n\n"
-				"Digital Asset Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
-		nReturnVal = 1;
-	}
-	else if (strNodeName.Compare("basketContract"))
-	{
-		m_strVersion = xml->getAttributeValue("version");					
-		
-		otWarn << "\n"
-				"===> Loading XML portion of basket contract into memory structures...\n\n"
-				"Digital Basket Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
-		nReturnVal = 1;
-	}
-	else if (strNodeName.Compare("basketInfo")) 
-	{		
-		if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo))
-		{
-			otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo field without value.\n";
-			return (-1); // error condition
-		}
-		nReturnVal = 1;
-	}	
-	else if (strNodeName.Compare("issue"))
-	{
-		m_strIssueCompany     = xml->getAttributeValue("company");
-		m_strIssueEmail       = xml->getAttributeValue("email");
-		m_strIssueContractURL = xml->getAttributeValue("contractUrl");
-		m_strIssueType        = xml->getAttributeValue("type");
-		
-		otInfo << "Loaded Issue company: " << m_strIssueCompany << "\nEmail: " << m_strIssueEmail <<
-			"\nContractURL: " << m_strIssueContractURL << "\nType: " << m_strIssueType << "\n----------\n";
-		nReturnVal = 1;
-	}
+    if (strNodeName.Compare("digitalAssetContract"))
+    {
+        m_strVersion = xml->getAttributeValue("version");                    
+        
+        otWarn << "\n"
+                "===> Loading XML portion of asset contract into memory structures...\n\n"
+                "Digital Asset Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("basketContract"))
+    {
+        m_strVersion = xml->getAttributeValue("version");                    
+        
+        otWarn << "\n"
+                "===> Loading XML portion of basket contract into memory structures...\n\n"
+                "Digital Basket Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("basketInfo")) 
+    {        
+        if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo))
+        {
+            otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo field without value.\n";
+            return (-1); // error condition
+        }
+        nReturnVal = 1;
+    }    
+    else if (strNodeName.Compare("issue"))
+    {
+        m_strIssueCompany     = xml->getAttributeValue("company");
+        m_strIssueEmail       = xml->getAttributeValue("email");
+        m_strIssueContractURL = xml->getAttributeValue("contractUrl");
+        m_strIssueType        = xml->getAttributeValue("type");
+        
+        otInfo << "Loaded Issue company: " << m_strIssueCompany << "\nEmail: " << m_strIssueEmail <<
+            "\nContractURL: " << m_strIssueContractURL << "\nType: " << m_strIssueType << "\n----------\n";
+        nReturnVal = 1;
+    }
     // TODO security validation: validate all the above and below values.
-	else if (strNodeName.Compare("currency") )    
-	{
+    else if (strNodeName.Compare("currency") )    
+    {
         m_bIsCurrency             = true;  // silver grams
         m_bIsShares               = false;        
 
-		m_strName                 = xml->getAttributeValue("name");
-		m_strCurrencyName         = xml->getAttributeValue("name");
-		m_strCurrencySymbol       = xml->getAttributeValue("symbol");
-		m_strCurrencyType         = xml->getAttributeValue("type");
+        m_strName                 = xml->getAttributeValue("name");
+        m_strCurrencyName         = xml->getAttributeValue("name");
+        m_strCurrencySymbol       = xml->getAttributeValue("symbol");
+        m_strCurrencyType         = xml->getAttributeValue("type");
 
-		m_strCurrencyTLA          = xml->getAttributeValue("tla");
-		m_strCurrencyFactor       = xml->getAttributeValue("factor");
-		m_strCurrencyDecimalPower = xml->getAttributeValue("decimal_power");
-		m_strCurrencyFraction     = xml->getAttributeValue("fraction");
-		
-		otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName <<
-			", TLA: " << m_strCurrencyTLA << ", Symbol: " << m_strCurrencySymbol << "\n"
-			"Type: " << m_strCurrencyType << ", Factor: " << m_strCurrencyFactor <<
-			", Decimal Power: " << m_strCurrencyDecimalPower << ", Fraction: " << m_strCurrencyFraction << "\n----------\n";
-		nReturnVal = 1;
-	}
-	
+        m_strCurrencyTLA          = xml->getAttributeValue("tla");
+        m_strCurrencyFactor       = xml->getAttributeValue("factor");
+        m_strCurrencyDecimalPower = xml->getAttributeValue("decimal_power");
+        m_strCurrencyFraction     = xml->getAttributeValue("fraction");
+        
+        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName <<
+            ", TLA: " << m_strCurrencyTLA << ", Symbol: " << m_strCurrencySymbol << "\n"
+            "Type: " << m_strCurrencyType << ", Factor: " << m_strCurrencyFactor <<
+            ", Decimal Power: " << m_strCurrencyDecimalPower << ", Fraction: " << m_strCurrencyFraction << "\n----------\n";
+        nReturnVal = 1;
+    }
+    
 //  share_type some type, for example, A or B, or NV (non voting)
 //        
 //  share_name this is the int64_t legal name of the company
@@ -1040,24 +1040,24 @@ int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 //        
 //  share_issue_date date of start of this share item (not necessarily IPO)
 
-	else if (strNodeName.Compare("shares") )       
-	{
+    else if (strNodeName.Compare("shares") )       
+    {
         m_bIsShares           = true;        // shares of pepsi
         m_bIsCurrency         = false;
         
-		m_strName			  = xml->getAttributeValue("name");
-		m_strCurrencyName	  = xml->getAttributeValue("name");	
-		m_strCurrencySymbol   = xml->getAttributeValue("symbol");
-		m_strCurrencyType     = xml->getAttributeValue("type");
+        m_strName              = xml->getAttributeValue("name");
+        m_strCurrencyName      = xml->getAttributeValue("name");    
+        m_strCurrencySymbol   = xml->getAttributeValue("symbol");
+        m_strCurrencyType     = xml->getAttributeValue("type");
         
-		m_strIssueDate        = xml->getAttributeValue("issuedate");
-		
-		otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName << ", Symbol: " << m_strCurrencySymbol << "\n"
-			"Type: " << m_strCurrencyType << ", Issue Date: " << m_strIssueDate << "\n----------\n";
-		nReturnVal = 1;
-	}
-	
-	return nReturnVal;
+        m_strIssueDate        = xml->getAttributeValue("issuedate");
+        
+        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName << ", Symbol: " << m_strCurrencySymbol << "\n"
+            "Type: " << m_strCurrencyType << ", Issue Date: " << m_strIssueDate << "\n----------\n";
+        nReturnVal = 1;
+    }
+    
+    return nReturnVal;
 }
 
 } // namespace opentxs

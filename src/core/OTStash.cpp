@@ -146,124 +146,124 @@ namespace opentxs {
 
 void OTStash::Serialize(OTString & strAppend)
 {
-	strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
-						  m_str_stash_name.c_str(), m_mapStashItems.size());
+    strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
+                          m_str_stash_name.c_str(), m_mapStashItems.size());
 
 
-	FOR_EACH(mapOfStashItems, m_mapStashItems)
-	{
-		const	std::string		str_asset_type_id	= (*it).first;
-				OTStashItem *	pStashItem			= (*it).second;
-		OT_ASSERT((str_asset_type_id.size()>0) && (NULL != pStashItem));
+    FOR_EACH(mapOfStashItems, m_mapStashItems)
+    {
+        const    std::string        str_asset_type_id    = (*it).first;
+                OTStashItem *    pStashItem            = (*it).second;
+        OT_ASSERT((str_asset_type_id.size()>0) && (NULL != pStashItem));
 
-		strAppend.Concatenate("<stashItem assetTypeID=\"%s\" balance=\"%lld\" />\n\n",
-							  pStashItem->GetAssetTypeID().Get(), pStashItem->GetAmount());
-	}
+        strAppend.Concatenate("<stashItem assetTypeID=\"%s\" balance=\"%lld\" />\n\n",
+                              pStashItem->GetAssetTypeID().Get(), pStashItem->GetAmount());
+    }
 
-	strAppend.Concatenate("</stash>\n\n");
+    strAppend.Concatenate("</stash>\n\n");
 }
 
 
 int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & strStashName, const OTString & strItemCount)
 {
-	if (!strStashName.Exists())
-	{
-		otErr << "OTStash::ReadFromXMLNode: Failed: Empty stash 'name' attribute.\n";
-		return (-1);
-	}
+    if (!strStashName.Exists())
+    {
+        otErr << "OTStash::ReadFromXMLNode: Failed: Empty stash 'name' attribute.\n";
+        return (-1);
+    }
 
-	m_str_stash_name = strStashName.Get();
-
-
-	//
-	// Load up the stash items.
-	//
-	int32_t nCount	= strItemCount.Exists() ? atoi(strItemCount.Get()) : 0;
-	if (nCount > 0)
-	{
-		while (nCount-- > 0)
-		{
-//			xml->read();
-			if (false == OTContract::SkipToElement(xml))
-			{
-				otOut << "OTStash::ReadFromXMLNode: Failure: Unable to find expected element.\n";
-				return (-1);
-			}
-
-			if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("stashItem", xml->getNodeName())))
-			{
-				OTString strAssetTypeID	= xml->getAttributeValue("assetTypeID"); // Asset Type ID of this account.
-				OTString strAmount		= xml->getAttributeValue("balance"); // Account ID for this account.
+    m_str_stash_name = strStashName.Get();
 
 
+    //
+    // Load up the stash items.
+    //
+    int32_t nCount    = strItemCount.Exists() ? atoi(strItemCount.Get()) : 0;
+    if (nCount > 0)
+    {
+        while (nCount-- > 0)
+        {
+//            xml->read();
+            if (false == OTContract::SkipToElement(xml))
+            {
+                otOut << "OTStash::ReadFromXMLNode: Failure: Unable to find expected element.\n";
+                return (-1);
+            }
 
-				if (!strAssetTypeID.Exists() || !strAmount.Exists())
-				{
-					otErr << "OTStash::ReadFromXMLNode: Error loading stashItem: Either the assetTypeID ("
-						<< strAssetTypeID << "), or the balance (" << strAmount << ") was EMPTY.\n";
-					return (-1);
-				}
+            if ((xml->getNodeType() == irr::io::EXN_ELEMENT) && (!strcmp("stashItem", xml->getNodeName())))
+            {
+                OTString strAssetTypeID    = xml->getAttributeValue("assetTypeID"); // Asset Type ID of this account.
+                OTString strAmount        = xml->getAttributeValue("balance"); // Account ID for this account.
 
-				if (!CreditStash(strAssetTypeID.Get(), atol(strAmount.Get()) ))  // <===============
-				{
-					otErr << "OTStash::ReadFromXMLNode: Failed crediting stashItem for stash " << strStashName <<
-						". assetTypeID (" << strAssetTypeID << "), balance (" << strAmount << ").\n";
-					return (-1);
-				}
 
-				// (Success)
-			}
-			else
-			{
-				otErr << "OTStash::ReadFromXMLNode: Expected stashItem element.\n";
-				return (-1); // error condition
-			}
-		} // while
-	}
 
-	if (false == OTContract::SkipAfterLoadingField(xml))	// </stash>
-	{ otOut << "*** OTStash::ReadFromXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
-					"didn't get it. Returning -1.\n"; return (-1); }
+                if (!strAssetTypeID.Exists() || !strAmount.Exists())
+                {
+                    otErr << "OTStash::ReadFromXMLNode: Error loading stashItem: Either the assetTypeID ("
+                        << strAssetTypeID << "), or the balance (" << strAmount << ") was EMPTY.\n";
+                    return (-1);
+                }
 
-	return 1;
+                if (!CreditStash(strAssetTypeID.Get(), atol(strAmount.Get()) ))  // <===============
+                {
+                    otErr << "OTStash::ReadFromXMLNode: Failed crediting stashItem for stash " << strStashName <<
+                        ". assetTypeID (" << strAssetTypeID << "), balance (" << strAmount << ").\n";
+                    return (-1);
+                }
+
+                // (Success)
+            }
+            else
+            {
+                otErr << "OTStash::ReadFromXMLNode: Expected stashItem element.\n";
+                return (-1); // error condition
+            }
+        } // while
+    }
+
+    if (false == OTContract::SkipAfterLoadingField(xml))    // </stash>
+    { otOut << "*** OTStash::ReadFromXMLNode: Bad data? Expected EXN_ELEMENT_END here, but "
+                    "didn't get it. Returning -1.\n"; return (-1); }
+
+    return 1;
 }
 
 
 OTStash::OTStash()
 {
-	//m_mapStashItems
+    //m_mapStashItems
 }
 
 
 OTStash::OTStash(const OTString & strAssetTypeID, const int64_t lAmount/*=0*/)
 {
-	OTStashItem * pItem = new OTStashItem(strAssetTypeID, lAmount);
-	OT_ASSERT(NULL != pItem);
+    OTStashItem * pItem = new OTStashItem(strAssetTypeID, lAmount);
+    OT_ASSERT(NULL != pItem);
 
-	m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pItem));
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pItem));
 }
 
 
 OTStash::OTStash(const OTIdentifier & theAssetTypeID, const int64_t lAmount/*=0*/)
 {
-	OTStashItem * pItem = new OTStashItem(theAssetTypeID, lAmount);
-	OT_ASSERT(NULL != pItem);
+    OTStashItem * pItem = new OTStashItem(theAssetTypeID, lAmount);
+    OT_ASSERT(NULL != pItem);
 
-	OTString strAssetTypeID(theAssetTypeID);
+    OTString strAssetTypeID(theAssetTypeID);
 
-	m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pItem));
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pItem));
 }
 
 
 OTStash::~OTStash()
 {
-	while (!m_mapStashItems.empty())
-	{
-		OTStashItem * pTemp = m_mapStashItems.begin()->second;
-		OT_ASSERT(NULL != pTemp);
-		delete pTemp; pTemp = NULL;
-		m_mapStashItems.erase(m_mapStashItems.begin());
-	}
+    while (!m_mapStashItems.empty())
+    {
+        OTStashItem * pTemp = m_mapStashItems.begin()->second;
+        OT_ASSERT(NULL != pTemp);
+        delete pTemp; pTemp = NULL;
+        m_mapStashItems.erase(m_mapStashItems.begin());
+    }
 }
 
 
@@ -272,46 +272,46 @@ OTStash::~OTStash()
 //
 OTStashItem * OTStash::GetStash(const std::string & str_asset_type_id)
 {
-	mapOfStashItems::iterator it = m_mapStashItems.find(str_asset_type_id);
+    mapOfStashItems::iterator it = m_mapStashItems.find(str_asset_type_id);
 
-	if (m_mapStashItems.end() == it) // It's not already there for this asset type.
-	{
-		const OTString strAssetTypeID(str_asset_type_id.c_str());
-		OTStashItem * pStashItem = new OTStashItem (strAssetTypeID);
-		OT_ASSERT(NULL != pStashItem);
+    if (m_mapStashItems.end() == it) // It's not already there for this asset type.
+    {
+        const OTString strAssetTypeID(str_asset_type_id.c_str());
+        OTStashItem * pStashItem = new OTStashItem (strAssetTypeID);
+        OT_ASSERT(NULL != pStashItem);
 
-		m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pStashItem));
-		return pStashItem;
-	}
+        m_mapStashItems.insert(std::pair<std::string, OTStashItem *>(strAssetTypeID.Get(), pStashItem));
+        return pStashItem;
+    }
 
-	OTStashItem * pStashItem = (*it).second;
-	OT_ASSERT(NULL != pStashItem);
+    OTStashItem * pStashItem = (*it).second;
+    OT_ASSERT(NULL != pStashItem);
 
-	return pStashItem;
+    return pStashItem;
 }
 
 
 int64_t OTStash::GetAmount(const std::string str_asset_type_id)
 {
-	OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
+    OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
 
-	return pStashItem->GetAmount();
+    return pStashItem->GetAmount();
 }
 
 
 bool OTStash::CreditStash(const std::string str_asset_type_id, const int64_t &lAmount)
 {
-	OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
+    OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
 
-	return pStashItem->CreditStash(lAmount);
+    return pStashItem->CreditStash(lAmount);
 }
 
 
 bool OTStash::DebitStash(const std::string str_asset_type_id, const int64_t &lAmount)
 {
-	OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
+    OTStashItem * pStashItem = GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT() if failure.)
 
-	return pStashItem->DebitStash(lAmount);
+    return pStashItem->DebitStash(lAmount);
 }
 
 } // namespace opentxs

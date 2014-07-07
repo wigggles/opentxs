@@ -142,86 +142,86 @@
 namespace opentxs {
 
 void OTVariable::Serialize(OTString & strAppend,
-						   bool bCalculatingID/*=false*/)
+                           bool bCalculatingID/*=false*/)
 {
 
-	std::string str_access("");
+    std::string str_access("");
 
-	switch (m_Access) {
-		case OTVariable::Var_Constant:		// This cannot be changed from inside the script.
-			str_access = "constant";
-			break;
-		case OTVariable::Var_Persistent:	// This can be changed without notifying the parties.
-			str_access = "persistent";
-			break;
-		case OTVariable::Var_Important:		// This cannot be changed without notifying the parties.
-			str_access = "important";
-			break;
-		default:
-			otErr << "OTVariable::Serialize:  ERROR:  Bad variable type.\n";
-			break;
-	}
+    switch (m_Access) {
+        case OTVariable::Var_Constant:        // This cannot be changed from inside the script.
+            str_access = "constant";
+            break;
+        case OTVariable::Var_Persistent:    // This can be changed without notifying the parties.
+            str_access = "persistent";
+            break;
+        case OTVariable::Var_Important:        // This cannot be changed without notifying the parties.
+            str_access = "important";
+            break;
+        default:
+            otErr << "OTVariable::Serialize:  ERROR:  Bad variable type.\n";
+            break;
+    }
 
-	std::string str_type;
+    std::string str_type;
 
-	switch (m_Type) {
-		case OTVariable::Var_String:
-		{
-			str_type = "string";
+    switch (m_Type) {
+        case OTVariable::Var_String:
+        {
+            str_type = "string";
 
-			if ((false == bCalculatingID) && // we don't serialize the variable's value when calculating the
-				(m_str_Value.size() > 0)) // owner OTScriptable's ID, since the value can change over time.
-			{
-				OTString strVal(m_str_Value.c_str());
-				OTASCIIArmor ascVal(strVal);
-				strAppend.Concatenate("<variable\n name=\"%s\"\n"
-									  " value=\"%s\"\n"
-									  " type=\"%s\"\n"
-									  " access=\"%s\" >\n%s</variable>\n\n",
-									  m_strName.Get(),
-									  "exists",
-									  str_type.c_str(),
-									  str_access.c_str(),
-									  ascVal.Get());
-			}
-			else
-			{
-				strAppend.Concatenate("<variable\n name=\"%s\"\n"
-									  " value=\"%s\"\n"
-									  " type=\"%s\"\n"
-									  " access=\"%s\" />\n\n",
-									  m_strName.Get(),
-									  "none", // value
-									  str_type.c_str(),
-									  str_access.c_str());
-			}
-		}
-			break;
-		case OTVariable::Var_Integer:
-			str_type = "integer";
-			strAppend.Concatenate("<variable\n name=\"%s\"\n"
-								  " value=\"%d\"\n"
-								  " type=\"%s\"\n"
-								  " access=\"%s\" />\n\n",
-								  m_strName.Get(),
-								  bCalculatingID ? 0 : m_nValue, // we don't serialize the variable's value when calculating the smart contract's ID.
-								  str_type.c_str(), str_access.c_str());
-			break;
-		case OTVariable::Var_Bool:
-			str_type = "bool";
-			strAppend.Concatenate("<variable\n name=\"%s\"\n"
-								  " value=\"%s\"\n"
-								  " type=\"%s\"\n"
-								  " access=\"%s\" />\n\n",
-								  m_strName.Get(),
-								  bCalculatingID ? "false" : (m_bValue ? "true" : "false"), // we don't serialize the variable's value when calculating the smart contract's ID.
-								  str_type.c_str(), str_access.c_str());
-			break;
-		default:
-			str_type = "ERROR_VARIABLE_TYPE";
-			otErr << "OTVariable::Serialize: Error, Wrong Type -- not serializing.\n";
-			break;
-	}
+            if ((false == bCalculatingID) && // we don't serialize the variable's value when calculating the
+                (m_str_Value.size() > 0)) // owner OTScriptable's ID, since the value can change over time.
+            {
+                OTString strVal(m_str_Value.c_str());
+                OTASCIIArmor ascVal(strVal);
+                strAppend.Concatenate("<variable\n name=\"%s\"\n"
+                                      " value=\"%s\"\n"
+                                      " type=\"%s\"\n"
+                                      " access=\"%s\" >\n%s</variable>\n\n",
+                                      m_strName.Get(),
+                                      "exists",
+                                      str_type.c_str(),
+                                      str_access.c_str(),
+                                      ascVal.Get());
+            }
+            else
+            {
+                strAppend.Concatenate("<variable\n name=\"%s\"\n"
+                                      " value=\"%s\"\n"
+                                      " type=\"%s\"\n"
+                                      " access=\"%s\" />\n\n",
+                                      m_strName.Get(),
+                                      "none", // value
+                                      str_type.c_str(),
+                                      str_access.c_str());
+            }
+        }
+            break;
+        case OTVariable::Var_Integer:
+            str_type = "integer";
+            strAppend.Concatenate("<variable\n name=\"%s\"\n"
+                                  " value=\"%d\"\n"
+                                  " type=\"%s\"\n"
+                                  " access=\"%s\" />\n\n",
+                                  m_strName.Get(),
+                                  bCalculatingID ? 0 : m_nValue, // we don't serialize the variable's value when calculating the smart contract's ID.
+                                  str_type.c_str(), str_access.c_str());
+            break;
+        case OTVariable::Var_Bool:
+            str_type = "bool";
+            strAppend.Concatenate("<variable\n name=\"%s\"\n"
+                                  " value=\"%s\"\n"
+                                  " type=\"%s\"\n"
+                                  " access=\"%s\" />\n\n",
+                                  m_strName.Get(),
+                                  bCalculatingID ? "false" : (m_bValue ? "true" : "false"), // we don't serialize the variable's value when calculating the smart contract's ID.
+                                  str_type.c_str(), str_access.c_str());
+            break;
+        default:
+            str_type = "ERROR_VARIABLE_TYPE";
+            otErr << "OTVariable::Serialize: Error, Wrong Type -- not serializing.\n";
+            break;
+    }
 
 }
 
@@ -240,7 +240,7 @@ OTVariable::OTVariable()
 
 
 // STRING
-OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,	const OTVariable_Access theAccess/*=Var_Persistent*/)
+OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,    const OTVariable_Access theAccess/*=Var_Persistent*/)
 : m_strName(str_Name.c_str()),
   m_str_Value(str_Value),
   m_nValue(0),
@@ -253,9 +253,9 @@ OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,	
   m_Access(theAccess),
   m_pScript(NULL)
 {
-	if (m_str_Value.empty())
+    if (m_str_Value.empty())
         m_str_Value = "";
-	if (m_str_ValueBackup.empty())
+    if (m_str_ValueBackup.empty())
         m_str_ValueBackup = "";
 }
 
@@ -299,55 +299,55 @@ OTVariable::~OTVariable()
         m_pScript->RemoveVariable(*this);
     }
 
-	m_pScript = NULL;  // I wasn't the owner, it was a pointer for convenience only.
+    m_pScript = NULL;  // I wasn't the owner, it was a pointer for convenience only.
     m_pBylaw  = NULL;  // I wasn't the owner, it was a pointer for convenience only.
 }
 
 
 bool OTVariable::SetValue(const int32_t & nValue)
 {
-	if (!IsInteger())
-	{
-		otErr << "OTVariable::SetValue(int64_t): Error: This variable (" << m_strName << ") is not an integer.\n";
-		return false;
-	}
+    if (!IsInteger())
+    {
+        otErr << "OTVariable::SetValue(int64_t): Error: This variable (" << m_strName << ") is not an integer.\n";
+        return false;
+    }
 
-	m_nValue = m_nValueBackup = nValue;
+    m_nValue = m_nValueBackup = nValue;
 
-	return true;
+    return true;
 }
 
 
 bool OTVariable::SetValue(const bool bValue)
 {
-	if (!IsBool())
-	{
-		otErr << "OTVariable::SetValue(bool): Error: This variable (" << m_strName << ") is not a bool.\n";
-		return false;
-	}
+    if (!IsBool())
+    {
+        otErr << "OTVariable::SetValue(bool): Error: This variable (" << m_strName << ") is not a bool.\n";
+        return false;
+    }
 
-	m_bValue = m_bValueBackup = bValue;
+    m_bValue = m_bValueBackup = bValue;
 
-	return true;
+    return true;
 }
 
 
 bool OTVariable::SetValue(const std::string & str_Value)
 {
-	if (!IsString())
-	{
-		otErr << "OTVariable::SetValue(std::string): Error: This variable (" << m_strName << ") is not a string.\n";
-		return false;
-	}
+    if (!IsString())
+    {
+        otErr << "OTVariable::SetValue(std::string): Error: This variable (" << m_strName << ") is not a string.\n";
+        return false;
+    }
 
-	m_str_Value = m_str_ValueBackup = str_Value;
+    m_str_Value = m_str_ValueBackup = str_Value;
 
     if (m_str_Value.empty())
         m_str_Value = "";
-	if (m_str_ValueBackup.empty())
+    if (m_str_ValueBackup.empty())
         m_str_ValueBackup = "";
 
-	return true;
+    return true;
 }
 
 
@@ -357,52 +357,52 @@ bool OTVariable::SetValue(const std::string & str_Value)
 //
 bool OTVariable::IsDirty() const
 {
-	bool bReturnVal = false;
+    bool bReturnVal = false;
 
-	switch (m_Type)
-	{
-		case OTVariable::Var_String:
-			if (0 != m_str_Value.compare(m_str_ValueBackup)) // If they do NOT match, then it's dirty.
-				bReturnVal = true;
-			break;
-		case OTVariable::Var_Integer:
-			if (m_nValue != m_nValueBackup) // If they do NOT match, then it's dirty.
-				bReturnVal = true;
-			break;
-		case OTVariable::Var_Bool:
-			if (m_bValue != m_bValueBackup) // If they do NOT match, then it's dirty.
-				bReturnVal = true;
-			break;
-		default:
-			otErr << "OTVariable::IsDirty: Error: unknown type for variable: " << m_strName << "\n";
-			break;
-	}
+    switch (m_Type)
+    {
+        case OTVariable::Var_String:
+            if (0 != m_str_Value.compare(m_str_ValueBackup)) // If they do NOT match, then it's dirty.
+                bReturnVal = true;
+            break;
+        case OTVariable::Var_Integer:
+            if (m_nValue != m_nValueBackup) // If they do NOT match, then it's dirty.
+                bReturnVal = true;
+            break;
+        case OTVariable::Var_Bool:
+            if (m_bValue != m_bValueBackup) // If they do NOT match, then it's dirty.
+                bReturnVal = true;
+            break;
+        default:
+            otErr << "OTVariable::IsDirty: Error: unknown type for variable: " << m_strName << "\n";
+            break;
+    }
 
-	return bReturnVal;
+    return bReturnVal;
 }
 
 
 // Sets the variable as clean, so you can check it later and see if it's been changed (if it's DIRTY again.)
 void OTVariable::SetAsClean()
 {
-	switch (m_Type)
-	{
-		case OTVariable::Var_String:
-			m_str_ValueBackup = m_str_Value; // Save a copy of the current value, so we can check later and see if they're different.
-			break;
-		case OTVariable::Var_Integer:
-			m_nValueBackup = m_nValue; // Save a copy of the current value, so we can check later and see if they're different.
-			break;
-		case OTVariable::Var_Bool:
-			m_bValueBackup = m_bValue; // Save a copy of the current value, so we can check later and see if they're different.
-			break;
-		default:
-			otErr << "OTVariable::SetAsClean: Error: unknown type for variable: " << m_strName << "\n";
-			m_str_ValueBackup	= m_str_Value;
-			m_nValueBackup		= m_nValue;
-			m_bValueBackup		= m_bValue;
-			break;
-	}
+    switch (m_Type)
+    {
+        case OTVariable::Var_String:
+            m_str_ValueBackup = m_str_Value; // Save a copy of the current value, so we can check later and see if they're different.
+            break;
+        case OTVariable::Var_Integer:
+            m_nValueBackup = m_nValue; // Save a copy of the current value, so we can check later and see if they're different.
+            break;
+        case OTVariable::Var_Bool:
+            m_bValueBackup = m_bValue; // Save a copy of the current value, so we can check later and see if they're different.
+            break;
+        default:
+            otErr << "OTVariable::SetAsClean: Error: unknown type for variable: " << m_strName << "\n";
+            m_str_ValueBackup    = m_str_Value;
+            m_nValueBackup        = m_nValue;
+            m_bValueBackup        = m_bValue;
+            break;
+    }
 }
 
 
@@ -420,11 +420,11 @@ void OTVariable::UnregisterScript()
 //
 void OTVariable::RegisterForExecution(OTScript& theScript)
 {
-	this->SetAsClean(); // so we can check for dirtiness after execution.
+    this->SetAsClean(); // so we can check for dirtiness after execution.
 
-	const std::string str_var_name = m_strName.Get();
+    const std::string str_var_name = m_strName.Get();
 
-	theScript.AddVariable (str_var_name, *this);
+    theScript.AddVariable (str_var_name, *this);
 
     this->m_pScript = &theScript; // So later, if the variable destructs, and this pointer is set, the variable can remove itself from the script.
 }
@@ -433,42 +433,42 @@ void OTVariable::RegisterForExecution(OTScript& theScript)
 // Done
 bool OTVariable::Compare(OTVariable & rhs)
 {
-	if (!(GetName().Compare(rhs.GetName())))
-	{
-		otOut << "OTVariable::Compare: Names don't match: " << GetName() << " / " << rhs.GetName() << " \n";
-		return false;
-	}
-	if ( ! (GetType() == rhs.GetType()) )
-	{
-		otOut << "OTVariable::Compare: Type doesn't match: " << GetName() << " \n";
-		return false;
-	}
-	if ( ! (GetAccess() == rhs.GetAccess()) )
-	{
-		otOut << "OTVariable::Compare: Access types don't match: " << GetName() << " \n";
-		return false;
-	}
+    if (!(GetName().Compare(rhs.GetName())))
+    {
+        otOut << "OTVariable::Compare: Names don't match: " << GetName() << " / " << rhs.GetName() << " \n";
+        return false;
+    }
+    if ( ! (GetType() == rhs.GetType()) )
+    {
+        otOut << "OTVariable::Compare: Type doesn't match: " << GetName() << " \n";
+        return false;
+    }
+    if ( ! (GetAccess() == rhs.GetAccess()) )
+    {
+        otOut << "OTVariable::Compare: Access types don't match: " << GetName() << " \n";
+        return false;
+    }
 
 
-	bool bMatch = false;
+    bool bMatch = false;
 
-	switch (GetType())
-	{
-		case OTVariable::Var_Integer:
-			bMatch = (GetValueInteger() == rhs.GetValueInteger());
-			break;
-		case OTVariable::Var_Bool:
-			bMatch = (GetValueBool() == rhs.GetValueBool());
-			break;
-		case OTVariable::Var_String:
-			bMatch = (GetValueString().compare(rhs.GetValueString()) == 0);
-			break;
-		default:
-			otErr << "OTVariable::Compare: Unknown type in variable " << m_strName << ".\n";
-			break;
-	}
+    switch (GetType())
+    {
+        case OTVariable::Var_Integer:
+            bMatch = (GetValueInteger() == rhs.GetValueInteger());
+            break;
+        case OTVariable::Var_Bool:
+            bMatch = (GetValueBool() == rhs.GetValueBool());
+            break;
+        case OTVariable::Var_String:
+            bMatch = (GetValueString().compare(rhs.GetValueString()) == 0);
+            break;
+        default:
+            otErr << "OTVariable::Compare: Unknown type in variable " << m_strName << ".\n";
+            break;
+    }
 
-	return bMatch;
+    return bMatch;
 }
 
 } // namespace opentxs

@@ -145,29 +145,29 @@ class OTMessage;
 class OTPayload : public OTData 
 {
 public:
-EXPORT	OTPayload();
-	OTPayload(const void * pNewData, uint32_t nNewSize);
-	OTPayload(const OTPayload & rhs);
-	OTPayload(const OTASCIIArmor & theSource);
-	
-EXPORT	virtual ~OTPayload();
+EXPORT    OTPayload();
+    OTPayload(const void * pNewData, uint32_t nNewSize);
+    OTPayload(const OTPayload & rhs);
+    OTPayload(const OTASCIIArmor & theSource);
+    
+EXPORT    virtual ~OTPayload();
 
-	using OTData::swap;
-	using OTData::operator=;
+    using OTData::swap;
+    using OTData::operator=;
 
-EXPORT	uint32_t ReadBytesFrom(OTData & theData, uint32_t lSize);
-	
-EXPORT	void SetPayloadSize(uint32_t lNewSize);
-EXPORT	const void * GetPayloadPointer() const;
-	
-	// pass in an OTMessage and if the Payload
-	// contains a message, and checksum validates,
-	// it will set it for you and return true.
-EXPORT	bool SetMessagePayload(const OTMessage & theMessage); // Message copied into payload to prepare for sending.
-EXPORT	bool GetMessagePayload(OTMessage & theMessage) const;
+EXPORT    uint32_t ReadBytesFrom(OTData & theData, uint32_t lSize);
+    
+EXPORT    void SetPayloadSize(uint32_t lNewSize);
+EXPORT    const void * GetPayloadPointer() const;
+    
+    // pass in an OTMessage and if the Payload
+    // contains a message, and checksum validates,
+    // it will set it for you and return true.
+EXPORT    bool SetMessagePayload(const OTMessage & theMessage); // Message copied into payload to prepare for sending.
+EXPORT    bool GetMessagePayload(OTMessage & theMessage) const;
 
-EXPORT	bool GetEnvelope(OTEnvelope & theEnvelope) const; // Envelope retrieved from payload.
-EXPORT	bool SetEnvelope(const OTEnvelope & theEnvelope); // Envelope copied into payload to prepare for sending.
+EXPORT    bool GetEnvelope(OTEnvelope & theEnvelope) const; // Envelope retrieved from payload.
+EXPORT    bool SetEnvelope(const OTEnvelope & theEnvelope); // Envelope copied into payload to prepare for sending.
 };
 
 

@@ -166,25 +166,25 @@ namespace opentxs {
 
 bool OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller) // OTLookupCaller must have OTNameLookup attached already.
 {
-	if (!theCaller.isCallbackSet())
-	{
-		OTLog::vError("%s: ERROR:\nOTLookupCaller::setCallback() "
+    if (!theCaller.isCallbackSet())
+    {
+        OTLog::vError("%s: ERROR:\nOTLookupCaller::setCallback() "
                       "MUST be called first, with an OTNameLookup-extended class passed to it,\n"
                       "before then invoking this function (and passing that OTLookupCaller as a parameter "
                       "into this function.)\n", __FUNCTION__);
-		return false;
-	}
-	
-	OTLog::vOutput(1, "%s: FYI, calling OTRecordList::setAddrBookCaller(theCaller) now... (which is where "
-				   "OT internally sets its pointer to the Java caller object, which must have been passed in as a "
+        return false;
+    }
+    
+    OTLog::vOutput(1, "%s: FYI, calling OTRecordList::setAddrBookCaller(theCaller) now... (which is where "
+                   "OT internally sets its pointer to the Java caller object, which must have been passed in as a "
                    "parameter to this function.\n", __FUNCTION__);
     
-	const bool bSuccess = OTRecordList::setAddrBookCaller(theCaller);
-	
-	OTLog::vOutput(1, "%s: RESULT of call to OTRecordList::setAddrBookCaller: %s", __FUNCTION__,
-				   bSuccess ? "SUCCESS" : "FAILURE");
-	
-	return bSuccess;
+    const bool bSuccess = OTRecordList::setAddrBookCaller(theCaller);
+    
+    OTLog::vOutput(1, "%s: RESULT of call to OTRecordList::setAddrBookCaller: %s", __FUNCTION__,
+                   bSuccess ? "SUCCESS" : "FAILURE");
+    
+    return bSuccess;
 }
 
 // ***************************************************
@@ -198,9 +198,9 @@ OTNameLookup::~OTNameLookup()
     // doesn't mean that C++ apps like Moneychanger won't make as many instances as they want. Bottom
     // line? No error message necessary here as we have with the password callback.
     //
-//	OTLog::vError("OTNameLookup::~OTNameLookup:  "
+//    OTLog::vError("OTNameLookup::~OTNameLookup:  "
 //                  "(This should only happen ONCE ONLY -- as the application is closing.)\n");
-//	std::cout << "OTNameLookup::~OTNameLookup()" << std:: endl;
+//    std::cout << "OTNameLookup::~OTNameLookup()" << std:: endl;
 }
 
 //virtual
@@ -237,48 +237,48 @@ std::string OTNameLookup::GetAddressName(const std::string &) const
 
 OTLookupCaller::~OTLookupCaller()
 {
-	OTLog::vOutput(0, "OTLookupCaller::~OTLookupCaller: (This should only happen as the application is closing.)\n");
+    OTLog::vOutput(0, "OTLookupCaller::~OTLookupCaller: (This should only happen as the application is closing.)\n");
 
-	delCallback();
+    delCallback();
 }
 
 // ------------------------------------------------
 
 void OTLookupCaller::delCallback()
 {
-//	if (NULL != _callback)  // TODO this may be a memory leak.
-//		delete _callback;	// But I know we're currently crashing from deleting same object twice.
-	// And since the object comes from Java, who am I to delete it? Let Java clean it up.
-	if (isCallbackSet())
-		OTLog::Output(0, "OTLookupCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
-					  "(This message doesn't trigger if it was already NULL.)\n");
-	//--------------------------------
-	_callback = NULL;
+//    if (NULL != _callback)  // TODO this may be a memory leak.
+//        delete _callback;    // But I know we're currently crashing from deleting same object twice.
+    // And since the object comes from Java, who am I to delete it? Let Java clean it up.
+    if (isCallbackSet())
+        OTLog::Output(0, "OTLookupCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
+                      "(This message doesn't trigger if it was already NULL.)\n");
+    //--------------------------------
+    _callback = NULL;
 }
 
 // ------------------------------------------------
 
 void OTLookupCaller::setCallback(OTNameLookup *cb)
 {
-	OTLog::Output(0, "OTLookupCaller::setCallback: Attempting to set the OTNameLookup pointer...\n");
+    OTLog::Output(0, "OTLookupCaller::setCallback: Attempting to set the OTNameLookup pointer...\n");
 
-	if (NULL == cb)
-	{
-		OTLog::Output(0, "OTLookupCaller::setCallback: ERROR: NULL OTNameLookup object passed in. (Returning.)\n");
-		return;
-	}
+    if (NULL == cb)
+    {
+        OTLog::Output(0, "OTLookupCaller::setCallback: ERROR: NULL OTNameLookup object passed in. (Returning.)\n");
+        return;
+    }
 
-	delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
-	// -----------------------------
-	_callback = cb;
-	OTLog::Output(0, "OTLookupCaller::setCallback: FYI, the OTNameLookup pointer was set.\n");
+    delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
+    // -----------------------------
+    _callback = cb;
+    OTLog::Output(0, "OTLookupCaller::setCallback: FYI, the OTNameLookup pointer was set.\n");
 }
 
 // ------------------------------------------------
 
 bool OTLookupCaller::isCallbackSet() const
 {
-	return (NULL == _callback) ? false : true;
+    return (NULL == _callback) ? false : true;
 }
 
 // ------------------------------------------------
@@ -286,16 +286,16 @@ bool OTLookupCaller::isCallbackSet() const
 std::string OTLookupCaller::GetNymName(const std::string & str_id, // NymID
                                        const std::string * p_server_id/*=NULL*/) const
 {
-	if (isCallbackSet())
-	{
-		OTLog::Output(1, "OTLookupCaller::GetNymName: FYI, Executing address book callback...\n");
-		return _callback->GetNymName(str_id, p_server_id);
-	}
-	else
-	{
-		OTLog::Output(0, "OTLookupCaller::GetNymName: "
+    if (isCallbackSet())
+    {
+        OTLog::Output(1, "OTLookupCaller::GetNymName: FYI, Executing address book callback...\n");
+        return _callback->GetNymName(str_id, p_server_id);
+    }
+    else
+    {
+        OTLog::Output(0, "OTLookupCaller::GetNymName: "
                       "WARNING: Failed attempt to trigger address book callback, due to \"it hasn't been set yet.\"\n");
-	}
+    }
     return "";
 }
 
@@ -306,16 +306,16 @@ std::string OTLookupCaller::GetAcctName(const std::string & str_id, // AcctID
                                         const std::string * p_server_id/*=NULL*/,
                                         const std::string * p_asset_id/*=NULL*/) const
 {
-	if (isCallbackSet())
-	{
-		OTLog::Output(1, "OTLookupCaller::GetAcctName: FYI, Executing address book callback...\n");
-		return _callback->GetAcctName(str_id, p_nym_id, p_server_id, p_asset_id);
-	}
-	else
-	{
-		OTLog::Output(0, "OTLookupCaller::GetAcctName: "
+    if (isCallbackSet())
+    {
+        OTLog::Output(1, "OTLookupCaller::GetAcctName: FYI, Executing address book callback...\n");
+        return _callback->GetAcctName(str_id, p_nym_id, p_server_id, p_asset_id);
+    }
+    else
+    {
+        OTLog::Output(0, "OTLookupCaller::GetAcctName: "
                       "WARNING: Failed attempt to trigger address book callback, due to \"it hasn't been set yet.\"\n");
-	}
+    }
     return "";
 }
 
@@ -323,16 +323,16 @@ std::string OTLookupCaller::GetAcctName(const std::string & str_id, // AcctID
 
 std::string OTLookupCaller::GetAddressName(const std::string & str_address) const
 {
-	if (isCallbackSet())
-	{
-		OTLog::Output(1, "OTLookupCaller::GetAddressName: FYI, Executing address book callback...\n");
-		return _callback->GetAddressName(str_address);
-	}
-	else
-	{
-		OTLog::Output(0, "OTLookupCaller::GetAddressName: "
+    if (isCallbackSet())
+    {
+        OTLog::Output(1, "OTLookupCaller::GetAddressName: FYI, Executing address book callback...\n");
+        return _callback->GetAddressName(str_address);
+    }
+    else
+    {
+        OTLog::Output(0, "OTLookupCaller::GetAddressName: "
                       "WARNING: Failed attempt to trigger address book callback, due to \"it hasn't been set yet.\"\n");
-	}
+    }
     return "";
 }
 
@@ -355,36 +355,36 @@ OTLookupCaller * OTRecordList::s_pCaller = NULL;
 //static
 bool OTRecordList::setAddrBookCaller(OTLookupCaller & theCaller)
 {
-	OTLog::vOutput(3, "%s: Attempting to set the address book caller... \n", __FUNCTION__);
-	
-	if (!theCaller.isCallbackSet())
-	{
-		OTLog::vError("%s: ERROR: OTLookupCaller::setCallback() "
+    OTLog::vOutput(3, "%s: Attempting to set the address book caller... \n", __FUNCTION__);
+    
+    if (!theCaller.isCallbackSet())
+    {
+        OTLog::vError("%s: ERROR: OTLookupCaller::setCallback() "
                       "MUST be called first, with an OTNameLookup-extended object passed to it,\n"
                       "BEFORE calling this function with that OTLookupCaller. (Returning false.)\n", __FUNCTION__);
-		return false;
-	}
-	
-	if (NULL != s_pCaller)
-	{
-		OTLog::vError("%s: WARNING: Setting the address book caller again, even though "
+        return false;
+    }
+    
+    if (NULL != s_pCaller)
+    {
+        OTLog::vError("%s: WARNING: Setting the address book caller again, even though "
                       "it was apparently ALREADY set... (Meaning Java has probably erroneously called this twice, "
                       "possibly passing the same OTLookupCaller both times.)\n", __FUNCTION__);
-//		delete s_pCaller; // Let Java delete it.
-	}
-	
-	s_pCaller = &theCaller;
-	// ---------------------------
-	OTLog::vOutput(1, "%s: FYI, Successfully set the address book caller object from "
+//        delete s_pCaller; // Let Java delete it.
+    }
+    
+    s_pCaller = &theCaller;
+    // ---------------------------
+    OTLog::vOutput(1, "%s: FYI, Successfully set the address book caller object from "
                    "Java (or from another SWIG language.) Returning true.\n", __FUNCTION__);
     
-	return true;
+    return true;
 }
 // --------------------------------------------------------
 // static
 OTLookupCaller * OTRecordList::getAddrBookCaller()
 {
-	return s_pCaller;
+    return s_pCaller;
 }
 
 // ***************************************************
@@ -1279,7 +1279,7 @@ bool OTRecordList::Populate()
             // ------------------------------------------------
             OTLog::vOutput(0, "%s: Mail index: %d\n", __FUNCTION__, nCurrentMail);
             // ------------------------------------------------
-            OTMessage *	pMsg = pNym->GetMailByIndex(nCurrentMail);
+            OTMessage *    pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(NULL != pMsg);
             // ------------------------------------------------
             const std::string str_mail_server =
@@ -1366,7 +1366,7 @@ bool OTRecordList::Populate()
             // ------------------------------------------------
             OTLog::vOutput(0, "%s: Outmail index: %d\n", __FUNCTION__, nCurrentOutmail);
             // ------------------------------------------------
-            OTMessage *	pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
+            OTMessage *    pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(NULL != pMsg);
             // ------------------------------------------------
             const std::string str_mail_server =

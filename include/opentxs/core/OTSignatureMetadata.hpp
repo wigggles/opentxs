@@ -141,10 +141,10 @@ class OTSignatureMetadata
 {    
 private: // PRIVATE MEMBERS
     bool m_bHasMetadata;        // Defaults to false. Is set true by calling SetMetadata.
-	char m_cMetaKeyType;        // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
-	char m_cMetaNymID;          // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
-	char m_cMetaMasterCredID;   // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
-	char m_cMetaSubCredID;      // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
+    char m_cMetaKeyType;        // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
+    char m_cMetaNymID;          // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
+    char m_cMetaMasterCredID;   // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
+    char m_cMetaSubCredID;      // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
     
 public:  // PUBLIC INTERFACE
     // ---------------------------------------------------------------------------

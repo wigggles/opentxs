@@ -197,21 +197,21 @@ class OTLog
 private:
 //public:  // should be private, but since of bug in msvc.
 
-	static OTLog * pLogger;
+    static OTLog * pLogger;
 
-	static const OTString m_strVersion;
-	static const OTString m_strPathSeparator;
+    static const OTString m_strVersion;
+    static const OTString m_strPathSeparator;
 
-	dequeOfStrings logDeque;
-	
+    dequeOfStrings logDeque;
+    
 
-	OTString	m_strThreadContext;
-	OTString	m_strLogFileName;
-	OTString	m_strLogFilePath;
+    OTString    m_strThreadContext;
+    OTString    m_strLogFileName;
+    OTString    m_strLogFilePath;
 
-	int32_t			m_nLogLevel;
+    int32_t            m_nLogLevel;
 
-	bool		m_bInitialized;
+    bool        m_bInitialized;
 
     // For things that represent internal inconsistency in the code. 
     // Normally should NEVER happen even with bad input from user.
@@ -222,92 +222,92 @@ private:
 
 public:
 
-	//EXPORT static OTLog & It();
+    //EXPORT static OTLog & It();
 
-	// now the logger checks the global config file itself for the log-filename.
-	EXPORT static bool Init(const OTString & strThreadContext = "", const int32_t & nLogLevel = 0);
+    // now the logger checks the global config file itself for the log-filename.
+    EXPORT static bool Init(const OTString & strThreadContext = "", const int32_t & nLogLevel = 0);
 
-	EXPORT static bool IsInitialized();
+    EXPORT static bool IsInitialized();
 
-	EXPORT static bool Cleanup();
+    EXPORT static bool Cleanup();
 
-	// ------------------------------------------------------------
-	// OTLog Constants.
-	//
+    // ------------------------------------------------------------
+    // OTLog Constants.
+    //
 
-	// Compiled into OTLog:
+    // Compiled into OTLog:
 
-	EXPORT static const char *	   Version();
-	EXPORT static const OTString & GetVersion();
+    EXPORT static const char *       Version();
+    EXPORT static const OTString & GetVersion();
 
-	EXPORT static const char *	   PathSeparator();
-	EXPORT static const OTString & GetPathSeparator();
+    EXPORT static const char *       PathSeparator();
+    EXPORT static const OTString & GetPathSeparator();
 
-	// Set in constructor:
+    // Set in constructor:
 
-	EXPORT static const OTString & GetThreadContext();
+    EXPORT static const OTString & GetThreadContext();
 
-	EXPORT static const char *	   LogFilePath();
-	EXPORT static const OTString & GetLogFilePath();
+    EXPORT static const char *       LogFilePath();
+    EXPORT static const OTString & GetLogFilePath();
 
-	EXPORT static int32_t 	   LogLevel();
-	EXPORT static bool	   SetLogLevel(const int32_t & nLogLevel);
+    EXPORT static int32_t        LogLevel();
+    EXPORT static bool       SetLogLevel(const int32_t & nLogLevel);
 
-	// --------------------------------------------------------
-	// OTLog Functions:
-	//
+    // --------------------------------------------------------
+    // OTLog Functions:
+    //
 
-	EXPORT static bool		LogToFile(const OTString & strOutput);
+    EXPORT static bool        LogToFile(const OTString & strOutput);
 
-	// --------------------------------------------------
-	// We keep 1024 logs in memory, to make them available via the API.
-	EXPORT static int32_t		GetMemlogSize(); 
-	EXPORT static const OTString	GetMemlogAtIndex(const int32_t nIndex);
-	EXPORT static const OTString	PeekMemlogFront();
-	EXPORT static const OTString	PeekMemlogBack(); 
-	EXPORT static bool		PopMemlogFront();
-	EXPORT static bool		PopMemlogBack();
-	EXPORT static bool		PushMemlogFront(const OTString & strLog);
-	EXPORT static bool		PushMemlogBack(const OTString & strLog);
-	// -------------------------------------------------
-	EXPORT static bool		SleepSeconds(const int64_t lSeconds);
-	EXPORT static bool		SleepMilliseconds(const int64_t lMilliseconds);
+    // --------------------------------------------------
+    // We keep 1024 logs in memory, to make them available via the API.
+    EXPORT static int32_t        GetMemlogSize(); 
+    EXPORT static const OTString    GetMemlogAtIndex(const int32_t nIndex);
+    EXPORT static const OTString    PeekMemlogFront();
+    EXPORT static const OTString    PeekMemlogBack(); 
+    EXPORT static bool        PopMemlogFront();
+    EXPORT static bool        PopMemlogBack();
+    EXPORT static bool        PushMemlogFront(const OTString & strLog);
+    EXPORT static bool        PushMemlogBack(const OTString & strLog);
+    // -------------------------------------------------
+    EXPORT static bool        SleepSeconds(const int64_t lSeconds);
+    EXPORT static bool        SleepMilliseconds(const int64_t lMilliseconds);
 
-	// Output() logs normal output, which carries a verbosity level.
-	//
-	// If nVerbosity of a message is 0, the message will ALWAYS log. (ALL output levels are higher or equal to 0.)
-	// If nVerbosity is 1, the message will run only if __CurrentLogLevel is 1 or higher.
-	// If nVerbosity if 2, the message will run only if __CurrentLogLevel is 2 or higher.
-	// Etc.
-	// THEREFORE: The higher the verbosity level for a message, the more verbose the
-	// software must be configured in order to display that message.
-	//
-	// Default verbosity level for the software is 0, and output that MUST appear on
-	// the screen should be set at level 0. For output that you don't want to see as often,
-	// set it up to 1. Set it up even higher for the really verbose stuff (e.g. only if you
-	// really want to see EVERYTHING.)
+    // Output() logs normal output, which carries a verbosity level.
+    //
+    // If nVerbosity of a message is 0, the message will ALWAYS log. (ALL output levels are higher or equal to 0.)
+    // If nVerbosity is 1, the message will run only if __CurrentLogLevel is 1 or higher.
+    // If nVerbosity if 2, the message will run only if __CurrentLogLevel is 2 or higher.
+    // Etc.
+    // THEREFORE: The higher the verbosity level for a message, the more verbose the
+    // software must be configured in order to display that message.
+    //
+    // Default verbosity level for the software is 0, and output that MUST appear on
+    // the screen should be set at level 0. For output that you don't want to see as often,
+    // set it up to 1. Set it up even higher for the really verbose stuff (e.g. only if you
+    // really want to see EVERYTHING.)
 
-	EXPORT static void Output(int32_t nVerbosity, const char * szOutput); // stdout
-	EXPORT static void vOutput(int32_t nVerbosity, const char *szOutput, ...);
+    EXPORT static void Output(int32_t nVerbosity, const char * szOutput); // stdout
+    EXPORT static void vOutput(int32_t nVerbosity, const char *szOutput, ...);
 
-	// This logs an error condition, which usually means bad input from the user, or a file wouldn't open,
-	// or something like that. This contrasted with Assert() which should NEVER actually happen. The software
-	// expects bad user input from time to time. But it never expects a loaded mint to have a NULL pointer.
-	// The bad input would log with Error(), whereas the NULL pointer would log with Assert();
-	EXPORT static void Error(const char * szError); // stderr
-	EXPORT static void vError(const char * szError, ...); // stderr
+    // This logs an error condition, which usually means bad input from the user, or a file wouldn't open,
+    // or something like that. This contrasted with Assert() which should NEVER actually happen. The software
+    // expects bad user input from time to time. But it never expects a loaded mint to have a NULL pointer.
+    // The bad input would log with Error(), whereas the NULL pointer would log with Assert();
+    EXPORT static void Error(const char * szError); // stderr
+    EXPORT static void vError(const char * szError, ...); // stderr
 
-	// This method will print out errno and its associated string.
-	// Optionally you can pass the location you are calling it from,
-	// which will be prepended to the log.
-	//
-	EXPORT static void Errno(const char * szLocation=NULL); // stderr
+    // This method will print out errno and its associated string.
+    // Optionally you can pass the location you are calling it from,
+    // which will be prepended to the log.
+    //
+    EXPORT static void Errno(const char * szLocation=NULL); // stderr
 
-	// String Helpers
-	EXPORT static bool StringFill(OTString & out_strString, const char * szString, const int32_t iLength, const char * szAppend = NULL);
+    // String Helpers
+    EXPORT static bool StringFill(OTString & out_strString, const char * szString, const int32_t iLength, const char * szAppend = NULL);
 
-	// -------------------------------------------------
-	EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above OT_Init.
+    // -------------------------------------------------
+    EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call it in xmlrpcxx_client.cpp just above OT_Init.
 
 };
 

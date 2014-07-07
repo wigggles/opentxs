@@ -141,89 +141,89 @@ namespace opentxs {
 
 void AppendChecksum( OT_BYTE* buffer, uint32_t & size )
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
-//	otErr << "Appending checksum. Size: %d ", size);
+    uint32_t i;
+    OT_BYTE total = 0;
+    
+    OT_ASSERT(NULL != buffer);
+//    otErr << "Appending checksum. Size: %d ", size);
 
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-	
-//	otErr << "  VALUE: %d\n", (255 - total));
+    for( i = 0; i < size; i++ )
+    {
+        total += buffer[i];
+//        otErr << "%d ", buffer[i]);
+    }
+    
+//    otErr << "  VALUE: %d\n", (255 - total));
 
-	buffer[size++] = 255 - total;
+    buffer[size++] = 255 - total;
 }
 
 
 OT_BYTE CalcChecksum( OT_BYTE* buffer, uint32_t size )
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
+    uint32_t i;
+    OT_BYTE total = 0;
+    
+    OT_ASSERT(NULL != buffer);
 
-//	otErr << "Calculating checksum. Size: %d ", size);
-	
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-//	otErr << "  VALUE: %d\n", (255 - total));
-	
-	return (255 - total);
+//    otErr << "Calculating checksum. Size: %d ", size);
+    
+    for( i = 0; i < size; i++ )
+    {
+        total += buffer[i];
+//        otErr << "%d ", buffer[i]);
+    }
+//    otErr << "  VALUE: %d\n", (255 - total));
+    
+    return (255 - total);
 }
 
 
 OT_BYTE CalcChecksum( const OT_BYTE * const buffer, const uint32_t size )
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
+    uint32_t i;
+    OT_BYTE total = 0;
+    
+    OT_ASSERT(NULL != buffer);
 
-//	otErr << "Calculating checksum. Size: %d\n", size);
-	
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-//	otErr << "  TOTAL: %d\n", (255 - total));
-	
-	return (255 - total);
+//    otErr << "Calculating checksum. Size: %d\n", size);
+    
+    for( i = 0; i < size; i++ )
+    {
+        total += buffer[i];
+//        otErr << "%d ", buffer[i]);
+    }
+//    otErr << "  TOTAL: %d\n", (255 - total));
+    
+    return (255 - total);
 }
 
 
 OT_BOOL IsChecksumValid( OT_BYTE* buffer, uint32_t size )
 {
-	uint32_t i;
-	OT_BYTE total = 0;
+    uint32_t i;
+    OT_BYTE total = 0;
 
-	OT_ASSERT(NULL != buffer);
+    OT_ASSERT(NULL != buffer);
 
-//	otErr << Validating checksum. Size: %d\n", size);
+//    otErr << Validating checksum. Size: %d\n", size);
 
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-		
-//		otErr << "%d ", buffer[i]);
-	}
-	if( total == 255 )
-	{
-//		otErr << "VALID\n";
-		return true;
-	}
-	else
-	{
-//		otErr << "INVALID:  %d\n", total);
-		return false;
-	}
+    for( i = 0; i < size; i++ )
+    {
+        total += buffer[i];
+        
+//        otErr << "%d ", buffer[i]);
+    }
+    if( total == 255 )
+    {
+//        otErr << "VALID\n";
+        return true;
+    }
+    else
+    {
+//        otErr << "INVALID:  %d\n", total);
+        return false;
+    }
 }
 
 } // namespace opentxs

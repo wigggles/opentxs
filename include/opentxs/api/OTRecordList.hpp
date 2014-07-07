@@ -195,26 +195,26 @@ EXPORT virtual std::string GetAddressName (const std::string & str_address) cons
 class OTLookupCaller
 {
 protected:
-	OTNameLookup * _callback;
+    OTNameLookup * _callback;
     
 public:
 EXPORT   OTLookupCaller() : _callback(NULL) { }
-EXPORT	~OTLookupCaller();
+EXPORT    ~OTLookupCaller();
 
 EXPORT  OTNameLookup * getCallback() { return _callback; }
-EXPORT	void           delCallback();
-EXPORT	void           setCallback(OTNameLookup *cb);
-EXPORT	bool           isCallbackSet() const;
+EXPORT    void           delCallback();
+EXPORT    void           setCallback(OTNameLookup *cb);
+EXPORT    bool           isCallbackSet() const;
 
-EXPORT	std::string GetNymName(const std::string & str_id, // NymID
+EXPORT    std::string GetNymName(const std::string & str_id, // NymID
                                const std::string * p_server_id=NULL) const;
 
-EXPORT	std::string GetAcctName(const std::string & str_id, // AcctID
+EXPORT    std::string GetAcctName(const std::string & str_id, // AcctID
                                 const std::string * p_nym_id=NULL,
                                 const std::string * p_server_id=NULL,
                                 const std::string * p_asset_id=NULL) const;
     
-EXPORT	std::string GetAddressName (const std::string & str_address) const;
+EXPORT    std::string GetAddressName (const std::string & str_address) const;
 };
 
 

@@ -143,43 +143,43 @@ namespace opentxs {
 
 bool OTData::operator==(const OTData &s2) const
 {
-	if (m_lSize != s2.m_lSize) 
-	{
-		return false;
-	}
-	
-	if (m_lSize == 0 && s2.m_lSize == 0) 
-	{
-		return true;
-	}
-	
-	if (0 == memcmp(m_pData, s2.m_pData, m_lSize)) // TODO security: replace memcmp with a more secure version. Still, though, I am managing it internal to the class.
-	{
-		return true;
-	}
-	
-	return false;
+    if (m_lSize != s2.m_lSize) 
+    {
+        return false;
+    }
+    
+    if (m_lSize == 0 && s2.m_lSize == 0) 
+    {
+        return true;
+    }
+    
+    if (0 == memcmp(m_pData, s2.m_pData, m_lSize)) // TODO security: replace memcmp with a more secure version. Still, though, I am managing it internal to the class.
+    {
+        return true;
+    }
+    
+    return false;
 }
 
 
 bool OTData::operator!=(const OTData &s2) const
 {
-	if (m_lSize == s2.m_lSize) 
-	{
-		return false;
-	}
-	
-	if (m_lSize == 0 && s2.m_lSize == 0) 
-	{
-		return true;
-	}
-	
-	if (0 == memcmp(m_pData, s2.m_pData, m_lSize) )  // TODO security: replace memcmp with a more secure version. Still, though, I am managing it internal to the class.
-	{
-		return false;
-	}
-	
-	return true;
+    if (m_lSize == s2.m_lSize) 
+    {
+        return false;
+    }
+    
+    if (m_lSize == 0 && s2.m_lSize == 0) 
+    {
+        return true;
+    }
+    
+    if (0 == memcmp(m_pData, s2.m_pData, m_lSize) )  // TODO security: replace memcmp with a more secure version. Still, though, I am managing it internal to the class.
+    {
+        return false;
+    }
+    
+    return true;
 }
 
 
@@ -195,25 +195,25 @@ uint32_t OTData::OTfread(uint8_t * buf, uint32_t buflen)
 {
     OT_ASSERT((NULL != buf) && (buflen > 0));
     
-	uint32_t nSizeToRead = 0;
-	
-	if ((NULL != m_pData) && (m_lPosition < GetSize()))
-	{
-		// If the size is 20, and position is 5 (I've already read the first 5 bytes)
-		// then the size remaining to read is 15. That is, GetSize() minus m_lPosition.
-		nSizeToRead = GetSize() - m_lPosition;
-		
-		if (buflen < nSizeToRead)
-			nSizeToRead = buflen;
-		
+    uint32_t nSizeToRead = 0;
+    
+    if ((NULL != m_pData) && (m_lPosition < GetSize()))
+    {
+        // If the size is 20, and position is 5 (I've already read the first 5 bytes)
+        // then the size remaining to read is 15. That is, GetSize() minus m_lPosition.
+        nSizeToRead = GetSize() - m_lPosition;
+        
+        if (buflen < nSizeToRead)
+            nSizeToRead = buflen;
+        
         OTPassword::safe_memcpy(buf, buflen, 
                                 (static_cast<uint8_t*>(m_pData) + m_lPosition),
                                  static_cast<uint32_t>(nSizeToRead));
-//		memcpy(buf, (static_cast<char*>(m_pData))+m_lPosition, nSizeToRead); 
-		m_lPosition += nSizeToRead;
-	}
-	
-	return nSizeToRead; 
+//        memcpy(buf, (static_cast<char*>(m_pData))+m_lPosition, nSizeToRead); 
+        m_lPosition += nSizeToRead;
+    }
+    
+    return nSizeToRead; 
 }
 
 
@@ -224,21 +224,21 @@ OTData::OTData() : m_pData(NULL), m_lPosition(0), m_lSize(0)
 
 
 OTData::OTData(const OTData &theSource) : m_pData(NULL), m_lPosition(0), m_lSize(0)
-{	
-	Assign(theSource);  // ***********
+{    
+    Assign(theSource);  // ***********
 }
 
 
 OTData::OTData(const OTASCIIArmor &theSource) : m_pData(NULL), m_lPosition(0), m_lSize(0)
-{	
-	if (theSource.Exists())
-		theSource.GetData(*this); // ***********
+{    
+    if (theSource.Exists())
+        theSource.GetData(*this); // ***********
 }
 
 
 OTData::OTData(const void * pNewData, uint32_t lNewSize) : m_pData(NULL), m_lPosition(0), m_lSize(0)
-{	
-	Assign(pNewData, lNewSize);
+{    
+    Assign(pNewData, lNewSize);
 }
 
 
@@ -261,18 +261,18 @@ void OTData::Release_Data()
 {
    if (m_pData != NULL)
    {
-	   // For security reasons, we clear the memory to 0 when deleting the object. (Seems smart.)
+       // For security reasons, we clear the memory to 0 when deleting the object. (Seems smart.)
        //
        OTPassword::zeroMemory(m_pData, m_lSize);
-//	   memset(m_pData, 0, m_lSize);
+//       memset(m_pData, 0, m_lSize);
 
        
-	   delete [] (static_cast<uint8_t *>(m_pData));
-	   
+       delete [] (static_cast<uint8_t *>(m_pData));
+       
 
        // inline void Initialize() { m_pData = NULL; m_lSize = 0; m_lPosition = 0; }
        //
-	   Initialize(); // If m_pData was already NULL, no need to re-Initialize().
+       Initialize(); // If m_pData was already NULL, no need to re-Initialize().
    }
 }
 
@@ -287,30 +287,30 @@ void OTData::Release()
 
 OTData & OTData::operator=(OTData rhs) 
 {
-	this->swap(rhs);
-	return *this;
+    this->swap(rhs);
+    return *this;
 }
 
 
 void OTData::swap(OTData & rhs) 
 {
-	std::swap(m_pData,		rhs.m_pData);
-	std::swap(m_lPosition,	rhs.m_lPosition);
-	std::swap(m_lSize,		rhs.m_lSize);
+    std::swap(m_pData,        rhs.m_pData);
+    std::swap(m_lPosition,    rhs.m_lPosition);
+    std::swap(m_lSize,        rhs.m_lSize);
 }
 
 
 void OTData::Assign(const OTData &theSource)
 {
-	if ((&theSource) == this)
-		return; // can't assign to self.
-	
-	if (false == theSource.IsEmpty()) // If something is there... *********
-	{
-		Assign(theSource.m_pData, theSource.m_lSize); // Copy it.
-	}
-	else
-		Release(); // Otherwise if it's empty, then empty this also.
+    if ((&theSource) == this)
+        return; // can't assign to self.
+    
+    if (false == theSource.IsEmpty()) // If something is there... *********
+    {
+        Assign(theSource.m_pData, theSource.m_lSize); // Copy it.
+    }
+    else
+        Release(); // Otherwise if it's empty, then empty this also.
 }
 
 
@@ -322,28 +322,28 @@ bool OTData::IsEmpty() const
 
 void OTData::Assign(const void * pNewData, uint32_t lNewSize)
 {
-	Release(); // This releases all memory and zeros out all members.
-	
-	if ((pNewData != NULL) && (lNewSize > 0))
-	{
-		m_pData = static_cast<void*>(new uint8_t[lNewSize]);
-		OT_ASSERT(NULL != m_pData);
-		
+    Release(); // This releases all memory and zeros out all members.
+    
+    if ((pNewData != NULL) && (lNewSize > 0))
+    {
+        m_pData = static_cast<void*>(new uint8_t[lNewSize]);
+        OT_ASSERT(NULL != m_pData);
+        
         OTPassword::safe_memcpy(m_pData, lNewSize, pNewData, lNewSize);
-        //		memcpy(m_pData, pNewData, lNewSize);
-		m_lSize = lNewSize;
-	}
-	// else error condition.  Could just ASSERT() this.
+        //        memcpy(m_pData, pNewData, lNewSize);
+        m_lSize = lNewSize;
+    }
+    // else error condition.  Could just ASSERT() this.
 }
 
 
 bool OTData::Randomize(uint32_t lNewSize)
 {
-	Release(); // This releases all memory and zeros out all members.
-	if (lNewSize > 0)
-	{
-		m_pData = static_cast<void*>(new uint8_t[lNewSize]);
-		OT_ASSERT(NULL != m_pData);
+    Release(); // This releases all memory and zeros out all members.
+    if (lNewSize > 0)
+    {
+        m_pData = static_cast<void*>(new uint8_t[lNewSize]);
+        OT_ASSERT(NULL != m_pData);
 
         if (!OTPassword::randomizeMemory_uint8(static_cast<uint8_t*>(m_pData), lNewSize))
         {
@@ -356,8 +356,8 @@ bool OTData::Randomize(uint32_t lNewSize)
 
         m_lSize  = lNewSize;
         return true;        
-	}
-	// else error condition.  Could just ASSERT() this.
+    }
+    // else error condition.  Could just ASSERT() this.
     return false;
 }
 
@@ -379,38 +379,38 @@ void OTData::Concatenate(const void * pAppendData, uint32_t lAppendSize)
         return;
     }
 
-	void *   pNewData   = NULL;
-	uint32_t lTotalSize	= GetSize() + lAppendSize;
-	
-	if (lTotalSize > 0)
-	{
-		pNewData = static_cast<void*>(new uint8_t[lTotalSize]);
-		OT_ASSERT(NULL != pNewData);
+    void *   pNewData   = NULL;
+    uint32_t lTotalSize    = GetSize() + lAppendSize;
+    
+    if (lTotalSize > 0)
+    {
+        pNewData = static_cast<void*>(new uint8_t[lTotalSize]);
+        OT_ASSERT(NULL != pNewData);
         OTPassword::zeroMemory(pNewData, lTotalSize);
-	}
+    }
 
     
-	if (NULL != pNewData) // If there's a new memory buffer (for the combined..)
-	{
+    if (NULL != pNewData) // If there's a new memory buffer (for the combined..)
+    {
         // if THIS object has data inside of it...
         //
-		if (!IsEmpty()) 
-		{
+        if (!IsEmpty()) 
+        {
             OTPassword::safe_memcpy(pNewData, lTotalSize, m_pData, GetSize()); // Copy THIS object into the new buffer, starting at the beginning.
-		}
-		
+        }
+        
         // Next we copy the data being appended...
         //
         OTPassword::safe_memcpy((static_cast<uint8_t*>(pNewData)) + GetSize(),
                                 lTotalSize - GetSize(),
-                                pAppendData, lAppendSize);	
-	}
+                                pAppendData, lAppendSize);    
+    }
 
-	if (NULL != m_pData) // If I wasn't already empty, then erase whatever I had in there before...
-		delete [] static_cast<uint8_t *>(m_pData);
+    if (NULL != m_pData) // If I wasn't already empty, then erase whatever I had in there before...
+        delete [] static_cast<uint8_t *>(m_pData);
         
-	m_pData = pNewData;		// Set my internal memory to the new buffer (or NULL, but unlikely.)
-	m_lSize = lTotalSize;	// Set my internal size to the new size.
+    m_pData = pNewData;        // Set my internal memory to the new buffer (or NULL, but unlikely.)
+    m_lSize = lTotalSize;    // Set my internal size to the new size.
 }
 
 
@@ -419,23 +419,23 @@ OTData & OTData::operator+=(const OTData & rhs)
     if (rhs.GetSize() > 0)
         this->Concatenate(rhs.m_pData, rhs.GetSize());
 
-	return *this;
+    return *this;
 }
 
 
 void OTData::SetSize(uint32_t lNewSize)
 {
-	Release();
-	
-	if (lNewSize > 0)
-	{
-		m_pData = static_cast<void*>(new uint8_t[lNewSize]);
-		OT_ASSERT(NULL != m_pData);
-		
+    Release();
+    
+    if (lNewSize > 0)
+    {
+        m_pData = static_cast<void*>(new uint8_t[lNewSize]);
+        OT_ASSERT(NULL != m_pData);
+        
         OTPassword::zeroMemory(m_pData, lNewSize);
         
-		m_lSize = lNewSize;
-	}
+        m_lSize = lNewSize;
+    }
 }
 
 } // namespace opentxs

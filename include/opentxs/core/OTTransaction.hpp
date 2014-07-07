@@ -218,25 +218,25 @@ Ledger is derived from contract because you must be able to save / sign it and l
  -- "Save To Abbreviated form" function.
 
  And what does it save?
- transactionType		m_Type;		// blank, pending, processInbox, transfer, deposit, withdrawal, trade, etc.
- time64_t					m_DATE_SIGNED;		// The date, in seconds, when the instrument was last signed.
- int64_t					m_lTransactionNum;	// The server issues this and it must be sent with transaction request.
- int64_t					m_lInReferenceToTransaction;
- int64_t					m_lClosingTransactionNo; // used by finalReceipt
- also:				AMOUNT.  // GetReceiptAmount()
- int64_t				m_lAbbrevAmount; // Stored here after loading, but not saved from here in the first place (see GetReceiptAmount())
- int64_t				m_lDisplayAmount; // Just like m_lAbbrevAmount, except it stores the display amount. For example, a transferReceipt for a 5000 clam transfer has an effective value of 0 (since the transfer is already done) but it has a display amount of 5000.
- OTIdentifier		m_Hash;			 // Created while saving abbreviated record, loaded back with it, then verified against actual hash when loading actual box receipt.
+ transactionType        m_Type;        // blank, pending, processInbox, transfer, deposit, withdrawal, trade, etc.
+ time64_t                    m_DATE_SIGNED;        // The date, in seconds, when the instrument was last signed.
+ int64_t                    m_lTransactionNum;    // The server issues this and it must be sent with transaction request.
+ int64_t                    m_lInReferenceToTransaction;
+ int64_t                    m_lClosingTransactionNo; // used by finalReceipt
+ also:                AMOUNT.  // GetReceiptAmount()
+ int64_t                m_lAbbrevAmount; // Stored here after loading, but not saved from here in the first place (see GetReceiptAmount())
+ int64_t                m_lDisplayAmount; // Just like m_lAbbrevAmount, except it stores the display amount. For example, a transferReceipt for a 5000 clam transfer has an effective value of 0 (since the transfer is already done) but it has a display amount of 5000.
+ OTIdentifier        m_Hash;             // Created while saving abbreviated record, loaded back with it, then verified against actual hash when loading actual box receipt.
 
  DOES NOT SAVE:
- listOfItems	m_listItems;		// the various items in this transaction.
+ listOfItems    m_listItems;        // the various items in this transaction.
  OTASCIIArmor   m_ascCancellationRequest; // used by finalReceipt
-//	OTIdentifier	m_ID;			// Account ID. This is in OTContract (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
- OTIdentifier	m_AcctID;		// Compare m_AcctID to m_ID after loading it from string or file. They should match, and signature should verify.
- OTIdentifier	m_ServerID;		// Server ID as used to instantiate the transaction, based on expected ServerID.
- OTIdentifier	m_AcctServerID;	// Actual ServerID within the signed portion. (Compare to m_ServerID upon loading.)
- OTIdentifier	m_AcctUserID;		// NymID of the user who created this item. (In the future, this item
- OTASCIIArmor	m_ascInReferenceTo;	// This item may be in reference to a different item
+//    OTIdentifier    m_ID;            // Account ID. This is in OTContract (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
+ OTIdentifier    m_AcctID;        // Compare m_AcctID to m_ID after loading it from string or file. They should match, and signature should verify.
+ OTIdentifier    m_ServerID;        // Server ID as used to instantiate the transaction, based on expected ServerID.
+ OTIdentifier    m_AcctServerID;    // Actual ServerID within the signed portion. (Compare to m_ServerID upon loading.)
+ OTIdentifier    m_AcctUserID;        // NymID of the user who created this item. (In the future, this item
+ OTASCIIArmor    m_ascInReferenceTo;    // This item may be in reference to a different item
 
  Normally we only save the "purported" values. But in "save to ledger" function I only want to save the values
  that I'm EXPECTING to be in those receipts, not the values that are ACTUALLY in those receipts. (Of course they
@@ -275,9 +275,9 @@ Ledger is derived from contract because you must be able to save / sign it and l
 
  -- How about the transactions themselves (the full "box receipts" and not just abbreviated versions) ?
     1. User never saves them other than when downloading from server, and he must compare them against the hash in the box.
-	2. User loads them as part of verify process when verifying inbox/outbox/nymbox.
-	3. Server must First Save them at the same time that they are added to the box itself.
-	4. From there server can load anytime also, similar to user (verify process.) Server should never fail since it CREATED the receipt.
+    2. User loads them as part of verify process when verifying inbox/outbox/nymbox.
+    3. Server must First Save them at the same time that they are added to the box itself.
+    4. From there server can load anytime also, similar to user (verify process.) Server should never fail since it CREATED the receipt.
 
  -- Server is safe to erase the box receipt at the same time that it's been removed from its box. In practice this
     should be handled by saving the box receipt with a MARKED FOR DELETION flag added.
@@ -315,13 +315,13 @@ Ledger is derived from contract because you must be able to save / sign it and l
  just your inbox items stored in a separate file, because they simply won't all fit comfortably in a getInbox message.
  How to store them?
 
- Current inbox/outbox path:	OT_DATA/[inbox|outbox]/SERVER_ID/ACCT_ID
- Current nymbox path:		OT_DATA/nymbox/SERVER_ID/NYM_ID
+ Current inbox/outbox path:    OT_DATA/[inbox|outbox]/SERVER_ID/ACCT_ID
+ Current nymbox path:        OT_DATA/nymbox/SERVER_ID/NYM_ID
 
  Therefore I propose the box receipts to be stored:
 
- Inbox/outbox path:	OT_DATA/inbox/SERVER_ID/ACCT_ID.r/TRANSACTION_ID.rct
- nymbox path:		OT_DATA/nymbox/SERVER_ID/NYM_ID.r/TRANSACTION_ID.rct
+ Inbox/outbox path:    OT_DATA/inbox/SERVER_ID/ACCT_ID.r/TRANSACTION_ID.rct
+ nymbox path:        OT_DATA/nymbox/SERVER_ID/NYM_ID.r/TRANSACTION_ID.rct
 
  When querying the server for a box receipt, you will have to provide TYPE (inbox, outbox, etc)
  as well as ID (acct ID or Nym ID, depending on which box type) as well as transaction number,
@@ -353,157 +353,157 @@ private:  // Private prevents erroneous use by other classes.
     friend OTTransactionType * OTTransactionType::TransactionFactory(OTString strInput);
 
 public:
-	// a transaction can be blank (issued from server)
-	// or pending (in the inbox/outbox)
-	// or it can be a "process inbox" transaction
-	// might also be in the nymbox.
-	//
-	enum transactionType
-	{
-		// ***** INBOX / OUTBOX / NYMBOX
+    // a transaction can be blank (issued from server)
+    // or pending (in the inbox/outbox)
+    // or it can be a "process inbox" transaction
+    // might also be in the nymbox.
+    //
+    enum transactionType
+    {
+        // ***** INBOX / OUTBOX / NYMBOX
 
 // --------------------------------------------------------------------------------------
-		// NYMBOX
-		blank,			// freshly issued transaction number, not used yet
-						// (the server drops these into the nymbox.)
-		message,		// A message from one user to another, also in the nymbox.
-		notice,			// A notice from the server. Used in Nymbox.
-		replyNotice,	// A copy of a server reply to a previous request you sent. (To make SURE you get the reply.)
-		successNotice,	// A transaction # has successfully been signed out.
+        // NYMBOX
+        blank,            // freshly issued transaction number, not used yet
+                        // (the server drops these into the nymbox.)
+        message,        // A message from one user to another, also in the nymbox.
+        notice,            // A notice from the server. Used in Nymbox.
+        replyNotice,    // A copy of a server reply to a previous request you sent. (To make SURE you get the reply.)
+        successNotice,    // A transaction # has successfully been signed out.
 // --------------------------------------------------------------------------------------
 
-		// INBOX / OUTBOX (pending transfer)
-		pending,		// Server puts this in your outbox (when sending) and recipient's inbox.
+        // INBOX / OUTBOX (pending transfer)
+        pending,        // Server puts this in your outbox (when sending) and recipient's inbox.
 
-		// INBOX / receipts
-		transferReceipt,// the server drops this into your inbox, when someone accepts your transfer.
+        // INBOX / receipts
+        transferReceipt,// the server drops this into your inbox, when someone accepts your transfer.
 
-		chequeReceipt,	// the server drops this into your inbox, when someone deposits your cheque.
-		voucherReceipt,	// the server drops this into your inbox, when someone deposits your voucher.
-		marketReceipt,	// server periodically drops this into your inbox if an offer is live.
-		paymentReceipt,	// the server drops this into people's inboxes, every time a payment processes. (from a payment plan or a smart contract)
+        chequeReceipt,    // the server drops this into your inbox, when someone deposits your cheque.
+        voucherReceipt,    // the server drops this into your inbox, when someone deposits your voucher.
+        marketReceipt,    // server periodically drops this into your inbox if an offer is live.
+        paymentReceipt,    // the server drops this into people's inboxes, every time a payment processes. (from a payment plan or a smart contract)
 
-        finalReceipt,	// the server drops this into your in/nym box(es), when a CronItem expires or is canceled.
-		basketReceipt,	// the server drops this into your inboxes, when a basket exchange is processed.
-// --------------------------------------------------------------------------------------
-
-		// PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
-
-		instrumentNotice,		// Receive these in paymentInbox (by way of Nymbox), and send in Outpayments (like Outmail).) (When done, they go to recordBox or expiredBox to await deletion.)
-		instrumentRejection,	// When someone rejects your invoice from his paymentInbox, you get one of these in YOUR paymentInbox.
-
+        finalReceipt,    // the server drops this into your in/nym box(es), when a CronItem expires or is canceled.
+        basketReceipt,    // the server drops this into your inboxes, when a basket exchange is processed.
 // --------------------------------------------------------------------------------------
 
-		// **** MESSAGES ****
+        // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
 
-		processNymbox,	// process nymbox transaction	 // comes from client
-		atProcessNymbox,// process nymbox reply			 // comes from server
-// --------------------------------------------------------------------------------------
-		processInbox,	// process inbox transaction	 // comes from client
-		atProcessInbox,	// process inbox reply			 // comes from server
-// --------------------------------------------------------------------------------------
-		transfer,		// or "spend". This transaction is a request to transfer from one account to another
-		atTransfer,		// reply from the server regarding a transfer request
-// --------------------------------------------------------------------------------------
-		deposit,		// this transaction is a deposit (cash or cheque)
-		atDeposit,		// reply from the server regarding a deposit request
-// --------------------------------------------------------------------------------------
-		withdrawal,		// this transaction is a withdrawal (cash or voucher)
-		atWithdrawal,	// reply from the server regarding a withdrawal request
-// --------------------------------------------------------------------------------------
-		marketOffer,	// this transaction is a market offer
-		atMarketOffer,	// reply from the server regarding a market offer
-// --------------------------------------------------------------------------------------
-		paymentPlan,	// this transaction is a payment plan
-		atPaymentPlan,	// reply from the server regarding a payment plan
-// --------------------------------------------------------------------------------------
-		smartContract,	// this transaction is a smart contract
-		atSmartContract,// reply from the server regarding a smart contract
-// --------------------------------------------------------------------------------------
-		cancelCronItem,	// this transaction is intended to cancel a market offer or payment plan.
-		atCancelCronItem,// reply from the server regarding said cancellation.
-// --------------------------------------------------------------------------------------
-		exchangeBasket,	// this transaction is an exchange in/out of a basket currency.
-		atExchangeBasket,// reply from the server regarding said exchange.
-// --------------------------------------------------------------------------------------
-		payDividend,	// this transaction is dividend payment (to all shareholders...)
-		atPayDividend,  // reply from the server regarding said dividend payment.
-// --------------------------------------------------------------------------------------
-		error_state
-	};   // If you add any types to this list, update the list of strings at the top of the .CPP file.
+        instrumentNotice,        // Receive these in paymentInbox (by way of Nymbox), and send in Outpayments (like Outmail).) (When done, they go to recordBox or expiredBox to await deletion.)
+        instrumentRejection,    // When someone rejects your invoice from his paymentInbox, you get one of these in YOUR paymentInbox.
 
-	/*
-	 You have to read pointer declarations right-to-left.
+// --------------------------------------------------------------------------------------
 
-	    Fred const* p    means "p points to a constant Fred": the Fred object can't be changed via p.
-	    Fred* const p    means "p is a const pointer to a Fred": you can't change the pointer p, but you can change the Fred object via p.
-	    Fred const* const p    means "p is a constant pointer to a constant Fred": you can't change the pointer p itself, nor can you change the Fred object via p.
-	 */
+        // **** MESSAGES ****
+
+        processNymbox,    // process nymbox transaction     // comes from client
+        atProcessNymbox,// process nymbox reply             // comes from server
+// --------------------------------------------------------------------------------------
+        processInbox,    // process inbox transaction     // comes from client
+        atProcessInbox,    // process inbox reply             // comes from server
+// --------------------------------------------------------------------------------------
+        transfer,        // or "spend". This transaction is a request to transfer from one account to another
+        atTransfer,        // reply from the server regarding a transfer request
+// --------------------------------------------------------------------------------------
+        deposit,        // this transaction is a deposit (cash or cheque)
+        atDeposit,        // reply from the server regarding a deposit request
+// --------------------------------------------------------------------------------------
+        withdrawal,        // this transaction is a withdrawal (cash or voucher)
+        atWithdrawal,    // reply from the server regarding a withdrawal request
+// --------------------------------------------------------------------------------------
+        marketOffer,    // this transaction is a market offer
+        atMarketOffer,    // reply from the server regarding a market offer
+// --------------------------------------------------------------------------------------
+        paymentPlan,    // this transaction is a payment plan
+        atPaymentPlan,    // reply from the server regarding a payment plan
+// --------------------------------------------------------------------------------------
+        smartContract,    // this transaction is a smart contract
+        atSmartContract,// reply from the server regarding a smart contract
+// --------------------------------------------------------------------------------------
+        cancelCronItem,    // this transaction is intended to cancel a market offer or payment plan.
+        atCancelCronItem,// reply from the server regarding said cancellation.
+// --------------------------------------------------------------------------------------
+        exchangeBasket,    // this transaction is an exchange in/out of a basket currency.
+        atExchangeBasket,// reply from the server regarding said exchange.
+// --------------------------------------------------------------------------------------
+        payDividend,    // this transaction is dividend payment (to all shareholders...)
+        atPayDividend,  // reply from the server regarding said dividend payment.
+// --------------------------------------------------------------------------------------
+        error_state
+    };   // If you add any types to this list, update the list of strings at the top of the .CPP file.
+
+    /*
+     You have to read pointer declarations right-to-left.
+
+        Fred const* p    means "p points to a constant Fred": the Fred object can't be changed via p.
+        Fred* const p    means "p is a const pointer to a Fred": you can't change the pointer p, but you can change the Fred object via p.
+        Fred const* const p    means "p is a constant pointer to a constant Fred": you can't change the pointer p itself, nor can you change the Fred object via p.
+     */
 
 protected:
-	// Usually a transaction object is inside a ledger object.
-	// If this is not NULL, then you can reference that object.
-	//
-	const OTLedger	*	m_pParent;
+    // Usually a transaction object is inside a ledger object.
+    // If this is not NULL, then you can reference that object.
+    //
+    const OTLedger    *    m_pParent;
 
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
 
-	// Transactions can be loaded in abbreviated form from a ledger, but they are not considered "actually loaded"
-	// until their associated "box receipt" is also loaded up from storage, and verified against its hash.
-	// From the time they are loaded in abbreviated form, this flag is set true, until the box receipt is loaded.
-	// This value defaults to false, so if the transaction was never loaded in abbreviated form, then this is never
-	// set to true in the first place.
-	bool				m_bIsAbbreviated;
+    // Transactions can be loaded in abbreviated form from a ledger, but they are not considered "actually loaded"
+    // until their associated "box receipt" is also loaded up from storage, and verified against its hash.
+    // From the time they are loaded in abbreviated form, this flag is set true, until the box receipt is loaded.
+    // This value defaults to false, so if the transaction was never loaded in abbreviated form, then this is never
+    // set to true in the first place.
+    bool                m_bIsAbbreviated;
 
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
 
-	// The "Amount" of the transaction is not normally stored in the transaction itself, but in one of its
-	// transaction items. However, when saving/loading the transaction in abbreviated form, the amount is
-	// placed here, which makes it available for necessary calculations without being forced to load up
-	// all of the box receipts to do so.
+    // The "Amount" of the transaction is not normally stored in the transaction itself, but in one of its
+    // transaction items. However, when saving/loading the transaction in abbreviated form, the amount is
+    // placed here, which makes it available for necessary calculations without being forced to load up
+    // all of the box receipts to do so.
 
-	int64_t				m_lAbbrevAmount;
+    int64_t                m_lAbbrevAmount;
 
-	// Just like m_lAbbrevAmount, except it stores the display amount. For example, a transferReceipt for
-	// a 5000 clam transfer has an effective value of 0 (since the transfer is already done) but it has a
-	// display amount of 5000.
-	// As with m_lAbbrevAmount, the Display amount value is calculated just before saving in abbreviated
-	// form, and this variable is only set upon LOADING that value in abbreviated form. The actual value
-	// only becomes available when loading the ACTUAL box receipt, at which time it should be compared to
-	// this one. (If loading the transaction fails, as a result of a failed verification there, then these
-	// numbers become pretty reliable and can be used in optimization, since the current process of loading
-	// transaction items from a string every time we need to check the amount, can be time-consuming, CPU-wise.)
-	//
-	int64_t				m_lDisplayAmount;
+    // Just like m_lAbbrevAmount, except it stores the display amount. For example, a transferReceipt for
+    // a 5000 clam transfer has an effective value of 0 (since the transfer is already done) but it has a
+    // display amount of 5000.
+    // As with m_lAbbrevAmount, the Display amount value is calculated just before saving in abbreviated
+    // form, and this variable is only set upon LOADING that value in abbreviated form. The actual value
+    // only becomes available when loading the ACTUAL box receipt, at which time it should be compared to
+    // this one. (If loading the transaction fails, as a result of a failed verification there, then these
+    // numbers become pretty reliable and can be used in optimization, since the current process of loading
+    // transaction items from a string every time we need to check the amount, can be time-consuming, CPU-wise.)
+    //
+    int64_t                m_lDisplayAmount;
 
-	// The value of GetReferenceNumForDisplay() is saved when saving an abbreviated record of this transaction,
-	// and then loaded into THIS member variable when loading the abbreviated record.
-	//
-	int64_t				m_lInRefDisplay;
+    // The value of GetReferenceNumForDisplay() is saved when saving an abbreviated record of this transaction,
+    // and then loaded into THIS member variable when loading the abbreviated record.
+    //
+    int64_t                m_lInRefDisplay;
 
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
 
-	// This hash is not stored inside the box receipt itself (a transaction that appears in an inbox, outbox, or nymbox)
-	// but rather, is set from above, and then verified against the actual box receipt once it is loaded.
-	// This verification occurs only when loading the box receipt, and this Hash value is not saved again to any
-	// location. When the abbreviated form of the box receipt is saved inside the inbox itself, it is easy to
-	// just create the hash at that time. Then upon loading the ledger (the box) the hash is set based on the abbreviated entry.
-	// The hash can then be verified against the actual box receipt by hashing that and comparing them, after which I no
-	// longer care about this variable at all, and do not save it again, since it can be re-calculated the next time we
-	// save again in abbreviated form.
-	//
-	OTIdentifier		m_Hash;			// todo: make this const and force it to be set during construction.
+    // This hash is not stored inside the box receipt itself (a transaction that appears in an inbox, outbox, or nymbox)
+    // but rather, is set from above, and then verified against the actual box receipt once it is loaded.
+    // This verification occurs only when loading the box receipt, and this Hash value is not saved again to any
+    // location. When the abbreviated form of the box receipt is saved inside the inbox itself, it is easy to
+    // just create the hash at that time. Then upon loading the ledger (the box) the hash is set based on the abbreviated entry.
+    // The hash can then be verified against the actual box receipt by hashing that and comparing them, after which I no
+    // longer care about this variable at all, and do not save it again, since it can be re-calculated the next time we
+    // save again in abbreviated form.
+    //
+    OTIdentifier        m_Hash;            // todo: make this const and force it to be set during construction.
 
-	// ----------------------------------------------------------------
-	time64_t				m_DATE_SIGNED;	// The date, in seconds, when the instrument was last signed.
-	transactionType		m_Type;			// blank, pending, processInbox, transfer, deposit, withdrawal, trade, etc.
-	listOfItems			m_listItems;	// the various items in this transaction.
+    // ----------------------------------------------------------------
+    time64_t                m_DATE_SIGNED;    // The date, in seconds, when the instrument was last signed.
+    transactionType        m_Type;            // blank, pending, processInbox, transfer, deposit, withdrawal, trade, etc.
+    listOfItems            m_listItems;    // the various items in this transaction.
 
-	int64_t			m_lClosingTransactionNo;	// used by finalReceipt
-    OTASCIIArmor    m_ascCancellationRequest;	// used by finalReceipt
+    int64_t            m_lClosingTransactionNo;    // used by finalReceipt
+    OTASCIIArmor    m_ascCancellationRequest;    // used by finalReceipt
 
-	// ----------------------------------------------------------------
-	// ONLY the "replyNotice" transaction uses this field.
+    // ----------------------------------------------------------------
+    // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices
     // of replies to messages you sent in the past) I wanted to put that
     // they were "in reference to" a specific request number. But I don't
@@ -515,8 +515,8 @@ protected:
     //
     int64_t    m_lRequestNumber;     // Unused except by "replyNotice" in Nymbox.
     bool    m_bReplyTransSuccess; // Used only by replyNotice
-	// ----------------------------------------------------------------
-	// Unused except for @notarizeTransactions, specifically for @paymentPlan
+    // ----------------------------------------------------------------
+    // Unused except for @notarizeTransactions, specifically for @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific
     // cases where the user sends through a transaction that is MEANT to be
     // rejected by the server, for the purpose of cancelling that transaction.
@@ -545,14 +545,14 @@ protected:
 
     bool    m_bCancelled;
 
-	// ----------------------------------------------------------------
-	// Compares m_AcctID in the xml portion of the transaction
-	// with m_ID (supposedly the same number.)
-//	bool VerifyContractID();
+    // ----------------------------------------------------------------
+    // Compares m_AcctID in the xml portion of the transaction
+    // with m_ID (supposedly the same number.)
+//    bool VerifyContractID();
 
-	// return -1 if error, 0 if nothing, and 1 if the node was processed.
-	virtual int32_t     ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-	virtual void    UpdateContents(); // Before transmission or serialization, this is where the transaction saves its contents
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t     ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual void    UpdateContents(); // Before transmission or serialization, this is where the transaction saves its contents
 
     OTTransaction(); // only the factory gets to use this one.
     // -------------------------------------------
@@ -561,25 +561,25 @@ public:
 EXPORT    bool IsCancelled()    { return m_bCancelled; }
 EXPORT    void SetAsCancelled() { m_bCancelled = true; }
     // -------------------------------------------
-	void SetParent(const OTLedger & theParent) { m_pParent = &theParent; } // a pointer of convenience.
+    void SetParent(const OTLedger & theParent) { m_pParent = &theParent; } // a pointer of convenience.
     // -------------------------------------------
     // For "OTTransaction::blank" and "OTTransaction::successNotice"
     //
 EXPORT    bool AddNumbersToTransaction(const OTNumList & theAddition);
     // -------------------------------------------
-	static
-	int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
-							  int64_t	& lNumberOfOrigin,
-							  int64_t	& lTransactionNum,
-							  int64_t	& lInRefTo,
-							  int64_t	& lInRefDisplay,
-							  time64_t	& the_DATE_SIGNED,
-							  OTTransaction::transactionType & theType,
-							  OTString & strHash,
-							  int64_t	& lAdjustment,
-							  int64_t	& lDisplayValue,
-							  int64_t	& lClosingNum,
-							  int64_t	& lRequestNum,
+    static
+    int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
+                              int64_t    & lNumberOfOrigin,
+                              int64_t    & lTransactionNum,
+                              int64_t    & lInRefTo,
+                              int64_t    & lInRefDisplay,
+                              time64_t    & the_DATE_SIGNED,
+                              OTTransaction::transactionType & theType,
+                              OTString & strHash,
+                              int64_t    & lAdjustment,
+                              int64_t    & lDisplayValue,
+                              int64_t    & lClosingNum,
+                              int64_t    & lRequestNum,
                               bool  & bReplyTransSuccess,
                               OTNumList * pNumList=NULL);
 
@@ -598,100 +598,100 @@ EXPORT    bool AddNumbersToTransaction(const OTNumList & theAddition);
     // which reply message it's a notice of.)
     //
     const int64_t & GetRequestNum() const            { return m_lRequestNumber; }
-	void         SetRequestNum(const int64_t & lNum) { m_lRequestNumber = lNum; }
+    void         SetRequestNum(const int64_t & lNum) { m_lRequestNumber = lNum; }
 
     bool         GetReplyTransSuccess()                { return m_bReplyTransSuccess; }
     void         SetReplyTransSuccess(const bool bVal) {  m_bReplyTransSuccess = bVal;  }
     // -------------------------------------------
     // These are used for finalReceipt and basketReceipt
 EXPORT  int64_t GetClosingNum() const;
-EXPORT	void SetClosingNum(const int64_t lClosingNum);
+EXPORT    void SetClosingNum(const int64_t lClosingNum);
     // -------------------------------------------
-EXPORT	virtual int64_t GetNumberOfOrigin(); // Calculates if necessary.
+EXPORT    virtual int64_t GetNumberOfOrigin(); // Calculates if necessary.
 EXPORT  virtual void CalculateNumberOfOrigin();
     // -------------------------------------------
-EXPORT	int64_t GetReferenceNumForDisplay(); /// For display purposes. The "ref #" you actually display (versus the one you use internally) might change based on transaction type. (Like with a cheque receipt you actually have to load up the original cheque.)
+EXPORT    int64_t GetReferenceNumForDisplay(); /// For display purposes. The "ref #" you actually display (versus the one you use internally) might change based on transaction type. (Like with a cheque receipt you actually have to load up the original cheque.)
 
-EXPORT	bool GetSenderUserIDForDisplay   (OTIdentifier & theReturnID);
-EXPORT	bool GetRecipientUserIDForDisplay(OTIdentifier & theReturnID);
+EXPORT    bool GetSenderUserIDForDisplay   (OTIdentifier & theReturnID);
+EXPORT    bool GetRecipientUserIDForDisplay(OTIdentifier & theReturnID);
 
-EXPORT	bool GetSenderAcctIDForDisplay   (OTIdentifier & theReturnID);
-EXPORT	bool GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID);
-	// ----------------------------------------------------------------
+EXPORT    bool GetSenderAcctIDForDisplay   (OTIdentifier & theReturnID);
+EXPORT    bool GetRecipientAcctIDForDisplay(OTIdentifier & theReturnID);
+    // ----------------------------------------------------------------
 EXPORT  bool GetMemo(OTString & strMemo);
-	// ----------------------------------------------------------------
+    // ----------------------------------------------------------------
         inline
-        time64_t  GetDateSigned()	const { return m_DATE_SIGNED; }
-EXPORT	bool    GetSuccess(); // Tries to determine, based on items within, whether it was a success or fail.
-EXPORT	int64_t    GetReceiptAmount(); // Tries to determine IF there is an amount (depending on type) and return it.
-	// ----------------------------------------------------------------
+        time64_t  GetDateSigned()    const { return m_DATE_SIGNED; }
+EXPORT    bool    GetSuccess(); // Tries to determine, based on items within, whether it was a success or fail.
+EXPORT    int64_t    GetReceiptAmount(); // Tries to determine IF there is an amount (depending on type) and return it.
+    // ----------------------------------------------------------------
         OTTransaction(const OTLedger & theOwner);
-EXPORT	OTTransaction(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID);
+EXPORT    OTTransaction(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID);
         OTTransaction(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID, int64_t lTransactionNum);
 
-	// THIS constructor only used when loading an abbreviated box receipt (inbox, nymbox, or outbox receipt).
-	// The full receipt is loaded only after the abbreviated ones are loaded, and verified against them.
-	//
-	OTTransaction(const OTIdentifier & theUserID,
-				  const OTIdentifier & theAccountID,
-				  const OTIdentifier & theServerID,
-				  const int64_t & lNumberOfOrigin,
-				  const int64_t & lTransactionNum,
-				  const int64_t & lInRefTo,
-				  const int64_t & lInRefDisplay,
-				  const time64_t the_DATE_SIGNED,
-				  const transactionType theType,
-				  const OTString & strHash,
-				  const int64_t & lAdjustment,
-				  const int64_t & lDisplayValue,
-				  const int64_t & lClosingNum,
-				  const int64_t & lRequestNum,
+    // THIS constructor only used when loading an abbreviated box receipt (inbox, nymbox, or outbox receipt).
+    // The full receipt is loaded only after the abbreviated ones are loaded, and verified against them.
+    //
+    OTTransaction(const OTIdentifier & theUserID,
+                  const OTIdentifier & theAccountID,
+                  const OTIdentifier & theServerID,
+                  const int64_t & lNumberOfOrigin,
+                  const int64_t & lTransactionNum,
+                  const int64_t & lInRefTo,
+                  const int64_t & lInRefDisplay,
+                  const time64_t the_DATE_SIGNED,
+                  const transactionType theType,
+                  const OTString & strHash,
+                  const int64_t & lAdjustment,
+                  const int64_t & lDisplayValue,
+                  const int64_t & lClosingNum,
+                  const int64_t & lRequestNum,
                   bool         bReplyTransSuccess,
                   OTNumList * pNumList=NULL);
 
-EXPORT	virtual ~OTTransaction();
-	// ----------------------------------
-	bool GenerateTransaction(const OTIdentifier & theAccountID, const OTIdentifier & theServerID, int64_t lTransactionNum);
+EXPORT    virtual ~OTTransaction();
+    // ----------------------------------
+    bool GenerateTransaction(const OTIdentifier & theAccountID, const OTIdentifier & theServerID, int64_t lTransactionNum);
 
-EXPORT	static
+EXPORT    static
     OTTransaction * GenerateTransaction(const OTIdentifier & theUserID, const OTIdentifier & theAccountID,
                                         const OTIdentifier & theServerID, transactionType theType,
                                         int64_t lTransactionNum=0);
-EXPORT	static
+EXPORT    static
     OTTransaction * GenerateTransaction(const OTLedger & theOwner, transactionType theType, int64_t lTransactionNum=0);
-	// ----------------------------------
-	void InitTransaction();
-	void ReleaseItems();
-	virtual void Release();
-	void Release_Transaction();
-	// --------------------------------------------------------------
-	inline
+    // ----------------------------------
+    void InitTransaction();
+    void ReleaseItems();
+    virtual void Release();
+    void Release_Transaction();
+    // --------------------------------------------------------------
+    inline
     transactionType  GetType() const { return m_Type; }
-	inline
+    inline
     void             SetType(const transactionType theType) { m_Type = theType; }
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
     // reading from.
 EXPORT    bool SaveBoxReceipt     (const int64_t lLedgerType);
 EXPORT    bool SaveBoxReceipt     (OTLedger & theLedger);
 EXPORT    bool DeleteBoxReceipt   (OTLedger & theLedger);
-	// --------------------------------------------------------------
-	// Caller IS responsible to delete.
-	static
-	OTTransaction * LoadBoxReceipt(OTTransaction & theAbbrev, OTLedger & theLedger);
-EXPORT	static
-	OTTransaction * LoadBoxReceipt(OTTransaction & theAbbrev, const int64_t lLedgerType);
+    // --------------------------------------------------------------
+    // Caller IS responsible to delete.
+    static
+    OTTransaction * LoadBoxReceipt(OTTransaction & theAbbrev, OTLedger & theLedger);
+EXPORT    static
+    OTTransaction * LoadBoxReceipt(OTTransaction & theAbbrev, const int64_t lLedgerType);
 
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction & theFullVersion);
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
 EXPORT static bool VerifyBoxReceiptExists(const OTIdentifier & SERVER_ID,
                                           const OTIdentifier & USER_ID,
                                           const OTIdentifier & ACCOUNT_ID,    // If for Nymbox (vs inbox/outbox) then pass USER_ID in this field also.
-                                          const int32_t			nBoxType,		// 0/nymbox, 1/inbox, 2/outbox
-                                          const int64_t		  &	lTransactionNum);
-	// --------------------------------------------------------------
+                                          const int32_t            nBoxType,        // 0/nymbox, 1/inbox, 2/outbox
+                                          const int64_t          &    lTransactionNum);
+    // --------------------------------------------------------------
     static
     bool SetupBoxReceiptFilename(const int64_t lLedgerType,
                                  OTTransaction & theTransaction,
@@ -700,7 +700,7 @@ EXPORT static bool VerifyBoxReceiptExists(const OTIdentifier & SERVER_ID,
                                  OTString & strFolder2name,
                                  OTString & strFolder3name,
                                  OTString & strFilename);
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
     static
     bool SetupBoxReceiptFilename(OTLedger & theLedger,
                                  OTTransaction & theTransaction,
@@ -709,89 +709,89 @@ EXPORT static bool VerifyBoxReceiptExists(const OTIdentifier & SERVER_ID,
                                  OTString & strFolder2name,
                                  OTString & strFolder3name,
                                  OTString & strFilename);
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
     static
-    bool SetupBoxReceiptFilename(const int64_t		  lLedgerType,
-                                 const OTString	& strUserOrAcctID,
-                                 const OTString	& strServerID,
-                                 const int64_t		& lTransactionNum,
+    bool SetupBoxReceiptFilename(const int64_t          lLedgerType,
+                                 const OTString    & strUserOrAcctID,
+                                 const OTString    & strServerID,
+                                 const int64_t        & lTransactionNum,
                                  const char * szCaller,
                                  OTString & strFolder1name,
                                  OTString & strFolder2name,
                                  OTString & strFolder3name,
                                  OTString & strFilename);
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
 
     // Balance receipts are used in transactions that change an account balance.
-EXPORT	static
+EXPORT    static
     bool VerifyBalanceReceipt(OTPseudonym & SERVER_NYM,
                               OTPseudonym & THE_NYM,
                               const OTIdentifier & SERVER_ID,
                               const OTIdentifier & ACCT_ID);
 
-	bool VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, OTPseudonym & THE_NYM);
-	// --------------------------------------------------------------
+    bool VerifyBalanceReceipt(OTPseudonym & SERVER_NYM, OTPseudonym & THE_NYM);
+    // --------------------------------------------------------------
     // Transaction receipts are used where you don't need to change an account balance,
     // but you still need to have an agreement about which transaction numbers are
     // signed out.
     //
-	static
+    static
     bool VerifyTransactionReceipt(OTPseudonym & SERVER_NYM,
                                   OTPseudonym & THE_NYM,
                                   OTIdentifier & SERVER_ID);
 
-	bool VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, OTPseudonym & THE_NYM);
-	// --------------------------------------------------------------
+    bool VerifyTransactionReceipt(OTPseudonym & SERVER_NYM, OTPseudonym & THE_NYM);
+    // --------------------------------------------------------------
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. ServerID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
-EXPORT	bool VerifyItems(OTPseudonym & theNym);
-	// --------------------------------------------------------------
-	// This calls VerifyContractID() as well as VerifySignature()
-	// Use this instead of OTContract::VerifyContract, which expects/uses a pubkey from inside the contract.
-	virtual bool VerifyAccount(OTPseudonym & theNym);  // This overrides OTTransactionType::VerifyAccount()
-	// --------------------------------------------------------------
+EXPORT    bool VerifyItems(OTPseudonym & theNym);
+    // --------------------------------------------------------------
+    // This calls VerifyContractID() as well as VerifySignature()
+    // Use this instead of OTContract::VerifyContract, which expects/uses a pubkey from inside the contract.
+    virtual bool VerifyAccount(OTPseudonym & theNym);  // This overrides OTTransactionType::VerifyAccount()
+    // --------------------------------------------------------------
 
     inline
-    int32_t	GetItemCount() const { return static_cast<int32_t> (m_listItems.size()); }
-	int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number of items that are IN REFERENCE TO some transaction#.
+    int32_t    GetItemCount() const { return static_cast<int32_t> (m_listItems.size()); }
+    int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number of items that are IN REFERENCE TO some transaction#.
 
     // While processing a transaction, you may wish to query it for items of a certain type.
-EXPORT	OTItem * GetItem(const OTItem::itemType theType);
-EXPORT	OTItem * GetItemInRefTo(const int64_t lReference);
+EXPORT    OTItem * GetItem(const OTItem::itemType theType);
+EXPORT    OTItem * GetItemInRefTo(const int64_t lReference);
 
-EXPORT	void    AddItem(OTItem & theItem);  // You have to allocate the item on the heap and then pass it in as a reference.
+EXPORT    void    AddItem(OTItem & theItem);  // You have to allocate the item on the heap and then pass it in as a reference.
                                             // OTTransaction will take care of it from there and will delete it in destructor.
-	// --------------------------------------------------------------
+    // --------------------------------------------------------------
     // used for looping through the items in a few places.
-	inline
+    inline
     listOfItems &   GetItemList() { return m_listItems; }
-	// --------------------------------------------------------------
-//	virtual bool SaveContractWallet(FILE * fl);
-	virtual bool SaveContractWallet(std::ofstream & ofs);
-	// --------------------------------------------------------------
-	// Because all of the actual receipts cannot fit into the single inbox
-	// file, you must put their hash, and then store the receipt itself
-	// separately...
-	//
-	void SaveAbbreviatedNymboxRecord(OTString & strOutput);
-	void SaveAbbreviatedOutboxRecord(OTString & strOutput);
-	void SaveAbbreviatedInboxRecord(OTString & strOutput);
-	// --------------------------------------------------------------
-	void SaveAbbrevPaymentInboxRecord(OTString & strOutput);
-	void SaveAbbrevRecordBoxRecord(OTString & strOutput);
-	void SaveAbbrevExpiredBoxRecord(OTString & strOutput);
-	// --------------------------------------------------------------
-	void ProduceInboxReportItem(OTItem & theBalanceItem);
-	void ProduceOutboxReportItem(OTItem & theBalanceItem);
-	// --------------------------------------------------------------
-	static
+    // --------------------------------------------------------------
+//    virtual bool SaveContractWallet(FILE * fl);
+    virtual bool SaveContractWallet(std::ofstream & ofs);
+    // --------------------------------------------------------------
+    // Because all of the actual receipts cannot fit into the single inbox
+    // file, you must put their hash, and then store the receipt itself
+    // separately...
+    //
+    void SaveAbbreviatedNymboxRecord(OTString & strOutput);
+    void SaveAbbreviatedOutboxRecord(OTString & strOutput);
+    void SaveAbbreviatedInboxRecord(OTString & strOutput);
+    // --------------------------------------------------------------
+    void SaveAbbrevPaymentInboxRecord(OTString & strOutput);
+    void SaveAbbrevRecordBoxRecord(OTString & strOutput);
+    void SaveAbbrevExpiredBoxRecord(OTString & strOutput);
+    // --------------------------------------------------------------
+    void ProduceInboxReportItem(OTItem & theBalanceItem);
+    void ProduceOutboxReportItem(OTItem & theBalanceItem);
+    // --------------------------------------------------------------
+    static
     transactionType GetTypeFromString(const OTString & strType);
-	// --------------------------------------------------------------
-EXPORT	static const char * _GetTypeString(transactionType theType);
+    // --------------------------------------------------------------
+EXPORT    static const char * _GetTypeString(transactionType theType);
 
-	const char * GetTypeString() const { return OTTransaction::_GetTypeString(m_Type); }
+    const char * GetTypeString() const { return OTTransaction::_GetTypeString(m_Type); }
     // -----------------------------------------------------------------------------
     // These functions are fairly smart about which transaction types are harvestable,
     // in which situations (based on the bools.) As long as you use the bools correctly,

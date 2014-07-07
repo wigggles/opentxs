@@ -162,56 +162,56 @@ namespace opentxs {
 
 int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-	int32_t nReturnVal = ot_super::ProcessXMLNode(xml);
-	
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	// As I do in the case of OTAccount.
+    int32_t nReturnVal = ot_super::ProcessXMLNode(xml);
+    
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
     //
-	if (0 != nReturnVal)
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    // As I do in the case of OTAccount.
+    //
+    if (0 != nReturnVal)
        return nReturnVal;
-	// else it was 0 (continue...)
+    // else it was 0 (continue...)
     // --------------------------------------------------
     const OTString strNodeName(xml->getNodeName());
     // --------------------------------------------------
-	if (strNodeName.Compare("keyCredential"))
-	{
-		m_strNymID			= xml->getAttributeValue("nymID");
-		m_strMasterCredID	= xml->getAttributeValue("masterCredentialID");
-		
-		OTLog::Output(1, "Loading keyCredential...\n");
-		
-		nReturnVal = 1;
-	}
-	// ----------------------------------
-	else if (strNodeName.Compare("masterSigned"))
-	{
-		if (false == OTContract::LoadEncodedTextField(xml, m_strMasterSigned))
-		{
-			OTLog::vError("Error in %s line %d: failed loading expected master-signed version while loading keyCredential.\n",
+    if (strNodeName.Compare("keyCredential"))
+    {
+        m_strNymID            = xml->getAttributeValue("nymID");
+        m_strMasterCredID    = xml->getAttributeValue("masterCredentialID");
+        
+        OTLog::Output(1, "Loading keyCredential...\n");
+        
+        nReturnVal = 1;
+    }
+    // ----------------------------------
+    else if (strNodeName.Compare("masterSigned"))
+    {
+        if (false == OTContract::LoadEncodedTextField(xml, m_strMasterSigned))
+        {
+            OTLog::vError("Error in %s line %d: failed loading expected master-signed version while loading keyCredential.\n",
                           __FILE__, __LINE__);
-			return (-1); // error condition
-		}
-		
-		nReturnVal = 1;
-	}
-	// ------------------
-	return nReturnVal;
+            return (-1); // error condition
+        }
+        
+        nReturnVal = 1;
+    }
+    // ------------------
+    return nReturnVal;
 }
 
 
 void OTSubkey::UpdateContents()
 {
-	m_xmlUnsigned.Release();
+    m_xmlUnsigned.Release();
     
-	m_xmlUnsigned.Concatenate("<keyCredential nymID=\"%s\"\n" // a hash of the nymIDSource
-							  " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential that signed this subcredential.
-							  this->GetNymID().Get(), this->GetMasterCredID().Get());
+    m_xmlUnsigned.Concatenate("<keyCredential nymID=\"%s\"\n" // a hash of the nymIDSource
+                              " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential that signed this subcredential.
+                              this->GetNymID().Get(), this->GetMasterCredID().Get());
     
     if (this->GetNymIDSource().Exists())
     {
@@ -240,7 +240,7 @@ void OTSubkey::UpdateContents()
         m_xmlUnsigned.Concatenate("<masterSigned>\n%s</masterSigned>\n\n", // Contains all the public info, signed by the master key.
                                   ascMasterSigned.Get());                  // Packaged up here inside a final, subkey-signed credential.
     }
-	// -------------------------------------------------
+    // -------------------------------------------------
     // PRIVATE INFO
     //
     // If we're saving the private credential info...
@@ -251,8 +251,8 @@ void OTSubkey::UpdateContents()
         // -------------------------------------
         this->UpdatePrivateContentsToString(m_xmlUnsigned);
     }
-	// -------------------------------------------------	
-	m_xmlUnsigned.Concatenate("</keyCredential>\n");
+    // -------------------------------------------------    
+    m_xmlUnsigned.Concatenate("</keyCredential>\n");
     // --------------------------------------------
     m_StoreAs = OTSubcredential::credPrivateInfo;  // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state processes ONCE, and then goes back to this again.
 }

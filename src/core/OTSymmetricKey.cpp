@@ -202,17 +202,17 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword & oldPassphrase,
     // UPDATE: I think this is false. I think the IV is for the encryption of
     // the symmetric key itself, whereas the content has its own IV in OTEnvelope.
     //
-	if (false == dataIV.Randomize( OTCryptoConfig::SymmetricIvSize() ))
-	{
-		otErr << __FUNCTION__ << ": Failed generating iv for changing passphrase on a symmetric key. (Returning false.)\n";
-		return false;
-	}
+    if (false == dataIV.Randomize( OTCryptoConfig::SymmetricIvSize() ))
+    {
+        otErr << __FUNCTION__ << ": Failed generating iv for changing passphrase on a symmetric key. (Returning false.)\n";
+        return false;
+    }
 
-	if (false == dataSalt.Randomize( OTCryptoConfig::SymmetricSaltSize() ))
-	{
+    if (false == dataSalt.Randomize( OTCryptoConfig::SymmetricSaltSize() ))
+    {
         otErr << __FUNCTION__ << ": Failed generating random salt for changing passphrase on a symmetric key. (Returning false.)\n";
-		return false;
-	}
+        return false;
+    }
 
     m_dataIV        = dataIV;
     m_dataSalt      = dataSalt;
@@ -273,35 +273,35 @@ bool OTSymmetricKey::GenerateKey(const
     OT_ASSERT(!m_bIsGenerated);
 //  OT_ASSERT(thePassphrase.isPassword());
 
-	otInfo << "  Begin: " << __FUNCTION__ << ": GENERATING keys and passwords...\n";
+    otInfo << "  Begin: " << __FUNCTION__ << ": GENERATING keys and passwords...\n";
 
-	if (false == m_dataIV.Randomize( OTCryptoConfig::SymmetricIvSize() ))
-	{
-		otErr << __FUNCTION__ << ": Failed generating iv for encrypting a symmetric key. (Returning false.)\n";
-		return false;
-	}
+    if (false == m_dataIV.Randomize( OTCryptoConfig::SymmetricIvSize() ))
+    {
+        otErr << __FUNCTION__ << ": Failed generating iv for encrypting a symmetric key. (Returning false.)\n";
+        return false;
+    }
 
-	if (false == m_dataSalt.Randomize( OTCryptoConfig::SymmetricSaltSize() ))
-	{
-		otErr << __FUNCTION__ << ": Failed generating random salt. (Returning false.)\n";
-		return false;
-	}
+    if (false == m_dataSalt.Randomize( OTCryptoConfig::SymmetricSaltSize() ))
+    {
+        otErr << __FUNCTION__ << ": Failed generating random salt. (Returning false.)\n";
+        return false;
+    }
 
     // Generate actual key (a randomized memory space.)
     // We will use the derived key for encrypting the actual key.
     //
     OTPassword  theActualKey;
 
-	{
-		int32_t nRes = theActualKey.randomizeMemory(OTCryptoConfig::SymmetricKeySize()); if (0 > nRes) { OT_FAIL; }
-		uint32_t uRes = static_cast<uint32_t>(nRes); // we need an uint32_t value.
+    {
+        int32_t nRes = theActualKey.randomizeMemory(OTCryptoConfig::SymmetricKeySize()); if (0 > nRes) { OT_FAIL; }
+        uint32_t uRes = static_cast<uint32_t>(nRes); // we need an uint32_t value.
 
-		if (OTCryptoConfig::SymmetricKeySize() != uRes)
-		{
-			otErr << __FUNCTION__ << ": Failed generating symmetric key. (Returning false.)\n";
-			return false;
-		}
-	}
+        if (OTCryptoConfig::SymmetricKeySize() != uRes)
+        {
+            otErr << __FUNCTION__ << ": Failed generating symmetric key. (Returning false.)\n";
+            return false;
+        }
+    }
     // We didn't bother generating the derived key if the above three randomizations failed.
 
 
@@ -339,7 +339,7 @@ bool OTSymmetricKey::GenerateKey(const
                                                        m_dataEncryptedKey); // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
-	otInfo << "  End: " << __FUNCTION__ << ": (GENERATING keys and passwords...) " << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
+    otInfo << "  End: " << __FUNCTION__ << ": (GENERATING keys and passwords...) " << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
 
     return m_bIsGenerated;
 }
@@ -349,34 +349,34 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword & thePassphrase)
 {
     OT_ASSERT(m_uIterationCount > 1000);
 
-	if (!m_bIsGenerated)
-	{
-		otErr << __FUNCTION__ << ": No Key Generated, run GenerateKey(), and this function will not be needed!";
-		OT_FAIL;
-	}
+    if (!m_bIsGenerated)
+    {
+        otErr << __FUNCTION__ << ": No Key Generated, run GenerateKey(), and this function will not be needed!";
+        OT_FAIL;
+    }
 
-	if (this->HasHashCheck())
-	{
-		otErr << __FUNCTION__ << ": Already have a HashCheck, no need to create one!";
-		return false;
-	}
+    if (this->HasHashCheck())
+    {
+        otErr << __FUNCTION__ << ": Already have a HashCheck, no need to create one!";
+        return false;
+    }
 
-	OT_ASSERT(this->m_dataHashCheck.IsEmpty());
+    OT_ASSERT(this->m_dataHashCheck.IsEmpty());
 
-	OTPassword * pDerivedKey = this->CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
+    OTPassword * pDerivedKey = this->CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
 
     if (NULL == pDerivedKey) // A pointerpointer was passed in... (caller will be responsible then, to delete.)
     {
-		otErr << __FUNCTION__ << ": failed to calculate derived key";
-		return false;
+        otErr << __FUNCTION__ << ": failed to calculate derived key";
+        return false;
     }
 
-	if (!this->HasHashCheck())
-	{
-		otErr << __FUNCTION__ << ": Still don't have a hash check (even after generating one)\n!"
-			"this is bad. Will assert.";
-		OT_FAIL;
-	}
+    if (!this->HasHashCheck())
+    {
+        otErr << __FUNCTION__ << ": Still don't have a hash check (even after generating one)\n!"
+            "this is bad. Will assert.";
+        OT_FAIL;
+    }
 
     return true;
 }
@@ -384,18 +384,18 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword & thePassphrase)
 
 bool OTSymmetricKey::ReGenerateHashCheck(const OTPassword & thePassphrase)
 {
-	if (!this->HasHashCheck())
-	{
-		otOut << __FUNCTION__ << ": Warning! We don't have a hash-check yet... will create one anyway.";
-	}
+    if (!this->HasHashCheck())
+    {
+        otOut << __FUNCTION__ << ": Warning! We don't have a hash-check yet... will create one anyway.";
+    }
 
-	if (!this->m_dataHashCheck.IsEmpty())
+    if (!this->m_dataHashCheck.IsEmpty())
         this->m_dataHashCheck.zeroMemory();
-	OT_ASSERT(this->m_dataHashCheck.IsEmpty());
+    OT_ASSERT(this->m_dataHashCheck.IsEmpty());
 
-	this->m_bHasHashCheck = false;
+    this->m_bHasHashCheck = false;
 
-	return this->GenerateHashCheck(thePassphrase);
+    return this->GenerateHashCheck(thePassphrase);
 }
 
 
@@ -437,29 +437,29 @@ OTPassword * OTSymmetricKey::CalculateDerivedKeyFromPassphrase(const OTPassword 
 {
 //  OT_ASSERT(m_bIsGenerated);
 //  OT_ASSERT(thePassphrase.isPassword());
-	OTPassword * pDerivedKey = NULL;
+    OTPassword * pDerivedKey = NULL;
 
-	OTPayload tmpDataHashCheck = this->m_dataHashCheck;
+    OTPayload tmpDataHashCheck = this->m_dataHashCheck;
 
-	if (bCheckForHashCheck)
-	{
-		if (!this->HasHashCheck())
-		{
-			otErr << __FUNCTION__ << ": Unable to calculate derived key, as hash check is missing!";
-			OT_FAIL;
-		}
-		OT_ASSERT(!tmpDataHashCheck.IsEmpty());
-	}
-	else
-	{
-		if (!this->HasHashCheck())
-		{
-			otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... (since bCheckForHashCheck was set false)";
-			OT_ASSERT(tmpDataHashCheck.IsEmpty());
-		}
-	}
+    if (bCheckForHashCheck)
+    {
+        if (!this->HasHashCheck())
+        {
+            otErr << __FUNCTION__ << ": Unable to calculate derived key, as hash check is missing!";
+            OT_FAIL;
+        }
+        OT_ASSERT(!tmpDataHashCheck.IsEmpty());
+    }
+    else
+    {
+        if (!this->HasHashCheck())
+        {
+            otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... (since bCheckForHashCheck was set false)";
+            OT_ASSERT(tmpDataHashCheck.IsEmpty());
+        }
+    }
 
-	pDerivedKey = OTCrypto::It()->DeriveNewKey(thePassphrase, this->m_dataSalt, this->m_uIterationCount, tmpDataHashCheck);
+    pDerivedKey = OTCrypto::It()->DeriveNewKey(thePassphrase, this->m_dataSalt, this->m_uIterationCount, tmpDataHashCheck);
 
     return pDerivedKey; // can be null
 }
@@ -469,23 +469,23 @@ OTPassword * OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(const OTPasswo
 {
 //  OT_ASSERT(m_bIsGenerated);
 //  OT_ASSERT(thePassphrase.isPassword());
-	OTPassword * pDerivedKey = NULL;
+    OTPassword * pDerivedKey = NULL;
 
-	if (!this->HasHashCheck())
-	{
-		this->m_dataHashCheck.zeroMemory();
+    if (!this->HasHashCheck())
+    {
+        this->m_dataHashCheck.zeroMemory();
 
-		pDerivedKey = OTCrypto::It()->DeriveNewKey(thePassphrase, this->m_dataSalt, this->m_uIterationCount, this->m_dataHashCheck);
-	}
-	else
-	{
-		otErr << __FUNCTION__ << ": Calling Wrong function!! Hash check already exists!";
-	}
+        pDerivedKey = OTCrypto::It()->DeriveNewKey(thePassphrase, this->m_dataSalt, this->m_uIterationCount, this->m_dataHashCheck);
+    }
+    else
+    {
+        otErr << __FUNCTION__ << ": Calling Wrong function!! Hash check already exists!";
+    }
 
     OT_ASSERT(NULL != pDerivedKey);
-	OT_ASSERT(!this->m_dataHashCheck.IsEmpty());
+    OT_ASSERT(!this->m_dataHashCheck.IsEmpty());
 
-	this->m_bHasHashCheck = true;
+    this->m_bHasHashCheck = true;
 
     return pDerivedKey;
 }
@@ -510,7 +510,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(const
         // as a general practice? In which case I can't use this factory how I'm using it now...
         //
 
-		pDerivedKey = this->CalculateDerivedKeyFromPassphrase(thePassphrase,false); // asserts already.
+        pDerivedKey = this->CalculateDerivedKeyFromPassphrase(thePassphrase,false); // asserts already.
 
         theDerivedAngel.SetCleanupTarget(*pDerivedKey);
     }
@@ -537,7 +537,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword & theDerivedKey, O
     OT_ASSERT(m_bIsGenerated);
     OT_ASSERT(theDerivedKey.isMemory());
 
-	const char * szFunc = "OTSymmetricKey::GetRawKeyFromDerivedKey";
+    const char * szFunc = "OTSymmetricKey::GetRawKeyFromDerivedKey";
 
 
     // Decrypt theActualKey using theDerivedKey, which is clear/raw already. (Both are OTPasswords.)
@@ -546,7 +546,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword & theDerivedKey, O
     // theDerivedKey is a symmetric key, in clear form. Used here
     // for decrypting m_dataEncryptedKey into theRawKeyOutput.
     //
-	otInfo << szFunc << ": *Begin) Attempting to recover actual key using derived key...\n";
+    otInfo << szFunc << ": *Begin) Attempting to recover actual key using derived key...\n";
 
     const bool bDecryptedKey = OTCrypto::It()->Decrypt(theDerivedKey, // We're using theDerivedKey to decrypt m_dataEncryptedKey.
 
@@ -556,11 +556,11 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword & theDerivedKey, O
                                                        static_cast<const char *>(m_dataEncryptedKey.GetPayloadPointer()), // The Ciphertext.
                                                        m_dataEncryptedKey.GetSize(),
 
-													   m_dataIV, // Created when *this symmetric key was generated. Both are already stored.
+                                                       m_dataIV, // Created when *this symmetric key was generated. Both are already stored.
 
-													   theRawKeyOutput); // OUTPUT. (Recovered plaintext of symmetric key.) You can pass OTPassword& OR OTPayload& here (either will work.)
+                                                       theRawKeyOutput); // OUTPUT. (Recovered plaintext of symmetric key.) You can pass OTPassword& OR OTPayload& here (either will work.)
 
-	otInfo << szFunc << ": (End) attempt to recover actual key using derived key...\n";
+    otInfo << szFunc << ": (End) attempt to recover actual key using derived key...\n";
     return bDecryptedKey;
 }
 
@@ -573,16 +573,16 @@ OTPassword * OTSymmetricKey::GetPassphraseFromUser(const OTString * pstrDisplay/
 {
     // Caller MUST delete!
 
-	OTPassword * pPassUserInput = OTPassword::CreateTextBuffer(); // already asserts.
-	//  pPassUserInput->zeroMemory(); // This was causing the password to come out blank.
+    OTPassword * pPassUserInput = OTPassword::CreateTextBuffer(); // already asserts.
+    //  pPassUserInput->zeroMemory(); // This was causing the password to come out blank.
     //
     // Below this point, pPassUserInput must be returned, or deleted. (Or it will leak.)
 
-	const char *    szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
+    const char *    szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
     OTPasswordData  thePWData((NULL == pstrDisplay) ? szDisplay : pstrDisplay->Get());
     thePWData.setUsingOldSystem(); // So the cached key doesn't interfere, since this is for a plain symmetric key.
 
-	const int32_t nCallback = souped_up_pass_cb(pPassUserInput->getPasswordWritable_char(),
+    const int32_t nCallback = souped_up_pass_cb(pPassUserInput->getPasswordWritable_char(),
                                             pPassUserInput->getBlockSize(),
                                             bAskTwice ? 1 : 0,
                                             static_cast<void *>(&thePWData));
@@ -597,7 +597,7 @@ OTPassword * OTSymmetricKey::GetPassphraseFromUser(const OTString * pstrDisplay/
     else
     {
         delete pPassUserInput; pPassUserInput = NULL;
-		otOut << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+        otOut << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
     }
 
     return NULL;
@@ -617,13 +617,13 @@ bool OTSymmetricKey::CreateNewKey(      OTString   & strOutput,
         const char *    szDisplay = "Creating new symmetric key.";
         const OTString  strDisplay((NULL == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-		pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay, true);//bAskTwice=false by default.
+        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay, true);//bAskTwice=false by default.
         thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
     }
     else
         pPassUserInput = const_cast<OTPassword *>(pAlreadyHavePW);
 
-	bool bSuccess = false;
+    bool bSuccess = false;
 
     if (NULL != pPassUserInput) // Success retrieving the passphrase from the user. (Now let's generate the key...)
     {
@@ -635,10 +635,10 @@ bool OTSymmetricKey::CreateNewKey(      OTString   & strOutput,
         if (bGenerated && theKey.SerializeTo(strOutput))
             bSuccess = true;
         else
-			otWarn << __FUNCTION__ << ": Sorry, unable to generate key. (Failure.)\n";
+            otWarn << __FUNCTION__ << ": Sorry, unable to generate key. (Failure.)\n";
     }
     else
-		otWarn << __FUNCTION__ << ": Sorry, unable to retrieve password from user. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Sorry, unable to retrieve password from user. (Failure.)\n";
 
     return bSuccess;
 }
@@ -654,19 +654,19 @@ bool OTSymmetricKey::Encrypt(const OTString   & strKey,
 {
     if (!strKey.Exists() || !strPlaintext.Exists())
     {
-		otWarn << __FUNCTION__ << ": Nonexistent: either the key or the plaintext. Please supply. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Nonexistent: either the key or the plaintext. Please supply. (Failure.)\n";
         return false;
     }
 
-	OTSymmetricKey theKey;
+    OTSymmetricKey theKey;
 
     if (false == theKey.SerializeFrom(strKey))
     {
-		otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from string. (Returning false.)\n";
+        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from string. (Returning false.)\n";
         return false;
     }
 
-	// By this point, we know we have a plaintext and a symmetric Key.
+    // By this point, we know we have a plaintext and a symmetric Key.
     //
     return OTSymmetricKey::Encrypt(theKey, strPlaintext,
                                    strOutput,
@@ -684,18 +684,18 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey & theKey,
 {
     if (!theKey.IsGenerated())
     {
-		otWarn << __FUNCTION__ << ": Failure: theKey.IsGenerated() was false. (The calling "
+        otWarn << __FUNCTION__ << ": Failure: theKey.IsGenerated() was false. (The calling "
                        "code probably should have checked that key already...)\n";
         return false;
     }
 
-	if (!strPlaintext.Exists())
+    if (!strPlaintext.Exists())
     {
-		otWarn << __FUNCTION__ << ": Plaintext is empty. Please supply. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Plaintext is empty. Please supply. (Failure.)\n";
         return false;
     }
 
-	// By this point, we know we have a plaintext and a symmetric Key.
+    // By this point, we know we have a plaintext and a symmetric Key.
     //
     OTPassword * pPassUserInput = NULL;
     OTCleanup<OTPassword> thePWAngel;
@@ -705,16 +705,16 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey & theKey,
         const char *    szDisplay = "Password-protecting a plaintext.";
         const OTString  strDisplay((NULL == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-		pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay);//bAskTwice=false by default.
+        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay);//bAskTwice=false by default.
         thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
     }
     else
         pPassUserInput = const_cast<OTPassword *>(pAlreadyHavePW);
 
-	OTASCIIArmor ascOutput;
+    OTASCIIArmor ascOutput;
     bool bSuccess = false;
 
-	if (NULL != pPassUserInput) // Success retrieving the passphrase from the user. (Now let's encrypt...)
+    if (NULL != pPassUserInput) // Success retrieving the passphrase from the user. (Now let's encrypt...)
     {
         OTEnvelope theEnvelope;
 
@@ -735,11 +735,11 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey & theKey,
         }
         else
         {
-			otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
+            otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
         }
     }
     else
-		otWarn << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
 
     return bSuccess;
 }
@@ -759,15 +759,15 @@ bool OTSymmetricKey::Decrypt(const OTString   & strKey,
         return false;
     }
 
-	OTSymmetricKey theKey;
+    OTSymmetricKey theKey;
 
     if (false == theKey.SerializeFrom(strKey))
     {
-		otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from string. (Returning false.)\n";
+        otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from string. (Returning false.)\n";
         return false;
     }
 
-	// By this point, we know we have a ciphertext envelope and a symmetric Key.
+    // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
     return OTSymmetricKey::Decrypt(theKey, strCiphertext,
                                    strOutput,
@@ -784,21 +784,21 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey & theKey,
 {
     if (!theKey.IsGenerated())
     {
-		otWarn << __FUNCTION__ << ": Failure: theKey.IsGenerated() was false. (The calling "
+        otWarn << __FUNCTION__ << ": Failure: theKey.IsGenerated() was false. (The calling "
                        "code probably should have checked for that...)\n";
         return false;
     }
 
-	OTASCIIArmor ascArmor;
+    OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(ascArmor, strCiphertext); // str_bookend="-----BEGIN" by default
 
-	if (!bLoadedArmor || !ascArmor.Exists())
+    if (!bLoadedArmor || !ascArmor.Exists())
     {
-		otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n" << strCiphertext << "\n\n";
+        otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n" << strCiphertext << "\n\n";
         return false;
     }
 
-	// By this point, we know we have a ciphertext envelope and a symmetric Key.
+    // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
     OTPassword * pPassUserInput = NULL;
     OTCleanup<OTPassword> thePWAngel;
@@ -808,15 +808,15 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey & theKey,
         const char *    szDisplay = "Decrypting a password-protected ciphertext.";
         const OTString  strDisplay((NULL == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-		pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay);//bAskTwice=false by default.
+        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(&strDisplay);//bAskTwice=false by default.
         thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
     }
     else
         pPassUserInput = const_cast<OTPassword *>(pAlreadyHavePW);
 
-	bool  bSuccess  = false;
+    bool  bSuccess  = false;
 
-	if (NULL != pPassUserInput) // Success retrieving the passphrase from the user. (Now let's decrypt...)
+    if (NULL != pPassUserInput) // Success retrieving the passphrase from the user. (Now let's decrypt...)
     {
         OTEnvelope theEnvelope(ascArmor);
 
@@ -826,11 +826,11 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey & theKey,
         }
         else
         {
-			otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
+            otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
         }
     }
     else
-		otWarn << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+        otWarn << __FUNCTION__ << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
 
     return bSuccess;
 }
@@ -891,43 +891,43 @@ bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor & ascInput)
 bool OTSymmetricKey::SerializeTo(OTPayload & theOutput) const
 {
 
-	uint16_t   from_bool_is_generated = (m_bIsGenerated ? 1 : 0);
+    uint16_t   from_bool_is_generated = (m_bIsGenerated ? 1 : 0);
     uint16_t   n_is_generated    = static_cast<uint16_t>(htons(static_cast<uint16_t>(from_bool_is_generated)));
     uint16_t   n_key_size_bits   = static_cast<uint16_t>(htons(static_cast<uint16_t>(m_nKeySize)));
 
-	uint32_t   n_iteration_count = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_uIterationCount)));
+    uint32_t   n_iteration_count = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_uIterationCount)));
 
     uint32_t   n_salt_size       = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataSalt.GetSize())));
     uint32_t   n_iv_size         = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataIV.GetSize())));
     uint32_t   n_enc_key_size    = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataEncryptedKey.GetSize())));
 
-	uint32_t   n_hash_check_size  = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataHashCheck.GetSize())));
+    uint32_t   n_hash_check_size  = static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataHashCheck.GetSize())));
 
-	otLog5 << __FUNCTION__ << ": is_generated: " << static_cast<int32_t>(ntohs(n_is_generated)) << "   key_size_bits: "
-		<< static_cast<int32_t>(ntohs(n_key_size_bits)) << "   iteration_count: " << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
-		"salt_size: " << static_cast<int64_t>(ntohl(n_salt_size)) << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size)) << 
-		"   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size)) << "   \n";
+    otLog5 << __FUNCTION__ << ": is_generated: " << static_cast<int32_t>(ntohs(n_is_generated)) << "   key_size_bits: "
+        << static_cast<int32_t>(ntohs(n_key_size_bits)) << "   iteration_count: " << static_cast<int64_t>(ntohl(n_iteration_count)) << "   \n  "
+        "salt_size: " << static_cast<int64_t>(ntohl(n_salt_size)) << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size)) << 
+        "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size)) << "   \n";
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_is_generated),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_is_generated),
                           static_cast<uint32_t>(sizeof(n_is_generated)));
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_key_size_bits),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_key_size_bits),
                           static_cast<uint32_t>(sizeof(n_key_size_bits)));
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_iteration_count),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_iteration_count),
                           static_cast<uint32_t>(sizeof(n_iteration_count)));
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_salt_size),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_salt_size),
                           static_cast<uint32_t>(sizeof(n_salt_size)));
 
-	OT_ASSERT(NULL != m_dataSalt.GetPayloadPointer());
+    OT_ASSERT(NULL != m_dataSalt.GetPayloadPointer());
     theOutput.Concatenate(m_dataSalt.GetPayloadPointer(),
                           m_dataSalt.GetSize());
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_iv_size),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_iv_size),
                           static_cast<uint32_t>(sizeof(n_iv_size)));
 
-	OT_ASSERT(NULL != m_dataIV.GetPayloadPointer());
+    OT_ASSERT(NULL != m_dataIV.GetPayloadPointer());
     theOutput.Concatenate(m_dataIV.GetPayloadPointer(),
                           m_dataIV.GetSize());
 
@@ -938,11 +938,11 @@ bool OTSymmetricKey::SerializeTo(OTPayload & theOutput) const
     theOutput.Concatenate(m_dataEncryptedKey.GetPayloadPointer(),
                           m_dataEncryptedKey.GetSize());
 
-	theOutput.Concatenate(reinterpret_cast<void *>(&n_hash_check_size),
+    theOutput.Concatenate(reinterpret_cast<void *>(&n_hash_check_size),
                           static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
     OT_ASSERT(NULL != m_dataHashCheck.GetPayloadPointer());
-	theOutput.Concatenate(m_dataHashCheck.GetPayloadPointer(),
+    theOutput.Concatenate(m_dataHashCheck.GetPayloadPointer(),
                           m_dataHashCheck.GetSize());
 
     return true;
@@ -968,12 +968,12 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_is_generated),
                                        static_cast<uint32_t>(sizeof(n_is_generated)))))
-	{
-		otErr << szFunc << ": Error reading n_is_generated.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_is_generated.\n";
+        return false;
+    }
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
     //
     uint16_t host_is_generated = static_cast<uint16_t>(ntohs(static_cast<uint16_t>(n_is_generated)));
 
@@ -983,12 +983,12 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
         m_bIsGenerated = false;
     else
     {
-		otErr << szFunc << ": Error: host_is_generated, Bad value: " << static_cast<int32_t>(host_is_generated) << ". (Expected 0 or 1.)\n";
+        otErr << szFunc << ": Error: host_is_generated, Bad value: " << static_cast<int32_t>(host_is_generated) << ". (Expected 0 or 1.)\n";
         return false;
     }
 
 
-	otLog5 << __FUNCTION__ << ": is_generated: " << static_cast<int32_t>(host_is_generated) << " \n";
+    otLog5 << __FUNCTION__ << ": is_generated: " << static_cast<int32_t>(host_is_generated) << " \n";
 
 
     // Read network-order "key size in bits". (convert to host order)
@@ -997,16 +997,16 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_key_size_bits),
                                        static_cast<uint32_t>(sizeof(n_key_size_bits)))))
-	{
-		otErr << szFunc << ": Error reading n_key_size_bits.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_key_size_bits.\n";
+        return false;
+    }
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     m_nKeySize = static_cast<uint16_t>(ntohs(n_key_size_bits));
 
-	otLog5 << __FUNCTION__ << ": key_size_bits: " << static_cast<int32_t>(m_nKeySize) << " \n";
+    otLog5 << __FUNCTION__ << ": key_size_bits: " << static_cast<int32_t>(m_nKeySize) << " \n";
 
 
     // Read network-order "iteration count". (convert to host order)
@@ -1015,17 +1015,17 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_iteration_count),
                                        static_cast<uint32_t>(sizeof(n_iteration_count)))))
-	{
-		otErr << szFunc << ": Error reading n_iteration_count.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_iteration_count.\n";
+        return false;
+    }
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_iteration_count)));
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     m_uIterationCount = static_cast<uint32_t>(ntohl(n_iteration_count));
 
-	otLog5 << __FUNCTION__ << ": iteration_count: " << static_cast<int64_t>(m_uIterationCount) << " \n";
+    otLog5 << __FUNCTION__ << ": iteration_count: " << static_cast<int64_t>(m_uIterationCount) << " \n";
 
 
     // Read network-order "salt size". (convert to host order)
@@ -1034,17 +1034,17 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_salt_size),
                                        static_cast<uint32_t>(sizeof(n_salt_size)))))
-	{
-		otErr << szFunc << ": Error reading n_salt_size.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_salt_size.\n";
+        return false;
+    }
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_salt_size)));
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     const uint32_t lSaltSize = static_cast<uint32_t>(ntohl(static_cast<uint32_t>(n_salt_size)));
 
-	otLog5 << __FUNCTION__ << ": salt_size value: " << static_cast<int64_t>(lSaltSize) << " \n";
+    otLog5 << __FUNCTION__ << ": salt_size value: " << static_cast<int64_t>(lSaltSize) << " \n";
 
 
     // Then read the Salt itself.
@@ -1054,10 +1054,10 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void *>(m_dataSalt.GetPayloadPointer())),
                                        static_cast<uint32_t>(lSaltSize))))
     {
-		otErr << szFunc << ": Error reading salt for symmetric key.\n";
+        otErr << szFunc << ": Error reading salt for symmetric key.\n";
         return false;
     }
-	otLog5 << __FUNCTION__ << ": salt length actually read: " << static_cast<int64_t>(nRead) << " \n";
+    otLog5 << __FUNCTION__ << ": salt length actually read: " << static_cast<int64_t>(nRead) << " \n";
     OT_ASSERT(nRead == static_cast<uint32_t>(lSaltSize));
 
 
@@ -1067,19 +1067,19 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_iv_size),
                                        static_cast<uint32_t>(sizeof(n_iv_size)))))
-	{
-		otErr << szFunc << ": Error reading n_iv_size.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_iv_size.\n";
+        return false;
+    }
 
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_iv_size)));
 
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     const uint32_t lIVSize = ntohl(n_iv_size);
 
-	otLog5 << __FUNCTION__ << ": iv_size value: " << static_cast<int64_t>(lIVSize) << " \n";
+    otLog5 << __FUNCTION__ << ": iv_size value: " << static_cast<int64_t>(lIVSize) << " \n";
 
 
     // Then read the IV itself.
@@ -1089,11 +1089,11 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void *>(m_dataIV.GetPayloadPointer())),
                                        static_cast<uint32_t>(lIVSize))))
     {
-		otErr << szFunc << ": Error reading IV for symmetric key.\n";
+        otErr << szFunc << ": Error reading IV for symmetric key.\n";
         return false;
     }
 
-	otLog5 << __FUNCTION__ << ": iv length actually read: " << static_cast<int64_t>(nRead) << " \n";
+    otLog5 << __FUNCTION__ << ": iv length actually read: " << static_cast<int64_t>(nRead) << " \n";
 
     OT_ASSERT(nRead == static_cast<uint32_t>(lIVSize));
 
@@ -1104,17 +1104,17 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_enc_key_size),
                                        static_cast<uint32_t>(sizeof(n_enc_key_size)))))
-	{
-		otErr << szFunc << ": Error reading n_enc_key_size.\n";
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_enc_key_size.\n";
+        return false;
+    }
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_enc_key_size)));
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     const uint32_t lEncKeySize = ntohl(n_enc_key_size);
 
-	otLog5 << __FUNCTION__ << ": enc_key_size value: " << static_cast<int64_t>(lEncKeySize) << " \n";
+    otLog5 << __FUNCTION__ << ": enc_key_size value: " << static_cast<int64_t>(lEncKeySize) << " \n";
 
 
     // Then read the Encrypted Key itself.
@@ -1124,11 +1124,11 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void *>(m_dataEncryptedKey.GetPayloadPointer())),
                                        static_cast<uint32_t>(lEncKeySize))))
     {
-		otErr << szFunc << ": Error reading encrypted symmetric key.\n";
+        otErr << szFunc << ": Error reading encrypted symmetric key.\n";
         return false;
     }
 
-	otLog5 << __FUNCTION__ << ": encrypted key length actually read: " << static_cast<int64_t>(nRead) << " \n";
+    otLog5 << __FUNCTION__ << ": encrypted key length actually read: " << static_cast<int64_t>(nRead) << " \n";
 
     OT_ASSERT(nRead == static_cast<uint32_t>(lEncKeySize));
    
@@ -1139,37 +1139,37 @@ bool OTSymmetricKey::SerializeFrom(OTPayload & theInput)
 
     if (0 == (nRead = theInput.OTfread(reinterpret_cast<uint8_t*>(&n_hash_check_size),
                                        static_cast<uint32_t>(sizeof(n_hash_check_size)))))
-	{
-		otErr << szFunc << ": Error reading n_hash_check_size.\n";
-		otErr << szFunc << ": Looks like we don't have a hash check yet! (will make one)\n";
-		m_bHasHashCheck = false;
-		return false;
-	}
+    {
+        otErr << szFunc << ": Error reading n_hash_check_size.\n";
+        otErr << szFunc << ": Looks like we don't have a hash check yet! (will make one)\n";
+        m_bHasHashCheck = false;
+        return false;
+    }
     OT_ASSERT(nRead == static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
-	// convert from network to HOST endian.
+    // convert from network to HOST endian.
 
     const uint32_t lHashCheckSize = ntohl(n_hash_check_size);
 
-	otLog5 << __FUNCTION__ << ": hash_check_size value: " << static_cast<int64_t>(lHashCheckSize) << " \n";
+    otLog5 << __FUNCTION__ << ": hash_check_size value: " << static_cast<int64_t>(lHashCheckSize) << " \n";
 
 
     // Then read the Hashcheck itself.
     //
-	m_dataHashCheck.SetPayloadSize(lHashCheckSize);
+    m_dataHashCheck.SetPayloadSize(lHashCheckSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void *>(m_dataHashCheck.GetPayloadPointer())),
                                        static_cast<uint32_t>(lHashCheckSize))))
     {
-		otErr << szFunc << ": Error reading hash check data.\n";
+        otErr << szFunc << ": Error reading hash check data.\n";
         return false;
     }
 
-	otLog5 << __FUNCTION__ << ": hash check data actually read: " << static_cast<int64_t>(nRead) << " \n";
+    otLog5 << __FUNCTION__ << ": hash check data actually read: " << static_cast<int64_t>(nRead) << " \n";
 
     OT_ASSERT(nRead == static_cast<uint32_t>(lHashCheckSize));
 
-	m_bHasHashCheck = !m_dataHashCheck.IsEmpty();
+    m_bHasHashCheck = !m_dataHashCheck.IsEmpty();
 
 
     return true;

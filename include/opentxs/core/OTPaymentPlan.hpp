@@ -136,11 +136,11 @@
 #include "OTAgreement.hpp"
 
 
-//#define PLAN_PROCESS_INTERVAL		OT_TIME_HOUR_IN_SECONDS // todo put this back.
+//#define PLAN_PROCESS_INTERVAL        OT_TIME_HOUR_IN_SECONDS // todo put this back.
 
 namespace opentxs {
 
-#define PLAN_PROCESS_INTERVAL		OTTimeGetTimeFromSeconds(10)
+#define PLAN_PROCESS_INTERVAL        OTTimeGetTimeFromSeconds(10)
 
 
 /*
@@ -186,26 +186,26 @@ class OTPaymentPlan : public OTAgreement
 private:  // Private prevents erroneous use by other classes.
     typedef OTAgreement ot_super;
 
-	// *************************** Methods for generating a payment plan: ***************************
+    // *************************** Methods for generating a payment plan: ***************************
 
 public:
-	// From parent:  (This must be called first, before the other two methods below can be called.)
-	//
-	//	bool		SetAgreement(const int64_t & lTransactionNum,	const OTString & strConsideration,
-	//							 const time64_t & VALID_FROM=0,	const time64_t & VALID_TO=0);
+    // From parent:  (This must be called first, before the other two methods below can be called.)
+    //
+    //    bool        SetAgreement(const int64_t & lTransactionNum,    const OTString & strConsideration,
+    //                             const time64_t & VALID_FROM=0,    const time64_t & VALID_TO=0);
 
-	// Then call one (or both) of these:
+    // Then call one (or both) of these:
 
-EXPORT	bool		SetInitialPayment(const int64_t & lAmount, time64_t tTimeUntilInitialPayment=OT_TIME_ZERO); // default: now.
+EXPORT    bool        SetInitialPayment(const int64_t & lAmount, time64_t tTimeUntilInitialPayment=OT_TIME_ZERO); // default: now.
 
-	// These two can be called independent of each other. You can
-	// have an initial payment, AND/OR a payment plan.
+    // These two can be called independent of each other. You can
+    // have an initial payment, AND/OR a payment plan.
 
-EXPORT	bool		SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
-							   time64_t tBetweenPayments = OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
-							   time64_t tPlanLength=OT_TIME_ZERO, int32_t nMaxPayments=0);
+EXPORT    bool        SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
+                               time64_t tBetweenPayments = OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
+                               time64_t tPlanLength=OT_TIME_ZERO, int32_t nMaxPayments=0);
 
-	// VerifyAgreement()
+    // VerifyAgreement()
     // This function verifies both Nyms and both signatures.
     // Due to the peculiar nature of how OTAgreement/OTPaymentPlan works, there are two signed
     // copies stored. The merchant signs first, adding his transaction numbers (2), and then he
@@ -222,191 +222,191 @@ EXPORT	bool		SetPaymentPlan(const int64_t & lPaymentAmount, time64_t tTimeUntilP
     virtual bool CompareAgreement(const OTAgreement & rh) const;
 
 
-	// ********************* "INITIAL PAYMENT" public GET METHODS	*********************
+    // ********************* "INITIAL PAYMENT" public GET METHODS    *********************
 public:
-	inline bool				HasInitialPayment()		const	{ return m_bInitialPayment; }
-	inline const time64_t &	GetInitialPaymentDate()	const	{ return m_tInitialPaymentDate; }
-	inline const int64_t &		GetInitialPaymentAmount()const	{ return m_lInitialPaymentAmount; }
-	inline bool				IsInitialPaymentDone()	const	{ return m_bInitialPaymentDone; }
+    inline bool                HasInitialPayment()        const    { return m_bInitialPayment; }
+    inline const time64_t &    GetInitialPaymentDate()    const    { return m_tInitialPaymentDate; }
+    inline const int64_t &        GetInitialPaymentAmount()const    { return m_lInitialPaymentAmount; }
+    inline bool                IsInitialPaymentDone()    const    { return m_bInitialPaymentDone; }
 
-	inline const time64_t &	GetInitialPaymentCompletedDate() const	{ return m_tInitialPaymentCompletedDate; }
-	inline const time64_t &	GetLastFailedInitialPaymentDate() const	{ return m_tFailedInitialPaymentDate; }
-	inline int32_t				GetNoInitialFailures()	 const	{ return m_nNumberInitialFailures; }
+    inline const time64_t &    GetInitialPaymentCompletedDate() const    { return m_tInitialPaymentCompletedDate; }
+    inline const time64_t &    GetLastFailedInitialPaymentDate() const    { return m_tFailedInitialPaymentDate; }
+    inline int32_t                GetNoInitialFailures()     const    { return m_nNumberInitialFailures; }
 
 
-	// "INITIAL PAYMENT" private MEMBERS
+    // "INITIAL PAYMENT" private MEMBERS
 private:
-	bool	m_bInitialPayment;				// Will there be an initial payment?
-	time64_t	m_tInitialPaymentDate;			// Date of the initial payment, measured seconds after creation.
-	time64_t	m_tInitialPaymentCompletedDate;	// Date the initial payment was finally transacted.
-	time64_t	m_tFailedInitialPaymentDate;	// Date of the last failed payment, measured seconds after creation.
-	int64_t	m_lInitialPaymentAmount;		// Amount of the initial payment.
-	bool	m_bInitialPaymentDone;			// Has the initial payment been made?
-	int32_t		m_nNumberInitialFailures;		// If we've tried to process this multiple times, we'll know.
+    bool    m_bInitialPayment;                // Will there be an initial payment?
+    time64_t    m_tInitialPaymentDate;            // Date of the initial payment, measured seconds after creation.
+    time64_t    m_tInitialPaymentCompletedDate;    // Date the initial payment was finally transacted.
+    time64_t    m_tFailedInitialPaymentDate;    // Date of the last failed payment, measured seconds after creation.
+    int64_t    m_lInitialPaymentAmount;        // Amount of the initial payment.
+    bool    m_bInitialPaymentDone;            // Has the initial payment been made?
+    int32_t        m_nNumberInitialFailures;        // If we've tried to process this multiple times, we'll know.
 
-	// --------------------------------------------------------------------------
-	// "INITIAL PAYMENT" protected SET METHODS
+    // --------------------------------------------------------------------------
+    // "INITIAL PAYMENT" protected SET METHODS
 protected:
-	inline void SetInitialPaymentDate(const time64_t & tInitialPaymentDate) { m_tInitialPaymentDate = tInitialPaymentDate; }
-	inline void SetInitialPaymentAmount(const int64_t & lAmount)	{ m_lInitialPaymentAmount = lAmount; }
+    inline void SetInitialPaymentDate(const time64_t & tInitialPaymentDate) { m_tInitialPaymentDate = tInitialPaymentDate; }
+    inline void SetInitialPaymentAmount(const int64_t & lAmount)    { m_lInitialPaymentAmount = lAmount; }
 
-	// Sets the bool that officially the initial payment has been done. (Checks first to make sure not already done.)
-	bool SetInitialPaymentDone();
+    // Sets the bool that officially the initial payment has been done. (Checks first to make sure not already done.)
+    bool SetInitialPaymentDone();
 
-	inline void SetInitialPaymentCompletedDate(const time64_t & tInitialPaymentDate)
-	{ m_tInitialPaymentCompletedDate = tInitialPaymentDate; }
-	inline void SetLastFailedInitialPaymentDate(const time64_t & tFailedInitialPaymentDate)
-	{ m_tFailedInitialPaymentDate = tFailedInitialPaymentDate; }
+    inline void SetInitialPaymentCompletedDate(const time64_t & tInitialPaymentDate)
+    { m_tInitialPaymentCompletedDate = tInitialPaymentDate; }
+    inline void SetLastFailedInitialPaymentDate(const time64_t & tFailedInitialPaymentDate)
+    { m_tFailedInitialPaymentDate = tFailedInitialPaymentDate; }
 
-	inline void	SetNoInitialFailures(const int32_t & nNoFailures)	{ m_nNumberInitialFailures = nNoFailures; }
-	inline void	IncrementNoInitialFailures()					{ m_nNumberInitialFailures++; }
+    inline void    SetNoInitialFailures(const int32_t & nNoFailures)    { m_nNumberInitialFailures = nNoFailures; }
+    inline void    IncrementNoInitialFailures()                    { m_nNumberInitialFailures++; }
 
 
 // --------------------------------------------------------------------------
 
 
 
-	// ********************* "PAYMENT PLAN" public GET METHODS *********************
+    // ********************* "PAYMENT PLAN" public GET METHODS *********************
 public:
-	inline bool				HasPaymentPlan()		 const	{ return m_bPaymentPlan; }
-	inline const int64_t &		GetPaymentPlanAmount()	 const	{ return m_lPaymentPlanAmount; }
-	inline const time64_t &	GetTimeBetweenPayments() const	{ return m_tTimeBetweenPayments; }
-	inline const time64_t &	GetPaymentPlanStartDate()const	{ return m_tPaymentPlanStartDate; }
-	inline const time64_t &	GetPaymentPlanLength()	 const	{ return m_tPaymentPlanLength; }
-	inline int32_t				GetMaximumNoPayments()	 const	{ return m_nMaximumNoPayments; }
+    inline bool                HasPaymentPlan()         const    { return m_bPaymentPlan; }
+    inline const int64_t &        GetPaymentPlanAmount()     const    { return m_lPaymentPlanAmount; }
+    inline const time64_t &    GetTimeBetweenPayments() const    { return m_tTimeBetweenPayments; }
+    inline const time64_t &    GetPaymentPlanStartDate()const    { return m_tPaymentPlanStartDate; }
+    inline const time64_t &    GetPaymentPlanLength()     const    { return m_tPaymentPlanLength; }
+    inline int32_t                GetMaximumNoPayments()     const    { return m_nMaximumNoPayments; }
 
-	inline const time64_t &	GetDateOfLastPayment()	 const	{ return m_tDateOfLastPayment; }
-	inline const time64_t &	GetDateOfLastFailedPayment() const { return m_tDateOfLastFailedPayment; }
+    inline const time64_t &    GetDateOfLastPayment()     const    { return m_tDateOfLastPayment; }
+    inline const time64_t &    GetDateOfLastFailedPayment() const { return m_tDateOfLastFailedPayment; }
 
-	inline int32_t				GetNoPaymentsDone()		 const	{ return m_nNoPaymentsDone; }
-	inline int32_t				GetNoFailedPayments()	 const	{ return m_nNoFailedPayments; }
+    inline int32_t                GetNoPaymentsDone()         const    { return m_nNoPaymentsDone; }
+    inline int32_t                GetNoFailedPayments()     const    { return m_nNoFailedPayments; }
 
-	// --------------------------------------------------------------------------
-	// "PAYMENT PLAN" private MEMBERS
+    // --------------------------------------------------------------------------
+    // "PAYMENT PLAN" private MEMBERS
 private:
-	bool	m_bPaymentPlan;			// Will there be a payment plan?
-	int64_t	m_lPaymentPlanAmount;	// Amount of each payment.
-	time64_t	m_tTimeBetweenPayments;	// How much time between each payment?
-	time64_t	m_tPaymentPlanStartDate;// Date for the first payment plan payment.
-	time64_t	m_tPaymentPlanLength;	// Optional. Plan length measured in seconds since plan start.
-	int32_t		m_nMaximumNoPayments;	// Optional. The most number of payments that are authorized.
+    bool    m_bPaymentPlan;            // Will there be a payment plan?
+    int64_t    m_lPaymentPlanAmount;    // Amount of each payment.
+    time64_t    m_tTimeBetweenPayments;    // How much time between each payment?
+    time64_t    m_tPaymentPlanStartDate;// Date for the first payment plan payment.
+    time64_t    m_tPaymentPlanLength;    // Optional. Plan length measured in seconds since plan start.
+    int32_t        m_nMaximumNoPayments;    // Optional. The most number of payments that are authorized.
 
-	time64_t	m_tDateOfLastPayment;	// Recording of date of the last payment.
-	time64_t	m_tDateOfLastFailedPayment;	// Recording of date of the last failed payment.
-	int32_t		m_nNoPaymentsDone;		// Recording of the number of payments already processed.
-	int32_t		m_nNoFailedPayments;	// Every time a payment fails, we record that here.
+    time64_t    m_tDateOfLastPayment;    // Recording of date of the last payment.
+    time64_t    m_tDateOfLastFailedPayment;    // Recording of date of the last failed payment.
+    int32_t        m_nNoPaymentsDone;        // Recording of the number of payments already processed.
+    int32_t        m_nNoFailedPayments;    // Every time a payment fails, we record that here.
 
-	// --------------------------------------------------------------------------
-	// "PAYMENT PLAN" protected SET METHODS
+    // --------------------------------------------------------------------------
+    // "PAYMENT PLAN" protected SET METHODS
 protected:
-	inline void SetPaymentPlanAmount(const		 int64_t &	lAmount)		{ m_lPaymentPlanAmount		= lAmount; }
-	inline void SetTimeBetweenPayments(const	 time64_t & tTimeBetween)	{ m_tTimeBetweenPayments	= tTimeBetween; }
-	inline void SetPaymentPlanStartDate(const	 time64_t & tPlanStartDate)	{ m_tPaymentPlanStartDate	= tPlanStartDate; }
-	inline void SetPaymentPlanLength(const		 time64_t & tPlanLength)	{ m_tPaymentPlanLength		= tPlanLength; }
-	inline void SetMaximumNoPayments(			 int32_t	nMaxNoPayments)	{ m_nMaximumNoPayments		= nMaxNoPayments; }
+    inline void SetPaymentPlanAmount(const         int64_t &    lAmount)        { m_lPaymentPlanAmount        = lAmount; }
+    inline void SetTimeBetweenPayments(const     time64_t & tTimeBetween)    { m_tTimeBetweenPayments    = tTimeBetween; }
+    inline void SetPaymentPlanStartDate(const     time64_t & tPlanStartDate)    { m_tPaymentPlanStartDate    = tPlanStartDate; }
+    inline void SetPaymentPlanLength(const         time64_t & tPlanLength)    { m_tPaymentPlanLength        = tPlanLength; }
+    inline void SetMaximumNoPayments(             int32_t    nMaxNoPayments)    { m_nMaximumNoPayments        = nMaxNoPayments; }
 
-	inline void SetDateOfLastPayment(const		 time64_t&tDateOfLast)	{ m_tDateOfLastPayment		= tDateOfLast; }
-	inline void SetDateOfLastFailedPayment(const time64_t&tDateOfLast)	{ m_tDateOfLastFailedPayment= tDateOfLast; }
+    inline void SetDateOfLastPayment(const         time64_t&tDateOfLast)    { m_tDateOfLastPayment        = tDateOfLast; }
+    inline void SetDateOfLastFailedPayment(const time64_t&tDateOfLast)    { m_tDateOfLastFailedPayment= tDateOfLast; }
 
-	inline void SetNoPaymentsDone(				 int32_t	nNoPaymentsDone){ m_nNoPaymentsDone			= nNoPaymentsDone; }
-	inline void SetNoFailedPayments(			 int32_t	nNoFailed)		{ m_nNoFailedPayments		= nNoFailed; }
+    inline void SetNoPaymentsDone(                 int32_t    nNoPaymentsDone){ m_nNoPaymentsDone            = nNoPaymentsDone; }
+    inline void SetNoFailedPayments(             int32_t    nNoFailed)        { m_nNoFailedPayments        = nNoFailed; }
 
-	inline void IncrementNoPaymentsDone()								{ m_nNoPaymentsDone++; }
-	inline void IncrementNoFailedPayments()								{ m_nNoFailedPayments++; }
+    inline void IncrementNoPaymentsDone()                                { m_nNoPaymentsDone++; }
+    inline void IncrementNoFailedPayments()                                { m_nNoFailedPayments++; }
 
 // --------------------------------------------------------------------------------------------------
 
-private:	// These are NOT stored as part of the payment plan. They are merely used during execution.
-	bool	m_bProcessingInitialPayment;
-	bool	m_bProcessingPaymentPlan;
+private:    // These are NOT stored as part of the payment plan. They are merely used during execution.
+    bool    m_bProcessingInitialPayment;
+    bool    m_bProcessingPaymentPlan;
 
 public:
-	// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-	// From OTAgreement (parent class of this)
-	/*
-	 inline OTIdentifier &	GetRecipientAcctID()		{ return m_RECIPIENT_ACCT_ID; }
-	 inline OTIdentifier &	GetRecipientUserID()		{ return m_RECIPIENT_USER_ID; }
-	 inline void			SetRecipientAcctID(OTIdentifier & ACCT_ID)	{ m_RECIPIENT_ACCT_ID = ACCT_ID; }
-	 inline void			SetRecipientUserID(OTIdentifier & USER_ID)	{ m_RECIPIENT_USER_ID = USER_ID; }
+    // From OTAgreement (parent class of this)
+    /*
+     inline OTIdentifier &    GetRecipientAcctID()        { return m_RECIPIENT_ACCT_ID; }
+     inline OTIdentifier &    GetRecipientUserID()        { return m_RECIPIENT_USER_ID; }
+     inline void            SetRecipientAcctID(OTIdentifier & ACCT_ID)    { m_RECIPIENT_ACCT_ID = ACCT_ID; }
+     inline void            SetRecipientUserID(OTIdentifier & USER_ID)    { m_RECIPIENT_USER_ID = USER_ID; }
 
      const OTString &  GetConsideration() const { return m_strConsideration; }
-	 */
-	// Return True if should stay on OTCron's list for more processing.
-	// Return False if expired or otherwise should be removed.
-	virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
+     */
+    // Return True if should stay on OTCron's list for more processing.
+    // Return False if expired or otherwise should be removed.
+    virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
 
-	// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-	// From OTCronItem (parent class of OTAgreement, parent class of this)
+    // From OTCronItem (parent class of OTAgreement, parent class of this)
 
-	/*
-	 inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
+    /*
+     inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
 
-	 inline void SetCreationDate(const time64_t & CREATION_DATE) { m_CREATION_DATE = CREATION_DATE; }
-	 inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
-	 */
+     inline void SetCreationDate(const time64_t & CREATION_DATE) { m_CREATION_DATE = CREATION_DATE; }
+     inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
+     */
 
-	// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-	// From OTTrackable (parent class of OTCronItem, parent class of OTAgreement, parent of this)
-	/*
-	 inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
-	 inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum = lTransactionNum; }
+    // From OTTrackable (parent class of OTCronItem, parent class of OTAgreement, parent of this)
+    /*
+     inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
+     inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum = lTransactionNum; }
 
-	 inline const   OTIdentifier &	GetSenderAcctID()               { return m_SENDER_ACCT_ID; }
-	 inline const   OTIdentifier &	GetSenderUserID()               { return m_SENDER_USER_ID; }
-	 inline void	SetSenderAcctID(const OTIdentifier & ACCT_ID)	{ m_SENDER_ACCT_ID = ACCT_ID; }
-	 inline void	SetSenderUserID(const OTIdentifier & USER_ID)	{ m_SENDER_USER_ID = USER_ID; }
-	 */
+     inline const   OTIdentifier &    GetSenderAcctID()               { return m_SENDER_ACCT_ID; }
+     inline const   OTIdentifier &    GetSenderUserID()               { return m_SENDER_USER_ID; }
+     inline void    SetSenderAcctID(const OTIdentifier & ACCT_ID)    { m_SENDER_ACCT_ID = ACCT_ID; }
+     inline void    SetSenderUserID(const OTIdentifier & USER_ID)    { m_SENDER_USER_ID = USER_ID; }
+     */
 
-	// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-	// From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of OTAgreement, parent of this)
-	/*
-	 OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : OTContract()
+    // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of OTAgreement, parent of this)
+    /*
+     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : OTContract()
 
-	 inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-	 inline const OTIdentifier & GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
 
-	 inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID	= ASSET_ID; }
-	 inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID	= SERVER_ID; }
+     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    = ASSET_ID; }
+     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    = SERVER_ID; }
 
-	 inline time64_t GetValidFrom()	const { return m_VALID_FROM; }
-	 inline time64_t GetValidTo()		const { return m_VALID_TO; }
+     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
+     inline time64_t GetValidTo()        const { return m_VALID_TO; }
 
-	 inline void SetValidFrom(time64_t TIME_FROM)	{ m_VALID_FROM	= TIME_FROM; }
-	 inline void SetValidTo(time64_t TIME_TO)		{ m_VALID_TO	= TIME_TO; }
+     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    = TIME_FROM; }
+     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO; }
 
-	 bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
-	 bool IsExpired()
-	 */
+     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
+     bool IsExpired()
+     */
     // --------------------------------------------
 protected:
 //  virtual void onFinalReceipt();        // Now handled in the parent class.
 //  virtual void onRemovalFromCron();     // Now handled in the parent class.
 
-	bool ProcessPayment(const int64_t & lAmount);
-	void ProcessInitialPayment();
-	void ProcessPaymentPlan();
-	// --------------------------------------------
+    bool ProcessPayment(const int64_t & lAmount);
+    void ProcessInitialPayment();
+    void ProcessPaymentPlan();
+    // --------------------------------------------
 public:
 EXPORT  OTPaymentPlan();
-EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,			const OTIdentifier & ASSET_ID);
-EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,			const OTIdentifier & ASSET_ID,
-                      const OTIdentifier & SENDER_ACCT_ID,		const OTIdentifier & SENDER_USER_ID,
-                      const OTIdentifier & RECIPIENT_ACCT_ID,	const OTIdentifier & RECIPIENT_USER_ID);
-EXPORT	virtual ~OTPaymentPlan();
+EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID);
+EXPORT  OTPaymentPlan(const OTIdentifier & SERVER_ID,            const OTIdentifier & ASSET_ID,
+                      const OTIdentifier & SENDER_ACCT_ID,        const OTIdentifier & SENDER_USER_ID,
+                      const OTIdentifier & RECIPIENT_ACCT_ID,    const OTIdentifier & RECIPIENT_USER_ID);
+EXPORT    virtual ~OTPaymentPlan();
     // --------------------------------------------
-	void InitPaymentPlan();
+    void InitPaymentPlan();
     // --------------------------------------------
-	virtual void Release();
-	void Release_PaymentPlan();
-	// --------------------------------------------
-	// return -1 if error, 0 if nothing, and 1 if the node was processed.
-	virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-	virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents
-	virtual bool SaveContractWallet(std::ofstream & ofs);
+    virtual void Release();
+    void Release_PaymentPlan();
+    // --------------------------------------------
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents
+    virtual bool SaveContractWallet(std::ofstream & ofs);
 };
 
 

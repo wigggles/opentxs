@@ -152,11 +152,11 @@ private:
 
 public:
 
-    EXPORT	OpenSSL_BIO(BIO * pBIO);
+    EXPORT    OpenSSL_BIO(BIO * pBIO);
 
     EXPORT  ~OpenSSL_BIO();
 
-    EXPORT	operator BIO *() const;
+    EXPORT    operator BIO *() const;
 
     EXPORT  void release();
     EXPORT  void setFreeOnly();

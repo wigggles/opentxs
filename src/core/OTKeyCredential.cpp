@@ -201,8 +201,8 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(listOfAsymmetricKeys & listOut
                 case 'A': nCount = m_AuthentKey.GetPublicKeyBySignature(listOutput, theSignature); break; // bInclusive=false by default
                 case 'E': nCount = m_EncryptKey.GetPublicKeyBySignature(listOutput, theSignature); break; // bInclusive=false by default
                 case 'S': nCount = m_SigningKey.GetPublicKeyBySignature(listOutput, theSignature); break; // bInclusive=false by default
-				default: otErr << __FUNCTION__ << ": Unexpected value for theSignature.m_metadata.GetKeyType: " 
-					<< theSignature.m_metadata.GetKeyType() << " (failure)\n"; return 0;
+                default: otErr << __FUNCTION__ << ": Unexpected value for theSignature.m_metadata.GetKeyType: " 
+                    << theSignature.m_metadata.GetKeyType() << " (failure)\n"; return 0;
             }
             break;
         }
@@ -212,7 +212,7 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(listOfAsymmetricKeys & listOut
         case 'A': nCount = m_AuthentKey.GetPublicKeyBySignature(listOutput, theSignature, true); break; // bInclusive=true
         case 'E': nCount = m_EncryptKey.GetPublicKeyBySignature(listOutput, theSignature, true); break; // bInclusive=true
         case 'S': nCount = m_SigningKey.GetPublicKeyBySignature(listOutput, theSignature, true); break; // bInclusive=true
-		default:  otErr << __FUNCTION__ << ": Unexpected value for cKeyType (should be 0, A, E, or S): " << cKeyType << "\n"; return 0;
+        default:  otErr << __FUNCTION__ << ": Unexpected value for cKeyType (should be 0, A, E, or S): " << cKeyType << "\n"; return 0;
     }
     return nCount;
 }
@@ -233,7 +233,7 @@ bool OTKeyCredential::VerifyInternally()
     //
     if (false == this->VerifySignedBySelf())
     {
-		otOut << __FUNCTION__ << ": Failed verifying key credential: it's not signed by itself (its own signing key.)\n";
+        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not signed by itself (its own signing key.)\n";
         return false;
     }
 
@@ -259,7 +259,7 @@ void OTKeyCredential::Release()
     Release_Subkey();   // My own cleanup is done here.
     
     // Next give the base class a chance to do the same...
-	ot_super::Release(); // since I've overridden the base class, I call it now...
+    ot_super::Release(); // since I've overridden the base class, I call it now...
 }
  
 
@@ -319,8 +319,8 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits/*=1024*/)       // Gotta start 
 
     if (3 != mapPublic.size())
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ <<
-			": Failed getting public keys in OTKeyCredential::GenerateKeys.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ <<
+            ": Failed getting public keys in OTKeyCredential::GenerateKeys.\n";
         return false;
     }
     else
@@ -328,8 +328,8 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits/*=1024*/)       // Gotta start 
 
     if (3 != mapPrivate.size())
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ <<
-			": Failed getting private keys in OTKeyCredential::GenerateKeys.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ <<
+            ": Failed getting private keys in OTKeyCredential::GenerateKeys.\n";
         return false;
     }
     else
@@ -349,8 +349,8 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings & mapPublic)
 
     if (mapPublic.size() != 3)
     {
-		otErr << __FILE__ << " line " << __LINE__ <<
-			": Failure: Expected 3 in mapPublic.size(), but the actual value was: " << mapPublic.size() << "\n";
+        otErr << __FILE__ << " line " << __LINE__ <<
+            ": Failure: Expected 3 in mapPublic.size(), but the actual value was: " << mapPublic.size() << "\n";
         return false;
     }
 
@@ -360,19 +360,19 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings & mapPublic)
 
     if (mapPublic.end() == iiAuth)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public authentication key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public authentication key.\n";
         return false;
     }
 
     if (mapPublic.end() == iiEncr)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public encryption key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public encryption key.\n";
         return false;
     }
 
     if (mapPublic.end() == iiSign)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public signing key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find public signing key.\n";
         return false;
     }
 
@@ -383,8 +383,8 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings & mapPublic)
         strKey.Set((*iiAuth).second.c_str());
         if (false == m_AuthentKey.SetPublicKey(strKey))
         {
-			otErr << __FILE__ << " line " << __LINE__ <<
-				": Failure: Unable to set public authentication key based on string:\n" << strKey << "\n";
+            otErr << __FILE__ << " line " << __LINE__ <<
+                ": Failure: Unable to set public authentication key based on string:\n" << strKey << "\n";
             return false;
         }
 
@@ -392,8 +392,8 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings & mapPublic)
         strKey.Set((*iiEncr).second.c_str());
         if (false == m_EncryptKey.SetPublicKey(strKey))
         {
-			otErr << __FILE__ << " line " << __LINE__ <<
-				": Failure: Unable to set public encryption key based on string:\n" << strKey << "\n";
+            otErr << __FILE__ << " line " << __LINE__ <<
+                ": Failure: Unable to set public encryption key based on string:\n" << strKey << "\n";
             return false;
         }
 
@@ -401,8 +401,8 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings & mapPublic)
         strKey.Set((*iiSign).second.c_str());
         if (false == m_SigningKey.SetPublicKey(strKey))
         {
-			otErr << __FILE__ << " line " << __LINE__ <<
-				": Failure: Unable to set public signing key based on string:\n" << strKey << "\n";
+            otErr << __FILE__ << " line " << __LINE__ <<
+                ": Failure: Unable to set public signing key based on string:\n" << strKey << "\n";
             return false;
         }
 
@@ -429,8 +429,8 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
 
     if (mapPrivate.size() != 3)
     {
-		otErr << __FILE__ << " line " << __LINE__ <<
-			": Failure: Expected 3 in mapPrivate(), but the actual value was: " << mapPrivate.size() << "\n";
+        otErr << __FILE__ << " line " << __LINE__ <<
+            ": Failure: Expected 3 in mapPrivate(), but the actual value was: " << mapPrivate.size() << "\n";
         return false;
     }
 
@@ -440,19 +440,19 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
 
     if (mapPrivate.end() == iiAuth)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private authentication key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private authentication key.\n";
         return false;
     }
 
     if (mapPrivate.end() == iiEncr)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private encryption key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private encryption key.\n";
         return false;
     }
 
     if (mapPrivate.end() == iiSign)
     {
-		otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private signing key.\n";
+        otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to find private signing key.\n";
         return false;
     }
 
@@ -466,10 +466,10 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
         
         if (false == m_AuthentKey.LoadPrivateKeyFromCertString(strPrivate, false /*bEscaped true by default*/,  &strReason, pImportPassword))
         {
-			otErr << __FILE__ << " line " << __LINE__ <<
-				": Failure: Unable to set private authentication key based on string.\n";
+            otErr << __FILE__ << " line " << __LINE__ <<
+                ": Failure: Unable to set private authentication key based on string.\n";
 //          otErr << __FILE__ << " line " << __LINE__ <<
-//			": Failure: Unable to set private authentication key based on string:\n" << strPrivate << "\n";
+//            ": Failure: Unable to set private authentication key based on string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key here.
@@ -479,10 +479,10 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
             if ((false == m_AuthentKey.LoadPublicKeyFromCertString(strPrivate, false /* bEscaped true by default */, &strReason, pImportPassword)) ||
                 (false == m_AuthentKey.GetPublicKey(strPublic, false /* bEscaped true by default */)))
             {
-				otErr << __FILE__ << " line " << __LINE__ <<
-					": Failure: Unable to set public authentication key based on private string.\n";
+                otErr << __FILE__ << " line " << __LINE__ <<
+                    ": Failure: Unable to set public authentication key based on private string.\n";
 //              otErr << __FILE__ << " line " << __LINE__ <<
-//				": Failure: Unable to set public authentication key based on private string:\n" << strPrivate << "\n";
+//                ": Failure: Unable to set public authentication key based on private string:\n" << strPrivate << "\n";
                 return false;
             }
             mapPublic.insert(std::pair<std::string, std::string>("A", strPublic.Get()));
@@ -493,9 +493,9 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
         
         if (false == m_EncryptKey.LoadPrivateKeyFromCertString(strPrivate, false /*bEscaped true by default*/,  &strReason, pImportPassword))
         {
-			otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set private encryption key based on string.\n";
+            otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set private encryption key based on string.\n";
 //          otErr << __FILE__ << " line " << __LINE__ <<
-//			": Failure: Unable to set private encryption key based on string:\n" << strPrivate << "\n";
+//            ": Failure: Unable to set private encryption key based on string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key here.
@@ -505,10 +505,10 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
             if ((false == m_EncryptKey.LoadPublicKeyFromCertString(strPrivate, false /* bEscaped true by default */, &strReason, pImportPassword)) ||
                 (false == m_EncryptKey.GetPublicKey(strPublic, false /* bEscaped true by default */)))
             {
-				otErr << __FILE__ << " line " << __LINE__ <<
-					": Failure: Unable to set public encryption key based on private string.\n";
+                otErr << __FILE__ << " line " << __LINE__ <<
+                    ": Failure: Unable to set public encryption key based on private string.\n";
 //              otErr << __FILE__ << " line " << __LINE__ <<
-//				": Failure: Unable to set public encryption key based on private string:\n" << strPrivate << "\n";
+//                ": Failure: Unable to set public encryption key based on private string:\n" << strPrivate << "\n";
                 return false;
             }
             mapPublic.insert(std::pair<std::string, std::string>("E", strPublic.Get()));
@@ -519,9 +519,9 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
         
         if (false == m_SigningKey.LoadPrivateKeyFromCertString(strPrivate, false /*bEscaped true by default*/,  &strReason, pImportPassword))
         {
-			otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set private signing key based on string.\n";
+            otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set private signing key based on string.\n";
 //          otErr << __FILE__ << " line " << __LINE__ <<
-//			": Failure: Unable to set private signing key based on string:\n" << strPrivate << "\n";
+//            ": Failure: Unable to set private signing key based on string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key here.
@@ -531,9 +531,9 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
             if ((false == m_SigningKey.LoadPublicKeyFromCertString(strPrivate, false /* bEscaped true by default */, &strReason, pImportPassword)) ||
                 (false == m_SigningKey.GetPublicKey(strPublic, false /* bEscaped true by default */)))
             {
-				otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set public signing key based on private string.\n";
+                otErr << __FILE__ << " line " << __LINE__ << ": Failure: Unable to set public signing key based on private string.\n";
 //              otErr << __FILE__ << " line " << __LINE__ <<
-//				": Failure: Unable to set public signing key based on private string:\n" << strPrivate << "\n";
+//                ": Failure: Unable to set public signing key based on private string:\n" << strPrivate << "\n";
                 return false;
             }
             mapPublic.insert(std::pair<std::string, std::string>("S", strPublic.Get()));
@@ -541,8 +541,8 @@ bool OTKeyCredential::SetPrivateContents(const mapOfStrings & mapPrivate,
 
         if (false == this->ot_super::SetPublicContents(mapPublic))
         {
-			otErr << __FILE__ << " line " << __LINE__ <<
-				": Failure: While trying to call: ot_super::SetPublicContents(mapPublic)\n"; // Should never happen (it always just returns true.)
+            otErr << __FILE__ << " line " << __LINE__ <<
+                ": Failure: While trying to call: ot_super::SetPublicContents(mapPublic)\n"; // Should never happen (it always just returns true.)
             return false;
         }
 
@@ -608,7 +608,7 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword & theExportPassword, bool bImport
         }
 
         if (3 != mapPrivate.size())
-			otErr << __FUNCTION__ << ": Unexpected, mapPrivate does not have exactly a size of 3. \n";
+            otErr << __FUNCTION__ << ": Unexpected, mapPrivate does not have exactly a size of 3. \n";
 
         else
         {
@@ -636,10 +636,10 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword & theExportPassword, bool bImport
 
 void OTKeyCredential::SetMetadata()
 {
-	char cMetaKeyType;            // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
-	char cMetaNymID        = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
-	char cMetaMasterCredID = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
-	char cMetaSubCredID    = '0'; // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
+    char cMetaKeyType;            // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
+    char cMetaNymID        = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
+    char cMetaMasterCredID = '0'; // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
+    char cMetaSubCredID    = '0'; // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
 
     OTString strSubcredID;
     this->GetIdentifier(strSubcredID);
@@ -648,12 +648,12 @@ void OTKeyCredential::SetMetadata()
     const bool bCredID = m_pOwner->GetMasterCredID().At(0, cMetaMasterCredID);
     const bool bSubID  = strSubcredID               .At(0, cMetaSubCredID); // In the case of the master credential, this will repeat the previous one.
 
-	if (!bNymID || !bCredID || !bSubID)
-	{
-		otWarn << __FUNCTION__ << ": No metadata available:\n " 
-			<< "bNymID" << " is " << (bNymID ? "True": "False") << ", " << "bCredID" <<
-			" is " << (bNymID ? "True": "False") << ", " << "bSubID" << " is " << (bNymID ? "True": "False") << "";
-	}
+    if (!bNymID || !bCredID || !bSubID)
+    {
+        otWarn << __FUNCTION__ << ": No metadata available:\n " 
+            << "bNymID" << " is " << (bNymID ? "True": "False") << ", " << "bCredID" <<
+            " is " << (bNymID ? "True": "False") << ", " << "bSubID" << " is " << (bNymID ? "True": "False") << "";
+    }
 
 
     OTSignatureMetadata theMetadata;

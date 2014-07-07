@@ -156,70 +156,70 @@ OTClause::OTClause() : m_pBylaw(NULL)
 
 OTClause::OTClause(const char * szName, const char * szCode) : m_pBylaw(NULL)
 {
-	if (NULL != szName)
-		m_strName.Set(szName);
+    if (NULL != szName)
+        m_strName.Set(szName);
 
-	if (NULL != szCode)
-		m_strCode = szCode;
+    if (NULL != szCode)
+        m_strCode = szCode;
 
-	// Todo security:  validation on the above fields.
+    // Todo security:  validation on the above fields.
 }
 
 
 OTClause::~OTClause()
 {
-	// nothing to delete.
+    // nothing to delete.
 
-	m_pBylaw = NULL;  // I wasn't the owner, it was a pointer for convenience only.
+    m_pBylaw = NULL;  // I wasn't the owner, it was a pointer for convenience only.
 }
 
 
 const char * OTClause::GetCode() const
 {
-	if (m_strCode.Exists())
-		return m_strCode.Get();
+    if (m_strCode.Exists())
+        return m_strCode.Get();
 
-	return "print(\"(Empty script.)\")"; // todo hardcoding
+    return "print(\"(Empty script.)\")"; // todo hardcoding
 }
 
 
 void OTClause::Serialize(OTString & strAppend)
 {
-	if (m_strCode.GetLength() > 2)
-	{
-		OTASCIIArmor ascCode;
-		ascCode.SetString(m_strCode);
+    if (m_strCode.GetLength() > 2)
+    {
+        OTASCIIArmor ascCode;
+        ascCode.SetString(m_strCode);
 
-		strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-							  m_strName.Get(),
-							  ascCode.Get());
-	}
-	else
-	{
-		strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-							  m_strName.Get(),
-							  "ERROR_CLAUSE_CODE_NULL");
-		otErr << "Empty script code in OTClause::Serialize()\n";
-	}
+        strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
+                              m_strName.Get(),
+                              ascCode.Get());
+    }
+    else
+    {
+        strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
+                              m_strName.Get(),
+                              "ERROR_CLAUSE_CODE_NULL");
+        otErr << "Empty script code in OTClause::Serialize()\n";
+    }
 }
 
 
 // Done
 bool OTClause::Compare(const OTClause & rhs) const
 {
-	if (!(this->GetName().Compare(rhs.GetName())))
-	{
-		otOut << "OTClause::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
-		return false;
-	}
+    if (!(this->GetName().Compare(rhs.GetName())))
+    {
+        otOut << "OTClause::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
+        return false;
+    }
 
-	if (!(this->m_strCode.Compare(rhs.GetCode())))
-	{
-		otOut << "OTClause::Compare: Source code for interpreted script fails to match, on clause: " << this->GetName() << " \n";
-		return false;
-	}
+    if (!(this->m_strCode.Compare(rhs.GetCode())))
+    {
+        otOut << "OTClause::Compare: Source code for interpreted script fails to match, on clause: " << this->GetName() << " \n";
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 } // namespace opentxs

@@ -146,8 +146,8 @@ public:
     ZMQ4();
     ~ZMQ4();
 
-    zmq::context_t	* context_zmq;
-    zmq::socket_t	* socket_zmq;
+    zmq::context_t    * context_zmq;
+    zmq::socket_t    * socket_zmq;
 };
 
 
@@ -184,7 +184,7 @@ bool OTSocket_ZMQ_4::CloseSocket(const bool bNewContext /*= false*/)
     if (!m_HasContext && !bNewContext) return false;
 
     if (NULL != m_pzmq->socket_zmq)  zmq_close(m_pzmq->socket_zmq);
-    if (NULL != m_pzmq->socket_zmq)	delete m_pzmq->socket_zmq;	m_pzmq->socket_zmq = NULL;
+    if (NULL != m_pzmq->socket_zmq)    delete m_pzmq->socket_zmq;    m_pzmq->socket_zmq = NULL;
 
     m_bConnected = false;
     m_bListening = false;
@@ -208,7 +208,7 @@ bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
         OT_FAIL;
     }
 
-    if (NULL == m_pzmq->socket_zmq)		{ OTLog::vError("%s: Error: %s failed to be created!\n", __FUNCTION__, "m_pzmq->socket_zmq");	OT_FAIL; }
+    if (NULL == m_pzmq->socket_zmq)        { OTLog::vError("%s: Error: %s failed to be created!\n", __FUNCTION__, "m_pzmq->socket_zmq");    OT_FAIL; }
 
     const int linger = 0; // close immediately
 
@@ -236,7 +236,7 @@ bool OTSocket_ZMQ_4::NewContext()
     if (!this->CloseSocket(true)) return false;
 
     if (NULL != m_pzmq->context_zmq) zmq_term(m_pzmq->context_zmq);
-    if (NULL != m_pzmq->context_zmq)	delete m_pzmq->context_zmq;	m_pzmq->context_zmq = NULL;
+    if (NULL != m_pzmq->context_zmq)    delete m_pzmq->context_zmq;    m_pzmq->context_zmq = NULL;
 
     try {
         m_pzmq->context_zmq = new zmq::context_t(1,31); // Threads, Max Sockets. (31 is a sane default).
@@ -276,8 +276,8 @@ bool OTSocket_ZMQ_4::Connect()
     if (!m_bInitialized) { OT_FAIL; }
     if (!m_HasContext) { OT_FAIL; }
 
-    if (NULL == m_pzmq->context_zmq)		{ OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__, "m_pzmq->context_zmq");	OT_FAIL; }
-    if (true == m_bListening)	{ OTLog::vError("%s: Error: Must not be Listening, to Connect!\n", __FUNCTION__);	OT_FAIL; }
+    if (NULL == m_pzmq->context_zmq)        { OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__, "m_pzmq->context_zmq");    OT_FAIL; }
+    if (true == m_bListening)    { OTLog::vError("%s: Error: Must not be Listening, to Connect!\n", __FUNCTION__);    OT_FAIL; }
 
     if (!m_strConnectPath.Exists()) { OT_FAIL; }
 
@@ -301,8 +301,8 @@ bool OTSocket_ZMQ_4::Listen()
     if (!m_bInitialized) { OT_FAIL; }
     if (!m_HasContext) { OT_FAIL; }
 
-    if (NULL == m_pzmq->context_zmq)		{ OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__, "m_pzmq->context_zmq");	OT_FAIL; }
-    if (true == m_bConnected)	{ OTLog::vError("%s: Error: Must not be Connected, to Listen!\n", __FUNCTION__);	OT_FAIL; }
+    if (NULL == m_pzmq->context_zmq)        { OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__, "m_pzmq->context_zmq");    OT_FAIL; }
+    if (true == m_bConnected)    { OTLog::vError("%s: Error: Must not be Connected, to Listen!\n", __FUNCTION__);    OT_FAIL; }
 
     if (!m_strBindingPath.Exists()) { OT_FAIL; }
 
@@ -323,8 +323,8 @@ bool OTSocket_ZMQ_4::Listen()
 
 bool OTSocket_ZMQ_4::Connect(const OTString & strConnectPath)
 {
-    if (!strConnectPath.Exists())		{ OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__, "strConnectPath");	OT_FAIL; }
-    if (5 > strConnectPath.GetLength()) { OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__, "strConnectPath");	OT_FAIL; }
+    if (!strConnectPath.Exists())        { OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__, "strConnectPath");    OT_FAIL; }
+    if (5 > strConnectPath.GetLength()) { OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__, "strConnectPath");    OT_FAIL; }
 
     m_strConnectPath = strConnectPath;  // set the connection path.
 
@@ -334,8 +334,8 @@ bool OTSocket_ZMQ_4::Connect(const OTString & strConnectPath)
 
 bool OTSocket_ZMQ_4::Listen(const OTString & strBindingPath)
 {
-    if (!strBindingPath.Exists())		{ OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__, "strBindingPath");	OT_FAIL; }
-    if (5 > strBindingPath.GetLength()) { OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__, "strBindingPath");	OT_FAIL; }
+    if (!strBindingPath.Exists())        { OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__, "strBindingPath");    OT_FAIL; }
+    if (5 > strBindingPath.GetLength()) { OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__, "strBindingPath");    OT_FAIL; }
 
     m_strBindingPath = strBindingPath;
 
@@ -347,18 +347,18 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor & ascEnvelope)
 {
     if (!m_bInitialized) { OT_FAIL; }
 
-    if (0 >= ascEnvelope.GetLength())  { OTLog::vError("%s: Error: %s is zero length!\n", __FUNCTION__, "ascEnvelope");	OT_FAIL; }
+    if (0 >= ascEnvelope.GetLength())  { OTLog::vError("%s: Error: %s is zero length!\n", __FUNCTION__, "ascEnvelope");    OT_FAIL; }
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
     if (!m_HasContext) { OT_FAIL; }
-    if (NULL == m_pzmq->context_zmq)  { OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__, "m_pzmq->context_zmq");	OT_FAIL; }
+    if (NULL == m_pzmq->context_zmq)  { OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__, "m_pzmq->context_zmq");    OT_FAIL; }
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (NULL == m_pzmq->socket_zmq) { OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__, "m_pzmq->socket_zmq");	OT_FAIL; }
+    if (NULL == m_pzmq->socket_zmq) { OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__, "m_pzmq->socket_zmq");    OT_FAIL; }
 
 
-    // -----------------------------------	
+    // -----------------------------------    
     const int64_t lLatencySendMilliSec = m_lLatencySendMs;
 
     zmq::message_t zmq_message(ascEnvelope.GetLength());
@@ -378,9 +378,9 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor & ascEnvelope)
     }
     else // not blocking
     {
-        int32_t		nSendTries = m_nLatencySendNoTries;
-        int64_t	lDoubling = lLatencySendMilliSec;
-        bool	bKeepTrying = true;
+        int32_t        nSendTries = m_nLatencySendNoTries;
+        int64_t    lDoubling = lLatencySendMilliSec;
+        bool    bKeepTrying = true;
 
         while (bKeepTrying && (nSendTries > 0))
         {
@@ -390,7 +390,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor & ascEnvelope)
 
             int nPoll = 0;
             try {
-                nPoll = zmq::poll(&items[0], 1, static_cast<long>(lDoubling));	// ZMQ_POLLOUT, 1 item, timeout (milliseconds)	
+                nPoll = zmq::poll(&items[0], 1, static_cast<long>(lDoubling));    // ZMQ_POLLOUT, 1 item, timeout (milliseconds)    
             }
             catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -460,14 +460,14 @@ bool OTSocket_ZMQ_4::Receive(OTString & strServerReply)
 {
     if (!m_bInitialized) { OT_FAIL; }
     if (!m_HasContext) { OT_FAIL; }
-    if (NULL == m_pzmq->context_zmq)  { OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__, "m_pzmq->context_zmq");	OT_FAIL; }
+    if (NULL == m_pzmq->context_zmq)  { OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__, "m_pzmq->context_zmq");    OT_FAIL; }
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (NULL == m_pzmq->socket_zmq) { OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__, "m_pzmq->socket_zmq");	OT_FAIL; }
+    if (NULL == m_pzmq->socket_zmq) { OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__, "m_pzmq->socket_zmq");    OT_FAIL; }
 
 
-    // -----------------------------------	
+    // -----------------------------------    
     const int64_t lLatencyRecvMilliSec = m_lLatencyReceiveMs;
 
     // ***********************************
@@ -488,11 +488,11 @@ bool OTSocket_ZMQ_4::Receive(OTString & strServerReply)
             OT_FAIL;
         }
     }
-    else	// not blocking
+    else    // not blocking
     {
-        int64_t	lDoubling = lLatencyRecvMilliSec;
-        int32_t		nReceiveTries = m_nLatencyReceiveNoTries;
-        bool	expect_reply = true;
+        int64_t    lDoubling = lLatencyRecvMilliSec;
+        int32_t        nReceiveTries = m_nLatencyReceiveNoTries;
+        bool    expect_reply = true;
         while (expect_reply)
         {
             //  Poll socket for a reply, with timeout
@@ -527,7 +527,7 @@ bool OTSocket_ZMQ_4::Receive(OTString & strServerReply)
                         expect_reply = false;
                 }
                 else
-                    break; // (Success -- we're done in this loop.)				
+                    break; // (Success -- we're done in this loop.)                
             }
             else if (nReceiveTries == 0)
             {

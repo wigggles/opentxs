@@ -1,6 +1,6 @@
 /************************************************************************************
 *
-* OTAPI.cpp   --	A C++ Low-Level API (wraps OT_API)
+* OTAPI.cpp   --    A C++ Low-Level API (wraps OT_API)
 *
 * This is a C++ class that contains many helper functions.
 *  
@@ -193,27 +193,27 @@ static OTAPI_Exec * exec = &singleton;
 
 OTAPI_Exec * OTAPI_Wrap::SetExecutor(OTAPI_Exec * execNew)
 {
-	OTAPI_Exec * execOld = exec;
-	exec = execNew;
-	return execOld;
+    OTAPI_Exec * execOld = exec;
+    exec = execNew;
+    return execOld;
 }
 
 OTAPI_Exec * OTAPI_Wrap::Exec()
 {
-	if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    if (NULL == exec)
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
 
-	OT_API * pOTAPI = exec->OTAPI();
-	if (NULL == pOTAPI || !pOTAPI->IsInitialized())
-	{
-		OTLog::vError("%s: Error: OT_API not Initialized!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    OT_API * pOTAPI = exec->OTAPI();
+    if (NULL == pOTAPI || !pOTAPI->IsInitialized())
+    {
+        OTLog::vError("%s: Error: OT_API not Initialized!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
 
-	return exec;
+    return exec;
 }
 
 OTAPI_Exec * OTAPI_Wrap::It()
@@ -223,24 +223,24 @@ OTAPI_Exec * OTAPI_Wrap::It()
 
 bool OTAPI_Wrap::AppInit()
 {
-	if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    if (NULL == exec)
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
 
-	return exec->AppInit();
+    return exec->AppInit();
 }
 
 bool OTAPI_Wrap::AppCleanup()
 {
-	if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    if (NULL == exec)
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
 
-	return exec->AppCleanup();
+    return exec->AppCleanup();
 }
 
 // --------------------------------------------------------------------
@@ -258,12 +258,12 @@ bool OTAPI_Wrap::AppCleanup()
 void OTAPI_Wrap::SetAppBinaryFolder(const std::string & strFolder)
 {
     if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
     
-	return exec->SetAppBinaryFolder(strFolder);
+    return exec->SetAppBinaryFolder(strFolder);
 }
 
 // --------------------------------------------------------------------
@@ -283,24 +283,24 @@ void OTAPI_Wrap::SetAppBinaryFolder(const std::string & strFolder)
 void OTAPI_Wrap::SetHomeFolder(const std::string & strFolder)
 {
     if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
     
-	return exec->SetHomeFolder(strFolder);
+    return exec->SetHomeFolder(strFolder);
 }
 
 
 OT_API * OTAPI_Wrap::OTAPI()
 {
-	if (NULL == exec)
-	{
-		OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
-		OT_FAIL;
-	}
+    if (NULL == exec)
+    {
+        OTLog::vError("%s: Error: OTAPI_Exec wrapper not found!!\n", __FUNCTION__);
+        OT_FAIL;
+    }
 
-	return exec->OTAPI();
+    return exec->OTAPI();
 }
 
 int64_t OTAPI_Wrap::StringToLong(const std::string & strNumber)
@@ -335,47 +335,47 @@ bool OTAPI_Wrap::SetWallet(const std::string & strWalletFilename)
 
 bool OTAPI_Wrap::WalletExists()
 {
-	return Exec()->WalletExists();
+    return Exec()->WalletExists();
 }
 
 bool OTAPI_Wrap::LoadWallet()
 {
-	return Exec()->LoadWallet();
+    return Exec()->LoadWallet();
 }
 
 bool OTAPI_Wrap::SwitchWallet()
 {
-	return Exec()->LoadWallet();
+    return Exec()->LoadWallet();
 }
 
 int32_t OTAPI_Wrap::GetMemlogSize()
 {
-	return Exec()->GetMemlogSize();
+    return Exec()->GetMemlogSize();
 }
 
 std::string OTAPI_Wrap::GetMemlogAtIndex(const int32_t & nIndex)
 {
-	return Exec()->GetMemlogAtIndex(nIndex);
+    return Exec()->GetMemlogAtIndex(nIndex);
 }
 
 std::string OTAPI_Wrap::PeekMemlogFront()
 {
-	return Exec()->PeekMemlogFront();
+    return Exec()->PeekMemlogFront();
 }
 
 std::string OTAPI_Wrap::PeekMemlogBack()
 {
-	return Exec()->PeekMemlogBack();
+    return Exec()->PeekMemlogBack();
 }
 
 bool OTAPI_Wrap::PopMemlogFront()
 {
-	return Exec()->PopMemlogFront();
+    return Exec()->PopMemlogFront();
 }
 
 bool OTAPI_Wrap::PopMemlogBack()
 {
-	return Exec()->PopMemlogBack();
+    return Exec()->PopMemlogBack();
 }
 
 std::string OTAPI_Wrap::NumList_Add(const std::string & strNumList, const std::string & strNumbers)
@@ -563,12 +563,12 @@ bool OTAPI_Wrap::Wallet_RemoveServer(const std::string & SERVER_ID)
     return Exec()->Wallet_RemoveServer(SERVER_ID);
 }
 
-bool	OTAPI_Wrap::Wallet_CanRemoveAssetType(const std::string & ASSET_ID)
+bool    OTAPI_Wrap::Wallet_CanRemoveAssetType(const std::string & ASSET_ID)
 {
     return Exec()->Wallet_CanRemoveAssetType(ASSET_ID);
 }
 
-bool	OTAPI_Wrap::Wallet_RemoveAssetType(const std::string & ASSET_ID)
+bool    OTAPI_Wrap::Wallet_RemoveAssetType(const std::string & ASSET_ID)
 {
     return Exec()->Wallet_RemoveAssetType(ASSET_ID);
 }
@@ -578,19 +578,19 @@ bool OTAPI_Wrap::Wallet_CanRemoveNym(const std::string & NYM_ID)
     return Exec()->Wallet_CanRemoveNym(NYM_ID);
 }
 
-bool	OTAPI_Wrap::Wallet_RemoveNym(const std::string & NYM_ID)
+bool    OTAPI_Wrap::Wallet_RemoveNym(const std::string & NYM_ID)
 {
     return Exec()->Wallet_RemoveNym(NYM_ID);
 }
 
-bool	OTAPI_Wrap::Wallet_CanRemoveAccount(const std::string & ACCOUNT_ID)
+bool    OTAPI_Wrap::Wallet_CanRemoveAccount(const std::string & ACCOUNT_ID)
 {
     return Exec()->Wallet_CanRemoveAccount(ACCOUNT_ID);
 }
 
 bool OTAPI_Wrap::DoesBoxReceiptExist(const std::string & SERVER_ID, const std::string & USER_ID, const std::string & ACCOUNT_ID, const int32_t & nBoxType, const int64_t & TRANSACTION_NUMBER)
 {
-    return Exec()->DoesBoxReceiptExist(SERVER_ID, USER_ID, ACCOUNT_ID, 	nBoxType, TRANSACTION_NUMBER);
+    return Exec()->DoesBoxReceiptExist(SERVER_ID, USER_ID, ACCOUNT_ID,     nBoxType, TRANSACTION_NUMBER);
 }
 
 int32_t OTAPI_Wrap::getBoxReceipt(const std::string & SERVER_ID, const std::string & USER_ID, const std::string & ACCOUNT_ID, const int32_t & nBoxType, const int64_t & TRANSACTION_NUMBER)
@@ -690,7 +690,7 @@ std::string OTAPI_Wrap::GetNym_OutboxHash(const std::string & ACCOUNT_ID, const 
     return Exec()->GetNym_OutboxHash(ACCOUNT_ID, NYM_ID);
 }
 
-int32_t	OTAPI_Wrap::GetNym_MailCount(const std::string & NYM_ID)
+int32_t    OTAPI_Wrap::GetNym_MailCount(const std::string & NYM_ID)
 {
     return Exec()->GetNym_MailCount(NYM_ID);
 }
@@ -720,7 +720,7 @@ bool OTAPI_Wrap::Nym_VerifyMailByIndex(const std::string & NYM_ID, const int32_t
     return Exec()->Nym_VerifyMailByIndex(NYM_ID, nIndex);
 }
 
-int32_t	OTAPI_Wrap::GetNym_OutmailCount(const std::string & NYM_ID)
+int32_t    OTAPI_Wrap::GetNym_OutmailCount(const std::string & NYM_ID)
 {
     return Exec()->GetNym_OutmailCount(NYM_ID);
 }
@@ -750,7 +750,7 @@ bool OTAPI_Wrap::Nym_VerifyOutmailByIndex(const std::string & NYM_ID, const int3
     return Exec()->Nym_VerifyOutmailByIndex(NYM_ID, nIndex);
 }
 
-int32_t	OTAPI_Wrap::GetNym_OutpaymentsCount(const std::string & NYM_ID)
+int32_t    OTAPI_Wrap::GetNym_OutpaymentsCount(const std::string & NYM_ID)
 {
     return Exec()->GetNym_OutpaymentsCount(NYM_ID);
 }
@@ -970,7 +970,7 @@ std::string OTAPI_Wrap::AddSignature(const std::string & SIGNER_NYM_ID, const st
     return Exec()->AddSignature(SIGNER_NYM_ID, THE_CONTRACT);
 }
 
-bool	OTAPI_Wrap::VerifySignature(const std::string & SIGNER_NYM_ID, const std::string & THE_CONTRACT)
+bool    OTAPI_Wrap::VerifySignature(const std::string & SIGNER_NYM_ID, const std::string & THE_CONTRACT)
 {
     return Exec()->VerifySignature(SIGNER_NYM_ID, THE_CONTRACT);
 }

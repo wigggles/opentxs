@@ -173,15 +173,15 @@ extern "C"
 
 #include <sys/timeb.h>
 
-	// For signal handling in Windows.
-	LONG  Win32FaultHandler(struct _EXCEPTION_POINTERS *  ExInfo);
-	void  LogStackFrames(void *FaultAdress, char *);
+    // For signal handling in Windows.
+    LONG  Win32FaultHandler(struct _EXCEPTION_POINTERS *  ExInfo);
+    void  LogStackFrames(void *FaultAdress, char *);
 
 #else // else if NOT _WIN32
 
 
-	// These added for the signal handling:
-	//
+    // These added for the signal handling:
+    //
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -190,16 +190,16 @@ extern "C"
 #define __USE_GNU
 #endif
 
-	// This shitty apple section is for struct sigcontext for the signal handling.
+    // This shitty apple section is for struct sigcontext for the signal handling.
 #if defined(__APPLE__)
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
 #endif
-	// Fucking Apple!
-	struct sigcontext
-	{
-		int32_t eip;
-	};
+    // Fucking Apple!
+    struct sigcontext
+    {
+        int32_t eip;
+    };
 #endif // defined __APPLE__
 
 
@@ -232,8 +232,8 @@ extern "C"
 
 #include <sys/resource.h>
 
-	//#endif
-	
+    //#endif
+    
 
 #endif // not _WIN32
 
@@ -262,7 +262,7 @@ namespace opentxs {
 OTLog * OTLog::pLogger = NULL;
 
 
-const OTString OTLog::m_strVersion		 = OT_VERSION;
+const OTString OTLog::m_strVersion         = OT_VERSION;
 const OTString OTLog::m_strPathSeparator = "/";
 
 
@@ -319,62 +319,62 @@ int OTLogStream::overflow(int c)
 //static
 bool OTLog::Init(const OTString & strThreadContext, const int32_t & nLogLevel)
 {
-	if (NULL == pLogger)
-	{
-		pLogger = new OTLog();
-		pLogger->m_bInitialized = false;
-	}
+    if (NULL == pLogger)
+    {
+        pLogger = new OTLog();
+        pLogger->m_bInitialized = false;
+    }
 
-	if (strThreadContext.Compare(GLOBAL_LOGNAME)) return false;
+    if (strThreadContext.Compare(GLOBAL_LOGNAME)) return false;
 
-	if (!pLogger->m_bInitialized)
-	{
-		pLogger->logDeque = std::deque <OTString *>();
-		pLogger->m_strThreadContext = strThreadContext;
+    if (!pLogger->m_bInitialized)
+    {
+        pLogger->logDeque = std::deque <OTString *>();
+        pLogger->m_strThreadContext = strThreadContext;
 
-		pLogger->m_nLogLevel = nLogLevel;
+        pLogger->m_nLogLevel = nLogLevel;
 
-		if (!strThreadContext.Exists() || strThreadContext.Compare("")) // global
-		{
-			pLogger->m_strLogFileName = GLOBAL_LOGFILE;
-		}
-		else // not global
-		{
+        if (!strThreadContext.Exists() || strThreadContext.Compare("")) // global
+        {
+            pLogger->m_strLogFileName = GLOBAL_LOGFILE;
+        }
+        else // not global
+        {
 
-			pLogger->m_strLogFileName.Format("%s%s%s",LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
+            pLogger->m_strLogFileName.Format("%s%s%s",LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
 
 
-			OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
+            OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
 
-			config.Reset();
-			if(!config.Load()) { return false; };
+            config.Reset();
+            if(!config.Load()) { return false; };
 
-			bool bIsNew(false);
-			if(!config.CheckSet_str("logfile",strThreadContext,pLogger->m_strLogFileName,pLogger->m_strLogFileName,bIsNew)) { return false; }
+            bool bIsNew(false);
+            if(!config.CheckSet_str("logfile",strThreadContext,pLogger->m_strLogFileName,pLogger->m_strLogFileName,bIsNew)) { return false; }
 
-			if(!config.Save()) { return false; };
-			config.Reset();
+            if(!config.Save()) { return false; };
+            config.Reset();
 
-		}
+        }
 
 #ifdef ANDROID
         if (OTPaths::HomeFolder().Exists())
 #endif
-		if(!OTPaths::AppendFile(pLogger->m_strLogFilePath, OTPaths::AppDataFolder(), pLogger->m_strLogFileName)) { return false; };
+        if(!OTPaths::AppendFile(pLogger->m_strLogFilePath, OTPaths::AppDataFolder(), pLogger->m_strLogFileName)) { return false; };
 
-		pLogger->m_bInitialized = true;
+        pLogger->m_bInitialized = true;
 
         // Set the new log-assert function pointer.
         OTAssert * pLogAssert = new OTAssert(OTLog::logAssert);
         std::swap(pLogAssert, OTAssert::s_pOTAssert);
         delete pLogAssert; pLogAssert = NULL;
 
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 
 }
 
@@ -382,20 +382,20 @@ bool OTLog::Init(const OTString & strThreadContext, const int32_t & nLogLevel)
 //static
 bool OTLog::IsInitialized()
 {
-	return NULL != pLogger && pLogger->m_bInitialized;
+    return NULL != pLogger && pLogger->m_bInitialized;
 }
 
 
 //static
 bool OTLog::Cleanup()
 {
-	if (NULL != pLogger)
-		{
-			delete pLogger;
-			pLogger = NULL;
-			return true;
-	}
-	return false;
+    if (NULL != pLogger)
+        {
+            delete pLogger;
+            pLogger = NULL;
+            return true;
+    }
+    return false;
 }
 
 
@@ -408,22 +408,22 @@ bool OTLog::CheckLogger(OTLog * pLogger)
 }
 
 
-	// OTLog Constants.
+    // OTLog Constants.
 
-	// Compiled into OTLog:
+    // Compiled into OTLog:
 
-const char *		OTLog::Version() { return OTLog::GetVersion().Get(); }
-const OTString &	OTLog::GetVersion() { return m_strVersion; }
+const char *        OTLog::Version() { return OTLog::GetVersion().Get(); }
+const OTString &    OTLog::GetVersion() { return m_strVersion; }
 
-const char *		OTLog::PathSeparator()  { return OTLog::GetPathSeparator().Get(); }
-const OTString &	OTLog::GetPathSeparator()  { return m_strPathSeparator; }
+const char *        OTLog::PathSeparator()  { return OTLog::GetPathSeparator().Get(); }
+const OTString &    OTLog::GetPathSeparator()  { return m_strPathSeparator; }
 
-	// Set in constructor:
+    // Set in constructor:
 
-const OTString &	OTLog::GetThreadContext()   { return pLogger->m_strThreadContext; }
+const OTString &    OTLog::GetThreadContext()   { return pLogger->m_strThreadContext; }
 
-const char *		OTLog::LogFilePath()   { return OTLog::GetLogFilePath().Get(); }
-const OTString &	OTLog::GetLogFilePath() { return pLogger->m_strLogFilePath; }
+const char *        OTLog::LogFilePath()   { return OTLog::GetLogFilePath().Get(); }
+const OTString &    OTLog::GetLogFilePath() { return pLogger->m_strLogFilePath; }
 
 
 //static
@@ -431,7 +431,7 @@ int32_t             OTLog::LogLevel()  { if (NULL != pLogger) return pLogger->m_
 
 
 //static
-bool			    OTLog::SetLogLevel(const int32_t & nLogLevel)
+bool                OTLog::SetLogLevel(const int32_t & nLogLevel)
 {
     if (NULL == pLogger) { OT_FAIL; }
     else { pLogger->m_nLogLevel = nLogLevel; return true; }
@@ -448,65 +448,65 @@ bool			    OTLog::SetLogLevel(const int32_t & nLogLevel)
 //static
 bool OTLog::LogToFile(const OTString & strOutput)
 {
-	// We now do this either way.
-	{
-		std::cerr << strOutput;
-		std::cerr.flush();
-	}
+    // We now do this either way.
+    {
+        std::cerr << strOutput;
+        std::cerr.flush();
+    }
 
-	// now log to file, if we can.
+    // now log to file, if we can.
 
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-	bool bSuccess = false;
+    bool bSuccess = false;
 
-	if (bHaveLogger) {
-		// Append to logfile
-		if ((strOutput.Exists()) && (OTLog::pLogger->m_strLogFilePath.Exists()))
-		{
-			std::ofstream logfile;
-			logfile.open (OTLog::LogFilePath(), std::ios::app);
+    if (bHaveLogger) {
+        // Append to logfile
+        if ((strOutput.Exists()) && (OTLog::pLogger->m_strLogFilePath.Exists()))
+        {
+            std::ofstream logfile;
+            logfile.open (OTLog::LogFilePath(), std::ios::app);
 
-			if(!logfile.fail())
-			{
-				logfile << strOutput;
-				logfile.close();
-				bSuccess = true;
-			}
-		}
-	}
+            if(!logfile.fail())
+            {
+                logfile << strOutput;
+                logfile.close();
+                bSuccess = true;
+            }
+        }
+    }
 
 
-	return bSuccess;
+    return bSuccess;
 }
 
 
 const OTString OTLog::GetMemlogAtIndex(const int32_t nIndex)
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	uint32_t uIndex = static_cast<uint32_t> (nIndex);
+    uint32_t uIndex = static_cast<uint32_t> (nIndex);
 
-	if ((nIndex < 0) || (uIndex >= OTLog::pLogger->logDeque.size()))
-	{
-		otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
-		return "";
-	}
+    if ((nIndex < 0) || (uIndex >= OTLog::pLogger->logDeque.size()))
+    {
+        otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
+        return "";
+    }
 
-	if (NULL != OTLog::pLogger->logDeque.at(uIndex));  // check for null
-	else OT_FAIL;
+    if (NULL != OTLog::pLogger->logDeque.at(uIndex));  // check for null
+    else OT_FAIL;
 
-	const OTString strLogEntry = *OTLog::pLogger->logDeque.at(uIndex);
+    const OTString strLogEntry = *OTLog::pLogger->logDeque.at(uIndex);
 
-	if (strLogEntry.Exists()) return strLogEntry;
-	else return "";
+    if (strLogEntry.Exists()) return strLogEntry;
+    else return "";
 }
 
 
@@ -514,117 +514,117 @@ const OTString OTLog::GetMemlogAtIndex(const int32_t nIndex)
 
 int32_t OTLog::GetMemlogSize()
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	return static_cast<int32_t> (OTLog::pLogger->logDeque.size());
+    return static_cast<int32_t> (OTLog::pLogger->logDeque.size());
 }
 
 
 const OTString OTLog::PeekMemlogFront()
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	if (OTLog::pLogger->logDeque.size() <= 0)
-		return NULL;
+    if (OTLog::pLogger->logDeque.size() <= 0)
+        return NULL;
 
-	if (NULL != OTLog::pLogger->logDeque.front());  // check for null
-	else OT_FAIL;
+    if (NULL != OTLog::pLogger->logDeque.front());  // check for null
+    else OT_FAIL;
 
-	const OTString strLogEntry = *OTLog::pLogger->logDeque.front();
+    const OTString strLogEntry = *OTLog::pLogger->logDeque.front();
 
-	if (strLogEntry.Exists()) return strLogEntry;
-	else return "";
+    if (strLogEntry.Exists()) return strLogEntry;
+    else return "";
 }
 
 
 const OTString OTLog::PeekMemlogBack()
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	if (OTLog::pLogger->logDeque.size() <= 0)
-		return NULL;
+    if (OTLog::pLogger->logDeque.size() <= 0)
+        return NULL;
 
-	if (NULL != OTLog::pLogger->logDeque.back());  // check for null
-	else OT_FAIL;
+    if (NULL != OTLog::pLogger->logDeque.back());  // check for null
+    else OT_FAIL;
 
-	const OTString strLogEntry = *OTLog::pLogger->logDeque.back();
+    const OTString strLogEntry = *OTLog::pLogger->logDeque.back();
 
-	if (strLogEntry.Exists()) return strLogEntry;
-	else return "";
+    if (strLogEntry.Exists()) return strLogEntry;
+    else return "";
 }
 
 
 //static
 bool OTLog::PopMemlogFront()
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	if (OTLog::pLogger->logDeque.size() <= 0)
-		return false;
+    if (OTLog::pLogger->logDeque.size() <= 0)
+        return false;
 
-	OTString * strLogFront = OTLog::pLogger->logDeque.front();
-	if (NULL != strLogFront) delete strLogFront;
-	strLogFront = NULL;
+    OTString * strLogFront = OTLog::pLogger->logDeque.front();
+    if (NULL != strLogFront) delete strLogFront;
+    strLogFront = NULL;
 
-	OTLog::pLogger->logDeque.pop_front();
+    OTLog::pLogger->logDeque.pop_front();
 
-	return true;
+    return true;
 }
 
 
 //static
 bool OTLog::PopMemlogBack()
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	if (OTLog::pLogger->logDeque.size() <= 0)
-		return false;
+    if (OTLog::pLogger->logDeque.size() <= 0)
+        return false;
 
-	OTString * strLogBack = OTLog::pLogger->logDeque.back();
-	if (NULL != strLogBack) delete strLogBack;
-	strLogBack = NULL;
+    OTString * strLogBack = OTLog::pLogger->logDeque.back();
+    if (NULL != strLogBack) delete strLogBack;
+    strLogBack = NULL;
 
-	OTLog::pLogger->logDeque.pop_back();
+    OTLog::pLogger->logDeque.pop_back();
 
-	return true;
+    return true;
 }
 
 
 //static
 bool OTLog::PushMemlogFront(const OTString & strLog)
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	OT_ASSERT(strLog.Exists());
+    OT_ASSERT(strLog.Exists());
 
-	OTLog::pLogger->logDeque.push_front(new OTString(strLog));
+    OTLog::pLogger->logDeque.push_front(new OTString(strLog));
 
-	if (OTLog::pLogger->logDeque.size() > LOG_DEQUE_SIZE)
-	{
-		OTLog::PopMemlogBack(); // We start removing from the back when it reaches this size.
-	}
+    if (OTLog::pLogger->logDeque.size() > LOG_DEQUE_SIZE)
+    {
+        OTLog::PopMemlogBack(); // We start removing from the back when it reaches this size.
+    }
 
-	return true;
+    return true;
 }
 
 
 //static
 bool OTLog::PushMemlogBack(const OTString & strLog)
 {
-	// lets check if we are Initialized in this context
-	CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    CheckLogger(OTLog::pLogger);
 
-	OT_ASSERT(strLog.Exists());
+    OT_ASSERT(strLog.Exists());
 
-	OTLog::pLogger->logDeque.push_back(new OTString(strLog));
+    OTLog::pLogger->logDeque.push_back(new OTString(strLog));
 
-	return true;
+    return true;
 }
 
 
@@ -634,9 +634,9 @@ bool OTLog::SleepSeconds(int64_t lSeconds)
 #ifdef _WIN32
     Sleep(static_cast<DWORD>(1000 * lSeconds));
 #else
-	sleep(lSeconds);
+    sleep(lSeconds);
 #endif
-	return true;
+    return true;
 }
 
 
@@ -644,11 +644,11 @@ bool OTLog::SleepSeconds(int64_t lSeconds)
 bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
 {
 #ifdef _WIN32
-	Sleep(static_cast<DWORD>(lMilliseconds));
+    Sleep(static_cast<DWORD>(lMilliseconds));
 #else
-	usleep( lMilliseconds * 1000 );
+    usleep( lMilliseconds * 1000 );
 #endif
-	return true;
+    return true;
 }
 
 
@@ -658,20 +658,20 @@ bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
 //static private
 size_t OTLog::logAssert(const char * szFilename, size_t nLinenumber, const char * szMessage)
 {
-	if (NULL != szMessage)
-	{
+    if (NULL != szMessage)
+    {
 #ifndef ANDROID // if NOT android
-		std::cerr << szMessage << "\n";
+        std::cerr << szMessage << "\n";
 
-		LogToFile(szMessage); LogToFile("\n");
+        LogToFile(szMessage); LogToFile("\n");
 
 
 #else // if Android
-		__android_log_write(ANDROID_LOG_FATAL,"OT Assert (or Fail)", szMessage);
+        __android_log_write(ANDROID_LOG_FATAL,"OT Assert (or Fail)", szMessage);
 #endif
 
-		print_stacktrace();
-	}
+        print_stacktrace();
+    }
 
     if ((NULL != szFilename))
     {
@@ -702,60 +702,60 @@ size_t OTLog::logAssert(const char * szFilename, size_t nLinenumber, const char 
 
 void OTLog::Output(int32_t nVerbosity, const char *szOutput)
 {
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
 
-	// If log level is 0, and verbosity of this message is 2, don't bother logging it.
-	//	if (nVerbosity > OTLog::__CurrentLogLevel || (NULL == szOutput))
-	if ((nVerbosity > LogLevel()) || (NULL == szOutput) || (LogLevel() == (-1)))
-		return;
+    // If log level is 0, and verbosity of this message is 2, don't bother logging it.
+    //    if (nVerbosity > OTLog::__CurrentLogLevel || (NULL == szOutput))
+    if ((nVerbosity > LogLevel()) || (NULL == szOutput) || (LogLevel() == (-1)))
+        return;
 
-	// We store the last 1024 logs so programmers can access them via the API.
-	if (bHaveLogger) OTLog::PushMemlogFront(szOutput);
+    // We store the last 1024 logs so programmers can access them via the API.
+    if (bHaveLogger) OTLog::PushMemlogFront(szOutput);
 
 
 
 #ifndef ANDROID // if NOT android
 
-	LogToFile(szOutput);
+    LogToFile(szOutput);
 
 #else // if IS Android
-	/*
-	typedef enum android_LogPriority {
-	ANDROID_LOG_UNKNOWN = 0,
-	ANDROID_LOG_DEFAULT,    // only for SetMinPriority()
-	ANDROID_LOG_VERBOSE,
-	ANDROID_LOG_DEBUG,
-	ANDROID_LOG_INFO,
-	ANDROID_LOG_WARN,
-	ANDROID_LOG_ERROR,
-	ANDROID_LOG_FATAL,
-	ANDROID_LOG_SILENT,     // only for SetMinPriority(); must be last
-	} android_LogPriority;
-	*/
-	switch (nVerbosity) {
-	case 0:
-	case 1:
-		__android_log_write(ANDROID_LOG_INFO,"OT Output", szOutput);
-		break;
-	case 2:
-	case 3:
-		__android_log_write(ANDROID_LOG_DEBUG,"OT Debug", szOutput);
-		break;
-	case 4:
-	case 5:
-		__android_log_write(ANDROID_LOG_VERBOSE,"OT Verbose", szOutput);
-		break;
-	default:
-		__android_log_write(ANDROID_LOG_UNKNOWN,"OT Unknown", szOutput);
-		break;
-	}
+    /*
+    typedef enum android_LogPriority {
+    ANDROID_LOG_UNKNOWN = 0,
+    ANDROID_LOG_DEFAULT,    // only for SetMinPriority()
+    ANDROID_LOG_VERBOSE,
+    ANDROID_LOG_DEBUG,
+    ANDROID_LOG_INFO,
+    ANDROID_LOG_WARN,
+    ANDROID_LOG_ERROR,
+    ANDROID_LOG_FATAL,
+    ANDROID_LOG_SILENT,     // only for SetMinPriority(); must be last
+    } android_LogPriority;
+    */
+    switch (nVerbosity) {
+    case 0:
+    case 1:
+        __android_log_write(ANDROID_LOG_INFO,"OT Output", szOutput);
+        break;
+    case 2:
+    case 3:
+        __android_log_write(ANDROID_LOG_DEBUG,"OT Debug", szOutput);
+        break;
+    case 4:
+    case 5:
+        __android_log_write(ANDROID_LOG_VERBOSE,"OT Verbose", szOutput);
+        break;
+    default:
+        __android_log_write(ANDROID_LOG_UNKNOWN,"OT Unknown", szOutput);
+        break;
+    }
 #endif
 }
 
@@ -763,62 +763,62 @@ void OTLog::Output(int32_t nVerbosity, const char *szOutput)
 // the vOutput is to avoid name conflicts.
 void OTLog::vOutput(int32_t nVerbosity, const char *szOutput, ...)
 {
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-	// If log level is 0, and verbosity of this message is 2, don't bother logging it.
-	if (((0 != LogLevel()) && (nVerbosity > LogLevel())) || (NULL == szOutput))
-		return;
+    // If log level is 0, and verbosity of this message is 2, don't bother logging it.
+    if (((0 != LogLevel()) && (nVerbosity > LogLevel())) || (NULL == szOutput))
+        return;
 
-	va_list args;
-	va_start(args, szOutput);
+    va_list args;
+    va_start(args, szOutput);
 
-	std::string strOutput;
+    std::string strOutput;
 
-	const bool bFormatted = OTString::vformat(szOutput, &args, strOutput);
+    const bool bFormatted = OTString::vformat(szOutput, &args, strOutput);
 
-	va_end(args);
+    va_end(args);
 
     if (bFormatted)
         OTLog::Output(nVerbosity, strOutput.c_str());
     else
         OT_FAIL;
-		return;
+        return;
 }
 
 
 // the vError name is to avoid name conflicts
 void OTLog::vError(const char *szError, ...)
 {
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-	if ((NULL == szError))
-		return;
+    if ((NULL == szError))
+        return;
 
 
-	va_list args;
-	va_start(args, szError);
+    va_list args;
+    va_start(args, szError);
 
-	std::string strOutput;
+    std::string strOutput;
 
     const bool bFormatted = OTString::vformat(szError, &args, strOutput);
 
-	va_end(args);
+    va_end(args);
 
     if (bFormatted)
         OTLog::Error(strOutput.c_str());
-	else OT_FAIL;
+    else OT_FAIL;
 
 }
 
@@ -828,26 +828,26 @@ void OTLog::vError(const char *szError, ...)
 
 void OTLog::Error(const char *szError)
 {
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-	if ((NULL == szError))
-		return;
+    if ((NULL == szError))
+        return;
 
-	// We store the last 1024 logs so programmers can access them via the API.
-	if (bHaveLogger) OTLog::PushMemlogFront(szError);
+    // We store the last 1024 logs so programmers can access them via the API.
+    if (bHaveLogger) OTLog::PushMemlogFront(szError);
 
 #ifndef ANDROID // if NOT android
 
-	LogToFile(szError);
+    LogToFile(szError);
 
 #else // if Android
-	__android_log_write(ANDROID_LOG_ERROR,"OT Error", szError);
+    __android_log_write(ANDROID_LOG_ERROR,"OT Error", szError);
 #endif
 }
 
@@ -859,40 +859,40 @@ void OTLog::Error(const char *szError)
 //static
 void OTLog::Errno(const char * szLocation/*=NULL*/) // stderr
 {
-	bool bHaveLogger(false);
-	if (NULL != pLogger)
-		if (pLogger->IsInitialized())
-			bHaveLogger = true;
+    bool bHaveLogger(false);
+    if (NULL != pLogger)
+        if (pLogger->IsInitialized())
+            bHaveLogger = true;
 
-	// lets check if we are Initialized in this context
-	if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    // lets check if we are Initialized in this context
+    if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-	const int32_t errnum = errno;
-	char buf[128]; buf[0] = '\0';
+    const int32_t errnum = errno;
+    char buf[128]; buf[0] = '\0';
 
-	int32_t nstrerr = 0;
-	char * szErrString = NULL;
+    int32_t nstrerr = 0;
+    char * szErrString = NULL;
 
-	//#if((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
+    //#if((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE))
 
 #if defined(_GNU_SOURCE) && defined(__linux__) && !defined(ANDROID)
-	szErrString = strerror_r(errnum, buf, 127);
+    szErrString = strerror_r(errnum, buf, 127);
 #elif (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
-	nstrerr = strerror_r(errnum, buf, 127); // (strerror_r is threadsafe version of strerror)
+    nstrerr = strerror_r(errnum, buf, 127); // (strerror_r is threadsafe version of strerror)
 #endif
 
-	const char * szFunc = "OTLog::Errno";
-	const char * sz_location = (NULL == szLocation) ? "" : szLocation;
+    const char * szFunc = "OTLog::Errno";
+    const char * sz_location = (NULL == szLocation) ? "" : szLocation;
 
-	if (NULL == szErrString)
-		szErrString = buf;
+    if (NULL == szErrString)
+        szErrString = buf;
 
-	if (0 == nstrerr)
-		otErr << szFunc << " " << sz_location << ": errno " << errnum <<
-		": " << (szErrString[0] != '\0' ? szErrString : "") << ".\n";
-	else
-		otErr << szFunc << " " << sz_location << ": errno: " << errnum <<
-		". (Unable to retrieve error string for that number.)\n";
+    if (0 == nstrerr)
+        otErr << szFunc << " " << sz_location << ": errno " << errnum <<
+        ": " << (szErrString[0] != '\0' ? szErrString : "") << ".\n";
+    else
+        otErr << szFunc << " " << sz_location << ": errno: " << errnum <<
+        ". (Unable to retrieve error string for that number.)\n";
 }
 
 
@@ -900,17 +900,17 @@ void OTLog::Errno(const char * szLocation/*=NULL*/) // stderr
 
 bool OTLog::StringFill(OTString & out_strString, const char * szString, const int32_t iLength, const char * szAppend)
 {
-	std::string strString(szString);
+    std::string strString(szString);
 
-	if (NULL != szAppend)
+    if (NULL != szAppend)
         strString.append(szAppend);
 
-	for(;(static_cast<int32_t>(strString.length()) < iLength); strString.append(" "))
+    for(;(static_cast<int32_t>(strString.length()) < iLength); strString.append(" "))
         ;
 
-	out_strString.Set(strString.c_str());
+    out_strString.Set(strString.c_str());
 
-	return true;
+    return true;
 }
 
 
@@ -947,101 +947,101 @@ namespace {
 //
 void ot_terminate()
 {
-	static tthread::mutex the_Mutex;
+    static tthread::mutex the_Mutex;
 
-	tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
-	static bool tried_throw = false;
+    static bool tried_throw = false;
 
-	try {
-		// try once to re-throw currently active exception
-		if (!tried_throw) {
-			tried_throw = true;
-			throw;
-		}
-	}
-	catch (const std::exception &e) {
-		std::cerr << "ot_terminate: " << __FUNCTION__ << " caught unhandled exception. type: " << typeid(e).name() << " what(): "
-			<< e.what() << std::endl;
-	}
-	catch (...) {
-		std::cerr << "ot_terminate: " << __FUNCTION__ << " caught unknown/unhandled exception."
-			<< std::endl;
-	}
+    try {
+        // try once to re-throw currently active exception
+        if (!tried_throw) {
+            tried_throw = true;
+            throw;
+        }
+    }
+    catch (const std::exception &e) {
+        std::cerr << "ot_terminate: " << __FUNCTION__ << " caught unhandled exception. type: " << typeid(e).name() << " what(): "
+            << e.what() << std::endl;
+    }
+    catch (...) {
+        std::cerr << "ot_terminate: " << __FUNCTION__ << " caught unknown/unhandled exception."
+            << std::endl;
+    }
 
-	// UNIX
+    // UNIX
 
 #if !defined(_WIN32) && !defined(ANDROID) // we don't have to deal with mangled_names on windows. (well I'm not going to attempt to.)
 
-	void * array[50];
-	int32_t size = backtrace(array, 50);
+    void * array[50];
+    int32_t size = backtrace(array, 50);
 
-	char ** messages = backtrace_symbols(array, size);
+    char ** messages = backtrace_symbols(array, size);
 
-	// skip first stack frame (points here)
-	for (int32_t i = 1; i < size && messages != NULL; ++i)
-	{
-		char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
+    // skip first stack frame (points here)
+    for (int32_t i = 1; i < size && messages != NULL; ++i)
+    {
+        char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
-		// find parantheses and +address offset surrounding mangled name
-		for (char *p = messages[i]; *p; ++p)
-		{
-			if (*p == '(')
-			{
-				mangled_name = p;
-			}
-			else if (*p == '+')
-			{
-				offset_begin = p;
-			}
-			else if (*p == ')')
-			{
-				offset_end = p;
-				break;
-			}
-		}
+        // find parantheses and +address offset surrounding mangled name
+        for (char *p = messages[i]; *p; ++p)
+        {
+            if (*p == '(')
+            {
+                mangled_name = p;
+            }
+            else if (*p == '+')
+            {
+                offset_begin = p;
+            }
+            else if (*p == ')')
+            {
+                offset_end = p;
+                break;
+            }
+        }
 
-		// if the line could be processed, attempt to demangle the symbol
-		if (mangled_name && offset_begin && offset_end &&
-			mangled_name < offset_begin)
-		{
-			*mangled_name++ = '\0';
-			*offset_begin++ = '\0';
-			*offset_end++ = '\0';
+        // if the line could be processed, attempt to demangle the symbol
+        if (mangled_name && offset_begin && offset_end &&
+            mangled_name < offset_begin)
+        {
+            *mangled_name++ = '\0';
+            *offset_begin++ = '\0';
+            *offset_end++ = '\0';
 
-			int32_t status;
-			char * real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+            int32_t status;
+            char * real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
 
-			// if demangling is successful, output the demangled function name
-			if (status == 0)
-			{
-				std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-					<< real_name << "+" << offset_begin << offset_end
-					<< std::endl;
+            // if demangling is successful, output the demangled function name
+            if (status == 0)
+            {
+                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
+                    << real_name << "+" << offset_begin << offset_end
+                    << std::endl;
 
-			}
-			// otherwise, output the mangled function name
-			else
-			{
-				std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-					<< mangled_name << "+" << offset_begin << offset_end
-					<< std::endl;
-			}
-			if (NULL != real_name) free(real_name);
-		}
-		// otherwise, print the whole line
-		else
-		{
-			std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
-		}
-	}
-	std::cerr << std::endl;
+            }
+            // otherwise, output the mangled function name
+            else
+            {
+                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
+                    << mangled_name << "+" << offset_begin << offset_end
+                    << std::endl;
+            }
+            if (NULL != real_name) free(real_name);
+        }
+        // otherwise, print the whole line
+        else
+        {
+            std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
+        }
+    }
+    std::cerr << std::endl;
 
-	free(messages);
+    free(messages);
 
 #endif
 
-	abort();
+    abort();
 }
 
 
@@ -1056,13 +1056,13 @@ void ot_terminate()
 //static
 void OTLog::SetupSignalHandler()
 {
-	static int32_t nCount = 0;
+    static int32_t nCount = 0;
 
-	if (0 == nCount)
-	{
-		++nCount;
-		SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)Win32FaultHandler);
-	}
+    if (0 == nCount)
+    {
+        ++nCount;
+        SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)Win32FaultHandler);
+    }
 }
 
 
@@ -1075,19 +1075,19 @@ void OTLog::SetupSignalHandler()
 //
 
 struct sig_ucontext_t {
-	//  typedef struct _sig_ucontext {
-	uint64_t     uc_flags;
-	struct ucontext   *uc_link;
-	stack_t           uc_stack;
-	struct sigcontext uc_mcontext;
-	sigset_t          uc_sigmask;
+    //  typedef struct _sig_ucontext {
+    uint64_t     uc_flags;
+    struct ucontext   *uc_link;
+    stack_t           uc_stack;
+    struct sigcontext uc_mcontext;
+    sigset_t          uc_sigmask;
 };
 
 extern "C" {
-	// This structure mirrors the one found in /usr/include/asm/ucontext.h
-	//
+    // This structure mirrors the one found in /usr/include/asm/ucontext.h
+    //
 
-	void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext);
+    void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext);
 }
 
 #if defined(OT_NO_DEMANGLING_STACK_TRACE)
@@ -1095,43 +1095,43 @@ extern "C" {
 // this version doesn't do demangling.
 void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
 {
-	void *             array[50];
-	void *             caller_address;
-	char **            messages;
-	int32_t                size, i;
-	sig_ucontext_t *   uc;
+    void *             array[50];
+    void *             caller_address;
+    char **            messages;
+    int32_t                size, i;
+    sig_ucontext_t *   uc;
 
-	static tthread::mutex the_Mutex;
+    static tthread::mutex the_Mutex;
 
-	tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
-	uc = static_cast<sig_ucontext_t *>(ucontext);
+    uc = static_cast<sig_ucontext_t *>(ucontext);
 
-	// Get the address at the time the signal was raised from the EIP (x86)
-	caller_address = (void *) uc->uc_mcontext.eip;
+    // Get the address at the time the signal was raised from the EIP (x86)
+    caller_address = (void *) uc->uc_mcontext.eip;
 
-	fprintf(stderr, "signal %d (%s), address is %p from %p\n",
-		sig_num, strsignal(sig_num), info->si_addr,
-		(void *)caller_address);
+    fprintf(stderr, "signal %d (%s), address is %p from %p\n",
+        sig_num, strsignal(sig_num), info->si_addr,
+        (void *)caller_address);
 
-	size = backtrace(array, 50);
+    size = backtrace(array, 50);
 
-	// overwrite sigaction with caller's address
-	//
-	array[1] = caller_address;
+    // overwrite sigaction with caller's address
+    //
+    array[1] = caller_address;
 
-	messages = backtrace_symbols(array, size);
+    messages = backtrace_symbols(array, size);
 
-	// skip first stack frame (points here)
-	//
-	for (i = 1; i < size && messages != NULL; ++i)
-	{
-		fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
-	}
+    // skip first stack frame (points here)
+    //
+    for (i = 1; i < size && messages != NULL; ++i)
+    {
+        fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
+    }
 
-	free(messages);
+    free(messages);
 
-	_exit(0);
+    _exit(0);
 }
 
 #else   // #if no demangling, #else...
@@ -1227,161 +1227,161 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
 void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 {
 #ifndef ANDROID
-	static tthread::mutex the_Mutex;
+    static tthread::mutex the_Mutex;
 
-	tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
 
-	OT_ASSERT(NULL != v);
+    OT_ASSERT(NULL != v);
 
 #ifdef _LP64
-	typedef uint64_t ot_ulong;
+    typedef uint64_t ot_ulong;
 #else
-	typedef uint32_t ot_ulong;
+    typedef uint32_t ot_ulong;
 #endif // lp64
 
-	ot_ulong eip = 0;
-	ucontext_t *uc = (ucontext_t *)v;
+    ot_ulong eip = 0;
+    ucontext_t *uc = (ucontext_t *)v;
 
 #if defined(__APPLE__)
 #ifdef __arm__
-	_STRUCT_MCONTEXT *mc; // mcontext_t seems to be missing from arm/_structs.h
-	mc = uc->uc_mcontext;
-	//eip = mc->__ss.__eip; // arm doesn't have eip
+    _STRUCT_MCONTEXT *mc; // mcontext_t seems to be missing from arm/_structs.h
+    mc = uc->uc_mcontext;
+    //eip = mc->__ss.__eip; // arm doesn't have eip
 #else
-	mcontext_t mc;
-	mc = uc->uc_mcontext;
+    mcontext_t mc;
+    mc = uc->uc_mcontext;
 #ifdef _LP64
-	eip = mc->__ss.__rip;
+    eip = mc->__ss.__rip;
 #else
-	eip = mc->__ss.__eip;
+    eip = mc->__ss.__eip;
 #endif
 #endif // __arm__
 #elif defined(__linux__)
-	mcontext_t *mc;
-	struct sigcontext *ctx;
-	mc = &uc->uc_mcontext;
-	ctx = (struct sigcontext*)mc;
+    mcontext_t *mc;
+    struct sigcontext *ctx;
+    mc = &uc->uc_mcontext;
+    ctx = (struct sigcontext*)mc;
 #ifdef __i386__
-	eip = ctx->eip;
+    eip = ctx->eip;
 #else
-	eip = ctx->rip;
+    eip = ctx->rip;
 #endif
 #elif defined(__FreeBSD__)
-	mcontext_t *mc;
-	mc = &uc->uc_mcontext;
+    mcontext_t *mc;
+    mc = &uc->uc_mcontext;
 #ifdef __i386__
-	eip = mc->mc_eip;
+    eip = mc->mc_eip;
 #elif defined(__amd64__)
-	eip = mc->mc_rip;
+    eip = mc->mc_rip;
 #endif
-	ot_ulong addr = (ot_ulong)info->si_addr;
-	if(__FreeBSD__ < 7){
-		/*
-		* FreeBSD /usr/src/sys/i386/i386/trap.c kludgily reuses
-		* frame->tf_err as somewhere to put the faulting address
-		* (cr2) when calling into the generic signal dispatcher.
-		* Unfortunately, that means that the bit in tf_err that says
-		* whether this is a read or write fault is irretrievably gone.
-		* So we have to figure it out.  Let's assume that if the page
-		* is already mapped in core, it is a write fault.  If not, it is a
-		* read fault.
-		*
-		* This is apparently fixed in FreeBSD 7, but I don't have any
-		* FreeBSD 7 machines on which to verify this.
-		*/
-		char vec;
-		int32_t r;
+    ot_ulong addr = (ot_ulong)info->si_addr;
+    if(__FreeBSD__ < 7){
+        /*
+        * FreeBSD /usr/src/sys/i386/i386/trap.c kludgily reuses
+        * frame->tf_err as somewhere to put the faulting address
+        * (cr2) when calling into the generic signal dispatcher.
+        * Unfortunately, that means that the bit in tf_err that says
+        * whether this is a read or write fault is irretrievably gone.
+        * So we have to figure it out.  Let's assume that if the page
+        * is already mapped in core, it is a write fault.  If not, it is a
+        * read fault.
+        *
+        * This is apparently fixed in FreeBSD 7, but I don't have any
+        * FreeBSD 7 machines on which to verify this.
+        */
+        char vec;
+        int32_t r;
 
-		vec = 0;
-		r = mincore((void*)addr, 1, &vec);
-		//iprint("FreeBSD fault [%d]: addr=%p[%p] mincore=%d vec=%#x errno=%d\n", signo, addr, (uchar*)addr-uzero, r, vec, errno);
-		if(r < 0 || vec == 0)
-			mc->mc_err = 0; /* read fault */
-		else
-			mc->mc_err = 2; /* write fault */
-	}
+        vec = 0;
+        r = mincore((void*)addr, 1, &vec);
+        //iprint("FreeBSD fault [%d]: addr=%p[%p] mincore=%d vec=%#x errno=%d\n", signo, addr, (uchar*)addr-uzero, r, vec, errno);
+        if(r < 0 || vec == 0)
+            mc->mc_err = 0; /* read fault */
+        else
+            mc->mc_err = 2; /* write fault */
+    }
 #else
 #       error   "Unknown OS in sigsegv"
 #endif
 
 
-	void * caller_address = (void *) eip;
+    void * caller_address = (void *) eip;
 
-	std::cerr << "signal " << sig_num
-		<< " (" << strsignal(sig_num) << "), address is "
-		<< info->si_addr << " from " << caller_address
-		<< std::endl << std::endl;
+    std::cerr << "signal " << sig_num
+        << " (" << strsignal(sig_num) << "), address is "
+        << info->si_addr << " from " << caller_address
+        << std::endl << std::endl;
 
-	void * array[50];
-	int32_t size = backtrace(array, 50);
+    void * array[50];
+    int32_t size = backtrace(array, 50);
 
-	array[1] = caller_address;
+    array[1] = caller_address;
 
-	char ** messages = backtrace_symbols(array, size);
+    char ** messages = backtrace_symbols(array, size);
 
-	// skip first stack frame (points here)
-	for (int32_t i = 1; i < size && messages != NULL; ++i)
-	{
-		char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
+    // skip first stack frame (points here)
+    for (int32_t i = 1; i < size && messages != NULL; ++i)
+    {
+        char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
-		// find parantheses and +address offset surrounding mangled name
-		for (char *p = messages[i]; *p; ++p)
-		{
-			if (*p == '(')
-			{
-				mangled_name = p;
-			}
-			else if (*p == '+')
-			{
-				offset_begin = p;
-			}
-			else if (*p == ')')
-			{
-				offset_end = p;
-				break;
-			}
-		}
+        // find parantheses and +address offset surrounding mangled name
+        for (char *p = messages[i]; *p; ++p)
+        {
+            if (*p == '(')
+            {
+                mangled_name = p;
+            }
+            else if (*p == '+')
+            {
+                offset_begin = p;
+            }
+            else if (*p == ')')
+            {
+                offset_end = p;
+                break;
+            }
+        }
 
-		// if the line could be processed, attempt to demangle the symbol
-		if (mangled_name && offset_begin && offset_end &&
-			mangled_name < offset_begin)
-		{
-			*mangled_name++ = '\0';
-			*offset_begin++ = '\0';
-			*offset_end++ = '\0';
+        // if the line could be processed, attempt to demangle the symbol
+        if (mangled_name && offset_begin && offset_end &&
+            mangled_name < offset_begin)
+        {
+            *mangled_name++ = '\0';
+            *offset_begin++ = '\0';
+            *offset_end++ = '\0';
 
-			int32_t status;
-			char * real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+            int32_t status;
+            char * real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
 
-			// if demangling is successful, output the demangled function name
-			if (status == 0)
-			{
-				std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-					<< real_name << "+" << offset_begin << offset_end
-					<< std::endl;
+            // if demangling is successful, output the demangled function name
+            if (status == 0)
+            {
+                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
+                    << real_name << "+" << offset_begin << offset_end
+                    << std::endl;
 
-			}
-			// otherwise, output the mangled function name
-			else
-			{
-				std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-					<< mangled_name << "+" << offset_begin << offset_end
-					<< std::endl;
-			}
-			free(real_name);
-		}
-		// otherwise, print the whole line
-		else
-		{
-			std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
-		}
-	}
-	std::cerr << std::endl;
+            }
+            // otherwise, output the mangled function name
+            else
+            {
+                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
+                    << mangled_name << "+" << offset_begin << offset_end
+                    << std::endl;
+            }
+            free(real_name);
+        }
+        // otherwise, print the whole line
+        else
+        {
+            std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
+        }
+    }
+    std::cerr << std::endl;
 
-	free(messages);
+    free(messages);
 #endif // #ifndef ANDROID
-	_exit(0);
+    _exit(0);
 }
 
 
@@ -1391,21 +1391,21 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t *info, void *v)
 #ifndef OT_HANDLE_SIGNAL
 #define OT_HANDLE_SIGNAL(OT_SIGNAL_TYPE) \
 { \
-	\
+    \
 struct sigaction new_action, old_action; \
-	new_action.sa_sigaction = crit_err_hdlr; \
-	sigemptyset (&new_action.sa_mask); \
-	new_action.sa_flags = SA_RESTART | SA_SIGINFO;  \
-	\
-	sigaction(OT_SIGNAL_TYPE, NULL, &old_action); \
-	\
-	if (old_action.sa_handler != SIG_IGN) \
+    new_action.sa_sigaction = crit_err_hdlr; \
+    sigemptyset (&new_action.sa_mask); \
+    new_action.sa_flags = SA_RESTART | SA_SIGINFO;  \
+    \
+    sigaction(OT_SIGNAL_TYPE, NULL, &old_action); \
+    \
+    if (old_action.sa_handler != SIG_IGN) \
 { \
-	if (sigaction(OT_SIGNAL_TYPE, &new_action, NULL) != 0) \
+    if (sigaction(OT_SIGNAL_TYPE, &new_action, NULL) != 0) \
 { \
     otErr << "OTLog::SetupSignalHandler: Failed setting signal handler for error " << OT_SIGNAL_TYPE \
           << " (" << strsignal(OT_SIGNAL_TYPE) << ")\n"; \
-	abort(); \
+    abort(); \
 } \
 } \
 }
@@ -1415,11 +1415,11 @@ struct sigaction new_action, old_action; \
 //static
 void OTLog::SetupSignalHandler()
 {
-	static int32_t nCount = 0;
+    static int32_t nCount = 0;
 
-	if (0 == nCount)
-	{
-		++nCount;
+    if (0 == nCount)
+    {
+        ++nCount;
 
         OT_HANDLE_SIGNAL(SIGINT)  // Ctrl-C. (So we can shutdown gracefully, I suppose, on Ctrl-C.)
         OT_HANDLE_SIGNAL(SIGSEGV) // Segmentation fault.
@@ -1438,7 +1438,7 @@ void OTLog::SetupSignalHandler()
         OT_HANDLE_SIGNAL(SIGSYS)  // sent when a process supplies an incorrect argument to a system call.
 //      OT_HANDLE_SIGNAL(SIGTRAP) // used by debuggers
 
-	}
+    }
 }
 
 #endif  // #if windows, #else (unix) #endif. (SIGNAL handling.)
@@ -1508,7 +1508,7 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS *  ExInfo)
         }
         */
 #ifdef _WIN64
-        //		LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Rbp);
+        //        LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Rbp);
 #else
         LogStackFrames(CodeAdress, (char *)ExInfo->ContextRecord->Ebp);
 #endif

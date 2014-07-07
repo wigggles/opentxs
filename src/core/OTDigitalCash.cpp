@@ -193,15 +193,15 @@ _OT_Lucre_Dumper::_OT_Lucre_Dumper()
 #ifdef _WIN32
 #ifdef _DEBUG
     OTString strOpenSSLDumpFilename("openssl.dumpfile"),strOpenSSLDumpFilePath, strDataPath; // todo security. We shouldn't necessarily be dumping this info to file AT ALL.
-	bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-	OT_ASSERT_MSG(bGetDataFolderSuccess,"_OT_Lucre_Dumper(): Failed to Get Data Path");
-	bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(strOpenSSLDumpFilePath,strDataPath,strOpenSSLDumpFilename);
-	OT_ASSERT_MSG(bRelativeToCanonicalSuccess,"_OT_Lucre_Dumper(): Unable To Build Full Path");
+    bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
+    OT_ASSERT_MSG(bGetDataFolderSuccess,"_OT_Lucre_Dumper(): Failed to Get Data Path");
+    bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(strOpenSSLDumpFilePath,strDataPath,strOpenSSLDumpFilename);
+    OT_ASSERT_MSG(bRelativeToCanonicalSuccess,"_OT_Lucre_Dumper(): Unable To Build Full Path");
 
-	strOpenSSLDumpFilename.Set(""); strDataPath.Set("");
+    strOpenSSLDumpFilename.Set(""); strDataPath.Set("");
     SetDumper(strOpenSSLDumpFilePath.Get()); // We are only dumping this way currently as a temporary solution to the applink.c openssl thing that can cause crashes in Lucre when withdrawing cash. (Caused by da2ce7 removing Lucre from OT and moving it into a dylib.)
     m_str_dumpfile = strOpenSSLDumpFilePath.Get();
-	strOpenSSLDumpFilePath.Set("");
+    strOpenSSLDumpFilePath.Set("");
 #endif
 #else
     SetDumper(stderr);

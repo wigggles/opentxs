@@ -166,9 +166,9 @@ namespace opentxs {
 
 OTCaller::~OTCaller()
 {
-	otOut << "OTCaller::~OTCaller: (This should only happen as the application is closing.)\n";
+    otOut << "OTCaller::~OTCaller: (This should only happen as the application is closing.)\n";
 
-	delCallback();
+    delCallback();
 }
 
 
@@ -176,10 +176,10 @@ OTCaller::~OTCaller()
 //
 const char * OTCaller::GetDisplay() const
 {
-	// I'm using the OTPassword class to store the display string, in addition to
-	// storing the password itself. (For convenience.)
-	//
-	return reinterpret_cast<const char *>(m_Display.getPassword_uint8());
+    // I'm using the OTPassword class to store the display string, in addition to
+    // storing the password itself. (For convenience.)
+    //
+    return reinterpret_cast<const char *>(m_Display.getPassword_uint8());
 }
 
 
@@ -187,10 +187,10 @@ const char * OTCaller::GetDisplay() const
 //
 void OTCaller::SetDisplay(const char * szDisplay, int32_t nLength)
 {
-	// I'm using the OTPassword class to store the display string, in addition to
-	// storing the password itself. (For convenience.)
-	//
-	m_Display.setPassword_uint8(reinterpret_cast<const uint8_t *>(szDisplay), nLength);
+    // I'm using the OTPassword class to store the display string, in addition to
+    // storing the password itself. (For convenience.)
+    //
+    m_Display.setPassword_uint8(reinterpret_cast<const uint8_t *>(szDisplay), nLength);
 }
 
 
@@ -198,87 +198,87 @@ void OTCaller::SetDisplay(const char * szDisplay, int32_t nLength)
 //
 bool OTCaller::GetPassword(OTPassword & theOutput) const // Get the password....
 {
-	otOut << "OTCaller::GetPassword: FYI, returning password after invoking a (probably Java) password dialog.\n";
+    otOut << "OTCaller::GetPassword: FYI, returning password after invoking a (probably Java) password dialog.\n";
 
-	theOutput.setPassword_uint8(m_Password.getPassword_uint8(), m_Password.getPasswordSize());
+    theOutput.setPassword_uint8(m_Password.getPassword_uint8(), m_Password.getPasswordSize());
 
-	return true;
+    return true;
 }
 
 
-void OTCaller::ZeroOutPassword()	// Then ZERO IT OUT so copies aren't floating around.
+void OTCaller::ZeroOutPassword()    // Then ZERO IT OUT so copies aren't floating around.
 {
-	if (m_Password.getPasswordSize() > 0)
-		m_Password.zeroMemory();
+    if (m_Password.getPasswordSize() > 0)
+        m_Password.zeroMemory();
 }
 
 
 void OTCaller::delCallback()
 {
-	//	if (NULL != _callback)  // TODO this may be a memory leak.
-	//		delete _callback;	// But I know we're currently crashing from deleting same object twice.
-	// And since the object comes from Java, who am I to delete it? Let Java clean it up.
-	if (isCallbackSet())
-		otOut << "OTCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
-					  "(This message doesn't trigger if it was already NULL.)\n";
+    //    if (NULL != _callback)  // TODO this may be a memory leak.
+    //        delete _callback;    // But I know we're currently crashing from deleting same object twice.
+    // And since the object comes from Java, who am I to delete it? Let Java clean it up.
+    if (isCallbackSet())
+        otOut << "OTCaller::delCallback: WARNING: setting existing callback object pointer to NULL. "
+                      "(This message doesn't trigger if it was already NULL.)\n";
 
-	_callback = NULL;
+    _callback = NULL;
 }
 
 
 void OTCaller::setCallback(OTCallback *cb)
 {
-	otOut << "OTCaller::setCallback: Attempting to set the password OTCallback pointer...\n";
+    otOut << "OTCaller::setCallback: Attempting to set the password OTCallback pointer...\n";
 
-	if (NULL == cb)
-	{
-		otOut << "OTCaller::setCallback: ERROR: NULL password OTCallback object passed in. (Returning.)\n";
-		return;
-	}
+    if (NULL == cb)
+    {
+        otOut << "OTCaller::setCallback: ERROR: NULL password OTCallback object passed in. (Returning.)\n";
+        return;
+    }
 
-	delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
+    delCallback(); // Sets _callback to NULL, but LOGS first, if it was already set.
 
 
-	_callback = cb;
-	otOut << "OTCaller::setCallback: FYI, the password OTCallback pointer was set.\n";
+    _callback = cb;
+    otOut << "OTCaller::setCallback: FYI, the password OTCallback pointer was set.\n";
 }
 
 
 bool OTCaller::isCallbackSet() const
 {
-	return (NULL == _callback) ? false : true;
+    return (NULL == _callback) ? false : true;
 }
 
 
 void OTCaller::callOne()
 {
-	ZeroOutPassword(); // Make sure there isn't some old password still in here.
+    ZeroOutPassword(); // Make sure there isn't some old password still in here.
 
-	if (isCallbackSet())
-	{
-		otOut << "OTCaller::callOne: FYI, Executing password callback (one)...\n";
-		_callback->runOne(this->GetDisplay(), m_Password);
-	}
-	else
-	{
-		otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger password callback (one), due to \"it hasn't been set yet.\"\n";
-	}
+    if (isCallbackSet())
+    {
+        otOut << "OTCaller::callOne: FYI, Executing password callback (one)...\n";
+        _callback->runOne(this->GetDisplay(), m_Password);
+    }
+    else
+    {
+        otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger password callback (one), due to \"it hasn't been set yet.\"\n";
+    }
 }
 
 
 void OTCaller::callTwo()
 {
-	ZeroOutPassword(); // Make sure there isn't some old password still in here.
+    ZeroOutPassword(); // Make sure there isn't some old password still in here.
 
-	if (isCallbackSet())
-	{
-		otOut << "OTCaller::callTwo: FYI, Executing password callback (two)...\n";
-		_callback->runTwo(this->GetDisplay(), m_Password);
-	}
-	else
-	{
-		otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger password callback (two), due to \"it hasn't been set yet.\"\n";
-	}
+    if (isCallbackSet())
+    {
+        otOut << "OTCaller::callTwo: FYI, Executing password callback (two)...\n";
+        _callback->runTwo(this->GetDisplay(), m_Password);
+    }
+    else
+    {
+        otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger password callback (two), due to \"it hasn't been set yet.\"\n";
+    }
 }
 
 
@@ -321,12 +321,12 @@ The #pragma directives in this compliant solution instruct the compiler to avoid
  Check compiler documentation to ensure its availability and its optimization guarantees.
 
 void getPassword(void) {
-	char pwd[64];
-	if (retrievePassword(pwd, sizeof(pwd))) {
-		// checking of password, secure operations, etc
-	}
+    char pwd[64];
+    if (retrievePassword(pwd, sizeof(pwd))) {
+        // checking of password, secure operations, etc
+    }
 #pragma optimize("", off)
-	memset(pwd, 0, sizeof(pwd));
+    memset(pwd, 0, sizeof(pwd));
 #pragma optimize("", on)
 }
 
@@ -341,23 +341,23 @@ This compliant solution uses the volatile type qualifier to inform the compiler 
 
 // memset_s.c
 void *memset_s(void *v, int32_t c, size_t n) {
-	volatile uint8_t *p = v;
-	while (n--)
-		*p++ = c;
+    volatile uint8_t *p = v;
+    while (n--)
+        *p++ = c;
 
-	return v;
+    return v;
 }
 
 // getPassword.c
 extern void *memset_s(void *v, int32_t c, size_t n);
 
 void getPassword(void) {
-	char pwd[64];
+    char pwd[64];
 
-	if (retrievePassword(pwd, sizeof(pwd))) {
-		// checking of password, secure operations, etc
-	}
-	memset_s(pwd, 0, sizeof(pwd));
+    if (retrievePassword(pwd, sizeof(pwd))) {
+        // checking of password, secure operations, etc
+    }
+    memset_s(pwd, 0, sizeof(pwd));
 }
 However, it should be noted that both calling functions and accessing volatile qualified objects can still be optimized out
  (while maintaining strict conformance to the standard), so the above may still not work.

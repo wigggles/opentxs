@@ -161,36 +161,36 @@ typedef std::multimap<std::string, OTAsymmetricKey *>   mapOfAsymmetricKeys;
 class OTCryptoConfig
 {
 private:
-	static bool GetSetAll();
+    static bool GetSetAll();
 
-	static bool GetSetValue(OTSettings & config, const std::string strKeyName,
-		const int32_t nDefaultValue, const int32_t *& out_nValue);
+    static bool GetSetValue(OTSettings & config, const std::string strKeyName,
+        const int32_t nDefaultValue, const int32_t *& out_nValue);
 
-	static const int32_t & GetValue(const int32_t *& pValue);
+    static const int32_t & GetValue(const int32_t *& pValue);
 
-	static const int32_t * sp_nIterationCount;
-	static const int32_t * sp_nSymmetricSaltSize;
-	static const int32_t * sp_nSymmetricKeySize;
-	static const int32_t * sp_nSymmetricKeySizeMax;
-	static const int32_t * sp_nSymmetricIvSize;
-	static const int32_t * sp_nSymmetricBufferSize;
-	static const int32_t * sp_nPublicKeysize;
-	static const int32_t * sp_nPublicKeysizeMax;
-	static const int32_t * sp_nDigest1Size;
-	static const int32_t * sp_nDigest2Size;
+    static const int32_t * sp_nIterationCount;
+    static const int32_t * sp_nSymmetricSaltSize;
+    static const int32_t * sp_nSymmetricKeySize;
+    static const int32_t * sp_nSymmetricKeySizeMax;
+    static const int32_t * sp_nSymmetricIvSize;
+    static const int32_t * sp_nSymmetricBufferSize;
+    static const int32_t * sp_nPublicKeysize;
+    static const int32_t * sp_nPublicKeysizeMax;
+    static const int32_t * sp_nDigest1Size;
+    static const int32_t * sp_nDigest2Size;
 
 public:
 
-	EXPORT static uint32_t IterationCount();
-	EXPORT static uint32_t SymmetricSaltSize();
-	EXPORT static uint32_t SymmetricKeySize();
-	EXPORT static uint32_t SymmetricKeySizeMax();
-	EXPORT static uint32_t SymmetricIvSize();
-	EXPORT static uint32_t SymmetricBufferSize();
-	EXPORT static uint32_t PublicKeysize();
-	EXPORT static uint32_t PublicKeysizeMax();
-	EXPORT static uint32_t Digest1Size();
-	EXPORT static uint32_t Digest2Size();
+    EXPORT static uint32_t IterationCount();
+    EXPORT static uint32_t SymmetricSaltSize();
+    EXPORT static uint32_t SymmetricKeySize();
+    EXPORT static uint32_t SymmetricKeySizeMax();
+    EXPORT static uint32_t SymmetricIvSize();
+    EXPORT static uint32_t SymmetricBufferSize();
+    EXPORT static uint32_t PublicKeysize();
+    EXPORT static uint32_t PublicKeysizeMax();
+    EXPORT static uint32_t Digest1Size();
+    EXPORT static uint32_t Digest2Size();
 
 
 };
@@ -205,26 +205,26 @@ public:
 class OTCrypto_Decrypt_Output
 {
 private:
-	OTPassword * m_pPassword;
-	OTPayload  * m_pPayload;
+    OTPassword * m_pPassword;
+    OTPayload  * m_pPayload;
 
-	OTCrypto_Decrypt_Output();
+    OTCrypto_Decrypt_Output();
 public:
-EXPORT	~OTCrypto_Decrypt_Output();
+EXPORT    ~OTCrypto_Decrypt_Output();
 
-EXPORT	OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output & rhs);
+EXPORT    OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output & rhs);
 
-EXPORT	OTCrypto_Decrypt_Output(OTPassword & thePassword);
-EXPORT	OTCrypto_Decrypt_Output(OTPayload  & thePayload);
+EXPORT    OTCrypto_Decrypt_Output(OTPassword & thePassword);
+EXPORT    OTCrypto_Decrypt_Output(OTPayload  & thePayload);
 
-EXPORT	void swap(OTCrypto_Decrypt_Output & other);
+EXPORT    void swap(OTCrypto_Decrypt_Output & other);
 
-EXPORT	OTCrypto_Decrypt_Output & operator = (OTCrypto_Decrypt_Output other); // passed by value.
+EXPORT    OTCrypto_Decrypt_Output & operator = (OTCrypto_Decrypt_Output other); // passed by value.
 
-EXPORT	bool Concatenate(const void * pAppendData, uint32_t lAppendSize);
+EXPORT    bool Concatenate(const void * pAppendData, uint32_t lAppendSize);
 
-EXPORT	void Release(); // Someday make this virtual, if we ever subclass it.
-EXPORT	void Release_Envelope_Decrypt_Output();
+EXPORT    void Release(); // Someday make this virtual, if we ever subclass it.
+EXPORT    void Release_Envelope_Decrypt_Output();
 };
 
 
@@ -306,9 +306,9 @@ EXPORT    bool GetPasswordFromConsoleLowLevel(OTPassword & theOutput, const char
     virtual OTPassword * DeriveKey(const OTPassword &   userPassword,
                                    const OTPayload  &   dataSalt,
                                    const uint32_t       uIterations,
-								   const OTPayload  &   dataCheckHash = OTPayload()) const=0;
+                                   const OTPayload  &   dataCheckHash = OTPayload()) const=0;
 
-	virtual OTPassword * DeriveNewKey(const OTPassword &   userPassword,
+    virtual OTPassword * DeriveNewKey(const OTPassword &   userPassword,
                                       const OTPayload  &   dataSalt,
                                       const uint32_t       uIterations,
                                       OTPayload        &   dataCheckHash) const=0;
@@ -562,14 +562,14 @@ public:
  */
 
 /*
- int32_t PKCS5_PBKDF2_HMAC_SHA1	(
-    const void * 	password,
+ int32_t PKCS5_PBKDF2_HMAC_SHA1    (
+    const void *     password,
     size_t          password_len,
 
-    const void * 	salt,
+    const void *     salt,
     size_t          salt_len,
 
-    uint64_t 	iter,
+    uint64_t     iter,
 
     size_t          keylen,
     void *          key

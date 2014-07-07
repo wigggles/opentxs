@@ -742,7 +742,7 @@ bool OTRecord::DeleteRecord()
             {
                 if (m_bIsOutgoing) // outgoing mail
                 {
-                    int32_t	nCount = OTAPI_Wrap::GetNym_OutmailCount(m_str_nym_id);
+                    int32_t    nCount = OTAPI_Wrap::GetNym_OutmailCount(m_str_nym_id);
                     for (int32_t nIndex = 0; nIndex < nCount; ++nIndex)
                     {
                         const std::string str_contents(OTAPI_Wrap::GetNym_OutmailContentsByIndex(m_str_nym_id, nIndex));
@@ -755,7 +755,7 @@ bool OTRecord::DeleteRecord()
                 }
                 else // incoming mail
                 {
-                    int32_t	nCount = OTAPI_Wrap::GetNym_MailCount(m_str_nym_id);
+                    int32_t    nCount = OTAPI_Wrap::GetNym_MailCount(m_str_nym_id);
                     for (int32_t nIndex = 0; nIndex < nCount; ++nIndex)
                     {
                         const std::string str_contents(OTAPI_Wrap::GetNym_MailContentsByIndex(m_str_nym_id, nIndex));

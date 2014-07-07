@@ -165,13 +165,13 @@ class OTScriptChai : public OTScript
 {
 public:
 
-	OTScriptChai();
-	OTScriptChai(const OTString & strValue);
-	OTScriptChai(const char * new_string);
-	OTScriptChai(const char * new_string, size_t sizeLength);
-	OTScriptChai(const std::string & new_string);
+    OTScriptChai();
+    OTScriptChai(const OTString & strValue);
+    OTScriptChai(const char * new_string);
+    OTScriptChai(const char * new_string, size_t sizeLength);
+    OTScriptChai(const std::string & new_string);
 
-	virtual ~OTScriptChai();
+    virtual ~OTScriptChai();
 
     virtual bool ExecuteScript(OTVariable * pReturnVar=NULL);
     // ------------------------

@@ -194,23 +194,23 @@ bool OTCredential::VerifyInternally() const
 
     if (false == m_strNymID.Compare(m_Masterkey.GetNymID()))
     {
-		otOut << __FUNCTION__ << ": NymID did not match its "
-			"counterpart in m_Masterkey (failed to verify): " << this->GetNymID() << "\n";
+        otOut << __FUNCTION__ << ": NymID did not match its "
+            "counterpart in m_Masterkey (failed to verify): " << this->GetNymID() << "\n";
         return false;
     }
 
     if (false == m_strMasterCredID.Compare(strActualMasterCredID))
     {
-		otOut << __FUNCTION__ << ": Master Credential ID did not match its "
-			"counterpart in m_Masterkey:\nExpected Master Credential ID: " << this->GetMasterCredID() << "\n "
-			"Hash of m_Masterkey contents: " << strActualMasterCredID << "\nContents:\n" << m_Masterkey.GetPubCredential() << "\n";
+        otOut << __FUNCTION__ << ": Master Credential ID did not match its "
+            "counterpart in m_Masterkey:\nExpected Master Credential ID: " << this->GetMasterCredID() << "\n "
+            "Hash of m_Masterkey contents: " << strActualMasterCredID << "\nContents:\n" << m_Masterkey.GetPubCredential() << "\n";
         return false;
     }
 
     if (false == const_cast<OTMasterkey&>(m_Masterkey).VerifyContract())
     {
-		otOut << __FUNCTION__ << ": Master Credential failed to verify: " << this->GetMasterCredID() <<
-			"\nNymID: " << this->GetNymID() << "\n";
+        otOut << __FUNCTION__ << ": Master Credential failed to verify: " << this->GetMasterCredID() <<
+            "\nNymID: " << this->GetNymID() << "\n";
         return false;
     }
 
@@ -222,8 +222,8 @@ bool OTCredential::VerifyInternally() const
 
         if (false == pSub->VerifyContract())
         {
-			otOut << __FUNCTION__ << ": Subcredential failed to verify: " << str_sub_id <<
-				"\nNymID: " << this->GetNymID() << "\n";
+            otOut << __FUNCTION__ << ": Subcredential failed to verify: " << str_sub_id <<
+                "\nNymID: " << this->GetNymID() << "\n";
             return false;
         }
     }
@@ -237,10 +237,10 @@ bool OTCredential::VerifyAgainstSource() const
     // * Any OTMasterkey must (at some point, and/or regularly) verify against its own source.
     //
     if (false == m_Masterkey.VerifyAgainstSource())
-	{
-		otWarn << __FUNCTION__ << ": Failed verifying master credential against its own source.\n";
-		return false;
-	}
+    {
+        otWarn << __FUNCTION__ << ": Failed verifying master credential against its own source.\n";
+        return false;
+    }
     // NOTE: This spot will have a significant delay, TODO OPTIMIZE. Performing a Freenet lookup, or DNS, etc,
     // will introduce delay inside the call VerifyAgainstSource. Therefore in the int64_t term, we must have a
     // separate server process which will verify identities for some specified period of time (specified in
@@ -350,7 +350,7 @@ OTCredential * OTCredential::LoadMaster(const OTString & strNymID, // Caller is 
     const bool bLoaded = pCredential->Load_Master(strNymID, strMasterCredID, (NULL == pPWData) ? &thePWData : pPWData);
     if (!bLoaded)
     {
-		otErr << __FUNCTION__ << ": Failed trying to load master credential from local storage. 1\n";
+        otErr << __FUNCTION__ << ": Failed trying to load master credential from local storage. 1\n";
         return NULL;
     }
 
@@ -377,7 +377,7 @@ OTCredential * OTCredential::LoadMasterFromString(const OTString & strInput,
                                                             pImportPassword);
     if (!bLoaded)
     {
-		otErr << __FUNCTION__ << ": Failed trying to load master credential from string. 2\n";
+        otErr << __FUNCTION__ << ": Failed trying to load master credential from string. 2\n";
         return NULL;
     }
 
@@ -421,7 +421,7 @@ bool OTCredential::SignNewMaster(OTPasswordData * pPWData/*=NULL*/)
         }
         else
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling m_Masterkey.SaveContractRaw 1.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling m_Masterkey.SaveContractRaw 1.\n";
             return false;
         }
         // THE PRIVATE KEYS
@@ -440,13 +440,13 @@ bool OTCredential::SignNewMaster(OTPasswordData * pPWData/*=NULL*/)
         }
         else
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the master private credential.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the master private credential.\n";
             return false;
         }
     }
     else
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the master public credential.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the master public credential.\n";
         return false;
     }
 
@@ -481,7 +481,7 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword & theExportPassword, b
         }
         else
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-encrypt the private masterkey.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-encrypt the private masterkey.\n";
             return false;
         }
 
@@ -509,7 +509,7 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword & theExportPassword, b
                 }
                 else
                 {
-					otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-encrypt the private subkey.\n";
+                    otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-encrypt the private subkey.\n";
                     return false;
                 }
 
@@ -520,7 +520,7 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword & theExportPassword, b
                 }
                 else
                 {
-					otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-sign the private subkey.\n";
+                    otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-sign the private subkey.\n";
                     return false;
                 }
             } // FOR_EACH
@@ -528,10 +528,10 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword & theExportPassword, b
             return true; // <=== Success.
         }
         else
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-sign the master private credential.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to re-sign the master private credential.\n";
     }
     else
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed: There is no private info on this master credential.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed: There is no private info on this master credential.\n";
 
     return false;
 }
@@ -556,8 +556,8 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
     OTSubkey * pSubkey   = dynamic_cast<OTSubkey *>(&theSubCred);
     const bool bIsSubkey = (NULL != pSubkey); // It's not just any subcredential -- it's a subkey!
 
-	// If it's not a subkey, but rather, a normal subcredential with no keys, then it doesn't need to contain a "master signed" version,
-	// since the entire subcredential will already be master signed, since there's no subkey to sign in that case.
+    // If it's not a subkey, but rather, a normal subcredential with no keys, then it doesn't need to contain a "master signed" version,
+    // since the entire subcredential will already be master signed, since there's no subkey to sign in that case.
     if (!bIsSubkey) 
         theSubCred.SetMasterSigned(OTString("")); 
 
@@ -571,8 +571,8 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
         const bool bMasterSigned = m_Masterkey.SignContract(*pSubkey, NULL == pPWData ? &thePWData : pPWData);
         if (!bMasterSigned)
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ <<
-				": Failed calling m_Masterkey.SignContract(*pSubkey) after StoreAsMasterSigned.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ <<
+                ": Failed calling m_Masterkey.SignContract(*pSubkey) after StoreAsMasterSigned.\n";
             return false;
         }
         else
@@ -587,7 +587,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
                 pSubkey->SetMasterSigned(strMasterSigned); // so that the (subkey-signed) public version of the subcredential will contain it.
             else
             {
-				otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling pSubkey->SaveContractRaw 1.\n";
+                otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling pSubkey->SaveContractRaw 1.\n";
                 return false;
             }
         }
@@ -614,7 +614,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
 
     if (!bSignedPublic)
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the public subcredential or subkey.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the public subcredential or subkey.\n";
         return false;
     }
     else
@@ -642,7 +642,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
         }
         else
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling theSubCred.SaveContractRaw.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed calling theSubCred.SaveContractRaw.\n";
             return false;
         }
         // **********************************************************
@@ -664,7 +664,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential & theSubCred, OTIdentifi
             theSubCred.SaveContract();
         else
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the private subcredential.\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to sign the private subcredential.\n";
             return false;
         }
     }
@@ -705,7 +705,7 @@ bool OTCredential::Load_MasterFromString(const OTString & strInput,
     const bool bLoaded = m_Masterkey.LoadContractFromString(strInput);
     if (!bLoaded)
     {
-		otErr << __FUNCTION__ << ": Failed trying to load master credential from string.\n";
+        otErr << __FUNCTION__ << ": Failed trying to load master credential from string.\n";
         return false;
     }
 
@@ -737,7 +737,7 @@ bool OTCredential::Load_Master(const OTString & strNymID,
         
         if (false == OTDB::Exists(str_Folder, strNymID.Get(), strMasterCredID.Get()))
         {
-			otErr << __FUNCTION__ << ": Failure: Master Credential " << strMasterCredID << " doesn't exist for Nym " << strNymID << "\n";
+            otErr << __FUNCTION__ << ": Failure: Master Credential " << strMasterCredID << " doesn't exist for Nym " << strNymID << "\n";
             return false;
         }
     }
@@ -753,7 +753,7 @@ bool OTCredential::Load_Master(const OTString & strNymID,
 
     if (false == strFileContents.DecodeIfArmored()) // bEscapedIsAllowed=true by default.
     {
-		otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
+        otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
         return false;
     }
 
@@ -768,7 +768,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString & strInput, const OTStrin
     mapOfSubcredentials::iterator it = m_mapSubcredentials.find(strSubID.Get());
     if (it != m_mapSubcredentials.end()) // It was already there. (Reload it.)
     {
-		otErr << __FUNCTION__ << ": Warning: Deleting and re-loading keyCredential that was already loaded.\n";
+        otErr << __FUNCTION__ << ": Warning: Deleting and re-loading keyCredential that was already loaded.\n";
         OTSubcredential * pSub = (*it).second;
         OT_ASSERT(NULL != pSub);
         delete pSub;
@@ -789,7 +789,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString & strInput, const OTStrin
 
     if (false == pSub->LoadContractFromString(strInput))
     {
-		otErr << __FUNCTION__ << ": Failed trying to load keyCredential from string.\n";
+        otErr << __FUNCTION__ << ": Failed trying to load keyCredential from string.\n";
         return false;
     }
 
@@ -816,8 +816,8 @@ bool OTCredential::LoadSubkey(const OTString & strSubID)
         
         if (false == OTDB::Exists(str_Folder, this->GetNymID().Get(), strSubID.Get()))
         {
-			otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID <<
-				" doesn't exist for Nym " << this->GetNymID() << "\n";
+            otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID <<
+                " doesn't exist for Nym " << this->GetNymID() << "\n";
             return false;
         }
     }
@@ -828,13 +828,13 @@ bool OTCredential::LoadSubkey(const OTString & strSubID)
     
     if (false == strFileContents.Exists())
     {
-		otErr << __FUNCTION__ << ": Failed trying to load keyCredential from local storage.\n";
+        otErr << __FUNCTION__ << ": Failed trying to load keyCredential from local storage.\n";
         return false;
     }
 
     if (false == strFileContents.DecodeIfArmored()) // bEscapedIsAllowed=true by default.
     {
-		otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
+        otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
         return false;
     }
 
@@ -849,7 +849,7 @@ bool OTCredential::LoadSubcredentialFromString(const OTString & strInput, const 
     mapOfSubcredentials::iterator it = m_mapSubcredentials.find(strSubID.Get());
     if (it != m_mapSubcredentials.end()) // It was already there. (Reload it.)
     {
-		otErr << __FUNCTION__ << ": Warning: Deleting and re-loading subCredential that was already loaded.\n";
+        otErr << __FUNCTION__ << ": Warning: Deleting and re-loading subCredential that was already loaded.\n";
         OTSubcredential * pSub = (*it).second;
         OT_ASSERT(NULL != pSub);
         delete pSub;
@@ -870,7 +870,7 @@ bool OTCredential::LoadSubcredentialFromString(const OTString & strInput, const 
 
     if (false == pSub->LoadContractFromString(strInput))
     {
-		otErr << __FUNCTION__ << ": Failed trying to load subCredential from string.\n";
+        otErr << __FUNCTION__ << ": Failed trying to load subCredential from string.\n";
         return false;
     }
 
@@ -895,8 +895,8 @@ bool OTCredential::LoadSubcredential(const OTString & strSubID)
         
         if (false == OTDB::Exists(str_Folder, this->GetNymID().Get(), strSubID.Get()))
         {
-			otErr << __FUNCTION__ << ": Failure: Credential " << strSubID <<
-				" doesn't exist for Nym " << this->GetNymID() << "\n";
+            otErr << __FUNCTION__ << ": Failure: Credential " << strSubID <<
+                " doesn't exist for Nym " << this->GetNymID() << "\n";
             return false;
         }
     }
@@ -906,13 +906,13 @@ bool OTCredential::LoadSubcredential(const OTString & strSubID)
                                                     strSubID.Get()));
     if (!strFileContents.Exists())
     {
-		otErr << __FUNCTION__ << ": Failed trying to load subCredential from local storage.\n";
+        otErr << __FUNCTION__ << ": Failed trying to load subCredential from local storage.\n";
         return false;
     }
 
     if (false == strFileContents.DecodeIfArmored()) // bEscapedIsAllowed=true by default.
     {
-		otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
+        otErr << __FUNCTION__ << ": File contents apparently were encoded and then failed decoding. Contents: \n" << strFileContents << "\n";
         return false;
     }
 
@@ -947,7 +947,7 @@ bool OTCredential::AddNewSubkey(const int32_t            nBits       /*=1024*/, 
 
     if (!bContentsReady)
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to SetPrivateContents or GenerateKeys\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to SetPrivateContents or GenerateKeys\n";
         delete pSub; pSub = NULL;
         return false;
     }
@@ -962,7 +962,7 @@ bool OTCredential::AddNewSubkey(const int32_t            nBits       /*=1024*/, 
         //
         if (false == this->SignNewSubcredential(*pSub, theSubCredID, NULL == pPWData ? &thePWData : pPWData))
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call this->SignNewSubcredential\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call this->SignNewSubcredential\n";
             delete pSub; pSub = NULL;
             return false;
         }
@@ -1002,14 +1002,14 @@ bool OTCredential::AddNewSubcredential(const mapOfStrings & mapPrivate,
 
     if (false == pSub->SetPublicContents(mapPublic))
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed while calling pSub->SetPublicContents.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed while calling pSub->SetPublicContents.\n";
         delete pSub; pSub = NULL;
         return false;
     }
 
     else if (false == pSub->SetPrivateContents(mapPrivate))
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed while trying to pSub->SetPrivateContents.\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed while trying to pSub->SetPrivateContents.\n";
         delete pSub; pSub = NULL;
         return false;
     }
@@ -1024,7 +1024,7 @@ bool OTCredential::AddNewSubcredential(const mapOfStrings & mapPrivate,
         //
         if (false == this->SignNewSubcredential(*pSub, theSubCredID, NULL == pPWData ? &thePWData : pPWData))
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call this->SignNewSubcredential\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call this->SignNewSubcredential\n";
             delete pSub; pSub = NULL;
             return false;
         }
@@ -1065,7 +1065,7 @@ OTCredential * OTCredential::CreateMaster(const OTString     & strSourceForNymID
     {
         if (false == pCredential->SetPublicContents(*pmapPublic))
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call pCredential->SetPublicContents\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call pCredential->SetPublicContents\n";
             delete pCredential;
             pCredential = NULL;
             return NULL;
@@ -1084,7 +1084,7 @@ OTCredential * OTCredential::CreateMaster(const OTString     & strSourceForNymID
 
     if (!bContentsReady)
     {
-		otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to SetPrivateContents or GenerateMasterkey\n";
+        otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to SetPrivateContents or GenerateMasterkey\n";
         delete pCredential;
         pCredential = NULL;
         return NULL;
@@ -1097,7 +1097,7 @@ OTCredential * OTCredential::CreateMaster(const OTString     & strSourceForNymID
         //
         if (false == pCredential->SignNewMaster(NULL == pPWData ? &thePWData : pPWData))
         {
-			otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call pCredential->SignNewMaster\n";
+            otErr << "In " << __FILE__ << ", line " << __LINE__ << ": Failed trying to call pCredential->SignNewMaster\n";
             delete pCredential;
             pCredential = NULL;
             return NULL;
@@ -1159,7 +1159,7 @@ const OTSubcredential * OTCredential::GetSubcredentialByIndex(int32_t nIndex) co
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapSubcredentials.size())))
     {
-		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
+        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else
     {
@@ -1186,7 +1186,7 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
 {
     if (nIndex >= m_mapSubcredentials.size())
     {
-		otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
+        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else
     {
@@ -1363,16 +1363,16 @@ OTCredential::~OTCredential()
 void OTCredential::ClearSubcredentials()
 {
 
-	while (!m_mapSubcredentials.empty())
-	{
-		OTSubcredential * pSub = m_mapSubcredentials.begin()->second;
-		OT_ASSERT(NULL != pSub);
+    while (!m_mapSubcredentials.empty())
+    {
+        OTSubcredential * pSub = m_mapSubcredentials.begin()->second;
+        OT_ASSERT(NULL != pSub);
 
-		delete pSub;
-		pSub = NULL;
+        delete pSub;
+        pSub = NULL;
 
-		m_mapSubcredentials.erase(m_mapSubcredentials.begin());
-	} // while
+        m_mapSubcredentials.erase(m_mapSubcredentials.begin());
+    } // while
 
 }
 
@@ -1409,7 +1409,7 @@ void OTCredential::SerializeIDs(OTString & strOutput, listOfStrings & listRevoke
     {
         const std::string str_cred_id = (*it).first;
         const OTSubcredential * pSub  = (*it).second;
-		OT_ASSERT(NULL != pSub);
+        OT_ASSERT(NULL != pSub);
 
         // See if the current subcredential is on the Nym's list of "revoked" subcredential IDs.
         // If so, we'll skip serializing it here.

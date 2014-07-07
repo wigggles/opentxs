@@ -145,7 +145,7 @@ class OTPseudonym;
 class OTPurse;
 class OTString;
 
-typedef std::map  <int32_t, OTASCIIArmor *>	mapOfPrototokens;
+typedef std::map  <int32_t, OTASCIIArmor *>    mapOfPrototokens;
 
 
 /*
@@ -162,14 +162,14 @@ typedef std::map  <int32_t, OTASCIIArmor *>	mapOfPrototokens;
 6) When token is redeemed, it has already been unblinded. So Server simply verifies it.
 
  LAST NAGGING QUESTION:  Should the server sign the other 99 tokens before unblinding them and verifying?
-						In fact, what is it verifying at all?? Certainly not the amount, which is not even in
-						the Lucre token. If all it does is verify its signature, then why sign it just to
-						verify it?  Why exactly am I sending 99 tokens? What is the server unblinding them
-						to look for??  Just to make sure all the IDs are random?  That they aren't spent
-						already?
-						I think that's it.  The client has assurance he chose his own random IDs, the server
-						verifies they are random and not spent already, and the ID portion is the only part
-						that has to be randomized.
+                        In fact, what is it verifying at all?? Certainly not the amount, which is not even in
+                        the Lucre token. If all it does is verify its signature, then why sign it just to
+                        verify it?  Why exactly am I sending 99 tokens? What is the server unblinding them
+                        to look for??  Just to make sure all the IDs are random?  That they aren't spent
+                        already?
+                        I think that's it.  The client has assurance he chose his own random IDs, the server
+                        verifies they are random and not spent already, and the ID portion is the only part
+                        that has to be randomized.
 
  UPDATE:
  Ben Laurie has confirmed that the Chaumian 99 token requirement does not exist with Lucre. All I have to
@@ -186,119 +186,119 @@ private:  // Private prevents erroneous use by other classes.
 
 
 public:
-	enum tokenState {
-		blankToken,
-		protoToken,
-		signedToken,
-		spendableToken,
-		verifiedToken,
-		errorToken
-	};
+    enum tokenState {
+        blankToken,
+        protoToken,
+        signedToken,
+        spendableToken,
+        verifiedToken,
+        errorToken
+    };
     // ------------------------------------------------------------------------
-	// Wallet must submit at least N prototokens per withdrawal request, for the server to notarize it.
-	// One server might require at least 5 prototokens per withdrawal. Another might require 100 because it
-	// needs more security.  Another 1000.  These provide more security but they also cost more in terms of
-	// resources to process all those prototokens.
+    // Wallet must submit at least N prototokens per withdrawal request, for the server to notarize it.
+    // One server might require at least 5 prototokens per withdrawal. Another might require 100 because it
+    // needs more security.  Another 1000.  These provide more security but they also cost more in terms of
+    // resources to process all those prototokens.
 
-    EXPORT	static int32_t GetMinimumPrototokenCount();
+    EXPORT    static int32_t GetMinimumPrototokenCount();
 // ---------------------------------------------------------------------
 protected:
     bool                m_bPasswordProtected;  // this token might be encrypted to a passphrase, instead of a Nym.
-	// ----------------------------------------------
+    // ----------------------------------------------
 
-	OTASCIIArmor		m_ascSpendable;	// This is the final, signed, unblinded token ID, ready to be spent.
-										// (But still in envelope form, encrypted and ascii-armored.)
-	OTASCIIArmor		m_Signature;	// This is the Mint's signature on the blinded prototoken.
+    OTASCIIArmor        m_ascSpendable;    // This is the final, signed, unblinded token ID, ready to be spent.
+                                        // (But still in envelope form, encrypted and ascii-armored.)
+    OTASCIIArmor        m_Signature;    // This is the Mint's signature on the blinded prototoken.
 
-	int64_t				m_lDenomination;// The actual value of the token is between issuer and trader.
-										// The token must have a denomination so we know which Mint Key to verify it with.
+    int64_t                m_lDenomination;// The actual value of the token is between issuer and trader.
+                                        // The token must have a denomination so we know which Mint Key to verify it with.
 
-	// --------------- Prototoken stuff below here.....
+    // --------------- Prototoken stuff below here.....
 
-	mapOfPrototokens	m_mapPublic;	// in protoToken state, this object stores N prototokens in order to fulfill the protocol
-	mapOfPrototokens	m_mapPrivate;	// The elements are accessed [0..N]. mapPublic[2] corresponds to map_Private[2], etc.
+    mapOfPrototokens    m_mapPublic;    // in protoToken state, this object stores N prototokens in order to fulfill the protocol
+    mapOfPrototokens    m_mapPrivate;    // The elements are accessed [0..N]. mapPublic[2] corresponds to map_Private[2], etc.
 
-	int32_t					m_nTokenCount;	// Official token count is stored here for serialization, etc. The maps' size should match.
-	int32_t					m_nChosenIndex;	// When the client submits N prototokens, the server randomly chooses one to sign.
-										// (The server opens the other (N-1) prototokens to verify the amount is correct and
-										// that the IDs are random enough.)
-	// -----------------------------------------------------------
-	// Expiration dates are necessary because otherwise the spent token database must be stored
-	// forever. This may be useful in some applications, but in most, a 1-year or 1-month expiration
-	// date will be perfectly fine, especially with auto-exchanges performed by the wallet. Suddenly
-	// it becomes much more feasible a proposition to effectively run a token server, without having
-	// to hold those spent tokens forever.
-	//
-	// EXPIRATION DATES are in the parent:
-	//
-	// time64_t			m_VALID_FROM;	// (In the parent)
-	// time64_t			m_VALID_TO;		// (In the parent)
-	//
-	// Tokens (and Mints) also have a SERIES:
-	//
-	int32_t					m_nSeries;
-	tokenState			m_State;
-	bool				m_bSavePrivateKeys; // Determines whether it serializes private keys 1 time (yes if true)
-	// ------------------------------------------------------------------------
-	virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-	void InitToken();
-	bool ChooseIndex(const int32_t nIndex);
+    int32_t                    m_nTokenCount;    // Official token count is stored here for serialization, etc. The maps' size should match.
+    int32_t                    m_nChosenIndex;    // When the client submits N prototokens, the server randomly chooses one to sign.
+                                        // (The server opens the other (N-1) prototokens to verify the amount is correct and
+                                        // that the IDs are random enough.)
+    // -----------------------------------------------------------
+    // Expiration dates are necessary because otherwise the spent token database must be stored
+    // forever. This may be useful in some applications, but in most, a 1-year or 1-month expiration
+    // date will be perfectly fine, especially with auto-exchanges performed by the wallet. Suddenly
+    // it becomes much more feasible a proposition to effectively run a token server, without having
+    // to hold those spent tokens forever.
+    //
+    // EXPIRATION DATES are in the parent:
+    //
+    // time64_t            m_VALID_FROM;    // (In the parent)
+    // time64_t            m_VALID_TO;        // (In the parent)
+    //
+    // Tokens (and Mints) also have a SERIES:
+    //
+    int32_t                    m_nSeries;
+    tokenState            m_State;
+    bool                m_bSavePrivateKeys; // Determines whether it serializes private keys 1 time (yes if true)
     // ------------------------------------------------------------------------
-    EXPORT	OTToken();
-    EXPORT	OTToken & operator=(const OTToken & rhs);
-	EXPORT	OTToken(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-	EXPORT	OTToken(const OTPurse & thePurse);
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    void InitToken();
+    bool ChooseIndex(const int32_t nIndex);
+    // ------------------------------------------------------------------------
+    EXPORT    OTToken();
+    EXPORT    OTToken & operator=(const OTToken & rhs);
+    EXPORT    OTToken(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
+    EXPORT    OTToken(const OTPurse & thePurse);
 // ------------------------------------------------------------------------
 public:
-	// Preparing to polymorphize tokens. This will allow us to instantiate LucreTokens,
-	// and other types of tokens, dynamically, without having to know beforehand which
-	// OTToken subclass we're dealing with.
-	//
-	EXPORT	static OTToken * TokenFactory( OTString strInput);
-	EXPORT	static OTToken * TokenFactory( OTString strInput, const OTPurse & thePurse);
-	EXPORT	static OTToken * TokenFactory( OTString strInput, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-	EXPORT	static OTToken * LowLevelInstantiate(const OTPurse  & thePurse);
-	EXPORT	static OTToken * LowLevelInstantiate(const OTString & strFirstLine);
-	EXPORT	static OTToken * LowLevelInstantiate(const OTString & strFirstLine, const OTPurse & thePurse);
-	EXPORT	static OTToken * LowLevelInstantiate(const OTString & strFirstLine, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
+    // Preparing to polymorphize tokens. This will allow us to instantiate LucreTokens,
+    // and other types of tokens, dynamically, without having to know beforehand which
+    // OTToken subclass we're dealing with.
+    //
+    EXPORT    static OTToken * TokenFactory( OTString strInput);
+    EXPORT    static OTToken * TokenFactory( OTString strInput, const OTPurse & thePurse);
+    EXPORT    static OTToken * TokenFactory( OTString strInput, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
+    EXPORT    static OTToken * LowLevelInstantiate(const OTPurse  & thePurse);
+    EXPORT    static OTToken * LowLevelInstantiate(const OTString & strFirstLine);
+    EXPORT    static OTToken * LowLevelInstantiate(const OTString & strFirstLine, const OTPurse & thePurse);
+    EXPORT    static OTToken * LowLevelInstantiate(const OTString & strFirstLine, const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
     // ------------------------------------------------------------------------
-	EXPORT	virtual ~OTToken();
+    EXPORT    virtual ~OTToken();
 
-	EXPORT	void Release_Token();
-	virtual void Release();
-	EXPORT	void ReleasePrototokens();
+    EXPORT    void Release_Token();
+    virtual void Release();
+    EXPORT    void ReleasePrototokens();
 
-	virtual void UpdateContents(); // Before transmission or serialization, this is where the token saves its contents
+    virtual void UpdateContents(); // Before transmission or serialization, this is where the token saves its contents
     // ------------------------------------------------------------------------
-	// Will save the private keys on next serialization (not just public keys)
-	// (SignContract sets m_bSavePrivateKeys back to false again.)
-	inline	void SetSavePrivateKeys() { m_bSavePrivateKeys = true; }
+    // Will save the private keys on next serialization (not just public keys)
+    // (SignContract sets m_bSavePrivateKeys back to false again.)
+    inline    void SetSavePrivateKeys() { m_bSavePrivateKeys = true; }
 
-	// When you send a token to the server, you must decrypt it from your own key,
-	// and re-encrypt it to the server key, before sending. Use this function to do so.
-	// In the case of exporting a token from a purse, you could create a dummy Nym, embed
-	// it inside the purse, and then reassign ownership of each token to that token as you
-	// push them into that purse.
-	// From there, you can hand someone the purse, and password-protect it, if you like.
-	//
-	EXPORT	bool ReassignOwnership(OTNym_or_SymmetricKey & oldOwner, OTNym_or_SymmetricKey & newOwner);
+    // When you send a token to the server, you must decrypt it from your own key,
+    // and re-encrypt it to the server key, before sending. Use this function to do so.
+    // In the case of exporting a token from a purse, you could create a dummy Nym, embed
+    // it inside the purse, and then reassign ownership of each token to that token as you
+    // push them into that purse.
+    // From there, you can hand someone the purse, and password-protect it, if you like.
+    //
+    EXPORT    bool ReassignOwnership(OTNym_or_SymmetricKey & oldOwner, OTNym_or_SymmetricKey & newOwner);
 
-	inline	const OTASCIIArmor & GetSpendable() const { return m_ascSpendable; }
-	inline	void SetSpendable(const OTASCIIArmor & theArmor) { m_ascSpendable.Set(theArmor); }
+    inline    const OTASCIIArmor & GetSpendable() const { return m_ascSpendable; }
+    inline    void SetSpendable(const OTASCIIArmor & theArmor) { m_ascSpendable.Set(theArmor); }
 
-	EXPORT	bool GetSpendableString(OTNym_or_SymmetricKey theOwner, OTString & theString) const; // todo potentially return OTPassword here instead of OTString (more secure.)
+    EXPORT    bool GetSpendableString(OTNym_or_SymmetricKey theOwner, OTString & theString) const; // todo potentially return OTPassword here instead of OTString (more secure.)
 
-	inline	OTToken::tokenState GetState() const { return m_State; }
-	// ------------------------------------------------------------------------
+    inline    OTToken::tokenState GetState() const { return m_State; }
+    // ------------------------------------------------------------------------
 
     // Lucre step 1 (in OTMint) Generate New Mint
 
-	// Lucre Step 2: Generate Coin Request
-	// nDenomination MUST be one that the Mint supports.
-	// let nTokenCount default to 1, since that's how Lucre works.
+    // Lucre Step 2: Generate Coin Request
+    // nDenomination MUST be one that the Mint supports.
+    // let nTokenCount default to 1, since that's how Lucre works.
 protected:
 // ------------------------------------------------------------------------
-EXPORT	virtual bool GenerateTokenRequest(const OTPseudonym & theNym,
+EXPORT    virtual bool GenerateTokenRequest(const OTPseudonym & theNym,
                                           OTMint & theMint,
                                           int64_t lDenomination,
                                           int32_t nTokenCount=OTToken::GetMinimumPrototokenCount()
@@ -311,43 +311,43 @@ EXPORT static OTToken * InstantiateAndGenerateTokenRequest(const OTPurse & thePu
                                                            int64_t lDenomination,
                                                            int32_t nTokenCount=OTToken::GetMinimumPrototokenCount()
                                                            );
-	// Lucre Step 3: Mint signs token (in OTMint)
-	inline	int32_t	GetSeries() const { return m_nSeries; }
-	inline	void SetSeriesAndExpiration  // (Called by the mint when signing.)
-		(int32_t nSeries, time64_t VALID_FROM, time64_t VALID_TO)
-	{	m_nSeries = nSeries; 	m_VALID_FROM = VALID_FROM;	m_VALID_TO = VALID_TO; }
+    // Lucre Step 3: Mint signs token (in OTMint)
+    inline    int32_t    GetSeries() const { return m_nSeries; }
+    inline    void SetSeriesAndExpiration  // (Called by the mint when signing.)
+        (int32_t nSeries, time64_t VALID_FROM, time64_t VALID_TO)
+    {    m_nSeries = nSeries;     m_VALID_FROM = VALID_FROM;    m_VALID_TO = VALID_TO; }
 
-	// Lucre step 4: client unblinds token -- now it's ready for use.
+    // Lucre step 4: client unblinds token -- now it's ready for use.
 EXPORT virtual bool ProcessToken(const OTPseudonym & theNym, OTMint & theMint, OTToken & theRequest)=0;
 
-	// Lucre step 5: token verifies when it is redeemed by merchant.
-	//				 Now including spent token database!
-	EXPORT	bool VerifyToken(OTPseudonym & theNotary, OTMint & theMint);
-	EXPORT	bool IsTokenAlreadySpent(OTString & theCleartextToken); // Spent Token Database
-	EXPORT	bool RecordTokenAsSpent(OTString & theCleartextToken);  // Spent Token Database
-	// ------------------------------------------------------------------------
-	EXPORT	void SetSignature(const OTASCIIArmor & theSignature, int32_t nTokenIndex);
-	EXPORT	bool GetSignature(OTASCIIArmor & theSignature) const;
-	// ------------------------------------------------------------------------
-	// The actual denomination of the token is determined by whether or not it verifies
-	// when the server uses the private verify info for THAT denomination. So if you set
-	// the denomination here wrong, all that does is cause the server to try to verify it
-	// with the wrong key. If the proto-token was generated for a different denomination,
-	// then it cannot verify.
-	// So this value is only here to help you make sure to ask the Mint to use the right
-	// key when verifying the token. And this only works because we have a specific set of
-	// denominations for each digital asset, each with its own key pair in the Mint.
-	inline	int64_t GetDenomination() const { return m_lDenomination; }
-	inline	void SetDenomination(int64_t lVal) { m_lDenomination = lVal; }
+    // Lucre step 5: token verifies when it is redeemed by merchant.
+    //                 Now including spent token database!
+    EXPORT    bool VerifyToken(OTPseudonym & theNotary, OTMint & theMint);
+    EXPORT    bool IsTokenAlreadySpent(OTString & theCleartextToken); // Spent Token Database
+    EXPORT    bool RecordTokenAsSpent(OTString & theCleartextToken);  // Spent Token Database
+    // ------------------------------------------------------------------------
+    EXPORT    void SetSignature(const OTASCIIArmor & theSignature, int32_t nTokenIndex);
+    EXPORT    bool GetSignature(OTASCIIArmor & theSignature) const;
+    // ------------------------------------------------------------------------
+    // The actual denomination of the token is determined by whether or not it verifies
+    // when the server uses the private verify info for THAT denomination. So if you set
+    // the denomination here wrong, all that does is cause the server to try to verify it
+    // with the wrong key. If the proto-token was generated for a different denomination,
+    // then it cannot verify.
+    // So this value is only here to help you make sure to ask the Mint to use the right
+    // key when verifying the token. And this only works because we have a specific set of
+    // denominations for each digital asset, each with its own key pair in the Mint.
+    inline    int64_t GetDenomination() const { return m_lDenomination; }
+    inline    void SetDenomination(int64_t lVal) { m_lDenomination = lVal; }
 
-	// These are not actually necessary for Lucre itself, which only needs
-	// to send a single blinded proto-token. Index is always 0, and Count is
-	// always 1. But this does mean OTToken supports digital cash schemes that
-	// involve multiple prototokens -- even though Lucre is not one of those.
-	EXPORT	bool GetPrototoken(OTASCIIArmor & ascPrototoken, int32_t nTokenIndex);
-	EXPORT	bool GetPrivatePrototoken(OTASCIIArmor & ascPrototoken, int32_t nTokenIndex);
+    // These are not actually necessary for Lucre itself, which only needs
+    // to send a single blinded proto-token. Index is always 0, and Count is
+    // always 1. But this does mean OTToken supports digital cash schemes that
+    // involve multiple prototokens -- even though Lucre is not one of those.
+    EXPORT    bool GetPrototoken(OTASCIIArmor & ascPrototoken, int32_t nTokenIndex);
+    EXPORT    bool GetPrivatePrototoken(OTASCIIArmor & ascPrototoken, int32_t nTokenIndex);
 
-	virtual	bool SaveContractWallet(std::ofstream & ofs);
+    virtual    bool SaveContractWallet(std::ofstream & ofs);
 };
 
 

@@ -143,7 +143,7 @@ class OTAccount;
 class OTAcctFunctor;
 class OTIdentifier;
 
-typedef std::map<std::string, OTAccount *>		mapOfAccounts;
+typedef std::map<std::string, OTAccount *>        mapOfAccounts;
 
 
 // This class is used by ForEachAccountRecord (above) which loops through

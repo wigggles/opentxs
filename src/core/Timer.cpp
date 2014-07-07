@@ -22,11 +22,11 @@ Timer::Timer(bool bStart/*=false*/)
 {
     clear();
     
-	// -------------------------
-	// FT: Added this part:
-	//
-	if (bStart)
-		start();
+    // -------------------------
+    // FT: Added this part:
+    //
+    if (bStart)
+        start();
 }
 
 

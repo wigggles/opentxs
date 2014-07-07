@@ -212,11 +212,11 @@ public:
 
 
 protected:
-	virtual void UpdateContents();  // Before transmission or serialization, this is where the object saves its contents
-	// -----------------------------------------
+    virtual void UpdateContents();  // Before transmission or serialization, this is where the object saves its contents
+    // -----------------------------------------
     OTString        m_strPayment;   // Contains the cheque / payment plan / etc in string form.
     paymentType     m_Type;         // Default value is ERROR_STATE
-	// -----------------------------------------
+    // -----------------------------------------
     // Once the actual instrument is loaded up, we copy some temp values to *this
     // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
     //
@@ -225,8 +225,8 @@ protected:
     // Here are the TEMP values:
     // (These are not serialized.)
     //
-	bool			m_bHasRecipient;    // For cheques mostly, and payment plans too.
-	bool			m_bHasRemitter;     // For vouchers (cashier's cheques), the Nym who bought the voucher is the remitter, whereas the "sender" is the server Nym whose account the voucher is drawn on.
+    bool            m_bHasRecipient;    // For cheques mostly, and payment plans too.
+    bool            m_bHasRemitter;     // For vouchers (cashier's cheques), the Nym who bought the voucher is the remitter, whereas the "sender" is the server Nym whose account the voucher is drawn on.
 
     int64_t            m_lAmount;          // Contains 0 by default. This is set by SetPayment() along with other useful values.
     int64_t            m_lTransactionNum;  // Contains 0 by default. This is set by SetPayment() along with other useful values.
@@ -240,16 +240,16 @@ protected:
     OTIdentifier    m_SenderAcctID;     // is set to true, these values can NOT be considered available. Use the accessing methods
     OTIdentifier    m_RecipientUserID;  // below. These values are not ALL always available, depending on the payment instrument
     OTIdentifier    m_RecipientAcctID;  // type. Different payment instruments support different temp values.
-	// -----------------------------------------
+    // -----------------------------------------
     OTIdentifier    m_RemitterUserID;   // A voucher (cashier's cheque) has the "bank" as the sender. Whereas the Nym who actually purchased the voucher is the remitter.
     OTIdentifier    m_RemitterAcctID;   // A voucher (cashier's cheque) has the "bank"s account as the sender acct. Whereas the account that was originally used to purchase the voucher is the remitter account.
-	// -----------------------------------------
+    // -----------------------------------------
     time64_t          m_VALID_FROM;       // Temporary values. Not always available.
     time64_t          m_VALID_TO;         // Temporary values. Not always available.
-	// -----------------------------------------
+    // -----------------------------------------
 public:
 EXPORT    bool SetPayment(const OTString & strPayment);
-	// -----------------------------------------
+    // -----------------------------------------
 
 EXPORT    bool IsCheque()        const { return (CHEQUE         == m_Type); }
 EXPORT    bool IsVoucher()       const { return (VOUCHER        == m_Type); }
@@ -322,23 +322,23 @@ EXPORT    bool GetSenderAcctIDForDisplay(OTIdentifier & theOutput)   const;
     // ----------------------------
 EXPORT    bool GetValidFrom(time64_t & tOutput)                 const;
 EXPORT    bool GetValidTo  (time64_t & tOutput)                 const;
-	// ------------------------------------------------------------------------
-EXPORT	bool VerifyCurrentDate(bool & bVerified); // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
+    // ------------------------------------------------------------------------
+EXPORT    bool VerifyCurrentDate(bool & bVerified); // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
 EXPORT  bool IsExpired        (bool & bExpired);  // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
-	// ------------------------------------------------------------------------
-EXPORT	OTPayment();
-EXPORT	OTPayment(const OTString & strPayment);
-EXPORT	virtual ~OTPayment();
+    // ------------------------------------------------------------------------
+EXPORT    OTPayment();
+EXPORT    OTPayment(const OTString & strPayment);
+EXPORT    virtual ~OTPayment();
 EXPORT  void InitPayment();
-EXPORT	virtual void Release();
-EXPORT	void Release_Payment();
+EXPORT    virtual void Release();
+EXPORT    void Release_Payment();
 
-EXPORT	virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-EXPORT	virtual bool SaveContractWallet(std::ofstream & ofs);
+EXPORT    virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+EXPORT    virtual bool SaveContractWallet(std::ofstream & ofs);
     // ----------------------------
-EXPORT	static const char * _GetTypeString(paymentType theType);
+EXPORT    static const char * _GetTypeString(paymentType theType);
 EXPORT  const char * GetTypeString() const { return OTPayment::_GetTypeString(m_Type); }
-EXPORT	static paymentType GetTypeFromString(const OTString & strType);
+EXPORT    static paymentType GetTypeFromString(const OTString & strType);
 };
 
 

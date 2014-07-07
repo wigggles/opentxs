@@ -150,12 +150,12 @@ bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID, char c
             break;
             
         default:
-			otErr << __FUNCTION__ << ": Expected key type of A, E, or S, but instead found: "
-				<< cMetaKeyType << " (bad data or error)\n";
+            otErr << __FUNCTION__ << ": Expected key type of A, E, or S, but instead found: "
+                << cMetaKeyType << " (bad data or error)\n";
             return false;
     }
 
-	std::string str_verify_base62;
+    std::string str_verify_base62;
     
     str_verify_base62 += cMetaNymID;         
     str_verify_base62 += cMetaMasterCredID;  
@@ -163,24 +163,24 @@ bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID, char c
     
     if (false == OTCrypto::It()->IsBase62(str_verify_base62))
     {
-		otErr << __FUNCTION__ << ": Metadata for signature failed base62 validation: " << str_verify_base62 << "\n";
+        otErr << __FUNCTION__ << ": Metadata for signature failed base62 validation: " << str_verify_base62 << "\n";
         return false;
     }
 
-	m_cMetaKeyType       = cMetaKeyType;
+    m_cMetaKeyType       = cMetaKeyType;
     m_cMetaNymID         = cMetaNymID;
     m_cMetaMasterCredID  = cMetaMasterCredID;
     m_cMetaSubCredID     = cMetaSubCredID;
     m_bHasMetadata       = true; // <==== Success.
 
-	return true;
+    return true;
 }
 
 
 OTSignatureMetadata::OTSignatureMetadata() :
     m_bHasMetadata(false), m_cMetaKeyType(0), m_cMetaNymID(0), m_cMetaMasterCredID(0), m_cMetaSubCredID(0)
 {
-	
+    
 }
 
 
@@ -196,31 +196,31 @@ bool OTSignatureMetadata::operator==(const OTSignatureMetadata & rhs) const
 
 OTSignature::OTSignature() : ot_super()
 {
-	
+    
 }
 
 
 OTSignature::~OTSignature()
 {
-	
+    
 }
 
 
 OTSignature::OTSignature(const OTString & strValue) : ot_super(strValue)
 {
-	
+    
 }
 
 
 OTSignature::OTSignature(const OTASCIIArmor & strValue) : ot_super(strValue)
 {
-	
+    
 }
 
 
 OTSignature::OTSignature(const char * szValue) : ot_super(szValue)
 {
-	
+    
 }
 
 
@@ -241,7 +241,7 @@ Algorithms are loaded with OpenSSL_add_all_algorithms(3).
 
 
 int32_t EVP_DigestSignInit(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
-					   const EVP_MD *type, ENGINE *e, EVP_PKEY *pkey);
+                       const EVP_MD *type, ENGINE *e, EVP_PKEY *pkey);
 int32_t EVP_DigestSignUpdate(EVP_MD_CTX *ctx, const void *d, uint32_t cnt);
 int32_t EVP_DigestSignFinal(EVP_MD_CTX *ctx, uint8_t *sig, size_t *siglen);
 
@@ -258,37 +258,37 @@ Keys will be stored in OTASCIIArmor -> OTKey
 
 
 void do_cipher(char *pw, int32_t operation,char * InBuf,int32_t InLen,char * 
-			   OutBuf,int32_t *OutBuflen)
+               OutBuf,int32_t *OutBuflen)
 {
-	//operation:    0:DECRYPT
-	//              1:ENCRYPT 
-	
-	
+    //operation:    0:DECRYPT
+    //              1:ENCRYPT 
+    
+    
     uint8_t iv[EVP_MAX_IV_LENGTH], key[EVP_MAX_KEY_LENGTH];
-	const uint8_t salt[] = "thesaltgoeshere1982w";
-	
-	// uint32_t ekeylen, net_ekeylen;
-	EVP_CIPHER_CTX ectx;
-	
-	EVP_BytesToKey(EVP_idea_cbc(), EVP_md5(), salt, pw, strlen(pw), 1, key, iv);
-	
-	EVP_CipherInit(&ectx, EVP_idea_cbc(), key, iv, operation);
-	
-	EVP_CipherUpdate(&ectx, OutBuf, OutBuflen, InBuf, InLen);
-	
+    const uint8_t salt[] = "thesaltgoeshere1982w";
+    
+    // uint32_t ekeylen, net_ekeylen;
+    EVP_CIPHER_CTX ectx;
+    
+    EVP_BytesToKey(EVP_idea_cbc(), EVP_md5(), salt, pw, strlen(pw), 1, key, iv);
+    
+    EVP_CipherInit(&ectx, EVP_idea_cbc(), key, iv, operation);
+    
+    EVP_CipherUpdate(&ectx, OutBuf, OutBuflen, InBuf, InLen);
+    
     EVP_CipherFinal(&ectx, OutBuf, OutBuflen); 
-	
+    
 }
 void main(void)
 {
-	char InBuf[512],OutBuf[512+8],OutBuf2[512+8];
-	int32_t i, OutLen;
-	
-	for ( i = 0 ; i < 8 ; i++ )
-		InBuf[i] = 30+i;
-	
-	do_cipher("test",1,InBuf,8,OutBuf,&OutLen);  //OutLen=8
-	do_cipher("test",0,OutBuf,8,OutBuf2,&OutLen); //but now OutLen=0
+    char InBuf[512],OutBuf[512+8],OutBuf2[512+8];
+    int32_t i, OutLen;
+    
+    for ( i = 0 ; i < 8 ; i++ )
+        InBuf[i] = 30+i;
+    
+    do_cipher("test",1,InBuf,8,OutBuf,&OutLen);  //OutLen=8
+    do_cipher("test",0,OutBuf,8,OutBuf2,&OutLen); //but now OutLen=0
 }
 
 
@@ -320,46 +320,46 @@ You don't need to specify an iv value as this function creates it.
 /*
 bool OTSignature::CalculateDigest(OTData & dataInput)
 {
-	Release();
-	
-	EVP_MD_CTX mdctx;
-	const EVP_MD *md;
-	const char * hashAlgorithm = "sha256";
-	
-	uint32_t md_len, i;
-	uint8_t md_value[EVP_MAX_MD_SIZE];	
-	
-	if (s_bFirstTime)
-	{
-		s_bFirstTime = false;
-		OpenSSL_add_all_digests();
-	}
-	
-	md = EVP_get_digestbyname(hashAlgorithm);
-	
-	if(!md) 
-	{
-		otErr << "Unknown message digest algorithm in OTSignature::CalculateDigest: %s\n", 
-				hashAlgorithm);
-		return false;
-	}
-	
-	EVP_MD_CTX_init(&mdctx);
-	EVP_DigestInit_ex(&mdctx, md, NULL);
-	EVP_DigestUpdate(&mdctx, dataInput.GetPointer(), dataInput.GetSize());
-	EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-	EVP_MD_CTX_cleanup(&mdctx);
-	
-	otLog5 << "Calculated digest: ");
-	
-	for (i = 0; i < md_len; i++)
-		otLog5 << "%02x", md_value[i]);
-		
-	otLog5 << "\n");
-	
-	Assign(md_value, md_len);
-	
-	return true;
+    Release();
+    
+    EVP_MD_CTX mdctx;
+    const EVP_MD *md;
+    const char * hashAlgorithm = "sha256";
+    
+    uint32_t md_len, i;
+    uint8_t md_value[EVP_MAX_MD_SIZE];    
+    
+    if (s_bFirstTime)
+    {
+        s_bFirstTime = false;
+        OpenSSL_add_all_digests();
+    }
+    
+    md = EVP_get_digestbyname(hashAlgorithm);
+    
+    if(!md) 
+    {
+        otErr << "Unknown message digest algorithm in OTSignature::CalculateDigest: %s\n", 
+                hashAlgorithm);
+        return false;
+    }
+    
+    EVP_MD_CTX_init(&mdctx);
+    EVP_DigestInit_ex(&mdctx, md, NULL);
+    EVP_DigestUpdate(&mdctx, dataInput.GetPointer(), dataInput.GetSize());
+    EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+    EVP_MD_CTX_cleanup(&mdctx);
+    
+    otLog5 << "Calculated digest: ");
+    
+    for (i = 0; i < md_len; i++)
+        otLog5 << "%02x", md_value[i]);
+        
+    otLog5 << "\n");
+    
+    Assign(md_value, md_len);
+    
+    return true;
 }
 
 */

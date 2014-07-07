@@ -166,31 +166,31 @@ extern const char * OT_BEGIN_SIGNED_escaped;
 class OTASCIIArmor : public OTString
 {
 public:
-	static OTDB::OTPacker * GetPacker();
-	static OTDB::OTPacker * s_pPacker;
+    static OTDB::OTPacker * GetPacker();
+    static OTDB::OTPacker * s_pPacker;
 
-EXPORT	OTASCIIArmor();
-EXPORT	OTASCIIArmor(const char * szValue);
-EXPORT	OTASCIIArmor(const OTData & theValue);
-EXPORT	OTASCIIArmor(const OTPayload & theValue);
-EXPORT	OTASCIIArmor(const OTString & strValue);
-EXPORT	OTASCIIArmor(const OTASCIIArmor & strValue);
-EXPORT	OTASCIIArmor(const OTEnvelope & theEnvelope);
-EXPORT	virtual ~OTASCIIArmor();
+EXPORT    OTASCIIArmor();
+EXPORT    OTASCIIArmor(const char * szValue);
+EXPORT    OTASCIIArmor(const OTData & theValue);
+EXPORT    OTASCIIArmor(const OTPayload & theValue);
+EXPORT    OTASCIIArmor(const OTString & strValue);
+EXPORT    OTASCIIArmor(const OTASCIIArmor & strValue);
+EXPORT    OTASCIIArmor(const OTEnvelope & theEnvelope);
+EXPORT    virtual ~OTASCIIArmor();
 
-	using OTString::swap;
+    using OTString::swap;
 
-EXPORT	OTASCIIArmor & operator=(const char * szValue);
-EXPORT	OTASCIIArmor & operator=(const OTData & theValue);
-EXPORT	OTASCIIArmor & operator=(const OTString & strValue);
-EXPORT	OTASCIIArmor & operator=(const OTASCIIArmor & strValue);
+EXPORT    OTASCIIArmor & operator=(const char * szValue);
+EXPORT    OTASCIIArmor & operator=(const OTData & theValue);
+EXPORT    OTASCIIArmor & operator=(const OTString & strValue);
+EXPORT    OTASCIIArmor & operator=(const OTASCIIArmor & strValue);
 
     // ----------------------------------------------
-EXPORT	bool LoadFromFile(const OTString & foldername, const OTString & filename);
-EXPORT	bool LoadFrom_ifstream(std::ifstream & fin);
+EXPORT    bool LoadFromFile(const OTString & foldername, const OTString & filename);
+EXPORT    bool LoadFrom_ifstream(std::ifstream & fin);
 EXPORT  bool SaveTo_ofstream(std::ofstream & fout);
-EXPORT	bool LoadFromExactPath(const std::string & filename);
-EXPORT	bool SaveToExactPath(const std::string & filename);
+EXPORT    bool LoadFromExactPath(const std::string & filename);
+EXPORT    bool SaveToExactPath(const std::string & filename);
     // ----------------------------------------------
     // Let's say you don't know if the input string is raw base64, or if it has bookends
     // on it like -----BEGIN BLAH BLAH ...
@@ -216,11 +216,11 @@ EXPORT  bool WriteArmoredFile(const OTString & foldername, const OTString & file
                                     std::string      str_type, // There's no default, to force you to enter the right string.
                                     bool             bEscaped=false);
     // ----------------------------------------------
-	// This function will base64 DECODE the string contents (This class is a string)
-	// and return them as BINARY in theData
-	// Should be called "Get From Internal String Into Data"
+    // This function will base64 DECODE the string contents (This class is a string)
+    // and return them as BINARY in theData
+    // Should be called "Get From Internal String Into Data"
     //
-EXPORT	bool GetData         (OTData & theData, bool bLineBreaks=true) const;
+EXPORT    bool GetData         (OTData & theData, bool bLineBreaks=true) const;
 EXPORT  bool GetAndUnpackData(OTData & theData, bool bLineBreaks=true) const;
 
         // This function will base64 ENCODE theData,
@@ -232,13 +232,13 @@ EXPORT  bool SetAndPackData(const OTData & theData, bool bLineBreaks=true);
         // This function will base64 DECODE the string contents
         // and return them as a STRING in theData
         //
-EXPORT	bool GetString         (OTString & theData, bool bLineBreaks=true) const;
+EXPORT    bool GetString         (OTString & theData, bool bLineBreaks=true) const;
 EXPORT  bool GetAndUnpackString(OTString & theData, bool bLineBreaks=true) const;
 
         // This function will base64 ENCODE the STRING stored in theData,
         // and then Set() that as this string contents.
         //
-EXPORT	bool SetString       (const OTString & theData, bool bLineBreaks=true);
+EXPORT    bool SetString       (const OTString & theData, bool bLineBreaks=true);
 EXPORT  bool SetAndPackString(const OTString & theData, bool bLineBreaks=true);
 
 

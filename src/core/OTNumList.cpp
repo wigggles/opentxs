@@ -211,10 +211,10 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
     int64_t    lNum        = 0;
     const
     char *  pChar       = szNumbers;
-	std::locale loc;
+    std::locale loc;
 
     // Skip any whitespace.
-	while (std::isspace(*pChar, loc))
+    while (std::isspace(*pChar, loc))
         pChar++;
 
 
@@ -222,7 +222,7 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
 
     for (;;) // We already know it's not null, due to the assert. (So at least one iteration will happen.)
     {
-		if (std::isdigit(*pChar, loc))
+        if (std::isdigit(*pChar, loc))
         {
             bStartedANumber = true;
 
@@ -232,7 +232,7 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
             lNum += nDigit;
         }
         // if separator, or end of string, either way, add lNum to *this.
-		else if ((',' == *pChar) || ('\0' == *pChar) || std::isspace(*pChar, loc)) // first sign of a space, and we are done with current number. (On to the next.)
+        else if ((',' == *pChar) || ('\0' == *pChar) || std::isspace(*pChar, loc)) // first sign of a space, and we are done with current number. (On to the next.)
         {
             if ((lNum > 0) || (bStartedANumber && (0 == lNum)))
             {
@@ -247,7 +247,7 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
         }
         else
         {
-			otErr << "OTNumList::Add: Error: Unexpected character found in erstwhile comma-separated list of longs: " << *pChar << "\n";
+            otErr << "OTNumList::Add: Error: Unexpected character found in erstwhile comma-separated list of longs: " << *pChar << "\n";
             bSuccess = false;
             break;
         }
@@ -259,7 +259,7 @@ bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers
         pChar++;
 
         // Skip any whitespace.
-		while (std::isspace(*pChar, loc))
+        while (std::isspace(*pChar, loc))
             pChar++;
 
     } // while

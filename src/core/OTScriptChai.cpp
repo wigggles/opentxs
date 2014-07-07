@@ -222,17 +222,17 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
         /*
          enum OTVariable_Access
          {
-             Var_Constant,		// Constant -- you cannot change this value.
-             Var_Persistent,	// Persistent -- changing value doesn't require notice to parties.
-             Var_Important,		// Important -- changing value requires notice to parties.
-             Var_Error_Access	// should never happen.
+             Var_Constant,        // Constant -- you cannot change this value.
+             Var_Persistent,    // Persistent -- changing value doesn't require notice to parties.
+             Var_Important,        // Important -- changing value requires notice to parties.
+             Var_Error_Access    // should never happen.
          };
                   
          OTVariable_Access      GetAccess() const { return m_Access; }
          
-         int64_t           &	GetValueLong() { return m_lValue; }
-         bool           &	GetValueBool() { return m_bValue; }
-         std::string	&	GetValueString() { return m_str_Value; }
+         int64_t           &    GetValueLong() { return m_lValue; }
+         bool           &    GetValueBool() { return m_bValue; }
+         std::string    &    GetValueString() { return m_str_Value; }
          */
         
         FOR_EACH(mapOfVariables, m_mapVariables)
@@ -270,7 +270,7 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
                     
                 case OTVariable::Var_String:
                 {
-                    std::string	& str_Value = pVar->GetValueString();
+                    std::string    & str_Value = pVar->GetValueString();
                     
                     if (OTVariable::Var_Constant == pVar->GetAccess()) // no pointer here, since it's constant.
                     {
@@ -289,8 +289,8 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
                     break;
                     
                 default:
-					otErr << "OTScriptChai::ExecuteScript: Failure: Unknown variable type for variable: " 
-						<< var_name << "\n";
+                    otErr << "OTScriptChai::ExecuteScript: Failure: Unknown variable type for variable: " 
+                        << var_name << "\n";
                     return false;
             }
         }
@@ -351,10 +351,10 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
         } // try
         catch (const chaiscript::exception::eval_error &ee) {
             // Error in script parsing / execution
-			otErr << "OTScriptChai::ExecuteScript: \n Caught chaiscript::exception::eval_error: \n " 
-				<< ee.reason << ". \n   File: " << ee.filename << "\n"
-				"   Start position, line: " << ee.start_position.line << " column: " << ee.start_position.column << "\n"
-				"   End position,   line: " << ee.end_position.line << " column: " << ee.end_position.column << "\n\n";
+            otErr << "OTScriptChai::ExecuteScript: \n Caught chaiscript::exception::eval_error: \n " 
+                << ee.reason << ". \n   File: " << ee.filename << "\n"
+                "   Start position, line: " << ee.start_position.line << " column: " << ee.start_position.column << "\n"
+                "   End position,   line: " << ee.end_position.line << " column: " << ee.end_position.column << "\n\n";
 
             std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
@@ -399,13 +399,13 @@ bool OTScriptChai::ExecuteScript(OTVariable * pReturnVar/*=NULL*/)
             return false;
         } catch (const chaiscript::exception::bad_boxed_cast &e) {
             // Error unboxing return value
-			otErr << "OTScriptChai::ExecuteScript: Caught chaiscript::exception::bad_boxed_cast : " 
-				<< ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << ".\n";
+            otErr << "OTScriptChai::ExecuteScript: Caught chaiscript::exception::bad_boxed_cast : " 
+                << ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << ".\n";
             return false;
         } catch (const std::exception &e) {
             // Error explicitly thrown from script
-			otErr << "OTScriptChai::ExecuteScript: Caught std::exception exception: "
-				<< ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << "\n";
+            otErr << "OTScriptChai::ExecuteScript: Caught std::exception exception: "
+                << ((e.what() != NULL) ? e.what() : "e.what() returned null, sorry") << "\n";
             return false;
         }
 //      catch (chaiscript::Boxed_Value bv) 
