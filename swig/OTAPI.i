@@ -8,12 +8,6 @@
 
 
 
-%include "inttypes.i"
-%include "std_string.i";
-%include "std_vector.i";
-%include "std_map.i"
-%include "typemaps.i"
-
 
 #ifdef SWIGPERL
 %{
@@ -30,6 +24,12 @@
 #endif
 %}
 #endif // SWIGPERL
+
+%include "inttypes.i"
+%include "std_string.i";
+%include "std_vector.i";
+%include "std_map.i"
+%include "typemaps.i"
 
 
 // ALL
