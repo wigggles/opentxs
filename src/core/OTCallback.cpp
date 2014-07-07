@@ -146,43 +146,47 @@
 #include <limits.h>
 
 #ifndef PAGESIZE
-    #include <unistd.h>
-    #define PAGESIZE sysconf(_SC_PAGESIZE)
+#include <unistd.h>
+#define PAGESIZE sysconf(_SC_PAGESIZE)
 #endif
 
 // FT: Credit to the Bitcoin team for the mlock / munlock defines.
 
-#define mlock(a,b) \
-  mlock(((void *)(((size_t)(a)) & (~((PAGESIZE)-1)))),\
-  (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) - (((size_t)(a)) & (~((PAGESIZE) - 1))))
-#define munlock(a,b) \
-  munlock(((void *)(((size_t)(a)) & (~((PAGESIZE)-1)))),\
-  (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) - (((size_t)(a)) & (~((PAGESIZE) - 1))))
+#define mlock(a, b)                                                            \
+    mlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                      \
+          (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -               \
+              (((size_t)(a)) & (~((PAGESIZE) - 1))))
+#define munlock(a, b)                                                          \
+    munlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                    \
+            (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -             \
+                (((size_t)(a)) & (~((PAGESIZE) - 1))))
 #endif
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 OTCallback::~OTCallback()
 {
-    otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- as the application is closing.)\n";
-//    std::cout << "OTCallback::~OTCallback()" << std:: endl;
+    otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- "
+             "as the application is closing.)\n";
+    //    std::cout << "OTCallback::~OTCallback()" << std:: endl;
 }
-
 
 // Asks for password once. (For authentication when using nym.)
 //
-void OTCallback::runOne(const char *, OTPassword &) // child class will override.
+void OTCallback::runOne(const char*, OTPassword&) // child class will override.
 {
-    OT_FAIL_MSG("OTCallback::runOne: ASSERT (The child class was supposed to override this method.)\n");
+    OT_FAIL_MSG("OTCallback::runOne: ASSERT (The child class was supposed to "
+                "override this method.)\n");
 }
 
-
-// Asks for password twice. (For confirmation when changing password or creating nym.)
+// Asks for password twice. (For confirmation when changing password or creating
+// nym.)
 //
-void OTCallback::runTwo(const char *, OTPassword &) // child class will override.
+void OTCallback::runTwo(const char*, OTPassword&) // child class will override.
 {
-    OT_FAIL_MSG("OTCallback::runTwo: ASSERT (The child class was supposed to override this method.)\n");
+    OT_FAIL_MSG("OTCallback::runTwo: ASSERT (The child class was supposed to "
+                "override this method.)\n");
 }
 
 } // namespace opentxs

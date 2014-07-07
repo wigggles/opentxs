@@ -135,10 +135,10 @@
 
 #include "OTInstrument.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTNumList;
-
 
 // OTTrackable is very similar to OTInstrument.
 // The difference is, it may have identifying info on it:
@@ -146,54 +146,81 @@ class OTNumList;
 //
 class OTTrackable : public OTInstrument
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTInstrument ot_super;
+
 protected:
-    int64_t    m_lTransactionNum;
-    OTIdentifier    m_SENDER_ACCT_ID;    // The asset account the instrument is drawn on.
-    OTIdentifier    m_SENDER_USER_ID;    // This ID must match the user ID on that asset account,
-                                        // AND must verify the instrument's signature with that user's key.
-    inline void SetSenderAcctID(const OTIdentifier & ACCT_ID) { m_SENDER_ACCT_ID = ACCT_ID; }
-    inline void SetSenderUserID(const OTIdentifier & USER_ID) { m_SENDER_USER_ID = USER_ID; }
+    int64_t m_lTransactionNum;
+    OTIdentifier m_SENDER_ACCT_ID; // The asset account the instrument is drawn
+                                   // on.
+    OTIdentifier m_SENDER_USER_ID; // This ID must match the user ID on that
+                                   // asset account,
+    // AND must verify the instrument's signature with that user's key.
+    inline void SetSenderAcctID(const OTIdentifier& ACCT_ID)
+    {
+        m_SENDER_ACCT_ID = ACCT_ID;
+    }
+    inline void SetSenderUserID(const OTIdentifier& USER_ID)
+    {
+        m_SENDER_USER_ID = USER_ID;
+    }
+
 public:
-    virtual bool HasTransactionNum(const int64_t & lInput) const;
-    virtual void GetAllTransactionNumbers(OTNumList & numlistOutput) const;
-    inline  int64_t GetTransactionNum() const                  { return m_lTransactionNum; }
-    inline  void SetTransactionNum(int64_t lTransactionNum)    { m_lTransactionNum = lTransactionNum; }
-    inline  const OTIdentifier & GetSenderAcctID() const    { return m_SENDER_ACCT_ID; }
-    inline  const OTIdentifier & GetSenderUserID() const    { return m_SENDER_USER_ID; }
+    virtual bool HasTransactionNum(const int64_t& lInput) const;
+    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    inline int64_t GetTransactionNum() const
+    {
+        return m_lTransactionNum;
+    }
+    inline void SetTransactionNum(int64_t lTransactionNum)
+    {
+        m_lTransactionNum = lTransactionNum;
+    }
+    inline const OTIdentifier& GetSenderAcctID() const
+    {
+        return m_SENDER_ACCT_ID;
+    }
+    inline const OTIdentifier& GetSenderUserID() const
+    {
+        return m_SENDER_USER_ID;
+    }
     // From OTInstrument (parent class of OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : OTContract()
+     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     : OTContract()
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
      inline time64_t GetValidTo()        const { return m_VALID_TO; }
 
-     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    = TIME_FROM; }
-     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO; }
+     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    =
+     TIME_FROM; }
+     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
+     }
 
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    = ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    = SERVER_ID; }
+     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
+     ASSET_ID; }
+     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
+     SERVER_ID; }
 
      inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
      inline const OTIdentifier & GetServerID() const { return m_ServerID; }
 
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
+     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
+     / TO dates.
      */
     OTTrackable();
-    OTTrackable(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-    OTTrackable(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID,
-                const OTIdentifier & ACCT_ID, const OTIdentifier & USER_ID);
+    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
+                const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
     virtual ~OTTrackable();
     void InitTrackable();
     virtual void Release();
     void Release_Trackable();
-    virtual int32_t  ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents
-    virtual bool SaveContractWallet(std::ofstream & ofs);
- };
-
-
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual void UpdateContents(); // Before transmission or serialization, this
+                                   // is where the ledger saves its contents
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+};
 
 } // namespace opentxs
 

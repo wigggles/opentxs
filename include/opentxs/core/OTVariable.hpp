@@ -135,87 +135,153 @@
 
 #include "OTString.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTBylaw;
 class OTScript;
 class OTVariable;
 
-
 class OTVariable
 {
 public:
-    enum OTVariable_Type
-    {
-        Var_String,        // std::string
-        Var_Integer,    // Integer. (For int64_t int32_t: use strings.)
-        Var_Bool,        // Boolean. (True / False)
-        Var_Error_Type    // should never happen.
+    enum OTVariable_Type {
+        Var_String,    // std::string
+        Var_Integer,   // Integer. (For int64_t int32_t: use strings.)
+        Var_Bool,      // Boolean. (True / False)
+        Var_Error_Type // should never happen.
     };
 
-    enum OTVariable_Access
-    {
-        Var_Constant,        // Constant   -- you cannot change this value.
-        Var_Persistent,        // Persistent -- changing value doesn't require notice to parties.
-        Var_Important,        // Important  -- changing value requires notice to parties.
-        Var_Error_Access    // should never happen.
+    enum OTVariable_Access {
+        Var_Constant,    // Constant   -- you cannot change this value.
+        Var_Persistent,  // Persistent -- changing value doesn't require notice
+                         // to parties.
+        Var_Important,   // Important  -- changing value requires notice to
+                         // parties.
+        Var_Error_Access // should never happen.
     };
 
 private:
-    OTString    m_strName;        // Name of this variable.
-    std::string m_str_Value;    // If a string, the value is stored here.
-    int32_t            m_nValue;        // If an integer, the value is stored here.
-    bool        m_bValue;        // If a bool, the value is stored here.
-    std::string m_str_ValueBackup;    // If a string, the value backup is stored here. (So we can see if it has changed since execution)
-    int32_t            m_nValueBackup;    // If an integer, the value backup is stored here.  (So we can see if it has changed since execution)
-    bool        m_bValueBackup;    // If a bool, the value backup is stored here. (So we can check for dirtiness later...)
-    OTBylaw    *    m_pBylaw;        // the Bylaw that this variable belongs to.
-    OTVariable_Type        m_Type;  // Currently bool, int32_t, or string.
-    OTVariable_Access    m_Access;  // Determines how the variable is used inside the script.
-    OTScript *  m_pScript; // If the variable is set onto a script, this pointer gets set. When the variable destructs, it will remove itself from the script.
+    OTString m_strName;            // Name of this variable.
+    std::string m_str_Value;       // If a string, the value is stored here.
+    int32_t m_nValue;              // If an integer, the value is stored here.
+    bool m_bValue;                 // If a bool, the value is stored here.
+    std::string m_str_ValueBackup; // If a string, the value backup is stored
+                                   // here. (So we can see if it has changed
+                                   // since execution)
+    int32_t m_nValueBackup; // If an integer, the value backup is stored here.
+                            // (So we can see if it has changed since execution)
+    bool m_bValueBackup; // If a bool, the value backup is stored here. (So we
+                         // can check for dirtiness later...)
+    OTBylaw* m_pBylaw;   // the Bylaw that this variable belongs to.
+    OTVariable_Type m_Type;     // Currently bool, int32_t, or string.
+    OTVariable_Access m_Access; // Determines how the variable is used inside
+                                // the script.
+    OTScript* m_pScript; // If the variable is set onto a script, this pointer
+                         // gets set. When the variable destructs, it will
+                         // remove itself from the script.
 
 public:
-EXPORT    void RegisterForExecution(OTScript& theScript); // We keep an internal script pointer here, so if we destruct, we can remove ourselves from the script.
-EXPORT  void UnregisterScript(); // If the script destructs before the variable does, it unregisters itself here, so the variable isn't stuck with a bad pointer.
-    bool IsDirty() const;    // So you can tell if the variable has CHANGED since it was last set clean.
-    void SetAsClean();        // Sets the variable as clean, so you can check it later and see if it's been changed (if it's DIRTY again.)
-    bool IsConstant()   const { return (Var_Constant    == m_Access); }
-    bool IsPersistent() const { return ((Var_Persistent == m_Access) || (Var_Important == m_Access)); } // important vars are persistent, too.
-    bool IsImportant()  const { return (Var_Important   == m_Access); }
-    void SetBylaw(OTBylaw& theBylaw) { m_pBylaw = &theBylaw; }
-    bool SetValue(const int32_t & nValue);
+    EXPORT void RegisterForExecution(OTScript& theScript); // We keep an
+                                                           // internal script
+                                                           // pointer here, so
+                                                           // if we destruct, we
+                                                           // can remove
+                                                           // ourselves from the
+                                                           // script.
+    EXPORT void UnregisterScript(); // If the script destructs before the
+                                    // variable does, it unregisters itself
+                                    // here, so the variable isn't stuck with a
+                                    // bad pointer.
+    bool IsDirty() const; // So you can tell if the variable has CHANGED since
+                          // it was last set clean.
+    void SetAsClean(); // Sets the variable as clean, so you can check it later
+                       // and see if it's been changed (if it's DIRTY again.)
+    bool IsConstant() const
+    {
+        return (Var_Constant == m_Access);
+    }
+    bool IsPersistent() const
+    {
+        return ((Var_Persistent == m_Access) || (Var_Important == m_Access));
+    } // important vars are persistent, too.
+    bool IsImportant() const
+    {
+        return (Var_Important == m_Access);
+    }
+    void SetBylaw(OTBylaw& theBylaw)
+    {
+        m_pBylaw = &theBylaw;
+    }
+    bool SetValue(const int32_t& nValue);
     bool SetValue(const bool bValue);
-    bool SetValue(const std::string & str_Value);
+    bool SetValue(const std::string& str_Value);
 
-EXPORT    const OTString & GetName() const { return m_strName; } // variable's name as used in a script.
-    OTVariable_Type        GetType  () const { return m_Type;   }
-    OTVariable_Access    GetAccess() const { return m_Access; }
+    EXPORT const OTString& GetName() const
+    {
+        return m_strName;
+    } // variable's name as used in a script.
+    OTVariable_Type GetType() const
+    {
+        return m_Type;
+    }
+    OTVariable_Access GetAccess() const
+    {
+        return m_Access;
+    }
 
-    bool    IsInteger() const   { return (Var_Integer    == m_Type); }
-    bool    IsBool   () const   { return (Var_Bool        == m_Type); }
-    bool    IsString () const   { return (Var_String    == m_Type); }
+    bool IsInteger() const
+    {
+        return (Var_Integer == m_Type);
+    }
+    bool IsBool() const
+    {
+        return (Var_Bool == m_Type);
+    }
+    bool IsString() const
+    {
+        return (Var_String == m_Type);
+    }
 
-    int32_t     CopyValueInteger() const { return m_nValue;    }
-    bool        CopyValueBool   () const { return m_bValue;    }
-    std::string CopyValueString () const { return m_str_Value; }
+    int32_t CopyValueInteger() const
+    {
+        return m_nValue;
+    }
+    bool CopyValueBool() const
+    {
+        return m_bValue;
+    }
+    std::string CopyValueString() const
+    {
+        return m_str_Value;
+    }
 
-    int32_t        & GetValueInteger() { return m_nValue;    }
-    bool        & GetValueBool   () { return m_bValue;    }
-    std::string    & GetValueString () { return m_str_Value; }
+    int32_t& GetValueInteger()
+    {
+        return m_nValue;
+    }
+    bool& GetValueBool()
+    {
+        return m_bValue;
+    }
+    std::string& GetValueString()
+    {
+        return m_str_Value;
+    }
 
-    bool Compare(OTVariable & rhs);
+    bool Compare(OTVariable& rhs);
 
-EXPORT    OTVariable();
-EXPORT    OTVariable(const std::string str_Name, const int32_t         nValue,    const OTVariable_Access theAccess=Var_Persistent);
-EXPORT    OTVariable(const std::string str_Name, const bool        bValue,    const OTVariable_Access theAccess=Var_Persistent);
-EXPORT    OTVariable(const std::string str_Name, const std::string str_Value,    const OTVariable_Access theAccess=Var_Persistent);
-EXPORT    virtual ~OTVariable();
+    EXPORT OTVariable();
+    EXPORT OTVariable(const std::string str_Name, const int32_t nValue,
+                      const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(const std::string str_Name, const bool bValue,
+                      const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(const std::string str_Name, const std::string str_Value,
+                      const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT virtual ~OTVariable();
 
-    void Serialize(OTString & strAppend,
-                   bool bCalculatingID=false);
+    void Serialize(OTString& strAppend, bool bCalculatingID = false);
 };
-
-
 
 } // namespace opentxs
 

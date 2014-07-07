@@ -135,35 +135,53 @@
 
 #include "OTCommon.hpp"
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAmount
 {
-    int64_t  m_lAmount;    // $5.45 has m_lAmount set to 545
+    int64_t m_lAmount; // $5.45 has m_lAmount set to 545
 
 public:
-EXPORT    friend void swap(OTAmount& first, OTAmount& second) // nothrow
+    EXPORT friend void swap(OTAmount& first, OTAmount& second) // nothrow
     {
         using std::swap; // enable ADL (good practice)
-        swap(first.m_lAmount,    second.m_lAmount);
+        swap(first.m_lAmount, second.m_lAmount);
     }
-EXPORT    bool          IsPositive()   const { return (m_lAmount >  0);  }
-EXPORT    bool          IsNegative()   const { return (m_lAmount <  0);  }
-EXPORT    bool          IsZero()       const { return (m_lAmount == 0);  }
-EXPORT    int64_t       GetAmount()    const { return m_lAmount; }
-EXPORT    int64_t       GetAbsolute()  const { return (m_lAmount <  0) ? (m_lAmount*(-1)) : m_lAmount; }
-EXPORT    void          SetAmount(int64_t lAmount) { m_lAmount = lAmount; }
-EXPORT    OTAmount(int64_t lAmount=0);
-EXPORT    OTAmount(const OTAmount & other);
+    EXPORT bool IsPositive() const
+    {
+        return (m_lAmount > 0);
+    }
+    EXPORT bool IsNegative() const
+    {
+        return (m_lAmount < 0);
+    }
+    EXPORT bool IsZero() const
+    {
+        return (m_lAmount == 0);
+    }
+    EXPORT int64_t GetAmount() const
+    {
+        return m_lAmount;
+    }
+    EXPORT int64_t GetAbsolute() const
+    {
+        return (m_lAmount < 0) ? (m_lAmount * (-1)) : m_lAmount;
+    }
+    EXPORT void SetAmount(int64_t lAmount)
+    {
+        m_lAmount = lAmount;
+    }
+    EXPORT OTAmount(int64_t lAmount = 0);
+    EXPORT OTAmount(const OTAmount& other);
 
-EXPORT    OTAmount& operator=(OTAmount other);
-//  OTAmount(OTAmount&& other);  // C++11
+    EXPORT OTAmount& operator=(OTAmount other);
+    //  OTAmount(OTAmount&& other);  // C++11
 
-EXPORT    ~OTAmount() {}
+    EXPORT ~OTAmount()
+    {
+    }
 };
-
-
 
 } // namespace opentxs
 

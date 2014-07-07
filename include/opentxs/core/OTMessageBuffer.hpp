@@ -137,13 +137,14 @@
 
 #include <list>
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTMessage;
 class OTString;
 
-typedef std::list<OTMessage *>       listOfMessages; // Incoming server replies to your messages.
-
+typedef std::list<OTMessage*> listOfMessages; // Incoming server replies to your
+                                              // messages.
 
 // INCOMING SERVER REPLIES.
 //
@@ -157,20 +158,28 @@ class OTMessageBuffer
 {
     listOfMessages m_listMessages;
     // Just to keep you out of trouble.
-    OTMessageBuffer  (const OTMessageBuffer &) {}
-    OTMessageBuffer & operator=(const OTMessageBuffer &) { return *this; }
+    OTMessageBuffer(const OTMessageBuffer&)
+    {
+    }
+    OTMessageBuffer& operator=(const OTMessageBuffer&)
+    {
+        return *this;
+    }
+
 public:
-    OTMessageBuffer() {}
-EXPORT    ~OTMessageBuffer();
+    OTMessageBuffer()
+    {
+    }
+    EXPORT ~OTMessageBuffer();
 
-EXPORT    void        Clear   ();
-EXPORT    void        Push    (OTMessage & theMessage);     // Push: theMessage must be heap-allocated. Takes ownership.
-EXPORT    OTMessage * Pop     (const int64_t & lRequestNum,    // Pop:  Caller IS responsible to delete.
-                         const OTString & strServerID,
-                         const OTString & strNymID);
+    EXPORT void Clear();
+    EXPORT void Push(OTMessage& theMessage); // Push: theMessage must be
+                                             // heap-allocated. Takes ownership.
+    EXPORT OTMessage* Pop(const int64_t& lRequestNum, // Pop:  Caller IS
+                                                      // responsible to delete.
+                          const OTString& strServerID,
+                          const OTString& strNymID);
 };
-
-
 
 } // namespace opentxs
 

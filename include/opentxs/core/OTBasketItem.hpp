@@ -137,12 +137,12 @@
 
 #include <deque>
 
-namespace opentxs {
+namespace opentxs
+{
 
 class BasketItem;
 
-typedef std::deque <BasketItem *> dequeOfBasketItems;
-
+typedef std::deque<BasketItem*> dequeOfBasketItems;
 
 class BasketItem
 {
@@ -150,7 +150,7 @@ public:
     OTIdentifier SUB_CONTRACT_ID;
     OTIdentifier SUB_ACCOUNT_ID;
 
-    int64_t    lMinimumTransferAmount;
+    int64_t lMinimumTransferAmount;
 
     // lClosingTransactionNo:
     // Used when EXCHANGING a basket (NOT USED when first creating one.)
@@ -160,13 +160,13 @@ public:
     // an issued transaction number (an open transaction) on that Nym.
     // (One must be supplied for EACH asset account during an exchange.)
     //
-    int64_t    lClosingTransactionNo;
+    int64_t lClosingTransactionNo;
 
     BasketItem();
-    ~BasketItem() {}
+    ~BasketItem()
+    {
+    }
 };
-
-
 
 } // namespace opentxs
 

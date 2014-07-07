@@ -136,8 +136,8 @@
 
 #include "OTLog.hpp"
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 /*
  int64_t GetAmount() const { return m_lAmount; }
@@ -146,56 +146,55 @@ namespace opentxs {
  const OTString & GetAssetTypeID() { return m_strAssetTypeID; }
  */
 
-
 OTStashItem::OTStashItem() : m_lAmount(0)
 {
-
 }
 
-
-OTStashItem::OTStashItem(const OTString & strAssetTypeID, const int64_t lAmount/*=0*/)
-: m_strAssetTypeID(strAssetTypeID), m_lAmount(lAmount)
+OTStashItem::OTStashItem(const OTString& strAssetTypeID,
+                         const int64_t lAmount /*=0*/)
+    : m_strAssetTypeID(strAssetTypeID)
+    , m_lAmount(lAmount)
 {
-
 }
 
-
-OTStashItem::OTStashItem(const OTIdentifier & theAssetTypeID, const int64_t lAmount/*=0*/)
-: m_strAssetTypeID(theAssetTypeID), m_lAmount(lAmount)
+OTStashItem::OTStashItem(const OTIdentifier& theAssetTypeID,
+                         const int64_t lAmount /*=0*/)
+    : m_strAssetTypeID(theAssetTypeID)
+    , m_lAmount(lAmount)
 {
-
 }
-
 
 OTStashItem::~OTStashItem()
 {
-
 }
-
 
 /*
  IDEA: todo security.
 
- Make a base class that keeps the amount itself PRIVATE, so even its subclasses can't see it.
+ Make a base class that keeps the amount itself PRIVATE, so even its subclasses
+ can't see it.
 
- This is where Credit() and Debit() are made available as PROTECTED, so that its subclasses can USE them
+ This is where Credit() and Debit() are made available as PROTECTED, so that its
+ subclasses can USE them
  to manipulate the amount, which they can't otherwise see directly at all.
 
  This thing should be able to SERIALIZE itself as part of a bigger class.
 
- Actually Credit and Debit should be PUBLIC so that people can use instances of this class
+ Actually Credit and Debit should be PUBLIC so that people can use instances of
+ this class
  without having to subclass from it.
 
- Then I can use it ALL OVER THE PLACE where Balances are:  Accounts, Stashes, Instruments, etc.
+ Then I can use it ALL OVER THE PLACE where Balances are:  Accounts, Stashes,
+ Instruments, etc.
 
  */
 
-bool OTStashItem::CreditStash(const int64_t &lAmount)
+bool OTStashItem::CreditStash(const int64_t& lAmount)
 {
-    if (lAmount < 0)
-    {
-        otOut << "OTStashItem::CreditStash: Failed attempt to credit a negative amount ("
-            << lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
+    if (lAmount < 0) {
+        otOut << "OTStashItem::CreditStash: Failed attempt to credit a "
+                 "negative amount (" << lAmount
+              << "). Asset Type: " << m_strAssetTypeID << " \n";
         return false;
     }
 
@@ -204,22 +203,22 @@ bool OTStashItem::CreditStash(const int64_t &lAmount)
     return true;
 }
 
-
-bool OTStashItem::DebitStash(const int64_t &lAmount)
+bool OTStashItem::DebitStash(const int64_t& lAmount)
 {
-    if (lAmount < 0)
-    {
-        otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative amount ("
-            << lAmount << "). Asset Type: " << m_strAssetTypeID << " \n";
+    if (lAmount < 0) {
+        otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative "
+                 "amount (" << lAmount << "). Asset Type: " << m_strAssetTypeID
+              << " \n";
         return false;
     }
 
     const int64_t lTentativeNewBalance = (m_lAmount - lAmount);
 
-    if (lTentativeNewBalance < 0)
-    {
-        otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) " << lAmount << ": New stash balance would have been a negative "
-            "amount (" << lTentativeNewBalance << "). Asset Type: " << m_strAssetTypeID << " \n";
+    if (lTentativeNewBalance < 0) {
+        otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) "
+              << lAmount << ": New stash balance would have been a negative "
+                            "amount (" << lTentativeNewBalance
+              << "). Asset Type: " << m_strAssetTypeID << " \n";
         return false;
     }
 

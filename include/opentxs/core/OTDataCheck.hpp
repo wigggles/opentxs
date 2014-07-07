@@ -135,21 +135,19 @@
 
 #include "OTCommon.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 typedef uint8_t OT_BYTE;
 typedef bool OT_BOOL;
 
+void AppendChecksum(OT_BYTE* buffer, uint32_t& size);
 
-void AppendChecksum( OT_BYTE* buffer, uint32_t & size );
+EXPORT OT_BYTE CalcChecksum(OT_BYTE* buffer, uint32_t size);
 
-EXPORT OT_BYTE CalcChecksum( OT_BYTE* buffer, uint32_t size );
+OT_BYTE CalcChecksum(const OT_BYTE* const buffer, const uint32_t size);
 
-OT_BYTE CalcChecksum( const OT_BYTE * const buffer, const uint32_t size );
-
-EXPORT OT_BOOL IsChecksumValid( OT_BYTE* buffer, uint32_t size );
-
-
+EXPORT OT_BOOL IsChecksumValid(OT_BYTE* buffer, uint32_t size);
 
 } // namespace opentxs
 

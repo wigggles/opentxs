@@ -130,8 +130,6 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-
-
 #ifndef __OT_SERVERCONNECTION_HPP__
 #define __OT_SERVERCONNECTION_HPP__
 
@@ -140,8 +138,8 @@
 #include "OTMessageBuffer.hpp"
 #include "OTServerContract.hpp"
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 struct TransportCallback;
 
@@ -153,7 +151,6 @@ class OTWallet;
 class OTString;
 class OTClient;
 
-
 class OTServerConnection
 {
     static void Initialize();
@@ -162,52 +159,74 @@ class OTServerConnection
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
-//    SFSocket *                m_pSocket;     // For TCP / SSL mode.
+    //    SFSocket *                m_pSocket;     // For TCP / SSL mode.
 
-    bool                    m_bFocused;     // For RPC / HTTP mode.
-    TransportCallback    *    m_pCallback; 
+    bool m_bFocused; // For RPC / HTTP mode.
+    TransportCallback* m_pCallback;
 
-    OTPseudonym            *    m_pNym;
-    OTServerContract    *    m_pServerContract;
-    OTWallet            *    m_pWallet;
-    OTClient            *    m_pClient;
+    OTPseudonym* m_pNym;
+    OTServerContract* m_pServerContract;
+    OTWallet* m_pWallet;
+    OTClient* m_pClient;
 
 public:
-    OTServerConnection(OTWallet & theWallet, OTClient & theClient);
-//    OTServerConnection(OTWallet & theWallet, OTClient & theClient, SFSocket * pSock);
-    EXPORT    ~OTServerConnection() {}
+    OTServerConnection(OTWallet& theWallet, OTClient& theClient);
+    //    OTServerConnection(OTWallet & theWallet, OTClient & theClient,
+    // SFSocket * pSock);
+    EXPORT ~OTServerConnection()
+    {
+    }
 
-    bool GetServerID(OTIdentifier & theID);
+    bool GetServerID(OTIdentifier& theID);
 
-    inline OTPseudonym        *    GetNym()            { return m_pNym; }
-    inline OTServerContract    *    GetServerContract()    { return m_pServerContract; }
-    inline OTWallet            *    GetWallet()            { return m_pWallet; }
+    inline OTPseudonym* GetNym()
+    {
+        return m_pNym;
+    }
+    inline OTServerContract* GetServerContract()
+    {
+        return m_pServerContract;
+    }
+    inline OTWallet* GetWallet()
+    {
+        return m_pWallet;
+    }
 
-//    inline bool IsConnected()    { return ((NULL == m_pSocket)?false:true); }    // for socket mode                -- TCP / SSL
-    inline bool IsFocused()        { return m_bFocused; }                            // for request/response mode    -- RPC / HTTP
+    //    inline bool IsConnected()    { return ((NULL ==
+    // m_pSocket)?false:true); }    // for socket mode                -- TCP /
+    // SSL
+    inline bool IsFocused()
+    {
+        return m_bFocused;
+    } // for request/response mode    -- RPC / HTTP
 
     // SetFocus() is for RPC / HTTP mode.
-    bool SetFocus(OTPseudonym & theNym, OTServerContract & theServerContract, TransportCallback * pCallback);
+    bool SetFocus(OTPseudonym& theNym, OTServerContract& theServerContract,
+                  TransportCallback* pCallback);
 
     // Connect() is for TCP / SSL mode.
-EXPORT    bool Connect(OTPseudonym &, OTServerContract &,
-    OTString &, OTString &, OTString &) {return false;}
+    EXPORT bool Connect(OTPseudonym&, OTServerContract&, OTString&, OTString&,
+                        OTString&)
+    {
+        return false;
+    }
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber);
 
-    void ProcessMessageOut(char *buf, int32_t * pnExpectReply);
-    void ProcessMessageOut(OTMessage & theMessage);
+    void ProcessMessageOut(char* buf, int32_t* pnExpectReply);
+    void ProcessMessageOut(OTMessage& theMessage);
 
-    EXPORT    bool ProcessInBuffer(OTMessage &) {return false;}
-    bool ProcessReply(u_header & theCMD, OTMessage & theServerReply);
-    bool ProcessType1Cmd(u_header & theCMD, OTMessage & theServerReply);
+    EXPORT bool ProcessInBuffer(OTMessage&)
+    {
+        return false;
+    }
+    bool ProcessReply(u_header& theCMD, OTMessage& theServerReply);
+    bool ProcessType1Cmd(u_header& theCMD, OTMessage& theServerReply);
 
     // Assuming we are connected, then we have the nym for signing and we
     // have the connection for sending.
-    bool SignAndSend(OTMessage & theMessage);
-
+    bool SignAndSend(OTMessage& theMessage);
 };
-
 
 } // namespace opentxs
 

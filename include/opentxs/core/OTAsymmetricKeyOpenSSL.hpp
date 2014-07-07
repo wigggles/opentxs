@@ -135,25 +135,31 @@
 
 #include "OTAsymmetricKey.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
 class OTString;
 
-
 // Todo:
-// 1. Add this value to the config file so it becomes merely a default value here.
+// 1. Add this value to the config file so it becomes merely a default value
+// here.
 // 2. This timer solution isn't the full solution but only a stopgap measure.
 //    See notes in ReleaseKeyLowLevel for more -- ultimate solution will involve
-//    the callback itself, and some kind of encrypted storage of hashed passwords,
-//    using session keys, as well as an option to use ssh-agent and other standard
+//    the callback itself, and some kind of encrypted storage of hashed
+// passwords,
+//    using session keys, as well as an option to use ssh-agent and other
+// standard
 //    APIs for protected memory.
 //
-// UPDATE: Am in the process now of adding the actual Master key. Therefore OT_MASTER_KEY_TIMEOUT
-// was added for the actual mechanism, while OT_KEY_TIMER (a stopgap measure) was set to 0, which
-// makes it of no effect. Probably OT_KEY_TIMER will be removed entirely (we'll see.)
+// UPDATE: Am in the process now of adding the actual Master key. Therefore
+// OT_MASTER_KEY_TIMEOUT
+// was added for the actual mechanism, while OT_KEY_TIMER (a stopgap measure)
+// was set to 0, which
+// makes it of no effect. Probably OT_KEY_TIMER will be removed entirely (we'll
+// see.)
 //
 #ifndef OT_KEY_TIMER
 
@@ -169,49 +175,60 @@ class OTString;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif // OT_KEY_TIMER
 
-
 // This is the only part of the API that actually accepts objects as parameters,
 // since the above objects have SWIG C++ wrappers.
 //
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller & theCaller); // Caller must have Callback attached already.
+EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller); // Caller must
+                                                              // have Callback
+                                                              // attached
+                                                              // already.
 
-
-#if defined (OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
 class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTAsymmetricKey ot_super;
-    friend class OTAsymmetricKey;    // For the factory.
-    friend class OTLowLevelKeyData;  // For access to OpenSSL-specific calls that are otherwise private.
-    friend class OTCrypto_OpenSSL;   // For OpenSSL-specific crypto functions to access OpenSSL-specific methods.
+    friend class OTAsymmetricKey;   // For the factory.
+    friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
+                                    // are otherwise private.
+    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
+                                    // access OpenSSL-specific methods.
 public:
     // Load Private Key From Cert String
     //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
+    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
+    // CERTIFICATE....
     //
-    virtual bool LoadPrivateKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
-                                              const OTString   * pstrReason=NULL,
-                                                    OTPassword * pImportPassword=NULL);
+    virtual bool LoadPrivateKeyFromCertString(
+        const OTString& strCert, bool bEscaped = true,
+        const OTString* pstrReason = NULL, OTPassword* pImportPassword = NULL);
     // Load Public Key from Cert String
     //
-    virtual bool LoadPublicKeyFromCertString(const OTString   & strCert, bool bEscaped=true,
-                                             const OTString   * pstrReason=NULL,
-                                                   OTPassword * pImportPassword=NULL); // DOES handle bookends, AND escapes.
+    virtual bool LoadPublicKeyFromCertString(
+        const OTString& strCert, bool bEscaped = true,
+        const OTString* pstrReason = NULL,
+        OTPassword* pImportPassword = NULL); // DOES handle bookends, AND
+                                             // escapes.
 
-    virtual bool SaveCertToString      (OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
-    virtual bool SavePrivateKeyToString(OTString & strOutput, const OTString * pstrReason=NULL, OTPassword * pImportPassword=NULL);
+    virtual bool SaveCertToString(OTString& strOutput,
+                                  const OTString* pstrReason = NULL,
+                                  OTPassword* pImportPassword = NULL);
+    virtual bool SavePrivateKeyToString(OTString& strOutput,
+                                        const OTString* pstrReason = NULL,
+                                        OTPassword* pImportPassword = NULL);
 
-    virtual bool LoadPublicKeyFromPGPKey(const OTASCIIArmor & strKey); // does NOT handle bookends.
+    virtual bool LoadPublicKeyFromPGPKey(
+        const OTASCIIArmor& strKey); // does NOT handle bookends.
 
-    virtual bool ReEncryptPrivateKey(OTPassword & theExportPassword, bool bImporting);
+    virtual bool ReEncryptPrivateKey(OTPassword& theExportPassword,
+                                     bool bImporting);
 
     class OTAsymmetricKey_OpenSSLPrivdp;
-    OTAsymmetricKey_OpenSSLPrivdp *dp;
+    OTAsymmetricKey_OpenSSLPrivdp* dp;
 
 protected: // CONSTRUCTOR
     OTAsymmetricKey_OpenSSL();
-
 
 public: // DERSTRUCTION
     virtual ~OTAsymmetricKey_OpenSSL();
@@ -222,15 +239,11 @@ protected:
     virtual void ReleaseKeyLowLevel_Hook();
 };
 
-
-#elif defined (OT_CRYPTO_USING_GPG)
-
+#elif defined(OT_CRYPTO_USING_GPG)
 
 #else // NO CRYPTO ENGINE DEFINED?
 
 #endif
-
-
 
 } // namespace opentxs
 

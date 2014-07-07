@@ -130,7 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-// OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade and OTAgreement.)
+// OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade
+// and OTAgreement.)
 
 #ifndef __OT_CRON_HPP__
 #define __OT_CRON_HPP__
@@ -138,117 +139,179 @@
 #include "OTAssert.hpp"
 #include "OTContract.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTCronItem;
 class OTMarket;
 class OTPseudonym;
 
-
 // mapOfCronItems:      Mapped (uniquely) to transaction number.
 // multimapOfCronItems: Mapped to date the item was added to Cron.
 //
 // (Any given CronItem will be found on BOTH lists.)
-typedef std::map      <int64_t,   OTCronItem *> mapOfCronItems;
-typedef std::multimap <time64_t, OTCronItem *> multimapOfCronItems;
+typedef std::map<int64_t, OTCronItem*> mapOfCronItems;
+typedef std::multimap<time64_t, OTCronItem*> multimapOfCronItems;
 
 // Mapped (uniquely) to market ID.
-typedef std::map  <std::string, OTMarket *>    mapOfMarkets;
+typedef std::map<std::string, OTMarket*> mapOfMarkets;
 
 // Cron stores a bunch of these on this list,
 // which the server refreshes from time to time.
 typedef std::list<int64_t> listOfLongNumbers;
 
-
 class OTCron : public OTContract
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
 
 private:
-    mapOfMarkets        m_mapMarkets;       // A list of all valid markets.
-    mapOfCronItems      m_mapCronItems;     // Cron Items are found on both lists.
+    mapOfMarkets m_mapMarkets;     // A list of all valid markets.
+    mapOfCronItems m_mapCronItems; // Cron Items are found on both lists.
     multimapOfCronItems m_multimapCronItems;
-    OTIdentifier        m_SERVER_ID;        // Always store this in any object that's associated with a specific server.
+    OTIdentifier m_SERVER_ID; // Always store this in any object that's
+                              // associated with a specific server.
 
-    listOfLongNumbers    m_listTransactionNumbers; // I can't put receipts in people's inboxes without a supply of these.
+    listOfLongNumbers m_listTransactionNumbers; // I can't put receipts in
+                                                // people's inboxes without a
+                                                // supply of these.
 
-    bool                m_bIsActivated;     // I don't want to start Cron processing until everything else is all loaded up and ready to go.
+    bool m_bIsActivated; // I don't want to start Cron processing until
+                         // everything else is all loaded up and ready to go.
 
-    OTPseudonym *       m_pServerNym;       // I'll need this for later.
-    static int32_t  __trans_refill_amount;        // Number of transaction numbers Cron will grab for itself, when it gets low, before each round.
-    static int32_t  __cron_ms_between_process;    // Number of milliseconds (ideally) between each "Cron Process" event.
+    OTPseudonym* m_pServerNym;            // I'll need this for later.
+    static int32_t __trans_refill_amount; // Number of transaction numbers Cron
+                                          // will grab for itself, when it gets
+                                          // low, before each round.
+    static int32_t __cron_ms_between_process; // Number of milliseconds
+                                              // (ideally) between each "Cron
+                                              // Process" event.
 
-    static int32_t  __cron_max_items_per_nym;   // Int. The maximum number of cron items any given Nym can have active at the same time.
+    static int32_t __cron_max_items_per_nym; // Int. The maximum number of cron
+                                             // items any given Nym can have
+                                             // active at the same time.
 
 public:
-    static int32_t      GetCronMsBetweenProcess() { return __cron_ms_between_process; }
-    static void     SetCronMsBetweenProcess(int32_t lMS) { __cron_ms_between_process = lMS; }
+    static int32_t GetCronMsBetweenProcess()
+    {
+        return __cron_ms_between_process;
+    }
+    static void SetCronMsBetweenProcess(int32_t lMS)
+    {
+        __cron_ms_between_process = lMS;
+    }
 
-    static int32_t      GetCronRefillAmount() { return __trans_refill_amount; }
-    static void     SetCronRefillAmount(int32_t nAmount) { __trans_refill_amount = nAmount; }
-    static int32_t      GetCronMaxItemsPerNym() { return __cron_max_items_per_nym; }
-    static void     SetCronMaxItemsPerNym(int32_t nMax) { __cron_max_items_per_nym = nMax; }
-    inline bool     IsActivated() const { return m_bIsActivated; }
-    inline bool     ActivateCron() { if (!m_bIsActivated) return m_bIsActivated = true; else return false; }
+    static int32_t GetCronRefillAmount()
+    {
+        return __trans_refill_amount;
+    }
+    static void SetCronRefillAmount(int32_t nAmount)
+    {
+        __trans_refill_amount = nAmount;
+    }
+    static int32_t GetCronMaxItemsPerNym()
+    {
+        return __cron_max_items_per_nym;
+    }
+    static void SetCronMaxItemsPerNym(int32_t nMax)
+    {
+        __cron_max_items_per_nym = nMax;
+    }
+    inline bool IsActivated() const
+    {
+        return m_bIsActivated;
+    }
+    inline bool ActivateCron()
+    {
+        if (!m_bIsActivated)
+            return m_bIsActivated = true;
+        else
+            return false;
+    }
     // RECURRING TRANSACTIONS
     //
-EXPORT    bool  AddCronItem(OTCronItem  & theItem,
-                          OTPseudonym * pActivator,
-                          bool          bSaveReceipt,
-                          time64_t        tDateAdded); // Date it was FIRST added to Cron.
-EXPORT    bool  RemoveCronItem(int64_t lTransactionNum, OTPseudonym & theRemover); // if returns false, item wasn't found.
-EXPORT  OTCronItem * GetItemByOfficialNum    (int64_t lTransactionNum);
-EXPORT    OTCronItem * GetItemByValidOpeningNum(int64_t lOpeningNum);
-EXPORT       mapOfCronItems::iterator FindItemOnMap     (int64_t lTransactionNum);
-EXPORT  multimapOfCronItems::iterator FindItemOnMultimap(int64_t lTransactionNum);
+    EXPORT bool AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
+                            bool bSaveReceipt,
+                            time64_t tDateAdded); // Date it was FIRST added to
+                                                  // Cron.
+    EXPORT bool RemoveCronItem(int64_t lTransactionNum,
+                               OTPseudonym& theRemover); // if returns false,
+                                                         // item wasn't found.
+    EXPORT OTCronItem* GetItemByOfficialNum(int64_t lTransactionNum);
+    EXPORT OTCronItem* GetItemByValidOpeningNum(int64_t lOpeningNum);
+    EXPORT mapOfCronItems::iterator FindItemOnMap(int64_t lTransactionNum);
+    EXPORT multimapOfCronItems::iterator FindItemOnMultimap(
+        int64_t lTransactionNum);
     // MARKETS
     //
-    bool AddMarket(OTMarket & theMarket, bool bSaveMarketFile=true);
-    bool RemoveMarket(const OTIdentifier & MARKET_ID); // if returns false, market wasn't found.
+    bool AddMarket(OTMarket& theMarket, bool bSaveMarketFile = true);
+    bool RemoveMarket(const OTIdentifier& MARKET_ID); // if returns false,
+                                                      // market wasn't found.
 
-EXPORT   OTMarket * GetMarket(const OTIdentifier & MARKET_ID);
-         OTMarket * GetOrCreateMarket(const OTIdentifier & ASSET_ID,
-                                      const OTIdentifier & CURRENCY_ID, const int64_t & lScale);
-    // This is informational only. It returns OTStorage-type data objects, packed in a string.
+    EXPORT OTMarket* GetMarket(const OTIdentifier& MARKET_ID);
+    OTMarket* GetOrCreateMarket(const OTIdentifier& ASSET_ID,
+                                const OTIdentifier& CURRENCY_ID,
+                                const int64_t& lScale);
+    // This is informational only. It returns OTStorage-type data objects,
+    // packed in a string.
     //
-EXPORT    bool GetMarketList(OTASCIIArmor & ascOutput, int32_t & nMarketCount);
-EXPORT    bool GetNym_OfferList(OTASCIIArmor & ascOutput, const OTIdentifier & NYM_ID, int32_t & nOfferCount);
+    EXPORT bool GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount);
+    EXPORT bool GetNym_OfferList(OTASCIIArmor& ascOutput,
+                                 const OTIdentifier& NYM_ID,
+                                 int32_t& nOfferCount);
     // TRANSACTION NUMBERS
     //
-    // The server starts out putting a bunch of numbers in here so Cron can use them.
-    // Then the internal trades and payment plans get numbers from here as needed.
+    // The server starts out putting a bunch of numbers in here so Cron can use
+    // them.
+    // Then the internal trades and payment plans get numbers from here as
+    // needed.
     // Server MUST replenish from time-to-time, or Cron will stop working.
     // Part of using Cron properly is to call ProcessCron() regularly, as well
-    // as to call AddTransactionNumber() regularly, in order to keep GetTransactionCount()
+    // as to call AddTransactionNumber() regularly, in order to keep
+    // GetTransactionCount()
     // at some minimum threshold.
-EXPORT    void    AddTransactionNumber(const int64_t & lTransactionNum);
-        int64_t    GetNextTransactionNumber();
-EXPORT    int32_t        GetTransactionCount() const; // How many numbers do I currently have on the list?
+    EXPORT void AddTransactionNumber(const int64_t& lTransactionNum);
+    int64_t GetNextTransactionNumber();
+    EXPORT int32_t GetTransactionCount() const; // How many numbers do I
+                                                // currently have on the list?
 
-    // Make sure every time you call this, you check the GetTransactionCount() first and replenish it
-    // to whatever your minimum supply is. (The transaction numbers in there must be enough to last for
-    // the entire ProcessCronItems() call, and all the trades and payment plans within, since it will not
+    // Make sure every time you call this, you check the GetTransactionCount()
+    // first and replenish it
+    // to whatever your minimum supply is. (The transaction numbers in there
+    // must be enough to last for
+    // the entire ProcessCronItems() call, and all the trades and payment plans
+    // within, since it will not
     // be replenished again at least until the call has finished.)
     //
-EXPORT    void    ProcessCronItems();
+    EXPORT void ProcessCronItems();
 
-    inline void SetServerID(const OTIdentifier & SERVER_ID)    { m_SERVER_ID = SERVER_ID; }
-    inline const OTIdentifier & GetServerID()    const        { return m_SERVER_ID; }
+    inline void SetServerID(const OTIdentifier& SERVER_ID)
+    {
+        m_SERVER_ID = SERVER_ID;
+    }
+    inline const OTIdentifier& GetServerID() const
+    {
+        return m_SERVER_ID;
+    }
 
-    inline void SetServerNym(OTPseudonym * pServerNym) { OT_ASSERT(NULL != pServerNym); m_pServerNym = pServerNym; }
-    inline OTPseudonym * GetServerNym() const { return m_pServerNym; }
+    inline void SetServerNym(OTPseudonym* pServerNym)
+    {
+        OT_ASSERT(NULL != pServerNym);
+        m_pServerNym = pServerNym;
+    }
+    inline OTPseudonym* GetServerNym() const
+    {
+        return m_pServerNym;
+    }
 
+    EXPORT bool LoadCron();
+    EXPORT bool SaveCron();
 
-EXPORT    bool LoadCron();
-EXPORT    bool SaveCron();
+    EXPORT OTCron();
+    OTCron(const OTIdentifier& SERVER_ID);
+    OTCron(const char* szFilename);
 
-
-EXPORT    OTCron();
-        OTCron(const OTIdentifier & SERVER_ID);
-        OTCron(const char * szFilename);
-
-EXPORT    virtual ~OTCron();
+    EXPORT virtual ~OTCron();
 
     void InitCron();
 
@@ -258,13 +321,11 @@ EXPORT    virtual ~OTCron();
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-    virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents
+    virtual void UpdateContents(); // Before transmission or serialization, this
+                                   // is where the ledger saves its contents
 
-    virtual bool SaveContractWallet(std::ofstream & ofs);
-
+    virtual bool SaveContractWallet(std::ofstream& ofs);
 };
-
-
 
 } // namespace opentxs
 

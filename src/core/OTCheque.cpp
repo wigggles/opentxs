@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTCheque.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -142,69 +142,62 @@
 using namespace irr;
 using namespace io;
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 void OTCheque::UpdateContents()
 {
-    OTString ASSET_TYPE_ID(GetAssetID()),       SERVER_ID(GetServerID()), 
-             SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()), 
-             RECIPIENT_USER_ID(GetRecipientUserID()),
-             REMITTER_USER_ID(GetRemitterUserID()),
-             REMITTER_ACCT_ID(GetRemitterAcctID());
-        
+    OTString ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetServerID()),
+        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
+        RECIPIENT_USER_ID(GetRecipientUserID()),
+        REMITTER_USER_ID(GetRemitterUserID()),
+        REMITTER_ACCT_ID(GetRemitterAcctID());
+
     int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
     int64_t lTo = OTTimeGetSecondsFromTime(GetValidTo());
-    
+
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
-    
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");        
-    
-    m_xmlUnsigned.Concatenate("<cheque\n version=\"%s\"\n"
-                              " amount=\"%lld\"\n"
-                              " assetTypeID=\"%s\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " serverID=\"%s\"\n"
-                              " senderAcctID=\"%s\"\n"
-                              " senderUserID=\"%s\"\n"
-                              " hasRecipient=\"%s\"\n"
-                              " recipientUserID=\"%s\"\n"
-                              " hasRemitter=\"%s\"\n"
-                              " remitterUserID=\"%s\"\n"
-                              " remitterAcctID=\"%s\"\n"
-                              " validFrom=\"%" PRId64"\"\n"
-                              " validTo=\"%" PRId64"\""
-                              " >\n\n", 
-                              m_strVersion.Get(),
-                              m_lAmount,
-                              ASSET_TYPE_ID.Get(), 
-                              GetTransactionNum(),
-                              SERVER_ID.Get(),
-                              SENDER_ACCT_ID.Get(),
-                              SENDER_USER_ID.Get(),
-                              (m_bHasRecipient ? "true" : "false"),
-                              (m_bHasRecipient ? RECIPIENT_USER_ID.Get() : ""),
-                              (m_bHasRemitter ? "true" : "false"),
-                              (m_bHasRemitter ? REMITTER_USER_ID.Get() : ""),
-                              (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""),
-                              lFrom, lTo);
-    
-    if (m_strMemo.Exists() && m_strMemo.GetLength() > 2)
-    {
-        OTASCIIArmor ascMemo(m_strMemo);        
+
+    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
+
+    m_xmlUnsigned.Concatenate(
+        "<cheque\n version=\"%s\"\n"
+        " amount=\"%lld\"\n"
+        " assetTypeID=\"%s\"\n"
+        " transactionNum=\"%lld\"\n"
+        " serverID=\"%s\"\n"
+        " senderAcctID=\"%s\"\n"
+        " senderUserID=\"%s\"\n"
+        " hasRecipient=\"%s\"\n"
+        " recipientUserID=\"%s\"\n"
+        " hasRemitter=\"%s\"\n"
+        " remitterUserID=\"%s\"\n"
+        " remitterAcctID=\"%s\"\n"
+        " validFrom=\"%" PRId64 "\"\n"
+        " validTo=\"%" PRId64 "\""
+        " >\n\n",
+        m_strVersion.Get(), m_lAmount, ASSET_TYPE_ID.Get(), GetTransactionNum(),
+        SERVER_ID.Get(), SENDER_ACCT_ID.Get(), SENDER_USER_ID.Get(),
+        (m_bHasRecipient ? "true" : "false"),
+        (m_bHasRecipient ? RECIPIENT_USER_ID.Get() : ""),
+        (m_bHasRemitter ? "true" : "false"),
+        (m_bHasRemitter ? REMITTER_USER_ID.Get() : ""),
+        (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""), lFrom, lTo);
+
+    if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
+        OTASCIIArmor ascMemo(m_strMemo);
         m_xmlUnsigned.Concatenate("<memo>\n%s</memo>\n\n", ascMemo.Get());
     }
-    
-    m_xmlUnsigned.Concatenate("</cheque>\n");            
-}
 
+    m_xmlUnsigned.Concatenate("</cheque>\n");
+}
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
-{    
+{
     int32_t nReturnVal = 0;
-    
+
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
     // then we just return either way.  But if it comes back
@@ -213,211 +206,221 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
-    //if (nReturnVal = OTContract::ProcessXMLNode(xml))
+    // if (nReturnVal = OTContract::ProcessXMLNode(xml))
     //    return nReturnVal;
-    
-    if (!strcmp("cheque", xml->getNodeName())) 
-    {
+
+    if (!strcmp("cheque", xml->getNodeName())) {
         OTString strHasRecipient = xml->getAttributeValue("hasRecipient");
         m_bHasRecipient = strHasRecipient.Compare("true");
 
         OTString strHasRemitter = xml->getAttributeValue("hasRemitter");
         m_bHasRemitter = strHasRemitter.Compare("true");
 
-        m_strVersion   = xml->getAttributeValue("version");
-        m_lAmount      = atol(xml->getAttributeValue("amount"));
+        m_strVersion = xml->getAttributeValue("version");
+        m_lAmount = atol(xml->getAttributeValue("amount"));
 
-        SetTransactionNum( atol(xml->getAttributeValue("transactionNum")) );
+        SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
 
         const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to   = xml->getAttributeValue("validTo");
+        const OTString str_valid_to = xml->getAttributeValue("validTo");
 
         SetValidFrom(OTTimeGetTimeFromSeconds(str_valid_from.ToLong()));
         SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
 
-        OTString    strAssetTypeID     (xml->getAttributeValue("assetTypeID")),
-                    strServerID        (xml->getAttributeValue("serverID")),
-                    strSenderAcctID    (xml->getAttributeValue("senderAcctID")),
-                    strSenderUserID    (xml->getAttributeValue("senderUserID")),
-                    strRecipientUserID (xml->getAttributeValue("recipientUserID")),
-                    strRemitterUserID  (xml->getAttributeValue("remitterUserID")),
-                    strRemitterAcctID  (xml->getAttributeValue("remitterAcctID"));
+        OTString strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+            strServerID(xml->getAttributeValue("serverID")),
+            strSenderAcctID(xml->getAttributeValue("senderAcctID")),
+            strSenderUserID(xml->getAttributeValue("senderUserID")),
+            strRecipientUserID(xml->getAttributeValue("recipientUserID")),
+            strRemitterUserID(xml->getAttributeValue("remitterUserID")),
+            strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
-        OTIdentifier    ASSET_ID(strAssetTypeID),         SERVER_ID(strServerID),
-                        SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
+        OTIdentifier ASSET_ID(strAssetTypeID), SERVER_ID(strServerID),
+            SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
 
         SetAssetID(ASSET_ID);
         SetServerID(SERVER_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
 
-        // Recipient ID 
+        // Recipient ID
         if (m_bHasRecipient)
             m_RECIPIENT_USER_ID.SetString(strRecipientUserID);
         else
             m_RECIPIENT_USER_ID.Release();
 
         // Remitter ID (for vouchers)
-        if (m_bHasRemitter)
-        {
+        if (m_bHasRemitter) {
             m_REMITTER_USER_ID.SetString(strRemitterUserID);
             m_REMITTER_ACCT_ID.SetString(strRemitterAcctID);
         }
-        else
-        {
+        else {
             m_REMITTER_USER_ID.Release();
             m_REMITTER_ACCT_ID.Release();
         }
 
-        
-        otInfo << 
-            "\n\nCheque Amount: " << m_lAmount << ".  Transaction Number: " << m_lTransactionNum << "\n Valid From: " << str_valid_from.ToLong() <<
-            "\n Valid To: " << str_valid_to.ToLong() << "\n AssetTypeID: " << strAssetTypeID << "\n ServerID: " << strServerID << "\n"
-            " senderAcctID: " << strSenderAcctID << "\n senderUserID: " << strSenderUserID << "\n "
-            " Has Recipient? " << (m_bHasRecipient ? "Yes" : "No") << ". If yes, UserID of Recipient: " << strRecipientUserID << "\n"
-            " Has Remitter? " << (m_bHasRemitter ? "Yes" : "No") << ". If yes, UserID/Acct of Remitter: " << strRemitterUserID <<
-            " / " << strRemitterAcctID << "\n";
-        
+        otInfo << "\n\nCheque Amount: " << m_lAmount
+               << ".  Transaction Number: " << m_lTransactionNum
+               << "\n Valid From: " << str_valid_from.ToLong()
+               << "\n Valid To: " << str_valid_to.ToLong()
+               << "\n AssetTypeID: " << strAssetTypeID
+               << "\n ServerID: " << strServerID
+               << "\n"
+                  " senderAcctID: " << strSenderAcctID
+               << "\n senderUserID: " << strSenderUserID << "\n "
+                                                            " Has Recipient? "
+               << (m_bHasRecipient ? "Yes" : "No")
+               << ". If yes, UserID of Recipient: " << strRecipientUserID
+               << "\n"
+                  " Has Remitter? " << (m_bHasRemitter ? "Yes" : "No")
+               << ". If yes, UserID/Acct of Remitter: " << strRemitterUserID
+               << " / " << strRemitterAcctID << "\n";
+
         nReturnVal = 1;
     }
-    
-    else if (!strcmp("memo", xml->getNodeName())) 
-    {        
-        if (false == OTContract::LoadEncodedTextField(xml, m_strMemo))
-        {
-            otErr << "Error in OTCheque::ProcessXMLNode: memo field without value.\n";
+    else if (!strcmp("memo", xml->getNodeName())) {
+        if (false == OTContract::LoadEncodedTextField(xml, m_strMemo)) {
+            otErr << "Error in OTCheque::ProcessXMLNode: memo field without "
+                     "value.\n";
             return (-1); // error condition
         }
-        
+
         return 1;
     }
-    
+
     return nReturnVal;
 }
-
 
 // You still need to re-sign the cheque after doing this.
 void OTCheque::CancelCheque()
 {
     m_lAmount = 0;
-    
+
     // When cancelling a cheque, it is basically just deposited back into the
     // account it was originally drawn from. The purpose of this is to "beat the
     // original recipient to the punch" by invalidating the cheque before he can
-    // redeem it. Therefore when we do this "deposit" we don't actually intend to
+    // redeem it. Therefore when we do this "deposit" we don't actually intend
+    // to
     // change the account balance -- so we set the cheque amount to 0.
     //
     // So why deposit the cheque, with a 0 balance? Because we just want to
-    // invalidate the transaction number that was used on the cheque. We're still
-    // going to use a balance agreement, which the server will still verify, but it
-    // will be for a zero balance, and the transaction number will still be marked
+    // invalidate the transaction number that was used on the cheque. We're
+    // still
+    // going to use a balance agreement, which the server will still verify, but
+    // it
+    // will be for a zero balance, and the transaction number will still be
+    // marked
     // off via a cheque receipt.
     //
     // Since this is really just about marking off transaction numbers, not
     // changing any balances, we set the cheque amount to 0 and re-sign it.
 }
 
-
 // Imagine that you are actually writing a cheque.
 // That's basically what this function does.
 // Make sure to sign it afterwards.
 bool OTCheque::IssueCheque(
-                const int64_t & lAmount, const int64_t & lTransactionNum,
-                const time64_t & VALID_FROM, const time64_t & VALID_TO,    // The expiration date (valid from/to dates) of the cheque
-                const OTIdentifier & SENDER_ACCT_ID,            // The asset account the cheque is drawn on.
-                const OTIdentifier & SENDER_USER_ID,            // This ID must match the user ID on the asset account, 
-                                                        // AND must verify the cheque signature with that user's key.
-                const OTString & strMemo,                // Optional memo field.
-                const OTIdentifier * pRECIPIENT_USER_ID/*=NULL*/)    // Recipient optional. (Might be a blank cheque.)
+    const int64_t& lAmount, const int64_t& lTransactionNum,
+    const time64_t& VALID_FROM,
+    const time64_t& VALID_TO, // The expiration date (valid from/to dates) of
+                              // the cheque
+    const OTIdentifier& SENDER_ACCT_ID, // The asset account the cheque is drawn
+                                        // on.
+    const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on the
+                                        // asset account,
+    // AND must verify the cheque signature with that user's key.
+    const OTString& strMemo,                          // Optional memo field.
+    const OTIdentifier* pRECIPIENT_USER_ID /*=NULL*/) // Recipient optional.
+                                                      // (Might be a blank
+                                                      // cheque.)
 {
-    m_lAmount    = lAmount;
-    m_strMemo    = strMemo;
+    m_lAmount = lAmount;
+    m_strMemo = strMemo;
 
     SetValidFrom(VALID_FROM);
     SetValidTo(VALID_TO);
-    
+
     SetTransactionNum(lTransactionNum);
-    
+
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderUserID(SENDER_USER_ID);
-    
-    if (NULL == pRECIPIENT_USER_ID)
-    {
-        m_bHasRecipient        = false;
+
+    if (NULL == pRECIPIENT_USER_ID) {
+        m_bHasRecipient = false;
         m_RECIPIENT_USER_ID.Release();
     }
-    else 
-    {
-        m_bHasRecipient        = true;
-        m_RECIPIENT_USER_ID    = *pRECIPIENT_USER_ID;
+    else {
+        m_bHasRecipient = true;
+        m_RECIPIENT_USER_ID = *pRECIPIENT_USER_ID;
     }
 
     m_bHasRemitter = false; // OTCheque::SetAsVoucher() will set this to true.
-    
-    if (m_lAmount < 0)
-        m_strContractType.Set("INVOICE");
-    
+
+    if (m_lAmount < 0) m_strContractType.Set("INVOICE");
+
     return true;
 }
 
-
 void OTCheque::InitCheque()
-{    
+{
     m_strContractType.Set("CHEQUE");
-        
-    m_lAmount            = 0;
-    m_bHasRecipient        = false;
-    m_bHasRemitter        = false;
+
+    m_lAmount = 0;
+    m_bHasRecipient = false;
+    m_bHasRemitter = false;
 }
 
-
-OTCheque::OTCheque() : ot_super(), m_lAmount(0), m_bHasRecipient(false), m_bHasRemitter(false)
+OTCheque::OTCheque()
+    : ot_super()
+    , m_lAmount(0)
+    , m_bHasRecipient(false)
+    , m_bHasRemitter(false)
 {
     InitCheque();
 }
 
-
-OTCheque::OTCheque(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : 
-            ot_super(SERVER_ID, ASSET_ID), m_lAmount(0), m_bHasRecipient(false), m_bHasRemitter(false)
+OTCheque::OTCheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+    : ot_super(SERVER_ID, ASSET_ID)
+    , m_lAmount(0)
+    , m_bHasRecipient(false)
+    , m_bHasRemitter(false)
 {
     InitCheque();
-    
-    // m_ServerID and m_AssetTypeID are now in a grandparent class (OTInstrument)
+
+    // m_ServerID and m_AssetTypeID are now in a grandparent class
+    // (OTInstrument)
     // So they are initialized there now.
 }
-
 
 void OTCheque::Release_Cheque()
 {
     // If there were any dynamically allocated objects, clean them up here.
     m_strMemo.Release();
-    
-//    m_SENDER_ACCT_ID.Release();     // in parent class now.
-//    m_SENDER_USER_ID.Release();     // in parent class now.
-    m_RECIPIENT_USER_ID.Release();
-    
-    ot_super::Release(); // since I've overridden the base class, I call it now...
-    
-    // Then I call this to re-initialize everything
-    InitCheque(); 
-}
 
+    //    m_SENDER_ACCT_ID.Release();     // in parent class now.
+    //    m_SENDER_USER_ID.Release();     // in parent class now.
+    m_RECIPIENT_USER_ID.Release();
+
+    ot_super::Release(); // since I've overridden the base class, I call it
+                         // now...
+
+    // Then I call this to re-initialize everything
+    InitCheque();
+}
 
 void OTCheque::Release()
 {
-    Release_Cheque();    
+    Release_Cheque();
 }
-
 
 OTCheque::~OTCheque()
 {
-    Release_Cheque();    
+    Release_Cheque();
 }
 
-
-bool OTCheque::SaveContractWallet(std::ofstream &)
+bool OTCheque::SaveContractWallet(std::ofstream&)
 {
-    
+
     return true;
 }
 

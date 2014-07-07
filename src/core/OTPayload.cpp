@@ -139,121 +139,111 @@
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 OTPayload::OTPayload() : OTData()
 {
-
 }
 
-
-OTPayload::OTPayload(const void * pNewData, uint32_t nNewSize) : OTData(pNewData, nNewSize)
+OTPayload::OTPayload(const void* pNewData, uint32_t nNewSize)
+    : OTData(pNewData, nNewSize)
 {
-
 }
 
-
-OTPayload::OTPayload(const OTPayload & rhs) : OTData(rhs)
+OTPayload::OTPayload(const OTPayload& rhs) : OTData(rhs)
 {
-
 }
 
-
-OTPayload::OTPayload(const OTASCIIArmor & theSource) : OTData(theSource)
+OTPayload::OTPayload(const OTASCIIArmor& theSource) : OTData(theSource)
 {
-
 }
-
 
 OTPayload::~OTPayload()
 {
-
 }
 
-
-uint32_t OTPayload::ReadBytesFrom(OTData & theData, uint32_t lSize)
+uint32_t OTPayload::ReadBytesFrom(OTData& theData, uint32_t lSize)
 {
     OT_ASSERT(theData.GetSize() >= lSize);
 
     // The size requested to read MUST be less or equal to size of theData
-    if (theData.GetSize() < lSize)
-        abort();
+    if (theData.GetSize() < lSize) abort();
 
-    OTPayload & refPayload = (OTPayload &)theData; // todo fix this cast.
+    OTPayload& refPayload = (OTPayload&)theData; // todo fix this cast.
 
     // Copy from theData to this, up until lSize
     Assign(refPayload.GetPayloadPointer(), lSize);
 
-    // Create a temp var, starting from theData+lSize, copying to the end of theData
-    OTData TEMPdata((uint8_t *)refPayload.GetPayloadPointer() + lSize, theData.GetSize() - lSize);
+    // Create a temp var, starting from theData+lSize, copying to the end of
+    // theData
+    OTData TEMPdata((uint8_t*)refPayload.GetPayloadPointer() + lSize,
+                    theData.GetSize() - lSize);
 
-    // theData is assigned to TEMPdata (thus removing from it the bytes that we just read into this.)
+    // theData is assigned to TEMPdata (thus removing from it the bytes that we
+    // just read into this.)
     theData.Assign(TEMPdata);
 
     return lSize;
 }
 
-
 // Envelope copied into payload to prepare for sending.
-bool OTPayload::SetEnvelope(const OTEnvelope & theEnvelope)
+bool OTPayload::SetEnvelope(const OTEnvelope& theEnvelope)
 {
     OTASCIIArmor theArmor;
 
-    if (theEnvelope.GetAsciiArmoredData(theArmor))
-    {
-        uint32_t lSize = theArmor.GetLength()+1; //+1 for the null terminater
+    if (theEnvelope.GetAsciiArmoredData(theArmor)) {
+        uint32_t lSize = theArmor.GetLength() + 1; //+1 for the null terminater
 
-        if (theArmor.GetLength())
-        {
+        if (theArmor.GetLength()) {
             SetPayloadSize(lSize + 1); // +1 for the checksum byte.
 
             // Copy it in.
-            memcpy((void *)GetPointer(), theArmor.Get(), lSize);
+            memcpy((void*)GetPointer(), theArmor.Get(), lSize);
 
             // Add the checksum, success.
-            AppendChecksum( (OT_BYTE*)GetPointer(), lSize );
+            AppendChecksum((OT_BYTE*)GetPointer(), lSize);
             return true;
         }
     }
     return false;
 }
 
-
-bool OTPayload::SetMessagePayload(const OTMessage & theMessage)
+bool OTPayload::SetMessagePayload(const OTMessage& theMessage)
 {
-    uint32_t lSize = theMessage.m_strRawFile.GetLength()+1; //+1 for the null terminater
+    uint32_t lSize =
+        theMessage.m_strRawFile.GetLength() + 1; //+1 for the null terminater
 
-    if (theMessage.m_strRawFile.GetLength())
-    {
+    if (theMessage.m_strRawFile.GetLength()) {
         SetPayloadSize(lSize + 1); // +1 for the checksum byte.
-        memcpy((void *)GetPointer(), theMessage.m_strRawFile.Get(), lSize);
+        memcpy((void*)GetPointer(), theMessage.m_strRawFile.Get(), lSize);
 
         // Add the checksum
-        AppendChecksum( (OT_BYTE*)GetPointer(), lSize );
+        AppendChecksum((OT_BYTE*)GetPointer(), lSize);
         return true;
     }
     return false;
 }
 
-
 // Envelope retrieved from payload.
-bool OTPayload::GetEnvelope(OTEnvelope & theEnvelope) const
+bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
 {
     // validate checksum
     uint32_t lSize = GetSize();
-    uint32_t lIndex = lSize-2; // the index to where the NULL terminator SHOULD be if they
-                          // sent us a base64-encoded string, containing an encrypted message. (which we expect...)
+    uint32_t lIndex =
+        lSize - 2; // the index to where the NULL terminator SHOULD be if they
+    // sent us a base64-encoded string, containing an encrypted message. (which
+    // we expect...)
 
     // (lSize-1 would be the location of the checksum at the end.)
-    if (0 == lSize)
-        return false;
+    if (0 == lSize) return false;
 
-    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize))
-    {
-        // We add the null-terminator ourselves at this point, for security reasons,
-        // since we will process the data, soon after this function, as a string.
-        ((OT_BYTE *)GetPointer())[lIndex] = 0;
+    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize)) {
+        // We add the null-terminator ourselves at this point, for security
+        // reasons,
+        // since we will process the data, soon after this function, as a
+        // string.
+        ((OT_BYTE*)GetPointer())[lIndex] = 0;
 
         theEnvelope.m_dataContents.Release();
 
@@ -264,40 +254,41 @@ bool OTPayload::GetEnvelope(OTEnvelope & theEnvelope) const
         // (2) There place where the NULL should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
-        theArmor.Set((const char *)GetPointer());
+        theArmor.Set((const char*)GetPointer());
 
-        // Todo NOTE: If I ever want to process bookends here instead of assuming they aren't there,
-        // IT'S VERY EASY!! All I have to do is call theArmor.LoadFromString instead of theArmor.Set.
+        // Todo NOTE: If I ever want to process bookends here instead of
+        // assuming they aren't there,
+        // IT'S VERY EASY!! All I have to do is call theArmor.LoadFromString
+        // instead of theArmor.Set.
 
-        // Now the ascii-armored string that was sent across is decoded back to binary into the
+        // Now the ascii-armored string that was sent across is decoded back to
+        // binary into the
         // Envelope object.
         theEnvelope.SetAsciiArmoredData(theArmor);
         return true;
     }
-    else
-    {
+    else {
         otErr << "Invalid Checksum in OTPayload::GetEnvelope\n";
         return false;
     }
 }
 
-
 // Message retrieved from Payload
-bool OTPayload::GetMessagePayload(OTMessage & theMessage) const
+bool OTPayload::GetMessagePayload(OTMessage& theMessage) const
 {
     // validate checksum
-    uint32_t lSize    = GetSize();
-    uint32_t lIndex    = lSize-2; // the index to where the NULL terminator SHOULD be if they
-                          // sent us a string like they were supposed to. (A contract.)
-                          // (nSize-1 would be the location of the checksum at the end.)
-    if (0 == lSize)
-        return false;
+    uint32_t lSize = GetSize();
+    uint32_t lIndex =
+        lSize - 2; // the index to where the NULL terminator SHOULD be if they
+                   // sent us a string like they were supposed to. (A contract.)
+    // (nSize-1 would be the location of the checksum at the end.)
+    if (0 == lSize) return false;
 
-    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize))
-    {
-        // We add the null-terminator ourselves at this point, for security reasons,
+    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize)) {
+        // We add the null-terminator ourselves at this point, for security
+        // reasons,
         // since we will process the data, after this point, as a string.
-        ((OT_BYTE *)GetPointer())[lIndex] = 0;
+        ((OT_BYTE*)GetPointer())[lIndex] = 0;
 
         theMessage.Release();
 
@@ -307,24 +298,21 @@ bool OTPayload::GetMessagePayload(OTMessage & theMessage) const
         // (2) There place where the NULL should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
-        theMessage.m_strRawFile.Set((const char *)GetPointer());
+        theMessage.m_strRawFile.Set((const char*)GetPointer());
         return true;
     }
-    else
-    {
+    else {
         otErr << "Invalid Checksum in OTPayload::GetMessage\n";
         return false;
     }
 }
-
 
 void OTPayload::SetPayloadSize(uint32_t lNewSize)
 {
     SetSize(lNewSize);
 }
 
-
-const void * OTPayload::GetPayloadPointer() const
+const void* OTPayload::GetPayloadPointer() const
 {
     return GetPointer();
 }

@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTLowLevelKeyData.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -137,45 +137,43 @@
 #include "OTKeypair.hpp"
 #include "OTLog.hpp"
 
-
-#if defined (OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
 #include "OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
+namespace opentxs
+{
 
-namespace opentxs {
-
-class OTLowLevelKeyData::OTLowLevelKeyDataOpenSSLdp {
+class OTLowLevelKeyData::OTLowLevelKeyDataOpenSSLdp
+{
 public:
-    X509         *  m_pX509;
-    EVP_PKEY     *  m_pKey;    // Instantiated form of key. (For private keys especially, we don't want it instantiated for any longer than absolutely necessary.)
+    X509* m_pX509;
+    EVP_PKEY* m_pKey; // Instantiated form of key. (For private keys especially,
+                      // we don't want it instantiated for any longer than
+                      // absolutely necessary.)
 };
 
 } // namespace opentxs
 
 #endif
 
-namespace opentxs {
+namespace opentxs
+{
 
 OTLowLevelKeyData::~OTLowLevelKeyData()
 {
-    if (m_bCleanup)
-        Cleanup();
-    if(NULL != dp)
-        delete(dp);
+    if (m_bCleanup) Cleanup();
+    if (NULL != dp) delete (dp);
 }
 
-
-#if defined (OT_CRYPTO_USING_OPENSSL)
-
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTLowLevelKeyData::OTLowLevelKeyData() : m_bCleanup(true)
 {
     dp = new OTLowLevelKeyDataOpenSSLdp();
     dp->m_pX509 = NULL;
-    dp->m_pKey  = NULL;
+    dp->m_pKey = NULL;
 }
-
 
 // Don't force things by explicitly calling this function, unless you are SURE
 // there's no one else cleaning up the same objects. Notice the if (m_bCleanup)
@@ -183,81 +181,77 @@ OTLowLevelKeyData::OTLowLevelKeyData() : m_bCleanup(true)
 //
 void OTLowLevelKeyData::Cleanup()
 {
-    if (NULL != dp->m_pKey)
-        EVP_PKEY_free(dp->m_pKey);
-    dp->m_pKey  = NULL;
-    if (NULL != dp->m_pX509)
-        X509_free(dp->m_pX509);
+    if (NULL != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
+    dp->m_pKey = NULL;
+    if (NULL != dp->m_pX509) X509_free(dp->m_pX509);
     dp->m_pX509 = NULL;
 }
 
-
-bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits/*=1024*/)
+bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits /*=1024*/)
 {
 
-//    OpenSSL_BIO        bio_err    =    NULL;
-    X509        *    x509    =    NULL;
-    EVP_PKEY    *    pNewKey    =    NULL;
-    
-//    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); // memory leak detection. Leaving this for now.
-//    bio_err    =    BIO_new_fp(stderr, BIO_NOCLOSE);
-    
+    //    OpenSSL_BIO        bio_err    =    NULL;
+    X509* x509 = NULL;
+    EVP_PKEY* pNewKey = NULL;
+
+    //    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); // memory leak detection.
+    // Leaving this for now.
+    //    bio_err    =    BIO_new_fp(stderr, BIO_NOCLOSE);
+
     // actually generate the things. // TODO THESE PARAMETERS...(mkcert)
     mkcert(&x509, &pNewKey, nBits, 0, 3650); // 3650=10 years. Todo hardcoded.
     // Note: 512 bit key CRASHES
     // 1024 is apparently a minimum requirement, if not an only requirement.
     // Will need to go over just what sorts of keys are involved here... todo.
 
-    if (NULL == x509)
-    {
-        otErr << __FUNCTION__ << ": Failed attempting to generate new x509 cert.\n";
-        
-        if (NULL != pNewKey)
-            EVP_PKEY_free(pNewKey);
+    if (NULL == x509) {
+        otErr << __FUNCTION__
+              << ": Failed attempting to generate new x509 cert.\n";
+
+        if (NULL != pNewKey) EVP_PKEY_free(pNewKey);
         pNewKey = NULL;
-        
+
         return false;
     }
 
-    if (NULL == pNewKey)
-    {
-        otErr << __FUNCTION__ << ": Failed attempting to generate new private key.\n";
-        
-        if (NULL != x509)
-            X509_free(x509);
+    if (NULL == pNewKey) {
+        otErr << __FUNCTION__
+              << ": Failed attempting to generate new private key.\n";
+
+        if (NULL != x509) X509_free(x509);
         x509 = NULL;
-        
+
         return false;
     }
 
     // Below this point, x509 and pNewKey will need to be cleaned up properly.
-    
-    if (m_bCleanup)
-        Cleanup();
+
+    if (m_bCleanup) Cleanup();
 
     m_bCleanup = true;
-    dp->m_pKey     = pNewKey;
-    dp->m_pX509    = x509;
-    
+    dp->m_pKey = pNewKey;
+    dp->m_pX509 = x509;
+
     // --------COMMENT THIS OUT FOR PRODUCTION --------  TODO security
     //                  (Debug only.)
-//    RSA_print_fp(stdout, pNewKey->pkey.rsa, 0); // human readable
-//    X509_print_fp(stdout, x509); // human readable
-    
+    //    RSA_print_fp(stdout, pNewKey->pkey.rsa, 0); // human readable
+    //    X509_print_fp(stdout, x509); // human readable
+
     // --------COMMENT THIS OUT FOR PRODUCTION --------  TODO security
     //                  (Debug only.)
     // write the private key, then the x509, to stdout.
 
-//    OTPasswordData thePWData2("OTPseudonym::GenerateNym is calling PEM_write_PrivateKey...");
-//
-//    PEM_write_PrivateKey(stdout, pNewKey, EVP_des_ede3_cbc(), NULL, 0, OTAsymmetricKey::GetPasswordCallback(), &thePWData2);
-//    PEM_write_X509(stdout, x509);
+    //    OTPasswordData thePWData2("OTPseudonym::GenerateNym is calling
+    // PEM_write_PrivateKey...");
+    //
+    //    PEM_write_PrivateKey(stdout, pNewKey, EVP_des_ede3_cbc(), NULL, 0,
+    // OTAsymmetricKey::GetPasswordCallback(), &thePWData2);
+    //    PEM_write_X509(stdout, x509);
 
     return true;
 }
 
-
-bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair & theKeypair)
+bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
 {
     OT_ASSERT(NULL != dp->m_pKey);
     OT_ASSERT(NULL != dp->m_pX509);
@@ -268,55 +262,66 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair & theKeypair)
     // Since we are in OpenSSL-specific code, we have to make sure these are
     // OpenSSL-specific keys.
     //
-    OTAsymmetricKey_OpenSSL * pPublicKey  = dynamic_cast<OTAsymmetricKey_OpenSSL *> (theKeypair.m_pkeyPublic);
-    OTAsymmetricKey_OpenSSL * pPrivateKey = dynamic_cast<OTAsymmetricKey_OpenSSL *> (theKeypair.m_pkeyPrivate);
-    
-    if (NULL == pPublicKey)
-    {
-        otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPublic)\n";
+    OTAsymmetricKey_OpenSSL* pPublicKey =
+        dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPublic);
+    OTAsymmetricKey_OpenSSL* pPrivateKey =
+        dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPrivate);
+
+    if (NULL == pPublicKey) {
+        otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
+                                 "failed. (theKeypair.m_pkeyPublic)\n";
         return false;
     }
-    if (NULL == pPrivateKey)
-    {
-        otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL failed. (theKeypair.m_pkeyPrivate)\n";
+    if (NULL == pPrivateKey) {
+        otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
+                                 "failed. (theKeypair.m_pkeyPrivate)\n";
         return false;
     }
 
     // Now we can call OpenSSL-specific methods on these keys...
     //
-    pPublicKey-> SetAsPublic();
-//  EVP_PKEY * pEVP_PubKey = X509_get_pubkey(m_pX509);
-//  OT_ASSERT(NULL != pEVP_PubKey);
-//  pPublicKey-> SetKeyAsCopyOf(*pEVP_PubKey); // bool bIsPrivateKey=false by default.
-    pPublicKey->dp->SetKeyAsCopyOf(*dp->m_pKey); // bool bIsPrivateKey=false by default.
-//  EVP_PKEY_free(pEVP_PubKey);
-//  pEVP_PubKey = NULL;
+    pPublicKey->SetAsPublic();
+    //  EVP_PKEY * pEVP_PubKey = X509_get_pubkey(m_pX509);
+    //  OT_ASSERT(NULL != pEVP_PubKey);
+    //  pPublicKey-> SetKeyAsCopyOf(*pEVP_PubKey); // bool bIsPrivateKey=false
+    // by default.
+    pPublicKey->dp->SetKeyAsCopyOf(
+        *dp->m_pKey); // bool bIsPrivateKey=false by default.
+                      //  EVP_PKEY_free(pEVP_PubKey);
+                      //  pEVP_PubKey = NULL;
 
-    pPublicKey->dp->SetX509(dp->m_pX509); // m_pX509 is now owned by pPublicKey. (No need to free it in our own destructor anymore.)
-    dp->m_pX509     = NULL; // pPublicKey took ownership, so we don't want to ALSO clean it up, since pPublicKey already will do so.
+    pPublicKey->dp->SetX509(dp->m_pX509); // m_pX509 is now owned by pPublicKey.
+                                          // (No need to free it in our own
+                                          // destructor anymore.)
+    dp->m_pX509 = NULL; // pPublicKey took ownership, so we don't want to ALSO
+                        // clean it up, since pPublicKey already will do so.
 
     pPrivateKey->SetAsPrivate();
-    pPrivateKey->dp->SetKeyAsCopyOf(*dp->m_pKey, true); // bool bIsPrivateKey=true; (Default is false)
-    // Since pPrivateKey only takes a COPY of m_pKey, we are still responsible to clean up m_pKey in our own destructor.
-    // (Assuming m_bCleanup is set to true, which is the default.) That's why I'm NOT setting it to NULL, as I did above
+    pPrivateKey->dp->SetKeyAsCopyOf(
+        *dp->m_pKey, true); // bool bIsPrivateKey=true; (Default is false)
+    // Since pPrivateKey only takes a COPY of m_pKey, we are still responsible
+    // to clean up m_pKey in our own destructor.
+    // (Assuming m_bCleanup is set to true, which is the default.) That's why
+    // I'm NOT setting it to NULL, as I did above
     // with m_pX509.
 
     EVP_PKEY_free(dp->m_pKey);
     dp->m_pKey = NULL;
 
-    // Success! At this point, theKeypair's public and private keys have been set.
-    // Keep in mind though, they still won't be "quite right" until saved and loaded
-    // again, at least according to existing logic. That saving/reloading is currently
+    // Success! At this point, theKeypair's public and private keys have been
+    // set.
+    // Keep in mind though, they still won't be "quite right" until saved and
+    // loaded
+    // again, at least according to existing logic. That saving/reloading is
+    // currently
     // performed in OTPseudonym::GenerateNym().
     //
     return true;
 }
 
-#elif defined (OT_CRYPTO_USING_GPG)
-
+#elif defined(OT_CRYPTO_USING_GPG)
 
 #else
-
 
 #endif
 

@@ -135,63 +135,81 @@
 
 #include "OTAsymmetricKeyOpenSSL.hpp"
 
-extern "C"
-{
+extern "C" {
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/x509v3.h>
 
-int32_t mkcert(X509 **x509p, EVP_PKEY **pkeyp, int32_t bits, int32_t serial, int32_t days);
+int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
+               int32_t days);
 }
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTPasswordData;
 
-
-class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp {
+class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp
+{
 private:
-    friend class OTAsymmetricKey;    // For the factory.
-    friend class OTLowLevelKeyData;  // For access to OpenSSL-specific calls that are otherwise private.
-    friend class OTCrypto_OpenSSL;   // For OpenSSL-specific crypto functions to access OpenSSL-specific methods.
+    friend class OTAsymmetricKey;   // For the factory.
+    friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
+                                    // are otherwise private.
+    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
+                                    // access OpenSSL-specific methods.
     friend class OTAsymmetricKey_OpenSSL;
 
 public:
-    OTAsymmetricKey_OpenSSL * backlink;
-    explicit OTAsymmetricKey_OpenSSLPrivdp() : backlink( 0 ){}
+    OTAsymmetricKey_OpenSSL* backlink;
+    explicit OTAsymmetricKey_OpenSSLPrivdp() : backlink(0)
+    {
+    }
 
     // STATIC METHODS
     //
     // Create base64-encoded version of an EVP_PKEY
     // (Without bookends.)
     //
-    static bool ArmorPrivateKey(EVP_PKEY & theKey, OTASCIIArmor & ascKey, Timer & theTimer, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);
-    static bool ArmorPublicKey (EVP_PKEY & theKey, OTASCIIArmor & ascKey);
-    static EVP_PKEY *  CopyPublicKey (EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
-    static EVP_PKEY *  CopyPrivateKey(EVP_PKEY & theKey, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);  // CALLER must EVP_pkey_free!
+    static bool ArmorPrivateKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey,
+                                Timer& theTimer, OTPasswordData* pPWData = NULL,
+                                OTPassword* pImportPassword = NULL);
+    static bool ArmorPublicKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey);
+    static EVP_PKEY* CopyPublicKey(EVP_PKEY& theKey,
+                                   OTPasswordData* pPWData = NULL,
+                                   OTPassword* pImportPassword =
+                                       NULL); // CALLER must EVP_pkey_free!
+    static EVP_PKEY* CopyPrivateKey(EVP_PKEY& theKey,
+                                    OTPasswordData* pPWData = NULL,
+                                    OTPassword* pImportPassword =
+                                        NULL); // CALLER must EVP_pkey_free!
 private:
     // INSTANCES...
     // PRIVATE MEMBER DATA
-    X509         *  m_pX509;
-    EVP_PKEY     *  m_pKey;    // Instantiated form of key. (For private keys especially, we don't want it instantiated for any longer than absolutely necessary, when we have to use it.)
+    X509* m_pX509;
+    EVP_PKEY* m_pKey; // Instantiated form of key. (For private keys especially,
+                      // we don't want it instantiated for any longer than
+                      // absolutely necessary, when we have to use it.)
     // PRIVATE METHODS
-    EVP_PKEY *  InstantiateKey       (OTPasswordData * pPWData=NULL);
-    EVP_PKEY *  InstantiatePublicKey (OTPasswordData * pPWData=NULL);
-    EVP_PKEY *  InstantiatePrivateKey(OTPasswordData * pPWData=NULL);
+    EVP_PKEY* InstantiateKey(OTPasswordData* pPWData = NULL);
+    EVP_PKEY* InstantiatePublicKey(OTPasswordData* pPWData = NULL);
+    EVP_PKEY* InstantiatePrivateKey(OTPasswordData* pPWData = NULL);
     // HIGH LEVEL (internal) METHODS
     //
-EXPORT const EVP_PKEY * GetKey(OTPasswordData * pPWData=NULL);
+    EXPORT const EVP_PKEY* GetKey(OTPasswordData* pPWData = NULL);
 
-    void SetKeyAsCopyOf(EVP_PKEY & theKey, bool bIsPrivateKey=false, OTPasswordData * pPWData=NULL, OTPassword * pImportPassword=NULL);
+    void SetKeyAsCopyOf(EVP_PKEY& theKey, bool bIsPrivateKey = false,
+                        OTPasswordData* pPWData = NULL,
+                        OTPassword* pImportPassword = NULL);
     // LOW LEVEL (internal) METHODS
     //
-    EVP_PKEY *  GetKeyLowLevel();
+    EVP_PKEY* GetKeyLowLevel();
 
-    X509     *  GetX509() { return m_pX509; }
-    void        SetX509(X509 * x509);
+    X509* GetX509()
+    {
+        return m_pX509;
+    }
+    void SetX509(X509* x509);
 };
-
-
 
 } // namespace opentxs
 

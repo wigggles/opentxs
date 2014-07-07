@@ -1,13 +1,13 @@
 ﻿/************************************************************
- *    
+ *
  *  OTSocket.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -139,80 +139,69 @@
 
 #include <tinythread.hpp>
 
-#define    KEY_LATENCY_SEND_MS            "latency_send_ms"
-#define    KEY_LATENCY_SEND_NO_TRIES        "latency_send_no_tries"
-#define    KEY_LATENCY_RECEIVE_MS            "latency_receive_ms"
-#define    KEY_LATENCY_RECEIVE_NO_TRIES        "latency_receive_no_tries"
-#define    KEY_LATENCY_DELAY_AFTER            "latency_delay_after"
-#define    KEY_IS_BLOCKING                "is_blocking"
+#define KEY_LATENCY_SEND_MS "latency_send_ms"
+#define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"
+#define KEY_LATENCY_RECEIVE_MS "latency_receive_ms"
+#define KEY_LATENCY_RECEIVE_NO_TRIES "latency_receive_no_tries"
+#define KEY_LATENCY_DELAY_AFTER "latency_delay_after"
+#define KEY_IS_BLOCKING "is_blocking"
 
-
-
-namespace opentxs {
-
+namespace opentxs
+{
 
 // OTSocket base class.
 OTSocket::OTSocket()
-: m_Mutex(Mutex()),
-m_lLatencySendMs(0),
-m_nLatencySendNoTries(0),
-m_lLatencyReceiveMs(0),
-m_nLatencyReceiveNoTries(0),
-m_lLatencyDelayAfter(0),
-m_bIsBlocking(false),
-
-m_bInitialized(false),
-m_HasContext(false),
-m_bConnected(false),
-m_bListening(false),
-m_strConnectPath(""),
-m_strBindingPath("")
+    : m_Mutex(Mutex())
+    , m_lLatencySendMs(0)
+    , m_nLatencySendNoTries(0)
+    , m_lLatencyReceiveMs(0)
+    , m_nLatencyReceiveNoTries(0)
+    , m_lLatencyDelayAfter(0)
+    , m_bIsBlocking(false)
+    , m_bInitialized(false)
+    , m_HasContext(false)
+    , m_bConnected(false)
+    , m_bListening(false)
+    , m_strConnectPath("")
+    , m_strBindingPath("")
 {
 }
 
-
-OTSocket::Defaults::Defaults(
-    int64_t lLatencySendMs,
-    int32_t nLatencySendNoTries,
-    int64_t lLatencyReceiveMs,
-    int32_t nLatencyReceiveNoTries,
-    int64_t lLatencyDelayAfter,
-    bool bIsBlocking)
-    : m_lLatencySendMs(lLatencySendMs),
-    m_nLatencySendNoTries(nLatencySendNoTries),
-    m_lLatencyReceiveMs(lLatencyReceiveMs),
-    m_nLatencyReceiveNoTries(nLatencyReceiveNoTries),
-    m_lLatencyDelayAfter(lLatencyDelayAfter),
-    m_bIsBlocking(bIsBlocking)
+OTSocket::Defaults::Defaults(int64_t lLatencySendMs,
+                             int32_t nLatencySendNoTries,
+                             int64_t lLatencyReceiveMs,
+                             int32_t nLatencyReceiveNoTries,
+                             int64_t lLatencyDelayAfter, bool bIsBlocking)
+    : m_lLatencySendMs(lLatencySendMs)
+    , m_nLatencySendNoTries(nLatencySendNoTries)
+    , m_lLatencyReceiveMs(lLatencyReceiveMs)
+    , m_nLatencyReceiveNoTries(nLatencyReceiveNoTries)
+    , m_lLatencyDelayAfter(lLatencyDelayAfter)
+    , m_bIsBlocking(bIsBlocking)
 {
 }
 
-
-OTSocket::Mutex::Mutex()
-: m_pMutex(new tthread::mutex)
+OTSocket::Mutex::Mutex() : m_pMutex(new tthread::mutex)
 {
 }
-
 
 OTSocket::Mutex::~Mutex()
 {
-    if (NULL != m_pMutex)    delete m_pMutex;    m_pMutex = NULL;
+    if (NULL != m_pMutex) delete m_pMutex;
+    m_pMutex = NULL;
 }
 
-
-tthread::mutex * OTSocket::Mutex::Get()
+tthread::mutex* OTSocket::Mutex::Get()
 {
     return this->m_pMutex;
 }
 
-
-tthread::mutex * OTSocket::GetMutex()
+tthread::mutex* OTSocket::GetMutex()
 {
     return this->m_Mutex.Get();
 }
 
-
-bool OTSocket::Init(const Defaults & defaults)
+bool OTSocket::Init(const Defaults& defaults)
 {
     if (m_bInitialized) return false;
     if (m_HasContext) return false;
@@ -230,38 +219,63 @@ bool OTSocket::Init(const Defaults & defaults)
     return true;
 }
 
-
-bool OTSocket::Init(const Defaults & defaults, OTSettings * pSettings)
+bool OTSocket::Init(const Defaults& defaults, OTSettings* pSettings)
 {
     if (m_bInitialized) return false;
     if (m_HasContext) return false;
     if (m_bConnected) return false;
     if (m_bListening) return false;
 
-    if (NULL == pSettings) { OT_FAIL; }
+    if (NULL == pSettings) {
+        OT_FAIL;
+    }
 
     bool bIsNew;
     {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS, defaults.m_lLatencySendMs, m_lLatencySendMs, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS,
+                                      defaults.m_lLatencySendMs,
+                                      m_lLatencySendMs, bIsNew)) {
+            OT_FAIL;
+        }
     }
     {
         int64_t lResult = 0;
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_NO_TRIES, defaults.m_nLatencySendNoTries, lResult, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_NO_TRIES,
+                                      defaults.m_nLatencySendNoTries, lResult,
+                                      bIsNew)) {
+            OT_FAIL;
+        }
         m_nLatencySendNoTries = static_cast<int32_t>(lResult);
     }
     {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_MS, defaults.m_lLatencyReceiveMs, m_lLatencyReceiveMs, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_MS,
+                                      defaults.m_lLatencyReceiveMs,
+                                      m_lLatencyReceiveMs, bIsNew)) {
+            OT_FAIL;
+        }
     }
     {
         int64_t lResult = 0;
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_NO_TRIES, defaults.m_nLatencyReceiveNoTries, lResult, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_NO_TRIES,
+                                      defaults.m_nLatencyReceiveNoTries,
+                                      lResult, bIsNew)) {
+            OT_FAIL;
+        }
         m_nLatencyReceiveNoTries = static_cast<int32_t>(lResult);
     }
     {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_DELAY_AFTER, defaults.m_lLatencyDelayAfter, m_lLatencyDelayAfter, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_DELAY_AFTER,
+                                      defaults.m_lLatencyDelayAfter,
+                                      m_lLatencyDelayAfter, bIsNew)) {
+            OT_FAIL;
+        }
     }
     {
-        if (!pSettings->CheckSet_bool("latency", KEY_IS_BLOCKING, defaults.m_bIsBlocking, m_bIsBlocking, bIsNew)) { OT_FAIL; }
+        if (!pSettings->CheckSet_bool("latency", KEY_IS_BLOCKING,
+                                      defaults.m_bIsBlocking, m_bIsBlocking,
+                                      bIsNew)) {
+            OT_FAIL;
+        }
     }
 
     m_bInitialized = true;
@@ -269,22 +283,34 @@ bool OTSocket::Init(const Defaults & defaults, OTSettings * pSettings)
     return true;
 }
 
+bool OTSocket::IsInitialized() const
+{
+    return m_bInitialized;
+}
 
-bool OTSocket::IsInitialized() const { return m_bInitialized; }
+bool OTSocket::HasContext() const
+{
+    return m_HasContext;
+}
 
+bool OTSocket::IsConnected() const
+{
+    return m_bConnected;
+}
 
-bool OTSocket::HasContext() const { return m_HasContext; }
+bool OTSocket::IsListening() const
+{
+    return m_bListening;
+}
 
+const OTString& OTSocket::GetConnectPath() const
+{
+    return m_strConnectPath;
+}
 
-bool OTSocket::IsConnected() const { return m_bConnected; }
-
-
-bool OTSocket::IsListening() const { return m_bListening; }
-
-
-const OTString & OTSocket::GetConnectPath() const { return m_strConnectPath; }
-
-
-const OTString & OTSocket::GetBindingPath() const { return m_strBindingPath; }
+const OTString& OTSocket::GetBindingPath() const
+{
+    return m_strBindingPath;
+}
 
 } // namespace opentxs

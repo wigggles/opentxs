@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTServerContract.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -135,32 +135,36 @@
 
 #include "OTContract.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTString;
-
 
 class OTServerContract : public OTContract
 {
 protected:
-    OTString    m_strHostname;
-    int32_t            m_nPort;
-    OTString    m_strURL;
+    OTString m_strHostname;
+    int32_t m_nPort;
+    OTString m_strURL;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
 public:
-EXPORT    OTServerContract();
-EXPORT    OTServerContract(OTString & name, OTString & foldername, OTString & filename, OTString & strID);
-EXPORT    virtual ~OTServerContract();
-EXPORT    bool GetConnectInfo(OTString & strHostname, int32_t & nPort);
-EXPORT virtual void CreateContents(); // Only used when first generating an asset or server contract. Meant for contracts which never change after that point.  Otherwise does the same thing as UpdateContents. (But meant for a different purpose.)
-    virtual bool SaveContractWallet(OTString & strContents) const;
-    virtual bool SaveContractWallet(std::ofstream & ofs);
-    // -------------------------------------------------------------    
-    virtual bool DisplayStatistics(OTString & strContents) const;
+    EXPORT OTServerContract();
+    EXPORT OTServerContract(OTString& name, OTString& foldername,
+                            OTString& filename, OTString& strID);
+    EXPORT virtual ~OTServerContract();
+    EXPORT bool GetConnectInfo(OTString& strHostname, int32_t& nPort);
+    EXPORT virtual void CreateContents(); // Only used when first generating an
+                                          // asset or server contract. Meant for
+                                          // contracts which never change after
+                                          // that point.  Otherwise does the
+                                          // same thing as UpdateContents. (But
+                                          // meant for a different purpose.)
+    virtual bool SaveContractWallet(OTString& strContents) const;
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool DisplayStatistics(OTString& strContents) const;
 };
-
-
 
 } // namespace opentxs
 

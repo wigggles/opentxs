@@ -142,49 +142,46 @@
 #endif
 
 #ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4702 )  // warning C4702: unreachable code
+#pragma warning(push)
+#pragma warning(disable : 4702) // warning C4702: unreachable code
 #endif
 
 #ifdef _MSC_VER
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
-
 
 #ifdef OT_USE_SCRIPT_CHAI
 
 // SUBCLASS:  CHAI SCRIPT
 
-namespace chaiscript{
-    class ChaiScript;
+namespace chaiscript
+{
+class ChaiScript;
 }
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTScriptChai : public OTScript
 {
 public:
-
     OTScriptChai();
-    OTScriptChai(const OTString & strValue);
-    OTScriptChai(const char * new_string);
-    OTScriptChai(const char * new_string, size_t sizeLength);
-    OTScriptChai(const std::string & new_string);
+    OTScriptChai(const OTString& strValue);
+    OTScriptChai(const char* new_string);
+    OTScriptChai(const char* new_string, size_t sizeLength);
+    OTScriptChai(const std::string& new_string);
 
     virtual ~OTScriptChai();
 
-    virtual bool ExecuteScript(OTVariable * pReturnVar=NULL);
-    chaiscript::ChaiScript * const chai;
+    virtual bool ExecuteScript(OTVariable* pReturnVar = NULL);
+    chaiscript::ChaiScript* const chai;
 };
 
 #endif // OT_USE_SCRIPT_CHAI
 
-
 #if __clang__
 #pragma clang diagnostic pop
 #endif
-
-
 
 } // namespace opentxs
 

@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTServerContract.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -141,61 +141,54 @@
 
 #include <irrxml/irrXML.hpp>
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 OTServerContract::OTServerContract() : OTContract()
 {
     m_nPort = 0;
 }
 
-
-OTServerContract::OTServerContract(OTString & name, OTString & foldername, OTString & filename, OTString & strID) 
-: OTContract(name, foldername, filename, strID)
+OTServerContract::OTServerContract(OTString& name, OTString& foldername,
+                                   OTString& filename, OTString& strID)
+    : OTContract(name, foldername, filename, strID)
 {
     m_nPort = 0;
 }
 
-
 OTServerContract::~OTServerContract()
 {
-
 }
 
-
-bool OTServerContract::GetConnectInfo(OTString & strHostname, int32_t & nPort)
+bool OTServerContract::GetConnectInfo(OTString& strHostname, int32_t& nPort)
 {
-    if (m_strHostname.GetLength())
-    {
-        strHostname    = m_strHostname;
-        nPort        = m_nPort;
+    if (m_strHostname.GetLength()) {
+        strHostname = m_strHostname;
+        nPort = m_nPort;
         return true;
     }
     return false;
 }
 
-
-bool OTServerContract::DisplayStatistics(OTString & strContents) const
+bool OTServerContract::DisplayStatistics(OTString& strContents) const
 {
     const OTString strID(m_ID);
-    
-    strContents.Concatenate(
-                            " Notary Provider: %s\n"
+
+    strContents.Concatenate(" Notary Provider: %s\n"
                             " ServerID: %s\n"
                             "\n",
-                            m_strName.Get(),
-                            strID.Get());
-    
+                            m_strName.Get(), strID.Get());
+
     return true;
 }
 
-
-bool OTServerContract::SaveContractWallet(OTString & strContents) const
+bool OTServerContract::SaveContractWallet(OTString& strContents) const
 {
     const OTString strID(m_ID);
-    OTASCIIArmor   ascName;
-    
-    if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
+    OTASCIIArmor ascName;
+
+    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
+                            // storage.
     {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
@@ -203,33 +196,31 @@ bool OTServerContract::SaveContractWallet(OTString & strContents) const
                             " serverID=\"%s\" />\n\n",
                             m_strName.Exists() ? ascName.Get() : "",
                             strID.Get());
-    
+
     return true;
 }
 
-
-bool OTServerContract::SaveContractWallet(std::ofstream & ofs)
+bool OTServerContract::SaveContractWallet(std::ofstream& ofs)
 {
     OTString strOutput;
-    
-    if (SaveContractWallet(strOutput))
-    {
+
+    if (SaveContractWallet(strOutput)) {
         ofs << strOutput;
         return true;
     }
-        
+
     return false;
 }
-
 
 void OTServerContract::CreateContents()
 {
 
-    m_strVersion = "2.0";  // 2.0 since adding credentials.
+    m_strVersion = "2.0"; // 2.0 since adding credentials.
 
-     m_xmlUnsigned.Release();
+    m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
-    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "notaryProviderContract", m_strVersion.Get());
+    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n",
+                              "notaryProviderContract", m_strVersion.Get());
 
     // Entity
     m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
@@ -237,32 +228,28 @@ void OTServerContract::CreateContents()
                               " email=\"%s\"\n"
                               " serverURL=\"%s\"/>\n\n",
                               m_strEntityShortName.Get(),
-                              m_strEntityLongName .Get(),
-                              m_strEntityEmail    .Get(),
-                              m_strURL            .Get());
+                              m_strEntityLongName.Get(), m_strEntityEmail.Get(),
+                              m_strURL.Get());
 
     // notaryServer
     m_xmlUnsigned.Concatenate("<notaryServer hostname=\"%s\"\n"
                               " port=\"%d\"\n"
                               " URL=\"%s\"/>\n\n",
-                              m_strHostname.Get(),
-                              m_nPort,
-                              m_strURL.Get());
+                              m_strHostname.Get(), m_nPort, m_strURL.Get());
 
-    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions, etc.
+    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
+    // etc.
     this->CreateInnerContents();
 
     m_xmlUnsigned.Concatenate("</%s>\n", "notaryProviderContract");
-
 }
-
 
 // This is the serialization code for READING FROM THE CONTRACT
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
-    
+
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
     // then we just return either way.  But if it comes back
@@ -270,33 +257,32 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
-    
+
     nReturnVal = OTContract::ProcessXMLNode(xml);
-    if (nReturnVal)
-        return nReturnVal;
-    
-    if (!strcmp("notaryProviderContract", xml->getNodeName()))
-    {
-        m_strVersion = xml->getAttributeValue("version");                    
-        
+    if (nReturnVal) return nReturnVal;
+
+    if (!strcmp("notaryProviderContract", xml->getNodeName())) {
+        m_strVersion = xml->getAttributeValue("version");
+
         otWarn << "\n"
-                "===> Loading XML portion of server contract into memory structures...\n\n"
-                "Notary Server Name: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
+                  "===> Loading XML portion of server contract into memory "
+                  "structures...\n\n"
+                  "Notary Server Name: " << m_strName
+               << "\nContract version: " << m_strVersion << "\n----------\n";
         nReturnVal = 1;
     }
-    
-    else if (!strcmp("notaryServer", xml->getNodeName()))
-    {
-        m_strHostname    = xml->getAttributeValue("hostname");                    
-        m_nPort            = atoi(xml->getAttributeValue("port"));                    
-        m_strURL        = xml->getAttributeValue("URL");                    
-        
+    else if (!strcmp("notaryServer", xml->getNodeName())) {
+        m_strHostname = xml->getAttributeValue("hostname");
+        m_nPort = atoi(xml->getAttributeValue("port"));
+        m_strURL = xml->getAttributeValue("URL");
+
         otWarn << "\n"
-            "Notary Server connection info:\n --- Hostname: " << m_strHostname << "\n --- Port: "
-            << m_nPort << "\n --- URL:" << m_strURL << "\n\n";
+                  "Notary Server connection info:\n --- Hostname: "
+               << m_strHostname << "\n --- Port: " << m_nPort
+               << "\n --- URL:" << m_strURL << "\n\n";
         nReturnVal = 1;
     }
-    
+
     return nReturnVal;
 }
 

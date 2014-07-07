@@ -7,7 +7,7 @@
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -137,17 +137,14 @@
 #include <cstring>
 #include <iostream>
 
+OTAssert* OTAssert::s_pOTAssert = new OTAssert(OTAssert::Assert);
 
-OTAssert * OTAssert::s_pOTAssert = new OTAssert(OTAssert::Assert);
-
-
-OTAssert::OTAssert(fpt_Assert_sz_n_sz &fp1)
-: m_fpt_Assert(fp1)
+OTAssert::OTAssert(fpt_Assert_sz_n_sz& fp1) : m_fpt_Assert(fp1)
 {
 }
 
-
-size_t OTAssert::m_AssertDefault(const char * szFilename, size_t nLinenumber, const char * szMessage)
+size_t OTAssert::m_AssertDefault(const char* szFilename, size_t nLinenumber,
+                                 const char* szMessage)
 {
     if (NULL != szMessage) {
         if (std::strcmp(szMessage, "") != 0) {
@@ -156,17 +153,20 @@ size_t OTAssert::m_AssertDefault(const char * szFilename, size_t nLinenumber, co
         }
     }
 
-    const char * l_szFilename = (NULL != szFilename) ? szFilename : "NULL";
+    const char* l_szFilename = (NULL != szFilename) ? szFilename : "NULL";
 
-    std::cerr << "OT_ASSERT in " << l_szFilename << " at line " << nLinenumber << "\n";
+    std::cerr << "OT_ASSERT in " << l_szFilename << " at line " << nLinenumber
+              << "\n";
     std::cerr.flush();
 
     return 0; // since we are not logging.
 }
 
-
-//static
-size_t OTAssert::Assert(const char * szFilename, size_t nLinenumber, const char * szMessage){
+// static
+size_t OTAssert::Assert(const char* szFilename, size_t nLinenumber,
+                        const char* szMessage)
+{
     if (NULL == OTAssert::s_pOTAssert) std::terminate();
-    return OTAssert::s_pOTAssert->m_fpt_Assert(szFilename, nLinenumber, szMessage);
+    return OTAssert::s_pOTAssert->m_fpt_Assert(szFilename, nLinenumber,
+                                               szMessage);
 }

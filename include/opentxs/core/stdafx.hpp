@@ -12,7 +12,7 @@
 
 #if defined(_MSC_VER)
 #define OT_USE_CXX11
-#elif (!defined(OPENTXS_NO_CXX11) && (__cplusplus >= 201103L))
+#elif(!defined(OPENTXS_NO_CXX11) && (__cplusplus >= 201103L))
 #define OT_USE_CXX11
 #endif
 
@@ -43,7 +43,6 @@
 #define OT_USE_CHAI_STDLIB
 #endif
 
-
 #ifndef OT_CRYPTO_USING_OPENSSL
 #define OT_CRYPTO_USING_OPENSSL 1
 #endif
@@ -51,7 +50,6 @@
 #ifndef OT_CASH_USING_LUCRE
 #define OT_CASH_USING_LUCRE 1
 #endif
-
 
 // for mac, this enables deprecated functions. (aka, for pthread)
 #ifdef _XOPEN_SOURCE
@@ -64,7 +62,6 @@
 #if defined(__APPLE__) && defined(OPENTXS_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 500
 #endif
-
 
 #ifdef _WIN32
 #ifndef NO_OT_PCH
@@ -95,7 +92,7 @@
 //#include "OTCredential.hpp"
 //#include "OTCron.hpp"
 //#include "OTCronItem.hpp"
-//#include "OTCrypto.hpp"         
+//#include "OTCrypto.hpp"
 //#include "OTDataCheck.hpp"
 //#include "OTDataFolder.hpp"
 //#include "OTData.hpp"

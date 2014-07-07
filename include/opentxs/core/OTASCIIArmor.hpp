@@ -135,116 +135,149 @@
 
 #include "OTString.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTASCIIArmor;
 class OTData;
 class OTEnvelope;
 class OTPayload;
 
-namespace OTDB {
-    class OTPacker;
+namespace OTDB
+{
+class OTPacker;
 }
 
-typedef std::map <int64_t, OTASCIIArmor *> mapOfArmor;
+typedef std::map<int64_t, OTASCIIArmor*> mapOfArmor;
 
+extern const char* OT_BEGIN_ARMORED;
+extern const char* OT_END_ARMORED;
 
-extern const char * OT_BEGIN_ARMORED;
-extern const char * OT_END_ARMORED;
+extern const char* OT_BEGIN_ARMORED_escaped;
+extern const char* OT_END_ARMORED_escaped;
 
-extern const char * OT_BEGIN_ARMORED_escaped;
-extern const char * OT_END_ARMORED_escaped;
+extern const char* OT_BEGIN_SIGNED;
+extern const char* OT_BEGIN_SIGNED_escaped;
 
-extern const char * OT_BEGIN_SIGNED;
-extern const char * OT_BEGIN_SIGNED_escaped;
-
-
-// The natural state of OTASCIIArmor is in compressed and base64-encoded, string form.
-// It is derived from OTString. The Get() method returns a base64-encoded string.
+// The natural state of OTASCIIArmor is in compressed and base64-encoded, string
+// form.
+// It is derived from OTString. The Get() method returns a base64-encoded
+// string.
 // The Set() method assumes that you are PASSING IN a base64-encoded string.
 // The constructors assume that you are passing in a base64-encoded string.
 class OTASCIIArmor : public OTString
 {
 public:
-    static OTDB::OTPacker * GetPacker();
-    static OTDB::OTPacker * s_pPacker;
+    static OTDB::OTPacker* GetPacker();
+    static OTDB::OTPacker* s_pPacker;
 
-EXPORT    OTASCIIArmor();
-EXPORT    OTASCIIArmor(const char * szValue);
-EXPORT    OTASCIIArmor(const OTData & theValue);
-EXPORT    OTASCIIArmor(const OTPayload & theValue);
-EXPORT    OTASCIIArmor(const OTString & strValue);
-EXPORT    OTASCIIArmor(const OTASCIIArmor & strValue);
-EXPORT    OTASCIIArmor(const OTEnvelope & theEnvelope);
-EXPORT    virtual ~OTASCIIArmor();
+    EXPORT OTASCIIArmor();
+    EXPORT OTASCIIArmor(const char* szValue);
+    EXPORT OTASCIIArmor(const OTData& theValue);
+    EXPORT OTASCIIArmor(const OTPayload& theValue);
+    EXPORT OTASCIIArmor(const OTString& strValue);
+    EXPORT OTASCIIArmor(const OTASCIIArmor& strValue);
+    EXPORT OTASCIIArmor(const OTEnvelope& theEnvelope);
+    EXPORT virtual ~OTASCIIArmor();
 
     using OTString::swap;
 
-EXPORT    OTASCIIArmor & operator=(const char * szValue);
-EXPORT    OTASCIIArmor & operator=(const OTData & theValue);
-EXPORT    OTASCIIArmor & operator=(const OTString & strValue);
-EXPORT    OTASCIIArmor & operator=(const OTASCIIArmor & strValue);
+    EXPORT OTASCIIArmor& operator=(const char* szValue);
+    EXPORT OTASCIIArmor& operator=(const OTData& theValue);
+    EXPORT OTASCIIArmor& operator=(const OTString& strValue);
+    EXPORT OTASCIIArmor& operator=(const OTASCIIArmor& strValue);
 
-EXPORT    bool LoadFromFile(const OTString & foldername, const OTString & filename);
-EXPORT    bool LoadFrom_ifstream(std::ifstream & fin);
-EXPORT  bool SaveTo_ofstream(std::ofstream & fout);
-EXPORT    bool LoadFromExactPath(const std::string & filename);
-EXPORT    bool SaveToExactPath(const std::string & filename);
-    // Let's say you don't know if the input string is raw base64, or if it has bookends
+    EXPORT bool LoadFromFile(const OTString& foldername,
+                             const OTString& filename);
+    EXPORT bool LoadFrom_ifstream(std::ifstream& fin);
+    EXPORT bool SaveTo_ofstream(std::ofstream& fout);
+    EXPORT bool LoadFromExactPath(const std::string& filename);
+    EXPORT bool SaveToExactPath(const std::string& filename);
+    // Let's say you don't know if the input string is raw base64, or if it has
+    // bookends
     // on it like -----BEGIN BLAH BLAH ...
-    // And if it DOES have Bookends, you don't know if they are escaped:  - -----BEGIN ...
-    // Let's say you just want an easy function that will figure that crap out, and load the
-    // contents up properly into an OTASCIIArmor object. (That's what this function will do.)
+    // And if it DOES have Bookends, you don't know if they are escaped:  -
+    // -----BEGIN ...
+    // Let's say you just want an easy function that will figure that crap out,
+    // and load the
+    // contents up properly into an OTASCIIArmor object. (That's what this
+    // function will do.)
     //
-EXPORT    static bool LoadFromString(OTASCIIArmor & ascArmor, const OTString & strInput, const std::string str_bookend="-----BEGIN"); // todo hardcoding. str_bookend is a default. So you could make it more specific like, -----BEGIN ENCRYPTED KEY (or whatever.)
+    EXPORT static bool LoadFromString(OTASCIIArmor& ascArmor,
+                                      const OTString& strInput,
+                                      const std::string str_bookend =
+                                          "-----BEGIN"); // todo hardcoding.
+                                                         // str_bookend is a
+                                                         // default. So you
+                                                         // could make it more
+                                                         // specific like,
+                                                         // -----BEGIN ENCRYPTED
+                                                         // KEY (or whatever.)
 
-EXPORT  bool LoadFromString(      OTString  & theStr,
-                                  bool        bEscaped=false,
-                            const // This sub-string determines where the content starts, when loading.
-                                  std::string str_override="-----BEGIN"); // "-----BEGIN" is the default "content start" substr. Todo: hardcoding.
+    EXPORT bool LoadFromString(OTString& theStr, bool bEscaped = false,
+                               const // This sub-string determines where the
+                                     // content starts, when loading.
+                               std::string str_override =
+                                   "-----BEGIN"); // "-----BEGIN" is the default
+                                                  // "content start" substr.
+                                                  // Todo: hardcoding.
 
-EXPORT  bool WriteArmoredString(      OTString    & strOutput,
-                                const // for "-----BEGIN OT LEDGER-----", str_type would contain ==> "LEDGER" <==
-                                      std::string   str_type, // There's no default, to force you to enter the right string.
-                                      bool          bEscaped=false);
-EXPORT  bool WriteArmoredFile(const OTString & foldername, const OTString & filename,
-                              const // for "-----BEGIN OT LEDGER-----", str_type would contain ==> "LEDGER" <==
-                                    std::string      str_type, // There's no default, to force you to enter the right string.
-                                    bool             bEscaped=false);
-    // This function will base64 DECODE the string contents (This class is a string)
+    EXPORT bool WriteArmoredString(
+        OTString& strOutput, const // for "-----BEGIN OT LEDGER-----", str_type
+                                   // would contain ==> "LEDGER" <==
+        std::string str_type, // There's no default, to force you to enter the
+                              // right string.
+        bool bEscaped = false);
+    EXPORT bool WriteArmoredFile(const OTString& foldername,
+                                 const OTString& filename,
+                                 const // for "-----BEGIN OT LEDGER-----",
+                                       // str_type would contain ==> "LEDGER"
+                                       // <==
+                                 std::string str_type, // There's no default, to
+                                                       // force you to enter the
+                                                       // right string.
+                                 bool bEscaped = false);
+    // This function will base64 DECODE the string contents (This class is a
+    // string)
     // and return them as BINARY in theData
     // Should be called "Get From Internal String Into Data"
     //
-EXPORT    bool GetData         (OTData & theData, bool bLineBreaks=true) const;
-EXPORT  bool GetAndUnpackData(OTData & theData, bool bLineBreaks=true) const;
+    EXPORT bool GetData(OTData& theData, bool bLineBreaks = true) const;
+    EXPORT bool GetAndUnpackData(OTData& theData,
+                                 bool bLineBreaks = true) const;
 
-        // This function will base64 ENCODE theData,
-        // and then Set() that as the string contents.
-        // Should be called "Encode Data And Set As Internal String"
-EXPORT  bool SetData       (const OTData & theData, bool bLineBreaks=true);
-EXPORT  bool SetAndPackData(const OTData & theData, bool bLineBreaks=true);
+    // This function will base64 ENCODE theData,
+    // and then Set() that as the string contents.
+    // Should be called "Encode Data And Set As Internal String"
+    EXPORT bool SetData(const OTData& theData, bool bLineBreaks = true);
+    EXPORT bool SetAndPackData(const OTData& theData, bool bLineBreaks = true);
 
-        // This function will base64 DECODE the string contents
-        // and return them as a STRING in theData
-        //
-EXPORT    bool GetString         (OTString & theData, bool bLineBreaks=true) const;
-EXPORT  bool GetAndUnpackString(OTString & theData, bool bLineBreaks=true) const;
+    // This function will base64 DECODE the string contents
+    // and return them as a STRING in theData
+    //
+    EXPORT bool GetString(OTString& theData, bool bLineBreaks = true) const;
+    EXPORT bool GetAndUnpackString(OTString& theData,
+                                   bool bLineBreaks = true) const;
 
-        // This function will base64 ENCODE the STRING stored in theData,
-        // and then Set() that as this string contents.
-        //
-EXPORT    bool SetString       (const OTString & theData, bool bLineBreaks=true);
-EXPORT  bool SetAndPackString(const OTString & theData, bool bLineBreaks=true);
+    // This function will base64 ENCODE the STRING stored in theData,
+    // and then Set() that as this string contents.
+    //
+    EXPORT bool SetString(const OTString& theData, bool bLineBreaks = true);
+    EXPORT bool SetAndPackString(const OTString& theData,
+                                 bool bLineBreaks = true);
 
+    EXPORT bool GetStringMap(std::map<std::string, std::string>& the_map,
+                             bool bLineBreaks = true) const;
+    EXPORT bool GetAndUnpackStringMap(
+        std::map<std::string, std::string>& the_map,
+        bool bLineBreaks = true) const;
 
-EXPORT  bool GetStringMap(std::map<std::string, std::string> & the_map, bool bLineBreaks=true) const;
-EXPORT  bool GetAndUnpackStringMap(std::map<std::string, std::string> & the_map, bool bLineBreaks=true) const;
-
-EXPORT  bool SetStringMap(const std::map<std::string, std::string> & the_map, bool bLineBreaks=true);
-EXPORT  bool SetAndPackStringMap(const std::map<std::string, std::string> & the_map, bool bLineBreaks=true);
+    EXPORT bool SetStringMap(const std::map<std::string, std::string>& the_map,
+                             bool bLineBreaks = true);
+    EXPORT bool SetAndPackStringMap(
+        const std::map<std::string, std::string>& the_map,
+        bool bLineBreaks = true);
 };
-
-
 
 } // namespace opentxs
 

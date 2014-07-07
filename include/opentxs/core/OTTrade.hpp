@@ -138,27 +138,32 @@
 
 #include "OTCronItem.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTIdentifier;
 class OTPseudonym;
-
 
 /*
  OTTrade
 
  Standing Order (for Trades) MUST STORE:
 
- X 1) Transaction ID // It took a transaction number to create this trade. We record it here and use it to uniquely identify the trade, like any other transaction.
- X 4) CURRENCY TYPE ID  (Currency type ID of whatever I’m trying to buy or sell WITH. Dollars? Euro?)
- X 5) Account ID SENDER (for above currency type. This is the account where I make my payments from, to satisfy the trades.)
+ X 1) Transaction ID // It took a transaction number to create this trade. We
+ record it here and use it to uniquely identify the trade, like any other
+ transaction.
+ X 4) CURRENCY TYPE ID  (Currency type ID of whatever I’m trying to buy or sell
+ WITH. Dollars? Euro?)
+ X 5) Account ID SENDER (for above currency type. This is the account where I
+ make my payments from, to satisfy the trades.)
  X 6) Valid date range. (Start. Expressed as an absolute date.)
  X 7) Valid date range. ( End. Expressed as an absolute date.)
 
  X 2) Creation date.
  X 3) INTEGER: Number of trades that have processed through this order.
 
- X 8) STOP ORDER — SIGN (NULL if not a stop order — otherwise GREATER THAN or LESS THAN…)
+ X 8) STOP ORDER — SIGN (NULL if not a stop order — otherwise GREATER THAN or
+ LESS THAN…)
  X 9) STOP ORDER — PRICE (…AT X PRICE, POST THE OFFER TO THE MARKET.)
 
  Cron for these orders must check expiration dates and stop order prices.
@@ -168,131 +173,196 @@ class OTPseudonym;
 
 class OTTrade : public OTCronItem
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
-    OTIdentifier    m_CURRENCY_TYPE_ID;     // GOLD (Asset) is trading for DOLLARS (Currency).
-    OTIdentifier    m_CURRENCY_ACCT_ID;     // My Dollar account, used for paying for my Gold (say) trades.
+    OTIdentifier m_CURRENCY_TYPE_ID; // GOLD (Asset) is trading for DOLLARS
+                                     // (Currency).
+    OTIdentifier m_CURRENCY_ACCT_ID; // My Dollar account, used for paying for
+                                     // my Gold (say) trades.
 
-    OTOffer        *   m_pOffer;               // The pointer to the Offer (NOT responsible for cleaning this up!!!
-                                            // The offer is owned by the market and I only keep a pointer here for convenience.
+    OTOffer* m_pOffer; // The pointer to the Offer (NOT responsible for cleaning
+                       // this up!!!
+    // The offer is owned by the market and I only keep a pointer here for
+    // convenience.
 
-    bool            m_bHasTradeActivated;    // Has the offer yet been first added to a market?
+    bool m_bHasTradeActivated; // Has the offer yet been first added to a
+                               // market?
 
-    int64_t            m_lStopPrice;            // The price limit that activates the STOP order.
-    char            m_cStopSign;            // Value is 0, or '<', or '>'.
-    bool            m_bHasStopActivated;    // If the Stop Order has already activated, I need to know that.
+    int64_t m_lStopPrice;     // The price limit that activates the STOP order.
+    char m_cStopSign;         // Value is 0, or '<', or '>'.
+    bool m_bHasStopActivated; // If the Stop Order has already activated, I need
+                              // to know that.
 
-    int32_t             m_nTradesAlreadyDone;    // How many trades have already processed through this order? We keep track.
+    int32_t m_nTradesAlreadyDone; // How many trades have already processed
+                                  // through this order? We keep track.
 
-    OTString        m_strOffer;                // The market offer associated with this trade.
+    OTString m_strOffer; // The market offer associated with this trade.
 
 protected:
-    virtual void onFinalReceipt(OTCronItem & theOrigCronItem, const int64_t & lNewTransactionNumber,
-                                OTPseudonym & theOriginator,
-                                OTPseudonym * pRemover);
+    virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
+                                const int64_t& lNewTransactionNumber,
+                                OTPseudonym& theOriginator,
+                                OTPseudonym* pRemover);
     virtual void onRemovalFromCron();
 
 public:
-EXPORT    bool  VerifyOffer(OTOffer & theOffer);
-EXPORT    bool  IssueTrade(OTOffer & theOffer, char cStopSign=0, int64_t lStopPrice=0);
+    EXPORT bool VerifyOffer(OTOffer& theOffer);
+    EXPORT bool IssueTrade(OTOffer& theOffer, char cStopSign = 0,
+                           int64_t lStopPrice = 0);
 
     // The Trade always stores the original, signed version of its Offer.
     // This method allows you to grab a copy of it.
-    inline bool GetOfferString(OTString & strOffer)
-    { strOffer.Set(m_strOffer); return m_strOffer.Exists() ? true : false; }
+    inline bool GetOfferString(OTString& strOffer)
+    {
+        strOffer.Set(m_strOffer);
+        return m_strOffer.Exists() ? true : false;
+    }
 
-    inline bool    IsStopOrder() const { if ((m_cStopSign == '<') || (m_cStopSign == '>')) return true; return false; }
+    inline bool IsStopOrder() const
+    {
+        if ((m_cStopSign == '<') || (m_cStopSign == '>')) return true;
+        return false;
+    }
 
-    inline const int64_t & GetStopPrice() const { return m_lStopPrice; }
+    inline const int64_t& GetStopPrice() const
+    {
+        return m_lStopPrice;
+    }
 
-    inline bool IsGreaterThan()    const { if ((m_cStopSign == '>')) return true; return false; }
-    inline bool IsLessThan()    const { if ((m_cStopSign == '<')) return true; return false; }
+    inline bool IsGreaterThan() const
+    {
+        if ((m_cStopSign == '>')) return true;
+        return false;
+    }
+    inline bool IsLessThan() const
+    {
+        if ((m_cStopSign == '<')) return true;
+        return false;
+    }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer    * GetOffer(OTIdentifier * pOFFER_MARKET_ID=NULL, OTMarket ** ppMarket=NULL);
-    inline const OTIdentifier & GetCurrencyID() const { return m_CURRENCY_TYPE_ID; }
-    inline void SetCurrencyID(const OTIdentifier & CURRENCY_ID) { m_CURRENCY_TYPE_ID = CURRENCY_ID; }
+    OTOffer* GetOffer(OTIdentifier* pOFFER_MARKET_ID = NULL,
+                      OTMarket* *ppMarket = NULL);
+    inline const OTIdentifier& GetCurrencyID() const
+    {
+        return m_CURRENCY_TYPE_ID;
+    }
+    inline void SetCurrencyID(const OTIdentifier& CURRENCY_ID)
+    {
+        m_CURRENCY_TYPE_ID = CURRENCY_ID;
+    }
 
-    inline const OTIdentifier & GetCurrencyAcctID() const { return m_CURRENCY_ACCT_ID; }
-    inline void SetCurrencyAcctID(const OTIdentifier & CURRENCY_ACCT_ID) { m_CURRENCY_ACCT_ID = CURRENCY_ACCT_ID; }
-    inline void IncrementTradesAlreadyDone() { m_nTradesAlreadyDone++;      }
-    inline int32_t  GetCompletedCount()          { return m_nTradesAlreadyDone; }
-EXPORT    int64_t GetAssetAcctClosingNum() const;
-EXPORT    int64_t GetCurrencyAcctClosingNum() const;
+    inline const OTIdentifier& GetCurrencyAcctID() const
+    {
+        return m_CURRENCY_ACCT_ID;
+    }
+    inline void SetCurrencyAcctID(const OTIdentifier& CURRENCY_ACCT_ID)
+    {
+        m_CURRENCY_ACCT_ID = CURRENCY_ACCT_ID;
+    }
+    inline void IncrementTradesAlreadyDone()
+    {
+        m_nTradesAlreadyDone++;
+    }
+    inline int32_t GetCompletedCount()
+    {
+        return m_nTradesAlreadyDone;
+    }
+    EXPORT int64_t GetAssetAcctClosingNum() const;
+    EXPORT int64_t GetCurrencyAcctClosingNum() const;
 
     // From OTCronItem (parent class of this)
     /*
      inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
 
-     inline void SetCreationDate(const time64_t & CREATION_DATE) { m_CREATION_DATE = CREATION_DATE; }
+     inline void SetCreationDate(const time64_t & CREATION_DATE) {
+     m_CREATION_DATE = CREATION_DATE; }
      inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
      */
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron(); // OTCron calls this regularly, which is my chance to expire, etc.
-    virtual bool CanRemoveItemFromCron(OTPseudonym & theNym);
+    virtual bool ProcessCron(); // OTCron calls this regularly, which is my
+                                // chance to expire, etc.
+    virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
      inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
-     inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum = lTransactionNum; }
+     inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum
+     = lTransactionNum; }
 
-     inline const OTIdentifier & GetSenderAcctID()    { return m_SENDER_ACCT_ID; }
-     inline const OTIdentifier & GetSenderUserID()    { return m_SENDER_USER_ID; }
-     inline void    SetSenderAcctID(const OTIdentifier & ACCT_ID)    { m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void    SetSenderUserID(const OTIdentifier & USER_ID)    { m_SENDER_USER_ID = USER_ID; }
+     inline const OTIdentifier & GetSenderAcctID()    { return m_SENDER_ACCT_ID;
+     }
+     inline const OTIdentifier & GetSenderUserID()    { return m_SENDER_USER_ID;
+     }
+     inline void    SetSenderAcctID(const OTIdentifier & ACCT_ID)    {
+     m_SENDER_ACCT_ID = ACCT_ID; }
+     inline void    SetSenderUserID(const OTIdentifier & USER_ID)    {
+     m_SENDER_USER_ID = USER_ID; }
      */
-    // From OTInstrument (parent class of OTTrackable, parent class of OTCronItem, parent class of this)
+    // From OTInstrument (parent class of OTTrackable, parent class of
+    // OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : OTContract()
+     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     : OTContract()
 
      inline const OTIdentifier &    GetAssetID() const { return m_AssetTypeID; }
      inline const OTIdentifier &    GetServerID() const { return m_ServerID; }
 
-     inline void                    SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    = ASSET_ID; }
-     inline void                    SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    = SERVER_ID; }
+     inline void                    SetAssetID(const OTIdentifier & ASSET_ID)  {
+     m_AssetTypeID    = ASSET_ID; }
+     inline void                    SetServerID(const OTIdentifier & SERVER_ID)
+     { m_ServerID    = SERVER_ID; }
 
-     inline time64_t                    GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t                    GetValidTo()        const { return m_VALID_TO; }
+     inline time64_t                    GetValidFrom()    const { return
+     m_VALID_FROM; }
+     inline time64_t                    GetValidTo()        const { return
+     m_VALID_TO; }
 
-     inline void                    SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    = TIME_FROM; }
-     inline void                    SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO; }
+     inline void                    SetValidFrom(time64_t TIME_FROM)    {
+     m_VALID_FROM    = TIME_FROM; }
+     inline void                    SetValidTo(time64_t TIME_TO)        {
+     m_VALID_TO    = TIME_TO; }
 
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM / TO dates.
+     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
+     / TO dates.
      */
-    // From OTScriptable, we override this function. OTScriptable now does fancy stuff like checking to see
-    // if the Nym is an agent working on behalf of a party to the contract. That's how all OTScriptable-derived
-    // objects work by default.  But OTAgreement (payment plan) and OTTrade do it the old way: they just check to
+    // From OTScriptable, we override this function. OTScriptable now does fancy
+    // stuff like checking to see
+    // if the Nym is an agent working on behalf of a party to the contract.
+    // That's how all OTScriptable-derived
+    // objects work by default.  But OTAgreement (payment plan) and OTTrade do
+    // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    virtual bool VerifyNymAsAgent(OTPseudonym & theNym,
-                                  OTPseudonym & theSignerNym,
-                                  mapOfNyms    * pmap_ALREADY_LOADED=NULL);
+    virtual bool VerifyNymAsAgent(OTPseudonym& theNym,
+                                  OTPseudonym& theSignerNym,
+                                  mapOfNyms* pmap_ALREADY_LOADED = NULL);
 
-    virtual bool VerifyNymAsAgentForAccount(OTPseudonym & theNym, OTAccount & theAccount);
-EXPORT  OTTrade();
-        OTTrade(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID);
-EXPORT  OTTrade(const OTIdentifier & SERVER_ID,
-                const OTIdentifier & ASSET_ID, const OTIdentifier & ASSET_ACCT_ID,
-                const OTIdentifier & USER_ID,
-                const OTIdentifier & CURRENCY_ID, const OTIdentifier & CURRENCY_ACCT_ID);
-EXPORT    virtual ~OTTrade();
+    virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+                                            OTAccount& theAccount);
+    EXPORT OTTrade();
+    OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    EXPORT OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
+                   const OTIdentifier& ASSET_ACCT_ID,
+                   const OTIdentifier& USER_ID, const OTIdentifier& CURRENCY_ID,
+                   const OTIdentifier& CURRENCY_ACCT_ID);
+    EXPORT virtual ~OTTrade();
 
     void InitTrade();
 
     void Release_Trade();
     virtual void Release();
-    virtual int64_t GetClosingNumber(const OTIdentifier    & theAcctID) const;
+    virtual int64_t GetClosingNumber(const OTIdentifier& theAcctID) const;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-    virtual void UpdateContents(); // Before transmission or serialization, this is where the ledger saves its contents
+    virtual void UpdateContents(); // Before transmission or serialization, this
+                                   // is where the ledger saves its contents
 
-    virtual bool SaveContractWallet(std::ofstream & ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs);
 };
-
-
 
 } // namespace opentxs
 

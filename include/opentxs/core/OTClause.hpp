@@ -135,36 +135,43 @@
 
 #include "OTString.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTBylaw;
 
-
 class OTClause
 {
-    OTString    m_strName;    // Name of this Clause.
-    OTString    m_strCode;    // script code.
-    OTBylaw    *    m_pBylaw; // the Bylaw that this clause belongs to.
+    OTString m_strName; // Name of this Clause.
+    OTString m_strCode; // script code.
+    OTBylaw* m_pBylaw;  // the Bylaw that this clause belongs to.
 
 public:
-    void SetBylaw(OTBylaw& theBylaw) { m_pBylaw = &theBylaw; }
+    void SetBylaw(OTBylaw& theBylaw)
+    {
+        m_pBylaw = &theBylaw;
+    }
 
-EXPORT    const OTString & GetName() const { return m_strName; }
+    EXPORT const OTString& GetName() const
+    {
+        return m_strName;
+    }
 
-    OTBylaw    * GetBylaw() const { return m_pBylaw; }
+    OTBylaw* GetBylaw() const
+    {
+        return m_pBylaw;
+    }
 
-EXPORT    const char * GetCode() const;
+    EXPORT const char* GetCode() const;
 
-    bool Compare(const OTClause & rhs) const;
+    bool Compare(const OTClause& rhs) const;
 
     OTClause();
-    OTClause(const char * szName, const char * szCode);
+    OTClause(const char* szName, const char* szCode);
     virtual ~OTClause();
 
-    void Serialize(OTString & strAppend);
+    void Serialize(OTString& strAppend);
 };
-
-
 
 } // namespace opentxs
 

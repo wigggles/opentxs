@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTDigitalCash.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -139,15 +139,14 @@
 
 #include <fstream>
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 #ifdef OT_CASH_USING_MAGIC_MONEY
 
 // Todo:  Someday...
 
 #endif
-
 
 // Open-Transactions
 // NOTE: review this in security audit...
@@ -157,12 +156,11 @@ namespace opentxs {
 #ifdef _WIN32
 #ifdef _DEBUG
 
-void CleanupDumpFile(const char *filepathexact)
+void CleanupDumpFile(const char* filepathexact)
 {
     std::fstream f(filepathexact, std::ios::in);
 
-    if (f)
-    {
+    if (f) {
         f.close();
         f.open(filepathexact, std::ios::out | std::ios::trunc);
         f.close();
@@ -170,12 +168,11 @@ void CleanupDumpFile(const char *filepathexact)
     }
 }
 
-
-void SetDumper(const char *filepathexact)
+void SetDumper(const char* filepathexact)
 {
     // lets clear the last time we used this file.
     CleanupDumpFile(filepathexact);
-    BIO *out = new BIO;
+    BIO* out = new BIO;
     out = BIO_new_file(filepathexact, "w");
     assert(out);
     SetDumper(out);
@@ -184,7 +181,6 @@ void SetDumper(const char *filepathexact)
 #endif
 #endif
 
-
 #ifdef OT_CASH_USING_LUCRE
 
 // We don't need this for release builds
@@ -192,20 +188,33 @@ _OT_Lucre_Dumper::_OT_Lucre_Dumper()
 {
 #ifdef _WIN32
 #ifdef _DEBUG
-    OTString strOpenSSLDumpFilename("openssl.dumpfile"),strOpenSSLDumpFilePath, strDataPath; // todo security. We shouldn't necessarily be dumping this info to file AT ALL.
+    OTString strOpenSSLDumpFilename("openssl.dumpfile"), strOpenSSLDumpFilePath,
+        strDataPath; // todo security. We shouldn't necessarily be dumping this
+                     // info to file AT ALL.
     bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-    OT_ASSERT_MSG(bGetDataFolderSuccess,"_OT_Lucre_Dumper(): Failed to Get Data Path");
-    bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(strOpenSSLDumpFilePath,strDataPath,strOpenSSLDumpFilename);
-    OT_ASSERT_MSG(bRelativeToCanonicalSuccess,"_OT_Lucre_Dumper(): Unable To Build Full Path");
+    OT_ASSERT_MSG(bGetDataFolderSuccess,
+                  "_OT_Lucre_Dumper(): Failed to Get Data Path");
+    bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(
+        strOpenSSLDumpFilePath, strDataPath, strOpenSSLDumpFilename);
+    OT_ASSERT_MSG(bRelativeToCanonicalSuccess,
+                  "_OT_Lucre_Dumper(): Unable To Build Full Path");
 
-    strOpenSSLDumpFilename.Set(""); strDataPath.Set("");
-    SetDumper(strOpenSSLDumpFilePath.Get()); // We are only dumping this way currently as a temporary solution to the applink.c openssl thing that can cause crashes in Lucre when withdrawing cash. (Caused by da2ce7 removing Lucre from OT and moving it into a dylib.)
+    strOpenSSLDumpFilename.Set("");
+    strDataPath.Set("");
+    SetDumper(strOpenSSLDumpFilePath.Get()); // We are only dumping this way
+                                             // currently as a temporary
+                                             // solution to the applink.c
+                                             // openssl thing that can cause
+                                             // crashes in Lucre when
+                                             // withdrawing cash. (Caused by
+                                             // da2ce7 removing Lucre from OT
+                                             // and moving it into a dylib.)
     m_str_dumpfile = strOpenSSLDumpFilePath.Get();
     strOpenSSLDumpFilePath.Set("");
 #endif
 #else
     SetDumper(stderr);
-#endif     
+#endif
 }
 
 _OT_Lucre_Dumper::~_OT_Lucre_Dumper()
@@ -214,11 +223,10 @@ _OT_Lucre_Dumper::~_OT_Lucre_Dumper()
 #ifdef _DEBUG
     CleanupDumpFile(m_str_dumpfile.c_str());
 #endif
-#endif            
+#endif
 }
 
-
-#else  // No digital cash lib is selected? Perhaps error message here?
+#else // No digital cash lib is selected? Perhaps error message here?
 
 #endif // Which digital cash library we're using.
 

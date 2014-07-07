@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTAcctList.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -136,50 +136,61 @@
 // only necessary because of OTAccount::AccountType
 #include "OTAccount.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTPseudonym;
 
-
-// The server needs to store a list of accounts, by asset type ID, to store the backing funds
-// for vouchers.  The below class is useful for that. It's also useful for the same purpose
+// The server needs to store a list of accounts, by asset type ID, to store the
+// backing funds
+// for vouchers.  The below class is useful for that. It's also useful for the
+// same purpose
 // for stashes, in smart contracts.
-// Eventually will add expiration dates, possibly, to this class. (To have series, just like cash
+// Eventually will add expiration dates, possibly, to this class. (To have
+// series, just like cash
 // already does now.)
 //
 class OTAcctList
-{    
-    OTAccount::AccountType    m_AcctType;
-        
-    mapOfStrings        m_mapAcctIDs; // AcctIDs as second mapped by ASSET TYPE ID as first. 
-    mapOfWeakAccounts    m_mapWeakAccts; // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We 
-                                        // store the weak pointer here only to make sure accounts don't get loaded twice.
-public:    
-    
-EXPORT    OTAcctList();
-        OTAcctList(OTAccount::AccountType eAcctType);
-EXPORT    ~OTAcctList();
+{
+    OTAccount::AccountType m_AcctType;
 
-EXPORT  int32_t  GetCountAccountIDs() const { return static_cast<int32_t> (m_mapAcctIDs.size()); }
-    
-EXPORT  void Release();
+    mapOfStrings m_mapAcctIDs; // AcctIDs as second mapped by ASSET TYPE ID as
+                               // first.
+    mapOfWeakAccounts m_mapWeakAccts; // If someone calls GetOrCreateAccount(),
+                                      // we pass them a shared pointer. We
+    // store the weak pointer here only to make sure accounts don't get loaded
+    // twice.
+public:
+    EXPORT OTAcctList();
+    OTAcctList(OTAccount::AccountType eAcctType);
+    EXPORT ~OTAcctList();
 
-EXPORT  void Release_AcctList();
-    
-EXPORT    void Serialize(OTString & strAppend);
-EXPORT    int32_t  ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & strAcctType, const OTString & strAcctCount);
-    
-        void SetType(OTAccount::AccountType eAcctType) { m_AcctType = eAcctType; }
-    
-EXPORT    _SharedPtr<OTAccount> GetOrCreateAccount(OTPseudonym            & theServerNym,
-                                               const OTIdentifier    & ACCOUNT_OWNER_ID, 
-                                               const OTIdentifier    & ASSET_TYPE_ID, 
-                                               const OTIdentifier    & SERVER_ID,
-                                               bool                    & bWasAcctCreated, // this will be set to true if the acct is created here. Otherwise set to false;
-                                               const int64_t             lStashTransNum=0);
+    EXPORT int32_t GetCountAccountIDs() const
+    {
+        return static_cast<int32_t>(m_mapAcctIDs.size());
+    }
+
+    EXPORT void Release();
+
+    EXPORT void Release_AcctList();
+
+    EXPORT void Serialize(OTString& strAppend);
+    EXPORT int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
+                                   const OTString& strAcctType,
+                                   const OTString& strAcctCount);
+
+    void SetType(OTAccount::AccountType eAcctType)
+    {
+        m_AcctType = eAcctType;
+    }
+
+    EXPORT _SharedPtr<OTAccount> GetOrCreateAccount(
+        OTPseudonym& theServerNym, const OTIdentifier& ACCOUNT_OWNER_ID,
+        const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
+        bool& bWasAcctCreated, // this will be set to true if the acct is
+                               // created here. Otherwise set to false;
+        const int64_t lStashTransNum = 0);
 };
-
-
 
 } // namespace opentxs
 

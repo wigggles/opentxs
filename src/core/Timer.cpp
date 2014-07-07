@@ -3,7 +3,7 @@
 // =========
 // High Resolution Timer.
 // This timer is able to measure the elapsed time with 1 micro-second accuracy
-// in both Windows, Linux and Unix system 
+// in both Windows, Linux and Unix system
 //
 //  AUTHOR: Song Ho Ahn (song.ahn@gmail.com)
 // CREATED: 2003-01-13
@@ -18,17 +18,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 // constructor
 ///////////////////////////////////////////////////////////////////////////////
-Timer::Timer(bool bStart/*=false*/)
+Timer::Timer(bool bStart /*=false*/)
 {
     clear();
-    
+
     // FT: Added this part:
     //
-    if (bStart)
-        start();
+    if (bStart) start();
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // distructor
@@ -36,8 +33,6 @@ Timer::Timer(bool bStart/*=false*/)
 Timer::~Timer()
 {
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // start timer.
@@ -53,8 +48,6 @@ void Timer::start()
 #endif
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // stop the timer.
 // endCount will be set at this point.
@@ -62,14 +55,13 @@ void Timer::start()
 void Timer::stop()
 {
     stopped = 1; // set timer stopped flag
-    
+
 #ifdef WIN32
     QueryPerformanceCounter(&endCount);
 #else
     gettimeofday(&endCount, NULL);
 #endif
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Clear: stop the timer and clear the contents.
@@ -84,29 +76,27 @@ void Timer::clear()
     startCount.tv_sec = startCount.tv_usec = 0;
     endCount.tv_sec = endCount.tv_usec = 0;
 #endif
-    
+
     stopped = 0;
     startTimeInMicroSec = 0;
     endTimeInMicroSec = 0;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // compute elapsed time in micro-second resolution.
-// other getElapsedTime will call this first, then convert to correspond resolution.
+// other getElapsedTime will call this first, then convert to correspond
+// resolution.
 ///////////////////////////////////////////////////////////////////////////////
 double Timer::getElapsedTimeInMicroSec()
 {
 #ifdef WIN32
-    if(!stopped)
-        QueryPerformanceCounter(&endCount);
+    if (!stopped) QueryPerformanceCounter(&endCount);
 
-    startTimeInMicroSec = startCount.QuadPart * (1000000.0 / frequency.QuadPart);
+    startTimeInMicroSec =
+        startCount.QuadPart * (1000000.0 / frequency.QuadPart);
     endTimeInMicroSec = endCount.QuadPart * (1000000.0 / frequency.QuadPart);
 #else
-    if(!stopped)
-        gettimeofday(&endCount, NULL);
+    if (!stopped) gettimeofday(&endCount, NULL);
 
     startTimeInMicroSec = (startCount.tv_sec * 1000000.0) + startCount.tv_usec;
     endTimeInMicroSec = (endCount.tv_sec * 1000000.0) + endCount.tv_usec;
@@ -114,8 +104,6 @@ double Timer::getElapsedTimeInMicroSec()
 
     return endTimeInMicroSec - startTimeInMicroSec;
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // divide elapsedTimeInMicroSec by 1000
@@ -125,8 +113,6 @@ double Timer::getElapsedTimeInMilliSec()
     return this->getElapsedTimeInMicroSec() * 0.001;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // divide elapsedTimeInMicroSec by 1000000
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,8 +120,6 @@ double Timer::getElapsedTimeInSec()
 {
     return this->getElapsedTimeInMicroSec() * 0.000001;
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // same as getElapsedTimeInSec()

@@ -135,7 +135,8 @@
 
 #include "OTContract.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAccount;
 class OTAcctFunctor;
@@ -145,89 +146,151 @@ class OTIdentifier;
 class OTPseudonym;
 class OTString;
 
-
 class OTAssetContract : public OTContract
 {
 protected:
     // basket currencies only:
-    OTString    m_strBasketInfo;    // If this contract is for a basket currency, the OTBasket object is stored here.
+    OTString m_strBasketInfo; // If this contract is for a basket currency, the
+                              // OTBasket object is stored here.
 
     // currencies and shares:
-    OTString    m_strIssueCompany;
-    OTString    m_strIssueEmail;
-    OTString    m_strIssueContractURL;
-    OTString    m_strIssueType;         // A vs B. Voting / non-voting...
+    OTString m_strIssueCompany;
+    OTString m_strIssueEmail;
+    OTString m_strIssueContractURL;
+    OTString m_strIssueType; // A vs B. Voting / non-voting...
 
     // shares only:
-    OTString    m_strIssueDate;
+    OTString m_strIssueDate;
 
     // currencies and shares:
-    OTString    m_strCurrencyName;      //  "dollars", not cents. The name used in normal conversation.
-    OTString    m_strCurrencyType;      //  "decimal" (Versus? Floating point? Int?)
-    OTString    m_strCurrencySymbol;    //  "$"
+    OTString m_strCurrencyName;   //  "dollars", not cents. The name used in
+                                  // normal conversation.
+    OTString m_strCurrencyType;   //  "decimal" (Versus? Floating point? Int?)
+    OTString m_strCurrencySymbol; //  "$"
 
     // currencies only:
-    OTString    m_strCurrencyTLA;       // ISO-4217. E.g., USD, AUG, PSE. Take as hint, not as contract.
-    OTString    m_strCurrencyFactor;        // A dollar is 100 cents. Therefore factor == 100.
-    OTString    m_strCurrencyDecimalPower;  // If value is 103, decimal power of 0 displays 103 (actual value.) Whereas decimal power of 2 displays 1.03 and 4 displays .0103
-    OTString    m_strCurrencyFraction;      // "cents"
+    OTString m_strCurrencyTLA; // ISO-4217. E.g., USD, AUG, PSE. Take as hint,
+                               // not as contract.
+    OTString m_strCurrencyFactor; // A dollar is 100 cents. Therefore factor ==
+                                  // 100.
+    OTString m_strCurrencyDecimalPower; // If value is 103, decimal power of 0
+                                        // displays 103 (actual value.) Whereas
+                                        // decimal power of 2 displays 1.03 and
+                                        // 4 displays .0103
+    OTString m_strCurrencyFraction;     // "cents"
 
-    bool        m_bIsCurrency; // default: true.  (default.)
-    bool        m_bIsShares;   // default: false. (defaults to currency, not shares.)
+    bool m_bIsCurrency; // default: true.  (default.)
+    bool m_bIsShares;   // default: false. (defaults to currency, not shares.)
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
 public:
-    virtual void CreateContents(); // Only used when first generating an asset or server contract. Meant for contracts which never change after that point.  Otherwise does the same thing as UpdateContents. (But meant for a different purpose.)
-EXPORT    bool CreateBasket(OTBasket & theBasket, OTPseudonym & theSigner);
-inline const OTString & GetBasketInfo() const { return m_strBasketInfo; }
-EXPORT    OTAssetContract();
-EXPORT    OTAssetContract(OTString & name, OTString & foldername, OTString & filename, OTString & strID);
-EXPORT    virtual ~OTAssetContract();
-EXPORT    bool IsShares() const { return m_bIsShares; }
-    // Some asset types keep a list of "simple" accounts (the complete set of that type.)
-    // This is called when the user creates a new asset account, in order to add it to that list.
-    // (Currently only operational for "shares", not "currencies", since it's used exclusively
+    virtual void CreateContents(); // Only used when first generating an asset
+                                   // or server contract. Meant for contracts
+                                   // which never change after that point.
+                                   // Otherwise does the same thing as
+                                   // UpdateContents. (But meant for a different
+                                   // purpose.)
+    EXPORT bool CreateBasket(OTBasket& theBasket, OTPseudonym& theSigner);
+    inline const OTString& GetBasketInfo() const
+    {
+        return m_strBasketInfo;
+    }
+    EXPORT OTAssetContract();
+    EXPORT OTAssetContract(OTString& name, OTString& foldername,
+                           OTString& filename, OTString& strID);
+    EXPORT virtual ~OTAssetContract();
+    EXPORT bool IsShares() const
+    {
+        return m_bIsShares;
+    }
+    // Some asset types keep a list of "simple" accounts (the complete set of
+    // that type.)
+    // This is called when the user creates a new asset account, in order to add
+    // it to that list.
+    // (Currently only operational for "shares", not "currencies", since it's
+    // used exclusively
     // for the payment of dividends.)
     //
-EXPORT    bool AddAccountRecord  (const OTAccount    & theAccount); // adds the account to the list. (When account is created.)
-EXPORT    bool EraseAccountRecord(const OTIdentifier & theAcctID);  // removes the account from the list. (When account is deleted.)
+    EXPORT bool AddAccountRecord(const OTAccount& theAccount); // adds the
+                                                               // account to the
+                                                               // list. (When
+                                                               // account is
+                                                               // created.)
+    EXPORT bool EraseAccountRecord(const OTIdentifier& theAcctID); // removes
+                                                                   // the
+                                                                   // account
+                                                                   // from the
+                                                                   // list.
+                                                                   // (When
+                                                                   // account is
+                                                                   // deleted.)
 
-EXPORT    bool ForEachAccountRecord(OTAcctFunctor & theAction); // Loops through all the accounts for a given asset type, and calls Functor on each.
-EXPORT    static std::string formatLongAmount(int64_t & lOriginalValue, int32_t nFactor=100, int32_t nPower=2, const char * szSymbol="",
-                                              const char * szSeparator=",", const char * szDecimalPoint=".");
-EXPORT    static bool        ParseFormatted(int64_t & lResult, const std::string & str_input, int32_t nFactor=100, int32_t nPower=2,
-                                            const char * szSeparator=",", const char * szDecimalPoint=".");
+    EXPORT bool ForEachAccountRecord(OTAcctFunctor& theAction); // Loops through
+                                                                // all the
+                                                                // accounts for
+                                                                // a given asset
+                                                                // type, and
+                                                                // calls Functor
+                                                                // on each.
+    EXPORT static std::string formatLongAmount(
+        int64_t& lOriginalValue, int32_t nFactor = 100, int32_t nPower = 2,
+        const char* szSymbol = "", const char* szSeparator = ",",
+        const char* szDecimalPoint = ".");
+    EXPORT static bool ParseFormatted(int64_t& lResult,
+                                      const std::string& str_input,
+                                      int32_t nFactor = 100, int32_t nPower = 2,
+                                      const char* szSeparator = ",",
+                                      const char* szDecimalPoint = ".");
     // For parsing and formatting amounts based on the currency contract.
     //
-EXPORT    bool FormatAmount(const OTAmount & theInput,        std::string & str_output) const; // Convert 545 to $5.45.
-EXPORT    bool StringToAmount(    OTAmount & theOutput, const std::string & str_input)  const; // Convert $5.45 to 545.
-EXPORT    int64_t GetDollarsOnly(const OTAmount & theInput) const; // Given input of 545, GetDollarsOnly returns 5
-EXPORT    int64_t CentsOnly     (const OTAmount & theInput) const; // Given input of 545, GetCentsOnly returns 45.
-EXPORT    const OTString & GetCurrencyName     () const { return m_strCurrencyName;     }  // "dollars"  (for example)
-EXPORT    const OTString & GetCurrencyFraction () const { return m_strCurrencyFraction; }  // "cents"    (for example)
-EXPORT    const OTString & GetCurrencySymbol   () const { return m_strCurrencySymbol;   }  // "$"        (for example)
-EXPORT    const OTString & GetCurrencyTLA      () const { return m_strCurrencyTLA;      }  // "USD""     (for example)
-    virtual bool SaveContractWallet(OTString & strContents) const;
-    virtual bool SaveContractWallet(std::ofstream & ofs);
-    virtual bool DisplayStatistics(OTString & strContents) const;
+    EXPORT bool FormatAmount(const OTAmount& theInput, std::string& str_output)
+        const; // Convert 545 to $5.45.
+    EXPORT bool StringToAmount(OTAmount& theOutput,
+                               const std::string& str_input) const; // Convert
+                                                                    // $5.45 to
+                                                                    // 545.
+    EXPORT int64_t
+    GetDollarsOnly(const OTAmount& theInput) const; // Given input of 545,
+                                                    // GetDollarsOnly returns 5
+    EXPORT int64_t CentsOnly(const OTAmount& theInput) const; // Given input of
+                                                              // 545,
+                                                              // GetCentsOnly
+                                                              // returns 45.
+    EXPORT const OTString& GetCurrencyName() const
+    {
+        return m_strCurrencyName;
+    } // "dollars"  (for example)
+    EXPORT const OTString& GetCurrencyFraction() const
+    {
+        return m_strCurrencyFraction;
+    } // "cents"    (for example)
+    EXPORT const OTString& GetCurrencySymbol() const
+    {
+        return m_strCurrencySymbol;
+    } // "$"        (for example)
+    EXPORT const OTString& GetCurrencyTLA() const
+    {
+        return m_strCurrencyTLA;
+    } // "USD""     (for example)
+    virtual bool SaveContractWallet(OTString& strContents) const;
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool DisplayStatistics(OTString& strContents) const;
 };
-
 
 // NOTE: Moved to OTServer.h and .cpp
 // Because the Trigger method needs to be able to call
 // OTServer-specific functions, and thus can't be in the otlib,
 // which doesn't know of the server.
 //
-//class OTAcctFunctor_PayDividend
+// class OTAcctFunctor_PayDividend
 //{
-//public:
+// public:
 //    OTAcctFunctor_PayDividend(const OTIdentifier & theServerID);
 //    virtual ~OTAcctFunctor_PayDividend();
 //
 //    virtual bool Trigger(OTAccount & theAccount);
 //};
-
-
 
 } // namespace opentxs
 

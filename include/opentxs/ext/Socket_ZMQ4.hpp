@@ -135,17 +135,19 @@
 
 #include "OTSocket.hpp"
 
-namespace tthread {
-    class mutex;
+namespace tthread
+{
+class mutex;
 }
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTSocket_ZMQ_4 : public OTSocket
 {
 private:
     class ZMQ4; // defined in C++ file.
-    ZMQ4 * const m_pzmq;
+    ZMQ4* const m_pzmq;
 
 public:
     EXPORT OTSocket_ZMQ_4();
@@ -162,21 +164,20 @@ public:
     EXPORT bool Connect();
     EXPORT bool Listen();
 
-    EXPORT bool Connect(const OTString & strConnectPath);
-    EXPORT bool Listen(const OTString & strBindingPath);
+    EXPORT bool Connect(const OTString& strConnectPath);
+    EXPORT bool Listen(const OTString& strBindingPath);
 
-    EXPORT bool Send(const OTASCIIArmor & ascEnvelope);
-    EXPORT bool Send(const OTASCIIArmor & ascEnvelope, const OTString & strConnectPath);
-    EXPORT bool Receive(OTString & strServerReply);
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
+                     const OTString& strConnectPath);
+    EXPORT bool Receive(OTString& strServerReply);
 
 private:
     bool HandlePollingError();
     bool HandleSendingError();
     bool HandleReceivingError();
-
 };
-
 
 } // namespace opentxs
 
-#endif // __SOCKET_ZMQ4_HPP__ 
+#endif // __SOCKET_ZMQ4_HPP__

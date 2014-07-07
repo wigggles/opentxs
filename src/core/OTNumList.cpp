@@ -140,135 +140,137 @@
 
 #include <locale>
 
-
 // OTNumList (helper class.)
 
-namespace opentxs {
+namespace opentxs
+{
 
-OTNumList::OTNumList(const std::set<int64_t> & theNumbers)
+OTNumList::OTNumList(const std::set<int64_t>& theNumbers)
 {
     Add(theNumbers);
 }
-
 
 OTNumList::OTNumList(int64_t lInput)
 {
     Add(lInput);
 }
 
-
 // removed, security reasons.
-//OTNumList::OTNumList(const char * szNumbers)
+// OTNumList::OTNumList(const char * szNumbers)
 //{
 //    Add(szNumbers);
 //}
 
-OTNumList::OTNumList(const OTString & strNumbers)
+OTNumList::OTNumList(const OTString& strNumbers)
 {
     Add(strNumbers);
 }
 
-
-OTNumList::OTNumList(const std::string & strNumbers)
+OTNumList::OTNumList(const std::string& strNumbers)
 {
     Add(strNumbers);
 }
-
 
 OTNumList::OTNumList()
 {
-
 }
-
 
 OTNumList::~OTNumList()
 {
-
 }
 
-
-bool OTNumList::Add(const OTString & strNumbers)  // if false, means the numbers were already there. (At least one of them.)
+bool OTNumList::Add(const OTString& strNumbers) // if false, means the numbers
+                                                // were already there. (At least
+                                                // one of them.)
 {
     return Add(strNumbers.Get());
 }
 
-
-bool OTNumList::Add(const std::string & strNumbers)  // if false, means the numbers were already there. (At least one of them.)
+bool OTNumList::Add(const std::string& strNumbers) // if false, means the
+                                                   // numbers were already
+                                                   // there. (At least one of
+                                                   // them.)
 {
     return Add(strNumbers.c_str());
 }
-
 
 // This function is private, so you can't use it without passing an OTString.
 // (For security reasons.) It takes a comma-separated list of numbers, and adds
 // them to *this.
 //
-bool OTNumList::Add(const char * szNumbers)       // if false, means the numbers were already there. (At least one of them.)
+bool OTNumList::Add(const char* szNumbers) // if false, means the numbers were
+                                           // already there. (At least one of
+                                           // them.)
 {
     OT_ASSERT(NULL != szNumbers); // Should never happen.
 
-    bool    bSuccess    = true;
-    int64_t    lNum        = 0;
-    const
-    char *  pChar       = szNumbers;
+    bool bSuccess = true;
+    int64_t lNum = 0;
+    const char* pChar = szNumbers;
     std::locale loc;
 
     // Skip any whitespace.
-    while (std::isspace(*pChar, loc))
-        pChar++;
+    while (std::isspace(*pChar, loc)) pChar++;
 
+    bool bStartedANumber =
+        false; // During the loop, set this to true when processing a digit, and
+               // set to false when anything else. That way when we go to add
+               // the number to the list, and it's "0", we'll know it's a real
+               // number we're supposed to add, and not just a default value.
 
-    bool bStartedANumber = false; // During the loop, set this to true when processing a digit, and set to false when anything else. That way when we go to add the number to the list, and it's "0", we'll know it's a real number we're supposed to add, and not just a default value.
-
-    for (;;) // We already know it's not null, due to the assert. (So at least one iteration will happen.)
+    for (;;) // We already know it's not null, due to the assert. (So at least
+             // one iteration will happen.)
     {
-        if (std::isdigit(*pChar, loc))
-        {
+        if (std::isdigit(*pChar, loc)) {
             bStartedANumber = true;
 
             int32_t nDigit = (*pChar - '0');
 
-            lNum *= 10;  // Move it up a decimal place.
+            lNum *= 10; // Move it up a decimal place.
             lNum += nDigit;
         }
         // if separator, or end of string, either way, add lNum to *this.
-        else if ((',' == *pChar) || ('\0' == *pChar) || std::isspace(*pChar, loc)) // first sign of a space, and we are done with current number. (On to the next.)
+        else if ((',' == *pChar) || ('\0' == *pChar) ||
+                 std::isspace(*pChar, loc)) // first sign of a space, and we are
+                                            // done with current number. (On to
+                                            // the next.)
         {
-            if ((lNum > 0) || (bStartedANumber && (0 == lNum)))
-            {
+            if ((lNum > 0) || (bStartedANumber && (0 == lNum))) {
                 if (false == this->Add(lNum)) // <=========
                 {
-                    bSuccess = false; // We still go ahead and try to add them all, and then return this sort of status when it's all done.
+                    bSuccess = false; // We still go ahead and try to add them
+                                      // all, and then return this sort of
+                                      // status when it's all done.
                 }
             }
 
-            lNum = 0;   // reset for the next transaction number (in the comma-separated list.)
+            lNum = 0; // reset for the next transaction number (in the
+                      // comma-separated list.)
             bStartedANumber = false; // reset
         }
-        else
-        {
-            otErr << "OTNumList::Add: Error: Unexpected character found in erstwhile comma-separated list of longs: " << *pChar << "\n";
+        else {
+            otErr << "OTNumList::Add: Error: Unexpected character found in "
+                     "erstwhile comma-separated list of longs: " << *pChar
+                  << "\n";
             bSuccess = false;
             break;
         }
 
         // End of the road.
-        if ('\0' == *pChar)
-            break;
+        if ('\0' == *pChar) break;
 
         pChar++;
 
         // Skip any whitespace.
-        while (std::isspace(*pChar, loc))
-            pChar++;
+        while (std::isspace(*pChar, loc)) pChar++;
 
     } // while
 
     return bSuccess;
 }
 
-
-bool OTNumList::Add(const int64_t & theValue)    // if false, means the value was already there.
+bool OTNumList::Add(const int64_t& theValue) // if false, means the value was
+                                             // already there.
 {
     std::set<int64_t>::iterator it = m_setData.find(theValue);
 
@@ -280,8 +282,7 @@ bool OTNumList::Add(const int64_t & theValue)    // if false, means the value wa
     return false; // it was already there.
 }
 
-
-bool OTNumList::Peek(int64_t & lPeek) const
+bool OTNumList::Peek(int64_t& lPeek) const
 {
     std::set<int64_t>::iterator it = m_setData.begin();
 
@@ -292,7 +293,6 @@ bool OTNumList::Peek(int64_t & lPeek) const
     }
     return false;
 }
-
 
 bool OTNumList::Pop()
 {
@@ -306,8 +306,8 @@ bool OTNumList::Pop()
     return false;
 }
 
-
-bool OTNumList::Remove(const int64_t & theValue) // if false, means the value was NOT already there.
+bool OTNumList::Remove(const int64_t& theValue) // if false, means the value was
+                                                // NOT already there.
 {
     std::set<int64_t>::iterator it = m_setData.find(theValue);
 
@@ -319,20 +319,20 @@ bool OTNumList::Remove(const int64_t & theValue) // if false, means the value wa
     return false; // it wasn't there (so how could you remove it then?)
 }
 
-
-bool OTNumList::Verify(const int64_t & theValue) const // returns true/false (whether value is already there.)
+bool OTNumList::Verify(const int64_t& theValue) const // returns true/false
+                                                      // (whether value is
+                                                      // already there.)
 {
     std::set<int64_t>::iterator it = m_setData.find(theValue);
 
     return (m_setData.end() == it) ? false : true;
 }
 
-
 // True/False, based on whether values are already there.
 // (ALL theNumbersmust be present.)
 // So if *this contains "3,4,5,6" and rhs contains "4,5" then match is TRUE.
 //
-bool OTNumList::Verify(const std::set<int64_t> & theNumbers) const
+bool OTNumList::Verify(const std::set<int64_t>& theNumbers) const
 {
     bool bSuccess = true;
 
@@ -347,16 +347,14 @@ bool OTNumList::Verify(const std::set<int64_t> & theNumbers) const
     return bSuccess;
 }
 
-
-/// True/False, based on whether OTNumLists MATCH in COUNT and CONTENT (NOT ORDER.)
+/// True/False, based on whether OTNumLists MATCH in COUNT and CONTENT (NOT
+/// ORDER.)
 ///
-bool OTNumList::Verify(const OTNumList & rhs) const
+bool OTNumList::Verify(const OTNumList& rhs) const
 {
     // Verify they have the same number of elements.
     //
-    if (this->Count() != rhs.Count())
-        return false;
-
+    if (this->Count() != rhs.Count()) return false;
 
     // Verify each value on *this is also found on rhs.
     //
@@ -364,25 +362,22 @@ bool OTNumList::Verify(const OTNumList & rhs) const
     {
         const int64_t lValue = *it;
 
-        if (false == rhs.Verify(lValue))
-            return false;
+        if (false == rhs.Verify(lValue)) return false;
     }
 
     return true;
 }
 
-
 /// True/False, based on whether ANY of the numbers in rhs are found in *this.
 ///
-bool OTNumList::VerifyAny(const OTNumList & rhs) const
+bool OTNumList::VerifyAny(const OTNumList& rhs) const
 {
     return rhs.VerifyAny(m_setData);
 }
 
-
 /// Verify whether ANY of the numbers on *this are found in setData.
 ///
-bool OTNumList::VerifyAny(const std::set<int64_t> & setData) const
+bool OTNumList::VerifyAny(const std::set<int64_t>& setData) const
 {
     FOR_EACH_CONST(std::set<int64_t>, m_setData)
     {
@@ -397,8 +392,9 @@ bool OTNumList::VerifyAny(const std::set<int64_t> & setData) const
     return false;
 }
 
-
-bool OTNumList::Add(const OTNumList & theNumList)    // if false, means the numbers were already there. (At least one of them.)
+bool OTNumList::Add(const OTNumList& theNumList) // if false, means the numbers
+                                                 // were already there. (At
+                                                 // least one of them.)
 {
     std::set<int64_t> theOutput;
     theNumList.Output(theOutput); // returns false if the numlist was empty.
@@ -406,8 +402,10 @@ bool OTNumList::Add(const OTNumList & theNumList)    // if false, means the numb
     return this->Add(theOutput);
 }
 
-
-bool OTNumList::Add(const std::set<int64_t> & theNumbers)    // if false, means the numbers were already there. (At least one of them.)
+bool OTNumList::Add(const std::set<int64_t>& theNumbers) // if false, means the
+                                                         // numbers were already
+                                                         // there. (At least one
+                                                         // of them.)
 {
     bool bSuccess = true;
 
@@ -422,8 +420,11 @@ bool OTNumList::Add(const std::set<int64_t> & theNumbers)    // if false, means 
     return bSuccess;
 }
 
-
-bool OTNumList::Remove(const std::set<int64_t> & theNumbers) // if false, means the numbers were NOT already there. (At least one of them.)
+bool OTNumList::Remove(const std::set<int64_t>& theNumbers) // if false, means
+                                                            // the numbers were
+                                                            // NOT already
+                                                            // there. (At least
+                                                            // one of them.)
 {
     bool bSuccess = true;
 
@@ -438,46 +439,45 @@ bool OTNumList::Remove(const std::set<int64_t> & theNumbers) // if false, means 
     return bSuccess;
 }
 
-
 // Outputs the numlist as a set of numbers.
 // (To iterate OTNumList, call this, then iterate the output.)
 //
-bool OTNumList::Output(std::set<int64_t> & theOutput) const // returns false if the numlist was empty.
+bool OTNumList::Output(std::set<int64_t>& theOutput) const // returns false if
+                                                           // the numlist was
+                                                           // empty.
 {
     theOutput = m_setData;
 
     return (m_setData.size() > 0) ? true : false;
 }
 
-
 // Outputs the numlist as a comma-separated string (for serialization, usually.)
 //
-bool OTNumList::Output(OTString & strOutput) const // returns false if the numlist was empty.
+bool OTNumList::Output(OTString& strOutput) const // returns false if the
+                                                  // numlist was empty.
 {
     int32_t nIterationCount = 0;
 
     FOR_EACH(std::set<int64_t>, m_setData)
     {
         const int64_t lValue = *it;
-        nIterationCount ++;
+        nIterationCount++;
 
-
-        strOutput.Concatenate("%s%lld",
-                              // If first iteration, prepend a blank string (instead of a comma.)
-                              // Like this:  "%lld"
-                              // But for all subsequent iterations, concatenate: ",%lld"
-                              (1 == nIterationCount) ? "" : ",", lValue);
+        strOutput.Concatenate(
+            "%s%lld",
+            // If first iteration, prepend a blank string (instead of a comma.)
+            // Like this:  "%lld"
+            // But for all subsequent iterations, concatenate: ",%lld"
+            (1 == nIterationCount) ? "" : ",", lValue);
     }
 
     return (m_setData.size() > 0) ? true : false;
 }
 
-
 int32_t OTNumList::Count() const
 {
-    return static_cast<int32_t> (m_setData.size());
+    return static_cast<int32_t>(m_setData.size());
 }
-
 
 void OTNumList::Release()
 {

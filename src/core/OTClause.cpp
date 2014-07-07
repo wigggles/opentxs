@@ -137,85 +137,76 @@
 #include "OTASCIIArmor.hpp"
 #include "OTLog.hpp"
 
-
 // ------------- OPERATIONS -------------
 // Below this point, have all the actions that a party might do.
 //
-// (The party will internally call the appropriate agent according to its own rules.
-// the script should not care how the party chooses its agents. At the most, the script
-// only cares that the party has an active agent, but does not actually speak directly
+// (The party will internally call the appropriate agent according to its own
+// rules.
+// the script should not care how the party chooses its agents. At the most, the
+// script
+// only cares that the party has an active agent, but does not actually speak
+// directly
 // to said agent.)
 
-namespace opentxs {
+namespace opentxs
+{
 
 OTClause::OTClause() : m_pBylaw(NULL)
 {
-
 }
 
-
-OTClause::OTClause(const char * szName, const char * szCode) : m_pBylaw(NULL)
+OTClause::OTClause(const char* szName, const char* szCode) : m_pBylaw(NULL)
 {
-    if (NULL != szName)
-        m_strName.Set(szName);
+    if (NULL != szName) m_strName.Set(szName);
 
-    if (NULL != szCode)
-        m_strCode = szCode;
+    if (NULL != szCode) m_strCode = szCode;
 
     // Todo security:  validation on the above fields.
 }
-
 
 OTClause::~OTClause()
 {
     // nothing to delete.
 
-    m_pBylaw = NULL;  // I wasn't the owner, it was a pointer for convenience only.
+    m_pBylaw =
+        NULL; // I wasn't the owner, it was a pointer for convenience only.
 }
 
-
-const char * OTClause::GetCode() const
+const char* OTClause::GetCode() const
 {
-    if (m_strCode.Exists())
-        return m_strCode.Get();
+    if (m_strCode.Exists()) return m_strCode.Get();
 
     return "print(\"(Empty script.)\")"; // todo hardcoding
 }
 
-
-void OTClause::Serialize(OTString & strAppend)
+void OTClause::Serialize(OTString& strAppend)
 {
-    if (m_strCode.GetLength() > 2)
-    {
+    if (m_strCode.GetLength() > 2) {
         OTASCIIArmor ascCode;
         ascCode.SetString(m_strCode);
 
         strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-                              m_strName.Get(),
-                              ascCode.Get());
+                              m_strName.Get(), ascCode.Get());
     }
-    else
-    {
+    else {
         strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-                              m_strName.Get(),
-                              "ERROR_CLAUSE_CODE_NULL");
+                              m_strName.Get(), "ERROR_CLAUSE_CODE_NULL");
         otErr << "Empty script code in OTClause::Serialize()\n";
     }
 }
 
-
 // Done
-bool OTClause::Compare(const OTClause & rhs) const
+bool OTClause::Compare(const OTClause& rhs) const
 {
-    if (!(this->GetName().Compare(rhs.GetName())))
-    {
-        otOut << "OTClause::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
+    if (!(this->GetName().Compare(rhs.GetName()))) {
+        otOut << "OTClause::Compare: Names don't match: " << this->GetName()
+              << " / " << rhs.GetName() << " \n";
         return false;
     }
 
-    if (!(this->m_strCode.Compare(rhs.GetCode())))
-    {
-        otOut << "OTClause::Compare: Source code for interpreted script fails to match, on clause: " << this->GetName() << " \n";
+    if (!(this->m_strCode.Compare(rhs.GetCode()))) {
+        otOut << "OTClause::Compare: Source code for interpreted script fails "
+                 "to match, on clause: " << this->GetName() << " \n";
         return false;
     }
 
