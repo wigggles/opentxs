@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTStringXML.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -136,113 +136,110 @@
 
 #include <irrxml/irrXML.hpp>
 
+namespace opentxs
+{
 
-namespace opentxs {
-
-class OTStringXML::OTStringXMLPvt : public irr::io::IFileReadCallBack {
+class OTStringXML::OTStringXMLPvt : public irr::io::IFileReadCallBack
+{
 
 public:
-    OTStringXMLPvt(OTStringXML * ptr) : super(ptr){}
+    OTStringXMLPvt(OTStringXML* ptr) : super(ptr)
+    {
+    }
 
-    OTStringXML * super;
+    OTStringXML* super;
 
-    int read(void* buffer, unsigned sizeToRead) {
+    int read(void* buffer, unsigned sizeToRead)
+    {
         return this->super->read(buffer, sizeToRead);
     };
 
-    int getSize() {
+    int getSize()
+    {
         return this->super->getSize();
     };
-
 };
 
-
-OTStringXML::OTStringXML() : OTString(), pvt(new OTStringXMLPvt(this))
+OTStringXML::OTStringXML()
+    : OTString()
+    , pvt(new OTStringXMLPvt(this))
 {
-	
 }
 
-
-OTStringXML::OTStringXML(const OTString & strValue) : OTString(strValue), pvt(new OTStringXMLPvt(this))
+OTStringXML::OTStringXML(const OTString& strValue)
+    : OTString(strValue)
+    , pvt(new OTStringXMLPvt(this))
 {
-	
 }
 
-
-OTStringXML::OTStringXML(const OTStringXML & strValue) : OTString(strValue), pvt(new OTStringXMLPvt(this))
+OTStringXML::OTStringXML(const OTStringXML& strValue)
+    : OTString(strValue)
+    , pvt(new OTStringXMLPvt(this))
 {
-	
 }
-
 
 /*
  Derived& Derived::operator= (Derived const& d)
  {
-	← make sure self-assignment is benign
-	Base::operator= (d);
-	← do the rest of your assignment operator here...
-	...do the rest of your assignment operator here...
-	return *this;
- } 
+    ← make sure self-assignment is benign
+    Base::operator= (d);
+    ← do the rest of your assignment operator here...
+    ...do the rest of your assignment operator here...
+    return *this;
+ }
  */
-OTStringXML& OTStringXML::operator=(const OTString & rhs)
+OTStringXML& OTStringXML::operator=(const OTString& rhs)
 {
-	if ((&rhs) != (&(dynamic_cast<const OTString&>(*this))))
-	{
-		this->OTString::operator=(rhs); // no need to cast here since same type.
-//		irr::io::IFileReadCallBack::operator=(rhs); // rhs is not derived from irr::io::IFileReadCallBack like *this is.
-	}
-	return *this;
+    if ((&rhs) != (&(dynamic_cast<const OTString&>(*this)))) {
+        this->OTString::operator=(rhs); // no need to cast here since same type.
+        //        irr::io::IFileReadCallBack::operator=(rhs); // rhs is not
+        // derived from irr::io::IFileReadCallBack like *this is.
+    }
+    return *this;
 }
 
-
-OTStringXML& OTStringXML::operator=(const OTStringXML & rhs)
+OTStringXML& OTStringXML::operator=(const OTStringXML& rhs)
 {
-	if ((&rhs) != this)
-	{
-		this->OTString::operator=(dynamic_cast<const OTString&>(rhs));
-		//irr::io::IFileReadCallBack::operator=(rhs);
-	}
-	return *this;
+    if ((&rhs) != this) {
+        this->OTString::operator=(dynamic_cast<const OTString&>(rhs));
+        // irr::io::IFileReadCallBack::operator=(rhs);
+    }
+    return *this;
 }
-
 
 OTStringXML::~OTStringXML()
 {
-	// Base class destructor is called automatically.
-	// (And that calls Release_String().)
+    // Base class destructor is called automatically.
+    // (And that calls Release_String().)
     delete pvt;
 }
 
-
-OTStringXML::operator irr::io::IFileReadCallBack *(){
+OTStringXML::operator irr::io::IFileReadCallBack*()
+{
     return this->pvt;
 }
 
-
 int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
 {
-	if (buffer && sizeToRead && Exists())
-	{
-		char * pBuf = (char *) buffer;
-		
-		int32_t nBytesToCopy = (sizeToRead > GetLength() ? GetLength() : sizeToRead);
-		int32_t i;
-		for (i = 0; i < nBytesToCopy; i++) {
-			pBuf[i] = sgetc();
-		}
-		return i;
-	}
-	else 
-	{
-		return 0;
-	}
-}
+    if (buffer && sizeToRead && Exists()) {
+        char* pBuf = (char*)buffer;
 
+        int32_t nBytesToCopy =
+            (sizeToRead > GetLength() ? GetLength() : sizeToRead);
+        int32_t i;
+        for (i = 0; i < nBytesToCopy; i++) {
+            pBuf[i] = sgetc();
+        }
+        return i;
+    }
+    else {
+        return 0;
+    }
+}
 
 int32_t OTStringXML::getSize()
 {
-	return GetLength();
+    return GetLength();
 }
 
 } // namespace opentxs

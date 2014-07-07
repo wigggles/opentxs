@@ -135,10 +135,10 @@
 
 #include "OTCommon.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTPassword;
-
 
 /*
  To use:
@@ -147,8 +147,8 @@ class OTPassword;
  (Or...)
  OTPassword thePass(strPassword, strPassword.length());
 
- const char * szPassword	= thePass.getPassword();
- const int32_t    nPassLength	= thePass.getPasswordSize();
+ const char * szPassword    = thePass.getPassword();
+ const int32_t    nPassLength    = thePass.getPasswordSize();
 
  If the instance of OTPassword is not going to be destroyed immediately
  after the password is used, then make sure to call zeroMemory() after
@@ -163,19 +163,20 @@ class OTPassword;
 
  */
 
-#define OT_PW_DISPLAY  "Enter master passphrase for wallet."
+#define OT_PW_DISPLAY "Enter master passphrase for wallet."
 
-#define OTPASSWORD_BLOCKSIZE    128		// (128 bytes max length for a password.)
-#define OTPASSWORD_MEMSIZE		129		// +1 for null terminator.
+#define OTPASSWORD_BLOCKSIZE 128 // (128 bytes max length for a password.)
+#define OTPASSWORD_MEMSIZE 129   // +1 for null terminator.
 
-// UPDATE: Increasing the size here, so we can accommodate private keys (in addition to passphrases.)
+// UPDATE: Increasing the size here, so we can accommodate private keys (in
+// addition to passphrases.)
 //
-#define OT_LARGE_BLOCKSIZE	32767		// (32767 bytes max length for a password.)
-#define OT_LARGE_MEMSIZE	32768		// +1 for null terminator.
+#define OT_LARGE_BLOCKSIZE 32767 // (32767 bytes max length for a password.)
+#define OT_LARGE_MEMSIZE 32768   // +1 for null terminator.
 
 // Default is the smaller size.
-#define OT_DEFAULT_BLOCKSIZE  128
-#define OT_DEFAULT_MEMSIZE    129
+#define OT_DEFAULT_BLOCKSIZE 128
+#define OT_DEFAULT_MEMSIZE 129
 
 // https://github.com/lorf/keepassx/blob/master/src/lib/SecString.cpp
 
@@ -213,15 +214,25 @@ class OTPassword;
     return mem;
  }
 
-The mlock() call generally locks more memory than you want. Locking is done on a per-page basis. All of the pages the memory spans will be locked in RAM, and will not be swapped out under any circumstances, until the process unlocks something in the same page by using mlock().
+The mlock() call generally locks more memory than you want. Locking is done on a
+per-page basis. All of the pages the memory spans will be locked in RAM, and
+will not be swapped out under any circumstances, until the process unlocks
+something in the same page by using mlock().
 
-There are some potentially negative consequences here. First, If your process locks two buffers that happen to live on the same page, then unlocking either one will unlock the entire page, causing both buffers to unlock. Second, when locking lots of data, it is easy to lock more pages than necessary (the operating system doesn't move data around once it has been allocated), which can slow down machine performance significantly.
+There are some potentially negative consequences here. First, If your process
+locks two buffers that happen to live on the same page, then unlocking either
+one will unlock the entire page, causing both buffers to unlock. Second, when
+locking lots of data, it is easy to lock more pages than necessary (the
+operating system doesn't move data around once it has been allocated), which can
+slow down machine performance significantly.
 
-Unlocking a chunk of memory looks exactly the same as locking it, except that you call munlock():
+Unlocking a chunk of memory looks exactly the same as locking it, except that
+you call munlock():
         munlock(mem, numbytes);
 
 
- // TODO: Work in some usage of CryptProtectMemory and CryptUnprotectMemory (Windows only)
+ // TODO: Work in some usage of CryptProtectMemory and CryptUnprotectMemory
+(Windows only)
  // with sample code below.  Also should make some kind of UNIX version.
 
 
@@ -247,7 +258,7 @@ void main()
     //  Memory to encrypt must be a multiple of CRYPTPROTECTMEMORY_BLOCK_SIZE.
     if (dwMod = cbPlainText % CRYPTPROTECTMEMORY_BLOCK_SIZE)
         cbSensitiveText = cbPlainText +
-		(CRYPTPROTECTMEMORY_BLOCK_SIZE - dwMod);
+        (CRYPTPROTECTMEMORY_BLOCK_SIZE - dwMod);
     else
         cbSensitiveText = cbPlainText;
 
@@ -261,7 +272,7 @@ void main()
     //  Place sensitive string to encrypt in pSensitiveText.
 
     if (!CryptProtectMemory(pSensitiveText, cbSensitiveText,
-		CRYPTPROTECTMEMORY_SAME_PROCESS))
+        CRYPTPROTECTMEMORY_SAME_PROCESS))
     {
         wprintf(L"CryptProtectMemory failed: %d\n", GetLastError());
         SecureZeroMemory(pSensitiveText, cbSensitiveText);
@@ -297,17 +308,17 @@ void main()
 {
     LPWSTR pEncryptedText;  // contains the encrypted text
     DWORD cbEncryptedText;  // number of bytes to which
-	                        // pEncryptedText points
+                            // pEncryptedText points
 
     if (CryptUnprotectMemory(pEncryptedText, cbEncryptedText,
-		CRYPTPROTECTMEMORY_SAME_PROCESS))
+        CRYPTPROTECTMEMORY_SAME_PROCESS))
     {
         // Use the decrypted string.
     }
     else
     {
         wprintf(L"CryptUnprotectMemory failed: %d\n",
-			GetLastError());
+            GetLastError());
     }
 
     // Clear and free memory after using
@@ -334,13 +345,22 @@ void main()
 class OTCallback
 {
 public:
-	OTCallback() {}
-EXPORT	virtual ~OTCallback();
-EXPORT	virtual void runOne(const char * szDisplay, OTPassword & theOutput); // Asks for password once. (For authentication when using nym.)
-EXPORT	virtual void runTwo(const char * szDisplay, OTPassword & theOutput); // Asks for password twice. (For confirmation when changing password or creating nym.)
+    OTCallback()
+    {
+    }
+    EXPORT virtual ~OTCallback();
+    EXPORT virtual void runOne(const char* szDisplay,
+                               OTPassword& theOutput); // Asks for password
+                                                       // once. (For
+                                                       // authentication when
+                                                       // using nym.)
+    EXPORT virtual void runTwo(const char* szDisplay,
+                               OTPassword& theOutput); // Asks for password
+                                                       // twice. (For
+                                                       // confirmation when
+                                                       // changing password or
+                                                       // creating nym.)
 };
-
-
 
 } // namespace opentxs
 

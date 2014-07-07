@@ -136,14 +136,15 @@
 #include "opentxs/core/OTASCIIArmor.hpp"
 #include "opentxs/core/OTString.hpp"
 
-namespace tthread {
-    class mutex;
+namespace tthread
+{
+class mutex;
 }
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTSettings;
-
 
 // Server and Client Side.
 class OTSocket
@@ -152,18 +153,15 @@ public:
     class Defaults
     {
     public:
-        EXPORT Defaults(
-        int64_t lLatencySendMs,
-        int32_t nLatencySendNoTries,
-        int64_t lLatencyReceiveMs,
-        int32_t nLatencyReceiveNoTries,
-        int64_t lLatencyDelayAfter,
-        bool bIsBlocking);
+        EXPORT Defaults(int64_t lLatencySendMs, int32_t nLatencySendNoTries,
+                        int64_t lLatencyReceiveMs,
+                        int32_t nLatencyReceiveNoTries,
+                        int64_t lLatencyDelayAfter, bool bIsBlocking);
 
         const int64_t m_lLatencySendMs;
-        const int32_t  m_nLatencySendNoTries;
+        const int32_t m_nLatencySendNoTries;
         const int64_t m_lLatencyReceiveMs;
-        const int32_t  m_nLatencyReceiveNoTries;
+        const int32_t m_nLatencyReceiveNoTries;
         const int64_t m_lLatencyDelayAfter;
         const bool m_bIsBlocking;
     };
@@ -172,13 +170,13 @@ private:
     class Mutex
     {
     private:
-        tthread::mutex * m_pMutex;
+        tthread::mutex* m_pMutex;
 
     public:
         EXPORT Mutex();
         EXPORT ~Mutex();
 
-        EXPORT tthread::mutex * Get();
+        EXPORT tthread::mutex* Get();
     };
 
     Mutex m_Mutex;
@@ -187,9 +185,9 @@ protected:
     OTSocket();
 
     int64_t m_lLatencySendMs;
-    int32_t  m_nLatencySendNoTries;
+    int32_t m_nLatencySendNoTries;
     int64_t m_lLatencyReceiveMs;
-    int32_t  m_nLatencyReceiveNoTries;
+    int32_t m_nLatencyReceiveNoTries;
     int64_t m_lLatencyDelayAfter;
     bool m_bIsBlocking;
 
@@ -210,18 +208,18 @@ protected:
 public:
     virtual ~OTSocket() {};
 
-    EXPORT tthread::mutex * GetMutex();
+    EXPORT tthread::mutex* GetMutex();
 
-    EXPORT bool Init(const Defaults & defaults);
-    EXPORT bool Init(const Defaults & defaults, OTSettings * pSettings);
+    EXPORT bool Init(const Defaults& defaults);
+    EXPORT bool Init(const Defaults& defaults, OTSettings* pSettings);
 
     EXPORT bool IsInitialized() const;
     EXPORT bool HasContext() const;
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 
-    EXPORT const OTString & GetConnectPath() const;
-    EXPORT const OTString & GetBindingPath() const;
+    EXPORT const OTString& GetConnectPath() const;
+    EXPORT const OTString& GetBindingPath() const;
 
     EXPORT virtual bool NewContext() = 0;
     EXPORT virtual bool RemakeSocket(const bool bNewContext = false) = 0;
@@ -229,14 +227,15 @@ public:
     EXPORT virtual bool Connect() = 0;
     EXPORT virtual bool Listen() = 0;
 
-    EXPORT virtual bool Connect(const OTString & strConnectPath) = 0;
-    EXPORT virtual bool Listen(const OTString & strBindingPath) = 0;
+    EXPORT virtual bool Connect(const OTString& strConnectPath) = 0;
+    EXPORT virtual bool Listen(const OTString& strBindingPath) = 0;
 
-    EXPORT virtual bool Send(const OTASCIIArmor & ascEnvelope) = 0;
-    EXPORT virtual bool Send(const OTASCIIArmor & ascEnvelope, const OTString & strConnectPath) = 0;
-    EXPORT virtual bool Receive(OTString & strServerReply) = 0;
+    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope) = 0;
+    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope,
+                             const OTString& strConnectPath) = 0;
+    EXPORT virtual bool Receive(OTString& strServerReply) = 0;
 };
 
 } // namespace opentxs
 
-#endif // __OT_SOCKET_HPP__ 
+#endif // __OT_SOCKET_HPP__

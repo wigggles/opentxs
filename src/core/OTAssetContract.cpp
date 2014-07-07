@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTAssetContract.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -149,89 +149,95 @@
 using namespace irr;
 using namespace io;
 
-
 // static
 
-namespace opentxs {
+namespace opentxs
+{
 
-bool OTAssetContract::ParseFormatted(int64_t & lResult,
-                                     const std::string & str_input,
-                                     int32_t nFactor/*=100*/,
-                                     int32_t nPower/*=2*/,
-                                     const char * szSeparator/*=","*/,
-                                     const char * szDecimalPoint/*="."*/)
+bool OTAssetContract::ParseFormatted(int64_t& lResult,
+                                     const std::string& str_input,
+                                     int32_t nFactor /*=100*/,
+                                     int32_t nPower /*=2*/,
+                                     const char* szSeparator /*=","*/,
+                                     const char* szDecimalPoint /*="."*/)
 {
     OT_ASSERT(NULL != szSeparator);
     OT_ASSERT(NULL != szDecimalPoint);
 
     lResult = 0;
 
-    char theSeparator    = szSeparator[0];
+    char theSeparator = szSeparator[0];
     char theDecimalPoint = szDecimalPoint[0];
 
     int64_t lDollars = 0;
-    int64_t lCents   = 0;
-    int64_t lOutput  = 0;
-    int64_t lSign    = 1;
+    int64_t lCents = 0;
+    int64_t lOutput = 0;
+    int64_t lSign = 1;
 
     bool bHasEnteredDollars = false;
-    bool bHasEnteredCents   = false;
+    bool bHasEnteredCents = false;
 
-    int32_t  nDigitsCollectedBeforeDot = 0;
-    int32_t  nDigitsCollectedAfterDot  = 0;
+    int32_t nDigitsCollectedBeforeDot = 0;
+    int32_t nDigitsCollectedAfterDot = 0;
 
-	// BUG: &mp isn't used.
-    //const std::moneypunct<char, false> &mp = std::use_facet< std::moneypunct<char, false> >(std::locale ()); 
+    // BUG: &mp isn't used.
+    // const std::moneypunct<char, false> &mp = std::use_facet<
+    // std::moneypunct<char, false> >(std::locale ());
 
     std::deque<int64_t> deque_cents;
 
-    for (uint32_t uIndex = 0; uIndex < str_input.length(); ++uIndex)
-    {
+    for (uint32_t uIndex = 0; uIndex < str_input.length(); ++uIndex) {
         char theChar = str_input[uIndex];
 
-        if (iscntrl(theChar)) // Break at any newline or other control character.
+        if (iscntrl(theChar)) // Break at any newline or other control
+                              // character.
             break;
 
         if (0 == isdigit(theChar)) // if it's not a numerical digit.
         {
-            if (theSeparator == theChar)
-                continue;
+            if (theSeparator == theChar) continue;
 
-            if (theDecimalPoint == theChar)
-            {
-                if (bHasEnteredCents)
-                {
-                    // There shouldn't be ANOTHER decimal point if we are already in the cents.
+            if (theDecimalPoint == theChar) {
+                if (bHasEnteredCents) {
+                    // There shouldn't be ANOTHER decimal point if we are
+                    // already in the cents.
                     // Therefore, we're done here. Break.
                     //
                     break;
                 }
 
-                // If we HAVEN'T entered the cents yet, then this decimal point marks the spot where we DO.
+                // If we HAVEN'T entered the cents yet, then this decimal point
+                // marks the spot where we DO.
                 //
                 bHasEnteredDollars = true;
-                bHasEnteredCents   = true;
+                bHasEnteredCents = true;
                 continue;
             } // theChar is the decimal point
 
             // Once a negative sign appears, it's negative, period.
-            // If you put two or three negative signs in a row, it's STILL negative.
+            // If you put two or three negative signs in a row, it's STILL
+            // negative.
             //
-//          std::string str_negative(1, theChar);
-//          if (0 == str_negative.compare(mp.negative_sign()))
-            
-            if ('-' == theChar)
-            {
+            //          std::string str_negative(1, theChar);
+            //          if (0 == str_negative.compare(mp.negative_sign()))
+
+            if ('-' == theChar) {
                 lSign = -1;
                 continue;
             }
-//          std::cout << "FYI, negative sign: " << mp.negative_sign() << " str_negative: " << str_negative << " lSign: " << lSign << std::endl;
+            //          std::cout << "FYI, negative sign: " <<
+            // mp.negative_sign() << " str_negative: " << str_negative << "
+            // lSign: " << lSign << std::endl;
 
-            // Okay, by this point, we know it's not numerical, and it's not a separator or decimal point, or
+            // Okay, by this point, we know it's not numerical, and it's not a
+            // separator or decimal point, or
             // sign.
-            // We allow letters and symbols BEFORE the numbers start, but not AFTER (that would terminate the
-            // number.) Therefore we need to see if the dollars or cents have started yet. If they have, then
-            // this is the end, and we break. Otherwise if they haven't, then we're still at the beginning, so
+            // We allow letters and symbols BEFORE the numbers start, but not
+            // AFTER (that would terminate the
+            // number.) Therefore we need to see if the dollars or cents have
+            // started yet. If they have, then
+            // this is the end, and we break. Otherwise if they haven't, then
+            // we're still at the beginning, so
             // we continue.
             //
             if (bHasEnteredDollars || bHasEnteredCents)
@@ -246,14 +252,12 @@ bool OTAssetContract::ParseFormatted(int64_t & lResult,
         // after the decimal point. If we've already collected
         // those, then we need to break.
         //
-        if (bHasEnteredCents)
-        {
+        if (bHasEnteredCents) {
             ++nDigitsCollectedAfterDot;
-            
+
             // If "cents" occupy 2 digits after the decimal point,
             // and we are now on the THIRD digit -- then we're done.
-            if (nDigitsCollectedAfterDot > nPower)
-                break;
+            if (nDigitsCollectedAfterDot > nPower) break;
 
             // Okay, we're in the cents, so let's add this digit...
             //
@@ -265,14 +269,14 @@ bool OTAssetContract::ParseFormatted(int64_t & lResult,
         // Okay, it's a digit, and we haven't started processing cents yet.
         // How about dollars?
         //
-        if (!bHasEnteredDollars)
-            bHasEnteredDollars = true;
+        if (!bHasEnteredDollars) bHasEnteredDollars = true;
 
         ++nDigitsCollectedBeforeDot;
 
         // Let's add this digit...
         //
-        lDollars *= 10; // Multiply existing dollars by 10, and then add the new digit.
+        lDollars *=
+            10; // Multiply existing dollars by 10, and then add the new digit.
         lDollars += static_cast<int64_t>(theChar - '0');
     } // for
 
@@ -282,20 +286,19 @@ bool OTAssetContract::ParseFormatted(int64_t & lResult,
     lOutput *= static_cast<int64_t>(nFactor); // 1 dollar becomes 100 cents.
 
     int32_t nTempPower = nPower;
-    
-    while (nTempPower > 0)
-    {
+
+    while (nTempPower > 0) {
         --nTempPower;
-        
-        if (deque_cents.size() > 0)
-        {
+
+        if (deque_cents.size() > 0) {
             lCents += deque_cents.front();
             deque_cents.pop_front();
         }
-        
+
         lCents *= 10;
     }
-    lCents /= 10; // There won't be any rounding errors here, since the last thing we did in the loop was multiply by 10.
+    lCents /= 10; // There won't be any rounding errors here, since the last
+                  // thing we did in the loop was multiply by 10.
 
     lOutput += lCents;
 
@@ -304,10 +307,11 @@ bool OTAssetContract::ParseFormatted(int64_t & lResult,
     return true;
 }
 
-
-//static
-std::string OTAssetContract::formatLongAmount(int64_t & lOriginalValue, int32_t nFactor/*=100*/, int32_t nPower/*=2*/, const char * szSymbol/*=""*/,
-                                              const char * szSeparator/*=","*/, const char * szDecimalPoint/*="."*/)
+// static
+std::string OTAssetContract::formatLongAmount(
+    int64_t& lOriginalValue, int32_t nFactor /*=100*/, int32_t nPower /*=2*/,
+    const char* szSymbol /*=""*/, const char* szSeparator /*=","*/,
+    const char* szDecimalPoint /*="."*/)
 {
     std::stringstream sss;
     OTString strRemainder;
@@ -315,41 +319,50 @@ std::string OTAssetContract::formatLongAmount(int64_t & lOriginalValue, int32_t 
     // If the original value is 0, we still want to format the
     // string properly for a 0 value. (And then return.)
     //
-    if (0 == lOriginalValue)
-    {
+    if (0 == lOriginalValue) {
         sss << szSymbol << " "; // Currency symbol
-        
-        if (!(nFactor < 2))
-        {
+
+        if (!(nFactor < 2)) {
             sss << szDecimalPoint;
-            
+
             strRemainder.Format("%0*ld", nPower, 0);
         }
         else
             strRemainder.Format("%lld", 0);
-        
+
         sss << strRemainder;
         return sss.str();
     }
 
-    int64_t lAbsoluteValue = (lOriginalValue > 0) ? lOriginalValue : (lOriginalValue * (-1));
+    int64_t lAbsoluteValue =
+        (lOriginalValue > 0) ? lOriginalValue : (lOriginalValue * (-1));
 
-    int64_t lValue     = lAbsoluteValue / nFactor; // For example, if 506 is supposed to be $5.06, then dividing 506 by factor of 100 results in 5 dollars.
-    int64_t lRemainder = lAbsoluteValue % nFactor; // For example, if 506 is supposed to be $5.06, then 506 mod 100 results in 6 cents.
-    
+    int64_t lValue = lAbsoluteValue / nFactor; // For example, if 506 is
+                                               // supposed to be $5.06, then
+                                               // dividing 506 by factor of 100
+                                               // results in 5 dollars.
+    int64_t lRemainder =
+        lAbsoluteValue % nFactor; // For example, if 506 is supposed to be
+                                  // $5.06, then 506 mod 100 results in 6 cents.
+
     if (nFactor < 2) // Basically, if nFactor is 1.
         strRemainder.Set("");
     else
-        strRemainder.Format("%0*ld", nPower, lRemainder); // If remainder is 6 (cents) and nPower is 2, strRemainder gets set here to 06.    
+        strRemainder.Format("%0*ld", nPower, lRemainder); // If remainder is 6
+                                                          // (cents) and nPower
+                                                          // is 2, strRemainder
+                                                          // gets set here to
+                                                          // 06.
 
     // Here we add the negative sign, if the value itself is negative.
     //
-    if (lOriginalValue < 0)
-    {
-//        const std::moneypunct<char, false> &mp = std::use_facet< std::moneypunct<char, false> >(std::locale ());
-//        sss << mp.negative_sign();
-     
-        // For some reason the above code isn't working, so I've got the negative sign
+    if (lOriginalValue < 0) {
+        //        const std::moneypunct<char, false> &mp = std::use_facet<
+        // std::moneypunct<char, false> >(std::locale ());
+        //        sss << mp.negative_sign();
+
+        // For some reason the above code isn't working, so I've got the
+        // negative sign
         // hardcoded here to '-'.
         //
         sss << "-";
@@ -362,27 +375,25 @@ std::string OTAssetContract::formatLongAmount(int64_t & lOriginalValue, int32_t 
     OTString strValue;
     strValue.Format("%lld", lValue);
 
-    char     cTemp = '\0';
+    char cTemp = '\0';
     uint32_t uValueStrLength = strValue.GetLength();
 
     // Here we add the main body of the amount, including separators (commas.)
     //
-    while (uValueStrLength > 0)
-    {
+    while (uValueStrLength > 0) {
         cTemp = strValue.sgetc();
-        
+
         sss << cTemp;
-        
+
         --uValueStrLength;
-        
+
         if ((uValueStrLength > 0) && (0 == (uValueStrLength % 3)))
             sss << szSeparator;
     }
 
     // Here we deal with the decimal point, etc.
     //
-    if (!(nFactor < 2))
-    {
+    if (!(nFactor < 2)) {
         sss << szDecimalPoint;
 
         sss << strRemainder;
@@ -391,24 +402,26 @@ std::string OTAssetContract::formatLongAmount(int64_t & lOriginalValue, int32_t 
     return sss.str();
 }
 
-
 // Convert 912545 to "$9,125.45"
 //
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool OTAssetContract::FormatAmount(const OTAmount & theInput, std::string & str_output) const // Convert 545 to $5.45.
+bool OTAssetContract::FormatAmount(const OTAmount& theInput,
+                                   std::string& str_output) const // Convert 545
+                                                                  // to $5.45.
 {
     int64_t lValue = static_cast<int64_t>(theInput.GetAmount());
 
-    int32_t nFactor = atoi(m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
-    if (nFactor < 1)
-        nFactor = 1;
+    int32_t nFactor = atoi(
+        m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
+    if (nFactor < 1) nFactor = 1;
     OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
 
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2. ($5.05 is moved 2 decimal places.)
-    if (nPower < 0)
-        nPower = 0;
+    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2.
+                                                            // ($5.05 is moved 2
+                                                            // decimal places.)
+    if (nPower < 0) nPower = 0;
     OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
 
     // Lookup separator and decimal point symbols based on locale.
@@ -419,257 +432,283 @@ bool OTAssetContract::FormatAmount(const OTAmount & theInput, std::string & str_
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static OTString strSeparator    (OT_THOUSANDS_SEP);
-    static OTString strDecimalPoint (OT_DECIMAL_POINT);
+    static OTString strSeparator(OT_THOUSANDS_SEP);
+    static OTString strDecimalPoint(OT_DECIMAL_POINT);
 
-    
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
     // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT variables.
+    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // variables.
     //
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
-    
-//    static bool bFirstTime = true;
-//
-//    if (bFirstTime)
-//    {
-//        bFirstTime = false;
-//        // TODO: Add ability to customize locale here, if necessary.
-//        const std::moneypunct<char, false> &mp = std::use_facet< std::moneypunct<char, false> >(std::locale ()); // <=====
-//        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' : mp.thousands_sep ());
-//        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' : mp.decimal_point ());
-//    }
 
-    str_output = OTAssetContract::formatLongAmount(lValue, nFactor, nPower, m_strCurrencySymbol.Get(),
-                                                   strSeparator.Get(), strDecimalPoint.Get());
+    //    static bool bFirstTime = true;
+    //
+    //    if (bFirstTime)
+    //    {
+    //        bFirstTime = false;
+    //        // TODO: Add ability to customize locale here, if necessary.
+    //        const std::moneypunct<char, false> &mp = std::use_facet<
+    // std::moneypunct<char, false> >(std::locale ()); // <=====
+    //        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' :
+    // mp.thousands_sep ());
+    //        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' :
+    // mp.decimal_point ());
+    //    }
+
+    str_output = OTAssetContract::formatLongAmount(
+        lValue, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
+        strDecimalPoint.Get());
     return true;
 }
 
-
 // Convert "$9,125.45" to 912545.
 //
-// (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal point of ".")
+// (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
+// point of ".")
 //
-bool OTAssetContract::StringToAmount(OTAmount & theOutput, const std::string & str_input) const // Convert $5.45 to amount 545.
+bool OTAssetContract::StringToAmount(OTAmount& theOutput,
+                                     const std::string& str_input)
+    const // Convert $5.45 to amount 545.
 {
     int64_t lValue = 0;
 
-    int32_t nFactor = atoi(m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
-    if (nFactor < 1)
-        nFactor = 1;
+    int32_t nFactor = atoi(
+        m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
+    if (nFactor < 1) nFactor = 1;
     OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
 
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2. ($5.05 is moved 2 decimal places.)
-    if (nPower < 0)
-        nPower = 0;
+    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2.
+                                                            // ($5.05 is moved 2
+                                                            // decimal places.)
+    if (nPower < 0) nPower = 0;
     OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
 
     // Lookup separator and decimal point symbols based on locale.
 
     // Get a moneypunct facet from the global ("C") locale
     //
-    
+
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
     // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT variables.
+    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // variables.
     //
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
-    
-    static OTString strSeparator    (",");
-    static OTString strDecimalPoint (".");
 
-//    static bool bFirstTime = true;
-//
-//    if (bFirstTime)
-//    {
-//        bFirstTime = false;
-//        // TODO: Add ability to customize locale here, if necessary.
-//        const std::moneypunct<char, false> &mp = std::use_facet< std::moneypunct<char, false> >(std::locale ()); // <=====
-//        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' : mp.thousands_sep ());
-//        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' : mp.decimal_point ());
-//    }
+    static OTString strSeparator(",");
+    static OTString strDecimalPoint(".");
 
-    bool bSuccess = OTAssetContract::ParseFormatted(lValue, str_input, nFactor, nPower, strSeparator.Get(), strDecimalPoint.Get());
+    //    static bool bFirstTime = true;
+    //
+    //    if (bFirstTime)
+    //    {
+    //        bFirstTime = false;
+    //        // TODO: Add ability to customize locale here, if necessary.
+    //        const std::moneypunct<char, false> &mp = std::use_facet<
+    // std::moneypunct<char, false> >(std::locale ()); // <=====
+    //        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' :
+    // mp.thousands_sep ());
+    //        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' :
+    // mp.decimal_point ());
+    //    }
 
-    if (bSuccess)
-        theOutput.SetAmount(static_cast<int64_t>(lValue));
-    
+    bool bSuccess = OTAssetContract::ParseFormatted(lValue, str_input, nFactor,
+                                                    nPower, strSeparator.Get(),
+                                                    strDecimalPoint.Get());
+
+    if (bSuccess) theOutput.SetAmount(static_cast<int64_t>(lValue));
+
     return bSuccess;
 }
 
-
 // NOTE: the use of "dollars" and "cents" here is only metaphoric.
-// For example, if the currency type was Bitcoin, then "dollars" are actually BTC,
+// For example, if the currency type was Bitcoin, then "dollars" are actually
+// BTC,
 // and "cents" are actually satoshis or mBTC.
 
 // Given input of 545, GetDollarsOnly returns 5
 //
-int64_t OTAssetContract::GetDollarsOnly(const OTAmount &) const
+int64_t OTAssetContract::GetDollarsOnly(const OTAmount&) const
 {
     return 0; // TODO
 }
-
 
 // Given input of 545, GetCentsOnly returns 45.
 
-int64_t OTAssetContract::CentsOnly(const OTAmount &) const
+int64_t OTAssetContract::CentsOnly(const OTAmount&) const
 {
     return 0; // TODO
 }
 
-
-OTAssetContract::OTAssetContract() : OTContract(), m_bIsCurrency(true), m_bIsShares(false)
+OTAssetContract::OTAssetContract()
+    : OTContract()
+    , m_bIsCurrency(true)
+    , m_bIsShares(false)
 {
-	
 }
 
-
-OTAssetContract::OTAssetContract(OTString & name, OTString & foldername, OTString & filename, OTString & strID) 
-: OTContract(name, foldername, filename, strID), m_bIsCurrency(true), m_bIsShares(false)
+OTAssetContract::OTAssetContract(OTString& name, OTString& foldername,
+                                 OTString& filename, OTString& strID)
+    : OTContract(name, foldername, filename, strID)
+    , m_bIsCurrency(true)
+    , m_bIsShares(false)
 {
-
 }
-
 
 OTAssetContract::~OTAssetContract()
 {
-	// OTContract::~OTContract is called here automatically, and it calls Release.
-	// So I don't need to call it here again when it's already called by the parent.
+    // OTContract::~OTContract is called here automatically, and it calls
+    // Release.
+    // So I don't need to call it here again when it's already called by the
+    // parent.
 }
 
-
-bool OTAssetContract::DisplayStatistics(OTString & strContents) const
+bool OTAssetContract::DisplayStatistics(OTString& strContents) const
 {
-	const OTString strID(m_ID);
-	
-	strContents.Concatenate(
-							" Asset Type:  %s\n"
-							" AssetTypeID: %s\n"
-							"\n",
-							m_strName.Get(),
-							strID.Get());
-	return true;
+    const OTString strID(m_ID);
+
+    strContents.Concatenate(" Asset Type:  %s\n"
+                            " AssetTypeID: %s\n"
+                            "\n",
+                            m_strName.Get(), strID.Get());
+    return true;
 }
 
-
-bool OTAssetContract::SaveContractWallet(OTString & strContents) const
+bool OTAssetContract::SaveContractWallet(OTString& strContents) const
 {
-	const OTString strID(m_ID);
-	
-	OTASCIIArmor ascName;
-	
-	if (m_strName.Exists()) // name is in the clear in memory, and base64 in storage.
-	{
-		ascName.SetString(m_strName, false); // linebreaks == false
-	}
-	
-	strContents.Concatenate("<assetType name=\"%s\"\n"
-							" assetTypeID=\"%s\" />\n\n",
-							m_strName.Exists() ? ascName.Get() : "",
-							strID.Get());
-	
-	return true;
+    const OTString strID(m_ID);
+
+    OTASCIIArmor ascName;
+
+    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
+                            // storage.
+    {
+        ascName.SetString(m_strName, false); // linebreaks == false
+    }
+
+    strContents.Concatenate("<assetType name=\"%s\"\n"
+                            " assetTypeID=\"%s\" />\n\n",
+                            m_strName.Exists() ? ascName.Get() : "",
+                            strID.Get());
+
+    return true;
 }
 
-
-bool OTAssetContract::SaveContractWallet(std::ofstream & ofs)
+bool OTAssetContract::SaveContractWallet(std::ofstream& ofs)
 {
-	OTString strOutput;
-	
-	if (SaveContractWallet(strOutput))
-	{
-		ofs << strOutput;
-		return true;
-	}
-	
-	return false;
-}
+    OTString strOutput;
 
+    if (SaveContractWallet(strOutput)) {
+        ofs << strOutput;
+        return true;
+    }
+
+    return false;
+}
 
 /*
 bool OTAssetContract::SaveContractWallet(FILE * fl)
 {
-	OTString strID(m_ID);
-	
-	fprintf(fl, "<assetType name=\"%s\"\n assetTypeID=\"%s\"\n contract=\"%s\" /> "
-			"\n\n", m_strName.Get(), strID.Get(), m_strFilename.Get());	
-	
-	return true;
+    OTString strID(m_ID);
+
+    fprintf(fl, "<assetType name=\"%s\"\n assetTypeID=\"%s\"\n contract=\"%s\"
+/> "
+            "\n\n", m_strName.Get(), strID.Get(), m_strFilename.Get());
+
+    return true;
 }
 */
 
-
-// currently only "simple" accounts (normal user asset accounts) are added to this list
-// Any "special" accounts, such as basket reserve accounts, or voucher reserve accounts,
+// currently only "simple" accounts (normal user asset accounts) are added to
+// this list
+// Any "special" accounts, such as basket reserve accounts, or voucher reserve
+// accounts,
 // or cash reserve accounts, are not included on this list.
 //
-bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops through all the accounts for a given asset type, and calls Functor on each.
+bool OTAssetContract::ForEachAccountRecord(
+    OTAcctFunctor& theAction) // Loops through all the accounts for a given
+                              // asset type, and calls Functor on each.
 {
     // Load up account list stringmap
     // if success, iterate through map and trigger theAction.
     // loop
     //    theAction.Trigger(theAcct);
-    
+
     OTString strAssetTypeID, strAcctRecordFile;
     this->GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable * pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(), strAcctRecordFile.Get());
-    OTCleanup<OTDB::Storable> theAngel(pStorable); // It will definitely be cleaned up.
-    OTDB::StringMap * pMap = (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap *>(pStorable);
+    OTDB::Storable* pStorable =
+        OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
+                          OTFolders::Contract().Get(), strAcctRecordFile.Get());
+    OTCleanup<OTDB::Storable> theAngel(
+        pStorable); // It will definitely be cleaned up.
+    OTDB::StringMap* pMap =
+        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
 
-    // There was definitely a StringMap loaded from local storage. 
-    // (Even an empty one, possibly.) This is the only block that matters in this function.
+    // There was definitely a StringMap loaded from local storage.
+    // (Even an empty one, possibly.) This is the only block that matters in
+    // this function.
     //
-    if (NULL != pMap) 
-    {
-        OTIdentifier * pServerID = theAction.GetServerID();        
-        OT_ASSERT_MSG(NULL != pServerID, "Assert: NULL Server ID on functor. (How did you even construct the thing?)");
+    if (NULL != pMap) {
+        OTIdentifier* pServerID = theAction.GetServerID();
+        OT_ASSERT_MSG(NULL != pServerID, "Assert: NULL Server ID on functor. "
+                                         "(How did you even construct the "
+                                         "thing?)");
 
-        mapOfStrings & theMap = pMap->the_map;
-        
-        // todo: optimize: will probably have to use a database for this, int64_t term. 
-        // (What if there are a million acct IDs in this flat file? Not scaleable.)
+        mapOfStrings& theMap = pMap->the_map;
+
+        // todo: optimize: will probably have to use a database for this,
+        // int64_t term.
+        // (What if there are a million acct IDs in this flat file? Not
+        // scaleable.)
         //
-        FOR_EACH(mapOfStrings, theMap) 
+        FOR_EACH(mapOfStrings, theMap)
         {
-            const std::string & str_acct_id  = (*it).first;	 // Containing the account ID.
-            const std::string & str_asset_id = (*it).second; // Containing the asset type ID. (Just in case someone copied the wrong file here...)
+            const std::string& str_acct_id =
+                (*it).first; // Containing the account ID.
+            const std::string& str_asset_id =
+                (*it).second; // Containing the asset type ID. (Just in case
+                              // someone copied the wrong file here...)
 
-            
-            if (false == strAssetTypeID.Compare(str_asset_id.c_str()))
-            {
-				otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong asset type ID (" << str_asset_id <<
-					") when expecting: " << strAssetTypeID << "\n";
+            if (false == strAssetTypeID.Compare(str_asset_id.c_str())) {
+                otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong "
+                         "asset type ID (" << str_asset_id
+                      << ") when expecting: " << strAssetTypeID << "\n";
             }
-            else
-            {
-                OTAccount * pAccount = NULL;
+            else {
+                OTAccount* pAccount = NULL;
                 OTCleanup<OTAccount> theAcctAngel;
-                
+
                 const OTIdentifier theAccountID(str_acct_id.c_str());
-                
-                // Before loading it from local storage, let's first make sure it's not already loaded.
-                // (theAction functor has a list of 'already loaded' accounts, just in case.)
+
+                // Before loading it from local storage, let's first make sure
+                // it's not already loaded.
+                // (theAction functor has a list of 'already loaded' accounts,
+                // just in case.)
                 //
-                mapOfAccounts * pLoadedAccounts = theAction.GetLoadedAccts();
-                
-                if (NULL != pLoadedAccounts) // there are some accounts already loaded, 
-                {                            // let's see if the one we're looking for is there...
-                    mapOfAccounts::iterator found_it = pLoadedAccounts->find(str_acct_id);
-                    
+                mapOfAccounts* pLoadedAccounts = theAction.GetLoadedAccts();
+
+                if (NULL !=
+                    pLoadedAccounts) // there are some accounts already loaded,
+                { // let's see if the one we're looking for is there...
+                    mapOfAccounts::iterator found_it =
+                        pLoadedAccounts->find(str_acct_id);
+
                     if (pLoadedAccounts->end() != found_it) // FOUND IT.
                     {
                         pAccount = (*found_it).second;
                         OT_ASSERT(NULL != pAccount);
-                        
-                        if (theAccountID != pAccount->GetPurportedAccountID())
-                        {
-                            otErr << "Error: the actual account didn't have the ID that the std::map SAID it had! (Should never happen.)\n";
+
+                        if (theAccountID != pAccount->GetPurportedAccountID()) {
+                            otErr << "Error: the actual account didn't have "
+                                     "the ID that the std::map SAID it had! "
+                                     "(Should never happen.)\n";
                             pAccount = NULL;
                         }
                     }
@@ -678,100 +717,125 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor & theAction)  // Loops 
                 // I guess it wasn't already loaded...
                 // Let's try to load it.
                 //
-                if (NULL == pAccount)
-                {
-                    pAccount = OTAccount::LoadExistingAccount(theAccountID, *pServerID);
+                if (NULL == pAccount) {
+                    pAccount = OTAccount::LoadExistingAccount(theAccountID,
+                                                              *pServerID);
                     theAcctAngel.SetCleanupTargetPointer(pAccount);
                 }
 
-                const bool bSuccessLoadingAccount = ((pAccount != NULL) ? true:false );
-                if (bSuccessLoadingAccount)
-                {
+                const bool bSuccessLoadingAccount =
+                    ((pAccount != NULL) ? true : false);
+                if (bSuccessLoadingAccount) {
                     const bool bTriggerSuccess = theAction.Trigger(*pAccount);
-					if (!bTriggerSuccess) otErr << __FUNCTION__ << ": Error: Trigger Failed.";
-                }   
-                else
-                {
-					otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
+                    if (!bTriggerSuccess)
+                        otErr << __FUNCTION__ << ": Error: Trigger Failed.";
                 }
-
+                else {
+                    otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
+                }
             }
         } // FOR_EACH
-        
-        return true;
-    } // if pMap != NULL
 
-    else // nothing was loaded up from local storage. No String Map. It was NULL.
+        return true;
+    }    // if pMap != NULL
+    else // nothing was loaded up from local storage. No String Map. It was
+         // NULL.
     {
-        // Therefore I couldn't possibly loop through "EachAccountRecord", 
+        // Therefore I couldn't possibly loop through "EachAccountRecord",
         // if there ARE NO account records... right?
         //
-        return true; // 
+        return true; //
     }
 }
 
-
-bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the account to the list. (When account is created.)
+bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
+                                                                    // account
+                                                                    // to the
+                                                                    // list.
+                                                                    // (When
+                                                                    // account
+                                                                    // is
+                                                                    // created.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.
-    //  Save the StringMap back again. (The account records list for a given asset type.)
-    
-    const char * szFunc = "OTAssetContract::AddAccountRecord";
-    
-    if (theAccount.GetAssetTypeID() != m_ID)
-    {
-		otErr << szFunc << ": Error: theAccount doesn't have the same asset type ID as *this does.\n";
+    //  Save the StringMap back again. (The account records list for a given
+    // asset type.)
+
+    const char* szFunc = "OTAssetContract::AddAccountRecord";
+
+    if (theAccount.GetAssetTypeID() != m_ID) {
+        otErr << szFunc << ": Error: theAccount doesn't have the same asset "
+                           "type ID as *this does.\n";
         return false;
     }
 
     const OTIdentifier theAcctID(theAccount);
-    const OTString     strAcctID(theAcctID);
+    const OTString strAcctID(theAcctID);
 
     OTString strAssetTypeID, strAcctRecordFile;
     this->GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable * pStorable = NULL;
+    OTDB::Storable* pStorable = NULL;
     OTCleanup<OTDB::Storable> theAngel;
-    OTDB::StringMap * pMap = NULL;
+    OTDB::StringMap* pMap = NULL;
 
-    if (OTDB::Exists(OTFolders::Contract().Get(), strAcctRecordFile.Get())) // the file already exists; let's try to load it up.
-        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(), strAcctRecordFile.Get());
+    if (OTDB::Exists(OTFolders::Contract().Get(),
+                     strAcctRecordFile.Get())) // the file already exists; let's
+                                               // try to load it up.
+        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
+                                      OTFolders::Contract().Get(),
+                                      strAcctRecordFile.Get());
     else // the account records file (for this asset type) doesn't exist.
-        pStorable = OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
-    
-    theAngel.SetCleanupTargetPointer(pStorable); // It will definitely be cleaned up.
-    pMap = (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap *>(pStorable);
+        pStorable = OTDB::CreateObject(
+            OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
+
+    theAngel.SetCleanupTargetPointer(
+        pStorable); // It will definitely be cleaned up.
+    pMap =
+        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
 
     // It exists.
     //
-    if (NULL == pMap) 
-    {
-		otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
+    if (NULL == pMap) {
+        otErr << szFunc
+              << ": Error: failed trying to load or create the account records "
+                 "file for asset type: " << strAssetTypeID << "\n";
         return false;
     }
 
-    mapOfStrings &         theMap = pMap->the_map;
+    mapOfStrings& theMap = pMap->the_map;
     mapOfStrings::iterator map_it = theMap.find(strAcctID.Get());
-    
-    if (theMap.end() != map_it) // we found it.
-    {   // We were ADDING IT, but it was ALREADY THERE. 
-        // (Thus, we're ALREADY DONE.)
-        // Let's just make sure the right asset type ID is associated with this account 
-        // (it better be, since we loaded the account records file based on the asset type ID as its filename...)
-        //
-        const std::string & str2 = (*map_it).second; // Containing the asset type ID. (Just in case someone copied the wrong file here, 
-        // --------------------------------          // every account should map to the SAME asset ID.)
 
-        if (false == strAssetTypeID.Compare(str2.c_str())) // should never happen.
+    if (theMap.end() != map_it) // we found it.
+    {                           // We were ADDING IT, but it was ALREADY THERE.
+        // (Thus, we're ALREADY DONE.)
+        // Let's just make sure the right asset type ID is associated with this
+        // account
+        // (it better be, since we loaded the account records file based on the
+        // asset type ID as its filename...)
+        //
+        const std::string& str2 =
+            (*map_it).second; // Containing the asset type ID. (Just in case
+                              // someone copied the wrong file here,
+        // --------------------------------          // every account should map
+        // to the SAME asset ID.)
+
+        if (false ==
+            strAssetTypeID.Compare(str2.c_str())) // should never happen.
         {
-			otErr << szFunc << ": Error: wrong asset type found in account records file...\n For asset type: " << strAssetTypeID << "\n "
-				"For account: " << strAcctID << "\n Found wrong asset type: " << str2 << "\n";
+            otErr << szFunc
+                  << ": Error: wrong asset type found in account records "
+                     "file...\n For asset type: " << strAssetTypeID
+                  << "\n "
+                     "For account: " << strAcctID
+                  << "\n Found wrong asset type: " << str2 << "\n";
             return false;
         }
 
-        return true; // already there (no need to add.) + the asset type ID matches.
+        return true; // already there (no need to add.) + the asset type ID
+                     // matches.
     }
 
     // it wasn't already on the list...
@@ -779,15 +843,15 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
     // ...so add it.
     //
     theMap[strAcctID.Get()] = strAssetTypeID.Get();
-    
 
     // Then save it back to local storage:
     //
-    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get()))
-    {
-		otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
-			"account records file for asset type: " << strAssetTypeID <<
-			"\n to contain account ID: " << strAcctID << "\n";
+    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
+                                   strAcctRecordFile.Get())) {
+        otErr << szFunc
+              << ": Failed trying to StoreObject, while saving updated "
+                 "account records file for asset type: " << strAssetTypeID
+              << "\n to contain account ID: " << strAcctID << "\n";
         return false;
     }
 
@@ -796,268 +860,289 @@ bool OTAssetContract::AddAccountRecord(const OTAccount & theAccount) // adds the
     return true;
 }
 
-
-bool OTAssetContract::EraseAccountRecord(const OTIdentifier & theAcctID)  // removes the account from the list. (When account is deleted.)
+bool OTAssetContract::EraseAccountRecord(
+    const OTIdentifier& theAcctID) // removes the account from the list. (When
+                                   // account is deleted.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Erase it, if it is.
-    //  Save the StringMap back again. (The account records list for a given asset type.)
-    
-    const char * szFunc = "OTAssetContract::EraseAccountRecord";    
+    //  Save the StringMap back again. (The account records list for a given
+    // asset type.)
 
-    const OTString     strAcctID(theAcctID);
+    const char* szFunc = "OTAssetContract::EraseAccountRecord";
+
+    const OTString strAcctID(theAcctID);
 
     OTString strAssetTypeID, strAcctRecordFile;
     this->GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable * pStorable = NULL;
+    OTDB::Storable* pStorable = NULL;
     OTCleanup<OTDB::Storable> theAngel;
-    OTDB::StringMap * pMap = NULL;
+    OTDB::StringMap* pMap = NULL;
 
-    if (OTDB::Exists(OTFolders::Contract().Get(), strAcctRecordFile.Get())) // the file already exists; let's try to load it up.
-        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(), strAcctRecordFile.Get());
+    if (OTDB::Exists(OTFolders::Contract().Get(),
+                     strAcctRecordFile.Get())) // the file already exists; let's
+                                               // try to load it up.
+        pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
+                                      OTFolders::Contract().Get(),
+                                      strAcctRecordFile.Get());
     else // the account records file (for this asset type) doesn't exist.
-        pStorable = OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
-    
-    theAngel.SetCleanupTargetPointer(pStorable); // It will definitely be cleaned up.
-    pMap = (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap *>(pStorable);
+        pStorable = OTDB::CreateObject(
+            OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
+
+    theAngel.SetCleanupTargetPointer(
+        pStorable); // It will definitely be cleaned up.
+    pMap =
+        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
 
     // It exists.
     //
-    if (NULL == pMap) 
-    {
-		otErr << szFunc << ": Error: failed trying to load or create the account records file for asset type: " << strAssetTypeID << "\n";
+    if (NULL == pMap) {
+        otErr << szFunc
+              << ": Error: failed trying to load or create the account records "
+                 "file for asset type: " << strAssetTypeID << "\n";
         return false;
     }
 
     // Before we can erase it, let's see if it's even there....
     //
-    mapOfStrings &         theMap = pMap->the_map;
+    mapOfStrings& theMap = pMap->the_map;
     mapOfStrings::iterator map_it = theMap.find(strAcctID.Get());
-    
+
     // we found it!
     if (theMap.end() != map_it) //  Acct ID was already there...
-    {           
+    {
         theMap.erase(map_it); // remove it
     }
 
     // it wasn't already on the list...
-    // (So it's like success, since the end result is, acct ID will not appear on this list--whether
+    // (So it's like success, since the end result is, acct ID will not appear
+    // on this list--whether
     // it was there or not beforehand, it's definitely not there now.)
-    
+
     // Then save it back to local storage:
     //
-    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get()))
-    {
-		otErr << szFunc << ": Failed trying to StoreObject, while saving updated "
-			"account records file for asset type: " << strAssetTypeID << "\n to erase account ID: " << strAcctID << "\n";
+    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
+                                   strAcctRecordFile.Get())) {
+        otErr << szFunc
+              << ": Failed trying to StoreObject, while saving updated "
+                 "account records file for asset type: " << strAssetTypeID
+              << "\n to erase account ID: " << strAcctID << "\n";
         return false;
     }
 
-    // Okay, we saved the updated file, with the account removed. (done, success.)
+    // Okay, we saved the updated file, with the account removed. (done,
+    // success.)
     //
     return true;
 }
 
-
 // Normally, Asset Contracts do NOT update / rewrite their contents, since their
-// primary goal is for the signature to continue to verify.  But when first creating
+// primary goal is for the signature to continue to verify.  But when first
+// creating
 // a basket contract, we have to rewrite the contents, which is done here.
-bool OTAssetContract::CreateBasket(OTBasket & theBasket, OTPseudonym & theSigner)
+bool OTAssetContract::CreateBasket(OTBasket& theBasket, OTPseudonym& theSigner)
 {
-	Release();
+    Release();
 
-	// Grab a string copy of the basket information.
-	theBasket.SaveContractRaw(m_strBasketInfo);
+    // Grab a string copy of the basket information.
+    theBasket.SaveContractRaw(m_strBasketInfo);
 
-    OTString     strTemplate;
+    OTString strTemplate;
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
-    
-    strTemplate.Concatenate("<basketContract version=\"%s\">\n\n", m_strVersion.Get());
-    strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n", theBasketArmor.Get());
+
+    strTemplate.Concatenate("<basketContract version=\"%s\">\n\n",
+                            m_strVersion.Get());
+    strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
+                            theBasketArmor.Get());
 
     strTemplate.Concatenate("</%s>\n", "basketContract");
 
-	return this->CreateContract(strTemplate, theSigner);
+    return this->CreateContract(strTemplate, theSigner);
 }
-
 
 void OTAssetContract::CreateContents()
 {
 
-    m_strVersion = "2.0";  // 2.0 since adding credentials.
+    m_strVersion = "2.0"; // 2.0 since adding credentials.
 
- 	m_xmlUnsigned.Release();
+    m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
     if (m_strBasketInfo.Exists()) // Basket contract
     {
         OTASCIIArmor theBasketArmor(m_strBasketInfo);
 
-        m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n", m_strVersion.Get());
-        m_xmlUnsigned.Concatenate("<basketInfo>\n%s</basketInfo>\n\n", theBasketArmor.Get());
+        m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n",
+                                  m_strVersion.Get());
+        m_xmlUnsigned.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
+                                  theBasketArmor.Get());
     }
-
     else // All other asset contracts.
     {
 
-        m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "digitalAssetContract", m_strVersion.Get());
+        m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n",
+                                  "digitalAssetContract", m_strVersion.Get());
 
         // Entity
         m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
                                   " longname=\"%s\"\n"
                                   " email=\"%s\"/>\n\n",
                                   m_strEntityShortName.Get(),
-                                  m_strEntityLongName .Get(),
-                                  m_strEntityEmail    .Get());    
+                                  m_strEntityLongName.Get(),
+                                  m_strEntityEmail.Get());
 
         // Issue
-        m_xmlUnsigned.Concatenate("<issue company=\"%s\"\n"
-                                  " email=\"%s\"\n"
-                                  " contractUrl=\"%s\"\n"
-                                  " type=\"%s\"/>\n\n",
-                                  m_strIssueCompany    .Get(),
-                                  m_strIssueEmail      .Get(),
-                                  m_strIssueContractURL.Get(),
-                                  m_strIssueType       .Get());
+        m_xmlUnsigned.Concatenate(
+            "<issue company=\"%s\"\n"
+            " email=\"%s\"\n"
+            " contractUrl=\"%s\"\n"
+            " type=\"%s\"/>\n\n",
+            m_strIssueCompany.Get(), m_strIssueEmail.Get(),
+            m_strIssueContractURL.Get(), m_strIssueType.Get());
 
         // [currency|shares]
         if (m_bIsCurrency)
-            m_xmlUnsigned.Concatenate("<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
-                                      "factor=\"%s\" decimal_power=\"%s\" fraction=\"%s\" />\n\n",
-                                      m_strCurrencyName        .Get(),
-                                      m_strCurrencyTLA         .Get(),
-                                      m_strCurrencySymbol      .Get(),
-                                      m_strCurrencyType        .Get(),
-                                      m_strCurrencyFactor      .Get(),
-                                      m_strCurrencyDecimalPower.Get(),
-                                      m_strCurrencyFraction    .Get());
+            m_xmlUnsigned.Concatenate(
+                "<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
+                "factor=\"%s\" decimal_power=\"%s\" fraction=\"%s\" />\n\n",
+                m_strCurrencyName.Get(), m_strCurrencyTLA.Get(),
+                m_strCurrencySymbol.Get(), m_strCurrencyType.Get(),
+                m_strCurrencyFactor.Get(), m_strCurrencyDecimalPower.Get(),
+                m_strCurrencyFraction.Get());
         else if (m_bIsShares)
-            m_xmlUnsigned.Concatenate("<shares name=\"%s\" symbol=\"%s\" type=\"%s\" issuedate=\"%s\" />\n\n",
-                                      m_strCurrencyName  .Get(),
-                                      m_strCurrencySymbol.Get(),
-                                      m_strCurrencyType  .Get(),
-                                      m_strIssueDate     .Get());
+            m_xmlUnsigned.Concatenate(
+                "<shares name=\"%s\" symbol=\"%s\" type=\"%s\" "
+                "issuedate=\"%s\" />\n\n",
+                m_strCurrencyName.Get(), m_strCurrencySymbol.Get(),
+                m_strCurrencyType.Get(), m_strIssueDate.Get());
     }
 
-    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions, etc.
-    this->CreateInnerContents();    
+    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
+    // etc.
+    this->CreateInnerContents();
 
-	m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists() ? "basketContract" : "digitalAssetContract");
-
+    m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists()
+                                             ? "basketContract"
+                                             : "digitalAssetContract");
 }
-
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 //
 int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 {
-	int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
+    int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
 
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	
-	if (nReturnVal == 1 || nReturnVal == (-1))
-		return nReturnVal;
-	
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+
+    if (nReturnVal == 1 || nReturnVal == (-1)) return nReturnVal;
+
     const OTString strNodeName(xml->getNodeName());
-    
-	if (strNodeName.Compare("digitalAssetContract"))
-	{
-		m_strVersion = xml->getAttributeValue("version");					
-		
-		otWarn << "\n"
-				"===> Loading XML portion of asset contract into memory structures...\n\n"
-				"Digital Asset Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
-		nReturnVal = 1;
-	}
-	else if (strNodeName.Compare("basketContract"))
-	{
-		m_strVersion = xml->getAttributeValue("version");					
-		
-		otWarn << "\n"
-				"===> Loading XML portion of basket contract into memory structures...\n\n"
-				"Digital Basket Contract: " << m_strName << "\nContract version: " << m_strVersion << "\n----------\n";
-		nReturnVal = 1;
-	}
-	else if (strNodeName.Compare("basketInfo")) 
-	{		
-		if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo))
-		{
-			otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo field without value.\n";
-			return (-1); // error condition
-		}
-		nReturnVal = 1;
-	}	
-	else if (strNodeName.Compare("issue"))
-	{
-		m_strIssueCompany     = xml->getAttributeValue("company");
-		m_strIssueEmail       = xml->getAttributeValue("email");
-		m_strIssueContractURL = xml->getAttributeValue("contractUrl");
-		m_strIssueType        = xml->getAttributeValue("type");
-		
-		otInfo << "Loaded Issue company: " << m_strIssueCompany << "\nEmail: " << m_strIssueEmail <<
-			"\nContractURL: " << m_strIssueContractURL << "\nType: " << m_strIssueType << "\n----------\n";
-		nReturnVal = 1;
-	}
+
+    if (strNodeName.Compare("digitalAssetContract")) {
+        m_strVersion = xml->getAttributeValue("version");
+
+        otWarn << "\n"
+                  "===> Loading XML portion of asset contract into memory "
+                  "structures...\n\n"
+                  "Digital Asset Contract: " << m_strName
+               << "\nContract version: " << m_strVersion << "\n----------\n";
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("basketContract")) {
+        m_strVersion = xml->getAttributeValue("version");
+
+        otWarn << "\n"
+                  "===> Loading XML portion of basket contract into memory "
+                  "structures...\n\n"
+                  "Digital Basket Contract: " << m_strName
+               << "\nContract version: " << m_strVersion << "\n----------\n";
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("basketInfo")) {
+        if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
+            otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
+                     "field without value.\n";
+            return (-1); // error condition
+        }
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("issue")) {
+        m_strIssueCompany = xml->getAttributeValue("company");
+        m_strIssueEmail = xml->getAttributeValue("email");
+        m_strIssueContractURL = xml->getAttributeValue("contractUrl");
+        m_strIssueType = xml->getAttributeValue("type");
+
+        otInfo << "Loaded Issue company: " << m_strIssueCompany
+               << "\nEmail: " << m_strIssueEmail
+               << "\nContractURL: " << m_strIssueContractURL
+               << "\nType: " << m_strIssueType << "\n----------\n";
+        nReturnVal = 1;
+    }
     // TODO security validation: validate all the above and below values.
-	else if (strNodeName.Compare("currency") )    
-	{
-        m_bIsCurrency             = true;  // silver grams
-        m_bIsShares               = false;        
+    else if (strNodeName.Compare("currency")) {
+        m_bIsCurrency = true; // silver grams
+        m_bIsShares = false;
 
-		m_strName                 = xml->getAttributeValue("name");
-		m_strCurrencyName         = xml->getAttributeValue("name");
-		m_strCurrencySymbol       = xml->getAttributeValue("symbol");
-		m_strCurrencyType         = xml->getAttributeValue("type");
+        m_strName = xml->getAttributeValue("name");
+        m_strCurrencyName = xml->getAttributeValue("name");
+        m_strCurrencySymbol = xml->getAttributeValue("symbol");
+        m_strCurrencyType = xml->getAttributeValue("type");
 
-		m_strCurrencyTLA          = xml->getAttributeValue("tla");
-		m_strCurrencyFactor       = xml->getAttributeValue("factor");
-		m_strCurrencyDecimalPower = xml->getAttributeValue("decimal_power");
-		m_strCurrencyFraction     = xml->getAttributeValue("fraction");
-		
-		otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName <<
-			", TLA: " << m_strCurrencyTLA << ", Symbol: " << m_strCurrencySymbol << "\n"
-			"Type: " << m_strCurrencyType << ", Factor: " << m_strCurrencyFactor <<
-			", Decimal Power: " << m_strCurrencyDecimalPower << ", Fraction: " << m_strCurrencyFraction << "\n----------\n";
-		nReturnVal = 1;
-	}
-	
-//  share_type some type, for example, A or B, or NV (non voting)
-//        
-//  share_name this is the int64_t legal name of the company
-//        
-//  share_symbol this is the trading name (8 chars max), as it might be 
-//      displayed in a market contect, and should be unique within some given market
-//        
-//  share_issue_date date of start of this share item (not necessarily IPO)
+        m_strCurrencyTLA = xml->getAttributeValue("tla");
+        m_strCurrencyFactor = xml->getAttributeValue("factor");
+        m_strCurrencyDecimalPower = xml->getAttributeValue("decimal_power");
+        m_strCurrencyFraction = xml->getAttributeValue("fraction");
 
-	else if (strNodeName.Compare("shares") )       
-	{
-        m_bIsShares           = true;        // shares of pepsi
-        m_bIsCurrency         = false;
-        
-		m_strName			  = xml->getAttributeValue("name");
-		m_strCurrencyName	  = xml->getAttributeValue("name");	
-		m_strCurrencySymbol   = xml->getAttributeValue("symbol");
-		m_strCurrencyType     = xml->getAttributeValue("type");
-        
-		m_strIssueDate        = xml->getAttributeValue("issuedate");
-		
-		otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName << ", Symbol: " << m_strCurrencySymbol << "\n"
-			"Type: " << m_strCurrencyType << ", Issue Date: " << m_strIssueDate << "\n----------\n";
-		nReturnVal = 1;
-	}
-	
-	return nReturnVal;
+        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
+               << ", TLA: " << m_strCurrencyTLA
+               << ", Symbol: " << m_strCurrencySymbol
+               << "\n"
+                  "Type: " << m_strCurrencyType
+               << ", Factor: " << m_strCurrencyFactor
+               << ", Decimal Power: " << m_strCurrencyDecimalPower
+               << ", Fraction: " << m_strCurrencyFraction << "\n----------\n";
+        nReturnVal = 1;
+    }
+
+    //  share_type some type, for example, A or B, or NV (non voting)
+    //
+    //  share_name this is the int64_t legal name of the company
+    //
+    //  share_symbol this is the trading name (8 chars max), as it might be
+    //      displayed in a market contect, and should be unique within some
+    // given market
+    //
+    //  share_issue_date date of start of this share item (not necessarily IPO)
+    else if (strNodeName.Compare("shares")) {
+        m_bIsShares = true; // shares of pepsi
+        m_bIsCurrency = false;
+
+        m_strName = xml->getAttributeValue("name");
+        m_strCurrencyName = xml->getAttributeValue("name");
+        m_strCurrencySymbol = xml->getAttributeValue("symbol");
+        m_strCurrencyType = xml->getAttributeValue("type");
+
+        m_strIssueDate = xml->getAttributeValue("issuedate");
+
+        otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
+               << ", Symbol: " << m_strCurrencySymbol
+               << "\n"
+                  "Type: " << m_strCurrencyType
+               << ", Issue Date: " << m_strIssueDate << "\n----------\n";
+        nReturnVal = 1;
+    }
+
+    return nReturnVal;
 }
 
 } // namespace opentxs

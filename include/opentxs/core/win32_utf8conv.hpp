@@ -34,130 +34,86 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-
 #pragma once
 
 #include "OTCommon.hpp"
 
-
-
-//------------------------------------------------------------------------
 //                              INCLUDES
-//------------------------------------------------------------------------
 
-#include <stdexcept>    // std::runtime_error
-#include <string>       // STL string classes
+#include <stdexcept> // std::runtime_error
+#include <string>    // STL string classes
 
+namespace utf8util
+{
 
-
-namespace utf8util {
-
-
-
-//------------------------------------------------------------------------
 // Exception class representing an error occurred during UTF-8 conversion.
-//------------------------------------------------------------------------
-class utf8_conversion_error
-    : public std::runtime_error
+class utf8_conversion_error : public std::runtime_error
 {
 public:
-
     //
     // Naming convention note:
-    // -----------------------
     //
     // This exception class is derived from std::runtime_error class,
     // so I chose to use the same naming convention of STL classes
     // (e.g. do_something_intersting() instead of DoSomethingInteresting()).
     //
 
-
     // Error code type
     // (a DWORD, as the return value type from ::GetLastError())
     typedef unsigned long error_code_type;
 
     // Type of conversion
-    enum conversion_type
-    {
-        conversion_utf8_from_utf16,     // UTF-16 ---> UTF-8
-        conversion_utf16_from_utf8      // UTF-8  ---> UTF-16
+    enum conversion_type {
+        conversion_utf8_from_utf16, // UTF-16 ---> UTF-8
+        conversion_utf16_from_utf8  // UTF-8  ---> UTF-16
     };
-
 
     // Constructs an UTF-8 conversion error exception
     // with a raw C string message, conversion type and error code.
-    utf8_conversion_error(
-        const char * message,
-        conversion_type conversion,
-        error_code_type error_code
-    );
-
+    utf8_conversion_error(const char* message, conversion_type conversion,
+                          error_code_type error_code);
 
     // Constructs an UTF-8 conversion error exception
     // with a std::string message, conversion type and error code.
-    utf8_conversion_error(
-        const std::string & message,
-        conversion_type conversion,
-        error_code_type error_code
-    );
-
+    utf8_conversion_error(const std::string& message,
+                          conversion_type conversion,
+                          error_code_type error_code);
 
     // Returns the type of conversion (UTF-8 from UTF-16, or vice versa)
     conversion_type conversion() const;
-
 
     // Returns the error code occurred during the conversion
     // (which is typically the return value of ::GetLastError()).
     error_code_type error_code() const;
 
-
-
     //
     // IMPLEMENTATION
     //
 private:
-    conversion_type m_conversion;   // kind of conversion
-    error_code_type m_error_code;   // error code
+    conversion_type m_conversion; // kind of conversion
+    error_code_type m_error_code; // error code
 };
 
-//------------------------------------------------------------------------
-
-
-
-//------------------------------------------------------------------------
 // Converts a string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
-//------------------------------------------------------------------------
-EXPORT	std::wstring UTF16FromUTF8(const std::string & utf8);
+EXPORT std::wstring UTF16FromUTF8(const std::string& utf8);
 
-
-//------------------------------------------------------------------------
 // Converts a raw C string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
-//------------------------------------------------------------------------
-EXPORT	std::wstring UTF16FromUTF8(const char * utf8);
+EXPORT std::wstring UTF16FromUTF8(const char* utf8);
 
-
-//------------------------------------------------------------------------
 // Converts a string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
-//------------------------------------------------------------------------
-EXPORT	std::string UTF8FromUTF16(const std::wstring & utf16);
+EXPORT std::string UTF8FromUTF16(const std::wstring& utf16);
 
-
-//------------------------------------------------------------------------
 // Converts a raw C string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
 // If the input pointer is NULL, an empty string is returned.
-//------------------------------------------------------------------------
-EXPORT std::string UTF8FromUTF16(const wchar_t * utf16);
-
+EXPORT std::string UTF8FromUTF16(const wchar_t* utf16);
 
 } // namespace utf8util
 
-#include "win32_utf8conv_inl.hpp"     // inline implementations
-
+#include "win32_utf8conv_inl.hpp" // inline implementations
 
 //////////////////////////////////////////////////////////////////////////
-

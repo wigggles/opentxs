@@ -135,44 +135,46 @@
 
 #include "OTMint.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTToken;
 
-
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
-#if defined (OT_CASH_USING_MAGIC_MONEY)
+#if defined(OT_CASH_USING_MAGIC_MONEY)
 // Todo:  Someday...
 #endif // Magic Money
 
-
-#if defined (OT_CASH_USING_LUCRE)
+#if defined(OT_CASH_USING_LUCRE)
 
 class OTMint_Lucre : public OTMint
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTMint ot_super;
     friend class OTMint; // for the factory.
-// ------------------------------------------------------------------------------
 protected:
-        OTMint_Lucre();
-EXPORT	OTMint_Lucre(const OTString & strServerID, const OTString & strAssetTypeID);
-EXPORT	OTMint_Lucre(const OTString & strServerID, const OTString & strServerNymID, const OTString & strAssetTypeID);
-// ------------------------------------------------------------------------------
+    OTMint_Lucre();
+    EXPORT OTMint_Lucre(const OTString& strServerID,
+                        const OTString& strAssetTypeID);
+    EXPORT OTMint_Lucre(const OTString& strServerID,
+                        const OTString& strServerNymID,
+                        const OTString& strAssetTypeID);
+
 public:
-virtual bool AddDenomination(OTPseudonym & theNotary, int64_t lDenomination, int32_t nPrimeLength=1024);
+    virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+                                 int32_t nPrimeLength = 1024);
 
-EXPORT	virtual bool SignToken(OTPseudonym & theNotary, OTToken & theToken, OTString & theOutput, int32_t nTokenIndex);
-EXPORT	virtual bool VerifyToken(OTPseudonym & theNotary, OTString & theCleartextToken, int64_t lDenomination);
+    EXPORT virtual bool SignToken(OTPseudonym& theNotary, OTToken& theToken,
+                                  OTString& theOutput, int32_t nTokenIndex);
+    EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
+                                    OTString& theCleartextToken,
+                                    int64_t lDenomination);
 
-EXPORT	virtual ~OTMint_Lucre();
-// ------------------------------------------------------------------------------
+    EXPORT virtual ~OTMint_Lucre();
 };
 
 #endif // Lucre
-
-
 
 } // namespace opentxs
 

@@ -151,16 +151,15 @@
 //#define OT_KEYRING_KWALLET  1
 //#define OT_KEYRING_FLATFILE 1
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTString;
 class OTPassword;
 
-
 class OTKeyring
 {
 public:
-
     // NOTE: Normally the "username" in our context is related to the
     // master key. OTCachedKey will call OTKeyring::RetrieveSecret, and
     // will pass in probably a hash of the encrypted master key as the
@@ -194,107 +193,102 @@ public:
     //
     // INTERFACE:
     //
-EXPORT    static bool StoreSecret(    const OTString      & strUser,
-                                      const OTPassword    & thePassword,
-                                      const std::string   & str_display);
+    EXPORT static bool StoreSecret(const OTString& strUser,
+                                   const OTPassword& thePassword,
+                                   const std::string& str_display);
 
-EXPORT    static bool RetrieveSecret( const OTString      & strUser,
-                                            OTPassword    & thePassword,
-                                      const std::string   & str_display);
+    EXPORT static bool RetrieveSecret(const OTString& strUser,
+                                      OTPassword& thePassword,
+                                      const std::string& str_display);
 
-EXPORT    static bool DeleteSecret(   const OTString      & strUser,
-                                      const std::string   & str_display);
+    EXPORT static bool DeleteSecret(const OTString& strUser,
+                                    const std::string& str_display);
+
 private:
-    // -------------------------------------------------------
 #if defined(OT_KEYRING_WINDOWS) && defined(_WIN32)
-EXPORT    static bool Windows_StoreSecret(    const OTString      & strUser,
-                                              const OTPassword    & thePassword,
-                                              const std::string   & str_display);
+    EXPORT static bool Windows_StoreSecret(const OTString& strUser,
+                                           const OTPassword& thePassword,
+                                           const std::string& str_display);
 
-EXPORT    static bool Windows_RetrieveSecret( const OTString      & strUser,
-                                                    OTPassword    & thePassword,
-                                              const std::string   & str_display);
+    EXPORT static bool Windows_RetrieveSecret(const OTString& strUser,
+                                              OTPassword& thePassword,
+                                              const std::string& str_display);
 
-EXPORT    static bool Windows_DeleteSecret(   const OTString      & strUser,
-                                              const std::string   & str_display);
+    EXPORT static bool Windows_DeleteSecret(const OTString& strUser,
+                                            const std::string& str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_MAC) && defined(__APPLE__)
-    static bool Mac_StoreSecret(    const OTString      & strUser,
-                                    const OTPassword    & thePassword,
-                                    const std::string   & str_display);
+    static bool Mac_StoreSecret(const OTString& strUser,
+                                const OTPassword& thePassword,
+                                const std::string& str_display);
 
-    static bool Mac_RetrieveSecret( const OTString      & strUser,
-                                          OTPassword    & thePassword,
-                                    const std::string   & str_display);
+    static bool Mac_RetrieveSecret(const OTString& strUser,
+                                   OTPassword& thePassword,
+                                   const std::string& str_display);
 
-    static bool Mac_DeleteSecret(   const OTString      & strUser,
-                                    const std::string   & str_display);
+    static bool Mac_DeleteSecret(const OTString& strUser,
+                                 const std::string& str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_IOS) && defined(__APPLE__)
-    static bool IOS_StoreSecret(    const OTString      & strUser,
-                                    const OTPassword    & thePassword,
-                                    const std::string   & str_display);
+    static bool IOS_StoreSecret(const OTString& strUser,
+                                const OTPassword& thePassword,
+                                const std::string& str_display);
 
-    static bool IOS_RetrieveSecret( const OTString      & strUser,
-                                          OTPassword    & thePassword,
-                                    const std::string   & str_display);
+    static bool IOS_RetrieveSecret(const OTString& strUser,
+                                   OTPassword& thePassword,
+                                   const std::string& str_display);
 
-    static bool IOS_DeleteSecret(   const OTString      & strUser,
-                                    const std::string   & str_display);
+    static bool IOS_DeleteSecret(const OTString& strUser,
+                                 const std::string& str_display);
 //#endif
-    // -------------------------------------------------------
 #elif defined(OT_KEYRING_GNOME)
-    static bool Gnome_StoreSecret(   const OTString     & strUser,
-                                     const OTPassword   & thePassword,
-                                     const std::string  & str_display);
+    static bool Gnome_StoreSecret(const OTString& strUser,
+                                  const OTPassword& thePassword,
+                                  const std::string& str_display);
 
-    static bool Gnome_RetrieveSecret(const OTString     & strUser,
-                                           OTPassword   & thePassword,
-                                     const std::string  & str_display); // unused
+    static bool Gnome_RetrieveSecret(const OTString& strUser,
+                                     OTPassword& thePassword,
+                                     const std::string& str_display); // unused
 
-    static bool Gnome_DeleteSecret(  const OTString     & strUser,
-                                     const std::string  & str_display); // unused
-//#endif
-    // -------------------------------------------------------
+    static bool Gnome_DeleteSecret(const OTString& strUser,
+                                   const std::string& str_display); // unused
+                                                                    //#endif
 #elif defined(OT_KEYRING_KWALLET)
-    static KWallet::Wallet * s_pWallet;
-    static KApplication    * s_pApp;
-    // -------------------------------------
-    static bool KWallet_StoreSecret(   const OTString     & strUser,
-                                       const OTPassword   & thePassword,
-                                       const std::string  & str_display);
+    static KWallet::Wallet* s_pWallet;
+    static KApplication* s_pApp;
+    static bool KWallet_StoreSecret(const OTString& strUser,
+                                    const OTPassword& thePassword,
+                                    const std::string& str_display);
 
-    static bool KWallet_RetrieveSecret(const OTString     & strUser,
-                                             OTPassword   & thePassword,
-                                       const std::string  & str_display);
+    static bool KWallet_RetrieveSecret(const OTString& strUser,
+                                       OTPassword& thePassword,
+                                       const std::string& str_display);
 
-    static bool KWallet_DeleteSecret(  const OTString     & strUser,
-                                       const std::string  & str_display);
-    // -------------------------------------------------------
-#elif defined(OT_KEYRING_FLATFILE)  // Do not use! Unsafe! For testing only!
-    // -------------------------------------
-    static bool FlatFile_StoreSecret(   const OTString     & strUser,
-                                        const OTPassword   & thePassword,
-                                        const std::string  & str_display);
+    static bool KWallet_DeleteSecret(const OTString& strUser,
+                                     const std::string& str_display);
+#elif defined(OT_KEYRING_FLATFILE) // Do not use! Unsafe! For testing only!
+    static bool FlatFile_StoreSecret(const OTString& strUser,
+                                     const OTPassword& thePassword,
+                                     const std::string& str_display);
 
-    static bool FlatFile_RetrieveSecret(const OTString     & strUser,
-                                              OTPassword   & thePassword,
-                                        const std::string  & str_display);
+    static bool FlatFile_RetrieveSecret(const OTString& strUser,
+                                        OTPassword& thePassword,
+                                        const std::string& str_display);
 
-    static bool FlatFile_DeleteSecret(  const OTString     & strUser,
-                                        const std::string  & str_display);
+    static bool FlatFile_DeleteSecret(const OTString& strUser,
+                                      const std::string& str_display);
+
 public:
-EXPORT static void FlatFile_SetPasswordFolder(const std::string folder);
-EXPORT static const char * FlatFile_GetPasswordFolder();
+    EXPORT static void FlatFile_SetPasswordFolder(const std::string folder);
+    EXPORT static const char* FlatFile_GetPasswordFolder();
+
 private:
-EXPORT static std::string s_str_passwd_folder; //NOTE: Do not ever use this. OT_KEYRING_FLATFILE should NEVER be defined! No! For testing only.
+    EXPORT static std::string s_str_passwd_folder; // NOTE: Do not ever use
+                                                   // this. OT_KEYRING_FLATFILE
+                                                   // should NEVER be defined!
+                                                   // No! For testing only.
 #endif
-
 };
-
-
 
 } // namespace opentxs
 

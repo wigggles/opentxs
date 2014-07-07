@@ -141,7 +141,8 @@
 // This class makes it easy to convert IDs back and forth to strings.
 //
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTCachedKey;
 class OTContract;
@@ -154,71 +155,64 @@ class OTSymmetricKey;
 class OTIdentifier : public OTData
 {
 public:
-EXPORT	friend std::ostream & operator << (std::ostream & os, const OTString & obj);
+    EXPORT friend std::ostream& operator<<(std::ostream& os,
+                                           const OTString& obj);
 
-	// Some digests are handled in special ways before they can call OpenSSL. They are internal,
-	// like SAMY hash.
-EXPORT	bool CalculateDigestInternal(const OTString & strInput,  const OTString & strHashAlgorithm);
-EXPORT	bool CalculateDigestInternal(const OTData   & dataInput, const OTString & strHashAlgorithm);
-    // ----------------------------------------------
-EXPORT	static const OTString DefaultHashAlgorithm;
-EXPORT	static const OTString HashAlgorithm1;
-EXPORT	static const OTString HashAlgorithm2;
-    // ----------------------------------------------
-EXPORT	OTIdentifier();
+    // Some digests are handled in special ways before they can call OpenSSL.
+    // They are internal,
+    // like SAMY hash.
+    EXPORT bool CalculateDigestInternal(const OTString& strInput,
+                                        const OTString& strHashAlgorithm);
+    EXPORT bool CalculateDigestInternal(const OTData& dataInput,
+                                        const OTString& strHashAlgorithm);
+    EXPORT static const OTString DefaultHashAlgorithm;
+    EXPORT static const OTString HashAlgorithm1;
+    EXPORT static const OTString HashAlgorithm2;
+    EXPORT OTIdentifier();
 
-EXPORT	OTIdentifier(const OTIdentifier   & theID);
-EXPORT	OTIdentifier(const char           * szStr);
-EXPORT	OTIdentifier(const std::string	  & szStr);
-EXPORT	OTIdentifier(const OTString       & theStr);
-EXPORT	OTIdentifier(const OTPseudonym    & theNym);
-EXPORT	OTIdentifier(const OTContract     & theContract); // Get the contract's ID into this identifier.
-EXPORT	OTIdentifier(const OTOffer        & theOffer);
-EXPORT	OTIdentifier(const OTMarket       & theMarket);
-EXPORT	OTIdentifier(const OTSymmetricKey & theKey);
-EXPORT	OTIdentifier(const OTCachedKey    & theKey);
-    // ----------------------------------------------
+    EXPORT OTIdentifier(const OTIdentifier& theID);
+    EXPORT OTIdentifier(const char* szStr);
+    EXPORT OTIdentifier(const std::string& szStr);
+    EXPORT OTIdentifier(const OTString& theStr);
+    EXPORT OTIdentifier(const OTPseudonym& theNym);
+    EXPORT OTIdentifier(const OTContract& theContract); // Get the contract's ID
+                                                        // into this identifier.
+    EXPORT OTIdentifier(const OTOffer& theOffer);
+    EXPORT OTIdentifier(const OTMarket& theMarket);
+    EXPORT OTIdentifier(const OTSymmetricKey& theKey);
+    EXPORT OTIdentifier(const OTCachedKey& theKey);
 
-EXPORT	virtual ~OTIdentifier();
-    // ----------------------------------------------
-	using OTData::swap;
-	using OTData::operator=;
-    // ----------------------------------------------
-EXPORT	bool operator==(const OTIdentifier &s2) const;
-EXPORT	bool operator!=(const OTIdentifier &s2) const;
+    EXPORT virtual ~OTIdentifier();
+    using OTData::swap;
+    using OTData::operator=;
+    EXPORT bool operator==(const OTIdentifier& s2) const;
+    EXPORT bool operator!=(const OTIdentifier& s2) const;
 
-EXPORT	bool operator > (const OTIdentifier &s2) const;
-EXPORT	bool operator < (const OTIdentifier &s2) const;
-EXPORT	bool operator <=(const OTIdentifier &s2) const;
-EXPORT	bool operator >=(const OTIdentifier &s2) const;
-    // ----------------------------------------------
-EXPORT	bool CalculateDigest(const OTData & dataInput);
-EXPORT	bool CalculateDigest(const OTString & strInput);
+    EXPORT bool operator>(const OTIdentifier& s2) const;
+    EXPORT bool operator<(const OTIdentifier& s2) const;
+    EXPORT bool operator<=(const OTIdentifier& s2) const;
+    EXPORT bool operator>=(const OTIdentifier& s2) const;
+    EXPORT bool CalculateDigest(const OTData& dataInput);
+    EXPORT bool CalculateDigest(const OTString& strInput);
 
-EXPORT	bool CalculateDigest(const OTString & strInput,  const OTString & strHashAlgorithm);
-EXPORT	bool CalculateDigest(const OTData   & dataInput, const OTString & strHashAlgorithm);
-    // ----------------------------------------------
-EXPORT	bool XOR(const OTIdentifier & theInput);
-    // ----------------------------------------------
-EXPORT	void CopyTo(uint8_t * szNewLocation) const;
-    // ----------------------------------------------
-	// If someone passes in the pretty string of hex digits,
-	// convert it to the actual binary hash and set it internally.
-EXPORT	void SetString(const char * szString);
-EXPORT	void SetString(const OTString & theStr);
-    // ----------------------------------------------
-	// theStr will contain pretty hex string after call.
-EXPORT	void GetString(OTString & theStr) const;
-    // ----------------------------------------------
+    EXPORT bool CalculateDigest(const OTString& strInput,
+                                const OTString& strHashAlgorithm);
+    EXPORT bool CalculateDigest(const OTData& dataInput,
+                                const OTString& strHashAlgorithm);
+    EXPORT bool XOR(const OTIdentifier& theInput);
+    EXPORT void CopyTo(uint8_t* szNewLocation) const;
+    // If someone passes in the pretty string of hex digits,
+    // convert it to the actual binary hash and set it internally.
+    EXPORT void SetString(const char* szString);
+    EXPORT void SetString(const OTString& theStr);
+    // theStr will contain pretty hex string after call.
+    EXPORT void GetString(OTString& theStr) const;
 };
 
-
-//bool operator > (const OTIdentifier &s1, const OTIdentifier& s2);
-//bool operator < (const OTIdentifier &s1, const OTIdentifier& s2);
-//bool operator >=(const OTIdentifier &s1, const OTIdentifier& s2);
-//bool operator <=(const OTIdentifier &s1, const OTIdentifier& s2);
-
-
+// bool operator > (const OTIdentifier &s1, const OTIdentifier& s2);
+// bool operator < (const OTIdentifier &s1, const OTIdentifier& s2);
+// bool operator >=(const OTIdentifier &s1, const OTIdentifier& s2);
+// bool operator <=(const OTIdentifier &s1, const OTIdentifier& s2);
 
 } // namespace opentxs
 

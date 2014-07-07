@@ -137,12 +137,12 @@
 
 #include <set>
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAsymmetricKey;
 class OTPasswordData;
 class OTString;
-
 
 // Useful for storing a std::set of longs,
 // serializing to/from comma-separated string,
@@ -155,51 +155,80 @@ class OTString;
 //
 class OTNumList
 {
-    std::set<int64_t>  m_setData;
+    std::set<int64_t> m_setData;
 
-    // private for security reasons, used internally only by a function that knows the string length already.
-    bool Add(const char * szfNumbers);   // if false, means the numbers were already there. (At least one of them.)
+    // private for security reasons, used internally only by a function that
+    // knows the string length already.
+    bool Add(const char* szfNumbers); // if false, means the numbers were
+                                      // already there. (At least one of them.)
 
 public:
-EXPORT    OTNumList(const std::set<int64_t> & theNumbers);
-//        OTNumList(const char * szNumbers); // removed for security reasons.
-EXPORT    OTNumList(const OTString    & strNumbers);
-EXPORT    OTNumList(const std::string & strNumbers);
-EXPORT    OTNumList(int64_t lInput);
-EXPORT    OTNumList();
-EXPORT    ~OTNumList();
-    // -------------------
-EXPORT    bool Add(const OTString    & strNumbers);  // if false, means the numbers were already there. (At least one of them.)
-EXPORT    bool Add(const std::string & strNumbers);  // if false, means the numbers were already there. (At least one of them.)
-    // -------------------
-EXPORT    bool Add   (const int64_t & theValue);       // if false, means the value was already there.
-EXPORT    bool Remove(const int64_t & theValue);       // if false, means the value was NOT already there.
-EXPORT    bool Verify(const int64_t & theValue) const; // returns true/false (whether value is already there.)
-    // -------------------
-EXPORT    bool Add   (const OTNumList      & theNumList); // if false, means the numbers were already there. (At least one of them.)
-EXPORT    bool Add   (const std::set<int64_t> & theNumbers); // if false, means the numbers were already there. (At least one of them.)
-EXPORT    bool Remove(const std::set<int64_t> & theNumbers); // if false, means the numbers were NOT already there. (At least one of them.)
-EXPORT    bool Verify(const std::set<int64_t> & theNumbers) const; // True/False, based on whether values are already there. (ALL theNumbers must be present.)
-    // -------------------
-EXPORT    bool Verify   (const OTNumList & rhs) const; // True/False, based on whether OTNumLists MATCH in COUNT and CONTENT (NOT ORDER.)
-EXPORT    bool VerifyAny(const OTNumList & rhs) const; // True/False, based on whether ANY of rhs are found in *this.
-EXPORT    bool VerifyAny(const std::set<int64_t> & setData) const; // Verify whether ANY of the numbers on *this are found in setData.
-    // -------------------
-EXPORT    int32_t  Count() const;
-    // -------------------
-EXPORT    bool Peek(int64_t & lPeek) const;
-EXPORT    bool Pop();
-    // -------------------
-    // Outputs the numlist as set of numbers. (To iterate OTNumList, call this, then iterate the output.)
-EXPORT    bool Output(std::set<int64_t> & theOutput) const; // returns false if the numlist was empty.
+    EXPORT OTNumList(const std::set<int64_t>& theNumbers);
+    //        OTNumList(const char * szNumbers); // removed for security
+    // reasons.
+    EXPORT OTNumList(const OTString& strNumbers);
+    EXPORT OTNumList(const std::string& strNumbers);
+    EXPORT OTNumList(int64_t lInput);
+    EXPORT OTNumList();
+    EXPORT ~OTNumList();
+    EXPORT bool Add(const OTString& strNumbers); // if false, means the numbers
+                                                 // were already there. (At
+                                                 // least one of them.)
+    EXPORT bool Add(const std::string& strNumbers); // if false, means the
+                                                    // numbers were already
+                                                    // there. (At least one of
+                                                    // them.)
+    EXPORT bool Add(const int64_t& theValue); // if false, means the value was
+                                              // already there.
+    EXPORT bool Remove(const int64_t& theValue); // if false, means the value
+                                                 // was NOT already there.
+    EXPORT bool Verify(const int64_t& theValue) const; // returns true/false
+                                                       // (whether value is
+                                                       // already there.)
+    EXPORT bool Add(const OTNumList& theNumList); // if false, means the numbers
+                                                  // were already there. (At
+                                                  // least one of them.)
+    EXPORT bool Add(const std::set<int64_t>& theNumbers); // if false, means the
+                                                          // numbers were
+                                                          // already there. (At
+                                                          // least one of them.)
+    EXPORT bool Remove(const std::set<int64_t>& theNumbers); // if false, means
+                                                             // the numbers were
+                                                             // NOT already
+                                                             // there. (At least
+                                                             // one of them.)
+    EXPORT bool Verify(const std::set<int64_t>& theNumbers)
+        const; // True/False, based on whether values are already there. (ALL
+               // theNumbers must be present.)
+    EXPORT bool Verify(const OTNumList& rhs) const; // True/False, based on
+                                                    // whether OTNumLists MATCH
+                                                    // in COUNT and CONTENT (NOT
+                                                    // ORDER.)
+    EXPORT bool VerifyAny(const OTNumList& rhs) const; // True/False, based on
+                                                       // whether ANY of rhs are
+                                                       // found in *this.
+    EXPORT bool VerifyAny(const std::set<int64_t>& setData) const; // Verify
+                                                                   // whether
+                                                                   // ANY of the
+                                                                   // numbers on
+                                                                   // *this are
+                                                                   // found in
+                                                                   // setData.
+    EXPORT int32_t Count() const;
+    EXPORT bool Peek(int64_t& lPeek) const;
+    EXPORT bool Pop();
+    // Outputs the numlist as set of numbers. (To iterate OTNumList, call this,
+    // then iterate the output.)
+    EXPORT bool Output(std::set<int64_t>& theOutput) const; // returns false if
+                                                            // the numlist was
+                                                            // empty.
 
-    // Outputs the numlist as a comma-separated string (for serialization, usually.)
-EXPORT    bool Output(OTString & strOutput) const; // returns false if the numlist was empty.
-    // -------------------
-EXPORT    void Release();
+    // Outputs the numlist as a comma-separated string (for serialization,
+    // usually.)
+    EXPORT bool Output(OTString& strOutput) const; // returns false if the
+                                                   // numlist was empty.
+    EXPORT void Release();
 };
-
-
 
 } // namespace opentxs
 

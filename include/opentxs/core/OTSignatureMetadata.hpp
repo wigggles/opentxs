@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTSignatureMetadata.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -135,35 +135,57 @@
 
 #include "OTCommon.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTSignatureMetadata
-{    
-private: // PRIVATE MEMBERS
-    bool m_bHasMetadata;        // Defaults to false. Is set true by calling SetMetadata.
-	char m_cMetaKeyType;        // Can be A, E, or S (authentication, encryption, or signing. Also, E would be unusual.)
-	char m_cMetaNymID;          // Can be any letter from base62 alphabet. Represents first letter of a Nym's ID.
-	char m_cMetaMasterCredID;   // Can be any letter from base62 alphabet. Represents first letter of a Master Credential ID (for that Nym.)
-	char m_cMetaSubCredID;      // Can be any letter from base62 alphabet. Represents first letter of a SubCredential ID (signed by that Master.)
-    
-public:  // PUBLIC INTERFACE
-    // ---------------------------------------------------------------------------
-    bool SetMetadata(char cMetaKeyType, char cMetaNymID, char cMetaMasterCredID, char cMetaSubCredID);
-    // ---------------------------------------------------------------------------
-    inline bool HasMetadata()           const { return m_bHasMetadata;       }
-    inline char GetKeyType()            const { return m_cMetaKeyType;       }
-    inline char FirstCharNymID()        const { return m_cMetaNymID;         }
-    inline char FirstCharMasterCredID() const { return m_cMetaMasterCredID;  }
-    inline char FirstCharSubCredID()    const { return m_cMetaSubCredID;     }
-    // ---------------------------------------------------------------------------
+{
+private:                 // PRIVATE MEMBERS
+    bool m_bHasMetadata; // Defaults to false. Is set true by calling
+                         // SetMetadata.
+    char m_cMetaKeyType; // Can be A, E, or S (authentication, encryption, or
+                         // signing. Also, E would be unusual.)
+    char m_cMetaNymID;   // Can be any letter from base62 alphabet. Represents
+                         // first letter of a Nym's ID.
+    char m_cMetaMasterCredID; // Can be any letter from base62 alphabet.
+                              // Represents first letter of a Master Credential
+                              // ID (for that Nym.)
+    char m_cMetaSubCredID; // Can be any letter from base62 alphabet. Represents
+                           // first letter of a SubCredential ID (signed by that
+                           // Master.)
+
+public: // PUBLIC INTERFACE
+    bool SetMetadata(char cMetaKeyType, char cMetaNymID, char cMetaMasterCredID,
+                     char cMetaSubCredID);
+    inline bool HasMetadata() const
+    {
+        return m_bHasMetadata;
+    }
+    inline char GetKeyType() const
+    {
+        return m_cMetaKeyType;
+    }
+    inline char FirstCharNymID() const
+    {
+        return m_cMetaNymID;
+    }
+    inline char FirstCharMasterCredID() const
+    {
+        return m_cMetaMasterCredID;
+    }
+    inline char FirstCharSubCredID() const
+    {
+        return m_cMetaSubCredID;
+    }
     // ...Sticking with the default destructor and operator=
     OTSignatureMetadata();
-    bool operator==(const OTSignatureMetadata & rhs) const;
-    bool operator!=(const OTSignatureMetadata & rhs) const { return !(this->operator==(rhs)); }
+    bool operator==(const OTSignatureMetadata& rhs) const;
+    bool operator!=(const OTSignatureMetadata& rhs) const
+    {
+        return !(this->operator==(rhs));
+    }
 };
-
-
 
 } // namespace opentxs
 
-#endif // __OT_SIGNATURE_METADATA_HPP__ 
+#endif // __OT_SIGNATURE_METADATA_HPP__

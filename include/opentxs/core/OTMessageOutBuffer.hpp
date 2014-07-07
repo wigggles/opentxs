@@ -135,26 +135,34 @@
 
 #include "OTString.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTMessage;
 class OTPseudonym;
 class OTTransaction;
 
-//typedef std::list<OTMessage *>       listOfMessages; // Incoming server replies to your messages.
-typedef std::multimap <int64_t, OTMessage *> mapOfMessages;  // Your outgoing messages, mapped by request number.
-
+// typedef std::list<OTMessage *>       listOfMessages; // Incoming server
+// replies to your messages.
+typedef std::multimap<int64_t, OTMessage*> mapOfMessages; // Your outgoing
+                                                          // messages, mapped by
+                                                          // request number.
 
 // OUTOING MESSAGES (from me--client--sent to server.)
 //
-// The purpose of this class is to cache client requests (being sent to the server)
+// The purpose of this class is to cache client requests (being sent to the
+// server)
 // so that they can later be queried (using the request number) by the developer
-// using the OTAPI, so that if transaction numbers need to be clawed back from failed
+// using the OTAPI, so that if transaction numbers need to be clawed back from
+// failed
 // messages, etc, they are available.
 //
-// The OT client side also can use this as a mechanism to help separate old-and-dealt-with
-// messages, by explicitly removing messages from this queue once they are dealt with.
-// This way the developer can automatically assume that any reply is old if it carries
+// The OT client side also can use this as a mechanism to help separate
+// old-and-dealt-with
+// messages, by explicitly removing messages from this queue once they are dealt
+// with.
+// This way the developer can automatically assume that any reply is old if it
+// carries
 // a request number that cannot be found in this queue.
 //
 // This class is pretty generic and so may be used in other ways, where "map"
@@ -162,33 +170,57 @@ typedef std::multimap <int64_t, OTMessage *> mapOfMessages;  // Your outgoing me
 //
 class OTMessageOutbuffer
 {
-	mapOfMessages m_mapMessages;
-    // --------------------------------
+    mapOfMessages m_mapMessages;
     // Just to keep you out of trouble.
-    OTMessageOutbuffer  (const OTMessageOutbuffer &) {}
-    OTMessageOutbuffer & operator=(const OTMessageOutbuffer &) { return *this; }
+    OTMessageOutbuffer(const OTMessageOutbuffer&)
+    {
+    }
+    OTMessageOutbuffer& operator=(const OTMessageOutbuffer&)
+    {
+        return *this;
+    }
 
-	OTString m_strDataFolder;
+    OTString m_strDataFolder;
 
 public:
-EXPORT	OTMessageOutbuffer();
-EXPORT	~OTMessageOutbuffer();
-    // Note: AddSentMessage, if it finds a message already on the map with the same request number,
-    // deletes the old one before adding the new one. In the future may contemplate using multimap
+    EXPORT OTMessageOutbuffer();
+    EXPORT ~OTMessageOutbuffer();
+    // Note: AddSentMessage, if it finds a message already on the map with the
+    // same request number,
+    // deletes the old one before adding the new one. In the future may
+    // contemplate using multimap
     // here instead (if completeness becomes desired over uniqueness.)
 
-EXPORT    void        Clear(const OTString * pstrServerID=NULL, const OTString * pstrNymID=NULL, OTPseudonym * pNym=NULL,
-                      const bool     * pbHarvestingForRetry=NULL);
-EXPORT	void        AddSentMessage      (OTMessage & theMessage);   // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
+    EXPORT void Clear(const OTString* pstrServerID = NULL,
+                      const OTString* pstrNymID = NULL,
+                      OTPseudonym* pNym = NULL,
+                      const bool* pbHarvestingForRetry = NULL);
+    EXPORT void AddSentMessage(OTMessage& theMessage); // Allocate theMsg on the
+                                                       // heap (takes
+                                                       // ownership.) Mapped by
+                                                       // request num.
 
-EXPORT    OTMessage * GetSentMessage      (const int64_t & lRequestNum, const OTString & strServerID, const OTString & strNymID); // null == not found. caller NOT responsible to delete.
-EXPORT	bool        RemoveSentMessage   (const int64_t & lRequestNum, const OTString & strServerID, const OTString & strNymID); // true == it was removed. false == it wasn't found.
+    EXPORT OTMessage* GetSentMessage(const int64_t& lRequestNum,
+                                     const OTString& strServerID,
+                                     const OTString& strNymID); // null == not
+                                                                // found. caller
+                                                                // NOT
+                                                                // responsible
+                                                                // to delete.
+    EXPORT bool RemoveSentMessage(const int64_t& lRequestNum,
+                                  const OTString& strServerID,
+                                  const OTString& strNymID); // true == it was
+                                                             // removed. false
+                                                             // == it wasn't
+                                                             // found.
 
-EXPORT	OTMessage * GetSentMessage      (const OTTransaction & theTransaction); // null == not found. caller NOT responsible to delete.
-EXPORT	bool        RemoveSentMessage   (const OTTransaction & theTransaction); // true == it was removed. false == it wasn't found.
+    EXPORT OTMessage* GetSentMessage(
+        const OTTransaction& theTransaction); // null == not found. caller NOT
+                                              // responsible to delete.
+    EXPORT bool RemoveSentMessage(
+        const OTTransaction& theTransaction); // true == it was removed. false
+                                              // == it wasn't found.
 };
-
-
 
 } // namespace opentxs
 

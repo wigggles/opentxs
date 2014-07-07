@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTAcctFunctor.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -137,30 +137,29 @@
 #include "OTAssert.hpp"
 #include "OTIdentifier.hpp"
 
-
-namespace opentxs {
-
-OTAcctFunctor::OTAcctFunctor(const OTIdentifier & theServerID, mapOfAccounts * pLoadedAccounts/*=NULL*/)
- : m_pServerID(new OTIdentifier(theServerID)), // owned
-   m_pLoadedAccounts(pLoadedAccounts) // not owned
+namespace opentxs
 {
-        
-}
 
+OTAcctFunctor::OTAcctFunctor(const OTIdentifier& theServerID,
+                             mapOfAccounts* pLoadedAccounts /*=NULL*/)
+    : m_pServerID(new OTIdentifier(theServerID))
+    ,                                  // owned
+    m_pLoadedAccounts(pLoadedAccounts) // not owned
+{
+}
 
 OTAcctFunctor::~OTAcctFunctor()
 {
-    if (NULL != m_pServerID)
-        delete m_pServerID;
+    if (NULL != m_pServerID) delete m_pServerID;
     m_pServerID = NULL;
-    
+
     m_pLoadedAccounts = NULL; // not owned
 }
 
-
-bool OTAcctFunctor::Trigger(OTAccount &)
+bool OTAcctFunctor::Trigger(OTAccount&)
 {
-    OT_FAIL_MSG("OTAcctFunctor::Trigger: You need to override the Trigger method in your subclass. (It's missing.)");
+    OT_FAIL_MSG("OTAcctFunctor::Trigger: You need to override the Trigger "
+                "method in your subclass. (It's missing.)");
 }
 
 } // namespace opentxs

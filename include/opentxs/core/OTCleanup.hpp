@@ -133,38 +133,57 @@
 #ifndef __OT_CLEANUP_HPP__
 #define __OT_CLEANUP_HPP__
 
-
 // A simple class used for making sure that dynamically allocated objects
 // are deleted once the pointer goes out of scope.
 //
-// WARNING: This is ONE-USE ONLY! Don't try to re-use instances of this all over the place.
-// If you are dynamically allocating some new object you want cleaned up, then make a NEW
+// WARNING: This is ONE-USE ONLY! Don't try to re-use instances of this all over
+// the place.
+// If you are dynamically allocating some new object you want cleaned up, then
+// make a NEW
 // instance of OTCleanup for each one.
 //
-// For example, if you call SetCleanupTarget() on multiple objects, then only the LAST
+// For example, if you call SetCleanupTarget() on multiple objects, then only
+// the LAST
 // one will get cleaned up, and the others will leak!
 
-namespace opentxs {
+namespace opentxs
+{
 
 template <class T> class OTCleanup
 {
 private:
-	const T * m_pCharge;
+    const T* m_pCharge;
 
 public:
-	// Use this as much as you can.
-	inline void SetCleanupTarget(const T & theTarget) { m_pCharge = &theTarget; }
+    // Use this as much as you can.
+    inline void SetCleanupTarget(const T& theTarget)
+    {
+        m_pCharge = &theTarget;
+    }
 
-	// Use this when you want it to work even if pTarget is NULL.
-	// (Like, it will accept the NULL pointer, and just be smart
-	// enough NOT to delete it, since it's already NULL.)
-	inline void SetCleanupTargetPointer(const T * pTarget) { m_pCharge = pTarget; }
+    // Use this when you want it to work even if pTarget is NULL.
+    // (Like, it will accept the NULL pointer, and just be smart
+    // enough NOT to delete it, since it's already NULL.)
+    inline void SetCleanupTargetPointer(const T* pTarget)
+    {
+        m_pCharge = pTarget;
+    }
 
-	OTCleanup()                    : m_pCharge(NULL) { }
-	OTCleanup(const T & theTarget) : m_pCharge(&theTarget) {  }
-	OTCleanup(const T * pTarget)   : m_pCharge(pTarget) {  }
+    OTCleanup() : m_pCharge(NULL)
+    {
+    }
+    OTCleanup(const T& theTarget) : m_pCharge(&theTarget)
+    {
+    }
+    OTCleanup(const T* pTarget) : m_pCharge(pTarget)
+    {
+    }
 
-	~OTCleanup() { if (m_pCharge) delete const_cast<T *>(m_pCharge); m_pCharge = NULL; }
+    ~OTCleanup()
+    {
+        if (m_pCharge) delete const_cast<T*>(m_pCharge);
+        m_pCharge = NULL;
+    }
 };
 
 } // namespace opentxs

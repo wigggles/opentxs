@@ -1,14 +1,14 @@
 /************************************************************
- *    
+ *
  *  OTDigitalCash.hpp
- *  
+ *
  *  This header is for info shared between OTMint and OTToken.
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -111,10 +111,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -136,19 +136,18 @@
 
 #include "OTCommon.hpp"
 
-
 #ifdef OT_CASH_USING_LUCRE
-#include "lucre/bank.h"  // Lucre
+#include "lucre/bank.h" // Lucre
 #endif
 
 #ifdef OT_CASH_USING_MAGIC_MONEY
-#include ...  // someday
+#include... // someday
 #endif
-
 
 // WHICH DIGITAL CASH LIBRARY?
 //
-// Many algorithms may come available. We are currently using Lucre, by Ben Laurie,
+// Many algorithms may come available. We are currently using Lucre, by Ben
+// Laurie,
 // which is an implementation of Wagner, which is a variant of Chaum.
 //
 // We plan to have alternatives such as "Magic Money" by Pr0duct Cypher.
@@ -156,14 +155,15 @@
 // Implementations for Chaum and Brands are circulating online. They could all
 // be easily added here as options for Open-Transactions.
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 #ifdef OT_CASH_USING_LUCRE
 
 class _OT_Lucre_Dumper
 {
     std::string m_str_dumpfile;
+
 public:
     _OT_Lucre_Dumper();
     ~_OT_Lucre_Dumper();
@@ -171,14 +171,11 @@ public:
 
 #endif
 
-
 #ifdef OT_CASH_USING_MAGIC_MONEY
 
 // Todo:  Someday...
 
 #endif
-
-
 
 } // namespace opentxs
 

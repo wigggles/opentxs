@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTAsymmetricKeyOpenSSLPrivdp.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -140,211 +140,250 @@
 #include "OTPasswordData.hpp"
 #include "OTPayload.hpp"
 
-#if defined (OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
 #include "OpenSSL_BIO.hpp"
 #endif
 
 #include <stacktrace.h>
 
+namespace opentxs
+{
 
-namespace opentxs {
-
-#if defined (OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
 // low level
-void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509 * x509)
+void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509* x509)
 {
-    if (m_pX509 == x509)
-        return;
-    
-    if (NULL != m_pX509)
-    {
+    if (m_pX509 == x509) return;
+
+    if (NULL != m_pX509) {
         X509_free(m_pX509);
         m_pX509 = NULL;
     }
-    
+
     m_pX509 = x509;
 }
 
-
-void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(EVP_PKEY & theKey, bool bIsPrivateKey/*=false*/, OTPasswordData * pPWData/*=NULL*/, OTPassword * pImportPassword/*=NULL*/)
+void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
+    EVP_PKEY& theKey, bool bIsPrivateKey /*=false*/,
+    OTPasswordData* pPWData /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
 {
     backlink->Release();
-    OTPasswordData thePWData(NULL == pImportPassword ?
-                             "Enter your wallet's master passphrase. (OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf)" :
-                             "Enter your exported Nym's passphrase.  (OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf)");
+    OTPasswordData thePWData(NULL == pImportPassword
+                                 ? "Enter your wallet's master passphrase. "
+                                   "(OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf)"
+                                 : "Enter your exported Nym's passphrase.  "
+                                   "(OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf)");
 
-    //typedef
-    //int32_t OT_OPENSSL_CALLBACK (char *buf, int32_t size, int32_t rwflag, void *userdata);
+    // typedef
+    // int32_t OT_OPENSSL_CALLBACK (char *buf, int32_t size, int32_t rwflag,
+    // void *userdata);
     /*
     EVP_PKEY *  CopyPublicKey (EVP_PKEY & theKey);
     EVP_PKEY *  CopyPrivateKey(EVP_PKEY & theKey);
     */
-    m_pKey			= bIsPrivateKey ? OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPrivateKey(theKey, NULL == pPWData ? &thePWData : pPWData, pImportPassword)
-                                    : OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey (theKey, NULL == pPWData ? &thePWData : pPWData, pImportPassword);
-	OT_ASSERT_MSG(NULL != m_pKey, "OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf: ASSERT: NULL != m_pKey \n");
+    m_pKey =
+        bIsPrivateKey
+            ? OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+                  CopyPrivateKey(theKey, NULL == pPWData ? &thePWData : pPWData,
+                                 pImportPassword)
+            : OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+                  CopyPublicKey(theKey, NULL == pPWData ? &thePWData : pPWData,
+                                pImportPassword);
+    OT_ASSERT_MSG(
+        NULL != m_pKey,
+        "OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf: ASSERT: NULL != m_pKey \n");
 
-    backlink->m_bIsPublicKey	= !bIsPrivateKey;
-    backlink->m_bIsPrivateKey	=  bIsPrivateKey;
+    backlink->m_bIsPublicKey = !bIsPrivateKey;
+    backlink->m_bIsPrivateKey = bIsPrivateKey;
 
-    if (NULL == backlink->m_p_ascKey)
-    {
+    if (NULL == backlink->m_p_ascKey) {
         backlink->m_p_ascKey = new OTASCIIArmor;
         OT_ASSERT(NULL != backlink->m_p_ascKey);
     }
-    else
-    {
+    else {
         backlink->m_p_ascKey->Release();
     }
     // By this point, m_p_ascKey definitely exists, and it's empty.
 
     if (backlink->m_bIsPrivateKey)
-//        const bool bArmored = 
-            OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(*m_pKey, *backlink->m_p_ascKey, backlink->m_timer, NULL == pPWData ? &thePWData : pPWData, pImportPassword);
+        //        const bool bArmored =
+        OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
+            *m_pKey, *backlink->m_p_ascKey, backlink->m_timer,
+            NULL == pPWData ? &thePWData : pPWData, pImportPassword);
     // NOTE: Timer is already set INSIDE ArmorPrivateKey. No need to set twice.
-//      m_timer.start(); // Note: this isn't the ultimate timer solution. See notes in ReleaseKeyLowLevel.
+    //      m_timer.start(); // Note: this isn't the ultimate timer solution.
+    // See notes in ReleaseKeyLowLevel.
     else if (backlink->m_bIsPublicKey)
-//        const bool bArmored = 
-            OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(*m_pKey, *backlink->m_p_ascKey);
+        //        const bool bArmored =
+        OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
+            *m_pKey, *backlink->m_p_ascKey);
     else
-		otErr << __FUNCTION__ << ": Error: This key is NEITHER public NOR private!\n";
+        otErr << __FUNCTION__
+              << ": Error: This key is NEITHER public NOR private!\n";
 }
 
-
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKeyLowLevel()
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+    GetKeyLowLevel()
 {
     return m_pKey;
 }
 
-
-const EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(OTPasswordData * pPWData/*=NULL*/)
+const EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(
+    OTPasswordData* pPWData /*=NULL*/)
 {
-    OT_ASSERT_MSG(NULL != backlink->m_p_ascKey, "OTAsymmetricKey_OpenSSL::GetKey: NULL != m_p_ascKey\n");
-    
-    if (NULL == backlink->m_p_ascKey)
-    {
-		otErr << __FUNCTION__ << ": Unexpected NULL m_p_ascKey. Printing stack trace (and returning NULL):\n";
+    OT_ASSERT_MSG(NULL != backlink->m_p_ascKey,
+                  "OTAsymmetricKey_OpenSSL::GetKey: NULL != m_p_ascKey\n");
+
+    if (NULL == backlink->m_p_ascKey) {
+        otErr << __FUNCTION__ << ": Unexpected NULL m_p_ascKey. Printing stack "
+                                 "trace (and returning NULL):\n";
         print_stacktrace();
         return NULL;
     }
 
-    
     if (backlink->m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
-        backlink->ReleaseKeyLowLevel();   // This releases the actual loaded key, but not the ascii-armored, encrypted version of it.
-                                // (Thus forcing a reload, and thus forcing the passphrase to be entered again.)
+        backlink->ReleaseKeyLowLevel(); // This releases the actual loaded key,
+                                        // but not the ascii-armored, encrypted
+                                        // version of it.
+    // (Thus forcing a reload, and thus forcing the passphrase to be entered
+    // again.)
 
     if (NULL == m_pKey)
-        return InstantiateKey(pPWData);  // this is the ONLY place, currently, that this private method is called.
-    
-	return m_pKey;
+        return InstantiateKey(pPWData); // this is the ONLY place, currently,
+                                        // that this private method is called.
+
+    return m_pKey;
 }
 
-
 // Low-level / private
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::InstantiateKey(OTPasswordData * pPWData/*=NULL*/)
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+    InstantiateKey(OTPasswordData* pPWData /*=NULL*/)
 {
     if (backlink->IsPublic())
-        return InstantiatePublicKey(pPWData);  // this is the ONLY place, currently, that this private method is called.
-    
+        return InstantiatePublicKey(pPWData); // this is the ONLY place,
+                                              // currently, that this private
+                                              // method is called.
+
     else if (backlink->IsPrivate())
-        return InstantiatePrivateKey(pPWData); // this is the ONLY place, currently, that this private method is called.
-    
+        return InstantiatePrivateKey(pPWData); // this is the ONLY place,
+                                               // currently, that this private
+                                               // method is called.
+
     else
-        otErr << "OTAsymmetricKey_OpenSSL::InstantiateKey: Error: Key is neither public nor private!\n";
-    
+        otErr << "OTAsymmetricKey_OpenSSL::InstantiateKey: Error: Key is "
+                 "neither public nor private!\n";
+
     return NULL;
 }
 
-
-//static      // CALLER must EVP_pkey_free!
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(EVP_PKEY & theKey, OTPasswordData * pPWData/*=NULL*/, OTPassword * pImportPassword/*=NULL*/)
+// static      // CALLER must EVP_pkey_free!
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
+    EVP_PKEY& theKey, OTPasswordData* pPWData /*=NULL*/,
+    OTPassword* pImportPassword /*=NULL*/)
 {
 
-	// Create a new memory buffer on the OpenSSL side
-	OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
-	OT_ASSERT_MSG(NULL != bmem, "OTAsymmetricKey_OpenSSL::CopyPublicKey: ASSERT: NULL != bmem");
-    
-    EVP_PKEY * pReturnKey = NULL;
+    // Create a new memory buffer on the OpenSSL side
+    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    OT_ASSERT_MSG(
+        NULL != bmem,
+        "OTAsymmetricKey_OpenSSL::CopyPublicKey: ASSERT: NULL != bmem");
 
-	// write a public key to that buffer, from theKey (parameter.)
+    EVP_PKEY* pReturnKey = NULL;
+
+    // write a public key to that buffer, from theKey (parameter.)
     //
-	int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
-	
-	if (0 == nWriteBio)
-	{
-		otErr << __FUNCTION__ << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
-	}
-	else 
-	{
-		otLog5 << __FUNCTION__ << ": Success writing EVP_PKEY to memory buffer.\n";
-		
-		char * pChar = NULL;
-		
-		// After the below call, pChar will point to the memory buffer where the public key
+    int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
+
+    if (0 == nWriteBio) {
+        otErr << __FUNCTION__
+              << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
+    }
+    else {
+        otLog5 << __FUNCTION__
+               << ": Success writing EVP_PKEY to memory buffer.\n";
+
+        char* pChar = NULL;
+
+        // After the below call, pChar will point to the memory buffer where the
+        // public key
         // supposedly is, and lSize will contain the size of that memory.
         //
-		const int64_t      lSize = BIO_get_mem_data(bmem, &pChar);
-        const uint32_t  nSize = static_cast<uint32_t>(lSize);
-        
-        if (nSize > 0)
-        {
+        const int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        const uint32_t nSize = static_cast<uint32_t>(lSize);
+
+        if (nSize > 0) {
             OTPayload theData;
 
             // Set the buffer size in our own memory.
             theData.SetPayloadSize(nSize);
-            
-            void * pv = 
-               OTPassword::safe_memcpy((static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer()))), // destination
-                                    theData.GetSize(),    // size of destination buffer.
-                                    pChar,                // source
-                                    nSize);               // length of source.
-            // bool bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
 
-            if (NULL != pv)
-            {
+            void* pv = OTPassword::safe_memcpy(
+                (static_cast<char*>(const_cast<void*>(
+                    theData.GetPayloadPointer()))), // destination
+                theData.GetSize(), // size of destination buffer.
+                pChar,             // source
+                nSize);            // length of source.
+            // bool bZeroSource=false); // if true, sets the source buffer to
+            // zero after copying is done.
+
+            if (NULL != pv) {
 
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio	= BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())), 
-                                              theData.GetSize());
-                OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::CopyPublicKey: Assert: NULL != keyBio \n");
+                OpenSSL_BIO keyBio =
+                    BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(
+                                        theData.GetPayloadPointer())),
+                                    theData.GetSize());
+                OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::"
+                                              "CopyPublicKey: Assert: NULL != "
+                                              "keyBio \n");
 
-                // Next we load up the key from the BIO string into an instantiated key object.
+                // Next we load up the key from the BIO string into an
+                // instantiated key object.
                 //
-                OTPasswordData thePWData(NULL == pImportPassword ?
-                                         "Enter your wallet master passphrase. (OTAsymmetricKey_OpenSSL::CopyPublicKey is calling PEM_read_bio_PUBKEY...)" :
-                                         "Enter the passphrase for your exported Nym.");
-                
+                OTPasswordData thePWData(
+                    NULL == pImportPassword
+                        ? "Enter your wallet master passphrase. "
+                          "(OTAsymmetricKey_OpenSSL::CopyPublicKey is calling "
+                          "PEM_read_bio_PUBKEY...)"
+                        : "Enter the passphrase for your exported Nym.");
+
                 if (NULL == pImportPassword)
-                    pReturnKey = PEM_read_bio_PUBKEY(keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), NULL == pPWData ? &thePWData : pPWData);
+                    pReturnKey = PEM_read_bio_PUBKEY(
+                        keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(),
+                        NULL == pPWData ? &thePWData : pPWData);
                 else
-                    pReturnKey = PEM_read_bio_PUBKEY(keyBio, NULL, 0, pImportPassword);
+                    pReturnKey =
+                        PEM_read_bio_PUBKEY(keyBio, NULL, 0, pImportPassword);
 
                 // We don't need the BIO anymore.
-                // Free the BIO and related buffers, filters, etc. (auto with scope).
+                // Free the BIO and related buffers, filters, etc. (auto with
+                // scope).
                 //
             }
-            else 
-                otErr << __FUNCTION__ << ": Error: Failed copying memory from BIO into OTPayload.\n";
+            else
+                otErr << __FUNCTION__ << ": Error: Failed copying memory from "
+                                         "BIO into OTPayload.\n";
 
         }
-        else 
-		{
-			otErr << __FUNCTION__ << ": Failed copying private key into memory.\n";
-		}
+        else {
+            otErr << __FUNCTION__
+                  << ": Failed copying private key into memory.\n";
+        }
     }
 
     return pReturnKey;
 }
 
-
-// NOTE: OpenSSL will store the EVP_PKEY inside the X509, and when I get it, 
+// NOTE: OpenSSL will store the EVP_PKEY inside the X509, and when I get it,
 // I'm not supposed to destroy the x509 until I destroy the EVP_PKEY FIRST!
 // (AND it reference-counts.)
 // Since I want ability to destroy the two, independent of each other, I made
 // static functions here for copying public and private keys, so I am ALWAYS
-// working with MY OWN copy of any given key, and not OpenSSL's reference-counted
+// working with MY OWN copy of any given key, and not OpenSSL's
+// reference-counted
 // one.
 //
 // Furthermore, BIO_mem_buf doesn't allocate its own memory, but uses the memory
@@ -355,379 +394,447 @@ EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey
 // OTPayload, which is safer, and more appropriate for a private key. Make sure
 // OTPassword can accommodate a bit larger size than what it does now.
 //
-//static      // CALLER must EVP_pkey_free!
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPrivateKey(EVP_PKEY & theKey, OTPasswordData * pPWData/*=NULL*/, OTPassword * pImportPassword/*=NULL*/)
+// static      // CALLER must EVP_pkey_free!
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+    CopyPrivateKey(EVP_PKEY& theKey, OTPasswordData* pPWData /*=NULL*/,
+                   OTPassword* pImportPassword /*=NULL*/)
 {
-    const EVP_CIPHER * pCipher = EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
+    const EVP_CIPHER* pCipher =
+        EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
 
-	// Create a new memory buffer on the OpenSSL side
-	OpenSSL_BIO bmem = BIO_new(BIO_s_mem());    
-	OT_ASSERT(NULL != bmem);
-    
-    EVP_PKEY * pReturnKey = NULL;
+    // Create a new memory buffer on the OpenSSL side
+    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    OT_ASSERT(NULL != bmem);
 
-	// write a private key to that buffer, from theKey
+    EVP_PKEY* pReturnKey = NULL;
+
+    // write a private key to that buffer, from theKey
     //
-    OTPasswordData thePWDataWrite("OTAsymmetricKey_OpenSSL::CopyPrivateKey is calling PEM_write_bio_PrivateKey...");
-    
-    // todo optimization: might just remove the password callback here, and just write the private key in the clear,
-    // and then load it up again, saving the encrypt/decrypt step that otherwise occurs, and then as long as we OpenSSL_cleanse
+    OTPasswordData thePWDataWrite("OTAsymmetricKey_OpenSSL::CopyPrivateKey is "
+                                  "calling PEM_write_bio_PrivateKey...");
+
+    // todo optimization: might just remove the password callback here, and just
+    // write the private key in the clear,
+    // and then load it up again, saving the encrypt/decrypt step that otherwise
+    // occurs, and then as long as we OpenSSL_cleanse
     // the BIO, then it SHOULD stil be safe, right?
     //
     int32_t nWriteBio = false;
-    
-    if (NULL == pImportPassword)
-        nWriteBio = PEM_write_bio_PrivateKey(bmem, &theKey, pCipher,
-                                             NULL, 0, OTAsymmetricKey::GetPasswordCallback(), NULL == pPWData ? &thePWDataWrite : pPWData);
-    else
-        nWriteBio = PEM_write_bio_PrivateKey(bmem, &theKey, pCipher,
-                                             NULL, 0, 0, const_cast<void*>(reinterpret_cast<const void*>(pImportPassword->getPassword())));
 
-	if (0 == nWriteBio)
-	{
-		otErr << __FUNCTION__ << ": Failed writing EVP_PKEY to memory buffer.\n";
-	}
-	else 
-	{
-		otLog5 << __FUNCTION__ << ": Success writing EVP_PKEY to memory buffer.\n";
-		
-		char * pChar = NULL;
-		
-		// After the below call, pChar will point to the memory buffer where the private key supposedly is,
-		// and lSize will contain the size of that memory.
+    if (NULL == pImportPassword)
+        nWriteBio = PEM_write_bio_PrivateKey(
+            bmem, &theKey, pCipher, NULL, 0,
+            OTAsymmetricKey::GetPasswordCallback(),
+            NULL == pPWData ? &thePWDataWrite : pPWData);
+    else
+        nWriteBio = PEM_write_bio_PrivateKey(
+            bmem, &theKey, pCipher, NULL, 0, 0,
+            const_cast<void*>(
+                reinterpret_cast<const void*>(pImportPassword->getPassword())));
+
+    if (0 == nWriteBio) {
+        otErr << __FUNCTION__
+              << ": Failed writing EVP_PKEY to memory buffer.\n";
+    }
+    else {
+        otLog5 << __FUNCTION__
+               << ": Success writing EVP_PKEY to memory buffer.\n";
+
+        char* pChar = NULL;
+
+        // After the below call, pChar will point to the memory buffer where the
+        // private key supposedly is,
+        // and lSize will contain the size of that memory.
         //
-        const int64_t      lSize = BIO_get_mem_data(bmem, &pChar);
-        const uint32_t  nSize = static_cast<uint32_t>(lSize);
-        
-        if (nSize > 0)
-        {
+        const int64_t lSize = BIO_get_mem_data(bmem, &pChar);
+        const uint32_t nSize = static_cast<uint32_t>(lSize);
+
+        if (nSize > 0) {
             OTPayload theData;
-            
+
             // Set the buffer size in our own memory.
             theData.SetPayloadSize(nSize);
-            
-            void * pv = 
-               OTPassword::safe_memcpy((static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer()))), // destination
-                                       theData.GetSize(),    // size of destination buffer.
-                                       pChar,                // source
-                                       nSize);               // length of source.
-            // bool bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-            
-            if (NULL != pv)
-            {
+
+            void* pv = OTPassword::safe_memcpy(
+                (static_cast<char*>(const_cast<void*>(
+                    theData.GetPayloadPointer()))), // destination
+                theData.GetSize(), // size of destination buffer.
+                pChar,             // source
+                nSize);            // length of source.
+            // bool bZeroSource=false); // if true, sets the source buffer to
+            // zero after copying is done.
+
+            if (NULL != pv) {
 
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio	= BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())), 
-                                              theData.GetSize());
-                OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::CopyPrivateKey: Assert: NULL != keyBio \n");
+                OpenSSL_BIO keyBio =
+                    BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(
+                                        theData.GetPayloadPointer())),
+                                    theData.GetSize());
+                OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::"
+                                              "CopyPrivateKey: Assert: NULL != "
+                                              "keyBio \n");
 
-                // Next we load up the key from the BIO string into an instantiated key object.
+                // Next we load up the key from the BIO string into an
+                // instantiated key object.
                 //
-                OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::CopyPrivateKey is calling PEM_read_bio_PUBKEY...");
-                
+                OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::"
+                                         "CopyPrivateKey is calling "
+                                         "PEM_read_bio_PUBKEY...");
+
                 if (NULL == pImportPassword)
-                    pReturnKey = PEM_read_bio_PrivateKey( keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), NULL == pPWData ? &thePWData : pPWData);
+                    pReturnKey = PEM_read_bio_PrivateKey(
+                        keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(),
+                        NULL == pPWData ? &thePWData : pPWData);
                 else
-                    pReturnKey = PEM_read_bio_PrivateKey( keyBio, NULL, 0, const_cast<void*>(reinterpret_cast<const void*>(pImportPassword->getPassword())));
+                    pReturnKey = PEM_read_bio_PrivateKey(
+                        keyBio, NULL, 0,
+                        const_cast<void*>(reinterpret_cast<const void*>(
+                            pImportPassword->getPassword())));
 
             }
-            else 
-				otErr << __FUNCTION__ << ": Error: Failed copying memory from BIO into OTPayload.\n";
+            else
+                otErr << __FUNCTION__ << ": Error: Failed copying memory from "
+                                         "BIO into OTPayload.\n";
 
         }
-		else 
-		{
-			otErr << __FUNCTION__ << ": Failed copying private key into memory.\n";
-		}
-	}
+        else {
+            otErr << __FUNCTION__
+                  << ": Failed copying private key into memory.\n";
+        }
+    }
 
-	return pReturnKey;	
+    return pReturnKey;
 }
-
 
 // Take a public key, theKey (input), and create an armored version of
 // it into ascKey (output.)
 //
 // OpenSSL loaded key ===> ASCII-Armored export of same key.
 //
-//static
+// static
 //
-bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(EVP_PKEY & theKey, OTASCIIArmor & ascKey)
+bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
+    EVP_PKEY& theKey, OTASCIIArmor& ascKey)
 {
-	bool bReturnVal = false;
-    
-    const char * szFunc = "OTAsymmetricKey_OpenSSL::ArmorPublicKey";
-    
+    bool bReturnVal = false;
+
+    const char* szFunc = "OTAsymmetricKey_OpenSSL::ArmorPublicKey";
+
     ascKey.Release();
 
-	// Create a new memory buffer on the OpenSSL side
-	OpenSSL_BIO bmem = BIO_new(BIO_s_mem());    
-	OT_ASSERT_MSG(NULL != bmem, "OTAsymmetricKey_OpenSSL::ArmorPublicKey: ASSERT: NULL != bmem");
-    
+    // Create a new memory buffer on the OpenSSL side
+    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    OT_ASSERT_MSG(
+        NULL != bmem,
+        "OTAsymmetricKey_OpenSSL::ArmorPublicKey: ASSERT: NULL != bmem");
+
     int64_t lSize = 0;
 
-	// write a public key to that buffer, from theKey (parameter.)
+    // write a public key to that buffer, from theKey (parameter.)
     //
-	int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
-	
-	if (0 == nWriteBio)
-	{
-		otErr << szFunc << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
-	}
-	else 
-	{
-		otLog5 << szFunc << ": Success writing EVP_PKEY to memory buffer.\n";
-		
-		OTPayload theData;
-		char * pChar = NULL;
-		
-		// After the below call, pChar will point to the memory buffer where the public key
+    int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
+
+    if (0 == nWriteBio) {
+        otErr << szFunc
+              << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
+    }
+    else {
+        otLog5 << szFunc << ": Success writing EVP_PKEY to memory buffer.\n";
+
+        OTPayload theData;
+        char* pChar = NULL;
+
+        // After the below call, pChar will point to the memory buffer where the
+        // public key
         // supposedly is, and lSize will contain the size of that memory.
         //
-		lSize = BIO_get_mem_data(bmem, &pChar);
-		uint32_t  nSize = static_cast<uint32_t>(lSize); // todo security, etc. Fix this assumed type conversion.
-		
-		if (nSize > 0)
-		{
-			// Set the buffer size in our own memory.
-			theData.SetPayloadSize(nSize);
-            
-//            void * pv = 
-                OTPassword::safe_memcpy((static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer()))), // destination
-                                    theData.GetSize(),    // size of destination buffer.
-                                    pChar,                // source
-                                    nSize);               // length of source.
-                                    // bool bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-            
+        lSize = BIO_get_mem_data(bmem, &pChar);
+        uint32_t nSize = static_cast<uint32_t>(
+            lSize); // todo security, etc. Fix this assumed type conversion.
 
-			// This base64 encodes the public key data
+        if (nSize > 0) {
+            // Set the buffer size in our own memory.
+            theData.SetPayloadSize(nSize);
+
+            //            void * pv =
+            OTPassword::safe_memcpy(
+                (static_cast<char*>(const_cast<void*>(
+                    theData.GetPayloadPointer()))), // destination
+                theData.GetSize(), // size of destination buffer.
+                pChar,             // source
+                nSize);            // length of source.
+            // bool bZeroSource=false); // if true, sets the source buffer to
+            // zero after copying is done.
+
+            // This base64 encodes the public key data
             //
-			ascKey.SetData(theData);
-			
-			otLog5 << szFunc << ": Success copying public key into memory.\n";
-			bReturnVal = true;
-		}
-		else 
-		{
-			otErr << szFunc << ": Failed copying public key into memory.\n";
-		}
-	}
-    
-	return bReturnVal;	
-}
+            ascKey.SetData(theData);
 
+            otLog5 << szFunc << ": Success copying public key into memory.\n";
+            bReturnVal = true;
+        }
+        else {
+            otErr << szFunc << ": Failed copying public key into memory.\n";
+        }
+    }
+
+    return bReturnVal;
+}
 
 // Low-level
 //
 // (Internal) ASCII-Armored key ====> (Internal) Actual loaded OpenSSL key.
 //
 //
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::InstantiatePublicKey(OTPasswordData * pPWData/*=NULL*/)
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+    InstantiatePublicKey(OTPasswordData* pPWData /*=NULL*/)
 {
-    OT_ASSERT(m_pKey     == NULL);
+    OT_ASSERT(m_pKey == NULL);
     OT_ASSERT(backlink->m_p_ascKey != NULL);
     OT_ASSERT(backlink->IsPublic());
-    
-    const char * szFunc = "OTAsymmetricKey_OpenSSL::InstantiatePublicKey";
 
-    EVP_PKEY * pReturnKey = NULL;
-    OTPayload  theData;
+    const char* szFunc = "OTAsymmetricKey_OpenSSL::InstantiatePublicKey";
+
+    EVP_PKEY* pReturnKey = NULL;
+    OTPayload theData;
 
     // This base64 decodes the string m_p_ascKey into the
     // binary payload object "theData"
     //
     backlink->m_p_ascKey->GetData(theData);
-    
-    if (theData.GetSize() > 0)
-    {
+
+    if (theData.GetSize() > 0) {
 
         // Next, copy theData's contents into a new BIO_mem_buf,
         // so OpenSSL can load the key out of it.
         //
-        OpenSSL_BIO keyBio	= BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())), 
-                                      theData.GetSize());
-        OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::InstantiatePublicKey: Assert: NULL != keyBio \n");
+        OpenSSL_BIO keyBio = BIO_new_mem_buf(
+            static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
+            theData.GetSize());
+        OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::"
+                                      "InstantiatePublicKey: Assert: NULL != "
+                                      "keyBio \n");
 
-        // Next we load up the key from the BIO string into an instantiated key object.
+        // Next we load up the key from the BIO string into an instantiated key
+        // object.
         //
-        OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::InstantiatePublicKey is calling PEM_read_bio_PUBKEY...");
-        
-        if (NULL == pPWData)
-            pPWData = &thePWData;
-        
-        pReturnKey = PEM_read_bio_PUBKEY(keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+        OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::"
+                                 "InstantiatePublicKey is calling "
+                                 "PEM_read_bio_PUBKEY...");
 
+        if (NULL == pPWData) pPWData = &thePWData;
 
+        pReturnKey = PEM_read_bio_PUBKEY(
+            keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), pPWData);
 
-        backlink->ReleaseKeyLowLevel(); // Release whatever loaded key I might have already had.
-        
-        if (NULL != pReturnKey)
-        {
+        backlink->ReleaseKeyLowLevel(); // Release whatever loaded key I might
+                                        // have already had.
+
+        if (NULL != pReturnKey) {
             m_pKey = pReturnKey;
-			otLog4 << szFunc << ": Success reading public key from ASCII-armored data:\n\n" << backlink->m_p_ascKey->Get() << "\n\n";
+            otLog4
+                << szFunc
+                << ": Success reading public key from ASCII-armored data:\n\n"
+                << backlink->m_p_ascKey->Get() << "\n\n";
             return m_pKey;
         }
     }
-    
-	otErr << szFunc << ": Failed reading public key from ASCII-armored data:\n\n" << backlink->m_p_ascKey->Get() << "\n\n";
+
+    otErr << szFunc
+          << ": Failed reading public key from ASCII-armored data:\n\n"
+          << backlink->m_p_ascKey->Get() << "\n\n";
     return NULL;
 }
 
-
-EVP_PKEY * OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::InstantiatePrivateKey(OTPasswordData * pPWData/*=NULL*/)
+EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
+    InstantiatePrivateKey(OTPasswordData* pPWData /*=NULL*/)
 {
-    OT_ASSERT(m_pKey     == NULL);
+    OT_ASSERT(m_pKey == NULL);
     OT_ASSERT(backlink->m_p_ascKey != NULL);
     OT_ASSERT(backlink->IsPrivate());
 
-	EVP_PKEY * pReturnKey = NULL;
-	OTPayload theData;  // after base64-decoding the ascii-armored string, the (encrypted) binary will be stored here.
-	// --------------------------------------	
-	// This line base64 decodes the ascii-armored string into binary object theData...
+    EVP_PKEY* pReturnKey = NULL;
+    OTPayload theData; // after base64-decoding the ascii-armored string, the
+                       // (encrypted) binary will be stored here.
+    // --------------------------------------
+    // This line base64 decodes the ascii-armored string into binary object
+    // theData...
     //
-    backlink->m_p_ascKey->GetData(theData); // theData now contains binary data, the encrypted private key itself, no longer in text-armoring.
+    backlink->m_p_ascKey->GetData(theData); // theData now contains binary data,
+                                            // the encrypted private key itself,
+                                            // no longer in text-armoring.
     //
-    // Note, for future optimization: the ASCII-ARMORING could be used for serialization, but the BIO (still encrypted)
-    // could be used in RAM for this object. Otherwise you just have to do the extra step of ascii-decoding it first to get
-    // the BIO, before being able to instantiate the key itself from that. That final step can't change, but I can remove
-    // the step before it, in most cases, by just storing the BIO itself, instead of the ascii-armored string. Or perhaps
+    // Note, for future optimization: the ASCII-ARMORING could be used for
+    // serialization, but the BIO (still encrypted)
+    // could be used in RAM for this object. Otherwise you just have to do the
+    // extra step of ascii-decoding it first to get
+    // the BIO, before being able to instantiate the key itself from that. That
+    // final step can't change, but I can remove
+    // the step before it, in most cases, by just storing the BIO itself,
+    // instead of the ascii-armored string. Or perhaps
     // make them both available...hm.
 
     // Copy the encrypted binary private key data into an OpenSSL memory BIO...
     //
-    if (theData.GetSize() > 0)
-    {
-        OpenSSL_BIO keyBio = BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())), 
-                                       theData.GetSize()); // theData will zeroMemory upon destruction.
-        OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::InstantiatePrivateKey: Assert: NULL != keyBio \n");
+    if (theData.GetSize() > 0) {
+        OpenSSL_BIO keyBio = BIO_new_mem_buf(
+            static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
+            theData.GetSize()); // theData will zeroMemory upon destruction.
+        OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::"
+                                      "InstantiatePrivateKey: Assert: NULL != "
+                                      "keyBio \n");
 
         // Here's thePWData we use if we didn't have anything else:
         //
-        OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::InstantiatePrivateKey is calling PEM_read_bio_PrivateKey...");
+        OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::"
+                                 "InstantiatePrivateKey is calling "
+                                 "PEM_read_bio_PrivateKey...");
 
-        if (NULL == pPWData)
-            pPWData = &thePWData;
-        
-        pReturnKey = PEM_read_bio_PrivateKey( keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), pPWData );
-        
+        if (NULL == pPWData) pPWData = &thePWData;
+
+        pReturnKey = PEM_read_bio_PrivateKey(
+            keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+
         // Free the BIO and related buffers, filters, etc.
         backlink->ReleaseKeyLowLevel();
 
-        if (NULL != pReturnKey)
-        {
+        if (NULL != pReturnKey) {
             m_pKey = pReturnKey;
             // TODO (remove theTimer entirely. OTCachedKey replaces already.)
-            // I set this timer because the above required a password. But now that master key is working,
-            // the above would flow through even WITHOUT the user typing his passphrase (since master key still
-            // not timed out.) Resulting in THIS timer being reset!  Todo: I already shortened this timer to 30
-            // seconds, but need to phase it down to 0 and then remove it entirely! Master key takes over now!
+            // I set this timer because the above required a password. But now
+            // that master key is working,
+            // the above would flow through even WITHOUT the user typing his
+            // passphrase (since master key still
+            // not timed out.) Resulting in THIS timer being reset!  Todo: I
+            // already shortened this timer to 30
+            // seconds, but need to phase it down to 0 and then remove it
+            // entirely! Master key takes over now!
             //
 
-            backlink->m_timer.start();  // Note: this isn't the ultimate timer solution. See notes in ReleaseKeyLowLevel.
-			otLog4 << __FUNCTION__ << ": Success reading private key from ASCII-armored data.\n\n";
-//          otLog4 << __FUNCTION__ << ": Success reading private key from ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
+            backlink->m_timer.start(); // Note: this isn't the ultimate timer
+                                       // solution. See notes in
+                                       // ReleaseKeyLowLevel.
+            otLog4
+                << __FUNCTION__
+                << ": Success reading private key from ASCII-armored data.\n\n";
+            //          otLog4 << __FUNCTION__ << ": Success reading private key
+            // from ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
             return m_pKey;
         }
     }
-	otErr << __FUNCTION__ << ": Failed reading private key from ASCII-armored data.\n\n";
-//  otErr << __FUNCTION__ << ": Failed reading private key from ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
+    otErr << __FUNCTION__
+          << ": Failed reading private key from ASCII-armored data.\n\n";
+    //  otErr << __FUNCTION__ << ": Failed reading private key from
+    // ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
     return NULL;
 }
-                                            
 
-//static
-bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(EVP_PKEY & theKey, OTASCIIArmor & ascKey, Timer & theTimer, OTPasswordData * pPWData/*=NULL*/, OTPassword * pImportPassword/*=NULL*/)
+// static
+bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
+    EVP_PKEY& theKey, OTASCIIArmor& ascKey, Timer& theTimer,
+    OTPasswordData* pPWData /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
 {
-	bool bReturnVal = false;
-    
+    bool bReturnVal = false;
+
     ascKey.Release();
 
-	// Create a new memory buffer on the OpenSSL side
-	OpenSSL_BIO bmem = BIO_new(BIO_s_mem());    
-	OT_ASSERT(NULL != bmem);
-    
+    // Create a new memory buffer on the OpenSSL side
+    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    OT_ASSERT(NULL != bmem);
+
     int64_t lSize = 0;
 
-	// write a private key to that buffer, from theKey
+    // write a private key to that buffer, from theKey
     //
-    OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::ArmorPrivateKey is calling PEM_write_bio_PrivateKey...");
+    OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::ArmorPrivateKey is "
+                             "calling PEM_write_bio_PrivateKey...");
 
-    if (NULL == pPWData)
-        pPWData = &thePWData;
-    
+    if (NULL == pPWData) pPWData = &thePWData;
+
     int32_t nWriteBio = 0;
 
     if (NULL == pImportPassword)
-        nWriteBio = PEM_write_bio_PrivateKey(bmem, &theKey, EVP_des_ede3_cbc(), // todo should this algorithm be hardcoded?
-                                             NULL, 0, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+        nWriteBio = PEM_write_bio_PrivateKey(
+            bmem, &theKey,
+            EVP_des_ede3_cbc(), // todo should this algorithm be hardcoded?
+            NULL, 0, OTAsymmetricKey::GetPasswordCallback(), pPWData);
     else
-        nWriteBio = PEM_write_bio_PrivateKey(bmem, &theKey, EVP_des_ede3_cbc(), // todo should this algorithm be hardcoded?
-                                             NULL, 0, 0, const_cast<void*>(reinterpret_cast<const void*>(pImportPassword->getPassword())));
-	
-	if (0 == nWriteBio)
-	{
-		otErr << __FUNCTION__ << ": Failed writing EVP_PKEY to memory buffer.\n";
-	}
-	else 
-	{
+        nWriteBio = PEM_write_bio_PrivateKey(
+            bmem, &theKey,
+            EVP_des_ede3_cbc(), // todo should this algorithm be hardcoded?
+            NULL, 0, 0, const_cast<void*>(reinterpret_cast<const void*>(
+                            pImportPassword->getPassword())));
+
+    if (0 == nWriteBio) {
+        otErr << __FUNCTION__
+              << ": Failed writing EVP_PKEY to memory buffer.\n";
+    }
+    else {
         // TODO (remove theTimer entirely. OTCachedKey replaces already.)
-        // I set this timer because the above required a password. But now that master key is working,
-        // the above would flow through even WITHOUT the user typing his passphrase (since master key still
-        // not timed out.) Resulting in THIS timer being reset!  Todo: I already shortened this timer to 30
-        // seconds, but need to phase it down to 0 and then remove it entirely! Master key takes over now!
+        // I set this timer because the above required a password. But now that
+        // master key is working,
+        // the above would flow through even WITHOUT the user typing his
+        // passphrase (since master key still
+        // not timed out.) Resulting in THIS timer being reset!  Todo: I already
+        // shortened this timer to 30
+        // seconds, but need to phase it down to 0 and then remove it entirely!
+        // Master key takes over now!
         //
 
-        theTimer.start(); // Note: this isn't the ultimate timer solution. See notes in ReleaseKeyLowLevel.
+        theTimer.start(); // Note: this isn't the ultimate timer solution. See
+                          // notes in ReleaseKeyLowLevel.
 
-		otLog5 << __FUNCTION__ << ": Success writing EVP_PKEY to memory buffer.\n";
-		
-		OTPayload theData;
-		char * pChar = NULL;
-		
-		// After the below call, pChar will point to the memory buffer where the private key supposedly is,
-		// and lSize will contain the size of that memory.
+        otLog5 << __FUNCTION__
+               << ": Success writing EVP_PKEY to memory buffer.\n";
+
+        OTPayload theData;
+        char* pChar = NULL;
+
+        // After the below call, pChar will point to the memory buffer where the
+        // private key supposedly is,
+        // and lSize will contain the size of that memory.
         //
-		lSize = BIO_get_mem_data(bmem, &pChar);
-		uint32_t  nSize = static_cast<uint32_t>(lSize);
-		
-		if (nSize > 0)
-		{
-			// Set the buffer size in our own memory.
-			theData.SetPayloadSize(nSize);
-            
-//            void * pv = 
-                OTPassword::safe_memcpy((static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer()))), // destination
-                                    theData.GetSize(),    // size of destination buffer.
-                                    pChar,                // source
-                                    nSize);               // length of source.
-            // bool bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-            
+        lSize = BIO_get_mem_data(bmem, &pChar);
+        uint32_t nSize = static_cast<uint32_t>(lSize);
 
-			// This base64 encodes the private key data, which
+        if (nSize > 0) {
+            // Set the buffer size in our own memory.
+            theData.SetPayloadSize(nSize);
+
+            //            void * pv =
+            OTPassword::safe_memcpy(
+                (static_cast<char*>(const_cast<void*>(
+                    theData.GetPayloadPointer()))), // destination
+                theData.GetSize(), // size of destination buffer.
+                pChar,             // source
+                nSize);            // length of source.
+            // bool bZeroSource=false); // if true, sets the source buffer to
+            // zero after copying is done.
+
+            // This base64 encodes the private key data, which
             // is already encrypted to its passphase as well.
             //
-			ascKey.SetData(theData);
-			
-			otLog5 << __FUNCTION__ << ": Success copying private key into memory.\n";
-			bReturnVal = true;
-		}
-		else 
-		{
-			otErr << __FUNCTION__ << ": Failed copying private key into memory.\n";
-		}
-	}
-	
-	return bReturnVal;	
+            ascKey.SetData(theData);
+
+            otLog5 << __FUNCTION__
+                   << ": Success copying private key into memory.\n";
+            bReturnVal = true;
+        }
+        else {
+            otErr << __FUNCTION__
+                  << ": Failed copying private key into memory.\n";
+        }
+    }
+
+    return bReturnVal;
 }
 
-
-#elif defined (OT_CRYPTO_USING_GPG)
-
+#elif defined(OT_CRYPTO_USING_GPG)
 
 #else
-
 
 #endif
 } // namespace opentxs

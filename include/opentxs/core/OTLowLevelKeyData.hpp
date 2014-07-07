@@ -135,23 +135,29 @@
 
 #include "OTCommon.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTCaller;
 class OTKeypair;
 
-
 // Todo:
-// 1. Add this value to the config file so it becomes merely a default value here.
+// 1. Add this value to the config file so it becomes merely a default value
+// here.
 // 2. This timer solution isn't the full solution but only a stopgap measure.
 //    See notes in ReleaseKeyLowLevel for more -- ultimate solution will involve
-//    the callback itself, and some kind of encrypted storage of hashed passwords,
-//    using session keys, as well as an option to use ssh-agent and other standard
+//    the callback itself, and some kind of encrypted storage of hashed
+// passwords,
+//    using session keys, as well as an option to use ssh-agent and other
+// standard
 //    APIs for protected memory.
 //
-// UPDATE: Am in the process now of adding the actual Master key. Therefore OT_MASTER_KEY_TIMEOUT
-// was added for the actual mechanism, while OT_KEY_TIMER (a stopgap measure) was set to 0, which
-// makes it of no effect. Probably OT_KEY_TIMER will be removed entirely (we'll see.)
+// UPDATE: Am in the process now of adding the actual Master key. Therefore
+// OT_MASTER_KEY_TIMEOUT
+// was added for the actual mechanism, while OT_KEY_TIMER (a stopgap measure)
+// was set to 0, which
+// makes it of no effect. Probably OT_KEY_TIMER will be removed entirely (we'll
+// see.)
 //
 #ifndef OT_KEY_TIMER
 
@@ -167,12 +173,13 @@ class OTKeypair;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif // OT_KEY_TIMER
 
-
 // This is the only part of the API that actually accepts objects as parameters,
 // since the above objects have SWIG C++ wrappers.
 //
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller & theCaller); // Caller must have Callback attached already.
-
+EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller); // Caller must
+                                                              // have Callback
+                                                              // attached
+                                                              // already.
 
 /// OTLowLevelKeyData
 /// Used for passing x509's and EVP_PKEYs around, so a replacement
@@ -181,29 +188,25 @@ EXPORT bool OT_API_Set_PasswordCallback(OTCaller & theCaller); // Caller must ha
 class OTLowLevelKeyData
 {
 public:
-    bool m_bCleanup; // By default, OTLowLevelKeyData cleans up the members. But if you set this to false, it will NOT cleanup.
-    // ---------------------
-    bool MakeNewKeypair(int32_t nBits=1024);
+    bool m_bCleanup; // By default, OTLowLevelKeyData cleans up the members. But
+                     // if you set this to false, it will NOT cleanup.
+    bool MakeNewKeypair(int32_t nBits = 1024);
     void Cleanup();
-    bool SetOntoKeypair(OTKeypair & theKeypair);
+    bool SetOntoKeypair(OTKeypair& theKeypair);
 
     OTLowLevelKeyData();
     ~OTLowLevelKeyData();
 
-
-#if defined (OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
     class OTLowLevelKeyDataOpenSSLdp;
-    OTLowLevelKeyDataOpenSSLdp *dp;
+    OTLowLevelKeyDataOpenSSLdp* dp;
 
-#elif defined (OT_CRYPTO_USING_GPG)
-
+#elif defined(OT_CRYPTO_USING_GPG)
 
 #else
 
-#endif  // Crypto engine.
+#endif // Crypto engine.
 };
-
-
 
 } // namespace opentxs
 

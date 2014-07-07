@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTRecordList.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -137,8 +137,8 @@
 
 #include "OTRecord.hpp"
 
-#include _CINTTYPES
-#include _MEMORY
+#include <cinttypes>
+#include <memory>
 
 #include <iostream>
 #include <vector>
@@ -146,29 +146,34 @@
 #include <map>
 #include <string>
 
-
 // For address book lookups. Your client app inherits this and provides
 // addr storage/lookup through this simple interface. OTRecordList then
 // calls it.
 //
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTNameLookup
 {
 public:
-EXPORT          OTNameLookup() { }
-EXPORT virtual ~OTNameLookup();
+    EXPORT OTNameLookup()
+    {
+    }
+    EXPORT virtual ~OTNameLookup();
 
-EXPORT virtual std::string GetNymName(const std::string & str_id, // NymID
-                                      const std::string * p_server_id=NULL) const;
+    EXPORT virtual std::string GetNymName(const std::string& str_id, // NymID
+                                          const std::string* p_server_id = NULL)
+        const;
 
-EXPORT virtual std::string GetAcctName(const std::string & str_id, // AcctID
-                                       const std::string * p_nym_id=NULL,
-                                       const std::string * p_server_id=NULL,
-                                       const std::string * p_asset_id=NULL) const;
+    EXPORT virtual std::string GetAcctName(
+        const std::string& str_id, // AcctID
+        const std::string* p_nym_id = NULL,
+        const std::string* p_server_id = NULL,
+        const std::string* p_asset_id = NULL) const;
 
-EXPORT virtual std::string GetAddressName (const std::string & str_address) const; // Used for Bitmessage and other special addresses.
+    EXPORT virtual std::string GetAddressName(const std::string& str_address)
+        const; // Used for Bitmessage and other special addresses.
 };
 
 /*
@@ -180,11 +185,10 @@ EXPORT virtual std::string GetAddressName (const std::string & str_address) cons
  public:
     virtual std::string GetNymName(const std::string & str_id) const;
     virtual std::string GetAcctName(const std::string & str_id) const;
-    virtual std::string GetAddressName(const std::string & str_id) const; // Used for Bitmessage and other special addresses.
+    virtual std::string GetAddressName(const std::string & str_id) const; //
+ Used for Bitmessage and other special addresses.
  };
  */
-
-// ------------------------------------------------
 
 // Client app makes an instance of its own subclass of OTNameLookup.
 // Client app also makes an instance of OTLookupCaller (below.)
@@ -195,174 +199,184 @@ EXPORT virtual std::string GetAddressName (const std::string & str_address) cons
 class OTLookupCaller
 {
 protected:
-	OTNameLookup * _callback;
-    
+    OTNameLookup* _callback;
+
 public:
-EXPORT   OTLookupCaller() : _callback(NULL) { }
-EXPORT	~OTLookupCaller();
+    EXPORT OTLookupCaller() : _callback(NULL)
+    {
+    }
+    EXPORT ~OTLookupCaller();
 
-EXPORT  OTNameLookup * getCallback() { return _callback; }
-EXPORT	void           delCallback();
-EXPORT	void           setCallback(OTNameLookup *cb);
-EXPORT	bool           isCallbackSet() const;
+    EXPORT OTNameLookup* getCallback()
+    {
+        return _callback;
+    }
+    EXPORT void delCallback();
+    EXPORT void setCallback(OTNameLookup* cb);
+    EXPORT bool isCallbackSet() const;
 
-EXPORT	std::string GetNymName(const std::string & str_id, // NymID
-                               const std::string * p_server_id=NULL) const;
+    EXPORT std::string GetNymName(const std::string& str_id, // NymID
+                                  const std::string* p_server_id = NULL) const;
 
-EXPORT	std::string GetAcctName(const std::string & str_id, // AcctID
-                                const std::string * p_nym_id=NULL,
-                                const std::string * p_server_id=NULL,
-                                const std::string * p_asset_id=NULL) const;
-    
-EXPORT	std::string GetAddressName (const std::string & str_address) const;
+    EXPORT std::string GetAcctName(const std::string& str_id, // AcctID
+                                   const std::string* p_nym_id = NULL,
+                                   const std::string* p_server_id = NULL,
+                                   const std::string* p_asset_id = NULL) const;
+
+    EXPORT std::string GetAddressName(const std::string& str_address) const;
 };
 
+EXPORT bool OT_API_Set_AddrBookCallback(
+    OTLookupCaller& theCaller); // OTLookupCaller must have OTNameLookup
+                                // attached already.
 
-// ------------------------------------------------
+typedef _WeakPtr<OTRecord> weak_ptr_OTRecord;
+typedef _SharedPtr<OTRecord> shared_ptr_OTRecord;
 
-
-EXPORT bool OT_API_Set_AddrBookCallback(OTLookupCaller & theCaller); // OTLookupCaller must have OTNameLookup attached already.
-
-
-typedef _WeakPtr<OTRecord>       weak_ptr_OTRecord;
-typedef _SharedPtr<OTRecord>     shared_ptr_OTRecord;
-
-
-typedef std::vector<shared_ptr_OTRecord>      vec_OTRecordList;
-// -------------------------------------------------------------
-typedef std::list<std::string>                 list_of_strings;
-// -------------------------------------------------------------
-typedef std::map<std::string, std::string>     map_of_strings;
-
+typedef std::vector<shared_ptr_OTRecord> vec_OTRecordList;
+typedef std::list<std::string> list_of_strings;
+typedef std::map<std::string, std::string> map_of_strings;
 
 class OTRecordList
 {
-    OTNameLookup           *  m_pLookup;
-    // ------------------------------------------------
-    // Defaults to false. If you set it true, it will run a lot faster. (And give you less data.)
-    bool                      m_bRunFast;
-    // ------------------------------------------------
-    bool                      m_bAutoAcceptCheques;   // Cheques and vouchers, NOT invoices.
-    bool                      m_bAutoAcceptReceipts;
-    bool                      m_bAutoAcceptTransfers;
-    bool                      m_bAutoAcceptCash;
-    // ------------------------------------------------
-    static std::string        s_strTextTo;   // "To: "
-    static std::string        s_strTextFrom; // "From: "
-    // ------------------------------------------------
-    list_of_strings           m_servers;
-     map_of_strings           m_assets;  // <asset_type_id, asset_name>
-    list_of_strings           m_accounts;
-    list_of_strings           m_nyms;
-    // ------------------------------------------------
-    vec_OTRecordList          m_contents;
-    // ------------------------------------------------
-    static const std::string  s_blank;
-    static const std::string  s_message_type;
-    // ********************************************
+    OTNameLookup* m_pLookup;
+    // Defaults to false. If you set it true, it will run a lot faster. (And
+    // give you less data.)
+    bool m_bRunFast;
+    bool m_bAutoAcceptCheques; // Cheques and vouchers, NOT invoices.
+    bool m_bAutoAcceptReceipts;
+    bool m_bAutoAcceptTransfers;
+    bool m_bAutoAcceptCash;
+    static std::string s_strTextTo;   // "To: "
+    static std::string s_strTextFrom; // "From: "
+    list_of_strings m_servers;
+    map_of_strings m_assets; // <asset_type_id, asset_name>
+    list_of_strings m_accounts;
+    list_of_strings m_nyms;
+    vec_OTRecordList m_contents;
+    static const std::string s_blank;
+    static const std::string s_message_type;
+
 public: // ADDRESS BOOK CALLBACK
-    
-    static bool setAddrBookCaller(OTLookupCaller & theCaller);
-    static OTLookupCaller * getAddrBookCaller();
+    static bool setAddrBookCaller(OTLookupCaller& theCaller);
+    static OTLookupCaller* getAddrBookCaller();
 
 protected: // ADDRESS BOOK CALLER
-    static OTLookupCaller * s_pCaller;
-// ********************************************
-public:
-EXPORT  OTRecordList(); // This one expects that s_pCaller is not NULL.
-EXPORT  OTRecordList(OTNameLookup & theLookup);
-EXPORT ~OTRecordList();
-    // ------------------------------------------------
-EXPORT static const char * textTo  ()  { return s_strTextTo  .c_str(); }
-EXPORT static const char * textFrom()  { return s_strTextFrom.c_str(); }
+    static OTLookupCaller* s_pCaller;
 
-EXPORT static void setTextTo  (const std::string text)  { s_strTextTo   = text; }
-EXPORT static void setTextFrom(const std::string text)  { s_strTextFrom = text; }
-// ------------------------------------------------
-EXPORT    void SetFastMode() { m_bRunFast = true; }
-    // ------------------------------------------------
+public:
+    EXPORT OTRecordList(); // This one expects that s_pCaller is not NULL.
+    EXPORT OTRecordList(OTNameLookup& theLookup);
+    EXPORT ~OTRecordList();
+    EXPORT static const char* textTo()
+    {
+        return s_strTextTo.c_str();
+    }
+    EXPORT static const char* textFrom()
+    {
+        return s_strTextFrom.c_str();
+    }
+
+    EXPORT static void setTextTo(const std::string text)
+    {
+        s_strTextTo = text;
+    }
+    EXPORT static void setTextFrom(const std::string text)
+    {
+        s_strTextFrom = text;
+    }
+    EXPORT void SetFastMode()
+    {
+        m_bRunFast = true;
+    }
     // SETUP:
-    
-EXPORT    void SetServerID(const std::string str_id); // Set the default server here.
-EXPORT    void AddServerID(const std::string str_id); // Unless you have many servers, then use this.
-EXPORT    void ClearServers(); // Also clears m_contents
-    
-EXPORT    void SetAssetID(const std::string str_id);  // Etc.
-EXPORT    void AddAssetID(const std::string str_id);
-EXPORT    void ClearAssets(); // Also clears m_contents
-    
-EXPORT    void SetNymID(const std::string str_id);
-EXPORT    void AddNymID(const std::string str_id);
-EXPORT    void ClearNyms(); // Also clears m_contents
-    
-EXPORT    void SetAccountID(const std::string str_id);
-EXPORT    void AddAccountID(const std::string str_id);
-EXPORT    void ClearAccounts(); // Also clears m_contents
-    
-EXPORT    const list_of_strings & GetNyms() const;
-    // ------------------------------------------------
-EXPORT    void AcceptChequesAutomatically  (bool bVal=true);
-EXPORT    void AcceptReceiptsAutomatically (bool bVal=true);
-EXPORT    void AcceptTransfersAutomatically(bool bVal=true);
-EXPORT    void AcceptCashAutomatically     (bool bVal=true);
-    
-EXPORT    bool DoesAcceptChequesAutomatically  ();
-EXPORT    bool DoesAcceptReceiptsAutomatically ();
-EXPORT    bool DoesAcceptTransfersAutomatically();
-EXPORT    bool DoesAcceptCashAutomatically     ();
-    
-EXPORT    bool PerformAutoAccept(); // Before populating, process out any items we're supposed to accept automatically.
-    // ------------------------------------------------
-    // POPULATE:
-    
-EXPORT    bool Populate();      // Populates m_contents from OT API. Calls ClearContents().
-EXPORT    void ClearContents(); // Clears m_contents (NOT nyms, accounts, servers, or asset types.)
-EXPORT    void SortRecords();   // Populate already sorts. But if you have to add some external records after Populate, then you can sort again. P.S. sorting is performed based on the "from" date.
-    
-    // Let's say you also want to add some Bitmessages. (Or any other external source.) This is where you do that. Make sure to call Populate, then use AddSpecialMsg a few times, then call SortRecords.
-EXPORT    void AddSpecialMsg(const std::string & str_msg_id,     // The ID of this message, from whatever system it came from.
-                             bool                bIsOutgoing,
-                             int32_t             nMethodID,
-                             const std::string & str_contents, // Make sure to concatentate subject with contents, before passing here.
-                             const std::string & str_address,
-                             const std::string & str_other_address,
-                             const std::string & str_type,
-                             const std::string & str_type_display,
-                             const std::string   str_my_nym_id ="",
-                             time64_t            tDate         =OT_TIME_ZERO);
-    // ------------------------------------------------
+
+    EXPORT void SetServerID(const std::string str_id); // Set the default server
+                                                       // here.
+    EXPORT void AddServerID(const std::string str_id); // Unless you have many
+                                                       // servers, then use
+                                                       // this.
+    EXPORT void ClearServers();                        // Also clears m_contents
+
+    EXPORT void SetAssetID(const std::string str_id); // Etc.
+    EXPORT void AddAssetID(const std::string str_id);
+    EXPORT void ClearAssets(); // Also clears m_contents
+
+    EXPORT void SetNymID(const std::string str_id);
+    EXPORT void AddNymID(const std::string str_id);
+    EXPORT void ClearNyms(); // Also clears m_contents
+
+    EXPORT void SetAccountID(const std::string str_id);
+    EXPORT void AddAccountID(const std::string str_id);
+    EXPORT void ClearAccounts(); // Also clears m_contents
+
+    EXPORT const list_of_strings& GetNyms() const;
+    EXPORT void AcceptChequesAutomatically(bool bVal = true);
+    EXPORT void AcceptReceiptsAutomatically(bool bVal = true);
+    EXPORT void AcceptTransfersAutomatically(bool bVal = true);
+    EXPORT void AcceptCashAutomatically(bool bVal = true);
+
+    EXPORT bool DoesAcceptChequesAutomatically();
+    EXPORT bool DoesAcceptReceiptsAutomatically();
+    EXPORT bool DoesAcceptTransfersAutomatically();
+    EXPORT bool DoesAcceptCashAutomatically();
+
+    EXPORT bool PerformAutoAccept(); // Before populating, process out any items
+                                     // we're supposed to accept automatically.
+                                     // POPULATE:
+
+    EXPORT bool Populate();      // Populates m_contents from OT API. Calls
+                                 // ClearContents().
+    EXPORT void ClearContents(); // Clears m_contents (NOT nyms, accounts,
+                                 // servers, or asset types.)
+    EXPORT void SortRecords(); // Populate already sorts. But if you have to add
+                               // some external records after Populate, then you
+                               // can sort again. P.S. sorting is performed
+                               // based on the "from" date.
+
+    // Let's say you also want to add some Bitmessages. (Or any other external
+    // source.) This is where you do that. Make sure to call Populate, then use
+    // AddSpecialMsg a few times, then call SortRecords.
+    EXPORT void AddSpecialMsg(
+        const std::string& str_msg_id, // The ID of this message, from whatever
+                                       // system it came from.
+        bool bIsOutgoing, int32_t nMethodID,
+        const std::string& str_contents, // Make sure to concatentate subject
+                                         // with contents, before passing here.
+        const std::string& str_address, const std::string& str_other_address,
+        const std::string& str_type, const std::string& str_type_display,
+        const std::string str_my_nym_id = "", time64_t tDate = OT_TIME_ZERO);
     // RETRIEVE:
     //
-EXPORT    int32_t              size();
-EXPORT    _SharedPtr<OTRecord> GetRecord(int32_t nIndex);
-EXPORT    bool                 RemoveRecord(int32_t nIndex);
-    // ------------------------------------------------
+    EXPORT int32_t size();
+    EXPORT _SharedPtr<OTRecord> GetRecord(int32_t nIndex);
+    EXPORT bool RemoveRecord(int32_t nIndex);
 };
 
 /*
- 
+
  // TO USE:
- 
+
  OTRecordList blah;
- 
+
  blah.SetServerID("id goes here");
  blah.SetAssetID("id goes here");
  blah.SetNymID("id goes here");
  blah.SetAccountID("id goes here");
- 
+
  blah.Populate();
- 
+
  // THEN:
- 
+
  int32_t nSize  = blah.size();
  int32_t nIndex = [0 .. nSize-1]
  weak_ptr_OTRecord record = blah.GetRecord(nIndex);
- 
- 
+
+
  // ACCESSING THE RECORD:
- 
+
  shared_ptr_OTRecord pRecord(record);
- 
+
  if (!sp)
  {
  // It's NULL -- this means OTRecordList got re-populated.
@@ -373,29 +387,16 @@ EXPORT    bool                 RemoveRecord(int32_t nIndex);
  {
  pRecord->GetName();  // Etc.
  }
- 
- 
- // THEN LATER:
- 
- blah.Populate();
- 
- Etc.
- 
- */
 
+
+ // THEN LATER:
+
+ blah.Populate();
+
+ Etc.
+
+ */
 
 } // namespace opentxs
 
 #endif /* defined(__OTClient__OTRecordList__) */
-
-
-
-
-
-
-
-
-
-
-
-

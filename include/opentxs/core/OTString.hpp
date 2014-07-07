@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef  __OT_STRING_HPP__
-#define  __OT_STRING_HPP__
+#ifndef __OT_STRING_HPP__
+#define __OT_STRING_HPP__
 
 #include "OTCommon.hpp"
 
 #ifdef _WIN32
-#include "win32_utf8conv.hpp"  // support for changing between std::string and std::wstring
+#include "win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
 #include <cstdarg>
@@ -151,16 +151,16 @@
 // Therefore if it's NOT defined, then we must probably be
 // on Windows, since Windows doesn't have inttypes.h yet,
 // only stdint.h
-#if !defined( PRId8 )
+#if !defined(PRId8)
 #define PRId8 "d"
 #endif
 
-#if !defined( PRId16 )
+#if !defined(PRId16)
 #define PRId16 "d"
 #endif
 
-#if !defined( PRId32 )
-#if defined( WINAPI )
+#if !defined(PRId32)
+#if defined(WINAPI)
 #define PRId32 "I32d"
 
 #else
@@ -169,8 +169,8 @@
 #endif
 #endif
 
-#if !defined( PRId64 )
-#if defined( WINAPI )
+#if !defined(PRId64)
+#if defined(WINAPI)
 #define PRId64 "I64d"
 
 #elif __WORDSIZE == 64
@@ -185,12 +185,13 @@
 //#ifdef _WIN32
 //#define MAX_STRING_LENGTH   631072
 //#else
-#define MAX_STRING_LENGTH   0x800000   // this is about 8 megs.
+#define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
 //#define MAX_STRING_LENGTH   1262144
 //#endif // _WIN32
 // TODO: consider how MAX_SIZE affects the above hard-coded number...
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTASCIIArmor;
 class OTContract;
@@ -198,27 +199,23 @@ class OTIdentifier;
 class OTPseudonym;
 class OTSignature;
 
-typedef std::list   <std::string>                   listOfStrings;
-typedef std::map	<std::string, std::string>		mapOfStrings;
-
+typedef std::list<std::string> listOfStrings;
+typedef std::map<std::string, std::string> mapOfStrings;
 
 // If you've already strlen'd the string,
 // you can pass the length to str_hsh or str_dup
 // and save it the trouble.
 //
-char *str_dup1(const char *str);
-char *str_dup2(const char *str, uint32_t length);
-int32_t   len_cmp(char *s1, char *s2);
+char* str_dup1(const char* str);
+char* str_dup2(const char* str, uint32_t length);
+int32_t len_cmp(char* s1, char* s2);
 
-
-template <class T>
-inline std::string to_string (const T& t)
+template <class T> inline std::string to_string(const T& t)
 {
     std::stringstream ss;
     ss << t;
     return ss.str();
 }
-
 
 /*
  * strlcpy and strlcat
@@ -243,32 +240,27 @@ inline std::string to_string (const T& t)
  * will be copied.  Always NUL terminates (unless siz == 0).
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
-inline size_t strlcpy(char *dst, const char *src, size_t siz)
+inline size_t strlcpy(char* dst, const char* src, size_t siz)
 {
-    char *d = dst;
-    const char *s = src;
+    char* d = dst;
+    const char* s = src;
     size_t n = siz;
 
     /* Copy as many bytes as will fit */
-    if (n != 0)
-    {
-        while (--n != 0)
-        {
-            if ((*d++ = *s++) == '\0')
-                break;
+    if (n != 0) {
+        while (--n != 0) {
+            if ((*d++ = *s++) == '\0') break;
         }
     }
 
     /* Not enough room in dst, add NUL and traverse rest of src */
-    if (n == 0)
-    {
-        if (siz != 0)
-            *d = '\0';  /* NUL-terminate dst */
+    if (n == 0) {
+        if (siz != 0) *d = '\0'; /* NUL-terminate dst */
         while (*s++)
             ;
     }
 
-    return(s - src - 1); /* count does not include NUL */
+    return (s - src - 1); /* count does not include NUL */
 }
 /*
  * Appends src to string dst of size siz (unlike strncat, siz is the
@@ -277,25 +269,21 @@ inline size_t strlcpy(char *dst, const char *src, size_t siz)
  * Returns strlen(src) + MIN(siz, strlen(initial dst)).
  * If retval >= siz, truncation occurred.
  */
-inline size_t strlcat(char *dst, const char *src, size_t siz)
+inline size_t strlcat(char* dst, const char* src, size_t siz)
 {
-    char *d = dst;
-    const char *s = src;
+    char* d = dst;
+    const char* s = src;
     size_t n = siz;
     size_t dlen;
 
     /* Find the end of dst and adjust bytes left but don't go past end */
-    while (n-- != 0 && *d != '\0')
-        d++;
+    while (n-- != 0 && *d != '\0') d++;
     dlen = d - dst;
     n = siz - dlen;
 
-    if (n == 0)
-        return(dlen + strlen(s));
-    while (*s != '\0')
-    {
-        if (n != 1)
-        {
+    if (n == 0) return (dlen + strlen(s));
+    while (*s != '\0') {
+        if (n != 1) {
             *d++ = *s;
             n--;
         }
@@ -303,200 +291,169 @@ inline size_t strlcat(char *dst, const char *src, size_t siz)
     }
     *d = '\0';
 
-    return(dlen + (s - src)); /* count does not include NUL */
+    return (dlen + (s - src)); /* count does not include NUL */
 }
 // (End of the Todd Miller code.)
 
-
 class OTString
 {
-   // Construction -- Destruction
+    // Construction -- Destruction
 public:
-EXPORT	friend std::ostream & operator << (std::ostream & os, const OTString & obj);
-    
-EXPORT	OTString();
-EXPORT	OTString(const OTString & strValue);
-EXPORT	OTString(const OTASCIIArmor & strValue);
-        OTString(const OTSignature & strValue);
-EXPORT	OTString(const OTContract & theValue);
-EXPORT	OTString(const OTIdentifier & theValue);
-        OTString(OTPseudonym & theValue);
-EXPORT	OTString(const char * new_string);
-        OTString(const char * new_string, size_t sizeLength);
-EXPORT	OTString(const std::string & new_string);
-EXPORT	virtual ~OTString();
+    EXPORT friend std::ostream& operator<<(std::ostream& os,
+                                           const OTString& obj);
 
-   void Initialize();
+    EXPORT OTString();
+    EXPORT OTString(const OTString& strValue);
+    EXPORT OTString(const OTASCIIArmor& strValue);
+    OTString(const OTSignature& strValue);
+    EXPORT OTString(const OTContract& theValue);
+    EXPORT OTString(const OTIdentifier& theValue);
+    OTString(OTPseudonym& theValue);
+    EXPORT OTString(const char* new_string);
+    OTString(const char* new_string, size_t sizeLength);
+    EXPORT OTString(const std::string& new_string);
+    EXPORT virtual ~OTString();
 
-EXPORT	OTString& operator=(OTString rhs);
-//	OTString& operator=(const char * new_string);       // Many unexpected side-effects if you mess with this.  }:-)
-//	OTString& operator=(const std::string & strValue);
+    void Initialize();
 
-	// ----------------------------------------------
-static   bool vformat(const char * fmt, std::va_list * pvl, std::string & str_output);
+    EXPORT OTString& operator=(OTString rhs);
+    //    OTString& operator=(const char * new_string);       // Many unexpected
+    // side-effects if you mess with this.  }:-)
+    //    OTString& operator=(const std::string & strValue);
 
-         void swap(OTString & rhs);
-	// ----------------------------------------------
-         bool operator >(const OTString &s2) const;
-         bool operator <(const OTString &s2) const;
-         bool operator <=(const OTString &s2) const;
-         bool operator >=(const OTString &s2) const;
-EXPORT   bool operator ==(const OTString &s2) const;
-	// ----------------------------------------------
-EXPORT	static       std::string & trim(std::string& str);
-	// ----------------------------------------------
-EXPORT  static const std::string   replace_chars
-                                    (const std::string & str,
-                                     const std::string & charsFrom,
-                                     const char & charTo);
-// ----------------------------------------------
+    static bool vformat(const char* fmt, std::va_list* pvl,
+                        std::string& str_output);
+
+    void swap(OTString& rhs);
+    bool operator>(const OTString& s2) const;
+    bool operator<(const OTString& s2) const;
+    bool operator<=(const OTString& s2) const;
+    bool operator>=(const OTString& s2) const;
+    EXPORT bool operator==(const OTString& s2) const;
+    EXPORT static std::string& trim(std::string& str);
+    EXPORT static const std::string replace_chars(const std::string& str,
+                                                  const std::string& charsFrom,
+                                                  const char& charTo);
 #ifdef _WIN32
-EXPORT static std::wstring s2ws(const std::string  & s);
-EXPORT static std::string  ws2s(const std::wstring & s);
+    EXPORT static std::wstring s2ws(const std::string& s);
+    EXPORT static std::string ws2s(const std::wstring& s);
 #endif
-// ----------------------------------------------
 
-	// ----------------------------------------------
     // from: http://www.cplusplus.com/faq/sequences/strings/split/
     //
     struct split
     {
-        enum empties_t { empties_ok, no_empties };
+        enum empties_t {
+            empties_ok,
+            no_empties
+        };
     };
 
     template <typename Container>
     static Container& split_byChar(
-        Container&                            result,
-        const typename Container::value_type& s,
+        Container& result, const typename Container::value_type& s,
         const typename Container::value_type& delimiters,
-        split::empties_t               empties)
+        split::empties_t empties)
     {
         result.clear();
         size_t current;
         int64_t next = -1;
-        do
-        {
-            if (empties == split::no_empties)
-            {
-                next = s.find_first_not_of(delimiters, static_cast<uint32_t>(next)+1);
-                if (static_cast<size_t>(next) == Container::value_type::npos) break;
+        do {
+            if (empties == split::no_empties) {
+                next = s.find_first_not_of(delimiters,
+                                           static_cast<uint32_t>(next) + 1);
+                if (static_cast<size_t>(next) == Container::value_type::npos)
+                    break;
                 next -= 1;
             }
             current = static_cast<size_t>(next + 1);
-            next = s.find_first_of( delimiters, current );
-            result.push_back(s.substr(current, static_cast<uint32_t>(next) - current));
-        }
-        while (static_cast<size_t>(next) != Container::value_type::npos);
+            next = s.find_first_of(delimiters, current);
+            result.push_back(
+                s.substr(current, static_cast<uint32_t>(next) - current));
+        } while (static_cast<size_t>(next) != Container::value_type::npos);
         return result;
     }
-	// ----------------------------------------------
 
-private: 	// Implementation
-	// You better have called Initialize() or Release() before you dare call this.
-	void LowLevelSetStr(const OTString & strBuf);
+private: // Implementation
+    // You better have called Initialize() or Release() before you dare call
+    // this.
+    void LowLevelSetStr(const OTString& strBuf);
 
-	// Only call this right after calling Initialize() or Release().
-	// Also, this function ASSUMES the new_string pointer is good.
-	void LowLevelSet(const char * new_string, uint32_t nEnforcedMaxLength);
-	// ----------------------------------------------
-	// Operations
+    // Only call this right after calling Initialize() or Release().
+    // Also, this function ASSUMES the new_string pointer is good.
+    void LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength);
+    // Operations
 public:
-EXPORT    static bool safe_strcpy(char * dest,
-                                  const
-                                  char * src,
-                                  // -----------------
-                                  size_t dest_size, // max size of destination must be passed here.
-                                  bool   bZeroSource=false); // if true, sets the source buffer to zero after copying is done.
-    // ----------------------------------------------
-    static size_t safe_strlen(const char * s, size_t max);
-	// ----------------------------
+    EXPORT static bool safe_strcpy(
+        char* dest, const char* src,
+        size_t dest_size, // max size of destination must be passed here.
+        bool bZeroSource = false); // if true, sets the source buffer to zero
+                                   // after copying is done.
+    static size_t safe_strlen(const char* s, size_t max);
 
-EXPORT  static int64_t StringToLong(const std::string & strNumber);
+    EXPORT static int64_t StringToLong(const std::string& strNumber);
 
-EXPORT  int64_t ToLong() const;
+    EXPORT int64_t ToLong() const;
 
+    EXPORT static uint64_t StringToUlong(const std::string& strNumber);
 
-EXPORT  static uint64_t StringToUlong(const std::string & strNumber);
+    EXPORT uint64_t ToUlong() const;
 
-EXPORT  uint64_t ToUlong() const;
+    EXPORT bool At(uint32_t lIndex, char& c) const;
+    EXPORT bool Exists() const;
+    EXPORT bool DecodeIfArmored(bool bEscapedIsAllowed = true);
+    EXPORT uint32_t GetLength(void) const;
+    EXPORT bool Compare(const char* strCompare) const;
+    EXPORT bool Compare(const OTString& strCompare) const;
 
-    // ----------------------------
+    EXPORT bool Contains(const char* strCompare) const;
+    bool Contains(const OTString& strCompare) const;
 
-EXPORT	bool At    (uint32_t lIndex, char &c) const;
-    // ----------------------------------------------
-EXPORT	bool Exists() const;
-   	// ----------------------------------------------
-EXPORT  bool DecodeIfArmored(bool bEscapedIsAllowed=true);
-   	// ----------------------------------------------
-EXPORT uint32_t GetLength(void) const;
-	// ----------------------------------------------
-EXPORT        bool   Compare(const char     * strCompare) const;
-EXPORT        bool   Compare(const OTString & strCompare) const;
-
-EXPORT	      bool   Contains(const char     * strCompare) const;
-              bool   Contains(const OTString & strCompare) const;
-
-EXPORT	const char * Get(void) const;
-	// ----------------------------
-	// new_string MUST be at least nEnforcedMaxLength in size if
+    EXPORT const char* Get(void) const;
+    // new_string MUST be at least nEnforcedMaxLength in size if
     // nEnforcedMaxLength is passed in at all.
     //
-	// That's because this function forces the null terminator at
+    // That's because this function forces the null terminator at
     // that length, minus 1. For example, if the max is set to 10, then
     // the valid range is 0..9. Therefore 9 (10 minus 1) is where the
     // NULL terminator goes.
     //
-EXPORT	void   Set         (const char     * new_string, uint32_t nEnforcedMaxLength=0);
-EXPORT	void   Set         (const OTString & strBuf);
-	// ----------------------------
+    EXPORT void Set(const char* new_string, uint32_t nEnforcedMaxLength = 0);
+    EXPORT void Set(const OTString& strBuf);
     // For a straight-across, exact-size copy of bytes.
     // Source not expected to be null-terminated.
-EXPORT	bool   MemSet      (const char     * pMem, uint32_t theSize);
-	// ----------------------------
-EXPORT	void   Concatenate (const char     * arg, ...);
-        void   Concatenate (const OTString & strBuf);
-	// ----------------------------
-        void   Truncate    (      uint32_t   lAt);
-	// ----------------------------
-EXPORT	void   Format      (const char     * fmt, ...);
-   	// ----------------------------------------------
-        void ConvertToLowerCase();
-        void ConvertToUpperCase();
-    // ----------------------------------------------
-EXPORT	bool TokenizeIntoKeyValuePairs(mapOfStrings & mapOutput) const;
-	// ----------------------------------------------
-EXPORT	void OTfgets(std::istream & ofs);
-	// ----------------------------------------------
-	// true  == there are more lines to read.
-	// false == this is the last line. Like EOF.
-	bool sgets(char * szBuffer, uint32_t nBufSize);
+    EXPORT bool MemSet(const char* pMem, uint32_t theSize);
+    EXPORT void Concatenate(const char* arg, ...);
+    void Concatenate(const OTString& strBuf);
+    void Truncate(uint32_t lAt);
+    EXPORT void Format(const char* fmt, ...);
+    void ConvertToLowerCase();
+    void ConvertToUpperCase();
+    EXPORT bool TokenizeIntoKeyValuePairs(mapOfStrings& mapOutput) const;
+    EXPORT void OTfgets(std::istream& ofs);
+    // true  == there are more lines to read.
+    // false == this is the last line. Like EOF.
+    bool sgets(char* szBuffer, uint32_t nBufSize);
 
     char sgetc(void);
     void sungetc(void);
     void reset(void);
 
-	void WriteToFile(std::ostream & ofs) const;
-	// ----------------------------------------------
-    EXPORT   virtual void Release(void);
+    void WriteToFile(std::ostream& ofs) const;
+    EXPORT virtual void Release(void);
     void Release_String(void);
-	// ----------------------------------------------
-	EXPORT   void zeroMemory();
-    // ----------------------------------------------
-   // Internal properties
+    EXPORT void zeroMemory();
+    // Internal properties
 protected:
-   uint32_t  m_lLength;
-   uint32_t  m_lPosition;
-   char    * m_strBuffer;
-    // ----------------------------------------------
+    uint32_t m_lLength;
+    uint32_t m_lPosition;
+    char* m_strBuffer;
 };
 
-
-//bool operator >(const OTString& s1, const OTString& s2);
-//bool operator <(const OTString& s1, const OTString& s2);
-//bool operator >=(const OTString &s1, const OTString& s2);
-//bool operator <=(const OTString &s1, const OTString& s2);
-
-
+// bool operator >(const OTString& s1, const OTString& s2);
+// bool operator <(const OTString& s1, const OTString& s2);
+// bool operator >=(const OTString &s1, const OTString& s2);
+// bool operator <=(const OTString &s1, const OTString& s2);
 
 } // namespace opentxs
 

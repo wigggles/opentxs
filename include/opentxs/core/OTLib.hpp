@@ -140,19 +140,18 @@
 /* The classes below are exported */
 #pragma GCC visibility push(default)
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTLib
 {
-	public:
-		void HelloWorld(const char *);
+public:
+    void HelloWorld(const char*);
 };
 
 #pragma GCC visibility pop
 
 #endif
-
-
 
 } // namespace opentxs
 

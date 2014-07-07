@@ -137,7 +137,6 @@
 #include "OTAssert.hpp"
 #include "OTString.hpp"
 
-
 // For SecureZeroMemory
 #ifdef _WIN32
 #else // not _WIN32
@@ -148,20 +147,21 @@
 #include <limits.h>
 
 #ifndef PAGESIZE
-    #include <unistd.h>
-    #define PAGESIZE sysconf(_SC_PAGESIZE)
+#include <unistd.h>
+#define PAGESIZE sysconf(_SC_PAGESIZE)
 #endif
 
 // FT: Credit to the Bitcoin team for the mlock / munlock defines.
 
-#define mlock(a,b) \
-  mlock(((void *)(((size_t)(a)) & (~((PAGESIZE)-1)))),\
-  (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) - (((size_t)(a)) & (~((PAGESIZE) - 1))))
-#define munlock(a,b) \
-  munlock(((void *)(((size_t)(a)) & (~((PAGESIZE)-1)))),\
-  (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) - (((size_t)(a)) & (~((PAGESIZE) - 1))))
+#define mlock(a, b)                                                            \
+    mlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                      \
+          (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -               \
+              (((size_t)(a)) & (~((PAGESIZE) - 1))))
+#define munlock(a, b)                                                          \
+    munlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                    \
+            (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -             \
+                (((size_t)(a)) & (~((PAGESIZE) - 1))))
 #endif
-
 
 // Instantiate one of these whenever you do an action that may
 // require a passphrase. When you call the OpenSSL private key
@@ -189,85 +189,91 @@ public:
     bool            isForCachedKey()   const;
     const char *    GetDisplayString() const;
 
-    OTPasswordData(const char        *   szDisplay, OTPassword * pMasterPW=NULL);
-    OTPasswordData(const std::string & str_Display, OTPassword * pMasterPW=NULL);
-    OTPasswordData(const OTString    &  strDisplay, OTPassword * pMasterPW=NULL);
+    OTPasswordData(const char        *   szDisplay, OTPassword *
+pMasterPW=NULL);
+    OTPasswordData(const std::string & str_Display, OTPassword *
+pMasterPW=NULL);
+    OTPasswordData(const OTString    &  strDisplay, OTPassword *
+pMasterPW=NULL);
     ~OTPasswordData();
 };
  */
 
-namespace opentxs {
+namespace opentxs
+{
 
 bool OTPasswordData::isUsingOldSystem() const
 {
     return m_bUsingOldSystem;
 }
 
-
-void OTPasswordData::setUsingOldSystem(bool bUsing/*=true*/)
+void OTPasswordData::setUsingOldSystem(bool bUsing /*=true*/)
 {
     m_bUsingOldSystem = bUsing;
 }
-
 
 bool OTPasswordData::isForNormalNym() const
 {
     return (NULL == m_pMasterPW);
 }
 
-
 bool OTPasswordData::isForCachedKey() const
 {
     return (NULL != m_pMasterPW);
 }
 
-
-const char * OTPasswordData::GetDisplayString() const
+const char* OTPasswordData::GetDisplayString() const
 {
     return m_strDisplay.c_str();
 }
 
-
-OTPasswordData::OTPasswordData(const char * szDisplay, OTPassword * pMasterPW/*=NULL*/, _SharedPtr<OTCachedKey> pCachedKey/*=_SharedPtr<OTCachedKey>()*/)
-: m_pMasterPW(pMasterPW),
-  m_strDisplay(NULL == szDisplay ? "(Sorry, no user data provided.)" : szDisplay),
-  m_bUsingOldSystem(false),
-  m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const char* szDisplay, OTPassword* pMasterPW /*=NULL*/,
+    _SharedPtr<OTCachedKey> pCachedKey /*=_SharedPtr<OTCachedKey>()*/)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(NULL == szDisplay ? "(Sorry, no user data provided.)"
+                                     : szDisplay)
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be NULL, or they can both be not NULL.
     // But you can't have one NULL, and the other not.
-    OT_ASSERT(     ( (NULL == pMasterPW) && (!pCachedKey) ) || ( (NULL != pMasterPW) && (pCachedKey) )    );
+    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
+              ((NULL != pMasterPW) && (pCachedKey)));
 }
 
-
-OTPasswordData::OTPasswordData(const std::string & str_Display, OTPassword * pMasterPW/*=NULL*/, _SharedPtr<OTCachedKey> pCachedKey/*=_SharedPtr<OTCachedKey>()*/)
-: m_pMasterPW(pMasterPW),
-  m_strDisplay(str_Display),
-  m_bUsingOldSystem(false),
-  m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const std::string& str_Display, OTPassword* pMasterPW /*=NULL*/,
+    _SharedPtr<OTCachedKey> pCachedKey /*=_SharedPtr<OTCachedKey>()*/)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(str_Display)
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be NULL, or they can both be not NULL.
     // But you can't have one NULL, and the other not.
-    OT_ASSERT(     ( (NULL == pMasterPW) && (!pCachedKey) ) || ( (NULL != pMasterPW) && (pCachedKey) )    );
+    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
+              ((NULL != pMasterPW) && (pCachedKey)));
 }
 
-
-OTPasswordData::OTPasswordData(const OTString & strDisplay, OTPassword * pMasterPW/*=NULL*/, _SharedPtr<OTCachedKey> pCachedKey/*=_SharedPtr<OTCachedKey>()*/)
-: m_pMasterPW(pMasterPW),
-  m_strDisplay(strDisplay.Get()),
-  m_bUsingOldSystem(false),
-  m_pCachedKey(pCachedKey)
+OTPasswordData::OTPasswordData(
+    const OTString& strDisplay, OTPassword* pMasterPW /*=NULL*/,
+    _SharedPtr<OTCachedKey> pCachedKey /*=_SharedPtr<OTCachedKey>()*/)
+    : m_pMasterPW(pMasterPW)
+    , m_strDisplay(strDisplay.Get())
+    , m_bUsingOldSystem(false)
+    , m_pCachedKey(pCachedKey)
 {
     // They can both be NULL, or they can both be  not NULL.
     // But you can't have one NULL, and the other not.
-    OT_ASSERT(     ( (NULL == pMasterPW) && (!pCachedKey) ) || ( (NULL != pMasterPW) && (pCachedKey) )    );
+    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
+              ((NULL != pMasterPW) && (pCachedKey)));
 }
-
 
 OTPasswordData::~OTPasswordData()
 {
-	m_pMasterPW  = NULL; // not owned
-//    m_pCachedKey = NULL; // not owned
+    m_pMasterPW = NULL; // not owned
+                        //    m_pCachedKey = NULL; // not owned
 }
 
 } // namespace opentxs

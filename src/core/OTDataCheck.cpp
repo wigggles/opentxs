@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTDataCheck.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -136,94 +136,85 @@
 
 #include "OTAssert.hpp"
 
-
-namespace opentxs {
-
-void AppendChecksum( OT_BYTE* buffer, uint32_t & size )
+namespace opentxs
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
-//	otErr << "Appending checksum. Size: %d ", size);
 
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-	
-//	otErr << "  VALUE: %d\n", (255 - total));
+void AppendChecksum(OT_BYTE* buffer, uint32_t& size)
+{
+    uint32_t i;
+    OT_BYTE total = 0;
 
-	buffer[size++] = 255 - total;
+    OT_ASSERT(NULL != buffer);
+    //    otErr << "Appending checksum. Size: %d ", size);
+
+    for (i = 0; i < size; i++) {
+        total += buffer[i];
+        //        otErr << "%d ", buffer[i]);
+    }
+
+    //    otErr << "  VALUE: %d\n", (255 - total));
+
+    buffer[size++] = 255 - total;
 }
 
-
-OT_BYTE CalcChecksum( OT_BYTE* buffer, uint32_t size )
+OT_BYTE CalcChecksum(OT_BYTE* buffer, uint32_t size)
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
+    uint32_t i;
+    OT_BYTE total = 0;
 
-//	otErr << "Calculating checksum. Size: %d ", size);
-	
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-//	otErr << "  VALUE: %d\n", (255 - total));
-	
-	return (255 - total);
+    OT_ASSERT(NULL != buffer);
+
+    //    otErr << "Calculating checksum. Size: %d ", size);
+
+    for (i = 0; i < size; i++) {
+        total += buffer[i];
+        //        otErr << "%d ", buffer[i]);
+    }
+    //    otErr << "  VALUE: %d\n", (255 - total));
+
+    return (255 - total);
 }
 
-
-OT_BYTE CalcChecksum( const OT_BYTE * const buffer, const uint32_t size )
+OT_BYTE CalcChecksum(const OT_BYTE* const buffer, const uint32_t size)
 {
-	uint32_t i;
-	OT_BYTE total = 0;
-	
-	OT_ASSERT(NULL != buffer);
+    uint32_t i;
+    OT_BYTE total = 0;
 
-//	otErr << "Calculating checksum. Size: %d\n", size);
-	
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-//		otErr << "%d ", buffer[i]);
-	}
-//	otErr << "  TOTAL: %d\n", (255 - total));
-	
-	return (255 - total);
+    OT_ASSERT(NULL != buffer);
+
+    //    otErr << "Calculating checksum. Size: %d\n", size);
+
+    for (i = 0; i < size; i++) {
+        total += buffer[i];
+        //        otErr << "%d ", buffer[i]);
+    }
+    //    otErr << "  TOTAL: %d\n", (255 - total));
+
+    return (255 - total);
 }
 
-
-OT_BOOL IsChecksumValid( OT_BYTE* buffer, uint32_t size )
+OT_BOOL IsChecksumValid(OT_BYTE* buffer, uint32_t size)
 {
-	uint32_t i;
-	OT_BYTE total = 0;
+    uint32_t i;
+    OT_BYTE total = 0;
 
-	OT_ASSERT(NULL != buffer);
+    OT_ASSERT(NULL != buffer);
 
-//	otErr << Validating checksum. Size: %d\n", size);
+    //    otErr << Validating checksum. Size: %d\n", size);
 
-	for( i = 0; i < size; i++ )
-	{
-		total += buffer[i];
-		
-//		otErr << "%d ", buffer[i]);
-	}
-	if( total == 255 )
-	{
-//		otErr << "VALID\n";
-		return true;
-	}
-	else
-	{
-//		otErr << "INVALID:  %d\n", total);
-		return false;
-	}
+    for (i = 0; i < size; i++) {
+        total += buffer[i];
+
+        //        otErr << "%d ", buffer[i]);
+    }
+    if (total == 255) {
+        //        otErr << "VALID\n";
+        return true;
+    }
+    else {
+        //        otErr << "INVALID:  %d\n", total);
+        return false;
+    }
 }
 
 } // namespace opentxs

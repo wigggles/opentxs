@@ -130,38 +130,35 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-
 #ifndef __OPENSSL_BIO_HPP__
 #define __OPENSSL_BIO_HPP__
 
-
-extern "C"
-{
+extern "C" {
 #include <openssl/bio.h>
 }
 
-namespace opentxs {
+namespace opentxs
+{
 
-class OpenSSL_BIO {
+class OpenSSL_BIO
+{
 private:
-    BIO & m_refBIO;
+    BIO& m_refBIO;
     bool bCleanup;
     bool bFreeOnly;
 
-    EXPORT static BIO * assertBioNotNull(BIO * pBIO);
+    EXPORT static BIO* assertBioNotNull(BIO* pBIO);
 
 public:
+    EXPORT OpenSSL_BIO(BIO* pBIO);
 
-    EXPORT	OpenSSL_BIO(BIO * pBIO);
+    EXPORT ~OpenSSL_BIO();
 
-    EXPORT  ~OpenSSL_BIO();
+    EXPORT operator BIO*() const;
 
-    EXPORT	operator BIO *() const;
-
-    EXPORT  void release();
-    EXPORT  void setFreeOnly();
+    EXPORT void release();
+    EXPORT void setFreeOnly();
 };
-
 
 } // namespace opentxs
 

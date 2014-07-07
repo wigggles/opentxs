@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTAccount.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -135,7 +135,8 @@
 
 #include "OTTransactionType.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAccount;
 class OTLedger;
@@ -143,130 +144,164 @@ class OTMessage;
 class OTPseudonym;
 
 typedef std::auto_ptr<OTAccount> OTAccount_AutoPtr;
-typedef std::list<OTAccount *> listOfAccounts;
-typedef std::map<std::string, _WeakPtr<OTAccount> >	mapOfWeakAccounts; // mapped by ACCT ID
+typedef std::list<OTAccount*> listOfAccounts;
+typedef std::map<std::string, _WeakPtr<OTAccount>> mapOfWeakAccounts; // mapped
+                                                                      // by ACCT
+                                                                      // ID
 
-
-class OTAccount : public OTTransactionType 
+class OTAccount : public OTTransactionType
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
 
-    friend OTTransactionType * OTTransactionType::TransactionFactory(OTString strInput);
+    friend OTTransactionType* OTTransactionType::TransactionFactory(
+        OTString strInput);
 
 public:
-	enum AccountType 
-	{
-		simple,		// used by users
-		issuer,		// used by issuers	(these can only go negative.)
-		basket,		// issuer acct used by basket currencies (these can only go negative)
-		basketsub,	// used by the server (to store backing reserves for basket sub-accounts)
-		mint,		// used by mints (to store backing reserves for cash)
-		voucher,	// used by the server (to store backing reserves for vouchers)
-		stash,		// used by the server (to store backing reserves for stashes, for smart contracts.)
-		err_acct
-	};  // If you add any types to this list, update the list of strings at the top of the .CPP file.
-	
+    enum AccountType {
+        simple,    // used by users
+        issuer,    // used by issuers    (these can only go negative.)
+        basket,    // issuer acct used by basket currencies (these can only go
+                   // negative)
+        basketsub, // used by the server (to store backing reserves for basket
+                   // sub-accounts)
+        mint,      // used by mints (to store backing reserves for cash)
+        voucher, // used by the server (to store backing reserves for vouchers)
+        stash, // used by the server (to store backing reserves for stashes, for
+               // smart contracts.)
+        err_acct
+    }; // If you add any types to this list, update the list of strings at the
+       // top of the .CPP file.
+
 protected:
-	AccountType		m_AcctType;
-	OTIdentifier	m_AcctAssetTypeID; // These are all the variables from the account file itself.
-	OTString		m_BalanceDate;
-	OTString		m_BalanceAmount;
+    AccountType m_AcctType;
+    OTIdentifier m_AcctAssetTypeID; // These are all the variables from the
+                                    // account file itself.
+    OTString m_BalanceDate;
+    OTString m_BalanceAmount;
 
-	// return -1 if error, 0 if nothing, and 1 if the node was processed.
-	virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-	virtual void UpdateContents();
-	OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theServerID);
-	OTAccount();
-	// -------------------------------------------------
-	int64_t	m_lStashTransNum;	// the Transaction Number of a smart contract running on cron, if this is a stash account.
-	// -------------------------------------------------
-    bool	m_bMarkForDeletion; // Default FALSE. When set to true, saves a "DELETED" flag with this Account,
-								// for easy cleanup later when the server is doing some maintenance.
-    // --------------------------------------------------------------
-    OTIdentifier    m_InboxHash;       // Hash of this account's Inbox, so we don't download it more often than necessary.
-    OTIdentifier    m_OutboxHash;      // Hash of this account's Outbox, so we don't download it more often than necessary.
-	// --------------------------------------------------------------
+    virtual void UpdateContents();
+    OTAccount(const OTIdentifier& theUserID, const OTIdentifier& theServerID);
+    OTAccount();
+    int64_t m_lStashTransNum; // the Transaction Number of a smart contract
+                              // running on cron, if this is a stash account.
+    bool m_bMarkForDeletion;  // Default FALSE. When set to true, saves a
+                              // "DELETED" flag with this Account,
+    // for easy cleanup later when the server is doing some maintenance.
+    OTIdentifier m_InboxHash;  // Hash of this account's Inbox, so we don't
+                               // download it more often than necessary.
+    OTIdentifier m_OutboxHash; // Hash of this account's Outbox, so we don't
+                               // download it more often than necessary.
 public:
-    inline void MarkForDeletion() { m_bMarkForDeletion = true; }
-    inline bool IsMarkedForDeletion() const { return m_bMarkForDeletion; }
-    // ---------------------------------------
-EXPORT	bool IsInternalServerAcct() const;
-	
-EXPORT  bool IsOwnedByUser() const;
-EXPORT  bool IsOwnedByEntity() const;
-	
-EXPORT  bool IsAllowedToGoNegative() const;
-EXPORT  bool IsIssuer() const;
-    // ---------------------------------------
-	// For accounts used by smart contracts, to stash funds while running.
-	//
-EXPORT	bool IsStashAcct() const { return (m_AcctType == stash); }
-	
-EXPORT	const int64_t & GetStashTransNum() const { return m_lStashTransNum; }
-EXPORT	void SetStashTransNum(const int64_t & lTransNum) { m_lStashTransNum = lTransNum; }
-    // ---------------------------------------
-EXPORT  OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID, const OTString & name);
-EXPORT	OTAccount(const OTIdentifier & theUserID, const OTIdentifier & theAccountID, const OTIdentifier & theServerID);
-EXPORT  void InitAccount();
-EXPORT	virtual ~OTAccount();
-EXPORT  virtual void Release();
-    
-EXPORT  void Release_Account();
-    // -----------------------------------------------------------------------
-EXPORT	static OTAccount * GenerateNewAccount(const OTIdentifier & theUserID, const OTIdentifier & theServerID, 
-                                              const OTPseudonym & theServerNym, const OTMessage & theMessage,
-                                              const AccountType eAcctType=simple,
-                                              int64_t lStashTransNum=0);
+    inline void MarkForDeletion()
+    {
+        m_bMarkForDeletion = true;
+    }
+    inline bool IsMarkedForDeletion() const
+    {
+        return m_bMarkForDeletion;
+    }
+    EXPORT bool IsInternalServerAcct() const;
 
-EXPORT	bool GenerateNewAccount(const OTPseudonym & theServer, 
-                                const OTMessage   & theMessage, 
-                                const AccountType   eAcctType=simple,
-                                      int64_t          lStashTransNum=0);
-    // -----------------------------------------------------------------------
-	// Let's say you don't have or know the UserID, and you just want to load the damn thing up.
-	// Then call this function. It will set userID for you.
-EXPORT	static OTAccount * LoadExistingAccount(const OTIdentifier & theAccountID, const OTIdentifier & theServerID);
-    // -----------------------------------------------------------------------
-EXPORT	OTLedger * LoadInbox (OTPseudonym & theNym); // Caller responsible to delete.
-EXPORT	OTLedger * LoadOutbox(OTPseudonym & theNym); // Caller responsible to delete.
-	
-EXPORT  bool SaveInbox (OTLedger &theBox, OTIdentifier * pHash=NULL);  // If you pass the identifier in, the inbox hash is recorded there
-EXPORT	bool SaveOutbox(OTLedger &theBox, OTIdentifier * pHash=NULL);  // If you pass the identifier in, the outbox hash is recorded there
-    // -----------------------------------------------------------------------
-EXPORT	const OTIdentifier & GetAssetTypeID() const;
-    // -----------------------------------------------------------------------
-EXPORT	int64_t GetBalance() const;
-    // -----------------------------------------------------------------------
-EXPORT	bool Debit(const int64_t & lAmount); // Debit a certain amount from the account (presumably the same amount is being added somewhere)
-EXPORT	bool Credit(const int64_t & lAmount); // Credit a certain amount from the account (presumably the same amount is being subtracted somewhere)
-    // -----------------------------------------------------------------------
-	// Compares the NymID loaded from the account file with whatever Nym the programmer wants to verify.
-EXPORT	bool VerifyOwner(const OTPseudonym & theCandidate) const;
-EXPORT	bool VerifyOwnerByID(const OTIdentifier & theNymID) const;
-    // -----------------------------------------------------------------------
-EXPORT	virtual bool LoadContract(); // overriding this so I can set the filename automatically inside based on ID.
-    // -----------------------------------------------------------------------
-EXPORT	bool SaveAccount(); // generates filename based on accounts path and account ID. Saves to the standard location for an acct.
-		
-//	virtual bool SaveContractWallet(FILE * fl);
-EXPORT	virtual bool SaveContractWallet(std::ofstream & ofs);
-EXPORT	virtual bool SaveContractWallet(OTString & strContents) const;
-    // -----------------------------------------------------------------------
-EXPORT	virtual bool DisplayStatistics(OTString & strContents) const;
-	// --------------------------------------------------------------
-EXPORT  void  SetInboxHash(const OTIdentifier & theInput);
-EXPORT  bool  GetInboxHash(OTIdentifier & theOutput);
-    
-EXPORT  void  SetOutboxHash(const OTIdentifier & theInput);   
-EXPORT  bool  GetOutboxHash(OTIdentifier & theOutput);
-	// --------------------------------------------------------------
-EXPORT	static char const * _GetTypeString(AccountType theType);
-EXPORT	char const * GetTypeString() { return OTAccount::_GetTypeString(m_AcctType); }
+    EXPORT bool IsOwnedByUser() const;
+    EXPORT bool IsOwnedByEntity() const;
+
+    EXPORT bool IsAllowedToGoNegative() const;
+    EXPORT bool IsIssuer() const;
+    // For accounts used by smart contracts, to stash funds while running.
+    //
+    EXPORT bool IsStashAcct() const
+    {
+        return (m_AcctType == stash);
+    }
+
+    EXPORT const int64_t& GetStashTransNum() const
+    {
+        return m_lStashTransNum;
+    }
+    EXPORT void SetStashTransNum(const int64_t& lTransNum)
+    {
+        m_lStashTransNum = lTransNum;
+    }
+    EXPORT OTAccount(const OTIdentifier& theUserID,
+                     const OTIdentifier& theAccountID,
+                     const OTIdentifier& theServerID, const OTString& name);
+    EXPORT OTAccount(const OTIdentifier& theUserID,
+                     const OTIdentifier& theAccountID,
+                     const OTIdentifier& theServerID);
+    EXPORT void InitAccount();
+    EXPORT virtual ~OTAccount();
+    EXPORT virtual void Release();
+
+    EXPORT void Release_Account();
+    EXPORT static OTAccount* GenerateNewAccount(
+        const OTIdentifier& theUserID, const OTIdentifier& theServerID,
+        const OTPseudonym& theServerNym, const OTMessage& theMessage,
+        const AccountType eAcctType = simple, int64_t lStashTransNum = 0);
+
+    EXPORT bool GenerateNewAccount(const OTPseudonym& theServer,
+                                   const OTMessage& theMessage,
+                                   const AccountType eAcctType = simple,
+                                   int64_t lStashTransNum = 0);
+    // Let's say you don't have or know the UserID, and you just want to load
+    // the damn thing up.
+    // Then call this function. It will set userID for you.
+    EXPORT static OTAccount* LoadExistingAccount(
+        const OTIdentifier& theAccountID, const OTIdentifier& theServerID);
+    EXPORT OTLedger* LoadInbox(OTPseudonym& theNym);  // Caller responsible to
+                                                      // delete.
+    EXPORT OTLedger* LoadOutbox(OTPseudonym& theNym); // Caller responsible to
+                                                      // delete.
+
+    EXPORT bool SaveInbox(OTLedger& theBox,
+                          OTIdentifier* pHash = NULL); // If you pass the
+                                                       // identifier in, the
+                                                       // inbox hash is recorded
+                                                       // there
+    EXPORT bool SaveOutbox(OTLedger& theBox,
+                           OTIdentifier* pHash = NULL); // If you pass the
+                                                        // identifier in, the
+                                                        // outbox hash is
+                                                        // recorded there
+    EXPORT const OTIdentifier& GetAssetTypeID() const;
+    EXPORT int64_t GetBalance() const;
+    EXPORT bool Debit(const int64_t& lAmount);  // Debit a certain amount from
+                                                // the account (presumably the
+                                                // same amount is being added
+                                                // somewhere)
+    EXPORT bool Credit(const int64_t& lAmount); // Credit a certain amount from
+                                                // the account (presumably the
+                                                // same amount is being
+                                                // subtracted somewhere)
+    // Compares the NymID loaded from the account file with whatever Nym the
+    // programmer wants to verify.
+    EXPORT bool VerifyOwner(const OTPseudonym& theCandidate) const;
+    EXPORT bool VerifyOwnerByID(const OTIdentifier& theNymID) const;
+    EXPORT virtual bool LoadContract(); // overriding this so I can set the
+                                        // filename automatically inside based
+                                        // on ID.
+    EXPORT bool SaveAccount(); // generates filename based on accounts path and
+                               // account ID. Saves to the standard location for
+                               // an acct.
+
+    //    virtual bool SaveContractWallet(FILE * fl);
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
+    EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
+    EXPORT void SetInboxHash(const OTIdentifier& theInput);
+    EXPORT bool GetInboxHash(OTIdentifier& theOutput);
+
+    EXPORT void SetOutboxHash(const OTIdentifier& theInput);
+    EXPORT bool GetOutboxHash(OTIdentifier& theOutput);
+    EXPORT static char const* _GetTypeString(AccountType theType);
+    EXPORT char const* GetTypeString()
+    {
+        return OTAccount::_GetTypeString(m_AcctType);
+    }
 };
-
-
 
 } // namespace opentxs
 

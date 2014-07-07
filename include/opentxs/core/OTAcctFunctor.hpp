@@ -137,14 +137,14 @@
 
 #include <map>
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAccount;
 class OTAcctFunctor;
 class OTIdentifier;
 
-typedef std::map<std::string, OTAccount *>		mapOfAccounts;
-
+typedef std::map<std::string, OTAccount*> mapOfAccounts;
 
 // This class is used by ForEachAccountRecord (above) which loops through
 // all the "simple" accounts of a specific asset type, and calls this functor
@@ -153,19 +153,28 @@ typedef std::map<std::string, OTAccount *>		mapOfAccounts;
 class OTAcctFunctor
 {
 protected:
-    OTIdentifier  * m_pServerID; // owned.
-    mapOfAccounts * m_pLoadedAccounts; // not owned.
+    OTIdentifier* m_pServerID;        // owned.
+    mapOfAccounts* m_pLoadedAccounts; // not owned.
 
 public:
-EXPORT    OTAcctFunctor(const OTIdentifier & theServerID, mapOfAccounts * pLoadedAccounts=NULL);
-EXPORT    virtual ~OTAcctFunctor();
+    EXPORT OTAcctFunctor(const OTIdentifier& theServerID,
+                         mapOfAccounts* pLoadedAccounts = NULL);
+    EXPORT virtual ~OTAcctFunctor();
 
-EXPORT    OTIdentifier  * GetServerID()    { return m_pServerID; }
-EXPORT    mapOfAccounts * GetLoadedAccts() { return m_pLoadedAccounts; }
+    EXPORT OTIdentifier* GetServerID()
+    {
+        return m_pServerID;
+    }
+    EXPORT mapOfAccounts* GetLoadedAccts()
+    {
+        return m_pLoadedAccounts;
+    }
 
-EXPORT    virtual bool Trigger(OTAccount & theAccount)=0; // We still provide an implementation, however.
+    EXPORT virtual bool Trigger(OTAccount& theAccount) = 0; // We still provide
+                                                            // an
+                                                            // implementation,
+                                                            // however.
 };
-
 
 // todo: Make an "OTAcctFunctor_Audit" subclass of this.
 
@@ -174,16 +183,14 @@ EXPORT    virtual bool Trigger(OTAccount & theAccount)=0; // We still provide an
 // OTServer-specific functions, and thus can't be in the otlib,
 // which doesn't know of the server.
 //
-//class OTAcctFunctor_PayDividend
+// class OTAcctFunctor_PayDividend
 //{
-//public:
+// public:
 //    OTAcctFunctor_PayDividend(const OTIdentifier & theServerID);
 //    virtual ~OTAcctFunctor_PayDividend();
 //
 //    virtual bool Trigger(OTAccount & theAccount);
 //};
-
-
 
 } // namespace opentxs
 

@@ -136,7 +136,6 @@
 
 #include "OTPaths.hpp"
 
-
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>
@@ -157,11 +156,11 @@
 #endif
 
 #ifndef S_ISDIR
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
 #ifndef S_ISREG
-#define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
+#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
 #endif
 
 #ifdef _WIN32
@@ -176,13 +175,17 @@
 
 #ifndef OT_PREFIX_PATH
 #ifdef _WIN32
-#define OT_PREFIX_PATH OTPaths::AppDataFolder() // windows, set to OT AppData Folder.
+#define OT_PREFIX_PATH                                                         \
+    OTPaths::AppDataFolder() // windows, set to OT AppData Folder.
 #elif TARGET_OS_IPHONE
-#define OT_PREFIX_PATH OTPaths::AppDataFolder() // iphone,  set to OT AppData Folder.
+#define OT_PREFIX_PATH                                                         \
+    OTPaths::AppDataFolder() // iphone,  set to OT AppData Folder.
 #elif ANDROID
-#define OT_PREFIX_PATH "res/raw"                // android, set to res/raw folder for static files in android app sandbox.
+#define OT_PREFIX_PATH                                                         \
+    "res/raw" // android, set to res/raw folder for static files in android app
+// sandbox.
 #else
-#define OT_PREFIX_PATH "/usr/local" //default prefix_path unix
+#define OT_PREFIX_PATH "/usr/local" // default prefix_path unix
 #endif
 #endif
 
@@ -203,55 +206,54 @@
 #define OT_SCRIPTS_DIR "lib/opentxs"
 #endif
 
+#define DEFAULT_ACCOUNT "accounts"
+#define DEFAULT_CERT "certs"
+#define DEFAULT_CONTRACT "contracts"
+#define DEFAULT_CREDENTIAL "credentials"
+#define DEFAULT_CRON "cron"
+#define DEFAULT_INBOX "inbox"
+#define DEFAULT_MARKET "markets"
+#define DEFAULT_MINT "mints"
+#define DEFAULT_NYM "nyms"
+#define DEFAULT_NYMBOX "nymbox"
+#define DEFAULT_OUTBOX "outbox"
+#define DEFAULT_PAYMENTINBOX "paymentInbox"
+#define DEFAULT_PUBCRED "pubcred"
+#define DEFAULT_PUBKEY "pubkeys"
+#define DEFAULT_PURSE "purse"
+#define DEFAULT_RECEIPT "receipts"
+#define DEFAULT_RECORDBOX "recordBox"
+#define DEFAULT_EXPIREDBOX "expiredBox"
+#define DEFAULT_SCRIPT "scripts"
+#define DEFAULT_SMARTCONTRACTS "smartcontracts"
+#define DEFAULT_SPENT "spent"
+#define DEFAULT_USERACCT "useraccounts"
 
-#define    DEFAULT_ACCOUNT         "accounts"
-#define    DEFAULT_CERT            "certs"
-#define    DEFAULT_CONTRACT        "contracts"
-#define    DEFAULT_CREDENTIAL      "credentials"
-#define    DEFAULT_CRON            "cron"
-#define    DEFAULT_INBOX           "inbox"
-#define    DEFAULT_MARKET          "markets"
-#define    DEFAULT_MINT            "mints"
-#define    DEFAULT_NYM             "nyms"
-#define    DEFAULT_NYMBOX          "nymbox"
-#define    DEFAULT_OUTBOX          "outbox"
-#define    DEFAULT_PAYMENTINBOX    "paymentInbox"
-#define    DEFAULT_PUBCRED         "pubcred"
-#define    DEFAULT_PUBKEY          "pubkeys"
-#define    DEFAULT_PURSE           "purse"
-#define    DEFAULT_RECEIPT         "receipts"
-#define    DEFAULT_RECORDBOX       "recordBox"
-#define    DEFAULT_EXPIREDBOX      "expiredBox"
-#define    DEFAULT_SCRIPT          "scripts"
-#define    DEFAULT_SMARTCONTRACTS  "smartcontracts"
-#define    DEFAULT_SPENT           "spent"
-#define    DEFAULT_USERACCT        "useraccounts"
+#define KEY_ACCOUNT "account"
+#define KEY_CERT "cert"
+#define KEY_CONTRACT "contract"
+#define KEY_CREDENTIAL "credential"
+#define KEY_CRON "cron"
+#define KEY_INBOX "inbox"
+#define KEY_MARKET "market"
+#define KEY_MINT "mint"
+#define KEY_NYM "nym"
+#define KEY_NYMBOX "nymbox"
+#define KEY_OUTBOX "outbox"
+#define KEY_PAYMENTINBOX "paymentinbox"
+#define KEY_PUBCRED "pubcred"
+#define KEY_PUBKEY "pubkey"
+#define KEY_PURSE "purse"
+#define KEY_RECEIPT "receipt"
+#define KEY_RECORDBOX "recordbox"
+#define KEY_EXPIREDBOX "expiredbox"
+#define KEY_SCRIPT "script"
+#define KEY_SMARTCONTRACTS "smartcontracts"
+#define KEY_SPENT "spent"
+#define KEY_USERACCT "useracct"
 
-
-#define    KEY_ACCOUNT             "account"
-#define    KEY_CERT                "cert"
-#define    KEY_CONTRACT            "contract"
-#define    KEY_CREDENTIAL          "credential"
-#define    KEY_CRON                "cron"
-#define    KEY_INBOX               "inbox"
-#define    KEY_MARKET              "market"
-#define    KEY_MINT                "mint"
-#define    KEY_NYM                 "nym"
-#define    KEY_NYMBOX              "nymbox"
-#define    KEY_OUTBOX              "outbox"
-#define    KEY_PAYMENTINBOX        "paymentinbox"
-#define    KEY_PUBCRED             "pubcred"
-#define    KEY_PUBKEY              "pubkey"
-#define    KEY_PURSE               "purse"
-#define    KEY_RECEIPT             "receipt"
-#define    KEY_RECORDBOX           "recordbox"
-#define    KEY_EXPIREDBOX          "expiredbox"
-#define    KEY_SCRIPT              "script"
-#define    KEY_SMARTCONTRACTS      "smartcontracts"
-#define    KEY_SPENT               "spent"
-#define    KEY_USERACCT            "useracct"
-
-namespace opentxs {
+namespace opentxs
+{
 
 OTString OTFolders::s_strAccount("");
 OTString OTFolders::s_strCert("");
@@ -276,67 +278,159 @@ OTString OTFolders::s_strSmartContracts("");
 OTString OTFolders::s_strSpent("");
 OTString OTFolders::s_strUserAcct("");
 
-
 bool OTFolders::GetSetAll()
 {
     OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
 
     config.Reset();
 
-    if(!config.Load()) return false;
+    if (!config.Load()) return false;
 
-    if(!GetSetFolderName(config,KEY_ACCOUNT,         DEFAULT_ACCOUNT,         s_strAccount         )) return false;
-    if(!GetSetFolderName(config,KEY_CERT,            DEFAULT_CERT,            s_strCert            )) return false;
-    if(!GetSetFolderName(config,KEY_CONTRACT,        DEFAULT_CONTRACT,        s_strContract        )) return false;
-    if(!GetSetFolderName(config,KEY_CREDENTIAL,      DEFAULT_CREDENTIAL,      s_strCredential      )) return false;
-    if(!GetSetFolderName(config,KEY_CRON,            DEFAULT_CRON,            s_strCron            )) return false;
-    if(!GetSetFolderName(config,KEY_INBOX,           DEFAULT_INBOX,           s_strInbox           )) return false;
-    if(!GetSetFolderName(config,KEY_MARKET,          DEFAULT_MARKET,          s_strMarket          )) return false;
-    if(!GetSetFolderName(config,KEY_MINT,            DEFAULT_MINT,            s_strMint            )) return false;
-    if(!GetSetFolderName(config,KEY_NYM,             DEFAULT_NYM,             s_strNym             )) return false;
-    if(!GetSetFolderName(config,KEY_NYMBOX,          DEFAULT_NYMBOX,          s_strNymbox          )) return false;
-    if(!GetSetFolderName(config,KEY_OUTBOX,          DEFAULT_OUTBOX,          s_strOutbox          )) return false;
-    if(!GetSetFolderName(config,KEY_PAYMENTINBOX,    DEFAULT_PAYMENTINBOX,    s_strPaymentInbox    )) return false;
-    if(!GetSetFolderName(config,KEY_PUBCRED,         DEFAULT_PUBCRED,         s_strPubcred         )) return false;
-    if(!GetSetFolderName(config,KEY_PUBKEY,          DEFAULT_PUBKEY,          s_strPubkey          )) return false;
-    if(!GetSetFolderName(config,KEY_PURSE,           DEFAULT_PURSE,           s_strPurse           )) return false;
-    if(!GetSetFolderName(config,KEY_RECEIPT,         DEFAULT_RECEIPT,         s_strReceipt         )) return false;
-    if(!GetSetFolderName(config,KEY_RECORDBOX,       DEFAULT_RECORDBOX,       s_strRecordBox       )) return false;
-    if(!GetSetFolderName(config,KEY_EXPIREDBOX,      DEFAULT_EXPIREDBOX,      s_strExpiredBox      )) return false;
-    if(!GetSetFolderName(config,KEY_SCRIPT,          DEFAULT_SCRIPT,          s_strScript          )) return false;
-    if(!GetSetFolderName(config,KEY_SMARTCONTRACTS,  DEFAULT_SMARTCONTRACTS,  s_strSmartContracts  )) return false;
-    if(!GetSetFolderName(config,KEY_SPENT,           DEFAULT_SPENT,           s_strSpent           )) return false;
-    if(!GetSetFolderName(config,KEY_USERACCT,        DEFAULT_USERACCT,        s_strUserAcct        )) return false;
+    if (!GetSetFolderName(config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
+        return false;
+    if (!GetSetFolderName(config, KEY_CERT, DEFAULT_CERT, s_strCert))
+        return false;
+    if (!GetSetFolderName(config, KEY_CONTRACT, DEFAULT_CONTRACT,
+                          s_strContract))
+        return false;
+    if (!GetSetFolderName(config, KEY_CREDENTIAL, DEFAULT_CREDENTIAL,
+                          s_strCredential))
+        return false;
+    if (!GetSetFolderName(config, KEY_CRON, DEFAULT_CRON, s_strCron))
+        return false;
+    if (!GetSetFolderName(config, KEY_INBOX, DEFAULT_INBOX, s_strInbox))
+        return false;
+    if (!GetSetFolderName(config, KEY_MARKET, DEFAULT_MARKET, s_strMarket))
+        return false;
+    if (!GetSetFolderName(config, KEY_MINT, DEFAULT_MINT, s_strMint))
+        return false;
+    if (!GetSetFolderName(config, KEY_NYM, DEFAULT_NYM, s_strNym)) return false;
+    if (!GetSetFolderName(config, KEY_NYMBOX, DEFAULT_NYMBOX, s_strNymbox))
+        return false;
+    if (!GetSetFolderName(config, KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
+        return false;
+    if (!GetSetFolderName(config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX,
+                          s_strPaymentInbox))
+        return false;
+    if (!GetSetFolderName(config, KEY_PUBCRED, DEFAULT_PUBCRED, s_strPubcred))
+        return false;
+    if (!GetSetFolderName(config, KEY_PUBKEY, DEFAULT_PUBKEY, s_strPubkey))
+        return false;
+    if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
+        return false;
+    if (!GetSetFolderName(config, KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
+        return false;
+    if (!GetSetFolderName(config, KEY_RECORDBOX, DEFAULT_RECORDBOX,
+                          s_strRecordBox))
+        return false;
+    if (!GetSetFolderName(config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX,
+                          s_strExpiredBox))
+        return false;
+    if (!GetSetFolderName(config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
+        return false;
+    if (!GetSetFolderName(config, KEY_SMARTCONTRACTS, DEFAULT_SMARTCONTRACTS,
+                          s_strSmartContracts))
+        return false;
+    if (!GetSetFolderName(config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
+        return false;
+    if (!GetSetFolderName(config, KEY_USERACCT, DEFAULT_USERACCT,
+                          s_strUserAcct))
+        return false;
 
-    if(!config.Save()) return false;
+    if (!config.Save()) return false;
 
     config.Reset();
 
     return true;
 }
 
-
-const OTString & OTFolders::Account()         { return GetFolder(s_strAccount         ); }
-const OTString & OTFolders::Cert()            { return GetFolder(s_strCert            ); }
-const OTString & OTFolders::Contract()        { return GetFolder(s_strContract        ); }
-const OTString & OTFolders::Credential()      { return GetFolder(s_strCredential      ); }
-const OTString & OTFolders::Cron()            { return GetFolder(s_strCron            ); }
-const OTString & OTFolders::Inbox()           { return GetFolder(s_strInbox           ); }
-const OTString & OTFolders::Market()          { return GetFolder(s_strMarket          ); }
-const OTString & OTFolders::Mint()            { return GetFolder(s_strMint            ); }
-const OTString & OTFolders::Nym()             { return GetFolder(s_strNym             ); }
-const OTString & OTFolders::Nymbox()          { return GetFolder(s_strNymbox          ); }
-const OTString & OTFolders::Outbox()          { return GetFolder(s_strOutbox          ); }
-const OTString & OTFolders::PaymentInbox()    { return GetFolder(s_strPaymentInbox    ); }
-const OTString & OTFolders::Pubcred()         { return GetFolder(s_strPubcred         ); }
-const OTString & OTFolders::Pubkey()          { return GetFolder(s_strPubkey          ); }
-const OTString & OTFolders::Purse()           { return GetFolder(s_strPurse           ); }
-const OTString & OTFolders::Receipt()         { return GetFolder(s_strReceipt         ); }
-const OTString & OTFolders::RecordBox()       { return GetFolder(s_strRecordBox       ); }
-const OTString & OTFolders::ExpiredBox()      { return GetFolder(s_strExpiredBox      ); }
-const OTString & OTFolders::Script()          { return GetFolder(s_strScript          ); }
-const OTString & OTFolders::SmartContracts()  { return GetFolder(s_strSmartContracts  ); }
-const OTString & OTFolders::Spent()           { return GetFolder(s_strSpent           ); }
-const OTString & OTFolders::UserAcct()        { return GetFolder(s_strUserAcct        ); }
+const OTString& OTFolders::Account()
+{
+    return GetFolder(s_strAccount);
+}
+const OTString& OTFolders::Cert()
+{
+    return GetFolder(s_strCert);
+}
+const OTString& OTFolders::Contract()
+{
+    return GetFolder(s_strContract);
+}
+const OTString& OTFolders::Credential()
+{
+    return GetFolder(s_strCredential);
+}
+const OTString& OTFolders::Cron()
+{
+    return GetFolder(s_strCron);
+}
+const OTString& OTFolders::Inbox()
+{
+    return GetFolder(s_strInbox);
+}
+const OTString& OTFolders::Market()
+{
+    return GetFolder(s_strMarket);
+}
+const OTString& OTFolders::Mint()
+{
+    return GetFolder(s_strMint);
+}
+const OTString& OTFolders::Nym()
+{
+    return GetFolder(s_strNym);
+}
+const OTString& OTFolders::Nymbox()
+{
+    return GetFolder(s_strNymbox);
+}
+const OTString& OTFolders::Outbox()
+{
+    return GetFolder(s_strOutbox);
+}
+const OTString& OTFolders::PaymentInbox()
+{
+    return GetFolder(s_strPaymentInbox);
+}
+const OTString& OTFolders::Pubcred()
+{
+    return GetFolder(s_strPubcred);
+}
+const OTString& OTFolders::Pubkey()
+{
+    return GetFolder(s_strPubkey);
+}
+const OTString& OTFolders::Purse()
+{
+    return GetFolder(s_strPurse);
+}
+const OTString& OTFolders::Receipt()
+{
+    return GetFolder(s_strReceipt);
+}
+const OTString& OTFolders::RecordBox()
+{
+    return GetFolder(s_strRecordBox);
+}
+const OTString& OTFolders::ExpiredBox()
+{
+    return GetFolder(s_strExpiredBox);
+}
+const OTString& OTFolders::Script()
+{
+    return GetFolder(s_strScript);
+}
+const OTString& OTFolders::SmartContracts()
+{
+    return GetFolder(s_strSmartContracts);
+}
+const OTString& OTFolders::Spent()
+{
+    return GetFolder(s_strSpent);
+}
+const OTString& OTFolders::UserAcct()
+{
+    return GetFolder(s_strUserAcct);
+}
 
 } // namespace opentxs

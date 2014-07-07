@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTTrackable.cpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -136,141 +136,138 @@
 
 #include "OTNumList.hpp"
 
+// This class is like OTInstrument except with identifying info (such as
+// transaction number) added.
 
-// This class is like OTInstrument except with identifying info (such as transaction number) added.
-
-namespace opentxs {
-
-OTTrackable::OTTrackable() : 
-			ot_super(), m_lTransactionNum(0)
+namespace opentxs
 {
-	InitTrackable();
+
+OTTrackable::OTTrackable()
+    : ot_super()
+    , m_lTransactionNum(0)
+{
+    InitTrackable();
 }
 
-
-OTTrackable::OTTrackable(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID) : 
-			ot_super(SERVER_ID, ASSET_ID), m_lTransactionNum(0)
+OTTrackable::OTTrackable(const OTIdentifier& SERVER_ID,
+                         const OTIdentifier& ASSET_ID)
+    : ot_super(SERVER_ID, ASSET_ID)
+    , m_lTransactionNum(0)
 {
-	InitTrackable();
+    InitTrackable();
 }
 
-
-OTTrackable::OTTrackable(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID,
-						 const OTIdentifier & ACCT_ID, const OTIdentifier & USER_ID) : 
-			ot_super(SERVER_ID, ASSET_ID), m_lTransactionNum(0)
+OTTrackable::OTTrackable(const OTIdentifier& SERVER_ID,
+                         const OTIdentifier& ASSET_ID,
+                         const OTIdentifier& ACCT_ID,
+                         const OTIdentifier& USER_ID)
+    : ot_super(SERVER_ID, ASSET_ID)
+    , m_lTransactionNum(0)
 {
-	InitTrackable();
-	
-	SetSenderAcctID(ACCT_ID);
-	SetSenderUserID(USER_ID);
-}
+    InitTrackable();
 
+    SetSenderAcctID(ACCT_ID);
+    SetSenderUserID(USER_ID);
+}
 
 OTTrackable::~OTTrackable()
 {
     Release_Trackable();
 }
 
-
 void OTTrackable::InitTrackable()
 {
-	m_strContractType.Set("TRACKABLE"); // Should never happen in practice. A child class will override it.
+    m_strContractType.Set("TRACKABLE"); // Should never happen in practice. A
+                                        // child class will override it.
 
-	m_lTransactionNum = 0;
+    m_lTransactionNum = 0;
 }
 
-
-bool OTTrackable::HasTransactionNum(const int64_t & lInput) const
+bool OTTrackable::HasTransactionNum(const int64_t& lInput) const
 {
     return (lInput == m_lTransactionNum);
 }
 
-
-void OTTrackable::GetAllTransactionNumbers(OTNumList & numlistOutput) const
+void OTTrackable::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 {
-    if (m_lTransactionNum > 0)
-        numlistOutput.Add(m_lTransactionNum);
+    if (m_lTransactionNum > 0) numlistOutput.Add(m_lTransactionNum);
 }
-
 
 void OTTrackable::Release_Trackable()
 {
-	// If there were any dynamically allocated objects, clean them up here.
-	m_SENDER_ACCT_ID.Release();	
-	m_SENDER_USER_ID.Release();
+    // If there were any dynamically allocated objects, clean them up here.
+    m_SENDER_ACCT_ID.Release();
+    m_SENDER_USER_ID.Release();
 }
-
 
 void OTTrackable::Release()
 {
     Release_Trackable();
-    
-	ot_super::Release(); // since I've overridden the base class, I call it now...
-	
-	// Then I call this to re-initialize everything for myself.
-	InitTrackable(); 	
-}
 
+    ot_super::Release(); // since I've overridden the base class, I call it
+                         // now...
+
+    // Then I call this to re-initialize everything for myself.
+    InitTrackable();
+}
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-//    otErr << "OTTrackable::ProcessXMLNode...\n";
-    
-	int32_t nReturnVal = 0;
-    
-	// Here we call the parent class first.
-	// If the node is found there, or there is some error,
-	// then we just return either way.  But if it comes back
-	// as '0', then nothing happened, and we'll continue executing.
-	//
-	// -- Note you can choose not to call the parent if
-	// you don't want to use any of those xml tags.
-	//
-	
-	// In this case, I don't need to call the parent. But I'm going to 
-	// call the grand-grand-parent (scriptable.)
-	//
-	nReturnVal = ot_super::ProcessXMLNode(xml);
-	
-	if (nReturnVal != 0) // -1 is error, and 1 is "found it". Either way, return.
-		return nReturnVal;	// 0 means "nothing happened, keep going."
-    
+    //    otErr << "OTTrackable::ProcessXMLNode...\n";
 
-	// From OTCronItem (only as sample code.)
+    int32_t nReturnVal = 0;
+
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
     //
-//    if (!strcmp("closingTransactionNumber", xml->getNodeName())) 
-//	{		
-//        OTString strClosingNumber = xml->getAttributeValue("value");
-//        
-//        if (strClosingNumber.Exists())
-//        {
-//            const int64_t lClosingNumber = atol(strClosingNumber.Get());					
-//            
-//            this->AddClosingTransactionNo(lClosingNumber);
-//        }
-//        else
-//		{
-//			otErr << "Error in OTCronItem::ProcessXMLNode: closingTransactionNumber field without value.\n";
-//			return (-1); // error condition
-//		}
-//        
-//		nReturnVal = 1;
-//	}
-    
-	return nReturnVal;
-}
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    //
 
+    // In this case, I don't need to call the parent. But I'm going to
+    // call the grand-grand-parent (scriptable.)
+    //
+    nReturnVal = ot_super::ProcessXMLNode(xml);
+
+    if (nReturnVal !=
+        0) // -1 is error, and 1 is "found it". Either way, return.
+        return nReturnVal; // 0 means "nothing happened, keep going."
+
+    // From OTCronItem (only as sample code.)
+    //
+    //    if (!strcmp("closingTransactionNumber", xml->getNodeName()))
+    //    {
+    //        OTString strClosingNumber = xml->getAttributeValue("value");
+    //
+    //        if (strClosingNumber.Exists())
+    //        {
+    //            const int64_t lClosingNumber = atol(strClosingNumber.Get());
+    //
+    //            this->AddClosingTransactionNo(lClosingNumber);
+    //        }
+    //        else
+    //        {
+    //            otErr << "Error in OTCronItem::ProcessXMLNode:
+    // closingTransactionNumber field without value.\n";
+    //            return (-1); // error condition
+    //        }
+    //
+    //        nReturnVal = 1;
+    //    }
+
+    return nReturnVal;
+}
 
 void OTTrackable::UpdateContents()
 {
-	
 }
 
-
-bool OTTrackable::SaveContractWallet(std::ofstream &)
+bool OTTrackable::SaveContractWallet(std::ofstream&)
 {
-	return true;
+    return true;
 }
 
 } // namespace opentxs

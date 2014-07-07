@@ -1,11 +1,11 @@
 /************************************************************
 *
 *  OTSettings.hpp
-*	This class has no static members;
-*	You must create a context.  Only one context, per
-*	 configuration file should exist at the same time,
-*	 it is the caller's responsibility for the
-*	 mutex locks / lock files and whatnot.
+*    This class has no static members;
+*    You must create a context.  Only one context, per
+*     configuration file should exist at the same time,
+*     it is the caller's responsibility for the
+*     mutex locks / lock files and whatnot.
 *
 */
 
@@ -140,55 +140,52 @@
 
 #include "OTString.hpp"
 
-
 #if __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 class OTSettings
 {
 private:
     class OTSettingsPvt;
-    OTSettingsPvt * pvt;
-
-    
+    OTSettingsPvt* pvt;
 
     bool b_Loaded;
 
     OTString m_strConfigurationFileExactPath;
 
     // Core (Load and Save)
-    EXPORT bool Load(const OTString & strConfigurationFileExactPath);
-    EXPORT bool Save(const OTString & strConfigurationFileExactPath);
+    EXPORT bool Load(const OTString& strConfigurationFileExactPath);
+    EXPORT bool Save(const OTString& strConfigurationFileExactPath);
 
     // Log (log to Output in a well-formated way).
-    EXPORT bool LogChange_str (const OTString & strSection, const OTString & strKey, const OTString & strValue);
-    EXPORT bool LogChange_long(const OTString & strSection, const OTString & strKey, const int64_t     & lValue );
-    EXPORT bool LogChange_bool(const OTString & strSection, const OTString & strKey, const bool     & bValue );
+    EXPORT bool LogChange_str(const OTString& strSection,
+                              const OTString& strKey, const OTString& strValue);
+    EXPORT bool LogChange_long(const OTString& strSection,
+                               const OTString& strKey, const int64_t& lValue);
+    EXPORT bool LogChange_bool(const OTString& strSection,
+                               const OTString& strKey, const bool& bValue);
 
 public:
-
     EXPORT OTSettings();
 
-    EXPORT OTSettings(const OTString & strConfigFilePath);
+    EXPORT OTSettings(const OTString& strConfigFilePath);
 
     EXPORT ~OTSettings();
 
-
-    EXPORT void SetConfigFilePath(const OTString & strConfigFilePath);
+    EXPORT void SetConfigFilePath(const OTString& strConfigFilePath);
 
     // Core (Public Load and Save)
     EXPORT bool Load();
     EXPORT bool Save();
 
-    EXPORT const bool & IsLoaded() const;
+    EXPORT const bool& IsLoaded() const;
 
-    // --------------------------------------------------
     // Configuration Helpers
     //
 
@@ -196,34 +193,56 @@ public:
     EXPORT bool Reset();
     EXPORT bool IsEmpty() const;
 
-    // Check Only (get value of key from configuration, if the key exists, then out_bKeyExist will be true.)
-    EXPORT bool Check_str      (const OTString & strSection, const OTString & strKey, OTString & out_strResult, bool & out_bKeyExist) const;
-    EXPORT bool Check_long     (const OTString & strSection, const OTString & strKey, int64_t     & out_lResult,   bool & out_bKeyExist) const;
-    EXPORT bool Check_bool     (const OTString & strSection, const OTString & strKey, bool     & out_bResult,   bool & out_bKeyExist) const;
+    // Check Only (get value of key from configuration, if the key exists, then
+    // out_bKeyExist will be true.)
+    EXPORT bool Check_str(const OTString& strSection, const OTString& strKey,
+                          OTString& out_strResult, bool& out_bKeyExist) const;
+    EXPORT bool Check_long(const OTString& strSection, const OTString& strKey,
+                           int64_t& out_lResult, bool& out_bKeyExist) const;
+    EXPORT bool Check_bool(const OTString& strSection, const OTString& strKey,
+                           bool& out_bResult, bool& out_bKeyExist) const;
 
-    // Set Only (set new or update value, out_bNewOrUpdate will be true if the value changes.)
-    EXPORT bool Set_str        (const OTString & strSection, const OTString & strKey, const OTString & strValue, bool & out_bNewOrUpdate, const OTString & strComment = "");
-    EXPORT bool Set_long       (const OTString & strSection, const OTString & strKey, const int64_t     & lValue,   bool & out_bNewOrUpdate, const OTString & strComment = "");
-    EXPORT bool Set_bool       (const OTString & strSection, const OTString & strKey, const bool     & bValue,   bool & out_bNewOrUpdate, const OTString & strComment = "");
+    // Set Only (set new or update value, out_bNewOrUpdate will be true if the
+    // value changes.)
+    EXPORT bool Set_str(const OTString& strSection, const OTString& strKey,
+                        const OTString& strValue, bool& out_bNewOrUpdate,
+                        const OTString& strComment = "");
+    EXPORT bool Set_long(const OTString& strSection, const OTString& strKey,
+                         const int64_t& lValue, bool& out_bNewOrUpdate,
+                         const OTString& strComment = "");
+    EXPORT bool Set_bool(const OTString& strSection, const OTString& strKey,
+                         const bool& bValue, bool& out_bNewOrUpdate,
+                         const OTString& strComment = "");
 
-    // Check for a Section, if the section dosn't exist, it will be made and out_bIsNewSection will be true.)
-    EXPORT bool CheckSetSection(const OTString & strSection, const OTString & strComment, bool & out_bIsNewSection);
+    // Check for a Section, if the section dosn't exist, it will be made and
+    // out_bIsNewSection will be true.)
+    EXPORT bool CheckSetSection(const OTString& strSection,
+                                const OTString& strComment,
+                                bool& out_bIsNewSection);
 
-    // Check for Key, and returns if the key exists, otherwise will set the default key. If the default key is set, then out_bIsNew will be true.)
-    EXPORT bool CheckSet_str   (const OTString & strSection, const OTString & strKey, const OTString & strDefault, OTString & out_strResult, bool & out_bIsNew, const OTString & strComment = "");
-    EXPORT bool CheckSet_long  (const OTString & strSection, const OTString & strKey, const int64_t     & lDefault,   int64_t     & out_lResult,   bool & out_bIsNew, const OTString & strComment = "");
-    EXPORT bool CheckSet_bool  (const OTString & strSection, const OTString & strKey, const bool     & bDefault,   bool     & out_bResult,   bool & out_bIsNew, const OTString & strComment = "");
+    // Check for Key, and returns if the key exists, otherwise will set the
+    // default key. If the default key is set, then out_bIsNew will be true.)
+    EXPORT bool CheckSet_str(const OTString& strSection, const OTString& strKey,
+                             const OTString& strDefault,
+                             OTString& out_strResult, bool& out_bIsNew,
+                             const OTString& strComment = "");
+    EXPORT bool CheckSet_long(const OTString& strSection,
+                              const OTString& strKey, const int64_t& lDefault,
+                              int64_t& out_lResult, bool& out_bIsNew,
+                              const OTString& strComment = "");
+    EXPORT bool CheckSet_bool(const OTString& strSection,
+                              const OTString& strKey, const bool& bDefault,
+                              bool& out_bResult, bool& out_bIsNew,
+                              const OTString& strComment = "");
 
     // Set Option helper function for setting bool's
-    EXPORT bool SetOption_bool (const OTString & strSection, const OTString & strKey, bool & bVariableName);
+    EXPORT bool SetOption_bool(const OTString& strSection,
+                               const OTString& strKey, bool& bVariableName);
 };
-
 
 #if __clang__
 #pragma clang diagnostic pop
 #endif
-
-
 
 } // namespace opentxs
 

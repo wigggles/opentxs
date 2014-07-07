@@ -7,7 +7,7 @@
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -135,35 +135,33 @@
 
 #include "OTString.hpp"
 
+// class OTStringXML : public OTString, public irr::io::IFileReadCallBack
 
-//class OTStringXML : public OTString, public irr::io::IFileReadCallBack
-
-namespace opentxs {
+namespace opentxs
+{
 
 class OTStringXML : public OTString
 {
 private:
     class OTStringXMLPvt;
-    OTStringXMLPvt * const pvt;
+    OTStringXMLPvt* const pvt;
 
 public:
-	OTStringXML();
-EXPORT	OTStringXML(const OTString & strValue);
-	OTStringXML(const OTStringXML & strValue);
-EXPORT	~OTStringXML();
+    OTStringXML();
+    EXPORT OTStringXML(const OTString& strValue);
+    OTStringXML(const OTStringXML& strValue);
+    EXPORT ~OTStringXML();
 
-EXPORT operator irr::io::IFileReadCallBack *();
-	
-	OTStringXML& operator=(const OTString & rhs);
-	OTStringXML& operator=(const OTStringXML & rhs);
+    EXPORT operator irr::io::IFileReadCallBack*();
 
-	using OTString::swap;
+    OTStringXML& operator=(const OTString& rhs);
+    OTStringXML& operator=(const OTStringXML& rhs);
 
-	int32_t read(void* buffer, uint32_t sizeToRead);
-	int32_t getSize();
+    using OTString::swap;
+
+    int32_t read(void* buffer, uint32_t sizeToRead);
+    int32_t getSize();
 };
-
-
 
 } // namespace opentxs
 

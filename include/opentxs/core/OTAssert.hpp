@@ -7,7 +7,7 @@
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -135,35 +135,45 @@
 
 #include "OTCommon.hpp"
 
+#define OT_FAIL                                                                \
+    {                                                                          \
+        OTAssert::Assert(__FILE__, __LINE__, NULL);                            \
+        std::terminate();                                                      \
+    };
+#define OT_FAIL_MSG(s)                                                         \
+    {                                                                          \
+        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
+        std::terminate();                                                      \
+    };
 
-#define    OT_FAIL                               { OTAssert::Assert(__FILE__, __LINE__, NULL);      std::terminate(); };
-#define    OT_FAIL_MSG(s)                        { OTAssert::Assert(__FILE__, __LINE__, (s)); std::terminate(); };
-
-#define    OT_ASSERT(x)			if(false == (x)) { OTAssert::Assert(__FILE__, __LINE__, NULL);      std::terminate(); };
-#define    OT_ASSERT_MSG(x, s)  if(false == (x)) { OTAssert::Assert(__FILE__, __LINE__, (s)); std::terminate(); };
-
+#define OT_ASSERT(x)                                                           \
+    if (false == (x)) {                                                        \
+        OTAssert::Assert(__FILE__, __LINE__, NULL);                            \
+        std::terminate();                                                      \
+    };
+#define OT_ASSERT_MSG(x, s)                                                    \
+    if (false == (x)) {                                                        \
+        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
+        std::terminate();                                                      \
+    };
 
 class OTAssert
 {
 public:
-    typedef size_t(fpt_Assert_sz_n_sz) (const char *, size_t, const char *);
+    typedef size_t(fpt_Assert_sz_n_sz)(const char*, size_t, const char*);
 
 private:
-
-    fpt_Assert_sz_n_sz * m_fpt_Assert;
+    fpt_Assert_sz_n_sz* m_fpt_Assert;
 
     fpt_Assert_sz_n_sz(m_AssertDefault);
 
 public:
-
     // if not null, must be deleted before changed.
-    static OTAssert * s_pOTAssert;
+    static OTAssert* s_pOTAssert;
 
-    EXPORT OTAssert(fpt_Assert_sz_n_sz &fp1);
+    EXPORT OTAssert(fpt_Assert_sz_n_sz& fp1);
 
     EXPORT static fpt_Assert_sz_n_sz(Assert); // assert
-
 };
-
 
 #endif // __OT_ASSERT_HPP__

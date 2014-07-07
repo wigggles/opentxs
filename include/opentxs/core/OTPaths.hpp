@@ -138,110 +138,154 @@
 
 #include "OTSettings.hpp"
 
+// All directories have a trailing "/" while files do not. <== remember to
+// enforce this!!!
 
-// All directories have a trailing "/" while files do not. <== remember to enforce this!!!
-
-namespace opentxs {
+namespace opentxs
+{
 
 class OTPaths
 {
 private:
+    EXPORT OTPaths();
 
-	EXPORT OTPaths();
+    static OTSettings s_settings;
 
-	static OTSettings s_settings;
-
-	static OTString s_strAppBinaryFolder;
-	static OTString s_strHomeFolder;
-	static OTString s_strAppDataFolder;
-	static OTString s_strGlobalConfigFile;
-	static OTString s_strPrefixFolder;
-	static OTString s_strScriptsFolder;
+    static OTString s_strAppBinaryFolder;
+    static OTString s_strHomeFolder;
+    static OTString s_strAppDataFolder;
+    static OTString s_strGlobalConfigFile;
+    static OTString s_strPrefixFolder;
+    static OTString s_strScriptsFolder;
 
 public:
+    EXPORT ~OTPaths();
 
-	EXPORT ~OTPaths();
+    EXPORT static const OTString& AppBinaryFolder(); // Adding this for Mac,
+                                                     // since it's sandboxed.
+                                                     // (Don't want to put
+                                                     // scripts in data folder.)
+    EXPORT static void SetAppBinaryFolder(OTString strLocation); // Note:
+                                                                 // Android
+                                                                 // should set
+                                                                 // this as the
+                                                                 // res/raw
+                                                                 // folder.
 
-	EXPORT static const OTString & AppBinaryFolder();   // Adding this for Mac, since it's sandboxed. (Don't want to put scripts in data folder.)
-    EXPORT static void             SetAppBinaryFolder(OTString strLocation); // Note: Android should set this as the res/raw folder.
+    EXPORT static const OTString& HomeFolder(); // Adding this for Android,
+                                                // since it's sandboxed. Android
+                                                // will provide its own data
+                                                // folder here.
+    EXPORT static void SetHomeFolder(OTString strLocation); // The AppDataFolder
+                                                            // (below) will be
+                                                            // created from this
+                                                            // folder, plus .ot
+                                                            // or whatever.
 
+    EXPORT static const OTString& AppDataFolder();    // eg. /home/user/.ot/
+                                                      // (auto).
+    EXPORT static const OTString& GlobalConfigFile(); // ie. AppDataFolder() +
+                                                      // ot_config.cfg
+    EXPORT static const OTString& PrefixFolder();     // If not set, will run
+    // LoadSetPrefixFolder with
+    // default values.
+    EXPORT static const OTString& ScriptsFolder(); // If not set, will run
+                                                   // LoadSetScriptsFolder with
+                                                   // default values.
 
-	EXPORT static const OTString & HomeFolder();   // Adding this for Android, since it's sandboxed. Android will provide its own data folder here.
-    EXPORT static void             SetHomeFolder(OTString strLocation); // The AppDataFolder (below) will be created from this folder, plus .ot or whatever.
+    // The LoadSet Functions will update the static values.
 
-	EXPORT static const OTString & AppDataFolder();		// eg. /home/user/.ot/ (auto).
-	EXPORT static const OTString & GlobalConfigFile();  // ie. AppDataFolder() + ot_config.cfg
-	EXPORT static const OTString & PrefixFolder();		// If not set, will run LoadSetPrefixFolder with default values.
-	EXPORT static const OTString & ScriptsFolder();		// If not set, will run LoadSetScriptsFolder with default values.
+    EXPORT static bool LoadSetPrefixFolder    // eg. /usr/local/  (cannot be
+                                              // relative);
+        (OTSettings& config = s_settings,     // optional
+         const OTString& strPrefixFolder = "" // optional
+         // const bool & bIsRelative = false
+         );
 
-	// The LoadSet Functions will update the static values.
+    EXPORT static bool LoadSetScriptsFolder     // ie. PrefixFolder() + [if (NOT
+                                                // Android) "lib/opentxs/" ]
+        (OTSettings& config = s_settings,       // optional
+         const OTString& strScriptsFolder = "", // optional
+         const bool& bIsRelative = true         // optional
+         );
 
-	EXPORT static bool LoadSetPrefixFolder	// eg. /usr/local/  (cannot be relative);
-		(
-		OTSettings & config = s_settings, //optional
-		const OTString & strPrefixFolder = ""	//optional
-		//const bool & bIsRelative = false
-		);
+    EXPORT static bool Get(OTSettings& config, const OTString& strSection,
+                           const OTString& strKey, OTString& out_strVar,
+                           bool& out_bIsRelative, bool& out_bKeyExist);
 
-	EXPORT static bool LoadSetScriptsFolder  // ie. PrefixFolder() + [if (NOT Android) "lib/opentxs/" ]
-		(
-		OTSettings & config = s_settings, //optional
-		const OTString & strScriptsFolder = "",	//optional
-		const bool & bIsRelative = true			//optional
-		);
+    EXPORT static bool Set(OTSettings& config, const OTString& strSection,
+                           const OTString& strKey, const OTString& strValue,
+                           const bool& bIsRelative, bool& out_bIsNewOrUpdated,
+                           const OTString& strComment = "");
 
-	EXPORT static bool Get(
-		OTSettings & config,
-		const				  OTString	  & strSection,
-		const				  OTString	  & strKey,
-							  OTString	  & out_strVar,
-							  bool		  & out_bIsRelative,
-							  bool		  & out_bKeyExist
-		);
+    EXPORT static bool FixPath(const OTString& strPath,
+                               OTString& out_strFixedPath,
+                               const bool& bIsFolder);
+    EXPORT static bool PathExists(const OTString& strPath); // returns true if
+                                                            // path exists.
 
-	EXPORT static bool Set(
-		OTSettings & config,
-		const				  OTString	  & strSection,
-		const				  OTString	  & strKey,
-		const				  OTString	  & strValue,
-		const				  bool		  & bIsRelative,
-							  bool		  & out_bIsNewOrUpdated,
-		const				  OTString	  & strComment = ""
-		);
+    EXPORT static bool FileExists(const OTString& strFilePath,
+                                  int64_t& nFileLength); // returns true if file
+                                                         // exists and its
+                                                         // length.
+    EXPORT static bool FolderExists(const OTString& strFolderPath); // returns
+                                                                    // true if
+                                                                    // folder
+                                                                    // exists
 
+    EXPORT static bool ConfirmCreateFolder(const OTString& strExactPath,
+                                           bool& out_Exists, bool& out_IsNew);
 
-	EXPORT static bool FixPath(const OTString & strPath, OTString & out_strFixedPath, const bool & bIsFolder);
-	EXPORT static bool PathExists(const OTString & strPath); // returns true if path exists.
-
-	EXPORT static bool FileExists(const OTString & strFilePath, int64_t & nFileLength); // returns true if file exists and its length.
-	EXPORT static bool FolderExists(const OTString & strFolderPath); // returns true if folder exists
-
-	EXPORT static bool ConfirmCreateFolder(const OTString & strExactPath, bool & out_Exists, bool & out_IsNew);
-
-	EXPORT static bool ToReal(const OTString & strExactPath, OTString & out_strCanonicalPath);
-	EXPORT static bool GetExecutable(OTString & strExecutablePath);
-	EXPORT static bool GetCurrentWorking(OTString & strCurrentWorkingPath);
-	EXPORT static bool GetHomeFromSystem(OTString & out_strHomeFolder);
+    EXPORT static bool ToReal(const OTString& strExactPath,
+                              OTString& out_strCanonicalPath);
+    EXPORT static bool GetExecutable(OTString& strExecutablePath);
+    EXPORT static bool GetCurrentWorking(OTString& strCurrentWorkingPath);
+    EXPORT static bool GetHomeFromSystem(OTString& out_strHomeFolder);
 
 #ifdef _WIN32
 
-	EXPORT static bool Win_GetInstallFolderFromRegistry(OTString & out_InstallFolderPath);
+    EXPORT static bool Win_GetInstallFolderFromRegistry(
+        OTString& out_InstallFolderPath);
 
 #endif
 
+    // High Level Helper Functions
+    EXPORT static bool AppendFolder(
+        OTString& out_strPath, const OTString& strBasePath,
+        const OTString& strFolderName); // the trailing "/" is optional for the
+                                        // strFolderName
+    EXPORT static bool AppendFile(OTString& out_strPath,
+                                  const OTString& strBasePath,
+                                  const OTString& strFileName); // the trailing
+                                                                // "/" is
+                                                                // optional for
+                                                                // the
+                                                                // strFolderName
 
-	// High Level Helper Functions
-	EXPORT static bool AppendFolder(OTString & out_strPath, const OTString & strBasePath, const OTString & strFolderName); // the trailing "/" is optional for the strFolderName
-	EXPORT static bool AppendFile	 (OTString & out_strPath, const OTString & strBasePath, const OTString & strFileName); // the trailing "/" is optional for the strFolderName
+    EXPORT static bool RelativeToCanonical(OTString& out_strCanonicalPath,
+                                           const OTString& strBasePath,
+                                           const OTString& strRelativePath);
 
-	EXPORT static bool RelativeToCanonical(OTString & out_strCanonicalPath, const OTString & strBasePath, const OTString & strRelativePath);
-
-	EXPORT static bool BuildFolderPath(const OTString & strFolderPath, bool & out_bFolderCreated);	// will build all the folders to a path.  Will return false if unable to build path.
-	EXPORT static bool BuildFilePath(const OTString & strFolderPath, bool & out_bFolderCreated);		// will build all the folders up to the file.  Will return false if unable to build path.
+    EXPORT static bool BuildFolderPath(const OTString& strFolderPath,
+                                       bool& out_bFolderCreated); // will build
+                                                                  // all the
+                                                                  // folders to
+                                                                  // a path.
+                                                                  // Will return
+                                                                  // false if
+                                                                  // unable to
+                                                                  // build path.
+    EXPORT static bool BuildFilePath(const OTString& strFolderPath,
+                                     bool& out_bFolderCreated); // will build
+                                                                // all the
+                                                                // folders up to
+                                                                // the file.
+                                                                // Will return
+                                                                // false if
+                                                                // unable to
+                                                                // build path.
 
 }; // class OTPaths
-
-
 
 } // namespace opentxs
 

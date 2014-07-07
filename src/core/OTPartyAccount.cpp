@@ -140,7 +140,6 @@
 #include "OTParty.hpp"
 #include "OTScript.hpp"
 
-
 // IDEA: Put a Nym in the Nyms folder for each entity. While it may
 // not have a public key in the pubkey folder, or embedded within it,
 // it can still have information about the entity or role related to it,
@@ -148,397 +147,377 @@
 // This also makes sure that Nyms and Entities don't ever share IDs, so the
 // IDs become more and more interchangeable.
 
-namespace opentxs {
+namespace opentxs
+{
 
 OTPartyAccount::OTPartyAccount()
-: m_pForParty(NULL), m_pAccount(NULL), m_lClosingTransNo(0)
+    : m_pForParty(NULL)
+    , m_pAccount(NULL)
+    , m_lClosingTransNo(0)
 {
-
 }
 
-
-// For an account to be party to an agreement, there must be a closing transaction #
+// For an account to be party to an agreement, there must be a closing
+// transaction #
 // provided, for the finalReceipt for that account.
 //
-OTPartyAccount::OTPartyAccount(const std::string str_account_name, const OTString & strAgentName, OTAccount & theAccount, int64_t lClosingTransNo)
-: m_pForParty(NULL), // This gets set when this partyaccount is added to its party.
-  m_pAccount(&theAccount),
-  m_lClosingTransNo(lClosingTransNo),
-  m_strName(str_account_name.c_str()),
-  m_strAcctID(theAccount.GetRealAccountID()),
-  m_strAssetTypeID(theAccount.GetAssetTypeID()),
-  m_strAgentName(strAgentName)
+OTPartyAccount::OTPartyAccount(const std::string str_account_name,
+                               const OTString& strAgentName,
+                               OTAccount& theAccount, int64_t lClosingTransNo)
+    : m_pForParty(NULL)
+    , // This gets set when this partyaccount is added to its party.
+    m_pAccount(&theAccount)
+    , m_lClosingTransNo(lClosingTransNo)
+    , m_strName(str_account_name.c_str())
+    , m_strAcctID(theAccount.GetRealAccountID())
+    , m_strAssetTypeID(theAccount.GetAssetTypeID())
+    , m_strAgentName(strAgentName)
 {
-
 }
 
-
-OTPartyAccount::OTPartyAccount(const OTString & strName, const OTString & strAgentName, const OTString & strAcctID,
-							   const OTString & strAssetTypeID, int64_t lClosingTransNo)
-: m_pForParty(NULL), // This gets set when this partyaccount is added to its party.
-  m_pAccount(NULL),
-  m_lClosingTransNo(lClosingTransNo),
-  m_strName(strName),
-  m_strAcctID(strAcctID),
-  m_strAssetTypeID(strAssetTypeID),
-  m_strAgentName(strAgentName)
+OTPartyAccount::OTPartyAccount(const OTString& strName,
+                               const OTString& strAgentName,
+                               const OTString& strAcctID,
+                               const OTString& strAssetTypeID,
+                               int64_t lClosingTransNo)
+    : m_pForParty(NULL)
+    , // This gets set when this partyaccount is added to its party.
+    m_pAccount(NULL)
+    , m_lClosingTransNo(lClosingTransNo)
+    , m_strName(strName)
+    , m_strAcctID(strAcctID)
+    , m_strAssetTypeID(strAssetTypeID)
+    , m_strAgentName(strAgentName)
 {
-
 }
-
 
 // Every partyaccount has its own authorized agent's name.
 // Use that name to look up the agent ON THE PARTY (I already
 // have a pointer to my owner party.)
 //
-OTAgent * OTPartyAccount::GetAuthorizedAgent()
+OTAgent* OTPartyAccount::GetAuthorizedAgent()
 {
-	OT_ASSERT(NULL != m_pForParty);
+    OT_ASSERT(NULL != m_pForParty);
 
-	if (!m_strAgentName.Exists())
-	{
-		otErr << "OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent name (for this account) is blank!\n";
-		return NULL;
-	}
+    if (!m_strAgentName.Exists()) {
+        otErr << "OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent "
+                 "name (for this account) is blank!\n";
+        return NULL;
+    }
 
-	const std::string str_agent_name = m_strAgentName.Get();
+    const std::string str_agent_name = m_strAgentName.Get();
 
-	OTAgent * pAgent = m_pForParty->GetAgent(str_agent_name);
+    OTAgent* pAgent = m_pForParty->GetAgent(str_agent_name);
 
-	return pAgent;
+    return pAgent;
 }
-
 
 // This happens when the partyaccount is added to the party.
 //
-void OTPartyAccount::SetParty(OTParty & theOwnerParty)
+void OTPartyAccount::SetParty(OTParty& theOwnerParty)
 {
-	m_pForParty = &theOwnerParty;
+    m_pForParty = &theOwnerParty;
 }
-
 
 OTPartyAccount::~OTPartyAccount()
 {
-	// m_pForParty and m_pAccount NOT cleaned up here. pointer is only for convenience.
-	m_pForParty = NULL;
-	m_pAccount = NULL;
-
+    // m_pForParty and m_pAccount NOT cleaned up here. pointer is only for
+    // convenience.
+    m_pForParty = NULL;
+    m_pAccount = NULL;
 }
 
-
-bool OTPartyAccount::IsAccountByID(const OTIdentifier & theAcctID) const
+bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
 {
-	if (!m_strAcctID.Exists())
-	{
-//		otErr << "OTPartyAccount::IsAccountByID: Error: Empty m_strAcctID.\n";
-		return false;
-	}
+    if (!m_strAcctID.Exists()) {
+        //        otErr << "OTPartyAccount::IsAccountByID: Error: Empty
+        // m_strAcctID.\n";
+        return false;
+    }
 
-	if (!m_strAssetTypeID.Exists())
-	{
-//		otErr << "OTPartyAccount::IsAccountByID: Error: Empty m_strAssetTypeID.\n";
-		return false;
-	}
+    if (!m_strAssetTypeID.Exists()) {
+        //        otErr << "OTPartyAccount::IsAccountByID: Error: Empty
+        // m_strAssetTypeID.\n";
+        return false;
+    }
 
-	const OTIdentifier theMemberAcctID(m_strAcctID);
-	if (!(theAcctID == theMemberAcctID))
-	{
-		OTString strRHS(theAcctID);
-		otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: " << m_strAcctID << " / " << strRHS << " \n";
-		// I set output to 4 because it's normal to call IsAccountByID() even when they don't match.
-		return false;
-	}
+    const OTIdentifier theMemberAcctID(m_strAcctID);
+    if (!(theAcctID == theMemberAcctID)) {
+        OTString strRHS(theAcctID);
+        otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: "
+               << m_strAcctID << " / " << strRHS << " \n";
+        // I set output to 4 because it's normal to call IsAccountByID() even
+        // when they don't match.
+        return false;
+    }
 
-	// They  match!
+    // They  match!
 
-	return true;
+    return true;
 }
 
-
-bool OTPartyAccount::IsAccount(OTAccount & theAccount)
+bool OTPartyAccount::IsAccount(OTAccount& theAccount)
 {
-	if (!m_strAcctID.Exists())
-	{
-		otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n";
-		return false;
-	}
+    if (!m_strAcctID.Exists()) {
+        otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n";
+        return false;
+    }
 
-	if (!m_strAssetTypeID.Exists())
-	{
-		otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAssetTypeID.\n";
-		return false;
-	}
+    if (!m_strAssetTypeID.Exists()) {
+        otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAssetTypeID.\n";
+        return false;
+    }
 
-	const OTIdentifier theAcctID(m_strAcctID);
-	if (!(theAccount.GetRealAccountID() == theAcctID))
-	{
-		OTString strRHS(theAccount.GetRealAccountID());
-		otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: " << m_strAcctID << " / "
-			<< strRHS << " \n"; // I set output to 4 because it's normal to call IsAccount() even when they don't match.
-		return false;
-	}
+    const OTIdentifier theAcctID(m_strAcctID);
+    if (!(theAccount.GetRealAccountID() == theAcctID)) {
+        OTString strRHS(theAccount.GetRealAccountID());
+        otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: "
+               << m_strAcctID << " / " << strRHS
+               << " \n"; // I set output to 4 because it's normal to call
+                         // IsAccount() even when they don't match.
+        return false;
+    }
 
-	const OTIdentifier theAssetTypeID(m_strAssetTypeID);
-	if (!(theAccount.GetAssetTypeID() == theAssetTypeID))
-	{
-		OTString strRHS(theAccount.GetAssetTypeID());
-		otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( " << m_strAssetTypeID << " / " 
-			<< strRHS << " ) for Acct ID: " << m_strAcctID << " \n";
-		return false;
-	}
+    const OTIdentifier theAssetTypeID(m_strAssetTypeID);
+    if (!(theAccount.GetAssetTypeID() == theAssetTypeID)) {
+        OTString strRHS(theAccount.GetAssetTypeID());
+        otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( "
+              << m_strAssetTypeID << " / " << strRHS
+              << " ) for Acct ID: " << m_strAcctID << " \n";
+        return false;
+    }
 
-
-	m_pAccount = &theAccount;
-	return true;
+    m_pAccount = &theAccount;
+    return true;
 }
-
 
 // I have a ptr to my owner (party), as well as to the actual account.
 // I will ask him to verify whether he actually owns it.
 bool OTPartyAccount::VerifyOwnership() const
 {
-//	OTParty		* m_pForParty;
-//	OTAccount	* m_pAccount;
+    //    OTParty        * m_pForParty;
+    //    OTAccount    * m_pAccount;
 
-	if (NULL == m_pForParty)
-	{
-		otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to owner party. \n";
-		return false;
-	}
-	if (NULL == m_pAccount)
-	{
-		otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to account. (This function expects account to already be loaded.) \n";
-		return false;
-	} // todo maybe turn the above into OT_ASSERT()s.
+    if (NULL == m_pForParty) {
+        otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to "
+                 "owner party. \n";
+        return false;
+    }
+    if (NULL == m_pAccount) {
+        otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to "
+                 "account. (This function expects account to already be "
+                 "loaded.) \n";
+        return false;
+    } // todo maybe turn the above into OT_ASSERT()s.
 
+    if (false == m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
+        otOut << "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as "
+                 "the ACTUAL owner of account: " << m_strName << " \n";
+        return false;
+    }
 
-	if (false == m_pForParty->VerifyOwnershipOfAccount(*m_pAccount))
-	{
-		otOut << "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as the ACTUAL owner of account: " << m_strName << " \n";
-		return false;
-	}
-
-	return true;
+    return true;
 }
-
 
 // I can get a ptr to my agent, and I have one to the actual account.
 // I will ask him to verify whether he actually has agency over it.
 bool OTPartyAccount::VerifyAgency()
 {
-	if (NULL == m_pAccount)
-	{
-		otErr << "OTPartyAccount::VerifyAgency: Error: NULL pointer to account. (This function expects account to already be loaded.) \n";
-		return false;
-	} // todo maybe turn the above into OT_ASSERT()s.
+    if (NULL == m_pAccount) {
+        otErr << "OTPartyAccount::VerifyAgency: Error: NULL pointer to "
+                 "account. (This function expects account to already be "
+                 "loaded.) \n";
+        return false;
+    } // todo maybe turn the above into OT_ASSERT()s.
 
-	OTAgent * pAgent = this->GetAuthorizedAgent();
+    OTAgent* pAgent = this->GetAuthorizedAgent();
 
-	if (NULL == pAgent)
-	{
-		otOut << "OTPartyAccount::VerifyAgency: Unable to find authorized agent (" << GetAgentName() <<
-			") for this account: " << GetName() << " \n";
-		return false;
-	}
+    if (NULL == pAgent) {
+        otOut
+            << "OTPartyAccount::VerifyAgency: Unable to find authorized agent ("
+            << GetAgentName() << ") for this account: " << GetName() << " \n";
+        return false;
+    }
 
-	if (false == pAgent->VerifyAgencyOfAccount(*m_pAccount))
-	{
-		otOut << "OTPartyAccount::VerifyAgency: Agent " << GetAgentName() <<
-			" doesn't verify as ACTUALLY having rights over account " << GetName() << " with ID: " << GetAcctID() << " \n";
-		return false;
-	}
+    if (false == pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
+        otOut << "OTPartyAccount::VerifyAgency: Agent " << GetAgentName()
+              << " doesn't verify as ACTUALLY having rights over account "
+              << GetName() << " with ID: " << GetAcctID() << " \n";
+        return false;
+    }
 
-
-	return true;
+    return true;
 }
 
-
-bool OTPartyAccount::DropFinalReceiptToInbox(mapOfNyms * pNymMap,
-											 const OTString & strServerID,
-											 OTPseudonym & theServerNym,
-											 OTSmartContract & theSmartContract,
-											 const int64_t & lNewTransactionNumber,
-											 const OTString & strOrigCronItem,
-											 OTString * pstrNote/*=NULL*/,
-											 OTString * pstrAttachment/*=NULL*/)
+bool OTPartyAccount::DropFinalReceiptToInbox(
+    mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
+    OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
+    const OTString& strOrigCronItem, OTString* pstrNote /*=NULL*/,
+    OTString* pstrAttachment /*=NULL*/)
 {
-    const char * szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
+    const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 
-	if (NULL == m_pForParty)
-	{
-		otErr << szFunc << ": NULL m_pForParty.\n";
-		return false;
-	}
-	else if (!m_strAcctID.Exists())
-	{
-		otErr << szFunc << ": Empty Acct ID.\n";
-		return false;
-	}
-	else if (!m_strAgentName.Exists())
-	{
-		otErr << szFunc << ": No agent named for this account.\n";
-		return false;
-	}
+    if (NULL == m_pForParty) {
+        otErr << szFunc << ": NULL m_pForParty.\n";
+        return false;
+    }
+    else if (!m_strAcctID.Exists()) {
+        otErr << szFunc << ": Empty Acct ID.\n";
+        return false;
+    }
+    else if (!m_strAgentName.Exists()) {
+        otErr << szFunc << ": No agent named for this account.\n";
+        return false;
+    }
 
+    // TODO: When entites and roles are added, this function may change a bit to
+    // accommodate them.
 
-	// TODO: When entites and roles are added, this function may change a bit to accommodate them.
+    const std::string str_agent_name(m_strAgentName.Get());
 
+    OTAgent* pAgent = m_pForParty->GetAgent(str_agent_name);
 
+    if (NULL == pAgent)
+        otErr << szFunc << ": named agent wasn't found on party.\n";
+    else {
+        const OTIdentifier theAccountID(m_strAcctID);
 
-	const std::string str_agent_name(m_strAgentName.Get());
+        return pAgent->DropFinalReceiptToInbox(
+            pNymMap, strServerID, theServerNym, theSmartContract,
+            theAccountID,                             // acct ID from this.
+            lNewTransactionNumber, m_lClosingTransNo, // closing_no from this.
+            strOrigCronItem, pstrNote, pstrAttachment);
+    }
 
-	OTAgent * pAgent = m_pForParty->GetAgent(str_agent_name);
-
-	if (NULL == pAgent)
-		otErr << szFunc << ": named agent wasn't found on party.\n";
-	else
-	{
-		const OTIdentifier theAccountID(m_strAcctID);
-
-		return pAgent->DropFinalReceiptToInbox(pNymMap,
-											   strServerID,
-											   theServerNym,
-											   theSmartContract, theAccountID, // acct ID from this.
-											   lNewTransactionNumber,
-											   m_lClosingTransNo, // closing_no from this.
-											   strOrigCronItem, pstrNote, pstrAttachment);
-	}
-
-
-	return false;
+    return false;
 }
-
 
 // CALLER IS RESPONSIBLE TO DELETE.
-// This is very low-level. (It's better to use OTPartyAccount through it's interface, than to
-// just load up its account directly.) But this is here because it is appropriate in certain cases.
+// This is very low-level. (It's better to use OTPartyAccount through it's
+// interface, than to
+// just load up its account directly.) But this is here because it is
+// appropriate in certain cases.
 //
-OTAccount * OTPartyAccount::LoadAccount(OTPseudonym & theSignerNym, const OTString & strServerID)
+OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
+                                       const OTString& strServerID)
 {
-	if (!m_strAcctID.Exists())
-	{
-		otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for account: " << m_strName << " \n";
-		return NULL;
-	}
+    if (!m_strAcctID.Exists()) {
+        otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
+                 "account: " << m_strName << " \n";
+        return NULL;
+    }
 
-	const OTIdentifier theAcctID(m_strAcctID), theServerID(strServerID);
+    const OTIdentifier theAcctID(m_strAcctID), theServerID(strServerID);
 
-	OTAccount * pAccount = OTAccount::LoadExistingAccount(theAcctID, theServerID);
+    OTAccount* pAccount =
+        OTAccount::LoadExistingAccount(theAcctID, theServerID);
 
-	if (NULL == pAccount)
-	{
-		otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: " << m_strName <<
-			", with AcctID: " << m_strAcctID << " \n";
-		return NULL;
-	}
-	// BELOW THIS POINT, You must delete pAccount if you don't return it!!
-	//
-	else if (!pAccount->VerifyAccount(theSignerNym))
-	{
-		otOut << "OTPartyAccount::LoadAccount: Failed trying to verify account: " << m_strName << 
-			", with AcctID: " << m_strAcctID << " \n";
-		delete pAccount;
-		return NULL;
-	}
+    if (NULL == pAccount) {
+        otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: "
+              << m_strName << ", with AcctID: " << m_strAcctID << " \n";
+        return NULL;
+    }
+    // BELOW THIS POINT, You must delete pAccount if you don't return it!!
+    //
+    else if (!pAccount->VerifyAccount(theSignerNym)) {
+        otOut
+            << "OTPartyAccount::LoadAccount: Failed trying to verify account: "
+            << m_strName << ", with AcctID: " << m_strAcctID << " \n";
+        delete pAccount;
+        return NULL;
+    }
 
-	// This compares asset type ID, AND account ID on the actual loaded account, to what is expected.
-	else if (!this->IsAccount(*pAccount)) // It also sets the internal pointer m_pAccount... FYI.
-	{
-		// IsAccount has plenty of logging already.
-		delete pAccount;
-		return NULL;
-	}
-	// BELOW THIS POINT, pAccount is loaded and validated, in-and-of-itself, and against the PartyAcct.
-	// (But not against the party ownership and agent rights.)
-	// It must be deleted or will leak.
+    // This compares asset type ID, AND account ID on the actual loaded account,
+    // to what is expected.
+    else if (!this->IsAccount(*pAccount)) // It also sets the internal pointer
+                                          // m_pAccount... FYI.
+    {
+        // IsAccount has plenty of logging already.
+        delete pAccount;
+        return NULL;
+    }
+    // BELOW THIS POINT, pAccount is loaded and validated, in-and-of-itself, and
+    // against the PartyAcct.
+    // (But not against the party ownership and agent rights.)
+    // It must be deleted or will leak.
 
-	// (No need to set m_pAccount, as that happened already in IsAccount().)
+    // (No need to set m_pAccount, as that happened already in IsAccount().)
 
-	return pAccount;
+    return pAccount;
 }
 
-
-void OTPartyAccount::Serialize(OTString & strAppend,
-							   bool bCalculatingID/*=false*/,
-							   bool bSpecifyAssetID/*=false*/)
+void OTPartyAccount::Serialize(OTString& strAppend,
+                               bool bCalculatingID /*=false*/,
+                               bool bSpecifyAssetID /*=false*/)
 {
-//	strAppend.Concatenate("<assetAccount>\n\n");
+    //    strAppend.Concatenate("<assetAccount>\n\n");
 
-	strAppend.Concatenate("<assetAccount\n name=\"%s\"\n"
-						  " acctID=\"%s\"\n"
-						  " assetTypeID=\"%s\"\n"
-						  " agentName=\"%s\"\n"
-						  " closingTransNo=\"%lld\" />\n\n",
-						  m_strName.Get(),
-						  bCalculatingID ? "" : m_strAcctID.Get(),
-						  (bCalculatingID &&
-						  !bSpecifyAssetID) ? "" : m_strAssetTypeID.Get(),
-						  bCalculatingID ? "" : m_strAgentName.Get(),
-						  bCalculatingID ? 0 : m_lClosingTransNo);
+    strAppend.Concatenate(
+        "<assetAccount\n name=\"%s\"\n"
+        " acctID=\"%s\"\n"
+        " assetTypeID=\"%s\"\n"
+        " agentName=\"%s\"\n"
+        " closingTransNo=\"%lld\" />\n\n",
+        m_strName.Get(), bCalculatingID ? "" : m_strAcctID.Get(),
+        (bCalculatingID && !bSpecifyAssetID) ? "" : m_strAssetTypeID.Get(),
+        bCalculatingID ? "" : m_strAgentName.Get(),
+        bCalculatingID ? 0 : m_lClosingTransNo);
 
-//	strAppend.Concatenate("</assetAccount>\n");
+    //    strAppend.Concatenate("</assetAccount>\n");
 }
-
 
 void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 {
-	const std::string str_acct_name	= m_strName.Get();
-//	const std::string str_acct_id	= m_strAcctID.Get();
+    const std::string str_acct_name = m_strName.Get();
+    //    const std::string str_acct_id    = m_strAcctID.Get();
 
-	theScript.AddAccount (str_acct_name, *this);
+    theScript.AddAccount(str_acct_name, *this);
 }
 
-
 // Done
-bool OTPartyAccount::Compare(const OTPartyAccount & rhs) const
+bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
 {
-	if (!(this->GetName().Compare(rhs.GetName())))
-	{
-		otOut << "OTPartyAccount::Compare: Names don't match: " << this->GetName() << " / " << rhs.GetName() << " \n";
-		return false;
-	}
+    if (!(this->GetName().Compare(rhs.GetName()))) {
+        otOut << "OTPartyAccount::Compare: Names don't match: "
+              << this->GetName() << " / " << rhs.GetName() << " \n";
+        return false;
+    }
 
-	if ( (this->GetClosingTransNo() > 0) &&
-		 (rhs.	GetClosingTransNo() > 0) &&
-		 (this->GetClosingTransNo() != rhs.GetClosingTransNo())
-	   )
-	{
-		otOut << "OTPartyAccount::Compare: Closing transaction numbers don't match: " << this->GetName() << " \n";
-		return false;
-	}
+    if ((this->GetClosingTransNo() > 0) && (rhs.GetClosingTransNo() > 0) &&
+        (this->GetClosingTransNo() != rhs.GetClosingTransNo())) {
+        otOut << "OTPartyAccount::Compare: Closing transaction numbers don't "
+                 "match: " << this->GetName() << " \n";
+        return false;
+    }
 
-	if ( (this->GetAcctID().Exists()) &&
-		 (rhs.	GetAcctID().Exists()) &&
-		 (!this->GetAcctID().Compare(rhs.GetAcctID()))
-	   )
-	{
-		otOut << "OTPartyAccount::Compare: Asset account numbers don't match for party account " << this->GetName() << ".\n( "
-			<< this->GetAcctID() << "  /  " << rhs.GetAcctID() << " ) \n";
-		return false;
-	}
+    if ((this->GetAcctID().Exists()) && (rhs.GetAcctID().Exists()) &&
+        (!this->GetAcctID().Compare(rhs.GetAcctID()))) {
+        otOut << "OTPartyAccount::Compare: Asset account numbers don't match "
+                 "for party account " << this->GetName() << ".\n( "
+              << this->GetAcctID() << "  /  " << rhs.GetAcctID() << " ) \n";
+        return false;
+    }
 
-	if ( (this->GetAgentName().Exists()) &&
-		 (rhs.	GetAgentName().Exists()) &&
-		 (!this->GetAgentName().Compare(rhs.GetAgentName()))
-	   )
-	{
-		otOut << "OTPartyAccount::Compare: Agent names don't match for party account " << this->GetName() << ".\n( "
-			<< this->GetAgentName() << "  /  " << rhs.GetAgentName() << " ) \n";
-		return false;
-	}
+    if ((this->GetAgentName().Exists()) && (rhs.GetAgentName().Exists()) &&
+        (!this->GetAgentName().Compare(rhs.GetAgentName()))) {
+        otOut << "OTPartyAccount::Compare: Agent names don't match for party "
+                 "account " << this->GetName() << ".\n( "
+              << this->GetAgentName() << "  /  " << rhs.GetAgentName()
+              << " ) \n";
+        return false;
+    }
 
-	if (!(this->GetAssetTypeID().Exists()) ||
-		!(rhs.	GetAssetTypeID().Exists()) ||
-		!(this->GetAssetTypeID().Compare(rhs.GetAssetTypeID()))
-	   )
-	{
-		otOut << "OTPartyAccount::Compare: Asset Type IDs don't exist, or don't match ( " << this->GetAssetTypeID() <<
-			" / " << rhs.GetAssetTypeID() << " ) for party's account: " << this->GetName() << " \n";
-		return false;
-	}
+    if (!(this->GetAssetTypeID().Exists()) ||
+        !(rhs.GetAssetTypeID().Exists()) ||
+        !(this->GetAssetTypeID().Compare(rhs.GetAssetTypeID()))) {
+        otOut << "OTPartyAccount::Compare: Asset Type IDs don't exist, or "
+                 "don't match ( " << this->GetAssetTypeID() << " / "
+              << rhs.GetAssetTypeID()
+              << " ) for party's account: " << this->GetName() << " \n";
+        return false;
+    }
 
-
-	return true;
+    return true;
 }
 
 } // namespace opentxs

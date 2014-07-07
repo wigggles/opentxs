@@ -168,30 +168,37 @@ static std::string str_MyNym;
 static std::string str_MyPurse;
 static std::string str_Server;
 
-namespace {
-
-inline std::string &ltrim(std::string &s)
+namespace
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+
+inline std::string& ltrim(std::string& s)
+{
+    s.erase(s.begin(),
+            std::find_if(s.begin(), s.end(),
+                         std::not1(std::ptr_fun<int, int>(std::isspace))));
     return s;
 }
 
-inline std::string &rtrim(std::string &s)
+inline std::string& rtrim(std::string& s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(
+                                                   std::isspace))).base(),
+            s.end());
     return s;
 }
 
-inline std::string &trim(std::string &s)
+inline std::string& trim(std::string& s)
 {
     return ltrim(rtrim(s));
 }
 
-void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
+void HandleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
 {
     OTString strConfigPath(OTPaths::AppDataFolder());
-    bool bConfigPathFound = strConfigPath.Exists() && 3 < strConfigPath.GetLength();
-    OT_ASSERT_MSG(bConfigPathFound, "RegisterAPIWithScript: Must set Config Path first!\n");
+    bool bConfigPathFound =
+        strConfigPath.Exists() && 3 < strConfigPath.GetLength();
+    OT_ASSERT_MSG(bConfigPathFound,
+                  "RegisterAPIWithScript: Must set Config Path first!\n");
     OTLog::vOutput(1, "Using configuration path:  %s\n", strConfigPath.Get());
 
     opt.addUsage("");
@@ -215,40 +222,48 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption & opt)
 
     // RESOURCE FILE ONLY
     /* for options that will be checked only from the option/resource file */
-    opt.setFileOption("defaultserver"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaultmyacct"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaultmynym"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaultmypurse"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaulthisacct"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaulthisnym"); /* an option (takes an argument), supporting only long form */
-    opt.setFileOption("defaulthispurse"); /* an option (takes an argument), supporting only long form */
+    opt.setFileOption("defaultserver"); /* an option (takes an argument),
+                                           supporting only long form */
+    opt.setFileOption("defaultmyacct"); /* an option (takes an argument),
+                                           supporting only long form */
+    opt.setFileOption("defaultmynym"); /* an option (takes an argument),
+                                          supporting only long form */
+    opt.setFileOption("defaultmypurse"); /* an option (takes an argument),
+                                            supporting only long form */
+    opt.setFileOption("defaulthisacct"); /* an option (takes an argument),
+                                            supporting only long form */
+    opt.setFileOption("defaulthisnym"); /* an option (takes an argument),
+                                           supporting only long form */
+    opt.setFileOption("defaulthispurse"); /* an option (takes an argument),
+                                             supporting only long form */
 
     /* PROCESS THE COMMANDLINE AND RESOURCE FILE */
 
-    /* read options from a option/resource file with ':' separated options or flags, one per line */
+    /* read options from a option/resource file with ':' separated options or
+     * flags, one per line */
 
     OTString strOptionsFile("command-line-ot.opt"), strIniFileExact;
-    bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(strIniFileExact, strConfigPath, strOptionsFile);
+    bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(
+        strIniFileExact, strConfigPath, strOptionsFile);
     OT_ASSERT_MSG(bBuildFullPathSuccess, "Unalbe to set Full Path");
 
     opt.processFile(strIniFileExact.Get());
     opt.processCommandArgs(argc, argv);
 }
 
-const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * pOptionName)
+const char* GetOption(AnyOption& opt, const char* pDefaultName,
+                      const char* pOptionName)
 {
     // can we get the default value from the command line?
-    const char * pValue = opt.getValue(pOptionName);
-    if (NULL != pValue)
-    {
+    const char* pValue = opt.getValue(pOptionName);
+    if (NULL != pValue) {
         OTLog::vOutput(1, "Option  %s: %s\n", pOptionName, pValue);
         return pValue;
     }
 
     // can we get the default value from the options file?
     pValue = opt.getValue(pDefaultName);
-    if (NULL != pValue)
-    {
+    if (NULL != pValue) {
         OTLog::vOutput(1, "Default %s: %s\n", pOptionName, pValue);
         return pValue;
     }
@@ -257,23 +272,24 @@ const char * GetOption(AnyOption & opt, const char * pDefaultName, const char * 
     return "";
 }
 
-OTVariable * SetGlobalVariable(OT_ME & madeEasy, const std::string & name, const std::string & value)
+OTVariable* SetGlobalVariable(OT_ME& madeEasy, const std::string& name,
+                              const std::string& value)
 {
-    if (value.size() == 0)
-    {
+    if (value.size() == 0) {
         OTLog::vOutput(2, "Variable %s isn't set\n", name.c_str());
         return NULL;
     }
 
-    OTLog::vOutput(1, "Variable %s has value: %s\n", name.c_str(), value.c_str());
+    OTLog::vOutput(1, "Variable %s has value: %s\n", name.c_str(),
+                   value.c_str());
 
-    OTVariable * pVar = new OTVariable(name, value, OTVariable::Var_Constant);
+    OTVariable* pVar = new OTVariable(name, value, OTVariable::Var_Constant);
     OT_ASSERT(NULL != pVar);
     madeEasy.AddVariable(name, *pVar);
     return pVar;
 }
 
-int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
+int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
 {
     // process command line values such as account ID, Nym ID, etc.
     // Also available as defaults in a config file in the ~/.ot folder
@@ -286,80 +302,84 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
     str_MyPurse = GetOption(opt, "defaultmypurse", "mypurse");
     str_Server = GetOption(opt, "defaultserver", "server");
 
-    OTWallet * pWallet = OTAPI_Wrap::OTAPI()->GetWallet();
-    OT_ASSERT_MSG(NULL != pWallet, "The wallet object is still NULL, somehow. Please load it.\n");
+    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet();
+    OT_ASSERT_MSG(
+        NULL != pWallet,
+        "The wallet object is still NULL, somehow. Please load it.\n");
 
-    OTServerContract * pServerContract = NULL;
-    if (str_Server.size() > 0)
-    {
+    OTServerContract* pServerContract = NULL;
+    if (str_Server.size() > 0) {
         pServerContract = pWallet->GetServerContract(str_Server);
-        if (NULL == pServerContract)
-        {
-            pServerContract = pWallet->GetServerContractPartialMatch(str_Server);
-            if (NULL == pServerContract)
-            {
-                OTLog::Output(0, "Unable to find a server contract. Please use the option:  --server SERVER_ID\n"
-                    "(Where SERVER_ID is the server ID. Partial matches are accepted if the contract is already in the wallet.)\n"
-                    "Also, see default values located in ~/.ot/comand-line-ot.opt \n");
+        if (NULL == pServerContract) {
+            pServerContract =
+                pWallet->GetServerContractPartialMatch(str_Server);
+            if (NULL == pServerContract) {
+                OTLog::Output(0, "Unable to find a server contract. Please use "
+                                 "the option:  --server SERVER_ID\n"
+                                 "(Where SERVER_ID is the server ID. Partial "
+                                 "matches are accepted if the contract is "
+                                 "already in the wallet.)\n"
+                                 "Also, see default values located in "
+                                 "~/.ot/comand-line-ot.opt \n");
             }
         }
-        if (NULL != pServerContract)
-        {
+        if (NULL != pServerContract) {
             OTString strTemp;
             pServerContract->GetIdentifier(strTemp);
             str_Server = strTemp.Get();
             OTLog::vOutput(0, "Using as server: %s\n", str_Server.c_str());
         }
     }
-    if (NULL == pServerContract)
-    {
-        OTLog::Output(0, "Unable to find a server contract to use. Please use the option: --server SERVER_ID\n"
-            "(Where SERVER_ID is the str_Server's ID. Partial matches ARE accepted.)\n");
+    if (NULL == pServerContract) {
+        OTLog::Output(0, "Unable to find a server contract to use. Please use "
+                         "the option: --server SERVER_ID\n"
+                         "(Where SERVER_ID is the str_Server's ID. Partial "
+                         "matches ARE accepted.)\n");
     }
 
-    OTPseudonym * pMyNym = NULL;
-    if (str_MyNym.size() > 0)
-    {
+    OTPseudonym* pMyNym = NULL;
+    if (str_MyNym.size() > 0) {
         pMyNym = pWallet->GetNymByID(str_MyNym);
-        if (NULL == pMyNym)
-        {
+        if (NULL == pMyNym) {
             pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
-            if (NULL == pMyNym)
-            {
-                OTLog::Output(0, "==> Unable to find My Nym. Please use the option:   --mynym USER_ID\n"
-                    "(Where USER_ID is the Nym's ID. Partial matches are accepted if the nym is already in the wallet.)\n"
-                    "Also, see default values located in ~/.ot/comand-line-ot.opt \n");
+            if (NULL == pMyNym) {
+                OTLog::Output(0, "==> Unable to find My Nym. Please use the "
+                                 "option:   --mynym USER_ID\n"
+                                 "(Where USER_ID is the Nym's ID. Partial "
+                                 "matches are accepted if the nym is already "
+                                 "in the wallet.)\n"
+                                 "Also, see default values located in "
+                                 "~/.ot/comand-line-ot.opt \n");
             }
         }
-        if (NULL != pMyNym)
-        {
+        if (NULL != pMyNym) {
             OTString strTemp;
             pMyNym->GetIdentifier(strTemp);
             str_MyNym = strTemp.Get();
             OTLog::vOutput(0, "Using as mynym: %s\n", str_MyNym.c_str());
         }
     }
-    if (NULL == pMyNym)
-    {
-        OTLog::Output(0, "Unable to find My Nym. Please use the option:   --mynym USER_ID\n"
-            "(Where USER_ID is the Nym's ID. Partial matches and names are accepted.)\n");
+    if (NULL == pMyNym) {
+        OTLog::Output(
+            0,
+            "Unable to find My Nym. Please use the option:   --mynym USER_ID\n"
+            "(Where USER_ID is the Nym's ID. Partial matches and names are "
+            "accepted.)\n");
     }
 
-    OTAccount * pMyAccount = NULL;
-    if (str_MyAcct.size() > 0)
-    {
+    OTAccount* pMyAccount = NULL;
+    if (str_MyAcct.size() > 0) {
         pMyAccount = pWallet->GetAccount(str_MyAcct);
-        if (NULL == pMyAccount)
-        {
+        if (NULL == pMyAccount) {
             pMyAccount = pWallet->GetAccountPartialMatch(str_MyAcct);
-            if (NULL == pMyAccount)
-            {
-                OTLog::vOutput(0, "Aborting: Unable to find specified myacct: %s\n", str_MyAcct.c_str());
+            if (NULL == pMyAccount) {
+                OTLog::vOutput(
+                    0, "Aborting: Unable to find specified myacct: %s\n",
+                    str_MyAcct.c_str());
                 return 0;
             }
         }
-        if (NULL != pMyAccount)
-        {
+        if (NULL != pMyAccount) {
             OTString strTemp;
             pMyAccount->GetPurportedAccountID().GetString(strTemp);
             str_MyAcct = strTemp.Get();
@@ -367,16 +387,13 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
         }
     }
 
-    OTPseudonym * pHisNym = NULL;
-    if (str_HisNym.size() > 0)
-    {
+    OTPseudonym* pHisNym = NULL;
+    if (str_HisNym.size() > 0) {
         pHisNym = pWallet->GetNymByID(str_HisNym);
-        if (NULL == pHisNym)
-        {
+        if (NULL == pHisNym) {
             pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
         }
-        if (NULL != pHisNym)
-        {
+        if (NULL != pHisNym) {
             OTString strTemp;
             pHisNym->GetIdentifier(strTemp);
             str_HisNym = strTemp.Get();
@@ -384,16 +401,13 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
         }
     }
 
-    OTAccount * pHisAccount = NULL;
-    if (str_HisAcct.size() > 0)
-    {
+    OTAccount* pHisAccount = NULL;
+    if (str_HisAcct.size() > 0) {
         pHisAccount = pWallet->GetAccount(str_HisAcct);
-        if (NULL == pHisAccount)
-        {
+        if (NULL == pHisAccount) {
             pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
         }
-        if (NULL != pHisAccount)
-        {
+        if (NULL != pHisAccount) {
             OTString strTemp;
             pHisAccount->GetPurportedAccountID().GetString(strTemp);
             str_HisAcct = strTemp.Get();
@@ -402,16 +416,14 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
     }
 
     OTIdentifier thePurseAssetTypeID;
-    OTAssetContract * pMyAssetContract = NULL;
-    if (str_MyPurse.size() > 0)
-    {
+    OTAssetContract* pMyAssetContract = NULL;
+    if (str_MyPurse.size() > 0) {
         pMyAssetContract = pWallet->GetAssetContract(str_MyPurse);
-        if (NULL == pMyAssetContract)
-        {
-            pMyAssetContract = pWallet->GetAssetContractPartialMatch(str_MyPurse);
+        if (NULL == pMyAssetContract) {
+            pMyAssetContract =
+                pWallet->GetAssetContractPartialMatch(str_MyPurse);
         }
-        if (NULL != pMyAssetContract)
-        {
+        if (NULL != pMyAssetContract) {
             pMyAssetContract->GetIdentifier(thePurseAssetTypeID);
             OTString strTemp;
             pMyAssetContract->GetIdentifier(strTemp);
@@ -419,33 +431,30 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
             OTLog::vOutput(0, "Using as mypurse: %s\n", str_MyPurse.c_str());
         }
     }
-    else
-    {
-        // if no purse (asset type) ID was provided, but MyAccount WAS provided, then
+    else {
+        // if no purse (asset type) ID was provided, but MyAccount WAS provided,
+        // then
         // use the asset type for the account instead.
-        if (NULL != pMyAccount)
-        {
+        if (NULL != pMyAccount) {
             thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
-            if (!thePurseAssetTypeID.IsEmpty())
-            {
+            if (!thePurseAssetTypeID.IsEmpty()) {
                 OTString strTemp(thePurseAssetTypeID);
                 str_MyPurse = strTemp.Get();
-                OTLog::vOutput(0, "Using as mypurse: %s\n", str_MyPurse.c_str());
+                OTLog::vOutput(0, "Using as mypurse: %s\n",
+                               str_MyPurse.c_str());
             }
         }
     }
 
     OTIdentifier hisPurseAssetTypeID;
-    OTAssetContract * pHisAssetContract = NULL;
-    if (str_HisPurse.size() > 0)
-    {
+    OTAssetContract* pHisAssetContract = NULL;
+    if (str_HisPurse.size() > 0) {
         pHisAssetContract = pWallet->GetAssetContract(str_HisPurse);
-        if (NULL == pHisAssetContract)
-        {
-            pHisAssetContract = pWallet->GetAssetContractPartialMatch(str_HisPurse);
+        if (NULL == pHisAssetContract) {
+            pHisAssetContract =
+                pWallet->GetAssetContractPartialMatch(str_HisPurse);
         }
-        if (NULL != pHisAssetContract)
-        {
+        if (NULL != pHisAssetContract) {
             pHisAssetContract->GetIdentifier(hisPurseAssetTypeID);
             OTString strTemp;
             pHisAssetContract->GetIdentifier(strTemp);
@@ -453,18 +462,15 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
             OTLog::vOutput(0, "Using as hispurse: %s\n", str_HisPurse.c_str());
         }
     }
-    else
-    {
+    else {
         // If no "HisPurse" was provided, but str_HisAcct WAS, then we use the
         // asset type of str_HisAcct as str_HisPurse.
-        if (NULL != pHisAccount)
-        {
+        if (NULL != pHisAccount) {
             hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
         }
     }
 
-    if (!hisPurseAssetTypeID.IsEmpty())
-    {
+    if (!hisPurseAssetTypeID.IsEmpty()) {
         OTString strTempAssetType(hisPurseAssetTypeID);
         str_HisPurse = strTempAssetType.Get();
         OTLog::vOutput(0, "Using as hispurse: %s\n", str_HisPurse.c_str());
@@ -472,35 +478,42 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
 
     OTLog::Output(0, "\n");
 
-    if (NULL != pServerContract && NULL != pMyNym)
-    {
-        OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(*pServerContract, *pMyNym, OTAPI_Wrap::OTAPI()->GetTransportCallback());
+    if (NULL != pServerContract && NULL != pMyNym) {
+        OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
+            *pServerContract, *pMyNym,
+            OTAPI_Wrap::OTAPI()->GetTransportCallback());
     }
 
-    if (str_Args.size() > 0)
-    {
+    if (str_Args.size() > 0) {
         str_Args += " ";
     }
     str_Args += "ot_cli_command ";
 
-    if (opt.getArgc() == 1)
-    {
-        str_Args += opt.getArgv(0);;
+    if (opt.getArgc() == 1) {
+        str_Args += opt.getArgv(0);
+        ;
     }
-    else
-    {
+    else {
         OTLog::vOutput(0, "Expecting a single opentxs command:\n\n");
         str_Args += "list";
     }
 
-    OTCleanup<OTVariable> angelArgs(SetGlobalVariable(madeEasy, "Args", str_Args));
-    OTCleanup<OTVariable> angelMyAcct(SetGlobalVariable(madeEasy, "MyAcct", str_MyAcct));
-    OTCleanup<OTVariable> angelMyNym(SetGlobalVariable(madeEasy, "MyNym", str_MyNym));
-    OTCleanup<OTVariable> angelMyPurse(SetGlobalVariable(madeEasy, "MyPurse", str_MyPurse));
-    OTCleanup<OTVariable> angelHisAcct(SetGlobalVariable(madeEasy, "HisAcct", str_HisAcct));
-    OTCleanup<OTVariable> angelHisNym(SetGlobalVariable(madeEasy, "HisNym", str_HisNym));
-    OTCleanup<OTVariable> angelHisPurse(SetGlobalVariable(madeEasy, "HisPurse", str_HisPurse));
-    OTCleanup<OTVariable> angelServer(SetGlobalVariable(madeEasy, "Server", str_Server));
+    OTCleanup<OTVariable> angelArgs(
+        SetGlobalVariable(madeEasy, "Args", str_Args));
+    OTCleanup<OTVariable> angelMyAcct(
+        SetGlobalVariable(madeEasy, "MyAcct", str_MyAcct));
+    OTCleanup<OTVariable> angelMyNym(
+        SetGlobalVariable(madeEasy, "MyNym", str_MyNym));
+    OTCleanup<OTVariable> angelMyPurse(
+        SetGlobalVariable(madeEasy, "MyPurse", str_MyPurse));
+    OTCleanup<OTVariable> angelHisAcct(
+        SetGlobalVariable(madeEasy, "HisAcct", str_HisAcct));
+    OTCleanup<OTVariable> angelHisNym(
+        SetGlobalVariable(madeEasy, "HisNym", str_HisNym));
+    OTCleanup<OTVariable> angelHisPurse(
+        SetGlobalVariable(madeEasy, "HisPurse", str_HisPurse));
+    OTCleanup<OTVariable> angelServer(
+        SetGlobalVariable(madeEasy, "Server", str_Server));
 
     madeEasy.opentxs_copy_variables();
 
@@ -513,25 +526,27 @@ int ProcessCommand(OT_ME & madeEasy, AnyOption & opt)
 class __OTclient_RAII
 {
 public:
-  __OTclient_RAII()
-  {
-      OTAPI_Wrap::AppInit(); 
-  }
-  ~__OTclient_RAII()
-  {
-      OTAPI_Wrap::AppCleanup();
-  }
+    __OTclient_RAII()
+    {
+        OTAPI_Wrap::AppInit();
+    }
+    ~__OTclient_RAII()
+    {
+        OTAPI_Wrap::AppCleanup();
+    }
 };
 
 } // namespace
 
 int main(int argc, char* argv[])
 {
-    // This makes SURE that AppCleanup() gets called before main() exits (without any
+    // This makes SURE that AppCleanup() gets called before main() exits
+    // (without any
     // twisted logic being necessary below, for that to happen.)
     __OTclient_RAII the_client_cleanup;
 
-    if (NULL == OTAPI_Wrap::OTAPI()) return -1;  // error out if we don't have the API.
+    if (NULL == OTAPI_Wrap::OTAPI())
+        return -1; // error out if we don't have the API.
 
     // COMMAND-LINE OPTIONS (and default values from files.)
 
@@ -546,8 +561,7 @@ int main(int argc, char* argv[])
     AnyOption opt;
     HandleCommandLineArguments(argc, argv, opt);
 
-    if (opt.getArgc() != 0)
-    {
+    if (opt.getArgc() != 0) {
         return ProcessCommand(madeEasy, opt);
     }
 
@@ -557,19 +571,16 @@ int main(int argc, char* argv[])
     bool bNoPrompt = opt.getFlag("noprompt") || opt.getFlag("test");
     int processed = 0;
     int failed = 0;
-    while (true)
-    {
+    while (true) {
         // get next command line from input stream
-        if (!bNoPrompt)
-        {
+        if (!bNoPrompt) {
             std::cout << "\nopentxs> ";
         }
         std::string cmd;
         std::getline(std::cin, cmd);
 
         // end of file stops processing commands
-        if (std::cin.eof())
-        {
+        if (std::cin.eof()) {
             break;
         }
 
@@ -577,58 +588,61 @@ int main(int argc, char* argv[])
 
         // quit/exit the command loop?
         cmd = trim(cmd);
-        if (bEchoCommand)
-        {
+        if (bEchoCommand) {
             std::cout << cmd << std::endl;
         }
 
-        if (cmd == "quit" || cmd == "exit")
-        {
+        if (cmd == "quit" || cmd == "exit") {
             break;
         }
 
-        // empty lines and lines starting with a hash character are seen as comments
-        if (cmd.size() == 0 || cmd[0] == '#')
-        {
+        // empty lines and lines starting with a hash character are seen as
+        // comments
+        if (cmd.size() == 0 || cmd[0] == '#') {
             continue;
         }
 
         std::string originalCmd = cmd;
 
-        // lines starting with a dollar sign character denote the definition of a macro of the form:
+        // lines starting with a dollar sign character denote the definition of
+        // a macro of the form:
         // $macroName = macroValue
         // whitespace around the equal sign is optional
         // <macroName> can be any combination of A-Z, a-z, 0-9, or _
         // <macroValue> is anything after the equal sign and whitespace-trimmed
         // note that <macroValue> can be an empty string
-        // note that the dollar sign itself is part of the immediately following macro name
-        // note that a macro value stays valid for the entire lifetime of the command loop
-        // note that macro expansion is done on the command line before processing the line
-        //      this means that a macro is allowed to contain command line escape characters
-        // note that macro expansion is recursive until no expansions are found any more
+        // note that the dollar sign itself is part of the immediately following
+        // macro name
+        // note that a macro value stays valid for the entire lifetime of the
+        // command loop
+        // note that macro expansion is done on the command line before
+        // processing the line
+        //      this means that a macro is allowed to contain command line
+        // escape characters
+        // note that macro expansion is recursive until no expansions are found
+        // any more
         //      this means that a macro is allowed to contain other macros
-        if (cmd[0] == '$')
-        {
+        if (cmd[0] == '$') {
             // determine the macro name
             size_t nameLength = 1;
-            while (nameLength < cmd.length() && (std::isalnum(cmd[nameLength]) || cmd[nameLength] == '_'))
-            {
+            while (nameLength < cmd.length() &&
+                   (std::isalnum(cmd[nameLength]) || cmd[nameLength] == '_')) {
                 nameLength++;
             }
             std::string macroName = cmd.substr(0, nameLength);
 
             // skip whitespace
             size_t i = nameLength;
-            while (i < cmd.length() && std::isspace(cmd[i]))
-            {
+            while (i < cmd.length() && std::isspace(cmd[i])) {
                 i++;
             }
 
-            if (i == cmd.length() || cmd[i] != '=')
-            {
+            if (i == cmd.length() || cmd[i] != '=') {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
-                    "Expected macro definition of the form: $macroName = macroValue\n"
-                    "Command was: %s", cmd.c_str());
+                                  "Expected macro definition of the form: "
+                                  "$macroName = macroValue\n"
+                                  "Command was: %s",
+                               cmd.c_str());
                 continue;
             }
 
@@ -639,58 +653,60 @@ int main(int argc, char* argv[])
         }
 
         // now replace any macro in the command line with its value
-        // unknown macro names will cause an error message instead of command execution
+        // unknown macro names will cause an error message instead of command
+        // execution
         // note that all macro names are 'maximum munch'
         int expansions = 0;
-        for (size_t macro = cmd.find_first_of("$"); macro != std::string::npos; macro = cmd.find_first_of("$", macro + 1))
-        {
+        for (size_t macro = cmd.find_first_of("$"); macro != std::string::npos;
+             macro = cmd.find_first_of("$", macro + 1)) {
             // first see if this is an escaped literal
-            if (macro > 0 && cmd[macro - 1] == '\\')
-            {
+            if (macro > 0 && cmd[macro - 1] == '\\') {
                 continue;
             }
 
             // gather rest of macro name 'maximum munch'
             size_t macroEnd = macro + 1;
-            while (macroEnd < cmd.length() && (std::isalnum(cmd[macroEnd]) || cmd[macroEnd] == '_'))
-            {
+            while (macroEnd < cmd.length() &&
+                   (std::isalnum(cmd[macroEnd]) || cmd[macroEnd] == '_')) {
                 macroEnd++;
             }
-            
+
             // has this macro been defined?
             std::string macroName = cmd.substr(macro, macroEnd - macro);
-            std::map<std::string, std::string>::iterator found = macros.find(macroName);
-            if (found == macros.end())
-            {
+            std::map<std::string, std::string>::iterator found =
+                macros.find(macroName);
+            if (found == macros.end()) {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
-                    "Macro expansion failed.\n"
-                    "Unknown macro: %s\n"
-                    "Command was: %s", macroName.c_str(), cmd.c_str());
+                                  "Macro expansion failed.\n"
+                                  "Unknown macro: %s\n"
+                                  "Command was: %s",
+                               macroName.c_str(), cmd.c_str());
                 expansions = 100;
                 break;
             }
 
-            std::string & macroValue = found->second;
+            std::string& macroValue = found->second;
 
             // limit to 100 expansions to avoid endless recusion loop
             expansions++;
-            if (expansions > 100)
-            {
+            if (expansions > 100) {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
-                    "Macro expansion failed.\n"
-                    "Too many expansions at macro: %s\n"
-                    "Command was: %s", macroName.c_str(), cmd.c_str());
+                                  "Macro expansion failed.\n"
+                                  "Too many expansions at macro: %s\n"
+                                  "Command was: %s",
+                               macroName.c_str(), cmd.c_str());
                 break;
             }
 
             // limit to 10000 characters to avoid crazy recursive expansions
-            if (cmd.length() + macroValue.length() > 10000)
-            {
+            if (cmd.length() + macroValue.length() > 10000) {
                 OTLog::vOutput(0, "\n\n***ERROR***\n"
-                    "Macro expansion failed.\n"
-                    "Command length exceeded at macro: %s\n"
-                    "Macro value is: %s\n"
-                    "Command was: %s", macroName.c_str(), macroValue.c_str(), cmd.c_str());
+                                  "Macro expansion failed.\n"
+                                  "Command length exceeded at macro: %s\n"
+                                  "Macro value is: %s\n"
+                                  "Command was: %s",
+                               macroName.c_str(), macroValue.c_str(),
+                               cmd.c_str());
                 expansions = 100;
                 break;
             }
@@ -699,14 +715,12 @@ int main(int argc, char* argv[])
             cmd = cmd.substr(0, macro) + macroValue + cmd.substr(macroEnd);
         }
 
-        if (bEchoExpand && cmd != originalCmd)
-        {
+        if (bEchoExpand && cmd != originalCmd) {
             std::cout << cmd << std::endl;
         }
 
         // skip command when anything during macro expansion failed
-        if (expansions > 99)
-        {
+        if (expansions > 99) {
             continue;
         }
 
@@ -714,11 +728,14 @@ int main(int argc, char* argv[])
         //     which is very useful for running a test script
         bool bExpectFailure = cmd[0] == '!';
 
-        // Parse command string into its separate parts so it can be passed as an argc/argv combo
+        // Parse command string into its separate parts so it can be passed as
+        // an argc/argv combo
         // Whitespace separates args as usual.
-        // To include whitespace in an arg surround the entire arg with double quotes
+        // To include whitespace in an arg surround the entire arg with double
+        // quotes
         // An unterminated double-quoted arg will auto-terminate at end of line
-        // All characters are taken literal except for: double quote, dollar sign, and backslash
+        // All characters are taken literal except for: double quote, dollar
+        // sign, and backslash
         // To take any character literal, precede it with a backslash
         std::vector<std::string> arguments;
 
@@ -726,43 +743,38 @@ int main(int argc, char* argv[])
         arguments.push_back(argv[0]);
 
         // set up buffer that will receive the separate arguments
-        char * pBuf = new char[cmd.length() + 1];
-        char * pArg = pBuf;
+        char* pBuf = new char[cmd.length() + 1];
+        char* pArg = pBuf;
 
         // start at actual command
         size_t i = bExpectFailure ? 1 : 0;
-        while (i < cmd.length())
-        {
+        while (i < cmd.length()) {
             // skip any whitespace
-            while (i < cmd.length() && std::isspace(cmd[i]))
-            {
+            while (i < cmd.length() && std::isspace(cmd[i])) {
                 i++;
             }
-            if (i == cmd.length())
-            {
+            if (i == cmd.length()) {
                 // it was trailing whitespace; we're done
                 break;
             }
 
             // remember where we start this new argument in the buffer
-            char * pStart = pArg;
+            char* pStart = pArg;
 
             // unquoted argument?
-            if (cmd[i] != '"')
-            {
+            if (cmd[i] != '"') {
                 // take everything until end of line or next whitespace
-                while (i < cmd.length() && !std::isspace(cmd[i]))
-                {
+                while (i < cmd.length() && !std::isspace(cmd[i])) {
                     // unescaped literal character?
-                    if (cmd[i] != '\\')
-                    {
+                    if (cmd[i] != '\\') {
                         // yep, add to buffer and go for next
                         *pArg++ = cmd[i++];
                         continue;
                     }
 
                     // take next character literal unless it was the end of line
-                    // in which case we simply add the backslash as a literal character
+                    // in which case we simply add the backslash as a literal
+                    // character
                     *pArg++ = i < cmd.length() ? cmd[i++] : '\\';
                 }
 
@@ -778,18 +790,17 @@ int main(int argc, char* argv[])
             i++;
 
             // take everything until end of line or next double quote
-            while (i < cmd.length() && cmd[i] != '"')
-            {
+            while (i < cmd.length() && cmd[i] != '"') {
                 // unescaped literal character?
-                if (cmd[i] != '\\')
-                {
+                if (cmd[i] != '\\') {
                     // yep, add to buffer and go for next
                     *pArg++ = cmd[i++];
                     continue;
                 }
 
                 // take next character literal unless it was the end of line
-                // in which case we simply add the backslash as a literal character
+                // in which case we simply add the backslash as a literal
+                // character
                 *pArg++ = i < cmd.length() ? cmd[i++] : '\\';
             }
 
@@ -801,12 +812,11 @@ int main(int argc, char* argv[])
             i++;
         }
 
-        //set up a new argc/argv combo
+        // set up a new argc/argv combo
         int newArgc = arguments.size();
-        char ** newArgv = new char *[newArgc];
-        for (int i = 0; i < newArgc; i++)
-        {
-            newArgv[i] = const_cast<char *>(arguments[i].c_str());
+        char** newArgv = new char* [newArgc];
+        for (int i = 0; i < newArgc; i++) {
+            newArgv[i] = const_cast<char*>(arguments[i].c_str());
         }
 
         // preprocess the command line
@@ -814,41 +824,40 @@ int main(int argc, char* argv[])
         HandleCommandLineArguments(newArgc, newArgv, opt);
 
         bool bFailedCommand = 0 != ProcessCommand(madeEasy, opt);
-        if (bExpectFailure)
-        {
-            if (!bFailedCommand)
-            {
+        if (bExpectFailure) {
+            if (!bFailedCommand) {
                 failed++;
-                OTLog::vOutput(0, "\n\n***ERROR***\nExpected command to fail.\nSucceeding command was: %s", cmd.c_str());
+                OTLog::vOutput(0, "\n\n***ERROR***\nExpected command to "
+                                  "fail.\nSucceeding command was: %s",
+                               cmd.c_str());
                 errorLineNumbers.push_back(lineNumber);
                 errorCommands.push_back(originalCmd);
             }
         }
-        else
-        {
-            if (bFailedCommand)
-            {
+        else {
+            if (bFailedCommand) {
                 failed++;
-                OTLog::vOutput(0, "\n\n***ERROR***\nFailed command was: %s", cmd.c_str());
+                OTLog::vOutput(0, "\n\n***ERROR***\nFailed command was: %s",
+                               cmd.c_str());
                 errorLineNumbers.push_back(lineNumber);
                 errorCommands.push_back(originalCmd);
             }
         }
 
-        delete [] newArgv;
-        delete [] pBuf;
+        delete[] newArgv;
+        delete[] pBuf;
 
         OTLog::Output(0, "\n\n");
         processed++;
     }
 
-    std::cout << "\n\n" << processed << " commands were processed.\n" << failed << " commands failed.\n" << std::endl;
+    std::cout << "\n\n" << processed << " commands were processed.\n" << failed
+              << " commands failed.\n" << std::endl;
 
-    if (opt.getFlag("errorList") || opt.getFlag("test"))
-    {
-        for (size_t i = 0; i < errorLineNumbers.size(); i++)
-        {
-            std::cout << "\nFailed line " << errorLineNumbers[i] << ": " << errorCommands[i] << "." << std::endl;
+    if (opt.getFlag("errorList") || opt.getFlag("test")) {
+        for (size_t i = 0; i < errorLineNumbers.size(); i++) {
+            std::cout << "\nFailed line " << errorLineNumbers[i] << ": "
+                      << errorCommands[i] << "." << std::endl;
         }
     }
 

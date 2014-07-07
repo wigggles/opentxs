@@ -1,13 +1,13 @@
 /************************************************************
- *    
+ *
  *  OTKeyCredential.hpp
- *  
+ *
  */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -152,7 +152,8 @@
 // (some of them subkeys) signed by that master.
 //
 // The same class (subcredential/subkey) is used because there are master
-// credentials and subcredentials, so we're using inheritance for "subcredential"
+// credentials and subcredentials, so we're using inheritance for
+// "subcredential"
 // and "subkey" to encapsulate the credentials, so we don't have to repeat code
 // across both.
 // We're using a "has-a" model here, since the OTCredential "has a" master
@@ -170,100 +171,125 @@
 // the subkeys, meanwhile should only be able to do actions, and not issue
 // any new keys.
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTAsymmetricKey;
 class OTCredential;
 class OTPassword;
 class OTPasswordData;
 
-typedef std::list<OTAsymmetricKey *> listOfAsymmetricKeys;
-
+typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
 // CONTENTS needs to be PUBLIC and PRIVATE contents, EACH being a string map.
 //
-// The server (or anyone else) will only be able to see my public contents, not my private
+// The server (or anyone else) will only be able to see my public contents, not
+// my private
 // contents.
 //
-// The credential ID comes from a hash of the credential. (Which must be signed before it can be hashed.)
+// The credential ID comes from a hash of the credential. (Which must be signed
+// before it can be hashed.)
 //
-// Since I will have a public version of the credential, signed, for others, and I will have a private version
-// signed, for myself, then I will have to store both signed versions, yes? I can't be re-signing things because
-// the public version is hashed to form my credential ID. So once signed, we can't be signing it again later.
+// Since I will have a public version of the credential, signed, for others, and
+// I will have a private version
+// signed, for myself, then I will have to store both signed versions, yes? I
+// can't be re-signing things because
+// the public version is hashed to form my credential ID. So once signed, we
+// can't be signing it again later.
 //
-// So I think OTCredential will store a string containing the signed public version. Then it can include a copy
-// of this string in the signed private version. (That way it always has both versions safe and signed, and it can
-// always pull out its public version and send it to servers or whoever when it needs to.
+// So I think OTCredential will store a string containing the signed public
+// version. Then it can include a copy
+// of this string in the signed private version. (That way it always has both
+// versions safe and signed, and it can
+// always pull out its public version and send it to servers or whoever when it
+// needs to.
 //
-// A subcredential can store its own signed public version, which must contain the master credential ID and be
-// signed by that master key. If a subcredential is a subkey, then it must also be signed by itself.
+// A subcredential can store its own signed public version, which must contain
+// the master credential ID and be
+// signed by that master key. If a subcredential is a subkey, then it must also
+// be signed by itself.
 //
-// This is packaged up and attached to the signed private version, which includes the private keys, and is only
+// This is packaged up and attached to the signed private version, which
+// includes the private keys, and is only
 // stored on the client side.
 //
 // Might want also a version with IDs only.
 //
-// When creating a new credential, I want the ability to specify the public and private key information.
-// But what if I don't specify? I should be able to pass NULL, and OT should be smart enough to generate
-// the three certs and the three private keys, without me having to pass anything at all.
+// When creating a new credential, I want the ability to specify the public and
+// private key information.
+// But what if I don't specify? I should be able to pass NULL, and OT should be
+// smart enough to generate
+// the three certs and the three private keys, without me having to pass
+// anything at all.
 //
 // If it's a master, this subcredential should be signed with itself.
 // If it's a normal subcredential (not master) then it should be signed with
 // its master, but not signed by itself since it may have no key.
 // If it's a subkey (a form of subcredential) then it should be signed by itself
 // AND by its master. And it must contain its master's ID.
-// But if it's a master, it cannot contain its master's ID except maybe its own ID,
-// but it is impossible for a contract to contain its own ID when its ID is a hash
+// But if it's a master, it cannot contain its master's ID except maybe its own
+// ID,
+// but it is impossible for a contract to contain its own ID when its ID is a
+// hash
 // of the signed contract!
 //
-// I might make OTKeycredential and then have OTSubkey and OTMasterkey both derive from that.
-// That way the master key doesn't have to contain its own ID, while the subkey can still contain
+// I might make OTKeycredential and then have OTSubkey and OTMasterkey both
+// derive from that.
+// That way the master key doesn't have to contain its own ID, while the subkey
+// can still contain
 // its master's ID.
 
 /// OTKeyCredential
-/// A form of OTSubcredential that contains 3 key pairs: signing, authentication, and encryption.
-/// We won't use OTKeyCredential directly but only as a common base class for OTSubkey and OTMasterkey.
+/// A form of OTSubcredential that contains 3 key pairs: signing,
+/// authentication, and encryption.
+/// We won't use OTKeyCredential directly but only as a common base class for
+/// OTSubkey and OTMasterkey.
 ///
 class OTKeyCredential : public OTSubcredential
 {
-private:  // Private prevents erroneous use by other classes.
+private: // Private prevents erroneous use by other classes.
     typedef OTSubcredential ot_super;
     friend class OTCredential;
-    // ------------------------------
+
 protected:
-    virtual bool SetPublicContents (const mapOfStrings & mapPublic);
-    virtual bool SetPrivateContents(const mapOfStrings & mapPrivate,
-                                          OTPassword   * pImportPassword=NULL); // if not NULL, it means to use this password by default.
-    // ------------------------------
+    virtual bool SetPublicContents(const mapOfStrings& mapPublic);
+    virtual bool SetPrivateContents(
+        const mapOfStrings& mapPrivate,
+        OTPassword* pImportPassword = NULL); // if not NULL, it means to use
+                                             // this password by default.
 public:
-    OTKeypair   m_SigningKey;  // Signing keys, for signing/verifying a "legal signature".
-    OTKeypair   m_AuthentKey;  // Authentication keys, used for signing/verifying transmissions and stored files.
-    OTKeypair   m_EncryptKey;  // Encryption keys, used for sealing/opening OTEnvelopes.
-    // ------------------------------
-    bool GenerateKeys(int32_t nBits=1024);   // Gotta start somewhere.
-    bool ReEncryptKeys(OTPassword & theExportPassword, bool bImporting); // Used when importing/exporting a Nym to/from the wallet.
-    // ------------------------------
-    virtual bool VerifyInternally();     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also verify that *this == m_pOwner->m_MasterKey (the master credential.) Then verify the (self-signed) signature on *this.
-    // ------------------------------
+    OTKeypair m_SigningKey; // Signing keys, for signing/verifying a "legal
+                            // signature".
+    OTKeypair m_AuthentKey; // Authentication keys, used for signing/verifying
+                            // transmissions and stored files.
+    OTKeypair m_EncryptKey; // Encryption keys, used for sealing/opening
+                            // OTEnvelopes.
+    bool GenerateKeys(int32_t nBits = 1024); // Gotta start somewhere.
+    bool ReEncryptKeys(OTPassword& theExportPassword,
+                       bool bImporting); // Used when importing/exporting a Nym
+                                         // to/from the wallet.
+    virtual bool VerifyInternally(); // Verify that m_strNymID is the same as
+                                     // the hash of m_strSourceForNymID. Also
+                                     // verify that *this ==
+                                     // m_pOwner->m_MasterKey (the master
+                                     // credential.) Then verify the
+                                     // (self-signed) signature on *this.
     bool VerifySignedBySelf();
-    // ------------------------------
     virtual void SetMetadata();
-    // ------------------------------
     OTKeyCredential();
-    OTKeyCredential(OTCredential & theOwner);
-    // ------------------------------
-    bool SignContract(OTContract & theContract, OTPasswordData * pPWData=NULL);
-    // ------------------------------
-EXPORT int32_t GetPublicKeysBySignature(listOfAsymmetricKeys & listOutput,
-                                    const OTSignature & theSignature,
-                                    char cKeyType='0') const; // 'S' (signing key) or 'E' (encryption key) or 'A' (authentication key)
-    // ------------------------------
+    OTKeyCredential(OTCredential& theOwner);
+    bool SignContract(OTContract& theContract, OTPasswordData* pPWData = NULL);
+    EXPORT int32_t
+    GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
+                             const OTSignature& theSignature,
+                             char cKeyType = '0') const; // 'S' (signing key) or
+                                                         // 'E' (encryption key)
+                                                         // or 'A'
+                                                         // (authentication key)
     virtual ~OTKeyCredential();
     virtual void Release();
     void Release_Subkey();
 };
-
-
 
 } // namespace opentxs
 

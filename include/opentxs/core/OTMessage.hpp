@@ -137,95 +137,113 @@
 #include "OTContract.hpp"
 #include "OTNumList.hpp"
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTPasswordData;
 class OTPseudonym;
 
-
 class OTMessage : public OTContract
 {
 protected:
-
-	virtual bool SaveContractWallet(std::ofstream & ofs);
-//	virtual bool SaveContractWallet(FILE * fl);
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+    //    virtual bool SaveContractWallet(FILE * fl);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-	virtual void UpdateContents();
+    virtual void UpdateContents();
 
-	bool m_bIsSigned;
-// -------------------------------
+    bool m_bIsSigned;
+
 public:
-EXPORT	OTMessage();
-EXPORT	virtual ~OTMessage();
+    EXPORT OTMessage();
+    EXPORT virtual ~OTMessage();
 
-	virtual bool VerifyContractID();
+    virtual bool VerifyContractID();
 
-EXPORT	virtual bool SignContract(const OTPseudonym & theNym,
-                                  OTPasswordData    * pPWData=NULL);
-EXPORT	virtual bool VerifySignature(const OTPseudonym & theNym,
-                                     OTPasswordData    * pPWData=NULL);
+    EXPORT virtual bool SignContract(const OTPseudonym& theNym,
+                                     OTPasswordData* pPWData = NULL);
+    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
+                                        OTPasswordData* pPWData = NULL);
 
-// -------------------------------
-EXPORT    bool HarvestTransactionNumbers(  OTPseudonym &  theNym,
-                                           const bool     bHarvestingForRetry,     // false until positively asserted.
-                                           const bool     bReplyWasSuccess,        // false until positively asserted.
-                                           const bool     bReplyWasFailure,        // false until positively asserted.
-                                           const bool     bTransactionWasSuccess,  // false until positively asserted.
-                                           const bool     bTransactionWasFailure); // false until positively asserted.
+    EXPORT bool HarvestTransactionNumbers(
+        OTPseudonym& theNym,
+        const bool bHarvestingForRetry,     // false until positively asserted.
+        const bool bReplyWasSuccess,        // false until positively asserted.
+        const bool bReplyWasFailure,        // false until positively asserted.
+        const bool bTransactionWasSuccess,  // false until positively asserted.
+        const bool bTransactionWasFailure); // false until positively asserted.
 
     // So the message can get the list of numbers from the Nym, before sending,
-    // that should be listed as acknowledged that the server reply has already been
+    // that should be listed as acknowledged that the server reply has already
+    // been
     // seen for those request numbers.
-    // IMPORTANT NOTE: The Server ID is used to lookup the numbers from the Nym. Therefore,
-    // make sure that OTMessage::m_strServerID is set BEFORE calling this function. (It will
+    // IMPORTANT NOTE: The Server ID is used to lookup the numbers from the Nym.
+    // Therefore,
+    // make sure that OTMessage::m_strServerID is set BEFORE calling this
+    // function. (It will
     // ASSERT if you don't...)
     //
-EXPORT    void SetAcknowledgments(OTPseudonym & theNym);
+    EXPORT void SetAcknowledgments(OTPseudonym& theNym);
 
-    // ----------------------------------------------------------
+    OTString m_strCommand;  // perhaps @register is the string for "reply to
+                            // register" a-ha
+    OTString m_strServerID; // This is sent with every message for security
+                            // reasons.
+    OTString m_strNymID; // The hash of the user's public key... or x509 cert.
+    OTString m_strNymboxHash; // Sometimes in a server reply as FYI, sometimes
+                              // in user message for validation purposes.
+    OTString m_strInboxHash; // Sometimes in a server reply as FYI, sometimes in
+                             // user message for validation purposes.
+    OTString m_strOutboxHash; // Sometimes in a server reply as FYI, sometimes
+                              // in user message for validation purposes.
+    OTString m_strNymID2; // If the user requests public key of another user.
+                          // ALSO used for MARKET ID sometimes.
+    OTString m_strNymPublicKey; // The user's public key... or x509 cert.
+    OTString m_strAssetID;      // The hash of the contract for whatever digital
+                                // asset is referenced.
+    OTString m_strAcctID;       // The unique ID of an asset account.
+    OTString m_strType;         // .
+    OTString m_strRequestNum; // Every user has a request number. This prevents
+                              // messages from
+                              // being intercepted and repeated by attackers.
 
-	OTString	m_strCommand;		// perhaps @register is the string for "reply to register" a-ha
-	OTString	m_strServerID;		// This is sent with every message for security reasons.
-	OTString	m_strNymID;			// The hash of the user's public key... or x509 cert.
-	OTString	m_strNymboxHash;	// Sometimes in a server reply as FYI, sometimes in user message for validation purposes.
-	OTString	m_strInboxHash;     // Sometimes in a server reply as FYI, sometimes in user message for validation purposes.
-	OTString	m_strOutboxHash;	// Sometimes in a server reply as FYI, sometimes in user message for validation purposes.
-	OTString	m_strNymID2;		// If the user requests public key of another user. ALSO used for MARKET ID sometimes.
-	OTString	m_strNymPublicKey;  // The user's public key... or x509 cert.
-	OTString	m_strAssetID;		// The hash of the contract for whatever digital asset is referenced.
-	OTString	m_strAcctID;		// The unique ID of an asset account.
-	OTString	m_strType;			// .
-	OTString	m_strRequestNum;    // Every user has a request number. This prevents messages from
-									// being intercepted and repeated by attackers.
+    OTASCIIArmor m_ascInReferenceTo; // If the server responds to a user
+                                     // command, he sends
+    // it back to the user here in ascii armored format.
+    OTASCIIArmor m_ascPayload; // If the reply needs to include a payload (such
+                               // as a new account
+    // or a message envelope or request from another user etc) then
+    // it can be put here in ascii-armored format.
+    OTASCIIArmor m_ascPayload2; // Sometimes one payload just isn't enough.
 
-	OTASCIIArmor m_ascInReferenceTo;// If the server responds to a user command, he sends
-									// it back to the user here in ascii armored format.
-	OTASCIIArmor m_ascPayload;		// If the reply needs to include a payload (such as a new account
-									// or a message envelope or request from another user etc) then
-									// it can be put here in ascii-armored format.
-    OTASCIIArmor m_ascPayload2;     // Sometimes one payload just isn't enough.
-
-    // This list of request numbers is stored for optimization, so client/server can communicate about
-    // which messages have been received, and can avoid certain downloads, such as replyNotice Box Receipts.
+    // This list of request numbers is stored for optimization, so client/server
+    // can communicate about
+    // which messages have been received, and can avoid certain downloads, such
+    // as replyNotice Box Receipts.
     //
-    OTNumList   m_AcknowledgedReplies;  // Client request: list of server replies client has already seen.
-                                        // Server reply:   list of client-acknowledged replies (so client knows that server knows.)
+    OTNumList m_AcknowledgedReplies; // Client request: list of server replies
+                                     // client has already seen.
+    // Server reply:   list of client-acknowledged replies (so client knows that
+    // server knows.)
 
-    int64_t        m_lNewRequestNum;   // If you are SENDING a message, you set m_strRequestNum. (For all msgs.)
-                                    // Server Reply for all messages copies that same number into m_strRequestNum;
-                                    // But if this is a SERVER REPLY to the "getRequestNumber" MESSAGE, the
-                                    // "request number" expected in that reply is stored HERE in m_lNewRequestNum;
-	int64_t		m_lDepth;			// For Market-related messages... (Plus for usage credits.) Also used by getBoxReceipt
-	int64_t		m_lTransactionNum;	// For Market-related messages... Also used by getBoxReceipt
+    int64_t m_lNewRequestNum; // If you are SENDING a message, you set
+                              // m_strRequestNum. (For all msgs.)
+    // Server Reply for all messages copies that same number into
+    // m_strRequestNum;
+    // But if this is a SERVER REPLY to the "getRequestNumber" MESSAGE, the
+    // "request number" expected in that reply is stored HERE in
+    // m_lNewRequestNum;
+    int64_t m_lDepth;          // For Market-related messages... (Plus for usage
+                               // credits.) Also used by getBoxReceipt
+    int64_t m_lTransactionNum; // For Market-related messages... Also used by
+                               // getBoxReceipt
 
-	bool		m_bSuccess;			// When the server replies to the client, this may be true or false
-	bool		m_bBool;			// Some commands need to send a bool. This variable is for those.
-    // ----------------------------------------------------------
-    int64_t        m_lTime;            // Timestamp when the message was signed.
+    bool m_bSuccess; // When the server replies to the client, this may be true
+                     // or false
+    bool m_bBool;    // Some commands need to send a bool. This variable is for
+                     // those.
+    int64_t m_lTime; // Timestamp when the message was signed.
 };
-
-
 
 } // namespace opentxs
 

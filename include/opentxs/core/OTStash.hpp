@@ -137,41 +137,48 @@
 
 #include <map>
 
-namespace opentxs {
+namespace opentxs
+{
 
 class OTIdentifier;
 class OTStashItem;
 class OTString;
 
-typedef std::map<std::string, OTStashItem *>	mapOfStashItems;
-
+typedef std::map<std::string, OTStashItem*> mapOfStashItems;
 
 class OTStash
 {
-	std::string		m_str_stash_name;
+    std::string m_str_stash_name;
 
-	mapOfStashItems	m_mapStashItems;	// map of stash items by asset type ID. owned.
+    mapOfStashItems m_mapStashItems; // map of stash items by asset type ID.
+                                     // owned.
 public:
-	
-	const std::string	GetName() const { return m_str_stash_name; }
-	OTStashItem *		GetStash(const std::string & str_asset_type_id);
-	
-	int64_t                GetAmount  (const std::string str_asset_type_id);
-	bool                CreditStash(const std::string str_asset_type_id, const int64_t &lAmount);
-	bool                DebitStash (const std::string str_asset_type_id, const int64_t &lAmount);
-	
-	void Serialize(OTString & strAppend);
-	int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml, const OTString & strStashName, const OTString & strItemCount);
-	
-	OTStash();
-	OTStash(const std::string str_stash_name)
-		{ m_str_stash_name = str_stash_name; }
-	OTStash(const OTString & strAssetTypeID, const int64_t lAmount=0);
-	OTStash(const OTIdentifier & theAssetTypeID, const int64_t lAmount=0);
-	virtual ~OTStash();
+    const std::string GetName() const
+    {
+        return m_str_stash_name;
+    }
+    OTStashItem* GetStash(const std::string& str_asset_type_id);
+
+    int64_t GetAmount(const std::string str_asset_type_id);
+    bool CreditStash(const std::string str_asset_type_id,
+                     const int64_t& lAmount);
+    bool DebitStash(const std::string str_asset_type_id,
+                    const int64_t& lAmount);
+
+    void Serialize(OTString& strAppend);
+    int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
+                            const OTString& strStashName,
+                            const OTString& strItemCount);
+
+    OTStash();
+    OTStash(const std::string str_stash_name)
+    {
+        m_str_stash_name = str_stash_name;
+    }
+    OTStash(const OTString& strAssetTypeID, const int64_t lAmount = 0);
+    OTStash(const OTIdentifier& theAssetTypeID, const int64_t lAmount = 0);
+    virtual ~OTStash();
 };
-
-
 
 } // namespace opentxs
 

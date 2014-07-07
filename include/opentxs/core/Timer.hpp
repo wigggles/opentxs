@@ -3,7 +3,7 @@
 // =======
 // High Resolution Timer.
 // This timer is able to measure the elapsed time with 1 micro-second accuracy
-// in both Windows, Linux and Unix system 
+// in both Windows, Linux and Unix system
 //
 //  AUTHOR: Song Ho Ahn (song.ahn@gmail.com)
 // CREATED: 2003-01-13
@@ -17,39 +17,37 @@
 
 #include "OTCommon.hpp"
 
-
 class Timer
 {
 public:
-EXPORT    Timer(bool bStart=false);                   // default constructor // FT: added default argument.
-EXPORT    ~Timer();                                   // default destructor
+    EXPORT Timer(bool bStart = false); // default constructor // FT: added
+                                       // default argument.
+    EXPORT ~Timer();                   // default destructor
 
-EXPORT    void   start();                             // start timer
-          void   stop();                              // stop the timer
-          void   clear();                             // stop the timer and clear the contents.
-    
-          double getElapsedTime();                    // get elapsed time in second
-          double getElapsedTimeInSec();               // get elapsed time in second (same as getElapsedTime)
-EXPORT    double getElapsedTimeInMilliSec();          // get elapsed time in milli-second
-          double getElapsedTimeInMicroSec();          // get elapsed time in micro-second
+    EXPORT void start(); // start timer
+    void stop();         // stop the timer
+    void clear();        // stop the timer and clear the contents.
 
+    double getElapsedTime();      // get elapsed time in second
+    double getElapsedTimeInSec(); // get elapsed time in second (same as
+                                  // getElapsedTime)
+    EXPORT double getElapsedTimeInMilliSec(); // get elapsed time in
+                                              // milli-second
+    double getElapsedTimeInMicroSec(); // get elapsed time in micro-second
 
 protected:
-
-
 private:
-    double startTimeInMicroSec;                 // starting time in micro-second
-    double endTimeInMicroSec;                   // ending time in micro-second
-    int32_t    stopped;                             // stop flag 
+    double startTimeInMicroSec; // starting time in micro-second
+    double endTimeInMicroSec;   // ending time in micro-second
+    int32_t stopped;            // stop flag
 #ifdef WIN32
-    LARGE_INTEGER frequency;                    // ticks per second
-    LARGE_INTEGER startCount;                   //
-    LARGE_INTEGER endCount;                     //
+    LARGE_INTEGER frequency;  // ticks per second
+    LARGE_INTEGER startCount; //
+    LARGE_INTEGER endCount;   //
 #else
-    timeval startCount;                         //
-    timeval endCount;                           //
+    timeval startCount; //
+    timeval endCount;   //
 #endif
 };
-
 
 #endif // __TIMER_HPP__

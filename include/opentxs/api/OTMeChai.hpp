@@ -124,348 +124,283 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-
 #ifndef __OT_ME_CHAI_HPP__
 #define __OT_ME_CHAI_HPP__
 
 #include "OTMeCpp.hpp"
 
-
-namespace opentxs {
+namespace opentxs
+{
 
 class OT_ME;
 class OTString;
 class OTVariable;
 
-
 class OTMeChai : public OTMeCpp
 {
 private:
-    OT_ME * m_pMe;
+    OT_ME* m_pMe;
 
-    void        AddVariable(OTVariable & variable);
-    bool        ExecuteScript_ReturnBool(const OTString & code, const char * pFunction);
-    int32_t     ExecuteScript_ReturnInt(const OTString & code, const char * pFunction);
-    std::string ExecuteScript_ReturnString(const OTString & code, const char * pFunction);
-    void        ExecuteScript_ReturnVoid(const OTString & code, const char * pFunction);
+    void AddVariable(OTVariable& variable);
+    bool ExecuteScript_ReturnBool(const OTString& code, const char* pFunction);
+    int32_t ExecuteScript_ReturnInt(const OTString& code,
+                                    const char* pFunction);
+    std::string ExecuteScript_ReturnString(const OTString& code,
+                                           const char* pFunction);
+    void ExecuteScript_ReturnVoid(const OTString& code, const char* pFunction);
 
 public:
-    OTMeChai(OT_ME * pMe);
+    OTMeChai(OT_ME* pMe);
     virtual ~OTMeChai();
 
     virtual bool make_sure_enough_trans_nums(const int32_t nNumberNeeded,
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID);
+                                             const std::string& SERVER_ID,
+                                             const std::string& NYM_ID);
 
-    virtual std::string register_nym(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID);
+    virtual std::string register_nym(const std::string& SERVER_ID,
+                                     const std::string& NYM_ID);
 
-    virtual std::string check_user(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & TARGET_NYM_ID);
+    virtual std::string check_user(const std::string& SERVER_ID,
+                                   const std::string& NYM_ID,
+                                   const std::string& TARGET_NYM_ID);
 
-    virtual std::string create_pseudonym(
-        const int32_t nKeybits,
-        const std::string & NYM_ID_SOURCE,
-        const std::string & ALT_LOCATION);
+    virtual std::string create_pseudonym(const int32_t nKeybits,
+                                         const std::string& NYM_ID_SOURCE,
+                                         const std::string& ALT_LOCATION);
 
-    virtual std::string issue_asset_type(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & THE_CONTRACT);
+    virtual std::string issue_asset_type(const std::string& SERVER_ID,
+                                         const std::string& NYM_ID,
+                                         const std::string& THE_CONTRACT);
 
-    virtual std::string issue_basket_currency(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & THE_BASKET);
+    virtual std::string issue_basket_currency(const std::string& SERVER_ID,
+                                              const std::string& NYM_ID,
+                                              const std::string& THE_BASKET);
 
     virtual std::string exchange_basket_currency(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ASSET_TYPE_ID,
-        const std::string & THE_BASKET,
-        const std::string & ACCOUNT_ID,
-        const bool IN_OR_OUT);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& ASSET_TYPE_ID, const std::string& THE_BASKET,
+        const std::string& ACCOUNT_ID, const bool IN_OR_OUT);
 
-    virtual std::string retrieve_contract(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & CONTRACT_ID);
+    virtual std::string retrieve_contract(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& CONTRACT_ID);
 
     virtual std::string load_or_retrieve_contract(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & CONTRACT_ID);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& CONTRACT_ID);
 
-    virtual std::string create_asset_acct(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ASSET_TYPE_ID);
+    virtual std::string create_asset_acct(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ASSET_TYPE_ID);
 
-    virtual std::string stat_asset_account(
-        const std::string & ACCOUNT_ID);
+    virtual std::string stat_asset_account(const std::string& ACCOUNT_ID);
 
-    virtual bool retrieve_account(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCOUNT_ID,
-        const bool bForceDownload);
+    virtual bool retrieve_account(const std::string& SERVER_ID,
+                                  const std::string& NYM_ID,
+                                  const std::string& ACCOUNT_ID,
+                                  const bool bForceDownload);
 
-    virtual bool retrieve_nym(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const bool bForceDownload);
+    virtual bool retrieve_nym(const std::string& SERVER_ID,
+                              const std::string& NYM_ID,
+                              const bool bForceDownload);
 
-    virtual std::string send_transfer(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_FROM,
-        const std::string & ACCT_TO,
-        const int64_t AMOUNT,
-        const std::string & NOTE);
+    virtual std::string send_transfer(const std::string& SERVER_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ACCT_FROM,
+                                      const std::string& ACCT_TO,
+                                      const int64_t AMOUNT,
+                                      const std::string& NOTE);
 
-    virtual std::string process_inbox(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCOUNT_ID,
-        const std::string & RESPONSE_LEDGER);
+    virtual std::string process_inbox(const std::string& SERVER_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ACCOUNT_ID,
+                                      const std::string& RESPONSE_LEDGER);
 
-    virtual bool accept_inbox_items(
-        const std::string & ACCOUNT_ID,
-        int32_t nItemType,
-        const std::string & INDICES);
+    virtual bool accept_inbox_items(const std::string& ACCOUNT_ID,
+                                    int32_t nItemType,
+                                    const std::string& INDICES);
 
-    virtual bool discard_incoming_payments(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & INDICES);
+    virtual bool discard_incoming_payments(const std::string& SERVER_ID,
+                                           const std::string& NYM_ID,
+                                           const std::string& INDICES);
 
-    virtual bool cancel_outgoing_payments(
-        const std::string & NYM_ID,
-        const std::string & ACCOUNT_ID,
-        const std::string & INDICES);
+    virtual bool cancel_outgoing_payments(const std::string& NYM_ID,
+                                          const std::string& ACCOUNT_ID,
+                                          const std::string& INDICES);
 
-    virtual int32_t accept_from_paymentbox(
-        const std::string & ACCOUNT_ID,
-        const std::string & INDICES,
-        const std::string & PAYMENT_TYPE);
+    virtual int32_t accept_from_paymentbox(const std::string& ACCOUNT_ID,
+                                           const std::string& INDICES,
+                                           const std::string& PAYMENT_TYPE);
 
-    virtual std::string load_public_encryption_key(
-        const std::string & NYM_ID);
+    virtual std::string load_public_encryption_key(const std::string& NYM_ID);
 
-    virtual std::string load_public_signing_key(
-        const std::string & NYM_ID);
+    virtual std::string load_public_signing_key(const std::string& NYM_ID);
 
     virtual std::string load_or_retrieve_encrypt_key(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & TARGET_NYM_ID);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID);
 
     virtual std::string load_or_retrieve_signing_key(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & TARGET_NYM_ID);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& TARGET_NYM_ID);
 
     virtual std::string send_user_msg_pubkey(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & RECIPIENT_PUBKEY,
-        const std::string & THE_MESSAGE);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        const std::string& RECIPIENT_PUBKEY, const std::string& THE_MESSAGE);
 
     virtual std::string send_user_pmnt_pubkey(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & RECIPIENT_PUBKEY,
-        const std::string & THE_INSTRUMENT);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT);
 
     virtual std::string send_user_cash_pubkey(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & RECIPIENT_PUBKEY,
-        const std::string & THE_INSTRUMENT,
-        const std::string & INSTRUMENT_FOR_SENDER);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& RECIPIENT_NYM_ID,
+        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
+        const std::string& INSTRUMENT_FOR_SENDER);
 
-    virtual std::string send_user_msg(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & THE_MESSAGE);
+    virtual std::string send_user_msg(const std::string& SERVER_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& RECIPIENT_NYM_ID,
+                                      const std::string& THE_MESSAGE);
 
-    virtual std::string send_user_payment(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & THE_PAYMENT);
+    virtual std::string send_user_payment(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& RECIPIENT_NYM_ID,
+                                          const std::string& THE_PAYMENT);
 
-    virtual std::string send_user_cash(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & THE_PAYMENT,
-        const std::string & SENDERS_COPY);
+    virtual std::string send_user_cash(const std::string& SERVER_ID,
+                                       const std::string& NYM_ID,
+                                       const std::string& RECIPIENT_NYM_ID,
+                                       const std::string& THE_PAYMENT,
+                                       const std::string& SENDERS_COPY);
 
-    virtual bool withdraw_and_send_cash(
-        const std::string & ACCT_ID,
-        const std::string & RECIPIENT_NYM_ID,
-        const std::string & MEMO,
-        const int64_t AMOUNT);
+    virtual bool withdraw_and_send_cash(const std::string& ACCT_ID,
+                                        const std::string& RECIPIENT_NYM_ID,
+                                        const std::string& MEMO,
+                                        const int64_t AMOUNT);
 
     virtual std::string get_payment_instrument(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const int32_t nIndex,
-        const std::string & PRELOADED_INBOX);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const int32_t nIndex, const std::string& PRELOADED_INBOX);
 
-    virtual std::string get_box_receipt(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const int32_t nBoxType,
-        const int64_t TRANS_NUM);
+    virtual std::string get_box_receipt(const std::string& SERVER_ID,
+                                        const std::string& NYM_ID,
+                                        const std::string& ACCT_ID,
+                                        const int32_t nBoxType,
+                                        const int64_t TRANS_NUM);
 
-    virtual std::string retrieve_mint(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ASSET_ID);
+    virtual std::string retrieve_mint(const std::string& SERVER_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ASSET_ID);
 
-    virtual std::string load_or_retrieve_mint(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ASSET_ID);
+    virtual std::string load_or_retrieve_mint(const std::string& SERVER_ID,
+                                              const std::string& NYM_ID,
+                                              const std::string& ASSET_ID);
 
-    virtual std::string query_asset_types(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ENCODED_MAP);
+    virtual std::string query_asset_types(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ENCODED_MAP);
 
     virtual std::string create_market_offer(
-        const std::string & ASSET_ACCT_ID,
-        const std::string & CURRENCY_ACCT_ID,
-        const int64_t scale,
-        const int64_t minIncrement,
-        const int64_t quantity,
-        const int64_t price,
-        const bool bSelling,
-        const int64_t lLifespanInSeconds,
-        const std::string & STOP_SIGN,
+        const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
+        const int64_t scale, const int64_t minIncrement, const int64_t quantity,
+        const int64_t price, const bool bSelling,
+        const int64_t lLifespanInSeconds, const std::string& STOP_SIGN,
         const int64_t ACTIVATION_PRICE);
 
-    virtual std::string kill_market_offer(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ASSET_ACCT_ID,
-        const int64_t TRANS_NUM);
+    virtual std::string kill_market_offer(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ASSET_ACCT_ID,
+                                          const int64_t TRANS_NUM);
 
-    virtual std::string kill_payment_plan(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const int64_t TRANS_NUM);
+    virtual std::string kill_payment_plan(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ACCT_ID,
+                                          const int64_t TRANS_NUM);
 
     virtual std::string cancel_payment_plan(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & THE_PAYMENT_PLAN);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& THE_PAYMENT_PLAN);
 
     virtual std::string activate_smart_contract(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const std::string & AGENT_NAME,
-        const std::string & THE_SMART_CONTRACT);
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& ACCT_ID, const std::string& AGENT_NAME,
+        const std::string& THE_SMART_CONTRACT);
 
-    virtual std::string trigger_clause(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const int64_t TRANS_NUM,
-        const std::string & CLAUSE_NAME,
-        const std::string & STR_PARAM);
+    virtual std::string trigger_clause(const std::string& SERVER_ID,
+                                       const std::string& NYM_ID,
+                                       const int64_t TRANS_NUM,
+                                       const std::string& CLAUSE_NAME,
+                                       const std::string& STR_PARAM);
 
-    virtual std::string withdraw_cash(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const int64_t AMOUNT);
+    virtual std::string withdraw_cash(const std::string& SERVER_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ACCT_ID,
+                                      const int64_t AMOUNT);
 
-    virtual int32_t easy_withdraw_cash(
-        const std::string & ACCT_ID,
-        const int64_t AMOUNT);
+    virtual int32_t easy_withdraw_cash(const std::string& ACCT_ID,
+                                       const int64_t AMOUNT);
 
-    virtual std::string export_cash(
-        const std::string & SERVER_ID,
-        const std::string & FROM_NYM_ID,
-        const std::string & ASSET_TYPE_ID,
-        const std::string & TO_NYM_ID,
-        const std::string & STR_INDICES,
-        bool bPasswordProtected,
-        std::string & STR_RETAINED_COPY);
+    virtual std::string export_cash(const std::string& SERVER_ID,
+                                    const std::string& FROM_NYM_ID,
+                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& TO_NYM_ID,
+                                    const std::string& STR_INDICES,
+                                    bool bPasswordProtected,
+                                    std::string& STR_RETAINED_COPY);
 
-    virtual std::string withdraw_voucher(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const std::string & RECIP_NYM_ID,
-        const std::string & STR_MEMO,
-        const int64_t AMOUNT);
+    virtual std::string withdraw_voucher(const std::string& SERVER_ID,
+                                         const std::string& NYM_ID,
+                                         const std::string& ACCT_ID,
+                                         const std::string& RECIP_NYM_ID,
+                                         const std::string& STR_MEMO,
+                                         const int64_t AMOUNT);
 
-    virtual std::string pay_dividend(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & SOURCE_ACCT_ID,
-        const std::string & SHARES_ASSET_ID,
-        const std::string & STR_MEMO,
-        const int64_t AMOUNT_PER_SHARE);
+    virtual std::string pay_dividend(const std::string& SERVER_ID,
+                                     const std::string& NYM_ID,
+                                     const std::string& SOURCE_ACCT_ID,
+                                     const std::string& SHARES_ASSET_ID,
+                                     const std::string& STR_MEMO,
+                                     const int64_t AMOUNT_PER_SHARE);
 
-    virtual std::string deposit_cheque(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const std::string & STR_CHEQUE);
+    virtual std::string deposit_cheque(const std::string& SERVER_ID,
+                                       const std::string& NYM_ID,
+                                       const std::string& ACCT_ID,
+                                       const std::string& STR_CHEQUE);
 
-    virtual int32_t deposit_cash(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const std::string & STR_PURSE);
+    virtual int32_t deposit_cash(const std::string& SERVER_ID,
+                                 const std::string& NYM_ID,
+                                 const std::string& ACCT_ID,
+                                 const std::string& STR_PURSE);
 
-    virtual int32_t deposit_local_purse(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & ACCT_ID,
-        const std::string & STR_INDICES);
+    virtual int32_t deposit_local_purse(const std::string& SERVER_ID,
+                                        const std::string& NYM_ID,
+                                        const std::string& ACCT_ID,
+                                        const std::string& STR_INDICES);
 
-    virtual std::string get_market_list(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID);
+    virtual std::string get_market_list(const std::string& SERVER_ID,
+                                        const std::string& NYM_ID);
 
-    virtual std::string get_market_offers(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & MARKET_ID,
-        const int64_t MAX_DEPTH);
+    virtual std::string get_market_offers(const std::string& SERVER_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& MARKET_ID,
+                                          const int64_t MAX_DEPTH);
 
-    virtual std::string get_nym_market_offers(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID);
+    virtual std::string get_nym_market_offers(const std::string& SERVER_ID,
+                                              const std::string& NYM_ID);
 
-    virtual std::string get_market_recent_trades(
-        const std::string & SERVER_ID,
-        const std::string & NYM_ID,
-        const std::string & MARKET_ID);
+    virtual std::string get_market_recent_trades(const std::string& SERVER_ID,
+                                                 const std::string& NYM_ID,
+                                                 const std::string& MARKET_ID);
 
-    virtual std::string adjust_usage_credits(
-        const std::string & SERVER_ID,
-        const std::string & USER_NYM_ID,
-        const std::string & TARGET_NYM_ID,
-        const std::string & ADJUSTMENT);
+    virtual std::string adjust_usage_credits(const std::string& SERVER_ID,
+                                             const std::string& USER_NYM_ID,
+                                             const std::string& TARGET_NYM_ID,
+                                             const std::string& ADJUSTMENT);
 };
-
 
 } // namespace opentxs
 
-#endif   // __OT_ME_CHAI_HPP__
+#endif // __OT_ME_CHAI_HPP__
