@@ -11,10 +11,8 @@
 
 #ifndef OT_USE_TR1
 #define _SharedPtr std::shared_ptr
-#define _WeakPtr std::weak_ptr
 #else
 #define _SharedPtr std::tr1::shared_ptr
-#define _WeakPtr std::tr1::weak_ptr
 #endif
 
 #endif //__TR1_WRAPPER_HPP__

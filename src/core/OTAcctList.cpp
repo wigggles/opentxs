@@ -330,9 +330,7 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
         {
             //            bool bSuccess = true;
 
-            _WeakPtr<OTAccount> pWeak =
-                (*it_weak)
-                    .second; // first is acct ID, second is weak_ptr to account.
+            std::weak_ptr<OTAccount> pWeak = it_weak->second;
 
             try
             {
@@ -410,15 +408,10 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
                    << " account ID: " << strAcctID
                    << " Asset Type ID: " << str_asset_type_id << "\n";
 
-            pRetVal =
-                _SharedPtr<OTAccount>(pAccount); // Create a shared pointer to
-                                                 // the account, so it will be
-                                                 // cleaned up automatically.
-            m_mapWeakAccts[strAcctID.Get()] =
-                _WeakPtr<OTAccount>(pRetVal); // save a weak pointer to the
-                                              // acct, so we'll never load it
-                                              // twice, but we'll also know if
-                                              // it's been deleted.
+            pRetVal = _SharedPtr<OTAccount>(pAccount);
+            // save a weak pointer to the acct, so we'll never load it twice,
+            // but we'll also know if it's been deleted.
+            m_mapWeakAccts[strAcctID.Get()] = std::weak_ptr<OTAccount>(pRetVal);
         }
         return pRetVal;
         //
@@ -453,13 +446,11 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
               << " account ID: " << strAcctID
               << " Asset Type ID: " << str_asset_type_id << "\n";
 
-        pRetVal = _SharedPtr<OTAccount>(pAccount); // Create a shared pointer to
-                                                   // the account, so it will be
-                                                   // cleaned up automatically.
+        pRetVal = _SharedPtr<OTAccount>(pAccount);
 
-        m_mapWeakAccts[strAcctID.Get()] = _WeakPtr<OTAccount>(
-            pRetVal); // save a weak pointer to the acct, so we'll never load it
-                      // twice, but we'll also know if it's been deleted.
+        // save a weak pointer to the acct, so we'll never load it twice,
+        // but we'll also know if it's been deleted.
+        m_mapWeakAccts[strAcctID.Get()] = std::weak_ptr<OTAccount>(pRetVal);
         m_mapAcctIDs[theMessage.m_strAssetID.Get()] =
             strAcctID.Get(); // Save the new acct ID in a map, keyed by asset
                              // type ID.

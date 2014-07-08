@@ -145,9 +145,8 @@ class OTPseudonym;
 
 typedef std::auto_ptr<OTAccount> OTAccount_AutoPtr;
 typedef std::list<OTAccount*> listOfAccounts;
-typedef std::map<std::string, _WeakPtr<OTAccount>> mapOfWeakAccounts; // mapped
-                                                                      // by ACCT
-                                                                      // ID
+// mapped by ACCT ID
+typedef std::map<std::string, std::weak_ptr<OTAccount>> mapOfWeakAccounts;
 
 class OTAccount : public OTTransactionType
 {
