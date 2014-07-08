@@ -6629,7 +6629,21 @@ OT_COMMANDS_OT int32_t OT_Command::main_stat_acct()
 OT_COMMANDS_OT int32_t OT_Command::details_account_balance(const string& strID)
 {
     string strName = OTAPI_Wrap::GetAccountWallet_Name(strID);
+    if (!VerifyStringVal(strName)) {
+        OTAPI_Wrap::Output(
+            0, "\ndetails_account_balance: Cannot find account wallet for: " +
+                   strID + "\n");
+        return -1;
+    }
+
     string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(strID);
+    if (!VerifyStringVal(strAssetID)) {
+        OTAPI_Wrap::Output(0, "\ndetails_account_balance: Cannot cannot "
+                              "determine asset type for: " +
+                                  strID + "\n");
+        return -1;
+    }
+
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strID);
 
     OTAPI_Wrap::Output(0, "\n    Balance: ");                  // stderr
@@ -6649,11 +6663,12 @@ OT_COMMANDS_OT int32_t OT_Command::main_balance()
 
 OT_COMMANDS_OT int32_t OT_Command::details_nym_stat(const string& strID)
 {
-    //  string strName    = OTAPI_Wrap::GetNym_Name(strID)
     string strStats = OTAPI_Wrap::GetNym_Stats(strID);
+    if (!VerifyStringVal(strStats)) {
+        return -1;
+    }
 
-    print(strStats); // stdout
-
+    print(strStats);
     return 1;
 }
 
@@ -8532,11 +8547,6 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
 OT_COMMANDS_OT int32_t OT_Command::main_show_market_list()
 {
     if (VerifyExists("Server")) {
-        if (!OTDB::Exists("markets", Server, "market_data.bin", "")) {
-            OTAPI_Wrap::Output(0, "No market list available.\n");
-            return 0;
-        }
-
         OTDB::MarketList& marketList = *loadMarketList(Server);
 
         if (!VerifyStorable(&marketList, "OTDB::MarketList")) {
