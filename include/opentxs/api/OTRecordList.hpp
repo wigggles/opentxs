@@ -231,7 +231,7 @@ EXPORT bool OT_API_Set_AddrBookCallback(
                                 // attached already.
 
 typedef std::weak_ptr<OTRecord> weak_ptr_OTRecord;
-typedef _SharedPtr<OTRecord> shared_ptr_OTRecord;
+typedef std::shared_ptr<OTRecord> shared_ptr_OTRecord;
 
 typedef std::vector<shared_ptr_OTRecord> vec_OTRecordList;
 typedef std::list<std::string> list_of_strings;
@@ -349,7 +349,7 @@ public:
     // RETRIEVE:
     //
     EXPORT int32_t size();
-    EXPORT _SharedPtr<OTRecord> GetRecord(int32_t nIndex);
+    EXPORT std::shared_ptr<OTRecord> GetRecord(int32_t nIndex);
     EXPORT bool RemoveRecord(int32_t nIndex);
 };
 

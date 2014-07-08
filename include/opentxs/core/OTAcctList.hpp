@@ -184,7 +184,7 @@ public:
         m_AcctType = eAcctType;
     }
 
-    EXPORT _SharedPtr<OTAccount> GetOrCreateAccount(
+    EXPORT std::shared_ptr<OTAccount> GetOrCreateAccount(
         OTPseudonym& theServerNym, const OTIdentifier& ACCOUNT_OWNER_ID,
         const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
         bool& bWasAcctCreated, // this will be set to true if the acct is

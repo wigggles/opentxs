@@ -212,10 +212,10 @@ protected:
                              // ID is attached, or not.
     OTSymmetricKey* m_pSymmetricKey; // If this purse contains its own symmetric
                                      // key (instead of using an owner Nym)...
-    _SharedPtr<OTCachedKey> m_pCachedKey; // ...then it will have a master key
-                                          // as well, for unlocking that
-                                          // symmetric key, and managing
-                                          // timeouts, etc.
+
+    // ...then it will have a master key as well, for unlocking that symmetric
+    // key, and managing timeouts, etc.
+    std::shared_ptr<OTCachedKey> m_pCachedKey;
     time64_t m_tLatestValidFrom; // The tokens in the purse may become valid on
                                  // different dates. This stores the latest one.
     time64_t m_tEarliestValidTo; // The tokens in the purse may have different
@@ -253,9 +253,9 @@ public:
     {
         return m_pSymmetricKey;
     } // symmetric key for this purse.
-    EXPORT _SharedPtr<OTCachedKey> GetInternalMaster(); // stores the passphrase
-                                                        // for the symmetric
-                                                        // key.
+
+    // stores the passphrase for the symmetric key.
+    EXPORT std::shared_ptr<OTCachedKey> GetInternalMaster();
     EXPORT bool GetPassphrase(OTPassword& theOutput,
                               const char* szDisplay =
                                   NULL); // Retrieves the passphrase for this

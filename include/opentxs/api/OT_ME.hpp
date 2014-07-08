@@ -155,7 +155,7 @@ private:
     static OT_ME* s_pMe;
 
     OT_ME* r_pPrev; // For reference only. Do not delete.
-    _SharedPtr<OTScript> m_pScript;
+    std::shared_ptr<OTScript> m_pScript;
     OTMeCpp* m_pImplementation;
 
     bool SetupScriptObject();

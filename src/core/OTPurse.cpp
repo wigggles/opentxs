@@ -187,7 +187,7 @@ bool OTPurse::GetPassphrase(OTPassword& theOutput,
         return false;
     }
 
-    _SharedPtr<OTCachedKey> pCachedKey(this->GetInternalMaster());
+    std::shared_ptr<OTCachedKey> pCachedKey(this->GetInternalMaster());
     if (!pCachedKey) OT_FAIL;
 
     const OTString strReason((NULL == szDisplay) ? szFunc : szDisplay);
@@ -203,9 +203,9 @@ bool OTPurse::GetPassphrase(OTPassword& theOutput,
 // (It will save the user from having the type the password, for example, 50
 // times in 1 minute,
 // by using the cached one.)
-//
-_SharedPtr<OTCachedKey> OTPurse::GetInternalMaster() // stores the passphrase
-                                                     // for the symmetric key.
+
+// stores the passphrase for the symmetric key.
+std::shared_ptr<OTCachedKey> OTPurse::GetInternalMaster()
 {
 
     if (!this->IsPasswordProtected() ||
@@ -213,7 +213,7 @@ _SharedPtr<OTCachedKey> OTPurse::GetInternalMaster() // stores the passphrase
     {
         otOut << __FUNCTION__
               << ": Failed: no internal master key exists, in this purse.\n";
-        return _SharedPtr<OTCachedKey>();
+        return std::shared_ptr<OTCachedKey>();
     }
 
     if (!m_pCachedKey->IsGenerated()) // should never happen, since the purse IS
@@ -222,7 +222,7 @@ _SharedPtr<OTCachedKey> OTPurse::GetInternalMaster() // stores the passphrase
     {
         otOut << __FUNCTION__
               << ": Error: internal master key has not yet been generated.\n";
-        return _SharedPtr<OTCachedKey>();
+        return std::shared_ptr<OTCachedKey>();
     }
 
     // By this point we know the purse is password protected, the internal
@@ -336,7 +336,7 @@ bool OTPurse::GenerateInternalKey()
 
     m_bPasswordProtected = true;
 
-    _SharedPtr<OTCachedKey> pCachedMaster(OTPurse::GetInternalMaster());
+    std::shared_ptr<OTCachedKey> pCachedMaster(OTPurse::GetInternalMaster());
     if (!pCachedMaster)
         otErr << __FUNCTION__
               << ": Failed trying to cache the master key for this purse.\n";
@@ -1309,7 +1309,7 @@ int32_t OTPurse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         // (It's only now that I bother instantiating.)
         //
-        _SharedPtr<OTCachedKey> pCachedKey(new OTCachedKey(ascValue));
+        std::shared_ptr<OTCachedKey> pCachedKey(new OTCachedKey(ascValue));
         //        OT_ASSERT_MSG(NULL != pCachedKey, "OTPurse::ProcessXMLNode:
         // Assert: NULL != new OTCachedKey \n");
 

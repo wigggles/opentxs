@@ -466,9 +466,8 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
     OTPassword thePassword;
     bool bGotPassword = false;
 
-    _SharedPtr<OTCachedKey> pCachedKey(
-        pPWData->GetCachedKey()); // Sometimes it's passed in, otherwise we use
-                                  // the global one.
+    // Sometimes it's passed in, otherwise we use the global one.
+    std::shared_ptr<OTCachedKey> pCachedKey(pPWData->GetCachedKey());
 
     if (!pCachedKey) {
         // Global one.

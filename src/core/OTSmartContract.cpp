@@ -2526,9 +2526,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 // Load up the actual Stash ACCOUNT
 //
 #ifndef OT_USE_TR1
-    _SharedPtr<OTAccount> pStashAccount(NULL);
+    std::shared_ptr<OTAccount> pStashAccount(NULL);
 #else
-    _SharedPtr<OTAccount> pStashAccount;
+    std::shared_ptr<OTAccount> pStashAccount;
 #endif
 
     bool bWasAcctCreated = false; // GetOrCreateAccount() will verifyContractID
@@ -4019,7 +4019,8 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
         const std::string str_language =
             pBylaw->GetLanguage(); // language it's in. (Default is "chai")
 
-        _SharedPtr<OTScript> pScript = OTScriptFactory(str_language, str_code);
+        std::shared_ptr<OTScript> pScript =
+            OTScriptFactory(str_language, str_code);
 
         OTCleanup<OTVariable> theVarAngel;
 

@@ -157,7 +157,8 @@ typedef std::map<std::string, OTAccount*> mapOfAccounts;
 typedef std::map<std::string, OTAssetContract*> mapOfContracts;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 typedef std::map<std::string, OTServerContract*> mapOfServers;
-typedef std::map<std::string, _SharedPtr<OTSymmetricKey>> mapOfSymmetricKeys;
+typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
+mapOfSymmetricKeys;
 typedef std::set<OTIdentifier> setOfIdentifiers;
 
 class OTWallet
@@ -330,13 +331,13 @@ public:
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
                                 OTString& strCiphertext, OTString& strOutput,
                                 const OTString* pstrDisplay = NULL);
-    EXPORT _SharedPtr<OTSymmetricKey> getOrCreateExtraKey(
+    EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = NULL); // Use this one.
-    EXPORT _SharedPtr<OTSymmetricKey> getExtraKey(
+    EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
         const std::string& str_id); // Low level.
     EXPORT bool addExtraKey(const std::string& str_id,
-                            _SharedPtr<OTSymmetricKey> pKey); // Low level.
+                            std::shared_ptr<OTSymmetricKey> pKey); // Low level.
     // These functions are low-level. They don't check for dependent data before
     // deleting,
     // and they don't save the wallet after they do.
