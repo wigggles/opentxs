@@ -292,20 +292,34 @@ OT_MADE_EASY_OT string MadeEasy::create_asset_acct(const string& SERVER_ID,
 OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 {
     string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
+    if (!VerifyStringVal(strName)) {
+        OTAPI_Wrap::Output(
+            0, "\nstat_asset_account: Cannot find account wallet for: " +
+                   ACCOUNT_ID + "\n");
+        return "";
+    }
+
+    string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(ACCOUNT_ID);
+    if (!VerifyStringVal(strAssetID)) {
+        OTAPI_Wrap::Output(
+            0,
+            "\nstat_asset_account: Cannot cannot determine asset type for: " +
+                ACCOUNT_ID + "\n");
+        return "";
+    }
+
     string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(ACCOUNT_ID);
-    string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(ACCOUNT_ID);
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
     string strAssetTypeName = OTAPI_Wrap::GetAssetType_Name(strAssetID);
     string strNymName = OTAPI_Wrap::GetNym_Name(strNymID);
     string strServerName = OTAPI_Wrap::GetServer_Name(strServerID);
 
-    return ("   Balance: " + OTAPI_Wrap::FormatAmount(strAssetID, lBalance) +
-            "   (" + strName + ")\nAccount ID: " + ACCOUNT_ID + " ( " +
-            strName + " )\nAsset Type: " + strAssetID + " ( " +
-            strAssetTypeName + " )\nOwner Nym:  " + strNymID + " ( " +
-            strNymName + " )\nServer:     " + strServerID + " ( " +
-            strServerName + " )");
+    return "   Balance: " + OTAPI_Wrap::FormatAmount(strAssetID, lBalance) +
+           "   (" + strName + ")\nAccount ID: " + ACCOUNT_ID + " ( " + strName +
+           " )\nAsset Type: " + strAssetID + " ( " + strAssetTypeName +
+           " )\nOwner Nym:  " + strNymID + " ( " + strNymName +
+           " )\nServer:     " + strServerID + " ( " + strServerName + " )";
 }
 
 // DOWNLOAD ACCOUNT FILES  (account balance, inbox, outbox, etc)

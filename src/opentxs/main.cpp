@@ -314,13 +314,9 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             pServerContract =
                 pWallet->GetServerContractPartialMatch(str_Server);
             if (NULL == pServerContract) {
-                OTLog::Output(0, "Unable to find a server contract. Please use "
-                                 "the option:  --server SERVER_ID\n"
-                                 "(Where SERVER_ID is the server ID. Partial "
-                                 "matches are accepted if the contract is "
-                                 "already in the wallet.)\n"
-                                 "Also, see default values located in "
-                                 "~/.ot/comand-line-ot.opt \n");
+                OTLog::vOutput(
+                    0, "Unknown default server contract for --server %s\n",
+                    str_Server.c_str());
             }
         }
         if (NULL != pServerContract) {
@@ -330,12 +326,6 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             OTLog::vOutput(0, "Using as server: %s\n", str_Server.c_str());
         }
     }
-    if (NULL == pServerContract) {
-        OTLog::Output(0, "Unable to find a server contract to use. Please use "
-                         "the option: --server SERVER_ID\n"
-                         "(Where SERVER_ID is the str_Server's ID. Partial "
-                         "matches ARE accepted.)\n");
-    }
 
     OTPseudonym* pMyNym = NULL;
     if (str_MyNym.size() > 0) {
@@ -343,13 +333,8 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         if (NULL == pMyNym) {
             pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
             if (NULL == pMyNym) {
-                OTLog::Output(0, "==> Unable to find My Nym. Please use the "
-                                 "option:   --mynym USER_ID\n"
-                                 "(Where USER_ID is the Nym's ID. Partial "
-                                 "matches are accepted if the nym is already "
-                                 "in the wallet.)\n"
-                                 "Also, see default values located in "
-                                 "~/.ot/comand-line-ot.opt \n");
+                OTLog::vOutput(0, "Unknown default nym for --mynym %s\n",
+                               str_MyNym.c_str());
             }
         }
         if (NULL != pMyNym) {
@@ -359,13 +344,6 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             OTLog::vOutput(0, "Using as mynym: %s\n", str_MyNym.c_str());
         }
     }
-    if (NULL == pMyNym) {
-        OTLog::Output(
-            0,
-            "Unable to find My Nym. Please use the option:   --mynym USER_ID\n"
-            "(Where USER_ID is the Nym's ID. Partial matches and names are "
-            "accepted.)\n");
-    }
 
     OTAccount* pMyAccount = NULL;
     if (str_MyAcct.size() > 0) {
@@ -373,10 +351,8 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         if (NULL == pMyAccount) {
             pMyAccount = pWallet->GetAccountPartialMatch(str_MyAcct);
             if (NULL == pMyAccount) {
-                OTLog::vOutput(
-                    0, "Aborting: Unable to find specified myacct: %s\n",
-                    str_MyAcct.c_str());
-                return 0;
+                OTLog::vOutput(0, "Unknown default account for --myacct %s\n",
+                               str_MyAcct.c_str());
             }
         }
         if (NULL != pMyAccount) {
@@ -392,6 +368,10 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         pHisNym = pWallet->GetNymByID(str_HisNym);
         if (NULL == pHisNym) {
             pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
+            if (NULL == pHisNym) {
+                OTLog::vOutput(0, "Unknown default nym for --hisnym %s\n",
+                               str_HisNym.c_str());
+            }
         }
         if (NULL != pHisNym) {
             OTString strTemp;
@@ -406,6 +386,10 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         pHisAccount = pWallet->GetAccount(str_HisAcct);
         if (NULL == pHisAccount) {
             pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
+            if (NULL == pHisAccount) {
+                OTLog::vOutput(0, "Unknown default account for --hisacct %s\n",
+                               str_HisAcct.c_str());
+            }
         }
         if (NULL != pHisAccount) {
             OTString strTemp;
@@ -422,6 +406,10 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         if (NULL == pMyAssetContract) {
             pMyAssetContract =
                 pWallet->GetAssetContractPartialMatch(str_MyPurse);
+            if (NULL == pMyAssetContract) {
+                OTLog::vOutput(0, "Unknown default purse for --mypurse %s\n",
+                               str_MyPurse.c_str());
+            }
         }
         if (NULL != pMyAssetContract) {
             pMyAssetContract->GetIdentifier(thePurseAssetTypeID);
@@ -453,6 +441,10 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         if (NULL == pHisAssetContract) {
             pHisAssetContract =
                 pWallet->GetAssetContractPartialMatch(str_HisPurse);
+            if (NULL == pHisAssetContract) {
+                OTLog::vOutput(0, "Unknown default purse for --hispurse %s\n",
+                               str_HisPurse.c_str());
+            }
         }
         if (NULL != pHisAssetContract) {
             pHisAssetContract->GetIdentifier(hisPurseAssetTypeID);
@@ -467,13 +459,13 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
         // asset type of str_HisAcct as str_HisPurse.
         if (NULL != pHisAccount) {
             hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
+            if (!hisPurseAssetTypeID.IsEmpty()) {
+                OTString strTempAssetType(hisPurseAssetTypeID);
+                str_HisPurse = strTempAssetType.Get();
+                OTLog::vOutput(0, "Using as hispurse: %s\n",
+                               str_HisPurse.c_str());
+            }
         }
-    }
-
-    if (!hisPurseAssetTypeID.IsEmpty()) {
-        OTString strTempAssetType(hisPurseAssetTypeID);
-        str_HisPurse = strTempAssetType.Get();
-        OTLog::vOutput(0, "Using as hispurse: %s\n", str_HisPurse.c_str());
     }
 
     OTLog::Output(0, "\n");
@@ -857,9 +849,9 @@ int main(int argc, char* argv[])
     if (opt.getFlag("errorList") || opt.getFlag("test")) {
         for (size_t i = 0; i < errorLineNumbers.size(); i++) {
             std::cout << "\nFailed line " << errorLineNumbers[i] << ": "
-                      << errorCommands[i] << "." << std::endl;
+                      << errorCommands[i] << std::endl;
         }
     }
 
-    return failed;
+    return failed == 0 ? 0 : -1;
 }

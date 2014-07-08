@@ -1,8 +1,8 @@
 # NOTE: This script expects the data from sample-data/ot-sample-data to be present in the client_data folder
-# So if you want to run this test script with any other data, youmight need to update the below IDs to match.
+# So if you want to run this test script with any other data, you might need to update the below IDs to match.
 
 # It is a good idea to refresh the client_data folder with the sample data before running this script
-# This will allow you to capture the output f this script and compare it to an earlier run
+# This will allow you to capture the output of this script and compare it to an earlier run
 
 #
 # macro definitions
@@ -34,10 +34,14 @@ showservers
 showassets
 
 # download a nym's public key based on his ID.
-checknym --mynym $FTNYM --hisnym $BOBNYM
-
-# fail to download a nym's public key based on his nonexistant ID.
-!checknym --mynym nonexistant --hisnym $BOBNYM
+!checknym
+!checknym                  --mynym $FTNYM --hisnym $BOBNYM
+!checknym --server unknown --mynym $FTNYM --hisnym $BOBNYM
+!checknym --server $SERVER                --hisnym $BOBNYM
+!checknym --server $SERVER --mynym nobody --hisnym $BOBNYM
+!checknym --server $SERVER --mynym $FTNYM
+!checknym --server $SERVER --mynym $FTNYM --hisnym unknown
+checknym --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 
 # show the nyms in the wallet.
 shownyms
@@ -46,18 +50,32 @@ shownyms
 stat
 
 # show the statistics for a specific nym.
+!shownym
+!shownym --mynym nobody
 shownym --mynym $FTNYM
 
 # download the list of markets.
-getmarkets --mynym $FTNYM --server $SERVER
+!getmarkets
+!getmarkets                  --mynym $FTNYM
+!getmarkets --server unknown --mynym $FTNYM
+!getmarkets --server $SERVER 
+!getmarkets --server $SERVER --mynym nobody
+getmarkets --server $SERVER --mynym $FTNYM
 
 # display the list of markets on a particular server.
-showmarkets --mynym $FTNYM --server $SERVER
+!showmarkets
+!showmarkets --server unknown
+# NOTE: there currently is no market list in the sample data 
+!showmarkets --server $SERVER
 
 # show account stats for a single account.
+!showacct
+!showacct --myacct unknown
 showacct --myacct $FTACCT
 
 # display balance for a specific account.
+!balance
+!balance --myacct unknown
 balance --myacct $FTACCT
 
 # performs both refreshnym and refreshacct.
@@ -67,7 +85,7 @@ refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
 # Cash Handling
 
 # show a mint file for specific asset ID. Download if necessary.
-showmint
+showmint --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # withdraw cash. (From acct on server into local purse.)
 withdraw --myacct $FTACCT --args "amount 6"
@@ -123,7 +141,7 @@ inbox --myacct $BOBACCT
 # TESTING "MAIL" SYSTEM.
 
 # send a message to another nym's in-mail.
-sendmsg --mynym $FTNYM --hisnym $BOBNYM
+sendmsg --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 Blabla message text
 ~
 
@@ -166,10 +184,10 @@ outpayment --mynym $FTNYM
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # display contents of Bob's incoming payments box.
-payments --mynym $BOBNYM
+payments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
-showpayment --mynym $BOBNYM --args "index 0"
+showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
 
 # accept all incoming payments for mynym.
 acceptpayments --mynym $BOBNYM --myacct $BOBACCT
@@ -178,7 +196,7 @@ acceptpayments --mynym $BOBNYM --myacct $BOBACCT
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # show payments inbox again to see that the incoming payments are now gone (processed)...
-payments --mynym $BOBNYM
+payments --server $SERVER --mynym $BOBNYM
 
 # --------
 
@@ -238,10 +256,10 @@ outpayment --mynym $FTNYM
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # display contents of Bob's incoming payments box.
-payments --mynym $BOBNYM
+payments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
-showpayment --mynym $BOBNYM --args "index 0"
+showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
 
 # accept all invoices in mynym's payments inbox.
 acceptinvoices --mynym $BOBNYM --myacct $BOBACCT
@@ -250,7 +268,7 @@ acceptinvoices --mynym $BOBNYM --myacct $BOBACCT
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # show payments inbox again to see that the incoming payments are now gone (processed)...
-payments --mynym $BOBNYM
+payments --server $SERVER --mynym $BOBNYM
 
 # --------
 
