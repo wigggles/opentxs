@@ -230,7 +230,7 @@ EXPORT bool OT_API_Set_AddrBookCallback(
     OTLookupCaller& theCaller); // OTLookupCaller must have OTNameLookup
                                 // attached already.
 
-typedef _WeakPtr<OTRecord> weak_ptr_OTRecord;
+typedef std::weak_ptr<OTRecord> weak_ptr_OTRecord;
 typedef _SharedPtr<OTRecord> shared_ptr_OTRecord;
 
 typedef std::vector<shared_ptr_OTRecord> vec_OTRecordList;
