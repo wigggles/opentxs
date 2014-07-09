@@ -266,7 +266,14 @@ if(APPLE)
 endif()
 if(NOT RPM)
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+  if(NOT MSVC)
+    include(GNUInstallDirs)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+  endif()
+endif()
+
+if(UNIX)
+  add_definitions(-DOT_PREFIX_PATH=\"${CMAKE_INSTALL_PREFIX}\")
 endif()
 
 add_subdirectory(deps)
@@ -293,7 +300,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
         FILES_MATCHING PATTERN "*.hpp")
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ot/
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/opentxs
+        DESTINATION lib/opentxs
         FILES_MATCHING PATTERN "*.ot")
 
 # opentxs CL client autocompletion
