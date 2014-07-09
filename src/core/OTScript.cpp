@@ -184,7 +184,7 @@ namespace opentxs
  // (Set up theParty here, with his asset accounts, etc)
  // Then...
  //
- _SharedPtr<OTScript> pScript = OTScript::Factory(default_script_language,
+ std::shared_ptr<OTScript> pScript = OTScript::Factory(default_script_language,
  strScript);
 
  if (pScript)
@@ -200,21 +200,21 @@ namespace opentxs
 
  */
 
-_SharedPtr<OTScript> OTScriptFactory(const std::string& script_type)
+std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
 {
 
 #ifdef OT_USE_SCRIPT_CHAI
     // default or explicit chai script interpreter
     if (script_type == "" || script_type == "chai") // todo no hardcoding.
     {
-        _SharedPtr<OTScript> pChaiScript(new OTScriptChai);
+        std::shared_ptr<OTScript> pChaiScript(new OTScriptChai);
         return pChaiScript;
     }
 
 //#elif OT_USE_SCRIPT_LUA
 //  if (script_type =="lua") // todo no hardcoding.
 //  {
-//      _SharedPtr<OTScript> pLuaScript(new OTScriptLua);
+//      std::shared_ptr<OTScript> pLuaScript(new OTScriptLua);
 //      return pLuaScript;
 //  }
 
@@ -223,7 +223,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type)
     if (script_type == "") {
         otErr << "\n\n WARNING 1: script_type == noscript. \n\n";
 
-        _SharedPtr<OTScript> pNoScript(new OTScript);
+        std::shared_ptr<OTScript> pNoScript(new OTScript);
         return pNoScript;
     }
 #endif
@@ -231,26 +231,27 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type)
     otErr << __FUNCTION__ << ": Script language (" << script_type
           << ") not found.\n";
 
-    _SharedPtr<OTScript> retVal;
+    std::shared_ptr<OTScript> retVal;
     return retVal;
 }
 
-_SharedPtr<OTScript> OTScriptFactory(const std::string& script_type,
-                                     const std::string& script_contents)
+std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type,
+                                          const std::string& script_contents)
 {
 
 #ifdef OT_USE_SCRIPT_CHAI
     // default or explicit chai script interpreter
     if (script_type == "" || script_type == "chai") // todo no hardcoding.
     {
-        _SharedPtr<OTScript> pChaiScript(new OTScriptChai(script_contents));
+        std::shared_ptr<OTScript> pChaiScript(
+            new OTScriptChai(script_contents));
         return pChaiScript;
     }
 
 //#elif OT_USE_SCRIPT_LUA
 //  if (script_type =="lua") // todo no hardcoding.
 //  {
-//      _SharedPtr<OTScript> pLuaScript(new OTScriptLua(script_contents));
+//      std::shared_ptr<OTScript> pLuaScript(new OTScriptLua(script_contents));
 //      return pLuaScript;
 //  }
 
@@ -259,7 +260,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type,
     if (script_type == "") {
         otErr << "\n\n WARNING 2: script_type == noscript. \n\n";
 
-        _SharedPtr<OTScript> pNoScript(new OTScript);
+        std::shared_ptr<OTScript> pNoScript(new OTScript);
         return pNoScript;
     }
 #endif
@@ -267,7 +268,7 @@ _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type,
     otErr << __FUNCTION__ << ": Script language (" << script_type
           << ") not found.\n";
 
-    _SharedPtr<OTScript> retVal;
+    std::shared_ptr<OTScript> retVal;
     return retVal;
 }
 

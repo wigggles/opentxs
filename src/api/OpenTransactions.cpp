@@ -1613,7 +1613,7 @@ bool OT_API::Wallet_ChangePassphrase()
     OTString strReason("Enter existing wallet master passphrase");
 
     OTPassword old_passphrase;
-    _SharedPtr<OTCachedKey> ptrMasterKey(OTCachedKey::It());
+    std::shared_ptr<OTCachedKey> ptrMasterKey(OTCachedKey::It());
     const bool bGotOldPassphrase =
         (ptrMasterKey && ptrMasterKey->IsGenerated() &&
          ptrMasterKey->GetMasterPassword(ptrMasterKey, old_passphrase,
@@ -1805,7 +1805,7 @@ bool OT_API::Wallet_ChangePassphrase()
     // point.
     //
     OTPassword new_passphrase;
-    _SharedPtr<OTCachedKey> sharedPtr(OTCachedKey::It());
+    std::shared_ptr<OTCachedKey> sharedPtr(OTCachedKey::It());
     const bool bRegenerate =
         sharedPtr->GetMasterPassword(sharedPtr, new_passphrase, strReason.Get(),
                                      true); // bVerifyTwice=false by default.

@@ -360,8 +360,9 @@ private:
     const std::string m_strDisplay;
     bool m_bUsingOldSystem; // "Do NOT use CachedKey if this is true."
 
-    _SharedPtr<OTCachedKey> m_pCachedKey; // If m_pMasterPW is set, this must be
-                                          // set as well.
+    // If m_pMasterPW is set, this must be set as well.
+    std::shared_ptr<OTCachedKey> m_pCachedKey;
+
 public:
     EXPORT bool isForNormalNym() const;
     EXPORT bool isForCachedKey() const;
@@ -372,21 +373,21 @@ public:
     {
         return m_pMasterPW;
     }
-    _SharedPtr<OTCachedKey> GetCachedKey()
+    std::shared_ptr<OTCachedKey> GetCachedKey()
     {
         return m_pCachedKey;
     }
     EXPORT OTPasswordData(const char* szDisplay, OTPassword* pMasterPW = NULL,
-                          _SharedPtr<OTCachedKey> pCachedKey =
-                              _SharedPtr<OTCachedKey>());
+                          std::shared_ptr<OTCachedKey> pCachedKey =
+                              std::shared_ptr<OTCachedKey>());
     EXPORT OTPasswordData(const std::string& str_Display,
                           OTPassword* pMasterPW = NULL,
-                          _SharedPtr<OTCachedKey> pCachedKey =
-                              _SharedPtr<OTCachedKey>());
+                          std::shared_ptr<OTCachedKey> pCachedKey =
+                              std::shared_ptr<OTCachedKey>());
     EXPORT OTPasswordData(const OTString& strDisplay,
                           OTPassword* pMasterPW = NULL,
-                          _SharedPtr<OTCachedKey> pCachedKey =
-                              _SharedPtr<OTCachedKey>());
+                          std::shared_ptr<OTCachedKey> pCachedKey =
+                              std::shared_ptr<OTCachedKey>());
     EXPORT ~OTPasswordData();
 };
 

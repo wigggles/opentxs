@@ -306,7 +306,7 @@ class OTSymmetricKey;
 // This is only the hard-coded default; it's also configurable in the opt file.
 #define OT_MASTER_KEY_TIMEOUT 300
 
-typedef std::map<std::string, _SharedPtr<OTCachedKey>> mapOfCachedKeys;
+typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
 
 class OTCachedKey
 {
@@ -363,24 +363,18 @@ public:
     } // So static functions using this CachedKey can also lock its mutex.
     EXPORT OTCachedKey(const OTASCIIArmor& ascCachedKey);
     EXPORT ~OTCachedKey();
-    EXPORT static _SharedPtr<OTCachedKey> It(OTIdentifier* pIdentifier =
-                                                 NULL); // if you pass in a
-                                                        // master key ID, it
-                                                        // will look it up on an
-                                                        // existing cached map
-                                                        // of master keys.
-                                                        // Otherwise it will use
-                                                        // "the" global Master
-                                                        // Key (the one used for
-                                                        // the Nyms.)
 
-    EXPORT static _SharedPtr<OTCachedKey> It(
-        OTCachedKey& theSourceKey); // if you pass in a master key, it will look
-                                    // it up on an existing cached map of master
-                                    // keys, based on the ID of the master key
-                                    // passed in. If not there, it copies the
-                                    // one passed in, and returns a pointer to
-                                    // the copy. (Do NOT delete it.)
+    // if you pass in a master key ID, it will look it up on an existing cached
+    // map of master keys. Otherwise it will use "the" global Master Key
+    // (the one used for the Nyms.)
+    EXPORT static std::shared_ptr<OTCachedKey> It(OTIdentifier* pIdentifier =
+                                                      NULL);
+
+    // if you pass in a master key, it will look it up on an existing cached map
+    // of master keys, based on the ID of the master key passed in. If not
+    // there, it copies the one passed in, and returns a pointer to the copy.
+    // (Do NOT delete it.)
+    EXPORT static std::shared_ptr<OTCachedKey> It(OTCachedKey& theSourceKey);
 
     EXPORT static void Cleanup(); // Call on application shutdown. Called in
                                   // CleanupOTAPI and also in OTServer wherever
@@ -439,12 +433,12 @@ public:
     // instead use its own internal master key to get its passphrase (also
     // retrieving from the user if
     // necessary.)
-    EXPORT bool GetMasterPassword(_SharedPtr<OTCachedKey>& mySharedPtr,
+    EXPORT bool GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                                   OTPassword& theOutput,
                                   const char* szDisplay = NULL,
                                   bool bVerifyTwice = false);
     // Caller must delete!
-    EXPORT static _SharedPtr<OTCachedKey> CreateMasterPassword(
+    EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
         OTPassword& theOutput, const char* szDisplay = NULL,
         int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 

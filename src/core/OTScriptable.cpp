@@ -578,7 +578,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
     const std::string str_language =
         pBylaw->GetLanguage(); // language it's in. (Default is "chai")
 
-    _SharedPtr<OTScript> pScript = OTScriptFactory(str_language, str_code);
+    std::shared_ptr<OTScript> pScript = OTScriptFactory(str_language, str_code);
 
     //
     // SET UP THE NATIVE CALLS, REGISTER THE PARTIES, REGISTER THE VARIABLES,

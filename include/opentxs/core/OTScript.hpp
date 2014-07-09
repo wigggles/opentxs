@@ -241,10 +241,10 @@ public:
     virtual bool ExecuteScript(OTVariable* pReturnVar = NULL);
 };
 
-EXPORT _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type =
-                                                "");
-EXPORT _SharedPtr<OTScript> OTScriptFactory(const std::string& script_type,
-                                            const std::string& script_contents);
+EXPORT std::shared_ptr<OTScript> OTScriptFactory(
+    const std::string& script_type = "");
+EXPORT std::shared_ptr<OTScript> OTScriptFactory(
+    const std::string& script_type, const std::string& script_contents);
 
 #if __clang__
 #pragma clang diagnostic pop

@@ -288,14 +288,14 @@ OTAcctList::~OTAcctList()
     Release_AcctList();
 }
 
-_SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
+std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
     OTPseudonym& theServerNym, const OTIdentifier& ACCOUNT_OWNER_ID,
     const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
     bool& bWasAcctCreated, // this will be set to true if the acct is created
                            // here. Otherwise set to false;
     const int64_t lStashTransNum /*=0*/)
 {
-    _SharedPtr<OTAccount> pRetVal;
+    std::shared_ptr<OTAccount> pRetVal;
     bWasAcctCreated = false;
 
     if (OTAccount::stash == m_AcctType) {
@@ -334,7 +334,7 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
 
             try
             {
-                _SharedPtr<OTAccount> pShared(pWeak);
+                std::shared_ptr<OTAccount> pShared(pWeak);
 
                 // If success, then we have a shared pointer. But it's worrying
                 // (TODO) because this should have
@@ -408,7 +408,7 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
                    << " account ID: " << strAcctID
                    << " Asset Type ID: " << str_asset_type_id << "\n";
 
-            pRetVal = _SharedPtr<OTAccount>(pAccount);
+            pRetVal = std::shared_ptr<OTAccount>(pAccount);
             // save a weak pointer to the acct, so we'll never load it twice,
             // but we'll also know if it's been deleted.
             m_mapWeakAccts[strAcctID.Get()] = std::weak_ptr<OTAccount>(pRetVal);
@@ -446,7 +446,7 @@ _SharedPtr<OTAccount> OTAcctList::GetOrCreateAccount(
               << " account ID: " << strAcctID
               << " Asset Type ID: " << str_asset_type_id << "\n";
 
-        pRetVal = _SharedPtr<OTAccount>(pAccount);
+        pRetVal = std::shared_ptr<OTAccount>(pAccount);
 
         // save a weak pointer to the acct, so we'll never load it twice,
         // but we'll also know if it's been deleted.
