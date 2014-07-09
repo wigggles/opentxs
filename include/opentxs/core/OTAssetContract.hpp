@@ -234,13 +234,14 @@ public:
                                                                 // calls Functor
                                                                 // on each.
     EXPORT static std::string formatLongAmount(
-        int64_t& lOriginalValue, int32_t nFactor = 100, int32_t nPower = 2,
-        const char* szSymbol = "", const char* szSeparator = ",",
+        int64_t lValue, int32_t nFactor = 100, int32_t nPower = 2,
+        const char* szCurrencySymbol = "",
+        const char* szThousandSeparator = ",",
         const char* szDecimalPoint = ".");
     EXPORT static bool ParseFormatted(int64_t& lResult,
                                       const std::string& str_input,
                                       int32_t nFactor = 100, int32_t nPower = 2,
-                                      const char* szSeparator = ",",
+                                      const char* szThousandSeparator = ",",
                                       const char* szDecimalPoint = ".");
     // For parsing and formatting amounts based on the currency contract.
     //

@@ -36,11 +36,11 @@ showassets
 # download a nym's public key based on his ID.
 !checknym
 !checknym                  --mynym $FTNYM --hisnym $BOBNYM
-!checknym --server unknown --mynym $FTNYM --hisnym $BOBNYM
+!checknym --server dummy   --mynym $FTNYM --hisnym $BOBNYM
 !checknym --server $SERVER                --hisnym $BOBNYM
-!checknym --server $SERVER --mynym nobody --hisnym $BOBNYM
+!checknym --server $SERVER --mynym dummy  --hisnym $BOBNYM
 !checknym --server $SERVER --mynym $FTNYM
-!checknym --server $SERVER --mynym $FTNYM --hisnym unknown
+!checknym --server $SERVER --mynym $FTNYM --hisnym dummy
 checknym --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 
 # show the nyms in the wallet.
@@ -51,58 +51,103 @@ stat
 
 # show the statistics for a specific nym.
 !shownym
-!shownym --mynym nobody
+!shownym --mynym dummy
 shownym --mynym $FTNYM
 
 # download the list of markets.
 !getmarkets
 !getmarkets                  --mynym $FTNYM
-!getmarkets --server unknown --mynym $FTNYM
+!getmarkets --server dummy   --mynym $FTNYM
 !getmarkets --server $SERVER 
-!getmarkets --server $SERVER --mynym nobody
+!getmarkets --server $SERVER --mynym dummy
 getmarkets --server $SERVER --mynym $FTNYM
 
 # display the list of markets on a particular server.
 !showmarkets
-!showmarkets --server unknown
+!showmarkets --server dummy
 # NOTE: there currently is no market list in the sample data 
 !showmarkets --server $SERVER
 
 # show account stats for a single account.
 !showacct
-!showacct --myacct unknown
+!showacct --myacct dummy
 showacct --myacct $FTACCT
 
 # display balance for a specific account.
 !balance
-!balance --myacct unknown
+!balance --myacct dummy
 balance --myacct $FTACCT
 
 # performs both refreshnym and refreshacct.
+!refresh
+!refresh                  --mynym $FTNYM --myacct $FTACCT
+!refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
+!refresh --server $SERVER                --myacct $FTACCT
+!refresh --server $SERVER --mynym dummy  --myacct $FTACCT
+!refresh --server $SERVER --mynym $FTNYM
+!refresh --server $SERVER --mynym $FTNYM --myacct dummy
 refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
 
 # ----------------------------------------------------------------------------------------
 # Cash Handling
 
 # show a mint file for specific asset ID. Download if necessary.
+!showmint
+!showmint                  --mynym $FTNYM --mypurse $SILVERPURSE
+!showmint --server dummy   --mynym $FTNYM --mypurse $SILVERPURSE
+!showmint --server $SERVER                --mypurse $SILVERPURSE
+!showmint --server $SERVER --mynym dummy  --mypurse $SILVERPURSE
+!showmint --server $SERVER --mynym $FTNYM 
+!showmint --server $SERVER --mynym $FTNYM --mypurse dummy
 showmint --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # withdraw cash. (From acct on server into local purse.)
+!withdraw
+!withdraw                  --args "amount 6"
+!withdraw --myacct dummy   --args "amount 6"
+#!withdraw --myacct $FTACCT
+#!withdraw --myacct $FTACCT --args
+#!withdraw --myacct $FTACCT --args nonsense
 withdraw --myacct $FTACCT --args "amount 6"
 
 # show contents of cash purse.
-showpurse --mynym $FTNYM --server $SERVER --mypurse $SILVERPURSE
+!showpurse
+!showpurse                  --mynym $FTNYM --mypurse $SILVERPURSE
+!showpurse --server dummy   --mynym $FTNYM --mypurse $SILVERPURSE
+!showpurse --server $SERVER                --mypurse $SILVERPURSE
+!showpurse --server $SERVER --mynym dummy  --mypurse $SILVERPURSE
+!showpurse --server $SERVER --mynym $FTNYM 
+!showpurse --server $SERVER --mynym $FTNYM --mypurse dummy
+showpurse --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # deposit cash, cheque, voucher, or tokens.
+!deposit
+!deposit --myacct dummy
 deposit --myacct $FTACCT --args "indices all"
 
 # show contents of cash purse.
-showpurse --mynym $FTNYM --server $SERVER --mypurse $SILVERPURSE
+!showpurse
+!showpurse                  --mynym $FTNYM --mypurse $SILVERPURSE
+!showpurse --server dummy   --mynym $FTNYM --mypurse $SILVERPURSE
+!showpurse --server $SERVER                --mypurse $SILVERPURSE
+!showpurse --server $SERVER --mynym dummy  --mypurse $SILVERPURSE
+!showpurse --server $SERVER --mynym $FTNYM 
+!showpurse --server $SERVER --mynym $FTNYM --mypurse dummy
+showpurse --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # download latest intermediary files for myacct.
+!refresh
+!refresh                  --mynym $BOBNYM --myacct $BOBACCT
+!refresh --server dummy   --mynym $BOBNYM --myacct $BOBACCT
+!refresh --server $SERVER                 --myacct $BOBACCT
+!refresh --server $SERVER --mynym dummy   --myacct $BOBACCT
+!refresh --server $SERVER --mynym $BOBNYM
+!refresh --server $SERVER --mynym $BOBNYM --myacct dummy
 refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
 
 # show account stats for a single account.
+!showacct
+!showacct --myacct dummy
 showacct --myacct $BOBACCT
 
 # send cash from mypurse to recipient, withdraw since purse should be empty.

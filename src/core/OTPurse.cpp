@@ -973,7 +973,7 @@ void OTPurse::UpdateContents() // Before transmission or serialization, this is
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
     m_xmlUnsigned.Concatenate(
         "<purse version=\"%s\"\n"
-        " totalValue=\"%lld\"\n" // Total value of all the tokens within.
+        " totalValue=\"%" PRId64 "\"\n" // Total value of all the tokens within.
         " validFrom=\"%" PRId64
         "\"\n" // Latest "valid from" date of all tokens contained.
         " validTo=\"%" PRId64
