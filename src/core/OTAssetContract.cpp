@@ -145,6 +145,7 @@
 #include <irrxml/irrXML.hpp>
 
 #include <fstream>
+#include <iomanip>
 
 using namespace irr;
 using namespace io;
@@ -158,15 +159,15 @@ bool OTAssetContract::ParseFormatted(int64_t& lResult,
                                      const std::string& str_input,
                                      int32_t nFactor /*=100*/,
                                      int32_t nPower /*=2*/,
-                                     const char* szSeparator /*=","*/,
+                                     const char* szThousandSeparator /*=","*/,
                                      const char* szDecimalPoint /*="."*/)
 {
-    OT_ASSERT(NULL != szSeparator);
+    OT_ASSERT(NULL != szThousandSeparator);
     OT_ASSERT(NULL != szDecimalPoint);
 
     lResult = 0;
 
-    char theSeparator = szSeparator[0];
+    char theSeparator = szThousandSeparator[0];
     char theDecimalPoint = szDecimalPoint[0];
 
     int64_t lDollars = 0;
@@ -307,96 +308,45 @@ bool OTAssetContract::ParseFormatted(int64_t& lResult,
     return true;
 }
 
+inline void separateThousands(std::stringstream& sss, int64_t value,
+                              const char* szSeparator)
+{
+    if (value < 1000) {
+        sss << value;
+        return;
+    }
+
+    separateThousands(sss, value / 1000, szSeparator);
+    sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
+}
+
 // static
 std::string OTAssetContract::formatLongAmount(
-    int64_t& lOriginalValue, int32_t nFactor /*=100*/, int32_t nPower /*=2*/,
-    const char* szSymbol /*=""*/, const char* szSeparator /*=","*/,
+    int64_t lValue, int32_t nFactor /*=100*/, int32_t nPower /*=2*/,
+    const char* szCurrencySymbol /*=""*/,
+    const char* szThousandSeparator /*=","*/,
     const char* szDecimalPoint /*="."*/)
 {
     std::stringstream sss;
-    OTString strRemainder;
 
-    // If the original value is 0, we still want to format the
-    // string properly for a 0 value. (And then return.)
-    //
-    if (0 == lOriginalValue) {
-        sss << szSymbol << " "; // Currency symbol
-
-        if (!(nFactor < 2)) {
-            sss << szDecimalPoint;
-
-            strRemainder.Format("%0*ld", nPower, 0);
-        }
-        else
-            strRemainder.Format("%lld", 0);
-
-        sss << strRemainder;
-        return sss.str();
-    }
-
-    int64_t lAbsoluteValue =
-        (lOriginalValue > 0) ? lOriginalValue : (lOriginalValue * (-1));
-
-    int64_t lValue = lAbsoluteValue / nFactor; // For example, if 506 is
-                                               // supposed to be $5.06, then
-                                               // dividing 506 by factor of 100
-                                               // results in 5 dollars.
-    int64_t lRemainder =
-        lAbsoluteValue % nFactor; // For example, if 506 is supposed to be
-                                  // $5.06, then 506 mod 100 results in 6 cents.
-
-    if (nFactor < 2) // Basically, if nFactor is 1.
-        strRemainder.Set("");
-    else
-        strRemainder.Format("%0*ld", nPower, lRemainder); // If remainder is 6
-                                                          // (cents) and nPower
-                                                          // is 2, strRemainder
-                                                          // gets set here to
-                                                          // 06.
-
-    // Here we add the negative sign, if the value itself is negative.
-    //
-    if (lOriginalValue < 0) {
-        //        const std::moneypunct<char, false> &mp = std::use_facet<
-        // std::moneypunct<char, false> >(std::locale ());
-        //        sss << mp.negative_sign();
-
-        // For some reason the above code isn't working, so I've got the
-        // negative sign
-        // hardcoded here to '-'.
-        //
+    // Handle negative values
+    if (lValue < 0) {
         sss << "-";
+        lValue = -lValue;
     }
 
-    // Here we add the currency symbol.
-    //
-    sss << szSymbol << " "; // Currency symbol
+    sss << szCurrencySymbol << " ";
 
-    OTString strValue;
-    strValue.Format("%lld", lValue);
+    // For example, if 506 is supposed to be $5.06, then dividing by a factor of
+    // 100 results in 5 dollars (integer value) and 6 cents (fractional value).
 
-    char cTemp = '\0';
-    uint32_t uValueStrLength = strValue.GetLength();
+    // Handle integer value with thousand separaters
+    separateThousands(sss, lValue / nFactor, szThousandSeparator);
 
-    // Here we add the main body of the amount, including separators (commas.)
-    //
-    while (uValueStrLength > 0) {
-        cTemp = strValue.sgetc();
-
-        sss << cTemp;
-
-        --uValueStrLength;
-
-        if ((uValueStrLength > 0) && (0 == (uValueStrLength % 3)))
-            sss << szSeparator;
-    }
-
-    // Here we deal with the decimal point, etc.
-    //
-    if (!(nFactor < 2)) {
-        sss << szDecimalPoint;
-
-        sss << strRemainder;
+    // Handle fractional value
+    if (1 < nFactor) {
+        sss << szDecimalPoint << std::setfill('0') << std::setw(nPower)
+            << (lValue % nFactor);
     }
 
     return sss.str();

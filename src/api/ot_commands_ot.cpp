@@ -8053,8 +8053,12 @@ OT_COMMANDS_OT int32_t OT_Command::main_withdraw_cash()
 
     if (VerifyExists("MyAcct")) {
 
-        // strAmount
-        //
+        string strAssetTypeID =
+            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
+        if (!VerifyStringVal(strAssetTypeID)) {
+            return -1;
+        }
+
         string strAmount = "0"; // must be >= 1
 
         string strDefaultAmount = "1"; // must be >= 1
@@ -8080,9 +8084,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_withdraw_cash()
                 strAmount = strNewAmount;
             }
         }
-
-        string strAssetTypeID =
-            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
         // If the withdrawal parameters aren't provided, then we
         // ask the user to supply them at the command line.
