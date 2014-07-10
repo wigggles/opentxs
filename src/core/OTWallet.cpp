@@ -1496,7 +1496,6 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
     //
     FOR_EACH(mapOfSymmetricKeys, mapChanged)
     {
-        const std::string str_id = it->first;
         std::shared_ptr<OTSymmetricKey> pNewKey = it->second;
 
         if (pNewKey) {

@@ -1088,7 +1088,6 @@ bool OTKeyring::KWallet_RetrieveSecret(const OTString& strUser,
                                        const std::string& str_display)
 {
     OT_ASSERT(strUser.Exists());
-    const char* szFunc = "OTKeyring::KWallet_RetrieveSecret";
 
     KWallet::Wallet* pWallet = OTKeyring::OpenKWallet();
 

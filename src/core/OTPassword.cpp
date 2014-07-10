@@ -233,11 +233,10 @@ void* ot_secure_memset(void* v, uint8_t c, uint32_t n)
 //
 bool ot_lockPage(void* addr, size_t len)
 {
-    static bool bWarned = false;
-
 #ifdef _WIN32
 // return VirtualLock(addr, len);
 #elif defined(PREDEF_PLATFORM_UNIX)
+    static bool bWarned = false;
     if (mlock(addr, len) && !bWarned) {
         bWarned = true;
         otErr << "ot_lockPage: WARNING: unable to lock memory. \n"
@@ -257,11 +256,10 @@ bool ot_lockPage(void* addr, size_t len)
 
 bool ot_unlockPage(void* addr, size_t len)
 {
-    static bool bWarned = false;
-
 #ifdef _WIN32
 //    return VirtualUnlock(addr, len);
 #elif defined(PREDEF_PLATFORM_UNIX)
+    static bool bWarned = false;
     if (munlock(addr, len) && !bWarned) {
         bWarned = true;
         otErr << "ot_unlockPage: WARNING: unable to unlock memory used for "

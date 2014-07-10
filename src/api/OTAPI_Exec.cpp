@@ -13160,7 +13160,6 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
         OT_FAIL;
     }
 
-    std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Wallet_ImportPurse";
     OTString strReason("Importing a cash purse into the wallet.");
     //  OTPasswordData thePWData(strReason);
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
@@ -13300,7 +13299,6 @@ std::string OTAPI_Exec::Token_ChangeOwner(
         OT_FAIL;
     }
 
-    std::string strFunc = __FUNCTION__; // OTAPI_Exec::Token_ChangeOwner
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theSignerNymID(SIGNER_NYM_ID);
     const OTString strOldOwner(OLD_OWNER), // Either of these MIGHT contain a

@@ -734,13 +734,8 @@ bool OTRecordList::PerformAutoAccept()
                                           __FUNCTION__);
                             continue;
                         }
-                        OTString strPayment;
-                        std::string str_payment_contents;
-
-                        if (pPayment->GetPaymentContents(strPayment)) {
-                            str_payment_contents = strPayment.Get();
-                        }
-                        else {
+                        OTString payment;
+                        if (!pPayment->GetPaymentContents(payment)) {
                             OTLog::vError("%s: Error: Failed while trying to "
                                           "get payment string contents. "
                                           "(Skipping.)\n",

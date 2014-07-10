@@ -5359,7 +5359,6 @@ void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym /*=NULL*/)
 
     FOR_EACH(mapOfParties, m_mapParties)
     {
-        const std::string str_party_name = it->first;
         OTParty* pParty = (*it).second;
         OT_ASSERT_MSG(NULL != pParty, "OTSmartContract::CloseoutOpeningNumbers:"
                                       " Unexpected NULL pointer in party map.");

@@ -1241,6 +1241,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
 #if defined(__APPLE__)
 #ifdef __arm__
     _STRUCT_MCONTEXT* mc; // mcontext_t seems to be missing from arm/_structs.h
+    // cppcheck-suppress unreadVariable
     mc = uc->uc_mcontext;
 // eip = mc->__ss.__eip; // arm doesn't have eip
 #else

@@ -856,17 +856,9 @@ bool OTPaths::FileExists(const OTString& strFilePath, int64_t& nFileLength)
     std::string l_strPath(strFilePath.Get());
     l_strPath = (OTString::replace_chars(l_strPath, "\\", '/')); // all \ to /
 
-    // std::string l_strPath_stat = l_strPath;
-    std::string l_strPath_stat("");
-
-    // remove last / if it exists (for l_strPath_stat)
-    if ('/' == *l_strPath.rbegin())
-        l_strPath_stat = l_strPath.substr(0, l_strPath.size() - 1);
-    else
-        l_strPath_stat = l_strPath;
-
     if ('/' != *l_strPath.rbegin()) {
 #ifdef _WIN32
+        std::string l_strPath_stat = l_strPath;
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
         char filename[4086]; // not sure about this buffer,
@@ -905,18 +897,9 @@ bool OTPaths::FolderExists(const OTString& strFolderPath)
     std::string l_strPath(strFolderPath.Get());
     l_strPath = (OTString::replace_chars(l_strPath, "\\", '/')); // all \ to /
 
-    // std::string l_strPath_stat = l_strPath;
-    std::string l_strPath_stat("");
-
-    // remove last / if it exists (for l_strPath_stat)
-    if ('/' == *l_strPath.rbegin())
-        l_strPath_stat = l_strPath.substr(0, l_strPath.size() - 1);
-    else
-        l_strPath_stat = l_strPath;
-
     if ('/' == *l_strPath.rbegin()) {
-
 #ifdef _WIN32
+        std::string l_strPath_stat = l_strPath.substr(0, l_strPath.size() - 1);
         struct _stat st_buf;
         memset(&st_buf, 0, sizeof(st_buf));
         char filename[4086] = ""; // not sure about this buffer,
@@ -1163,8 +1146,8 @@ bool GetCurrentWorking(OTString& strCurrentWorkingPath)
 #endif
 
     // All
-    bool r = ((szPath = GetCurrentDir(NULL, 0)) == 0);
-    OT_ASSERT(0 != r);
+    szPath = GetCurrentDir(NULL, 0);
+    OT_ASSERT(szPath != NULL);
 
     OTString result;
 

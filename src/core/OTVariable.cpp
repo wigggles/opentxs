@@ -224,7 +224,6 @@ void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/)
             str_access.c_str());
         break;
     default:
-        str_type = "ERROR_VARIABLE_TYPE";
         otErr
             << "OTVariable::Serialize: Error, Wrong Type -- not serializing.\n";
         break;
