@@ -1039,15 +1039,10 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 {
     string strLocation = "Utility::getAndProcessNymbox";
 
-    bool bMsgReplySuccess = false;
-    bool bMsgReplyFailure = false;
-    bool bMsgTransSuccess = false;
-    bool bMsgTransFailure = false;
-
-    bMsgReplySuccess = bMsgFoursome.one;
-    bMsgReplyFailure = bMsgFoursome.two;
-    bMsgTransSuccess = bMsgFoursome.three;
-    bMsgTransFailure = bMsgFoursome.four;
+    bool bMsgReplySuccess = bMsgFoursome.one;
+    bool bMsgReplyFailure = bMsgFoursome.two;
+    bool bMsgTransSuccess = bMsgFoursome.three;
+    bool bMsgTransFailure = bMsgFoursome.four;
 
     if (!VerifyIntVal(nRequestNumber)) {
         OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber as an "

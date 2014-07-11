@@ -364,9 +364,8 @@ MadeEasy::process_inbox(const string& SERVER_ID, const string& NYM_ID,
 
     OTAPI_Func theRequest(PROCESS_INBOX, SERVER_ID, NYM_ID, ACCOUNT_ID,
                           RESPONSE_LEDGER);
-    string strResponse = "";
-
-    strResponse = theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
+    string strResponse =
+        theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
 
     return strResponse;
 }

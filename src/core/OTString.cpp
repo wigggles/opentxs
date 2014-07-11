@@ -362,8 +362,6 @@ bool OTString::safe_strcpy(char* dest, const char* src, size_t dest_size,
     OT_ASSERT_MSG(false == ((src > dest) && (src < (dest + dest_size))),
                   "ASSERT: safe_strcpy: Unexpected memory overlap.\n");
 
-    bool bSuccess = false;
-
     const size_t src_length = OTString::safe_strlen(src, MAX_STRING_LENGTH);
 
     OT_ASSERT_MSG(dest_size > src_length, "OTString::safe_strcpy: ASSERT: "
@@ -371,12 +369,10 @@ bool OTString::safe_strcpy(char* dest, const char* src, size_t dest_size,
                                           "dest_size.\n");
 
 #ifdef _WIN32
-    bSuccess = (0 == strcpy_s(dest, dest_size, src));
+    bool bSuccess = (0 == strcpy_s(dest, dest_size, src));
 #else
     size_t src_cpy_length = strlcpy(dest, src, dest_size);
-    bSuccess = (src_length == src_cpy_length); // If the size it DID copy is
-                                               // equal to the size it TRIED to
-                                               // copy, then it was a succcess.
+    bool bSuccess = (src_length == src_cpy_length);
 #endif
 
     // Notice: we don't zero out the source unless we were successful (AND

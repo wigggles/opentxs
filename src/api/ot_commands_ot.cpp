@@ -6487,11 +6487,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_verify_signature()
             0, "\n\n--------------------------------------\n You entered:\n" +
                    strInput + "\n\n");
 
-        bool bSuccess = false;
-
-        bSuccess = OTAPI_Wrap::VerifySignature(HisNym, strInput);
-
-        if (bSuccess) {
+        if (OTAPI_Wrap::VerifySignature(HisNym, strInput)) {
             print("\n\n *** Verified! ***\n\n");
             return 1;
         }
@@ -10540,9 +10536,8 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
     string strLocation = "\n purse_get_indices_or_amount";
 
     string strLoopIndices = "";
-    int64_t lLoopAmount = lAmount;      // so they are the same data type.
     int64_t lAmountRemaining = lAmount; // so they are the same data type.
-    lLoopAmount = 0;                    // to initialize it back to 0.
+    int64_t lLoopAmount = 0;
 
     // lLoopAmount is where we will start at 0, and keep the running total of
     // the value for the selected indices, as we loop.

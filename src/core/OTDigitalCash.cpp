@@ -172,8 +172,7 @@ void SetDumper(const char* filepathexact)
 {
     // lets clear the last time we used this file.
     CleanupDumpFile(filepathexact);
-    BIO* out = new BIO;
-    out = BIO_new_file(filepathexact, "w");
+    BIO* out = BIO_new_file(filepathexact, "w");
     assert(out);
     SetDumper(out);
 }
