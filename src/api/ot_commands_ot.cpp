@@ -4527,6 +4527,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("MyAcct") && VerifyExists("HisAcct")) {
+        string strAssetTypeID =
+            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
+        if (!VerifyStringVal(strAssetTypeID)) {
+            OTAPI_Wrap::Output(0,
+                               "\n\nFailure: Unable to find asset ID based on "
+                               "myacct. Use: --myacct ACCT_ID\n");
+            return -1;
+        }
+
         // strAmount and strNote...
         //
         string strAmount = "0"; // must be >= 1
@@ -4554,9 +4563,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
                 strNote = strNewNote;
             }
         }
-
-        string strAssetTypeID =
-            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
         // If the transfer parameters aren't provided, then we
         // ask the user to supply them at the command line.
