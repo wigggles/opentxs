@@ -1076,10 +1076,8 @@ bool OTSmartContract::SetServerIDIfEmpty(const OTIdentifier& theID)
 
 bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 {
-
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->GetOpeningTransNo() == lOpeningNum) return true;
@@ -1094,9 +1092,8 @@ bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 //
 bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        const OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        const OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasTransactionNum(lInput)) return true;
@@ -1107,9 +1104,8 @@ bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
 
 void OTSmartContract::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        const OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        const OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         pParty->GetAllTransactionNumbers(numlistOutput);

@@ -1332,9 +1332,8 @@ bool OTContract::AddBookendsAroundContent(
 
     strTemp.Concatenate("%s", strContents.Get());
 
-    FOR_EACH_CONST(listOfSignatures, listSignatures)
-    {
-        OTSignature* pSig = *it;
+    for (const auto& it : listSignatures) {
+        OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
         strTemp.Concatenate("-----BEGIN %s SIGNATURE-----\n"

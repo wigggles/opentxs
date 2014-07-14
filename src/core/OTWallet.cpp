@@ -1337,9 +1337,8 @@ bool OTWallet::SaveContract(OTString& strContract)
     // before the Nyms themselves, so that they are all loaded up and available
     // in LoadWallet before the Nyms themselves are loaded.
     //
-    FOR_EACH_CONST(setOfIdentifiers, m_setNymsOnCachedKey)
-    {
-        const OTIdentifier& theNymID = *it;
+    for (const auto& it : m_setNymsOnCachedKey) {
+        const OTIdentifier& theNymID = it;
         OTString strNymID(theNymID);
 
         strContract.Concatenate("<nymUsingCachedKey id=\"%s\" />\n\n",
@@ -2197,11 +2196,8 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
 bool OTWallet::IsNymOnCachedKey(const OTIdentifier& needle) const // needle and
                                                                   // haystack.
 {
-    FOR_EACH_CONST(setOfIdentifiers, m_setNymsOnCachedKey)
-    {
-        const OTIdentifier& theNymID = *it;
-
-        if (needle == theNymID) return true;
+    for (const auto& it : m_setNymsOnCachedKey) {
+        if (needle == it) return true;
     }
     return false;
 }

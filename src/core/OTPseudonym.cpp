@@ -1775,12 +1775,11 @@ bool OTPseudonym::GetHash(const mapOfIdentifiers& the_map,
     // passed in
     // matches the [server|acct] ID that was passed in, then return TRUE.
     //
-    FOR_EACH_CONST(mapOfIdentifiers, the_map)
-    {
-        if (str_id == it->first) {
+    for (const auto& it : the_map) {
+        if (str_id == it.first) {
             // The call has succeeded
             bRetVal = true;
-            theOutput = it->second;
+            theOutput = it.second;
             break;
         }
     }
@@ -3613,9 +3612,8 @@ bool OTPseudonym::VerifyPseudonym() const
     if (m_mapCredentials.size() > 0) {
         // Verify Nym by his own credentials.
         //
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
-            const OTCredential* pCredential = (*it).second;
+        for (const auto& it : m_mapCredentials) {
+            const OTCredential* pCredential = it.second;
             OT_ASSERT(NULL != pCredential);
 
             const OTIdentifier theCredentialNymID(pCredential->GetNymID());
@@ -3656,8 +3654,7 @@ bool OTPseudonym::VerifyPseudonym() const
                     << "\nSource: " << pCredential->GetSourceForNymID() << "\n";
                 return false;
             }
-
-        } // FOR_EACH_CONST
+        }
 
         // NOTE: m_pkeypair needs to be phased out entirely. TODO!!
         // In the meantime, ::LoadPublicKey isn't setting m_pkeypair
@@ -4950,9 +4947,8 @@ const OTCredential* OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
-            const OTCredential* pCredential = (*it).second;
+        for (const auto& it : m_mapCredentials) {
+            const OTCredential* pCredential = it.second;
             OT_ASSERT(NULL != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -4972,9 +4968,8 @@ const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapRevoked)
-        {
-            const OTCredential* pCredential = (*it).second;
+        for (const auto& it : m_mapRevoked) {
+            const OTCredential* pCredential = it.second;
             OT_ASSERT(NULL != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -6414,8 +6409,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
+        for (const auto& it : m_mapCredentials) {
 
             // Todo: If we have some criteria, such as which master or
             // subcredential
@@ -6425,7 +6419,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6457,8 +6451,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
+        for (const auto& it : m_mapCredentials) {
 
             // Todo: If we have some criteria, such as which master or
             // subcredential
@@ -6468,7 +6461,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6501,9 +6494,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
-
+        for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to
@@ -6512,7 +6503,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6545,8 +6536,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
+        for (const auto& it : m_mapCredentials) {
 
             // Todo: If we have some criteria, such as which master or
             // subcredential
@@ -6556,7 +6546,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6588,8 +6578,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 {
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
+        for (const auto& it : m_mapCredentials) {
 
             // Todo: If we have some criteria, such as which master or
             // subcredential
@@ -6599,7 +6588,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6632,9 +6621,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
 
-        FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-        {
-
+        for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to
@@ -6643,7 +6630,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
             // just
             // going to return the first one that's valid (not null).
 
-            pCredential = (*it).second;
+            pCredential = it.second;
             if (NULL != pCredential) break;
         }
         if (NULL == pCredential) OT_FAIL;
@@ -6693,9 +6680,8 @@ int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
     // multiple results.)
     int32_t nCount = 0;
 
-    FOR_EACH_CONST(mapOfCredentials, m_mapCredentials)
-    {
-        const OTCredential* pCredential = (*it).second;
+    for (const auto& it : m_mapCredentials) {
+        const OTCredential* pCredential = it.second;
         OT_ASSERT(NULL != pCredential);
 
         const int32_t nTempCount = pCredential->GetPublicKeysBySignature(

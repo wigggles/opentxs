@@ -215,10 +215,6 @@
     for (ARG_OT_ONE::iterator it = ARG_OT_TWO.begin(); it != ARG_OT_TWO.end(); \
          ++it)
 
-#define FOR_EACH_CONST(ARG_OT_ONE, ARG_OT_TWO)                                 \
-    for (ARG_OT_ONE::const_iterator it = ARG_OT_TWO.begin();                   \
-         it != ARG_OT_TWO.end(); ++it)
-
 #endif // (not) SWIG
 
 namespace opentxs

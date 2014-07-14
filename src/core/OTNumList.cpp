@@ -336,11 +336,8 @@ bool OTNumList::Verify(const std::set<int64_t>& theNumbers) const
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Verify(lValue)) // It must have NOT already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Verify(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 
@@ -379,11 +376,8 @@ bool OTNumList::VerifyAny(const OTNumList& rhs) const
 ///
 bool OTNumList::VerifyAny(const std::set<int64_t>& setData) const
 {
-    FOR_EACH_CONST(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
-
-        std::set<int64_t>::const_iterator it_find = setData.find(lValue);
+    for (const auto& it : m_setData) {
+        std::set<int64_t>::const_iterator it_find = setData.find(it);
 
         if (it_find != setData.end()) // found a match.
             return true;
@@ -409,11 +403,8 @@ bool OTNumList::Add(const std::set<int64_t>& theNumbers) // if false, means the
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Add(lValue)) // It must have already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Add(it)) // It must have already been there.
             bSuccess = false;
     }
 
@@ -428,11 +419,8 @@ bool OTNumList::Remove(const std::set<int64_t>& theNumbers) // if false, means
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Remove(lValue)) // It must have NOT already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Remove(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 

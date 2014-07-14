@@ -175,9 +175,8 @@ int32_t OTCredential::GetPublicKeysBySignature(
                                   // or 'A' (authentication key)
 {
     int32_t nCount = 0;
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         const OTSubkey* pKey = dynamic_cast<const OTSubkey*>(pSub);
@@ -224,10 +223,9 @@ bool OTCredential::VerifyInternally() const
         return false;
     }
 
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        std::string str_sub_id = (*it).first;
-        OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        std::string str_sub_id = it.first;
+        OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         if (false == pSub->VerifyContract()) {
@@ -1305,10 +1303,9 @@ const OTSubcredential* OTCredential::GetSubcredential(
     const OTString& strSubID,
     const listOfStrings* plistRevokedIDs /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const std::string str_cred_id = (*it).first;
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const std::string str_cred_id = it.first;
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         // See if pSub, with ID str_cred_id, is on plistRevokedIDs...
@@ -1337,9 +1334,8 @@ const OTSubcredential* OTCredential::GetSubcredentialByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-        {
-            const OTSubcredential* pSub = (*it).second;
+        for (const auto& it : m_mapSubcredentials) {
+            const OTSubcredential* pSub = it.second;
             OT_ASSERT(NULL != pSub);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -1359,10 +1355,9 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-        {
-            const std::string str_cred_id = (*it).first;
-            const OTSubcredential* pSub = (*it).second;
+        for (const auto& it : m_mapSubcredentials) {
+            const std::string str_cred_id = it.first;
+            const OTSubcredential* pSub = it.second;
             OT_ASSERT(NULL != pSub);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -1377,10 +1372,9 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
 const OTKeypair& OTCredential::GetAuthKeypair(
     const listOfStrings* plistRevokedIDs /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const std::string str_cred_id = (*it).first;
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const std::string str_cred_id = it.first;
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         const OTSubkey* pKey = dynamic_cast<const OTSubkey*>(pSub);
@@ -1415,10 +1409,9 @@ const OTKeypair& OTCredential::GetAuthKeypair(
 const OTKeypair& OTCredential::GetEncrKeypair(
     const listOfStrings* plistRevokedIDs /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const std::string str_cred_id = (*it).first;
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const std::string str_cred_id = it.first;
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         const OTSubkey* pKey = dynamic_cast<const OTSubkey*>(pSub);
@@ -1453,10 +1446,9 @@ const OTKeypair& OTCredential::GetEncrKeypair(
 const OTKeypair& OTCredential::GetSignKeypair(
     const listOfStrings* plistRevokedIDs /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const std::string str_cred_id = (*it).first;
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const std::string str_cred_id = it.first;
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         const OTSubkey* pKey = dynamic_cast<const OTSubkey*>(pSub);
@@ -1585,10 +1577,9 @@ void OTCredential::SerializeIDs(OTString& strOutput,
                 this->GetMasterCredID().Get(), this->GetPriCredential().Get()));
     }
 
-    FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
-    {
-        const std::string str_cred_id = (*it).first;
-        const OTSubcredential* pSub = (*it).second;
+    for (const auto& it : m_mapSubcredentials) {
+        const std::string str_cred_id = it.first;
+        const OTSubcredential* pSub = it.second;
         OT_ASSERT(NULL != pSub);
 
         // See if the current subcredential is on the Nym's list of "revoked"
@@ -1635,7 +1626,7 @@ void OTCredential::SerializeIDs(OTString& strOutput,
                     str_cred_id.c_str(), pSub->GetPriCredential().Get()));
 
         } // if (bSubcredValid)
-    }     // FOR_EACH_CONST
+    }
 }
 
 } // namespace opentxs

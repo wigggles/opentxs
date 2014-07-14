@@ -748,12 +748,10 @@ bool OTScriptable::IsDirty() const
 {
     bool bIsDirty = false;
 
-    FOR_EACH_CONST(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (const auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
-        //
         if (pBylaw->IsDirty()) {
             bIsDirty = true;
             break;
@@ -770,12 +768,10 @@ bool OTScriptable::IsDirtyImportant() const
 {
     bool bIsDirty = false;
 
-    FOR_EACH_CONST(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (const auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
-        //
         if (pBylaw->IsDirtyImportant()) {
             bIsDirty = true;
             break;
@@ -875,9 +871,8 @@ OTPartyAccount* OTScriptable::GetPartyAccount(const std::string str_acct_name)
 OTPartyAccount* OTScriptable::GetPartyAccountByID(const OTIdentifier& theAcctID)
     const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         OTPartyAccount* pAcct = pParty->GetAccountByID(theAcctID);
@@ -912,9 +907,8 @@ OTPartyAccount ** ppPartyAccount=NULL);
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
     const OTIdentifier& theNymID, OTAgent** ppAgent /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAgentByNymID(theNymID, ppAgent)) return pParty;
@@ -2345,10 +2339,9 @@ bool OTScriptable::Compare(OTScriptable& rhs)
         return false;
     }
 
-    FOR_EACH_CONST(mapOfBylaws, m_mapBylaws)
-    {
-        const std::string str_bylaw_name = (*it).first;
-        OTBylaw* pBylaw = (*it).second;
+    for (const auto& it : m_mapBylaws) {
+        const std::string str_bylaw_name = it.first;
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         OTBylaw* p2 = rhs.GetBylaw(str_bylaw_name);
@@ -2365,10 +2358,9 @@ bool OTScriptable::Compare(OTScriptable& rhs)
         }
     }
 
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        const std::string str_party_name = (*it).first;
-        OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        const std::string str_party_name = it.first;
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         OTParty* p2 = rhs.GetParty(str_party_name);
