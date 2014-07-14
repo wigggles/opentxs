@@ -1,4 +1,5 @@
-scripts/opentxs            This is the command line utility.
+scripts/opentxs            This was the command line utility.
+ It has been superseded by a new C++ version
 
 Try:  opentxs list
 Also: opentxs help
@@ -64,8 +65,7 @@ and over again for different Nyms and different accounts.
 ----------------------------------
 
 NOTE: do NOT use the tool: 'ot' -- it's too low-level for users.
-Instead, use the opentxs utility, which is a script.
-(ot is the engine used to run the opentxs script.)
+Instead, use the new C++ opentxs CLI utility.
 
 Try:  opentxs list
 Also: opentxs help
