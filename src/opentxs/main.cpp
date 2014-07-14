@@ -419,20 +419,6 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             OTLog::vOutput(0, "Using as mypurse: %s\n", str_MyPurse.c_str());
         }
     }
-    else {
-        // if no purse (asset type) ID was provided, but MyAccount WAS provided,
-        // then
-        // use the asset type for the account instead.
-        if (NULL != pMyAccount) {
-            thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
-            if (!thePurseAssetTypeID.IsEmpty()) {
-                OTString strTemp(thePurseAssetTypeID);
-                str_MyPurse = strTemp.Get();
-                OTLog::vOutput(0, "Using as mypurse: %s\n",
-                               str_MyPurse.c_str());
-            }
-        }
-    }
 
     OTIdentifier hisPurseAssetTypeID;
     OTAssetContract* pHisAssetContract = NULL;
@@ -452,19 +438,6 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             pHisAssetContract->GetIdentifier(strTemp);
             str_HisPurse = strTemp.Get();
             OTLog::vOutput(0, "Using as hispurse: %s\n", str_HisPurse.c_str());
-        }
-    }
-    else {
-        // If no "HisPurse" was provided, but str_HisAcct WAS, then we use the
-        // asset type of str_HisAcct as str_HisPurse.
-        if (NULL != pHisAccount) {
-            hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
-            if (!hisPurseAssetTypeID.IsEmpty()) {
-                OTString strTempAssetType(hisPurseAssetTypeID);
-                str_HisPurse = strTempAssetType.Get();
-                OTLog::vOutput(0, "Using as hispurse: %s\n",
-                               str_HisPurse.c_str());
-            }
         }
     }
 
