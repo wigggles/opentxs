@@ -1057,10 +1057,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 // still "rejected" and transaction
                 // numbers were harvested from it.
                 //
-                int32_t nTransCancelled = 1;
-                nTransCancelled = OTAPI_Wrap::Message_IsTransactionCanceled(
-                    theFunction.serverID, theFunction.nymID,
-                    theFunction.accountID, strReply);
+                int32_t nTransCancelled =
+                    OTAPI_Wrap::Message_IsTransactionCanceled(
+                        theFunction.serverID, theFunction.nymID,
+                        theFunction.accountID, strReply);
 
                 // If it's not cancelled, then we assume it's a normal
                 // transaction (versus a cancellation)

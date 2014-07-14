@@ -361,8 +361,6 @@ void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,
                                                            // zero after copying
                                                            // is done.
 {
-    bool bSuccess = false;
-
     // Make sure they aren't null.
     OT_ASSERT(NULL != dest);
     OT_ASSERT(NULL != src);
@@ -401,14 +399,11 @@ void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,
                          (static_cast<uint8_t*>(dest) + dest_size))));
 
 #ifdef _WIN32
-    bSuccess =
-        (0 ==
-         memcpy_s(dest,                           // destination
-                  static_cast<size_t>(dest_size), // size of destination buffer.
-                  src,                            // source
-                  static_cast<size_t>(src_length))); // length of source.
+    bool bSuccess = (0 == memcpy_s(dest, static_cast<size_t>(dest_size), src,
+                                   static_cast<size_t>(src_length)));
 #else
-    bSuccess = (memcpy(dest, src, static_cast<size_t>(src_length)) == dest);
+    bool bSuccess =
+        (memcpy(dest, src, static_cast<size_t>(src_length)) == dest);
 #endif
 
     if (bSuccess) {

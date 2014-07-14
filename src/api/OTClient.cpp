@@ -12851,13 +12851,13 @@ int32_t OTClient::ProcessUserCommand(
 
                 OTString strTemp;
                 int64_t lTotalAssetsOnOffer = 0, lMinimumIncrement = 0,
-                        lPriceLimit = 0, lMarketScale = 1;
+                        lPriceLimit = 0;
 
                 OTLog::Output(
                     0, "What is the market granularity (or 'scale')? [1]: ");
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
-                lMarketScale = atol(strTemp.Get());
+                int64_t lMarketScale = atol(strTemp.Get());
 
                 if (lMarketScale < 1) lMarketScale = 1;
 

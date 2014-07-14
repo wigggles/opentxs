@@ -467,12 +467,9 @@ bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
     OT_ASSERT(NULL != m_pkeyPublic);
     OT_ASSERT(NULL != m_pkeyPrivate);
 
-    bool bPublic = false;
-    bool bPrivate = false;
-
-    bPublic = m_pkeyPublic->LoadPublicKeyFromCertFile(
+    bool bPublic = m_pkeyPublic->LoadPublicKeyFromCertFile(
         strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
-    bPrivate = m_pkeyPrivate->LoadPrivateKey(
+    bool bPrivate = m_pkeyPrivate->LoadPrivateKey(
         strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
     if (!bPublic) {
         otErr << szFunc << ": Although the ascii-armored file (" << strFilename

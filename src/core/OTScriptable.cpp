@@ -3390,7 +3390,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD CALLBACKS.
                     //
-                    nCount = 0;
                     nCount = strNumCallbacks.Exists()
                                  ? atoi(strNumCallbacks.Get())
                                  : 0;
