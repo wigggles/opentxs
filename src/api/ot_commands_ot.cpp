@@ -5296,18 +5296,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
     // the account in that case.)
 
     if (bMyAcctExists) {
-        string strAcctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
         string strAcctAssetID =
             OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
-        string strAcctNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
-        if (!VerifyStringVal(strAcctServerID)) {
-            OTAPI_Wrap::Output(
-                0, "\n Failed trying to retrieve ServerID based on MyAcct: " +
-                       MyAcct + "\n");
-            return -1;
-        }
-
         if (!VerifyStringVal(strAcctAssetID)) {
             OTAPI_Wrap::Output(
                 0,
@@ -5316,6 +5306,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
+        string strAcctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
+        if (!VerifyStringVal(strAcctServerID)) {
+            OTAPI_Wrap::Output(
+                0, "\n Failed trying to retrieve ServerID based on MyAcct: " +
+                       MyAcct + "\n");
+            return -1;
+        }
+
+        string strAcctNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
         if (!VerifyStringVal(strAcctNymID)) {
             OTAPI_Wrap::Output(
                 0, "\n Failed trying to retrieve NymID based on MyAcct: " +
@@ -5323,7 +5322,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
-        if (VerifyStringVal(strServerID) && (strAcctServerID != strServerID)) {
+        if (VerifyStringVal(strServerID) && strAcctServerID != strServerID) {
             OTAPI_Wrap::Output(
                 0, "\n Server ID provided on the command line doesn't match "
                    "the Server ID for MyAcct. Expected: " +
@@ -5333,7 +5332,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
         }
 
         if (VerifyStringVal(strAssetTypeID) &&
-            (strAcctAssetID != strAssetTypeID)) {
+            strAcctAssetID != strAssetTypeID) {
             OTAPI_Wrap::Output(
                 0, "\n Asset Type ID provided on the command line doesn't "
                    "match the Asset Type ID of MyAcct. Expected: " +
@@ -5342,7 +5341,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
-        if (VerifyStringVal(strMyNymID) && (strAcctNymID != strMyNymID)) {
+        if (VerifyStringVal(strMyNymID) && strAcctNymID != strMyNymID) {
             OTAPI_Wrap::Output(0, "\n Nym ID provided on the command line "
                                   "doesn't match the Nym ID for MyAcct. "
                                   "Expected: " +
@@ -5402,96 +5401,103 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
     // to,
     // try to get the remaining funds from the account, IF that's available.
     //
-    int32_t nReturnVal = -1;
+    if (!VerifyExists("HisNym")) {
+        OTAPI_Wrap::Output(
+            0, "\n Failed: Missing HisNym ID. Try adding: --hisnym <NYM_ID>\n");
+        return -1;
+    }
 
-    if (VerifyExists("HisNym")) {
+    // Make sure the recipient exists first.
+    // That will avoid starting the cash withdrawal process unnecessarily
+    string hisPubKey =
+        MadeEasy::load_or_retrieve_encrypt_key(strServerID, strMyNymID, HisNym);
+    if (!VerifyStringVal(hisPubKey)) {
+        OTAPI_Wrap::Output(0, "\n Failed: Unknown HisNym ID: " + HisNym + "\n");
+        return -1;
+    }
 
-        // strAmount
+    // strAmount
+    //
+    string strAmount = "0"; // must be >= 1
+    string strMemo = "";    // can be blank
+
+    string strDefaultAmount = "1";                // must be >= 1
+    string strDefaultMemo = "(blank memo field)"; // can be blank
+
+    string strIndices = ""; // If indices are not specified, we derive them
+                            // from the amount. Otherwise we go with the
+                            // selected indices.
+    bool bPasswordProtected = false;
+
+    // If custom arguments have been passed on the command line,
+    // then grab them and use them instead of asking the user to enter them
+    // at the command line.
+    //
+    if (VerifyExists("Args", false)) // displayErrorMsg=false
+    {
+        strIndices = OT_CLI_GetValueByKey(
+            Args, "indices"); // OTNumList will be used for this value.
+
+        string strPasswordProtected = OT_CLI_GetValueByKey(Args, "passwd");
+
+        string strNewAmount =
+            OT_CLI_GetValueByKey(Args, "amount"); // any integer value
+        string strNewMemo =
+            OT_CLI_GetValueByKey(Args, "memo"); // optional memo field
+
+        // Set the values based on the custom arguments, for those found.
         //
-        string strAmount = "0"; // must be >= 1
-        string strMemo = "";    // can be blank
-
-        string strDefaultAmount = "1";                // must be >= 1
-        string strDefaultMemo = "(blank memo field)"; // can be blank
-
-        string strIndices = ""; // If indices are not specified, we derive them
-                                // from the amount. Otherwise we go with the
-                                // selected indices.
-        bool bPasswordProtected = false;
-
-        // If custom arguments have been passed on the command line,
-        // then grab them and use them instead of asking the user to enter them
-        // at the command line.
-        //
-        if (VerifyExists("Args", false)) // displayErrorMsg=false
-        {
-            strIndices = OT_CLI_GetValueByKey(
-                Args, "indices"); // OTNumList will be used for this value.
-
-            string strPasswordProtected = OT_CLI_GetValueByKey(Args, "passwd");
-
-            string strNewAmount =
-                OT_CLI_GetValueByKey(Args, "amount"); // any integer value
-            string strNewMemo =
-                OT_CLI_GetValueByKey(Args, "memo"); // optional memo field
-
-            // Set the values based on the custom arguments, for those found.
-            //
-            if (VerifyStringVal(strNewAmount)) {
-                strAmount = strNewAmount;
-            }
-            if (VerifyStringVal(strNewMemo)) {
-                strMemo = strNewMemo;
-            }
-            if (VerifyStringVal(strPasswordProtected) &&
-                ("true" == strPasswordProtected)) {
-                bPasswordProtected = true;
-            }
+        if (VerifyStringVal(strNewAmount)) {
+            strAmount = strNewAmount;
         }
-
-        // If the withdrawal parameters aren't provided, then we
-        // ask the user to supply them at the command line.
-        //
-        if ((!VerifyStringVal(strAmount) ||
-             (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) &&
-            !VerifyStringVal(strIndices)) // If no indices are selected, then we
-                                          // NEED to know the amount...
-        {
-            OTAPI_Wrap::Output(0,
-                               "Enter the amount[" + strDefaultAmount + "]: ");
-            strAmount = OT_CLI_ReadLine();
+        if (VerifyStringVal(strNewMemo)) {
+            strMemo = strNewMemo;
         }
-
-        if (!VerifyStringVal(strAmount) ||
-            (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) {
-            strAmount = strDefaultAmount;
-        }
-
-        if (!VerifyStringVal(strMemo)) {
-            OTAPI_Wrap::Output(0, "Optionally, enter a memo on a single line[" +
-                                      strDefaultMemo + "]: ");
-            strMemo = OT_CLI_ReadLine();
-        }
-
-        string strResponse = "";
-
-        nReturnVal = details_send_cash(strResponse, strServerID, strAssetTypeID,
-                                       strMyNymID, strMyAcctID, HisNym, strMemo,
-                                       strAmount, strIndices,
-                                       bPasswordProtected); // <=======
-
-        if (1 != nReturnVal) {
-            OTAPI_Wrap::Output(0,
-                               "main_sendcash: Failed in details_send_cash.\n");
-        }
-        else {
-            OTAPI_Wrap::Output(0, "Success in sendcash! Server response:\n\n");
-            print(strResponse);
-            OTAPI_Wrap::Output(0, "(Success in sendcash)\n");
+        if (VerifyStringVal(strPasswordProtected) &&
+            ("true" == strPasswordProtected)) {
+            bPasswordProtected = true;
         }
     }
 
-    return nReturnVal;
+    // If the withdrawal parameters aren't provided, then we
+    // ask the user to supply them at the command line.
+    //
+    if ((!VerifyStringVal(strAmount) ||
+         (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) &&
+        !VerifyStringVal(strIndices)) // If no indices are selected, then we
+                                      // NEED to know the amount...
+    {
+        OTAPI_Wrap::Output(0, "Enter the amount[" + strDefaultAmount + "]: ");
+        strAmount = OT_CLI_ReadLine();
+    }
+
+    if (!VerifyStringVal(strAmount) ||
+        (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) {
+        strAmount = strDefaultAmount;
+    }
+
+    if (!VerifyStringVal(strMemo)) {
+        OTAPI_Wrap::Output(0, "Optionally, enter a memo on a single line[" +
+                                  strDefaultMemo + "]: ");
+        strMemo = OT_CLI_ReadLine();
+    }
+
+    string strResponse = "";
+
+    int32_t nReturnVal = details_send_cash(
+        strResponse, strServerID, strAssetTypeID, strMyNymID, strMyAcctID,
+        HisNym, strMemo, strAmount, strIndices, bPasswordProtected); // <=======
+
+    if (1 != nReturnVal) {
+        OTAPI_Wrap::Output(0, "main_sendcash: Failed in details_send_cash.\n");
+        return -1;
+    }
+
+    OTAPI_Wrap::Output(0, "Success in sendcash! Server response:\n\n");
+    print(strResponse);
+    OTAPI_Wrap::Output(0, "(Success in sendcash)\n");
+
+    return 1;
 }
 
 OT_COMMANDS_OT int32_t OT_Command::main_sendcheque()
