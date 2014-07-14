@@ -2951,8 +2951,10 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
         dataOutput.Concatenate(reinterpret_cast<void*>(buffer_out),
                                static_cast<uint32_t>(len_out));
     }
-    else
+    else {
+        // cppcheck-suppress unreadVariable
         bFinalized = true;
+    }
 
     return true;
 }
@@ -3547,8 +3549,10 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
                               static_cast<uint32_t>(len_out));
 
     }
-    else
+    else {
+        // cppcheck-suppress unreadVariable
         bFinalized = true;
+    }
 
     // Make sure it's null-terminated...
     //

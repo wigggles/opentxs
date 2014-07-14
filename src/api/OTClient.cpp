@@ -13916,7 +13916,6 @@ int32_t OTClient::ProcessUserCommand(
                 // internal member m_strRawFile.)
                 theMessage.SaveContract();
 
-                bSendCommand = true;
                 lReturnValue = lRequestNumber;
 
             } // pAccount not NULL

@@ -1016,11 +1016,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     bool bMsgReplySuccess = (!bMsgReplyError && (nReplySuccess > 0));
     bool bMsgReplyFailure = (!bMsgReplyError && (nReplySuccess == 0));
 
-    bool bMsgBalanceError;
-    bool bMsgBalanceSuccess;
-    bool bMsgBalanceFailure;
-
-    bool bMsgTransError;
     bool bMsgTransSuccess;
     bool bMsgTransFailure;
 
@@ -1104,14 +1099,15 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         // status==failure."
         //
 
-        bMsgBalanceError =
+        bool bMsgBalanceError =
             (!VerifyStringVal(strReply) || (nBalanceSuccess < 0));
-        bMsgBalanceSuccess =
+        bool bMsgBalanceSuccess =
             (!bMsgReplyError && !bMsgBalanceError && (nBalanceSuccess > 0));
-        bMsgBalanceFailure =
+        bool bMsgBalanceFailure =
             (!bMsgReplyError && !bMsgBalanceError && (nBalanceSuccess == 0));
 
-        bMsgTransError = (!VerifyStringVal(strReply) || (nTransSuccess < 0));
+        bool bMsgTransError =
+            (!VerifyStringVal(strReply) || (nTransSuccess < 0));
         bMsgTransSuccess = (!bMsgReplyError && !bMsgBalanceError &&
                             !bMsgTransError && (nTransSuccess > 0));
         bMsgTransFailure = (!bMsgReplyError && !bMsgBalanceError &&
@@ -1130,11 +1126,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         nBalanceSuccess = -1;
         nTransSuccess = -1;
 
-        bMsgBalanceError = false;
-        bMsgBalanceSuccess = false;
-        bMsgBalanceFailure = false;
-
-        bMsgTransError = false;
         bMsgTransSuccess = false;
         bMsgTransFailure = false;
 

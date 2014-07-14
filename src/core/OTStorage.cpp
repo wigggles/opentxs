@@ -348,13 +348,13 @@ InitOTDBDetails theOTDBConstructor; // Constructor for this instance (define all
 
 InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
 {
+#if defined(OTDB_MESSAGE_PACK) || defined(OTDB_PROTOCOL_BUFFERS)
     OT_ASSERT(NULL == details::pFunctionMap);
     details::pFunctionMap = new mapOfFunctions;
 
     OT_ASSERT(NULL != details::pFunctionMap);
     mapOfFunctions& theMap = *(details::pFunctionMap);
-
-// Set up theMap...
+#endif
 
 #if defined(OTDB_MESSAGE_PACK)
     theMap[std::make_pair(PACK_MESSAGE_PACK, STORED_OBJ_STRING)] =

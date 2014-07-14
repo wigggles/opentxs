@@ -181,7 +181,6 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
             OT_ASSERT(NULL != pParty);
 
             std::string party_name = pParty->GetPartyName();
-            std::string party_id = pParty->GetPartyID();
 
             //          std::cerr << " TESTING PARTY: " << party_name <<
             // std::endl;
@@ -212,8 +211,6 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
                 const_var(party_name), party_name.c_str()); // Why name and not
                                                             // ID? See comment
                                                             // just above.
-            //          this->chai->add_global_const(const_var(party_id),
-            // party_name.c_str());
         }
 
         FOR_EACH(mapOfPartyAccounts, m_mapAccounts)
@@ -222,7 +219,6 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
             OT_ASSERT(NULL != pAcct);
 
             std::string acct_name = pAcct->GetName().Get();
-            std::string acct_id = pAcct->GetAcctID().Get();
 
             //          std::cerr << " TESTING ACCOUNT: " << acct_name <<
             // std::endl;
@@ -235,8 +231,6 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
                                          acct_name.c_str()); // See comment in
                                                              // above block for
                                                              // party name.
-            //          this->chai->add_global_const(const_var(acct_id),
-            // acct_name.c_str());
         }
 
         /*

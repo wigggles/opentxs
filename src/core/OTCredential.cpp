@@ -525,7 +525,6 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword& theExportPassword,
 
             FOR_EACH(mapOfSubcredentials, m_mapSubcredentials)
             {
-                const std::string str_cred_id = (*it).first;
                 OTSubcredential* pSub = (*it).second;
                 OT_ASSERT(NULL != pSub);
 
@@ -1340,7 +1339,6 @@ const OTSubcredential* OTCredential::GetSubcredentialByIndex(int32_t nIndex)
 
         FOR_EACH_CONST(mapOfSubcredentials, m_mapSubcredentials)
         {
-            const std::string str_cred_id = (*it).first;
             const OTSubcredential* pSub = (*it).second;
             OT_ASSERT(NULL != pSub);
 
