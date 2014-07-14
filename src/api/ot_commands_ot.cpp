@@ -1580,12 +1580,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_trigger_clause()
         string strParam = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempTransNum = OT_CLI_GetValueByKey(Args, "id");
             string strTempClause = OT_CLI_GetValueByKey(Args, "clause");
             string strTempParam = OT_CLI_GetValueByKey(Args, "param");
@@ -1794,12 +1788,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_credential()
         string strCredID = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempCredID = OT_CLI_GetValueByKey(Args, "id");
 
             if (!VerifyStringVal(strTempCredID)) {
@@ -2320,12 +2308,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
         string strExpiry = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempDates = OT_CLI_GetValueByKey(
                 Args, "date_range"); // "from,to"  Default 'from' (0 or "") ==
                                      // NOW (otherwise pass the time in
@@ -3911,12 +3893,6 @@ OT_Command::main_confirm() // smart contract and payment plan
     int32_t nIndex = -1;
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
 
@@ -4564,14 +4540,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            // EXAMPLE:  --args "amount 15 note \"Just a memo for the
-            // transfer.\""
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
             string strNewNote =
@@ -4643,12 +4611,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_nym()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"FT's test Nym\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4731,12 +4693,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_account()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"FT's issuer account\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4801,12 +4757,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_asset()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"Silver Grams\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4868,12 +4818,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_server()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"localhost server\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -5106,12 +5050,6 @@ OT_Command::details_write_cheque(string& strCheque,
             OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 100 memo \"my share for the BBQ\""
-            //
             string strNewAmount = OT_CLI_GetValueByKey(Args, "amount");
             string strNewMemo = OT_CLI_GetValueByKey(Args, "memo");
             string strNewLength = OT_CLI_GetValueByKey(Args, "validfor");
@@ -5457,14 +5395,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
         //
         if (VerifyExists("Args", false)) // displayErrorMsg=false
         {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            //
-            // EXAMPLE:  --args "indices \"all\" "
-            //
             strIndices = OT_CLI_GetValueByKey(
                 Args, "indices"); // OTNumList will be used for this value.
 
@@ -5937,13 +5867,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_offer()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "type bid scale 1 quantity 100 price 101"
-            // EXAMPLE:  --args "type ask scale 1 quantity 100 price 101"
-            //
             string strNewScale =
                 OT_CLI_GetValueByKey(Args, "scale"); // 1, 10, 100, 1000, etc
             string strNewMinInc = OT_CLI_GetValueByKey(
@@ -6789,13 +6712,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_nym()
     string strAltLocation = "";
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        //
-        // EXAMPLE:  --args "keybits 1024"
-        //
         string strKeybits = OT_CLI_GetValueByKey(Args, "keybits");
         string strNewName = OT_CLI_GetValueByKey(Args, "name");
         string strNewSource = OT_CLI_GetValueByKey(Args, "source");
@@ -7541,13 +7457,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_download_contract()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "contract_id
-            // CvHGtfOOKzQKL5hFL7J4iF5yAodVKhS1rxPzME5R9XA"
-            //
             string strNewContractID = OT_CLI_GetValueByKey(Args, "contract_id");
 
             // Set the values based on the custom arguments, for those found.
@@ -7861,12 +7770,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_box_receipt()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "box_type 0 id 98"
-            //
             string strNewID = OT_CLI_GetValueByKey(Args, "id");
             string strNewType = OT_CLI_GetValueByKey(Args, "box_type");
 
@@ -8065,12 +7968,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_withdraw_cash()
         //
         if (VerifyExists("Args", false)) // displayErrorMsg=false
         {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
 
@@ -8215,14 +8112,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
     string strAssetTypeID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "amount 1"
-        // EXAMPLE:  --args "amount 15 memo \"Just a memo for the voucher
-        // cheque.\""
-        //
         string strNewAmount =
             OT_CLI_GetValueByKey(Args, "amount"); // any integer value
         string strNewMemo =
@@ -8748,12 +8637,6 @@ OT_COMMANDS_OT int32_t OT_Command::impl_show_market_offers(string& strMarket)
         // at the command line.
         //
         if (!VerifyStringVal(strMarket) && VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "market MARKET_ID"
-            //
             string strNewMarket =
                 OT_CLI_GetValueByKey(Args, "market"); // the market ID
 
@@ -8811,12 +8694,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_market_offers()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "market MARKET_ID depth 50"
-            //
             string strNewMarket =
                 OT_CLI_GetValueByKey(Args, "market"); // the market ID
             string strNewDepth = OT_CLI_GetValueByKey(
@@ -8905,12 +8782,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_adjust_usage_credits()
         string strAdjustment = "0";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "adjust 1"
-            //
             string strNewAdjust = OT_CLI_GetValueByKey(
                 Args,
                 "adjust"); // any positive or negative integer value, or zero.
@@ -9312,14 +9183,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_pay_dividend()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            // EXAMPLE:  --args "amount 15 memo \"Just a memo for the dividend
-            // payout.\""
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
             string strNewNote =
@@ -9802,15 +9665,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string& strServerID,
         // You can also specify to deposit ALL tokens in your cash purse.
         // Without this extra argument, OT will ask you to paste an instrument,
         // and then will dynamically determine its contract type.
-        //
-
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "indices 4,6,9"
-        // EXAMPLE:  --args "indices all"
-        //
         strIndices = OT_CLI_GetValueByKey(
             Args, "indices"); // OTNumList will be used for this value.
     }
@@ -10453,13 +10307,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_export_cash()
         bool bPasswordProtected = false;
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "indices 4,6,9"
-            // EXAMPLE:  --args "indices \"all\" "
-            //
             strIndices = OT_CLI_GetValueByKey(
                 Args, "indices"); // OTNumList will be used for this value.
 
@@ -11509,12 +11356,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_payinvoice()
     int32_t nIndex = -1;
 
     if (VerifyExists("Args")) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
 
@@ -11834,12 +11675,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("Args")) {
 
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
         string strShowLargeMemo =
@@ -13312,13 +13147,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_del_mail()
         string strIndices = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 5 "
-            //
-
             string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
             if (VerifyStringVal(strIndex)) {
@@ -13367,12 +13195,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
     int32_t nIndex = -1;
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
         strIndex = OT_CLI_GetValueByKey(Args, "index");
 
         if (VerifyStringVal(strIndex)) {
@@ -13477,12 +13299,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
     int32_t nIndex = -1;
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
         strIndex = OT_CLI_GetValueByKey(Args, "index");
 
         if (VerifyStringVal(strIndex)) {
@@ -13594,13 +13410,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_del_outmail()
         string strIndices = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 5 "
-            //
-
             string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
             if (VerifyStringVal(strIndex)) {
@@ -13751,12 +13560,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
     int32_t nIndex = -1;
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
         strIndex = OT_CLI_GetValueByKey(
             Args, "index"); // OTNumList will be used for this value.
 
