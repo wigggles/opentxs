@@ -255,9 +255,8 @@ void OTMarket::UpdateContents()
 
     // Save the offers for sale.
     //
-    FOR_EACH(mapOfOffers, m_mapAsks)
-    {
-        OTOffer* pOffer = (*it).second;
+    for (auto& it : m_mapAsks) {
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         OTString strOffer(
@@ -273,9 +272,8 @@ void OTMarket::UpdateContents()
     }
 
     // Save the bids.
-    FOR_EACH(mapOfOffers, m_mapBids)
-    {
-        OTOffer* pOffer = (*it).second;
+    for (auto& it : m_mapBids) {
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         OTString strOffer(
@@ -297,9 +295,8 @@ int64_t OTMarket::GetTotalAvailableAssets()
 {
     int64_t lTotal = 0;
 
-    FOR_EACH(mapOfOffers, m_mapAsks)
-    {
-        OTOffer* pOffer = (*it).second;
+    for (auto& it : m_mapAsks) {
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         lTotal += pOffer->GetAmountAvailable();
@@ -320,9 +317,8 @@ bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
     // Loop through the offers, up to some maximum depth, and then add each
     // as a data member to an offer list, then pack it into ascOutput.
     //
-    FOR_EACH(mapOfOffersTrnsNum, m_mapOffers)
-    {
-        OTOffer* pOffer = (*it).second;
+    for (auto& it : m_mapOffers) {
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         OTTrade* pTrade = pOffer->GetTrade();
@@ -503,11 +499,10 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
 
     int32_t nTempDepth = 0;
 
-    FOR_EACH(mapOfOffers, m_mapBids)
-    {
+    for (auto& it : m_mapBids) {
         if (nTempDepth++ > lDepth) break;
 
-        OTOffer* pOffer = (*it).second;
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         const int64_t& lPriceLimit = pOffer->GetPriceLimit();
@@ -541,11 +536,10 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
 
     nTempDepth = 0;
 
-    FOR_EACH(mapOfOffers, m_mapAsks)
-    {
+    for (auto& it : m_mapAsks) {
         if (nTempDepth++ > lDepth) break;
 
-        OTOffer* pOffer = (*it).second;
+        OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);
 
         // OfferDataMarket
@@ -2600,9 +2594,8 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         // first in line.  So we start there, and loop forwards until there are
         // no other asks within my price range.
         //
-        FOR_EACH(mapOfOffers, m_mapAsks)
-        {
-            pAsk = (*it).second;
+        for (auto& it : m_mapAsks) {
+            pAsk = it.second;
             OT_ASSERT(NULL != pAsk);
 
             // NOTE: Market orders only process once, and they are processed in

@@ -521,9 +521,8 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword& theExportPassword,
                                        // it was set based on public info when
                                        // the key was first created.
 
-            FOR_EACH(mapOfSubcredentials, m_mapSubcredentials)
-            {
-                OTSubcredential* pSub = (*it).second;
+            for (auto& it : m_mapSubcredentials) {
+                OTSubcredential* pSub = it.second;
                 OT_ASSERT(NULL != pSub);
 
                 OTSubkey* pKey = dynamic_cast<OTSubkey*>(pSub);
@@ -555,7 +554,7 @@ bool OTCredential::ReEncryptPrivateCredentials(OTPassword& theExportPassword,
                           << ": Failed trying to re-sign the private subkey.\n";
                     return false;
                 }
-            } // FOR_EACH
+            }
 
             return true; // <=== Success.
         }

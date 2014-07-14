@@ -536,9 +536,8 @@ bool OTScriptable::AllPartiesHaveSupposedlyConfirmed()
 {
     bool bReturnVal = (m_mapParties.size() > 0) ? true : false;
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (!(pParty->GetMySignedCopy().Exists())) return false;
@@ -549,9 +548,8 @@ bool OTScriptable::AllPartiesHaveSupposedlyConfirmed()
 
 void OTScriptable::ClearTemporaryPointers()
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         pParty->ClearTemporaryPointers();
@@ -592,10 +590,9 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 
         // Register all the parties with the script.
         //
-        FOR_EACH(mapOfParties, m_mapParties)
-        {
-            const std::string str_party_name = (*it).first;
-            OTParty* pParty = (*it).second;
+        for (auto& it : m_mapParties) {
+            const std::string str_party_name = it.first;
+            OTParty* pParty = it.second;
             OT_ASSERT((NULL != pParty) && (str_party_name.size() > 0));
 
             pScript->AddParty(str_party_name, *pParty);
@@ -603,10 +600,9 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 
         // Add the parameters...
         //
-        FOR_EACH(mapOfVariables, theParameters)
-        {
-            const std::string str_var_name = (*it).first;
-            OTVariable* pVar = (*it).second;
+        for (auto& it : theParameters) {
+            const std::string str_var_name = it.first;
+            OTVariable* pVar = it.second;
             OT_ASSERT((NULL != pVar) && (str_var_name.size() > 0));
 
             pVar->RegisterForExecution(*pScript);
@@ -705,9 +701,8 @@ bool OTScriptable::SendNoticeToAllParties(
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         // If a smart contract is being canceled, it may not have been confirmed
@@ -786,9 +781,8 @@ bool OTScriptable::IsDirtyImportant() const
 //
 void OTScriptable::SetAsClean()
 {
-    FOR_EACH(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         //
@@ -849,9 +843,8 @@ OTPartyAccount* OTScriptable::GetPartyAccount(const std::string str_acct_name)
     //    otErr << "DEBUGGING OTScriptable::GetPartyAccount: above loop.
     // str_acct_name: %s \n", str_acct_name.c_str());
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         //        otErr << "DEBUGGING OTScriptable::GetPartyAccount: loop
@@ -919,9 +912,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
     const OTIdentifier& theNymID, OTAgent** ppAgent /*=NULL*/)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAuthorizingAgentByNymID(theNymID, ppAgent))
@@ -933,9 +925,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
 OTParty* OTScriptable::FindPartyBasedOnAccountID(
     const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount /*=NULL*/)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAccountByID(theAcctID, ppPartyAccount)) {
@@ -948,9 +939,8 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
 OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
                                                   OTAgent** ppAgent /*=NULL*/)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAgent(theNym, ppAgent)) return pParty;
@@ -961,9 +951,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
 OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
     OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAuthorizingAgent(theNym, ppAgent)) return pParty;
@@ -974,9 +963,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
 OTParty* OTScriptable::FindPartyBasedOnAccount(
     OTAccount& theAccount, OTPartyAccount** ppPartyAccount /*=NULL*/)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasAccount(theAccount, ppPartyAccount)) {
@@ -988,9 +976,8 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
 
 void OTScriptable::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
 {
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         pParty->RetrieveNymPointers(map_Nyms_Already_Loaded);
@@ -1104,9 +1091,8 @@ bool OTScriptable::VerifyPartyAuthorization(
         //
         mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
 
-        FOR_EACH(mapOfNyms, map_Nyms_Already_Loaded)
-        {
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : map_Nyms_Already_Loaded) {
+            OTPseudonym* pNym = it.second;
             OT_ASSERT(NULL != pNym);
 
             if (theParty.HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1431,9 +1417,8 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
         // (So we don't load it twice.)
         //
         mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
-        FOR_EACH(mapOfNyms, map_Nyms_Already_Loaded)
-        {
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : map_Nyms_Already_Loaded) {
+            OTPseudonym* pNym = it.second;
             OT_ASSERT(NULL != pNym);
 
             if (pParty->HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1951,9 +1936,8 @@ OTClause* OTScriptable::GetClause(const std::string str_clause_name)
         return NULL;
     }
 
-    FOR_EACH(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         OTClause* pClause = pBylaw->GetClause(str_clause_name);
@@ -1973,9 +1957,8 @@ OTAgent* OTScriptable::GetAgent(const std::string str_agent_name)
         return NULL;
     }
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         OTAgent* pAgent = pParty->GetAgent(str_agent_name);
@@ -2050,15 +2033,14 @@ OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex)
 
         int32_t nLoopIndex = -1; // will be 0 on first iteration.
 
-        FOR_EACH(mapOfParties, m_mapParties)
-        {
-            OTParty* pParty = (*it).second;
+        for (auto& it : m_mapParties) {
+            OTParty* pParty = it.second;
             OT_ASSERT(NULL != pParty);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pParty;
-        } // FOR_EACH
+        }
     }
     return NULL;
 }
@@ -2072,15 +2054,14 @@ OTBylaw* OTScriptable::GetBylawByIndex(int32_t nIndex)
 
         int32_t nLoopIndex = -1; // will be 0 on first iteration.
 
-        FOR_EACH(mapOfBylaws, m_mapBylaws)
-        {
-            OTBylaw* pBylaw = (*it).second;
+        for (auto& it : m_mapBylaws) {
+            OTBylaw* pBylaw = it.second;
             OT_ASSERT(NULL != pBylaw);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pBylaw;
-        } // FOR_EACH
+        }
     }
     return NULL;
 }
@@ -2098,10 +2079,9 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
     // This is in order to make sure that I am signing the same thing that
     // everyone else signed, before I actually sign it.
     //
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        const std::string current_party_name = (*it).first;
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        const std::string current_party_name = it.first;
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->GetMySignedCopy().Exists()) {
@@ -2128,7 +2108,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
             }
         }
         // else nothing. (We only verify against the ones that are signed.)
-    } // FOR_EACH
+    }
 
     return bReturnVal;
 }
@@ -2425,9 +2405,8 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend)
                               m_bSpecifyParties ? "true" : "false",
                               m_mapParties.size(), m_mapBylaws.size());
 
-        FOR_EACH(mapOfParties, m_mapParties)
-        {
-            OTParty* pParty = (*it).second;
+        for (auto& it : m_mapParties) {
+            OTParty* pParty = it.second;
             OT_ASSERT(NULL != pParty);
 
             // Serialization is slightly different depending on whether we are
@@ -2440,9 +2419,8 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend)
                               m_bSpecifyParties);
         }
 
-        FOR_EACH(mapOfBylaws, m_mapBylaws)
-        {
-            OTBylaw* pBylaw = (*it).second;
+        for (auto& it : m_mapBylaws) {
+            OTBylaw* pBylaw = it.second;
             OT_ASSERT(NULL != pBylaw);
 
             pBylaw->Serialize(strAppend, m_bCalculatingID);
@@ -3523,9 +3501,8 @@ OTVariable* OTScriptable::GetVariable(const std::string str_VarName)
         return NULL;
     }
 
-    FOR_EACH(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         OTVariable* pVar = pBylaw->GetVariable(str_VarName);
@@ -3550,9 +3527,8 @@ OTClause* OTScriptable::GetCallback(const std::string str_CallbackName)
         return NULL;
     }
 
-    FOR_EACH(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         OTClause* pClause = pBylaw->GetCallback(str_CallbackName);
@@ -3579,9 +3555,8 @@ bool OTScriptable::GetHooks(const std::string str_HookName,
 
     bool bReturnVal = false;
 
-    FOR_EACH(mapOfBylaws, m_mapBylaws)
-    {
-        OTBylaw* pBylaw = (*it).second;
+    for (auto& it : m_mapBylaws) {
+        OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
 
         // Look up all clauses matching a specific hook.

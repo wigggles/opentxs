@@ -576,9 +576,8 @@ bool OTContract::VerifyContractID()
 
 const OTPseudonym* OTContract::GetContractPublicNym()
 {
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
             NULL != pNym,
             "NULL pseudonym pointer in OTContract::GetContractPublicNym.\n");
@@ -588,11 +587,11 @@ const OTPseudonym* OTContract::GetContractPublicNym()
         // No one will ever actually put BOTH in a single contract. But if they
         // do,
         // we favor the new version over the old.
-        if ((*it).first == "signer") {
+        if (it.first == "signer") {
             return pNym;
         }
-        else if ((*it).first == "contract") // TODO have a place for hardcoded
-                                              // values like this.
+        else if (it.first == "contract") // TODO have a place for hardcoded
+                                           // values like this.
         { // We're saying here that every contract has to have a key tag called
             // "contract"
             // where the official public key can be found for it and for any
@@ -608,9 +607,8 @@ const OTPseudonym* OTContract::GetContractPublicNym()
 // I will return it here -- or NULL.
 const OTAsymmetricKey* OTContract::GetContractPublicKey()
 {
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
             NULL != pNym,
             "NULL pseudonym pointer in OTContract::GetContractPublicKey.\n");
@@ -620,7 +618,7 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey()
         // No one will ever actually put BOTH in a single contract. But if they
         // do,
         // we favor the new version over the old.
-        if ((*it).first ==
+        if (it.first ==
             "signer") // TODO have a place for hardcoded values like this.
         { // We're saying here that every contract has a key tag called
             // "contract"
@@ -631,7 +629,7 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey()
                                                                // cast.
             return const_cast<OTAsymmetricKey*>(pKey);
         }
-        else if ((*it).first == "contract") {
+        else if (it.first == "contract") {
             OTAsymmetricKey* pKey =
                 (OTAsymmetricKey*)&(pNym->GetPublicSignKey()); // todo fix this
                                                                // cast.
@@ -958,9 +956,8 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
     uint32_t nIndex = 0;
     const bool bNymID = strNymID.At(nIndex, cNymID);
 
-    FOR_EACH(listOfSignatures, m_listSignatures)
-    {
-        OTSignature* pSig = *it;
+    for (auto& it : m_listSignatures) {
+        OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
         if (bNymID && pSig->m_metadata.HasMetadata()) {
@@ -989,9 +986,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
     uint32_t nIndex = 0;
     const bool bNymID = strNymID.At(nIndex, cNymID);
 
-    FOR_EACH(listOfSignatures, m_listSignatures)
-    {
-        OTSignature* pSig = *it;
+    for (auto& it : m_listSignatures) {
+        OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
         if (bNymID && pSig->m_metadata.HasMetadata()) {
@@ -1014,10 +1010,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
                                OTPasswordData* pPWData /*=NULL*/)
 {
-
-    FOR_EACH(listOfSignatures, m_listSignatures)
-    {
-        OTSignature* pSig = *it;
+    for (auto& it : m_listSignatures) {
+        OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
         if ((NULL !=
@@ -1061,9 +1055,8 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 
     if (nCount > 0) // Found some (potentially) matching keys...
     {
-        FOR_EACH(listOfAsymmetricKeys, listOutput)
-        {
-            OTAsymmetricKey* pKey = *it;
+        for (auto& it : listOutput) {
+            OTAsymmetricKey* pKey = it;
             OT_ASSERT(NULL != pKey);
 
             if (this->VerifySignature(*pKey, theSignature, m_strSigHashType,
@@ -1107,9 +1100,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 
     if (nCount > 0) // Found some (potentially) matching keys...
     {
-        FOR_EACH(listOfAsymmetricKeys, listOutput)
-        {
-            OTAsymmetricKey* pKey = *it;
+        for (auto& it : listOutput) {
+            OTAsymmetricKey* pKey = it;
             OT_ASSERT(NULL != pKey);
 
             if (this->VerifySignature(*pKey, theSignature, m_strSigHashType,
@@ -2191,13 +2183,8 @@ bool OTContract::LoadEncodedTextFieldByName(
             {
                 mapOfStrings& mapExtraVars = (*pmapExtraVars);
 
-                FOR_EACH(mapOfStrings, mapExtraVars)
-                {
-
-                    std::string first = ((*it).first);
-                    //                    std::string second    =
-                    // ((*it).second);
-
+                for (auto& it : mapExtraVars) {
+                    std::string first = it.first;
                     OTString strTemp = xml->getAttributeValue(first.c_str());
 
                     if (strTemp.Exists()) {
@@ -2414,10 +2401,9 @@ void OTContract::CreateInnerContents()
     if (m_mapConditions.size() > 0) {
         m_xmlUnsigned.Concatenate("<!-- CONDITIONS -->\n\n");
 
-        FOR_EACH(mapOfStrings, m_mapConditions)
-        {
-            std::string str_condition_name = (*it).first;
-            std::string str_condition_value = (*it).second;
+        for (auto& it : m_mapConditions) {
+            std::string str_condition_name = it.first;
+            std::string str_condition_value = it.second;
 
             m_xmlUnsigned.Concatenate(
                 "<condition name=\"%s\">%s</condition>\n\n",
@@ -2431,11 +2417,9 @@ void OTContract::CreateInnerContents()
         OTString strTemp;
 
         // KEYS  (Note: deprecated in favor of NymID source and credentials.)
-        //
-        FOR_EACH(mapOfNyms, m_mapNyms)
-        {
-            std::string str_name = (*it).first;
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : m_mapNyms) {
+            std::string str_name = it.first;
+            OTPseudonym* pNym = it.second;
             OT_ASSERT_MSG(NULL != pNym, "1: NULL pseudonym pointer in "
                                         "OTContract::CreateInnerContents.\n");
 
@@ -2449,7 +2433,7 @@ void OTContract::CreateInnerContents()
                                         str_name.c_str(), strPubkey.Get());
                 }
             }
-        } // FOR_EACH
+        }
 
         if (strTemp.Exists()) {
             m_xmlUnsigned.Concatenate("<!-- KEYS -->\n\n%s", strTemp.Get());
@@ -2457,11 +2441,9 @@ void OTContract::CreateInnerContents()
         }
 
         // NEW CREDENTIALS, based on NymID and Source, and credential IDs.
-        //
-        FOR_EACH(mapOfNyms, m_mapNyms)
-        {
-            std::string str_name = (*it).first;
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : m_mapNyms) {
+            std::string str_name = it.first;
+            OTPseudonym* pNym = it.second;
             OT_ASSERT_MSG(NULL != pNym, "2: NULL pseudonym pointer in "
                                         "OTContract::CreateInnerContents.\n");
 
@@ -2552,7 +2534,7 @@ void OTContract::CreateInnerContents()
                 strTemp.Concatenate("</%s>\n\n", str_name.c_str()); //"signer"
 
             } // "signer"
-        }     // FOR_EACH
+        }
 
         if (strTemp.Exists()) {
             m_xmlUnsigned.Concatenate("<!-- NYMS -->\n\n%s", strTemp.Get());

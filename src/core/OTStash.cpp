@@ -149,10 +149,9 @@ void OTStash::Serialize(OTString& strAppend)
     strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
                           m_str_stash_name.c_str(), m_mapStashItems.size());
 
-    FOR_EACH(mapOfStashItems, m_mapStashItems)
-    {
-        const std::string str_asset_type_id = (*it).first;
-        OTStashItem* pStashItem = (*it).second;
+    for (auto& it : m_mapStashItems) {
+        const std::string str_asset_type_id = it.first;
+        OTStashItem* pStashItem = it.second;
         OT_ASSERT((str_asset_type_id.size() > 0) && (NULL != pStashItem));
 
         strAppend.Concatenate(

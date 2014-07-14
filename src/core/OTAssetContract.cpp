@@ -618,13 +618,12 @@ bool OTAssetContract::ForEachAccountRecord(
         // (What if there are a million acct IDs in this flat file? Not
         // scaleable.)
         //
-        FOR_EACH(mapOfStrings, theMap)
-        {
+        for (auto& it : theMap) {
             const std::string& str_acct_id =
-                (*it).first; // Containing the account ID.
+                it.first; // Containing the account ID.
             const std::string& str_asset_id =
-                (*it).second; // Containing the asset type ID. (Just in case
-                              // someone copied the wrong file here...)
+                it.second; // Containing the asset type ID. (Just in case
+                           // someone copied the wrong file here...)
 
             if (false == strAssetTypeID.Compare(str_asset_id.c_str())) {
                 otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong "

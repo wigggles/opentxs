@@ -843,10 +843,9 @@ bool OTItem::VerifyBalanceStatement(
     // First, loop through the Nym on my side, and count how many numbers total
     // he has...
     //
-    FOR_EACH(mapOfTransNums, THE_NYM.GetMapIssuedNum())
-    {
-        std::string strServerID = (*it).first;
-        dequeOfTransNums* pDeque = (it->second);
+    for (auto& it : THE_NYM.GetMapIssuedNum()) {
+        std::string strServerID = it.first;
+        dequeOfTransNums* pDeque = it.second;
         OT_ASSERT(NULL != pDeque);
 
         const OTIdentifier theServerID(strServerID.c_str());
@@ -868,10 +867,9 @@ bool OTItem::VerifyBalanceStatement(
 
     if ((strMessageNym.GetLength() > 2) &&
         theMessageNym.LoadFromString(strMessageNym)) {
-        FOR_EACH(mapOfTransNums, theMessageNym.GetMapIssuedNum())
-        {
-            std::string strServerID = (*it).first;
-            dequeOfTransNums* pDeque = (it->second);
+        for (auto& it : theMessageNym.GetMapIssuedNum()) {
+            std::string strServerID = it.first;
+            dequeOfTransNums* pDeque = it.second;
             OT_ASSERT(NULL != pDeque);
 
             const OTIdentifier theServerID(strServerID.c_str());
@@ -1064,9 +1062,8 @@ OTItem* OTItem::GetItem(int32_t nIndex)
 {
     int32_t nTempIndex = (-1);
 
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         nTempIndex++; // first iteration this becomes 0 here.
@@ -1080,9 +1077,8 @@ OTItem* OTItem::GetItem(int32_t nIndex)
 // While processing an item, you may wish to query it for sub-items
 OTItem* OTItem::GetItemByTransactionNum(const int64_t lTransactionNumber)
 {
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (pItem->GetTransactionNum() == lTransactionNumber) return pItem;
@@ -1099,9 +1095,8 @@ int32_t OTItem::GetItemCountInRefTo(const int64_t lReference)
 {
     int32_t nCount = 0;
 
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (pItem->GetReferenceToNum() == lReference) nCount++;
@@ -1117,9 +1112,8 @@ int32_t OTItem::GetItemCountInRefTo(const int64_t lReference)
 OTItem* OTItem::GetFinalReceiptItemByReferenceNum(
     const int64_t lReferenceNumber)
 {
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (OTItem::finalReceipt != pItem->GetType()) continue;
@@ -2376,9 +2370,8 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
 
         // loop through the sub-items (only used for balance agreement.)
         //
-        FOR_EACH(listOfItems, m_listItems)
-        {
-            OTItem* pItem = *it;
+        for (auto& it : m_listItems) {
+            OTItem* pItem = it;
             OT_ASSERT(NULL != pItem);
 
             OTString strAcctID(pItem->GetPurportedAccountID()),
@@ -2403,7 +2396,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
                 strServerID.Get(), pItem->GetRawNumberOfOrigin(),
                 pItem->GetTransactionNum(), pItem->GetClosingNum(),
                 pItem->GetReferenceToNum());
-        } // FOR_EACH
+        }
     }
 
     m_xmlUnsigned.Concatenate("</item>\n");

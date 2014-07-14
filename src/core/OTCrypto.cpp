@@ -2600,13 +2600,12 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
 
             int32_t nKeyIndex = -1; // it will be 0 upon first iteration.
 
-            FOR_EACH(mapOfAsymmetricKeys, m_RecipPubKeys)
-            {
+            for (auto& it : m_RecipPubKeys) {
                 ++nKeyIndex; // 0 on first iteration.
                 m_nLastPopulatedIndex = nKeyIndex;
 
                 OTAsymmetricKey* pTempPublicKey =
-                    it->second; // first is the NymID
+                    it.second; // first is the NymID
                 OT_ASSERT(NULL != pTempPublicKey);
 
                 OTAsymmetricKey_OpenSSL* pPublicKey =
@@ -2812,11 +2811,10 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
     //
     int32_t ii = -1; // it will be 0 upon first iteration.
 
-    FOR_EACH(mapOfAsymmetricKeys, RecipPubKeys)
-    {
+    for (auto& it : RecipPubKeys) {
         ++ii; // 0 on first iteration.
 
-        std::string str_nym_id = it->first;
+        std::string str_nym_id = it.first;
         //        OTAsymmetricKey * pTempPublicKey = it->second;
         //        OT_ASSERT(NULL != pTempPublicKey);
 

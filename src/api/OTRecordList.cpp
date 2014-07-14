@@ -590,9 +590,8 @@ bool OTRecordList::PerformAutoAccept()
                 int32_t nIndex = (-1);
                 // It loaded up, so let's loop through it.
                 if (NULL != pInbox) {
-                    FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
-                    {
-                        OTTransaction* pBoxTrans = (*it).second;
+                    for (auto& it : pInbox->GetTransactionMap()) {
+                        OTTransaction* pBoxTrans = it.second;
                         OT_ASSERT(NULL != pBoxTrans);
                         ++nIndex; // 0 on first iteration.
                         OTLog::vOutput(0, "%s: Incoming payment: %d\n",
@@ -828,9 +827,8 @@ bool OTRecordList::PerformAutoAccept()
                     }     // Loop through payments to deposit.
                     // Empty the list and delete the payments inside.
                     //
-                    FOR_EACH(mapOfPayments, thePaymentMap)
-                    {
-                        OTPayment* pPayment = it->second;
+                    for (auto& it : thePaymentMap) {
+                        OTPayment* pPayment = it.second;
                         if (NULL != pPayment) delete pPayment;
                         pPayment = NULL;
                     }
@@ -924,15 +922,14 @@ bool OTRecordList::PerformAutoAccept()
             std::string strResponseLedger;
             int32_t nInboxIndex = -1;
             // It loaded up, so let's loop through it.
-            FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
-            {
+            for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
                     OTLog::vOutput(
                         0,
                         "%s: Beginning loop through asset account INBOX...\n",
                         __FUNCTION__);
-                OTTransaction* pBoxTrans = (*it).second;
+                OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(NULL != pBoxTrans);
                 OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
                                nInboxIndex);
@@ -1001,8 +998,7 @@ bool OTRecordList::PerformAutoAccept()
                     }
                     strResponseLedger = strNEW_ResponseLEDGER;
                 }
-            } // if (NULL != pInbox) FOR_EACH(mapOfTransactions,
-              // pInbox->GetTransactionMap())
+            }
             // Okay now we have the response ledger all ready to go, let's
             // process it!
             //
@@ -1562,9 +1558,8 @@ bool OTRecordList::Populate()
             int32_t nIndex = (-1);
             // It loaded up, so let's loop through it.
             if (NULL != pInbox) {
-                FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
-                {
-                    OTTransaction* pBoxTrans = (*it).second;
+                for (auto& it : pInbox->GetTransactionMap()) {
+                    OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(NULL != pBoxTrans);
                     ++nIndex; // 0 on first iteration.
                     OTLog::vOutput(0, "%s: Incoming payment: %d\n",
@@ -1817,9 +1812,8 @@ bool OTRecordList::Populate()
 
             // It loaded up, so let's loop through it.
             if (NULL != pRecordbox) {
-                FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
-                {
-                    OTTransaction* pBoxTrans = (*it).second;
+                for (auto& it : pRecordbox->GetTransactionMap()) {
+                    OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(NULL != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
@@ -2247,9 +2241,8 @@ bool OTRecordList::Populate()
 
             // It loaded up, so let's loop through it.
             if (NULL != pExpiredbox) {
-                FOR_EACH(mapOfTransactions, pExpiredbox->GetTransactionMap())
-                {
-                    OTTransaction* pBoxTrans = (*it).second;
+                for (auto& it : pExpiredbox->GetTransactionMap()) {
+                    OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(NULL != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
@@ -2749,15 +2742,14 @@ bool OTRecordList::Populate()
         int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
         if (NULL != pInbox) {
-            FOR_EACH(mapOfTransactions, pInbox->GetTransactionMap())
-            {
+            for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
                     OTLog::vOutput(
                         0,
                         "%s: Beginning loop through asset account INBOX...\n",
                         __FUNCTION__);
-                OTTransaction* pBoxTrans = (*it).second;
+                OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(NULL != pBoxTrans);
                 OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
                                nInboxIndex);
@@ -3013,15 +3005,14 @@ bool OTRecordList::Populate()
         // It loaded up, so let's loop through it.
         int32_t nOutboxIndex = -1;
         if (NULL != pOutbox) {
-            FOR_EACH(mapOfTransactions, pOutbox->GetTransactionMap())
-            {
+            for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex; // (0 on first iteration.)
                 if (0 == nOutboxIndex)
                     OTLog::vOutput(
                         0,
                         "%s: Beginning loop through asset account OUTBOX...\n",
                         __FUNCTION__);
-                OTTransaction* pBoxTrans = (*it).second;
+                OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(NULL != pBoxTrans);
                 OTLog::vOutput(0, "%s: Outbox index: %d\n", __FUNCTION__,
                                nOutboxIndex);
@@ -3187,10 +3178,9 @@ bool OTRecordList::Populate()
         // It loaded up, so let's loop through it.
         int32_t nRecordIndex = -1;
         if (NULL != pRecordbox) {
-            FOR_EACH(mapOfTransactions, pRecordbox->GetTransactionMap())
-            {
+            for (auto& it : pRecordbox->GetTransactionMap()) {
                 ++nRecordIndex;
-                OTTransaction* pBoxTrans = (*it).second;
+                OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(NULL != pBoxTrans);
                 OTLog::vOutput(0, "%s: Account RECORD index: %d\n",
                                __FUNCTION__, nRecordIndex);

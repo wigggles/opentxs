@@ -211,10 +211,6 @@
 
 #define implements public
 
-#define FOR_EACH(ARG_OT_ONE, ARG_OT_TWO)                                       \
-    for (ARG_OT_ONE::iterator it = ARG_OT_TWO.begin(); it != ARG_OT_TWO.end(); \
-         ++it)
-
 #endif // (not) SWIG
 
 namespace opentxs

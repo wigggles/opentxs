@@ -310,9 +310,8 @@ OTToken::~OTToken()
 
 void OTToken::ReleasePrototokens()
 {
-    FOR_EACH(mapOfPrototokens, m_mapPublic)
-    {
-        OTASCIIArmor* pPrototoken = (*it).second;
+    for (auto& it : m_mapPublic) {
+        OTASCIIArmor* pPrototoken = it.second;
         OT_ASSERT_MSG(
             NULL != pPrototoken,
             "NULL OTASCIIArmor pointer in OTToken::ReleasePrototokens.");
@@ -321,9 +320,8 @@ void OTToken::ReleasePrototokens()
         pPrototoken = NULL;
     }
 
-    FOR_EACH(mapOfPrototokens, m_mapPrivate)
-    {
-        OTASCIIArmor* pPrototoken = (*it).second;
+    for (auto& it : m_mapPrivate) {
+        OTASCIIArmor* pPrototoken = it.second;
         OT_ASSERT_MSG(
             NULL != pPrototoken,
             "NULL OTASCIIArmor pointer in OTToken::ReleasePrototokens.");
@@ -839,9 +837,8 @@ void OTToken::UpdateContents()
             "<protopurse count=\"%d\" chosenIndex=\"%d\">\n\n", m_nTokenCount,
             m_nChosenIndex);
 
-        FOR_EACH(mapOfPrototokens, m_mapPublic)
-        {
-            OTASCIIArmor* pPrototoken = (*it).second;
+        for (auto& it : m_mapPublic) {
+            OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(NULL != pPrototoken);
 
             m_xmlUnsigned.Concatenate("<prototoken>\n%s</prototoken>\n\n",
@@ -855,9 +852,8 @@ void OTToken::UpdateContents()
 
         m_xmlUnsigned.Concatenate("<privateProtopurse>\n\n");
 
-        FOR_EACH(mapOfPrototokens, m_mapPrivate)
-        {
-            OTASCIIArmor* pPrototoken = (*it).second;
+        for (auto& it : m_mapPrivate) {
+            OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(NULL != pPrototoken);
 
             m_xmlUnsigned.Concatenate(
@@ -1047,12 +1043,11 @@ bool OTToken::GetPrototoken(OTASCIIArmor& ascPrototoken, int32_t nTokenIndex)
         return false;
     }
 
-    FOR_EACH(mapOfPrototokens, m_mapPublic)
-    {
-        OTASCIIArmor* pPrototoken = (*it).second;
+    for (auto& it : m_mapPublic) {
+        OTASCIIArmor* pPrototoken = it.second;
         OT_ASSERT(NULL != pPrototoken);
 
-        const bool bSuccess = (nTokenIndex == (*it).first);
+        const bool bSuccess = (nTokenIndex == it.first);
 
         if (bSuccess) {
             ascPrototoken.Set(*pPrototoken);
@@ -1072,12 +1067,11 @@ bool OTToken::GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
         return false;
     }
 
-    FOR_EACH(mapOfPrototokens, m_mapPrivate)
-    {
-        OTASCIIArmor* pPrototoken = (*it).second;
+    for (auto& it : m_mapPrivate) {
+        OTASCIIArmor* pPrototoken = it.second;
         OT_ASSERT(NULL != pPrototoken);
 
-        const bool bSuccess = (nTokenIndex == (*it).first);
+        bool bSuccess = (nTokenIndex == it.first);
 
         if (bSuccess) {
             ascPrototoken.Set(*pPrototoken);

@@ -557,14 +557,13 @@ bool OTMint::VerifyContractID()
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
 bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
-    FOR_EACH(mapOfArmor, m_mapPrivate)
-    {
-        OTASCIIArmor* pArmor = (*it).second;
+    for (auto& it : m_mapPrivate) {
+        OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(NULL != pArmor,
                       "NULL mint pointer in OTMint::GetPrivate.\n");
 
-        if ((*it).first == lDenomination) // if this denomination (say, 50)
-                                          // matches the one passed in...
+        if (it.first == lDenomination) // if this denomination (say, 50)
+                                       // matches the one passed in...
         {
             theArmor.Set(*pArmor);
             return true;
@@ -578,14 +577,13 @@ bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
 bool OTMint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
-    FOR_EACH(mapOfArmor, m_mapPublic)
-    {
-        OTASCIIArmor* pArmor = (*it).second;
+    for (auto& it : m_mapPublic) {
+        OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(NULL != pArmor,
                       "NULL mint pointer in OTMint::GetPublic.\n");
 
-        if ((*it).first == lDenomination) // if this denomination (say, 50)
-                                          // matches the one passed in...
+        if (it.first == lDenomination) // if this denomination (say, 50)
+                                       // matches the one passed in...
         {
             theArmor.Set(*pArmor);
             return true;
@@ -681,9 +679,8 @@ void OTMint::UpdateContents()
             m_bSavePrivateKeys = false; // reset this back to false again. Use
                                         // SetSavePrivateKeys() to set it true.
 
-            FOR_EACH(mapOfArmor, m_mapPrivate)
-            {
-                OTASCIIArmor* pArmor = (*it).second;
+            for (auto& it : m_mapPrivate) {
+                OTASCIIArmor* pArmor = it.second;
                 OT_ASSERT_MSG(
                     NULL != pArmor,
                     "NULL private mint pointer in OTMint::UpdateContents.\n");
@@ -691,19 +688,18 @@ void OTMint::UpdateContents()
                 m_xmlUnsigned.Concatenate(
                     "<mintPrivateInfo denomination=\"%lld\">\n"
                     "%s</mintPrivateInfo>\n\n",
-                    (*it).first, pArmor->Get());
+                    it.first, pArmor->Get());
             }
         }
-        FOR_EACH(mapOfArmor, m_mapPublic)
-        {
-            OTASCIIArmor* pArmor = (*it).second;
+        for (auto& it : m_mapPublic) {
+            OTASCIIArmor* pArmor = it.second;
             OT_ASSERT_MSG(
                 NULL != pArmor,
                 "NULL public mint pointer in OTMint::UpdateContents.\n");
 
             m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%lld\">\n"
                                       "%s</mintPublicInfo>\n\n",
-                                      (*it).first, pArmor->Get());
+                                      it.first, pArmor->Get());
         }
     }
 

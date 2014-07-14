@@ -1735,9 +1735,8 @@ bool OT_API::Wallet_ChangePassphrase()
                                                // bytes int64_t. (We discard it
                                                // after this function is done.)
         bool bSuccessReEncrypting = true;
-        FOR_EACH(std::list<OTPseudonym*>, list_nyms)
-        {
-            OTPseudonym* pNym = *it;
+        for (auto& it : list_nyms) {
+            OTPseudonym* pNym = it;
             OT_ASSERT(NULL != pNym);
             // We know at least one Nym has credentials. Does this one?
             //
@@ -1766,7 +1765,7 @@ bool OT_API::Wallet_ChangePassphrase()
                                                   // and not halfway through.
                 }
             }
-        }                          // FOR_EACH
+        }
         if (!bSuccessReEncrypting) // FAILURE
         {
             OTLog::vError(
@@ -1848,11 +1847,11 @@ bool OT_API::Wallet_ChangePassphrase()
         bool bSuccessResaving =
             true; // in case the list is empty, we assume success here.
 
-        FOR_EACH(std::list<OTPseudonym*>, list_nyms) // Let's save all these
-                                                     // Nyms under the new
-                                                     // master key.
+        for (auto& it : list_nyms) // Let's save all these
+                                   // Nyms under the new
+                                   // master key.
         {
-            OTPseudonym* pNym = *it;
+            OTPseudonym* pNym = it;
             OT_ASSERT(NULL != pNym);
             bool bSaved = false;
 
@@ -1908,10 +1907,9 @@ bool OT_API::Wallet_ChangePassphrase()
                         }
                     }
                     // Here we do the actual credentials.
-                    FOR_EACH(mapOfStrings, mapCredFiles)
-                    {
-                        std::string str_cred_id = (*it).first;
-                        OTString strCredential((*it).second);
+                    for (auto& it : mapCredFiles) {
+                        std::string str_cred_id = it.first;
+                        OTString strCredential(it.second);
                         strOutput.Release();
                         OTASCIIArmor ascLoopArmor(strCredential);
                         if (ascLoopArmor.Exists() &&
@@ -1931,7 +1929,7 @@ bool OT_API::Wallet_ChangePassphrase()
                                 bSavedCredentials = false;
                             }
                         }
-                    } // FOR_EACH
+                    }
                 }
                 bSaved = bImported && bSavedCredentials;
             }    // If Nym has credentials. (Convert and save them, in the above
@@ -1945,7 +1943,7 @@ bool OT_API::Wallet_ChangePassphrase()
                 //
                 bSaved = pNym->Savex509CertAndPrivateKey(true, &strReason);
             if (!bSaved) bSuccessResaving = false;
-        }                      // FOR_EACH (list_nyms)
+        }
         if (!bSuccessResaving) // Failed saving all the Nyms after switching
                                // their credentials over.
         {
@@ -8540,9 +8538,8 @@ void OT_API::FlushSentMessages(const bool bHarvestingForRetry,
     // latest Nymbox,
     // then we KNOW which ones to remove before flushing.
     //
-    FOR_EACH(mapOfTransactions, THE_NYMBOX.GetTransactionMap())
-    {
-        const OTTransaction* pTransaction = (*it).second;
+    for (auto& it : THE_NYMBOX.GetTransactionMap()) {
+        const OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (OTTransaction::replyNotice == pTransaction->GetType()) {

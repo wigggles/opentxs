@@ -175,9 +175,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
         //      this->chai->add(m); // Here we add the OTParty class to the
         // chaiscript engine.
 
-        FOR_EACH(mapOfParties, m_mapParties)
-        {
-            OTParty* pParty = (*it).second;
+        for (auto& it : m_mapParties) {
+            OTParty* pParty = it.second;
             OT_ASSERT(NULL != pParty);
 
             std::string party_name = pParty->GetPartyName();
@@ -213,9 +212,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
                                                             // just above.
         }
 
-        FOR_EACH(mapOfPartyAccounts, m_mapAccounts)
-        {
-            OTPartyAccount* pAcct = (*it).second;
+        for (auto& it : m_mapAccounts) {
+            OTPartyAccount* pAcct = it.second;
             OT_ASSERT(NULL != pAcct);
 
             std::string acct_name = pAcct->GetName().Get();
@@ -251,10 +249,9 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
          std::string    &    GetValueString() { return m_str_Value; }
          */
 
-        FOR_EACH(mapOfVariables, m_mapVariables)
-        {
-            const std::string var_name = (*it).first;
-            OTVariable* pVar = (*it).second;
+        for (auto& it : m_mapVariables) {
+            const std::string var_name = it.first;
+            OTVariable* pVar = it.second;
             OT_ASSERT((NULL != pVar) && (var_name.size() > 0));
 
             switch (pVar->GetType()) {
@@ -415,20 +412,6 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar /*=NULL*/)
                 }
             }
             std::cout << std::endl;
-
-            //          otErr << "CALL STACK:\n\n";
-            //          int32_t nStack = 0;
-            //          FOR_EACH_CONST(std::vector<AST_NodePtr>, e.call_stack)
-            //          {
-            //              AST_NodePtr pNode = *it;
-            //
-            //              if (pNode)
-            //              {
-            //                  std::string str_node = pNode->to_string();
-            //                  otErr << "%d: %s\n", nStack++,
-            // str_node.c_str());
-            //              }
-            //          }
 
             return false;
         }

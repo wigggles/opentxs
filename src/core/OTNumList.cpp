@@ -355,11 +355,8 @@ bool OTNumList::Verify(const OTNumList& rhs) const
 
     // Verify each value on *this is also found on rhs.
     //
-    FOR_EACH(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
-
-        if (false == rhs.Verify(lValue)) return false;
+    for (auto& it : m_setData) {
+        if (false == rhs.Verify(it)) return false;
     }
 
     return true;
@@ -446,9 +443,7 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
 {
     int32_t nIterationCount = 0;
 
-    FOR_EACH(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
+    for (auto& it : m_setData) {
         nIterationCount++;
 
         strOutput.Concatenate(
@@ -456,7 +451,7 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
             // If first iteration, prepend a blank string (instead of a comma.)
             // Like this:  "%lld"
             // But for all subsequent iterations, concatenate: ",%lld"
-            (1 == nIterationCount) ? "" : ",", lValue);
+            (1 == nIterationCount) ? "" : ",", it);
     }
 
     return (m_setData.size() > 0) ? true : false;

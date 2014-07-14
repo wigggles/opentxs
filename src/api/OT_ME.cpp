@@ -239,8 +239,7 @@ std::string OT_CLI_GetValueByIndex(const std::string str_Args,
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
     if (bTokenized && (nIndex < static_cast<int32_t>(map_values.size()))) {
         int32_t nMapIndex = (-1);
-        FOR_EACH(mapOfArguments, map_values)
-        {
+        for (auto& it : map_values) {
             ++nMapIndex;
             //   const std::string str_key = (*it).first;
             //   const std::string str_val = (*it).second;
@@ -251,7 +250,7 @@ std::string OT_CLI_GetValueByIndex(const std::string str_Args,
             // pair for THAT index.
             //
             if (nIndex == nMapIndex) {
-                str_retval = (*it).second; // Found it!
+                str_retval = it.second; // Found it!
                 break;
             }
         }
@@ -272,8 +271,7 @@ std::string OT_CLI_GetKeyByIndex(const std::string str_Args,
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
     if (bTokenized && (nIndex < static_cast<int32_t>(map_values.size()))) {
         int32_t nMapIndex = (-1);
-        FOR_EACH(mapOfArguments, map_values)
-        {
+        for (auto& it : map_values) {
             ++nMapIndex;
             //   const std::string str_key = (*it).first;
             //   const std::string str_val = (*it).second;
@@ -284,7 +282,7 @@ std::string OT_CLI_GetKeyByIndex(const std::string str_Args,
             // pair for THAT index.
             //
             if (nIndex == nMapIndex) {
-                str_retval = (*it).first; // Found it!
+                str_retval = it.first; // Found it!
                 break;
             }
         }

@@ -186,9 +186,8 @@ bool OTMessage::HarvestTransactionNumbers(
     { // Let's iterate through the transactions inside, and harvest whatever we
         // can...
         //
-        FOR_EACH(mapOfTransactions, theLedger.GetTransactionMap())
-        {
-            OTTransaction* pTransaction = (*it).second;
+        for (auto& it : theLedger.GetTransactionMap()) {
+            OTTransaction* pTransaction = it.second;
             OT_ASSERT(NULL != pTransaction);
 
             // NOTE: You would ONLY harvest the transaction numbers if your
@@ -244,8 +243,8 @@ bool OTMessage::HarvestTransactionNumbers(
             pTransaction->HarvestClosingNumbers(
                 theNym, bHarvestingForRetry, bReplyWasSuccess, bReplyWasFailure,
                 bTransactionWasSuccess, bTransactionWasFailure);
-        } // FOR_EACH (ledger->pTransaction)
-    }     // else (ledger is loaded up.)
+        }
+    } // else (ledger is loaded up.)
 
     return true;
 }
@@ -265,10 +264,9 @@ void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
 
     const OTIdentifier theServerID(m_strServerID);
 
-    FOR_EACH(mapOfTransNums, theNym.GetMapAcknowledgedNum())
-    {
-        std::string strServerID = (*it).first;
-        dequeOfTransNums* pDeque = (it->second);
+    for (auto& it : theNym.GetMapAcknowledgedNum()) {
+        std::string strServerID = it.first;
+        dequeOfTransNums* pDeque = it.second;
         OT_ASSERT(NULL != pDeque);
 
         OTString OTstrServerID = strServerID.c_str();
