@@ -4871,13 +4871,37 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendmsg()
 {
     // Just to show how easy it is, let's try a "send_user_message" message.
     //
-    string strUsage = "\n\n FYI, USAGE: sendmsg --mynym <YOUR_NYM_ID> --hisnym "
-                      "<RECIPIENT_NYM_ID>\n\n";
+    string strUsage = "\n\n USAGE: sendmsg --server <SERVER_ID> "
+                      "--mynym <YOUR_NYM_ID> --hisnym <RECIPIENT_NYM_ID>\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("HisNym")) {
+
+        string strName = OTAPI_Wrap::GetServer_Name(Server);
+        if (!VerifyStringVal(strName)) {
+            OTAPI_Wrap::Output(0,
+                               "Error: unkknown server ID: " + Server + "\n");
+            return -1;
+        }
+
+        string myPubKey =
+            MadeEasy::load_or_retrieve_encrypt_key(Server, MyNym, MyNym);
+        if (!VerifyStringVal(myPubKey)) {
+            OTAPI_Wrap::Output(0,
+                               "\n Failed: Unknown MyNym ID: " + MyNym + "\n");
+            return -1;
+        }
+
+        string hisPubKey =
+            MadeEasy::load_or_retrieve_encrypt_key(Server, MyNym, HisNym);
+        if (!VerifyStringVal(hisPubKey)) {
+            OTAPI_Wrap::Output(0, "\n Failed: Unknown HisNym ID: " + HisNym +
+                                      "\n");
+            return -1;
+        }
+
         OTAPI_Wrap::Output(0, "Please enter your message on multiple lines, "
                               "optionally beginning with a \"Subject: \" "
                               "line.\n");
