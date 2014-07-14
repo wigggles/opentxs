@@ -3994,11 +3994,9 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
                                                                  // param.
 {
     // Loop through the clauses passed in, and execute them all.
-    //
-    FOR_EACH_IT(mapOfClauses, theClauses, it_clauses)
-    {
-        const std::string str_clause_name = (*it_clauses).first;
-        OTClause* pClause = (*it_clauses).second;
+    for (auto& it_clauses : theClauses) {
+        const std::string str_clause_name = it_clauses.first;
+        OTClause* pClause = it_clauses.second;
         OT_ASSERT((NULL != pClause) && (str_clause_name.size() > 0));
         OTBylaw* pBylaw = pClause->GetBylaw();
         OT_ASSERT(NULL != pBylaw);
@@ -4815,11 +4813,9 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                          // failed verification.
 
     // LOOP THROUGH ALL PARTIES AND VERIFY THEM.
-    //
-    FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
-    {
-        const std::string str_party_name = (*it_party).first;
-        OTParty* pParty = (*it_party).second;
+    for (auto& it_party : m_mapParties) {
+        const std::string str_party_name = it_party.first;
+        OTParty* pParty = it_party.second;
         OT_ASSERT_MSG(NULL != pParty, "OTSmartContract::VerifySmartContract: "
                                       "Unexpected NULL pointer in party "
                                       "map.\n");
@@ -5131,10 +5127,9 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
 
      */
 
-    FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
-    {
-        const std::string str_party_name = (*it_party).first;
-        OTParty* pParty = (*it_party).second;
+    for (auto& it_party : m_mapParties) {
+        const std::string str_party_name = it_party.first;
+        OTParty* pParty = it_party.second;
         OT_ASSERT_MSG(NULL != pParty, "Unexpected NULL pointer in party map.");
 
         // SKIP FAILED PARTIES...
@@ -5255,8 +5250,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
         // do this, or we'll leak. Even if something returned
         //      OTSmartContract::CleanupAccts(map_Accts_NewlyLoaded); // false,
         // some objects may have been loaded before it failed.
-
-    } // FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
+    }
 
     const bool bSuccess = (!bAreAnyInvalidParties &&
                            !bAreAnyInvalidAccounts); // <=== THE RETURN VALUE

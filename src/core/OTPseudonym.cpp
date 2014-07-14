@@ -2185,11 +2185,9 @@ bool OTPseudonym::ResyncWithServer(OTLedger& theNymbox,
 
     const std::string strID = strServerID.Get();
 
-    FOR_EACH_IT(mapOfHighestNums, this->m_mapHighTransNo, it_high_num)
-    {
-        if (strID == it_high_num->first) // We found it!
+    for (auto& it_high_num : this->m_mapHighTransNo) {
+        if (strID == it_high_num.first) // We found it!
         {
-
             // See if any numbers on the set are higher, and if so, update the
             // record to match.
             //
@@ -2198,12 +2196,12 @@ bool OTPseudonym::ResyncWithServer(OTLedger& theNymbox,
                 const int64_t lTransNum = (*it);
 
                 // Grab a copy of the old highest trans number
-                const int64_t lOldHighestNumber = it_high_num->second;
+                const int64_t lOldHighestNumber = it_high_num.second;
 
                 if (lTransNum > lOldHighestNumber) // Did we find a bigger one?
                 {
                     // Then update the Nym's record!
-                    this->m_mapHighTransNo[it_high_num->first] = lTransNum;
+                    this->m_mapHighTransNo[it_high_num.first] = lTransNum;
                     otWarn
                         << "OTPseudonym::ResyncWithServer: Updated HighestNum ("
                         << lTransNum << ") record on *this nym: " << strNymID
@@ -3230,9 +3228,8 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym& SIGNER_NYM,
             // So we add it to the bad list.
             // But if it's more,
 
-            FOR_EACH_IT(std::set<int64_t>, setNumbers, it_numbers)
-            {
-                const int64_t lSetNum = *it_numbers;
+            for (auto& it_numbers : setNumbers) {
+                const int64_t lSetNum = it_numbers;
 
                 // If the current number (this iteration) is less than or equal
                 // to the

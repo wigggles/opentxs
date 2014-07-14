@@ -545,15 +545,14 @@ bool OTRecordList::PerformAutoAccept()
     //
     int32_t nNymIndex = -1;
     if (m_bAutoAcceptCheques || m_bAutoAcceptCash) {
-        FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
-        {
+        for (auto& it_nym : m_nyms) {
             ++nNymIndex;
             if (0 == nNymIndex)
                 OTLog::vOutput(0, "======================================\n "
                                   "%s: Beginning auto-accept loop through "
                                   "Nyms...\n",
                                __FUNCTION__);
-            const std::string& str_nym_id(*it_nym);
+            const std::string& str_nym_id(it_nym);
             const OTIdentifier theNymID(str_nym_id);
             const OTString strNymID(theNymID);
             OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
@@ -563,10 +562,9 @@ bool OTRecordList::PerformAutoAccept()
             // For each nym, for each server, loop through its payments inbox
             //
             int32_t nServerIndex = -1;
-            FOR_EACH_IT(list_of_strings, m_servers, it_server)
-            {
+            for (auto& it_server : m_servers) {
                 ++nServerIndex;
-                const std::string& str_server_id(*it_server);
+                const std::string& str_server_id(it_server);
                 const OTIdentifier theServerID(str_server_id);
                 OTServerContract* pServer =
                     pWallet->GetServerContract(theServerID);
@@ -760,10 +758,8 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
                         // pick an account to deposit the cheque into.
-                        //
-                        FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
-                        {
-                            const std::string& str_account_id(*it_acct);
+                        for (auto& it_acct : m_accounts) {
+                            const std::string& str_account_id(it_acct);
                             const OTIdentifier theAccountID(str_account_id);
                             OTAccount* pAccount =
                                 pWallet->GetAccount(theAccountID);
@@ -840,8 +836,8 @@ bool OTRecordList::PerformAutoAccept()
                     }
                     thePaymentMap.clear();
                 } // if (!thePaymentMap.empty())
-            }     // FOR_EACH_IT(list_of_strings, m_servers, it_server)
-        }         // FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
+            }
+        }
     }
 
     // ASSET ACCOUNT -- INBOX
@@ -850,8 +846,7 @@ bool OTRecordList::PerformAutoAccept()
     //
     int32_t nAccountIndex = -1;
     if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers) {
-        FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
-        {
+        for (auto& it_acct : m_accounts) {
             ++nAccountIndex; // (0 on first iteration.)
             if (0 == nAccountIndex)
                 OTLog::vOutput(0, "---------------------------------\n %s: "
@@ -859,8 +854,7 @@ bool OTRecordList::PerformAutoAccept()
                                   "accounts in the wallet...\n",
                                __FUNCTION__);
             // For each account, loop through its inbox, outbox, and record box.
-            //
-            const std::string& str_account_id(*it_acct);
+            const std::string& str_account_id(it_acct);
             const OTIdentifier theAccountID(str_account_id);
             OTAccount* pAccount = pWallet->GetAccount(theAccountID);
             OT_ASSERT(NULL != pAccount);
@@ -1057,7 +1051,7 @@ bool OTRecordList::PerformAutoAccept()
                         (bRetrieved ? "Success" : "Failed"));
                 }
             }
-        } // FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
+        }
     }
     return true;
 }
@@ -1098,14 +1092,13 @@ bool OTRecordList::Populate()
     // Loop through the Nyms.
     //
     int32_t nNymIndex = -1;
-    FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
-    {
+    for (auto& it_nym : m_nyms) {
         ++nNymIndex;
         if (0 == nNymIndex)
             OTLog::vOutput(
                 0, "=============== %s: Beginning loop through Nyms...\n",
                 __FUNCTION__);
-        const std::string& str_nym_id(*it_nym);
+        const std::string& str_nym_id(it_nym);
         const OTIdentifier theNymID(str_nym_id);
         const OTString strNymID(theNymID);
         OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
@@ -1544,10 +1537,9 @@ bool OTRecordList::Populate()
         // record box.
         //
         int32_t nServerIndex = -1;
-        FOR_EACH_IT(list_of_strings, m_servers, it_server)
-        {
+        for (auto& it_server : m_servers) {
             ++nServerIndex;
-            const OTIdentifier theServerID(*it_server);
+            const OTIdentifier theServerID(it_server);
             OTServerContract* pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(NULL != pServer);
             const OTString strServerID(theServerID);
@@ -1590,7 +1582,7 @@ bool OTRecordList::Populate()
                             str_sender_nym_id = strSenderID.Get();
 
                             OTString strName(m_pLookup->GetNymName(
-                                str_sender_nym_id, &(*it_server))),
+                                str_sender_nym_id, &it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -1767,7 +1759,7 @@ bool OTRecordList::Populate()
                         __FUNCTION__, str_type.c_str());
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
-                        *it_server, *p_str_asset_type, *p_str_asset_name,
+                        it_server, *p_str_asset_type, *p_str_asset_name,
                         str_nym_id, // This is the Nym WHOSE BOX IT IS.
                         OTRecordList::s_blank, // This is the Nym's account for
                                                // this box. (Blank for payments
@@ -1873,7 +1865,7 @@ bool OTRecordList::Populate()
                                         strRecipientID.Get());
 
                                     OTString strName(m_pLookup->GetNymName(
-                                        str_recipient_id, &(*it_server))),
+                                        str_recipient_id, &it_server)),
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -1903,7 +1895,7 @@ bool OTRecordList::Populate()
                                 // already false.)
 
                                 OTString strName(m_pLookup->GetNymName(
-                                    str_sender_id, &(*it_server))),
+                                    str_sender_id, &it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -1944,7 +1936,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true;
 
                                 OTString strName(m_pLookup->GetNymName(
-                                    str_recipient_id, &(*it_server))),
+                                    str_recipient_id, &it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2198,7 +2190,7 @@ bool OTRecordList::Populate()
                         str_type.c_str());
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
-                        *it_server, *p_str_asset_type, *p_str_asset_name,
+                        it_server, *p_str_asset_type, *p_str_asset_name,
                         str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                         *p_str_account, // This is the Nym's account for this
                                         // box. (Blank for incoming, set for
@@ -2303,7 +2295,7 @@ bool OTRecordList::Populate()
                                         strRecipientID.Get());
 
                                     OTString strName(m_pLookup->GetNymName(
-                                        str_recipient_id, &(*it_server))),
+                                        str_recipient_id, &it_server)),
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -2333,7 +2325,7 @@ bool OTRecordList::Populate()
                                 // already false.)
 
                                 OTString strName(m_pLookup->GetNymName(
-                                    str_sender_id, &(*it_server))),
+                                    str_sender_id, &it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2374,7 +2366,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true;
 
                                 OTString strName(m_pLookup->GetNymName(
-                                    str_recipient_id, &(*it_server))),
+                                    str_recipient_id, &it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2629,7 +2621,7 @@ bool OTRecordList::Populate()
                         str_type.c_str());
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
-                        *it_server, *p_str_asset_type, *p_str_asset_name,
+                        it_server, *p_str_asset_type, *p_str_asset_name,
                         str_nym_id,     // This is the Nym WHOSE BOX IT IS.
                         *p_str_account, // This is the Nym's account for this
                                         // box. (Blank for incoming, set for
@@ -2683,12 +2675,11 @@ bool OTRecordList::Populate()
         "================ %s: Looping through the accounts in the wallet...\n",
         __FUNCTION__);
     int32_t nAccountIndex = -1;
-    FOR_EACH_IT(list_of_strings, m_accounts, it_acct)
-    {
+    for (auto& it_acct : m_accounts) {
         ++nAccountIndex; // (0 on first iteration.)
         // For each account, loop through its inbox, outbox, and record box.
         //
-        const std::string& str_account_id(*it_acct);
+        const std::string& str_account_id(it_acct);
         const OTIdentifier theAccountID(str_account_id);
         OTAccount* pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(NULL != pAccount);
@@ -3738,9 +3729,8 @@ void OTRecordList::AddSpecialMsg(
     // we'd end up with bad pointer problems.
     //
     if (!str_my_nym_id.empty()) {
-        FOR_EACH_IT(list_of_strings, m_nyms, it_nym)
-        {
-            const std::string& str_nym_id(*it_nym);
+        for (auto& it_nym : m_nyms) {
+            const std::string& str_nym_id(it_nym);
 
             if (0 == str_my_nym_id.compare(str_nym_id)) {
                 p_str_nym_id = &str_nym_id;

@@ -4907,11 +4907,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             // from my issued list of transaction numbers (like
                             // above.)
 
-                            FOR_EACH_IT(listOfItems,
-                                        pReplyTransaction->GetItemList(),
-                                        it_bigloop)
-                            {
-                                OTItem* pReplyItem = *it_bigloop;
+                            for (auto& it_bigloop :
+                                 pReplyTransaction->GetItemList()) {
+                                OTItem* pReplyItem = it_bigloop;
                                 OT_ASSERT_MSG(NULL != pReplyItem,
                                               "OTClient::ProcessServerReply: "
                                               "Pointer should not have been "

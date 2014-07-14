@@ -1168,11 +1168,10 @@ bool OTParty::LoadAndVerifyAssetAccounts(
     std::set<std::string> theAcctIDSet; // Make sure all the acct IDs are
                                         // unique.
 
-    FOR_EACH_IT(mapOfPartyAccounts, m_mapPartyAccounts, it_acct)
-    {
-        const std::string str_acct_name = (*it_acct).first;
-        OTPartyAccount* pPartyAcct = (*it_acct).second;
-        OT_ASSERT(NULL != pPartyAcct);
+    for (auto& it_acct : m_mapPartyAccounts) {
+        const std::string str_acct_name = it_acct.first;
+        OTPartyAccount* pPartyAcct = it_acct.second;
+        OT_ASSERT(pPartyAcct != nullptr);
 
         bool bHadToLoadtheAcctMyself = true;
         OTAccount* pAccount = NULL;
@@ -1302,14 +1301,9 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 
     const OTString strServerNymID(theServerNym);
 
-    FOR_EACH_IT(mapOfAgents, m_mapAgents, it_agent) // Until entities are coded,
-                                                    // there can only be one
-                                                    // agent, who has the same
-                                                    // ID as the owner (Nym
-                                                    // representing himself)
-    {
-        OTAgent* pAgent = (*it_agent).second;
-        OT_ASSERT_MSG(NULL != pAgent,
+    for (auto& it_agent : m_mapAgents) {
+        OTAgent* pAgent = it_agent.second;
+        OT_ASSERT_MSG(pAgent != nullptr,
                       "Unexpected NULL agent pointer in party map.");
 
         if (!pAgent->IsAnIndividual() || !pAgent->DoesRepresentHimself()) {

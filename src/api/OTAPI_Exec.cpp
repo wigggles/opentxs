@@ -10437,9 +10437,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     OTPseudonym theTempNym;
 
-    FOR_EACH_IT(listOfItems, pTransaction->GetItemList(), it_bigloop)
-    {
-        OTItem* pItem = *it_bigloop;
+    for (auto& it_bigloop : pTransaction->GetItemList()) {
+        OTItem* pItem = it_bigloop;
         if (NULL == pItem) {
             OTLog::vError("%s: Pointer: %s should not have been \"\".\n",
                           __FUNCTION__, "pItem");
