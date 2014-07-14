@@ -13225,35 +13225,37 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
         return 0;
     }
 
-    string strIndex = "";
     int32_t nIndex = -1;
-
     if (VerifyExists("Args", false)) {
-        strIndex = OT_CLI_GetValueByKey(Args, "index");
-
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
             nIndex = to_int(strIndex);
-        }
-    }
-
-    //
-    int32_t nReturnVal = 1;
-
-    if (nIndex > -1) {
-        nReturnVal = show_mail_message(MyNym, nIndex, true) ? 1 : -1;
-    }
-    else {
-        OTAPI_Wrap::Output(0, "\n Mail contents:\n\n");
-
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_mail_message(MyNym, nIndex, false)) {
-                OTAPI_Wrap::Output(0, "show_mail_message returned false. I'll "
-                                      "finish out the loop, but that's "
-                                      "weird.\n");
-                nReturnVal = -1;
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return -1;
             }
         }
     }
+
+    if (nIndex > -1) {
+        if (!show_mail_message(MyNym, nIndex, true)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve mail message.\n");
+            return -1;
+        }
+        return 1;
+    }
+
+    OTAPI_Wrap::Output(0, "\n Mail contents:\n\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_mail_message(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve mail message.\n");
+            nReturnVal = -1;
+        }
+    }
+
     return nReturnVal;
 }
 
@@ -13328,30 +13330,34 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
         return 0;
     }
 
-    string strIndex = "";
     int32_t nIndex = -1;
-
     if (VerifyExists("Args", false)) {
-        strIndex = OT_CLI_GetValueByKey(Args, "index");
-
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
             nIndex = to_int(strIndex);
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return -1;
+            }
         }
     }
 
-    int32_t nReturnVal = 1;
-
     if (nIndex > -1) {
-        nReturnVal = show_outmail_message(MyNym, nIndex, true) ? 1 : -1;
+        if (!show_outmail_message(MyNym, nIndex, true)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail message.\n");
+            return -1;
+        }
+        return 1;
     }
-    else {
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_outmail_message(MyNym, nIndex, false)) {
-                OTAPI_Wrap::Output(0, "show_outmail_message returned false. "
-                                      "I'll finish out the loop, but that's "
-                                      "weird.\n");
-                nReturnVal = -1;
-            }
+
+    OTAPI_Wrap::Output(0, "\n Outmail contents:\n\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_outmail_message(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail message.\n");
+            nReturnVal = -1;
         }
     }
 
@@ -13588,19 +13594,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
         return -1;
     }
 
-    string strIndex = "";
-    int32_t nIndex = -1;
-
-    if (VerifyExists("Args", false)) {
-        strIndex = OT_CLI_GetValueByKey(
-            Args, "index"); // OTNumList will be used for this value.
-
-        if (VerifyStringVal(strIndex)) {
-            nIndex = to_int(strIndex);
-        }
-    }
-
-    //
     int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(MyNym);
     if (0 > nCount) {
         OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayments for Nym: " +
@@ -13613,28 +13606,34 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
         return 0;
     }
 
-    if (!(nIndex < nCount)) {
-        OTAPI_Wrap::Output(0,
-                           "\nIndex (" + strIndex +
-                               ") out of bounds. (Acceptable range is 0 to " +
-                               to_string(nCount - 1) + ".)\n\n");
-        return 0;
-    }
+    int32_t nIndex = -1;
+    if (VerifyExists("Args", false)) {
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
-    int32_t nReturnVal = 1;
+        if (VerifyStringVal(strIndex)) {
+            nIndex = to_int(strIndex);
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return 0;
+            }
+        }
+    }
 
     if (nIndex > -1) {
         if (!show_outpayment(MyNym, nIndex, true)) {
-            nReturnVal = -1;
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayment.\n");
+            return -1;
         }
     }
-    else {
-        OTAPI_Wrap::Output(0, "\n\n===> SHOW OUTGOING PAYMENTS:\n");
 
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_outpayment(MyNym, nIndex, false)) {
-                nReturnVal = -1;
-            }
+    OTAPI_Wrap::Output(0, "\n\n===> SHOW OUTGOING PAYMENTS:\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_outpayment(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayment.\n");
+            nReturnVal = -1;
         }
     }
     return nReturnVal;
