@@ -1225,8 +1225,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 bool bWasFound = false;
                 bool bWasSent = false;
 
-                OTfourbool the_foursome(bMsgReplySuccess, bMsgReplyFailure,
-                                        bMsgTransSuccess, bMsgTransFailure);
+                OTfourbool the_foursome = {bMsgReplySuccess, bMsgReplyFailure,
+                                           bMsgTransSuccess, bMsgTransFailure};
 
                 bForceDownload = false;
 

@@ -3,6 +3,7 @@
 
 #include "OTCommon.hpp"
 
+#include <array>
 #include <string>
 
 #include <OTStorage.hpp>
@@ -55,31 +56,7 @@ EXPORT OT_UTILITY_OT bool VerifyStorable(OTDB::Storable* theStorableObjectRef,
 EXPORT OT_UTILITY_OT bool VerifyType(const void* theObjectRef,
                                      const string& strType);
 
-class OTfourbool
-{
-public:
-    bool one;
-    bool two;
-    bool three;
-    bool four;
-
-    OTfourbool()
-    {
-        one = false;
-        two = false;
-        three = false;
-        four = false;
-    }
-
-    OTfourbool(const bool param_one, const bool param_two,
-               const bool param_three, const bool param_four)
-    {
-        one = param_one;
-        two = param_two;
-        three = param_three;
-        four = param_four;
-    }
-};
+typedef std::array<bool, 4> OTfourbool;
 
 class Utility
 {
