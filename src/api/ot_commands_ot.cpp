@@ -4445,7 +4445,6 @@ OT_Command::details_send_transfer(const string& strMyAcctID,
     // we go riding off into the sunset sending transfer requests to the server.
     //
     string strHisServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strHisAcctID);
-
     if (!VerifyStringVal(strHisServerID)) {
         OTAPI_Wrap::Output(0, "HisAcct is not in the wallet, so I'm assuming "
                               "it's on the same server as MyAcct. "
@@ -5821,9 +5820,9 @@ OT_Command::details_create_offer(const string& strScale,
                 }
 
                 for (size_t i = 0; i < extra_vals.the_vector.size(); i++) {
-                    OTAPI_Wrap::Output(0, strLocation + ": Canceling market "
-                                                        "offer with "
-                                                        "transaction number: " +
+                    OTAPI_Wrap::Output(0, strLocation +
+                                              ": Canceling market offer with "
+                                              "transaction number: " +
                                               extra_vals.the_vector[i] + "\n");
 
                     OT_Command::details_kill_offer(strMyServerID, strMyNymID,
@@ -6203,7 +6202,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sign_contract()
     // simply adds yours to the list.
 
     string strUsage = concat(
-        "\n\n FYI, USAGE: sign \n",
+        "\n\n USAGE: sign \n",
         " Optionally, you may specify a contract type:  sign --args \"type "
         "LEDGER\"\nIn that example, the output would start with the bookend: "
         "-----BEGIN OT SIGNED LEDGER-----\n(You don't need to specify the type "
@@ -11710,7 +11709,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
 
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("Args")) {
-
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
         string strShowLargeMemo =
@@ -13062,9 +13060,8 @@ OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
         return false;
     }
 
-    if (!bMailVerified) // 1 meaning OT_TRUE.
-    {
-        print("UNVERIFIED mail! At index: " + to_string(nIndex));
+    if (!bMailVerified) {
+        print("UNVERIFIED mail! At index: " + to_string(nIndex) + "\n");
         //      return false;
     }
     else {
@@ -13276,10 +13273,8 @@ OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
         return false;
     }
 
-    if (!bMailVerified) // 1 meaning OT_TRUE.
-    {
-        print("UNVERIFIED sent (outgoing) mail! At index: " +
-              to_string(nIndex) + "\n");
+    if (!bMailVerified) {
+        print("UNVERIFIED outmail! At index: " + to_string(nIndex) + "\n");
         //      return false;
     }
     else {
@@ -13367,7 +13362,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
 OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
                                                        const string& strIndices)
 {
-
     int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(strMyNymID);
     if (0 > nCount) {
         OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail for Nym: " +
@@ -13476,9 +13470,10 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
         OTAPI_Wrap::Nym_VerifyOutpaymentsByIndex(strMyNym, nIndex);
 
     if (!VerifyBoolVal(bMailVerified)) {
-        OTAPI_Wrap::Output(0, "Error: bad result from "
-                              "OT_API_Nym_VerifyOutpaymentsByIndex at Index: " +
-                                  to_string(nIndex) + "\n");
+        OTAPI_Wrap::Output(
+            0,
+            "Error: bad result from  Nym_VerifyOutpaymentsByIndex at Index: " +
+                to_string(nIndex) + "\n");
         return false;
     }
 
