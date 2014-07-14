@@ -69,11 +69,9 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
         if (bDisplayError) {
             OTAPI_Wrap::Output(
                 0, "Missing variable: " + theObjectNameAsStr +
-                       ". Try adding it as a parameter, like this: " +
+                       ". Try adding it as a parameter, like this:\n" +
                        strDefault + "\n(Or if you prefer, set the default in "
-                                    "~/.ot/command-line-ot.opt)\nNOTE: If you "
-                                    "DID provide this variable, then the Nym "
-                                    "wasn't found.\n\n");
+                                    "~/.ot/command-line-ot.opt)\n\n");
         }
         return false;
     }
