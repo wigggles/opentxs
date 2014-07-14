@@ -13012,9 +13012,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outbox()
     return -1;
 }
 
-OT_COMMANDS_OT int32_t OT_Command::show_mail_message(const string& strMyNymID,
-                                                     const int32_t nIndex,
-                                                     const bool bShowContents)
+OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
+                                                  const int32_t nIndex,
+                                                  const bool bShowContents)
 {
     bool bMailVerified = OTAPI_Wrap::Nym_VerifyMailByIndex(strMyNymID, nIndex);
 
@@ -13226,9 +13226,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
 // pScript->chai.add(fun(&OTAPI_Wrap::Nym_RemoveMailByIndex),
 // "OT_API_Nym_RemoveMailByIndex");
 
-OT_COMMANDS_OT int32_t
-OT_Command::show_outmail_message(const string& strMyNymID, const int32_t nIndex,
-                                 const bool bShowContents)
+OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
+                                                     const int32_t nIndex,
+                                                     const bool bShowContents)
 {
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutmailByIndex(strMyNymID, nIndex);
