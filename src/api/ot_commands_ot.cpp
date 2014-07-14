@@ -1101,10 +1101,6 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                     const string& strMyAcct,
                                     const string& strIndices)
 {
-    int32_t nIndicesCount = OTAPI_Wrap::NumList_Count(strIndices);
-    int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(strMyNym);
-    int32_t nSuccess = 1;
-
     //    OTAPI_Wrap::Output(0, "\n\nNOTE: You can't just discard a sent cheque
     // from your outpayment box. Why not?\nJust because you remove your record
     // of the outgoing cheque, doesn't mean you didn't already send it. (The
@@ -1123,11 +1119,15 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
     // your record of it. You want to cancel the transaction number itself --
     // and that requires server communication.\n\n");
 
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(0, "Error retrieving outpayments count for Nym: " +
+    int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(strMyNym);
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayments for Nym: " +
                                   strMyNym + "\n");
         return -1;
     }
+
+    int32_t nIndicesCount = OTAPI_Wrap::NumList_Count(strIndices);
+    int32_t nSuccess = 1;
 
     if (nCount == 0) {
         OTAPI_Wrap::Output(0, "\n(Outpayment box is empty)\n\n");
@@ -13069,10 +13069,9 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
 {
 
     int32_t nCount = OTAPI_Wrap::GetNym_MailCount(strMyNymID);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_MailCount for Nym: " +
-                   strMyNymID + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve mail for Nym: " +
+                                  strMyNymID + "\n");
         return -1;
     }
 
@@ -13179,10 +13178,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
     }
 
     int32_t nCount = OTAPI_Wrap::GetNym_MailCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_MailCount for Nym: " +
-                   MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve mail for Nym: " + MyNym +
+                                  "\n");
         return -1;
     }
 
@@ -13283,10 +13281,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
     }
 
     int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_OutmailCount for Nym: " +
-                   MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail for Nym: " +
+                                  MyNym + "\n");
         return -1;
     }
 
@@ -13330,10 +13327,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
 {
 
     int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(strMyNymID);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_OutmailCount for Nym: " +
-                   strMyNymID + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail for Nym: " +
+                                  strMyNymID + "\n");
         return -1;
     }
 
@@ -13570,11 +13566,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
 
     //
     int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0,
-            "Error: bad result from OT_API_GetNym_OutpaymentsCount for Nym: " +
-                MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayments for Nym: " +
+                                  MyNym + "\n");
         return -1;
     }
 
