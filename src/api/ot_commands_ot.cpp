@@ -1130,7 +1130,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
     }
 
     if (nCount == 0) {
-        OTAPI_Wrap::Output(0, "(Outpayment box is empty.)\n");
+        OTAPI_Wrap::Output(0, "\n(Outpayment box is empty)\n\n");
         nSuccess = 0;
     }
     else {
@@ -13077,7 +13077,7 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Mail box is empty)\n\n");
         return 0;
     }
 
@@ -13187,7 +13187,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Mail box is empty)\n\n");
         return 0;
     }
 
@@ -13291,7 +13291,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Outmail box is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outmail box is empty)\n\n");
         return 0;
     }
 
@@ -13338,7 +13338,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Outgoing mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outmail box is empty)\n\n");
         return 0;
     }
 
@@ -13579,7 +13579,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\nSent (outgoing) payments box is empty.\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outpayment box is empty)\n\n");
         return 0;
     }
 
