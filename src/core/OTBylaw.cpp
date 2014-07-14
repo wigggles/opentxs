@@ -422,9 +422,8 @@ bool OTBylaw::Compare(OTBylaw& rhs)
         }
         // Now we loop through all the unique hook names, and get
         // the list of clauses for EACH bylaw for THAT HOOK.
-        FOR_EACH_IT_CONST(std::set<std::string>, theHookSet, it_hook)
-        {
-            const std::string& str_hook_name = *it_hook;
+        for (const auto& it_hook : theHookSet) {
+            const std::string& str_hook_name = it_hook;
 
             mapOfClauses theHookClauses, theHookClauses2;
 

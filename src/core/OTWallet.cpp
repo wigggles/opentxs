@@ -1132,9 +1132,8 @@ bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
             // So if we're removing the Nym from the wallet, we also remove its
             // ID from that set.
             //
-            FOR_EACH_IT_CONST(setOfIdentifiers, m_setNymsOnCachedKey, it_master)
-            {
-                const OTIdentifier& theNymID = *it_master;
+            for (const auto& it_master : m_setNymsOnCachedKey) {
+                const OTIdentifier& theNymID = it_master;
                 if (theTargetID == theNymID) {
                     m_setNymsOnCachedKey.erase(it_master);
                     break;
