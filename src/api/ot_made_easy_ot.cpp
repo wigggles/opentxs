@@ -701,13 +701,20 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
                                                        const string& NYM_ID,
                                                        const string& ASSET_ID)
 {
+    string strResponse = check_user(SERVER_ID, NYM_ID, NYM_ID);
+    if (1 != VerifyMessageSuccess(strResponse)) {
+        OTAPI_Wrap::Output(
+            0, "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n");
+        OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
+        OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
+        OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
+        return "";
+    }
 
     // HERE, WE MAKE SURE WE HAVE THE PROPER MINT...
     //
     // Download the public mintfile if it's not there, or if it's expired.
     // Also load it up into memory as a string (just to make sure it works.)
-    //
-    string strMint = "";
 
     // expired or missing.
     if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
@@ -721,16 +728,18 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
             OTAPI_Wrap::Output(0, "OT_ME_load_or_retrieve_mint: Unable to "
                                   "retrieve mint for IDs: \n");
             OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
+            OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
             OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
-            return strMint; // basically this means "return null".
+            return "";
         }
 
         if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
             OTAPI_Wrap::Output(0, "OT_ME_load_or_retrieve_mint: Retrieved "
                                   "mint, but still 'not good' for IDs: \n");
             OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
+            OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
             OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
-            return strMint; // basically this means "return null".
+            return "";
         }
     }
     // else // current mint IS available already on local storage (and not
@@ -740,15 +749,13 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
     // or not.
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
-    strMint = OTAPI_Wrap::LoadMint(SERVER_ID, ASSET_ID);
-
+    string strMint = OTAPI_Wrap::LoadMint(SERVER_ID, ASSET_ID);
     if (!VerifyStringVal(strMint)) {
         OTAPI_Wrap::Output(
             0, "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n");
-        OTAPI_Wrap::Output(0, concat("Server ID: ", SERVER_ID));
-        OTAPI_Wrap::Output(0, "\n");
-        OTAPI_Wrap::Output(0, concat(" Asset ID: ", ASSET_ID));
-        OTAPI_Wrap::Output(0, "\n");
+        OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
+        OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
+        OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
     }
 
     return strMint;

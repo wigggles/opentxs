@@ -1101,10 +1101,6 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                     const string& strMyAcct,
                                     const string& strIndices)
 {
-    int32_t nIndicesCount = OTAPI_Wrap::NumList_Count(strIndices);
-    int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(strMyNym);
-    int32_t nSuccess = 1;
-
     //    OTAPI_Wrap::Output(0, "\n\nNOTE: You can't just discard a sent cheque
     // from your outpayment box. Why not?\nJust because you remove your record
     // of the outgoing cheque, doesn't mean you didn't already send it. (The
@@ -1123,14 +1119,18 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
     // your record of it. You want to cancel the transaction number itself --
     // and that requires server communication.\n\n");
 
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(0, "Error retrieving outpayments count for Nym: " +
+    int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(strMyNym);
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayments for Nym: " +
                                   strMyNym + "\n");
         return -1;
     }
 
+    int32_t nIndicesCount = OTAPI_Wrap::NumList_Count(strIndices);
+    int32_t nSuccess = 1;
+
     if (nCount == 0) {
-        OTAPI_Wrap::Output(0, "(Outpayment box is empty.)\n");
+        OTAPI_Wrap::Output(0, "\n(Outpayment box is empty)\n\n");
         nSuccess = 0;
     }
     else {
@@ -1580,12 +1580,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_trigger_clause()
         string strParam = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempTransNum = OT_CLI_GetValueByKey(Args, "id");
             string strTempClause = OT_CLI_GetValueByKey(Args, "clause");
             string strTempParam = OT_CLI_GetValueByKey(Args, "param");
@@ -1794,12 +1788,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_credential()
         string strCredID = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempCredID = OT_CLI_GetValueByKey(Args, "id");
 
             if (!VerifyStringVal(strTempCredID)) {
@@ -2320,12 +2308,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
         string strExpiry = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 1"
-            //
             string strTempDates = OT_CLI_GetValueByKey(
                 Args, "date_range"); // "from,to"  Default 'from' (0 or "") ==
                                      // NOW (otherwise pass the time in
@@ -3911,12 +3893,6 @@ OT_Command::main_confirm() // smart contract and payment plan
     int32_t nIndex = -1;
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
 
@@ -4469,7 +4445,6 @@ OT_Command::details_send_transfer(const string& strMyAcctID,
     // we go riding off into the sunset sending transfer requests to the server.
     //
     string strHisServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strHisAcctID);
-
     if (!VerifyStringVal(strHisServerID)) {
         OTAPI_Wrap::Output(0, "HisAcct is not in the wallet, so I'm assuming "
                               "it's on the same server as MyAcct. "
@@ -4551,6 +4526,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("MyAcct") && VerifyExists("HisAcct")) {
+        string strAssetTypeID =
+            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
+        if (!VerifyStringVal(strAssetTypeID)) {
+            OTAPI_Wrap::Output(0,
+                               "\n\nFailure: Unable to find asset ID based on "
+                               "myacct. Use: --myacct ACCT_ID\n");
+            return -1;
+        }
+
         // strAmount and strNote...
         //
         string strAmount = "0"; // must be >= 1
@@ -4564,14 +4548,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            // EXAMPLE:  --args "amount 15 note \"Just a memo for the
-            // transfer.\""
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
             string strNewNote =
@@ -4586,9 +4562,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_transfer()
                 strNote = strNewNote;
             }
         }
-
-        string strAssetTypeID =
-            OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
         // If the transfer parameters aren't provided, then we
         // ask the user to supply them at the command line.
@@ -4643,12 +4616,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_nym()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"FT's test Nym\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4731,12 +4698,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_account()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"FT's issuer account\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4801,12 +4762,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_asset()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"Silver Grams\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4868,12 +4823,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_edit_server()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "label \"localhost server\""
-            //
             string strNewLabel =
                 OT_CLI_GetValueByKey(Args, "label"); // optional label field
 
@@ -4921,13 +4870,37 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendmsg()
 {
     // Just to show how easy it is, let's try a "send_user_message" message.
     //
-    string strUsage = "\n\n FYI, USAGE: sendmsg --mynym <YOUR_NYM_ID> --hisnym "
-                      "<RECIPIENT_NYM_ID>\n\n";
+    string strUsage = "\n\n USAGE: sendmsg --server <SERVER_ID> "
+                      "--mynym <YOUR_NYM_ID> --hisnym <RECIPIENT_NYM_ID>\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("HisNym")) {
+
+        string strName = OTAPI_Wrap::GetServer_Name(Server);
+        if (!VerifyStringVal(strName)) {
+            OTAPI_Wrap::Output(0,
+                               "Error: unkknown server ID: " + Server + "\n");
+            return -1;
+        }
+
+        string myPubKey =
+            MadeEasy::load_or_retrieve_encrypt_key(Server, MyNym, MyNym);
+        if (!VerifyStringVal(myPubKey)) {
+            OTAPI_Wrap::Output(0,
+                               "\n Failed: Unknown MyNym ID: " + MyNym + "\n");
+            return -1;
+        }
+
+        string hisPubKey =
+            MadeEasy::load_or_retrieve_encrypt_key(Server, MyNym, HisNym);
+        if (!VerifyStringVal(hisPubKey)) {
+            OTAPI_Wrap::Output(0, "\n Failed: Unknown HisNym ID: " + HisNym +
+                                      "\n");
+            return -1;
+        }
+
         OTAPI_Wrap::Output(0, "Please enter your message on multiple lines, "
                               "optionally beginning with a \"Subject: \" "
                               "line.\n");
@@ -5106,12 +5079,6 @@ OT_Command::details_write_cheque(string& strCheque,
             OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 100 memo \"my share for the BBQ\""
-            //
             string strNewAmount = OT_CLI_GetValueByKey(Args, "amount");
             string strNewMemo = OT_CLI_GetValueByKey(Args, "memo");
             string strNewLength = OT_CLI_GetValueByKey(Args, "validfor");
@@ -5328,18 +5295,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
     // the account in that case.)
 
     if (bMyAcctExists) {
-        string strAcctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
         string strAcctAssetID =
             OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
-        string strAcctNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
-        if (!VerifyStringVal(strAcctServerID)) {
-            OTAPI_Wrap::Output(
-                0, "\n Failed trying to retrieve ServerID based on MyAcct: " +
-                       MyAcct + "\n");
-            return -1;
-        }
-
         if (!VerifyStringVal(strAcctAssetID)) {
             OTAPI_Wrap::Output(
                 0,
@@ -5348,6 +5305,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
+        string strAcctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
+        if (!VerifyStringVal(strAcctServerID)) {
+            OTAPI_Wrap::Output(
+                0, "\n Failed trying to retrieve ServerID based on MyAcct: " +
+                       MyAcct + "\n");
+            return -1;
+        }
+
+        string strAcctNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
         if (!VerifyStringVal(strAcctNymID)) {
             OTAPI_Wrap::Output(
                 0, "\n Failed trying to retrieve NymID based on MyAcct: " +
@@ -5355,7 +5321,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
-        if (VerifyStringVal(strServerID) && (strAcctServerID != strServerID)) {
+        if (VerifyStringVal(strServerID) && strAcctServerID != strServerID) {
             OTAPI_Wrap::Output(
                 0, "\n Server ID provided on the command line doesn't match "
                    "the Server ID for MyAcct. Expected: " +
@@ -5365,7 +5331,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
         }
 
         if (VerifyStringVal(strAssetTypeID) &&
-            (strAcctAssetID != strAssetTypeID)) {
+            strAcctAssetID != strAssetTypeID) {
             OTAPI_Wrap::Output(
                 0, "\n Asset Type ID provided on the command line doesn't "
                    "match the Asset Type ID of MyAcct. Expected: " +
@@ -5374,7 +5340,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
             return -1;
         }
 
-        if (VerifyStringVal(strMyNymID) && (strAcctNymID != strMyNymID)) {
+        if (VerifyStringVal(strMyNymID) && strAcctNymID != strMyNymID) {
             OTAPI_Wrap::Output(0, "\n Nym ID provided on the command line "
                                   "doesn't match the Nym ID for MyAcct. "
                                   "Expected: " +
@@ -5434,104 +5400,103 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
     // to,
     // try to get the remaining funds from the account, IF that's available.
     //
-    int32_t nReturnVal = -1;
+    if (!VerifyExists("HisNym")) {
+        OTAPI_Wrap::Output(
+            0, "\n Failed: Missing HisNym ID. Try adding: --hisnym <NYM_ID>\n");
+        return -1;
+    }
 
-    if (VerifyExists("HisNym")) {
+    // Make sure the recipient exists first.
+    // That will avoid starting the cash withdrawal process unnecessarily
+    string hisPubKey =
+        MadeEasy::load_or_retrieve_encrypt_key(strServerID, strMyNymID, HisNym);
+    if (!VerifyStringVal(hisPubKey)) {
+        OTAPI_Wrap::Output(0, "\n Failed: Unknown HisNym ID: " + HisNym + "\n");
+        return -1;
+    }
 
-        // strAmount
+    // strAmount
+    //
+    string strAmount = "0"; // must be >= 1
+    string strMemo = "";    // can be blank
+
+    string strDefaultAmount = "1";                // must be >= 1
+    string strDefaultMemo = "(blank memo field)"; // can be blank
+
+    string strIndices = ""; // If indices are not specified, we derive them
+                            // from the amount. Otherwise we go with the
+                            // selected indices.
+    bool bPasswordProtected = false;
+
+    // If custom arguments have been passed on the command line,
+    // then grab them and use them instead of asking the user to enter them
+    // at the command line.
+    //
+    if (VerifyExists("Args", false)) // displayErrorMsg=false
+    {
+        strIndices = OT_CLI_GetValueByKey(
+            Args, "indices"); // OTNumList will be used for this value.
+
+        string strPasswordProtected = OT_CLI_GetValueByKey(Args, "passwd");
+
+        string strNewAmount =
+            OT_CLI_GetValueByKey(Args, "amount"); // any integer value
+        string strNewMemo =
+            OT_CLI_GetValueByKey(Args, "memo"); // optional memo field
+
+        // Set the values based on the custom arguments, for those found.
         //
-        string strAmount = "0"; // must be >= 1
-        string strMemo = "";    // can be blank
-
-        string strDefaultAmount = "1";                // must be >= 1
-        string strDefaultMemo = "(blank memo field)"; // can be blank
-
-        string strIndices = ""; // If indices are not specified, we derive them
-                                // from the amount. Otherwise we go with the
-                                // selected indices.
-        bool bPasswordProtected = false;
-
-        // If custom arguments have been passed on the command line,
-        // then grab them and use them instead of asking the user to enter them
-        // at the command line.
-        //
-        if (VerifyExists("Args", false)) // displayErrorMsg=false
-        {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            //
-            // EXAMPLE:  --args "indices \"all\" "
-            //
-            strIndices = OT_CLI_GetValueByKey(
-                Args, "indices"); // OTNumList will be used for this value.
-
-            string strPasswordProtected = OT_CLI_GetValueByKey(Args, "passwd");
-
-            string strNewAmount =
-                OT_CLI_GetValueByKey(Args, "amount"); // any integer value
-            string strNewMemo =
-                OT_CLI_GetValueByKey(Args, "memo"); // optional memo field
-
-            // Set the values based on the custom arguments, for those found.
-            //
-            if (VerifyStringVal(strNewAmount)) {
-                strAmount = strNewAmount;
-            }
-            if (VerifyStringVal(strNewMemo)) {
-                strMemo = strNewMemo;
-            }
-            if (VerifyStringVal(strPasswordProtected) &&
-                ("true" == strPasswordProtected)) {
-                bPasswordProtected = true;
-            }
+        if (VerifyStringVal(strNewAmount)) {
+            strAmount = strNewAmount;
         }
-
-        // If the withdrawal parameters aren't provided, then we
-        // ask the user to supply them at the command line.
-        //
-        if ((!VerifyStringVal(strAmount) ||
-             (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) &&
-            !VerifyStringVal(strIndices)) // If no indices are selected, then we
-                                          // NEED to know the amount...
-        {
-            OTAPI_Wrap::Output(0,
-                               "Enter the amount[" + strDefaultAmount + "]: ");
-            strAmount = OT_CLI_ReadLine();
+        if (VerifyStringVal(strNewMemo)) {
+            strMemo = strNewMemo;
         }
-
-        if (!VerifyStringVal(strAmount) ||
-            (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) {
-            strAmount = strDefaultAmount;
-        }
-
-        if (!VerifyStringVal(strMemo)) {
-            OTAPI_Wrap::Output(0, "Optionally, enter a memo on a single line[" +
-                                      strDefaultMemo + "]: ");
-            strMemo = OT_CLI_ReadLine();
-        }
-
-        string strResponse = "";
-
-        nReturnVal = details_send_cash(strResponse, strServerID, strAssetTypeID,
-                                       strMyNymID, strMyAcctID, HisNym, strMemo,
-                                       strAmount, strIndices,
-                                       bPasswordProtected); // <=======
-
-        if (1 != nReturnVal) {
-            OTAPI_Wrap::Output(0,
-                               "main_sendcash: Failed in details_send_cash.\n");
-        }
-        else {
-            OTAPI_Wrap::Output(0, "Success in sendcash! Server response:\n\n");
-            print(strResponse);
-            OTAPI_Wrap::Output(0, "(Success in sendcash)\n");
+        if (VerifyStringVal(strPasswordProtected) &&
+            ("true" == strPasswordProtected)) {
+            bPasswordProtected = true;
         }
     }
 
-    return nReturnVal;
+    // If the withdrawal parameters aren't provided, then we
+    // ask the user to supply them at the command line.
+    //
+    if ((!VerifyStringVal(strAmount) ||
+         (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) &&
+        !VerifyStringVal(strIndices)) // If no indices are selected, then we
+                                      // NEED to know the amount...
+    {
+        OTAPI_Wrap::Output(0, "Enter the amount[" + strDefaultAmount + "]: ");
+        strAmount = OT_CLI_ReadLine();
+    }
+
+    if (!VerifyStringVal(strAmount) ||
+        (OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount) < 1)) {
+        strAmount = strDefaultAmount;
+    }
+
+    if (!VerifyStringVal(strMemo)) {
+        OTAPI_Wrap::Output(0, "Optionally, enter a memo on a single line[" +
+                                  strDefaultMemo + "]: ");
+        strMemo = OT_CLI_ReadLine();
+    }
+
+    string strResponse = "";
+
+    int32_t nReturnVal = details_send_cash(
+        strResponse, strServerID, strAssetTypeID, strMyNymID, strMyAcctID,
+        HisNym, strMemo, strAmount, strIndices, bPasswordProtected); // <=======
+
+    if (1 != nReturnVal) {
+        OTAPI_Wrap::Output(0, "main_sendcash: Failed in details_send_cash.\n");
+        return -1;
+    }
+
+    OTAPI_Wrap::Output(0, "Success in sendcash! Server response:\n\n");
+    print(strResponse);
+    OTAPI_Wrap::Output(0, "(Success in sendcash)\n");
+
+    return 1;
 }
 
 OT_COMMANDS_OT int32_t OT_Command::main_sendcheque()
@@ -5855,9 +5820,9 @@ OT_Command::details_create_offer(const string& strScale,
                 }
 
                 for (size_t i = 0; i < extra_vals.the_vector.size(); i++) {
-                    OTAPI_Wrap::Output(0, strLocation + ": Canceling market "
-                                                        "offer with "
-                                                        "transaction number: " +
+                    OTAPI_Wrap::Output(0, strLocation +
+                                              ": Canceling market offer with "
+                                              "transaction number: " +
                                               extra_vals.the_vector[i] + "\n");
 
                     OT_Command::details_kill_offer(strMyServerID, strMyNymID,
@@ -5937,13 +5902,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_offer()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "type bid scale 1 quantity 100 price 101"
-            // EXAMPLE:  --args "type ask scale 1 quantity 100 price 101"
-            //
             string strNewScale =
                 OT_CLI_GetValueByKey(Args, "scale"); // 1, 10, 100, 1000, etc
             string strNewMinInc = OT_CLI_GetValueByKey(
@@ -6244,7 +6202,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sign_contract()
     // simply adds yours to the list.
 
     string strUsage = concat(
-        "\n\n FYI, USAGE: sign \n",
+        "\n\n USAGE: sign \n",
         " Optionally, you may specify a contract type:  sign --args \"type "
         "LEDGER\"\nIn that example, the output would start with the bookend: "
         "-----BEGIN OT SIGNED LEDGER-----\n(You don't need to specify the type "
@@ -6789,13 +6747,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_nym()
     string strAltLocation = "";
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        //
-        // EXAMPLE:  --args "keybits 1024"
-        //
         string strKeybits = OT_CLI_GetValueByKey(Args, "keybits");
         string strNewName = OT_CLI_GetValueByKey(Args, "name");
         string strNewSource = OT_CLI_GetValueByKey(Args, "source");
@@ -7541,13 +7492,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_download_contract()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "contract_id
-            // CvHGtfOOKzQKL5hFL7J4iF5yAodVKhS1rxPzME5R9XA"
-            //
             string strNewContractID = OT_CLI_GetValueByKey(Args, "contract_id");
 
             // Set the values based on the custom arguments, for those found.
@@ -7861,12 +7805,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_box_receipt()
         // at the command line.
         //
         if (VerifyExists("Args")) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "box_type 0 id 98"
-            //
             string strNewID = OT_CLI_GetValueByKey(Args, "id");
             string strNewType = OT_CLI_GetValueByKey(Args, "box_type");
 
@@ -8065,12 +8003,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_withdraw_cash()
         //
         if (VerifyExists("Args", false)) // displayErrorMsg=false
         {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
 
@@ -8215,14 +8147,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
     string strAssetTypeID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "amount 1"
-        // EXAMPLE:  --args "amount 15 memo \"Just a memo for the voucher
-        // cheque.\""
-        //
         string strNewAmount =
             OT_CLI_GetValueByKey(Args, "amount"); // any integer value
         string strNewMemo =
@@ -8748,12 +8672,6 @@ OT_COMMANDS_OT int32_t OT_Command::impl_show_market_offers(string& strMarket)
         // at the command line.
         //
         if (!VerifyStringVal(strMarket) && VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "market MARKET_ID"
-            //
             string strNewMarket =
                 OT_CLI_GetValueByKey(Args, "market"); // the market ID
 
@@ -8811,12 +8729,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_get_market_offers()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "market MARKET_ID depth 50"
-            //
             string strNewMarket =
                 OT_CLI_GetValueByKey(Args, "market"); // the market ID
             string strNewDepth = OT_CLI_GetValueByKey(
@@ -8905,12 +8817,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_adjust_usage_credits()
         string strAdjustment = "0";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "adjust 1"
-            //
             string strNewAdjust = OT_CLI_GetValueByKey(
                 Args,
                 "adjust"); // any positive or negative integer value, or zero.
@@ -9312,14 +9218,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_pay_dividend()
         // at the command line.
         //
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "amount 1"
-            // EXAMPLE:  --args "amount 15 memo \"Just a memo for the dividend
-            // payout.\""
-            //
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
             string strNewNote =
@@ -9802,15 +9700,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string& strServerID,
         // You can also specify to deposit ALL tokens in your cash purse.
         // Without this extra argument, OT will ask you to paste an instrument,
         // and then will dynamically determine its contract type.
-        //
-
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "indices 4,6,9"
-        // EXAMPLE:  --args "indices all"
-        //
         strIndices = OT_CLI_GetValueByKey(
             Args, "indices"); // OTNumList will be used for this value.
     }
@@ -10453,13 +10342,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_export_cash()
         bool bPasswordProtected = false;
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "indices 4,6,9"
-            // EXAMPLE:  --args "indices \"all\" "
-            //
             strIndices = OT_CLI_GetValueByKey(
                 Args, "indices"); // OTNumList will be used for this value.
 
@@ -11509,12 +11391,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_payinvoice()
     int32_t nIndex = -1;
 
     if (VerifyExists("Args")) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
 
@@ -11833,13 +11709,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
 
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("Args")) {
-
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 1"
-        //
         string strIndex =
             OT_CLI_GetValueByKey(Args, "index"); // any integer value
         string strShowLargeMemo =
@@ -13177,9 +13046,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outbox()
     return -1;
 }
 
-OT_COMMANDS_OT int32_t OT_Command::show_mail_message(const string& strMyNymID,
-                                                     const int32_t nIndex,
-                                                     const bool bShowContents)
+OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
+                                                  const int32_t nIndex,
+                                                  const bool bShowContents)
 {
     bool bMailVerified = OTAPI_Wrap::Nym_VerifyMailByIndex(strMyNymID, nIndex);
 
@@ -13191,9 +13060,8 @@ OT_COMMANDS_OT int32_t OT_Command::show_mail_message(const string& strMyNymID,
         return false;
     }
 
-    if (!bMailVerified) // 1 meaning OT_TRUE.
-    {
-        print("UNVERIFIED mail! At index: " + to_string(nIndex));
+    if (!bMailVerified) {
+        print("UNVERIFIED mail! At index: " + to_string(nIndex) + "\n");
         //      return false;
     }
     else {
@@ -13234,15 +13102,14 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
 {
 
     int32_t nCount = OTAPI_Wrap::GetNym_MailCount(strMyNymID);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_MailCount for Nym: " +
-                   strMyNymID + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve mail for Nym: " +
+                                  strMyNymID + "\n");
         return -1;
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Mail box is empty)\n\n");
         return 0;
     }
 
@@ -13312,13 +13179,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_del_mail()
         string strIndices = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 5 "
-            //
-
             string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
             if (VerifyStringVal(strIndex)) {
@@ -13351,62 +13211,57 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mail()
     }
 
     int32_t nCount = OTAPI_Wrap::GetNym_MailCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_MailCount for Nym: " +
-                   MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve mail for Nym: " + MyNym +
+                                  "\n");
         return -1;
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Mail box is empty)\n\n");
         return 0;
     }
 
-    string strIndex = "";
     int32_t nIndex = -1;
-
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
-        strIndex = OT_CLI_GetValueByKey(Args, "index");
-
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
             nIndex = to_int(strIndex);
-        }
-    }
-
-    //
-    int32_t nReturnVal = 1;
-
-    if (nIndex > -1) {
-        nReturnVal = show_mail_message(MyNym, nIndex, true) ? 1 : -1;
-    }
-    else {
-        OTAPI_Wrap::Output(0, "\n Mail contents:\n\n");
-
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_mail_message(MyNym, nIndex, false)) {
-                OTAPI_Wrap::Output(0, "show_mail_message returned false. I'll "
-                                      "finish out the loop, but that's "
-                                      "weird.\n");
-                nReturnVal = -1;
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return -1;
             }
         }
     }
+
+    if (nIndex > -1) {
+        if (!show_mail_message(MyNym, nIndex, true)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve mail message.\n");
+            return -1;
+        }
+        return 1;
+    }
+
+    OTAPI_Wrap::Output(0, "\n Mail contents:\n\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_mail_message(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve mail message.\n");
+            nReturnVal = -1;
+        }
+    }
+
     return nReturnVal;
 }
 
 // pScript->chai.add(fun(&OTAPI_Wrap::Nym_RemoveMailByIndex),
 // "OT_API_Nym_RemoveMailByIndex");
 
-OT_COMMANDS_OT int32_t
-OT_Command::show_outmail_message(const string& strMyNymID, const int32_t nIndex,
-                                 const bool bShowContents)
+OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
+                                                     const int32_t nIndex,
+                                                     const bool bShowContents)
 {
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutmailByIndex(strMyNymID, nIndex);
@@ -13418,10 +13273,8 @@ OT_Command::show_outmail_message(const string& strMyNymID, const int32_t nIndex,
         return false;
     }
 
-    if (!bMailVerified) // 1 meaning OT_TRUE.
-    {
-        print("UNVERIFIED sent (outgoing) mail! At index: " +
-              to_string(nIndex) + "\n");
+    if (!bMailVerified) {
+        print("UNVERIFIED outmail! At index: " + to_string(nIndex) + "\n");
         //      return false;
     }
     else {
@@ -13461,48 +13314,45 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
     }
 
     int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_OutmailCount for Nym: " +
-                   MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail for Nym: " +
+                                  MyNym + "\n");
         return -1;
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Outmail box is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outmail box is empty)\n\n");
         return 0;
     }
 
-    string strIndex = "";
     int32_t nIndex = -1;
-
     if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
-        strIndex = OT_CLI_GetValueByKey(Args, "index");
-
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
             nIndex = to_int(strIndex);
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return -1;
+            }
         }
     }
 
-    int32_t nReturnVal = 1;
-
     if (nIndex > -1) {
-        nReturnVal = show_outmail_message(MyNym, nIndex, true) ? 1 : -1;
+        if (!show_outmail_message(MyNym, nIndex, true)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail message.\n");
+            return -1;
+        }
+        return 1;
     }
-    else {
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_outmail_message(MyNym, nIndex, false)) {
-                OTAPI_Wrap::Output(0, "show_outmail_message returned false. "
-                                      "I'll finish out the loop, but that's "
-                                      "weird.\n");
-                nReturnVal = -1;
-            }
+
+    OTAPI_Wrap::Output(0, "\n Outmail contents:\n\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_outmail_message(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail message.\n");
+            nReturnVal = -1;
         }
     }
 
@@ -13512,17 +13362,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outmail()
 OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
                                                        const string& strIndices)
 {
-
     int32_t nCount = OTAPI_Wrap::GetNym_OutmailCount(strMyNymID);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0, "Error: bad result from OT_API_GetNym_OutmailCount for Nym: " +
-                   strMyNymID + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outmail for Nym: " +
+                                  strMyNymID + "\n");
         return -1;
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\n(Outgoing mail is empty.)\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outmail box is empty)\n\n");
         return 0;
     }
 
@@ -13594,13 +13442,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_del_outmail()
         string strIndices = "";
 
         if (VerifyExists("Args", false)) {
-            // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-            //                                  const std::string str_key)
-            //
-            // OPTION:   --args "key value key value"
-            // EXAMPLE:  --args "index 5 "
-            //
-
             string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
             if (VerifyStringVal(strIndex)) {
@@ -13629,9 +13470,10 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
         OTAPI_Wrap::Nym_VerifyOutpaymentsByIndex(strMyNym, nIndex);
 
     if (!VerifyBoolVal(bMailVerified)) {
-        OTAPI_Wrap::Output(0, "Error: bad result from "
-                              "OT_API_Nym_VerifyOutpaymentsByIndex at Index: " +
-                                  to_string(nIndex) + "\n");
+        OTAPI_Wrap::Output(
+            0,
+            "Error: bad result from  Nym_VerifyOutpaymentsByIndex at Index: " +
+                to_string(nIndex) + "\n");
         return false;
     }
 
@@ -13747,61 +13589,46 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outpayment()
         return -1;
     }
 
-    string strIndex = "";
-    int32_t nIndex = -1;
-
-    if (VerifyExists("Args", false)) {
-        // std::string OT_CLI_GetValueByKey(const std::string str_Args,
-        //                                  const std::string str_key)
-        //
-        // OPTION:   --args "key value key value"
-        // EXAMPLE:  --args "index 5 "
-        //
-        strIndex = OT_CLI_GetValueByKey(
-            Args, "index"); // OTNumList will be used for this value.
-
-        if (VerifyStringVal(strIndex)) {
-            nIndex = to_int(strIndex);
-        }
-    }
-
-    //
     int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(MyNym);
-    if (!VerifyIntVal(nCount)) {
-        OTAPI_Wrap::Output(
-            0,
-            "Error: bad result from OT_API_GetNym_OutpaymentsCount for Nym: " +
-                MyNym + "\n");
+    if (0 > nCount) {
+        OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayments for Nym: " +
+                                  MyNym + "\n");
         return -1;
     }
 
     if (0 == nCount) {
-        OTAPI_Wrap::Output(0, "\nSent (outgoing) payments box is empty.\n\n");
+        OTAPI_Wrap::Output(0, "\n(Outpayment box is empty)\n\n");
         return 0;
     }
 
-    if (!(nIndex < nCount)) {
-        OTAPI_Wrap::Output(0,
-                           "\nIndex (" + strIndex +
-                               ") out of bounds. (Acceptable range is 0 to " +
-                               to_string(nCount - 1) + ".)\n\n");
-        return 0;
-    }
+    int32_t nIndex = -1;
+    if (VerifyExists("Args", false)) {
+        string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
-    int32_t nReturnVal = 1;
+        if (VerifyStringVal(strIndex)) {
+            nIndex = to_int(strIndex);
+            if (nIndex >= nCount) {
+                OTAPI_Wrap::Output(0, "Error: invalid message index: " +
+                                          strIndex + "\n");
+                return 0;
+            }
+        }
+    }
 
     if (nIndex > -1) {
         if (!show_outpayment(MyNym, nIndex, true)) {
-            nReturnVal = -1;
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayment.\n");
+            return -1;
         }
     }
-    else {
-        OTAPI_Wrap::Output(0, "\n\n===> SHOW OUTGOING PAYMENTS:\n");
 
-        for (nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!show_outpayment(MyNym, nIndex, false)) {
-                nReturnVal = -1;
-            }
+    OTAPI_Wrap::Output(0, "\n\n===> SHOW OUTGOING PAYMENTS:\n");
+
+    int32_t nReturnVal = 1;
+    for (nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!show_outpayment(MyNym, nIndex, false)) {
+            OTAPI_Wrap::Output(0, "Error: cannot retrieve outpayment.\n");
+            nReturnVal = -1;
         }
     }
     return nReturnVal;

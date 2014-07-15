@@ -2866,7 +2866,7 @@ int32_t OTAPI_Exec::GetNym_MailCount(const std::string& NYM_ID)
     }
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-    if (NULL == pNym) return 0;
+    if (NULL == pNym) return -1;
     return pNym->GetMailCount();
 }
 
@@ -3063,7 +3063,7 @@ int32_t OTAPI_Exec::GetNym_OutmailCount(const std::string& NYM_ID)
     }
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-    if (NULL == pNym) return 0;
+    if (NULL == pNym) return -1;
     return pNym->GetOutmailCount();
 }
 
@@ -3259,7 +3259,7 @@ int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID)
     }
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
-    if (NULL == pNym) return 0;
+    if (NULL == pNym) return -1;
     return pNym->GetOutpaymentsCount();
 }
 

@@ -183,10 +183,10 @@ public:
         const string& strMyNymID, int64_t& lAmount,
         string& strIndices); // If strIndices is input, lAmount is output. (And
                              // vice-versa.);
-    EXPORT OT_COMMANDS_OT static int32_t show_mail_message(
+    EXPORT OT_COMMANDS_OT static bool show_mail_message(
         const string& strMyNymID, const int32_t nIndex,
         const bool bShowContents);
-    EXPORT OT_COMMANDS_OT static int32_t show_outmail_message(
+    EXPORT OT_COMMANDS_OT static bool show_outmail_message(
         const string& strMyNymID, const int32_t nIndex,
         const bool bShowContents);
     EXPORT OT_COMMANDS_OT static bool show_outpayment(const string& strMyNym,
