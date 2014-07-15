@@ -459,35 +459,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //
 //}
 
-// attr OTfourbool::one
-// attr OTfourbool::two
-// attr OTfourbool::three
-// attr OTfourbool::four
-//
-//// ----------------------------
-// OT_UTILITY_OT int32_t OTfourbool::OTfourbool()
-//{
-//    one = false;
-//    two = false;
-//    three = false;
-//    four = false;
-//}
-//// ----------------------------
-// OT_UTILITY_OT int32_t OTfourbool::OTfourbool(param_one, param_two,
-// param_three, param_four)
-//{
-//    if (!VerifyBoolVal(param_one) || !VerifyBoolVal(param_two) ||
-// !VerifyBoolVal(param_three) || !VerifyBoolVal(param_four))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to OTfourbool
-// constructor!\n");
-//    }
-//    one = param_one;
-//    two = param_two;
-//    three = param_three;
-//    four = param_four;
-//}
-
 ////
 ///********************************************************************************
 //
@@ -1037,10 +1008,10 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 {
     string strLocation = "Utility::getAndProcessNymbox";
 
-    bool bMsgReplySuccess = bMsgFoursome.one;
-    bool bMsgReplyFailure = bMsgFoursome.two;
-    bool bMsgTransSuccess = bMsgFoursome.three;
-    bool bMsgTransFailure = bMsgFoursome.four;
+    bool bMsgReplySuccess = bMsgFoursome[0];
+    bool bMsgReplyFailure = bMsgFoursome[1];
+    bool bMsgTransSuccess = bMsgFoursome[2];
+    bool bMsgTransFailure = bMsgFoursome[3];
 
     if (!VerifyIntVal(nRequestNumber)) {
         OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber as an "
@@ -1737,7 +1708,7 @@ Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
 
     int32_t nRequestNumber = 0;
     bool bHarvestingForRetry = false;
-    OTfourbool the_foursome(false, false, false, false);
+    OTfourbool the_foursome = {false, false, false, false};
     bool bFoundNymboxItem = false; // bFoundNymboxItem is output bool, telling
                                    // caller whether it was found.;
 
