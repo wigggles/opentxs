@@ -683,8 +683,7 @@ bool OTAssetContract::ForEachAccountRecord(
                     otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
                 }
             }
-        } // FOR_EACH
-
+        }
         return true;
     }    // if pMap != NULL
     else // nothing was loaded up from local storage. No String Map. It was

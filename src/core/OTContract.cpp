@@ -590,10 +590,10 @@ const OTPseudonym* OTContract::GetContractPublicNym()
         if (it.first == "signer") {
             return pNym;
         }
-        else if (it.first == "contract") // TODO have a place for hardcoded
-                                           // values like this.
-        { // We're saying here that every contract has to have a key tag called
-            // "contract"
+        // TODO have a place for hardcoded values like this.
+        else if (it.first == "contract") {
+            // We're saying here that every contract has to have a key tag
+            // called "contract"
             // where the official public key can be found for it and for any
             // contract.
             return pNym;

@@ -3658,7 +3658,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
     //
     // We would have:
     // "theOriginator" (GetSenderUserID()) and "pActingNym" and pParty /
-    // pPartyNym (FOR_EACH Party[0..n])
+    // pPartyNym (for Party[0..n])
     //
     // Just like here:
     //
@@ -5955,14 +5955,12 @@ void OTSmartContract::UpdateContents()
         // This is a map of OTStash's, by stash_name.
         // EACH ONE contains a map of OTStashItems, by asset_type_id
 
-        for (auto& it : m_mapStashes) // These stashes are what the
-                                      // scripts interact with. They have
-                                      // names.
-        { // Whereas the stash accts (above) are the actual accountIDs
-            OTStash* pStash = it.second; // where the actual funds are stored
-                                         // for each asset type.
+        // These stashes are what the scripts interact with. They have names.
+        // Whereas the stash accts (above) are the actual accountIDs
+        for (auto& it : m_mapStashes) {
+            // where the actual funds are stored for each asset type.
+            OTStash* pStash = it.second;
             OT_ASSERT(NULL != pStash);
-
             pStash->Serialize(m_xmlUnsigned);
         }
     }

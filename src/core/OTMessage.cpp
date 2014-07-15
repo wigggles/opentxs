@@ -182,9 +182,10 @@ bool OTMessage::HarvestTransactionNumbers(
               << strLedger << "\n\n";
         return false;
     }
-    else // theLedger is loaded up!
-    { // Let's iterate through the transactions inside, and harvest whatever we
-        // can...
+    // theLedger is loaded up!
+    else {
+        // Let's iterate through the transactions inside, and harvest whatever
+        // we can...
         //
         for (auto& it : theLedger.GetTransactionMap()) {
             OTTransaction* pTransaction = it.second;

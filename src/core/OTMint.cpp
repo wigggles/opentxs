@@ -561,15 +561,12 @@ bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
         OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(NULL != pArmor,
                       "NULL mint pointer in OTMint::GetPrivate.\n");
-
-        if (it.first == lDenomination) // if this denomination (say, 50)
-                                       // matches the one passed in...
-        {
+        // if this denomination (say, 50) matches the one passed in
+        if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
             return true;
         }
     }
-
     return false;
 }
 
@@ -581,10 +578,8 @@ bool OTMint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
         OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(NULL != pArmor,
                       "NULL mint pointer in OTMint::GetPublic.\n");
-
-        if (it.first == lDenomination) // if this denomination (say, 50)
-                                       // matches the one passed in...
-        {
+        // if this denomination (say, 50) matches the one passed in
+        if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
             return true;
         }

@@ -533,7 +533,6 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
 
     // Loop through theRecipients, and add the public key of each one to a set
     // of keys.
-    //
     for (auto& it : theRecipients) {
         OTPseudonym* pNym = it;
         OT_ASSERT_MSG(NULL != pNym,

@@ -1629,14 +1629,12 @@ void OTPseudonym::RemoveAllNumbers(
 
     // This is mapped to acct_id, not server_id.
     // (So we just wipe them all.)
-    //
     for (auto it(m_mapInboxHash.begin()); it != m_mapInboxHash.end(); ++it) {
         listOfInboxHash.push_back(it);
     }
 
     // This is mapped to acct_id, not server_id.
     // (So we just wipe them all.)
-    //
     for (auto it(m_mapOutboxHash.begin()); it != m_mapOutboxHash.end(); ++it) {
         listOfOutboxHash.push_back(it);
     }
@@ -2167,8 +2165,8 @@ bool OTPseudonym::ResyncWithServer(OTLedger& theNymbox,
     const std::string strID = strServerID.Get();
 
     for (auto& it_high_num : this->m_mapHighTransNo) {
-        if (strID == it_high_num.first) // We found it!
-        {
+        // We found it!
+        if (strID == it_high_num.first) {
             // See if any numbers on the set are higher, and if so, update the
             // record to match.
             //
@@ -3247,9 +3245,9 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym& SIGNER_NYM,
             // associated "highest number" value.
             //
             bFoundServerID = true;
-            break; // This main FOR_EACH only ever has one active iteration: the
-                   // one with
-            //  the right server ID. Once we find it, we break (no matter what.)
+            break;
+            // This main for only ever has one active iteration: the one with
+            // the right server ID. Once we find it, we break (no matter what.)
         } // server ID matches.
     }
 
@@ -3574,7 +3572,6 @@ bool OTPseudonym::VerifyPseudonym() const
     //
     if (m_mapCredentials.size() > 0) {
         // Verify Nym by his own credentials.
-        //
         for (const auto& it : m_mapCredentials) {
             const OTCredential* pCredential = it.second;
             OT_ASSERT(NULL != pCredential);
@@ -6341,7 +6338,6 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
         const OTCredential* pCredential = NULL;
 
         for (const auto& it : m_mapCredentials) {
-
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to
@@ -6383,7 +6379,6 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
         const OTCredential* pCredential = NULL;
 
         for (const auto& it : m_mapCredentials) {
-
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to
@@ -6468,7 +6463,6 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
         const OTCredential* pCredential = NULL;
 
         for (const auto& it : m_mapCredentials) {
-
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to
@@ -6510,7 +6504,6 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
     if (m_mapCredentials.size() > 0) {
         const OTCredential* pCredential = NULL;
         for (const auto& it : m_mapCredentials) {
-
             // Todo: If we have some criteria, such as which master or
             // subcredential
             // is currently being employed by the user, we'll use that here to

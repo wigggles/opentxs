@@ -1847,17 +1847,14 @@ bool OT_API::Wallet_ChangePassphrase()
         bool bSuccessResaving =
             true; // in case the list is empty, we assume success here.
 
-        for (auto& it : list_nyms) // Let's save all these
-                                   // Nyms under the new
-                                   // master key.
-        {
+        // Let's save all these Nyms under the new master key.
+        for (auto& it : list_nyms) {
             OTPseudonym* pNym = it;
             OT_ASSERT(NULL != pNym);
             bool bSaved = false;
 
-            // CREDENTIALS
-            if (pNym->GetMasterCredentialCount() > 0) // Nym has credentials.
-            {
+            // CREDENTIALS - Nym has credentials
+            if (pNym->GetMasterCredentialCount() > 0) {
                 // We had converted the Nyms to a temp key above, so now we need
                 // to convert
                 // from the temp key to the new wallet key. Then we can save

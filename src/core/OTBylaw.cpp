@@ -482,11 +482,7 @@ const std::string OTBylaw::GetCallbackNameByIndex(int32_t nIndex)
 
         for (auto& it : m_mapCallbacks) {
             const std::string& str_callback_name = it.first;
-            //          const std::string & str_clause_name        =
-            // (*it).second;  // FYI.
-
             ++nLoopIndex; // 0 on first iteration.
-
             if (nLoopIndex == nIndex) return str_callback_name;
         }
     }

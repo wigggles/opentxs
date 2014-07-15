@@ -589,7 +589,6 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
         this->RegisterOTNativeCallsWithScript(*pScript);
 
         // Register all the parties with the script.
-        //
         for (auto& it : m_mapParties) {
             const std::string str_party_name = it.first;
             OTParty* pParty = it.second;
@@ -599,7 +598,6 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
         }
 
         // Add the parameters...
-        //
         for (auto& it : theParameters) {
             const std::string str_var_name = it.first;
             OTVariable* pVar = it.second;
@@ -784,10 +782,8 @@ void OTScriptable::SetAsClean()
     for (auto& it : m_mapBylaws) {
         OTBylaw* pBylaw = it.second;
         OT_ASSERT(NULL != pBylaw);
-
-        //
-        pBylaw->SetAsClean(); // so we can check for dirtiness later, if it's
-                              // changed.
+        // so we can check for dirtiness later, if it's changed.
+        pBylaw->SetAsClean();
     }
 }
 
@@ -840,24 +836,13 @@ OTPartyAccount* OTScriptable::GetPartyAccount(const std::string str_acct_name)
         return NULL;
     }
 
-    //    otErr << "DEBUGGING OTScriptable::GetPartyAccount: above loop.
-    // str_acct_name: %s \n", str_acct_name.c_str());
-
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
-
-        //        otErr << "DEBUGGING OTScriptable::GetPartyAccount: loop
-        // iteration. party name: %s \n", pParty->GetPartyName().c_str());
-
         OTPartyAccount* pAcct = pParty->GetAccount(str_acct_name);
-
         if (NULL != pAcct) // found it.
             return pAcct;
     }
-
-    //    otErr << "DEBUGGING OTScriptable::GetPartyAccount: below loop \n";
-
     return NULL;
 }
 

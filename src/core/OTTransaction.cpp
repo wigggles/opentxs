@@ -6758,9 +6758,9 @@ void OTTransaction::ProduceInboxReportItem(OTItem& theBalanceItem)
     if (OTTransaction::processInbox == theOwner.GetType()) // <==== IF it's a
     process inbox !!!
     {
-        FOR_EACH(listOfItems, theOwner.GetItemList())
+        for (auto& it : theOwner.GetItemList())
         {
-            OTItem * pItem = *it;
+            OTItem * pItem = it;
             OT_ASSERT_MSG(NULL != pItem, "Pointer should not have been NULL.");
 
             // In this place, it means that someone is trying to PROCESS his

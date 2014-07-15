@@ -254,7 +254,6 @@ void OTMarket::UpdateContents()
                               m_lLastSalePrice);
 
     // Save the offers for sale.
-    //
     for (auto& it : m_mapAsks) {
         OTOffer* pOffer = it.second;
         OT_ASSERT(NULL != pOffer);

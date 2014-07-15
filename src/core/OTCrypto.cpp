@@ -2636,11 +2636,10 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                                                 // EVP_PKEY_size(pubk[i]) bytes.
                 OT_ASSERT(NULL != (*m_ek)[nKeyIndex]);
                 memset((*m_ek)[nKeyIndex], 0, EVP_PKEY_size(public_key));
-
-            } // FOR_EACH(mapOfAsymmetricKeys, m_RecipPubKeys)
+            }
         }
 
-        ~_OTEnv_Seal() // (destructor)
+        ~_OTEnv_Seal()
         {
             OT_ASSERT(NULL != m_array_pubkey); // 1. pointer to an array of
                                                // pointers to EVP_PKEY,
@@ -2885,9 +2884,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                << "     First byte: " << static_cast<int32_t>((ek[ii])[0])
                << "      Last byte: "
                << static_cast<int32_t>((ek[ii])[eklen[ii] - 1]) << "\n";
+    }
 
-    } // FOR_EACH(mapOfAsymmetricKeys, m_RecipPubKeys)
-    //
     // Write IV size before then writing IV itself.
     //
     uint32_t ivlen = static_cast<uint32_t>(
