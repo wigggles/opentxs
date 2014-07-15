@@ -9323,8 +9323,8 @@ int32_t OTClient::ProcessUserCommand(
 
         do {
             decode_buffer[0] = 0;
-            if (NULL !=
-                fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
+
+            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
                 theArmoredText.Concatenate("%s\n", decode_buffer);
                 OTLog::Output(0, "> ");
             }
@@ -9341,9 +9341,8 @@ int32_t OTClient::ProcessUserCommand(
                          "on a new line:\n> ");
 
         do {
-            fgets(decode_buffer, sizeof(decode_buffer), stdin);
-
-            if (decode_buffer[0] != '~') {
+            if (!fgets(decode_buffer, sizeof(decode_buffer), stdin) &&
+                decode_buffer[0] != '~') {
                 strPlaintext.Concatenate("%s", decode_buffer);
                 OTLog::Output(0, "> ");
             }
@@ -9470,9 +9469,8 @@ int32_t OTClient::ProcessUserCommand(
         char decode_buffer[200];
 
         do {
-            fgets(decode_buffer, sizeof(decode_buffer), stdin);
-
-            if (decode_buffer[0] != '~') {
+            if (!fgets(decode_buffer, sizeof(decode_buffer), stdin) &&
+                decode_buffer[0] != '~') {
                 strSourceContract.Concatenate("%s", decode_buffer);
                 OTLog::Output(0, "> ");
             }
@@ -11296,8 +11294,7 @@ int32_t OTClient::ProcessUserCommand(
             do {
                 decode_buffer[0] = 0; // Make it fresh.
 
-                if ((NULL !=
-                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+                if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                     (decode_buffer[0] != '~')) {
                     strToken.Concatenate("%s", decode_buffer);
                     OTLog::Output(0, "> ");
@@ -11556,8 +11553,7 @@ int32_t OTClient::ProcessUserCommand(
             do {
                 decode_buffer[0] = 0; // Make it fresh.
 
-                if ((NULL !=
-                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+                if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                     (decode_buffer[0] != '~')) {
                     strSourcePurse.Concatenate("%s", decode_buffer);
                     OTLog::Output(0, "> ");
@@ -11919,8 +11915,7 @@ int32_t OTClient::ProcessUserCommand(
         do {
             decode_buffer[0] = 0; // Make sure it's starting out fresh.
 
-            if ((NULL !=
-                 fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                 (decode_buffer[0] != '~')) {
                 strCheque.Concatenate("%s", decode_buffer);
                 OTLog::Output(0, "> ");
@@ -13093,8 +13088,7 @@ int32_t OTClient::ProcessUserCommand(
         do {
             decode_buffer[0] = 0; // Make it fresh.
 
-            if ((NULL !=
-                 fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                 (decode_buffer[0] != '~')) {
                 if (!bEscaped && decode_buffer[0] == '-') {
                     strContract.Concatenate("- ");
@@ -13646,8 +13640,7 @@ int32_t OTClient::ProcessUserCommand(
         do {
             decode_buffer[0] = 0; // Make it fresh.
 
-            if ((NULL !=
-                 fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                 (decode_buffer[0] != '~')) {
                 strPlan.Concatenate("%s", decode_buffer);
                 OTLog::Output(0, "> ");
@@ -13720,8 +13713,7 @@ int32_t OTClient::ProcessUserCommand(
         do {
             decode_buffer[0] = 0; // Make it fresh.
 
-            if ((NULL !=
-                 fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
+            if (!fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin) &&
                 (decode_buffer[0] != '~')) {
                 strPlan.Concatenate("%s", decode_buffer);
                 OTLog::Output(0, "> ");
