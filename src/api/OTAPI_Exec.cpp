@@ -7071,9 +7071,8 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
                     (nIndex < static_cast<int64_t>(theResults.size()))) {
                     int32_t nLoopIndex = -1;
 
-                    FOR_EACH(mapOfClauses, theResults)
-                    {
-                        OTClause* pClause = (*it).second;
+                    for (auto& it : theResults) {
+                        OTClause* pClause = it.second;
                         OT_ASSERT(NULL != pClause);
                         ++nLoopIndex; // on first iteration, this is now 0.
 
@@ -10437,9 +10436,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
 
     OTPseudonym theTempNym;
 
-    FOR_EACH_IT(listOfItems, pTransaction->GetItemList(), it_bigloop)
-    {
-        OTItem* pItem = *it_bigloop;
+    for (auto& it_bigloop : pTransaction->GetItemList()) {
+        OTItem* pItem = it_bigloop;
         if (NULL == pItem) {
             OTLog::vError("%s: Pointer: %s should not have been \"\".\n",
                           __FUNCTION__, "pItem");
@@ -10737,9 +10735,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
                         // that are in reference to
                         // the same # as pServerTransaction is.
                         //
-                        FOR_EACH(listOfItems, pTransaction->GetItemList())
-                        {
-                            OTItem* pItemPointer = *it;
+                        for (auto& it : pTransaction->GetItemList()) {
+                            OTItem* pItemPointer = it;
                             if (NULL == pItemPointer) {
                                 OTLog::vError(
                                     "%s: Pointer: %s should not have been "
@@ -11091,9 +11088,8 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 
     // if pointer not null, and it's a withdrawal, and it's an acknowledgement
     // (not a rejection or error)
-    FOR_EACH(listOfItems, theTransaction.GetItemList())
-    {
-        OTItem* pItem = *it;
+    for (auto& it : theTransaction.GetItemList()) {
+        OTItem* pItem = it;
         if (NULL == pItem) {
             OTLog::vError("%s: Pointer: %s should not have been "
                           ".\n",

@@ -694,10 +694,9 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
     if (bSuccessReEncrypting) {
         mapOfStrings mapPrivate;
 
-        FOR_EACH(mapOfStrings, m_mapPrivateInfo)
-        {
-            std::string str_key_type = (*it).first; // A, E, S.
-            std::string str_key_contents = (*it).second;
+        for (auto& it : m_mapPrivateInfo) {
+            std::string str_key_type = it.first; // A, E, S.
+            std::string str_key_contents = it.second;
 
             if ("A" == str_key_type) {
                 mapPrivate.insert(

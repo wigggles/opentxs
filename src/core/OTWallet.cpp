@@ -279,9 +279,8 @@ bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
 // the wallet returns a pointer to that nym.
 OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
 {
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG((NULL != pNym),
                       "NULL pseudonym pointer in OTWallet::GetNymByID.");
 
@@ -297,9 +296,8 @@ OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
 OTPseudonym* OTWallet::GetNymByIDPartialMatch(
     const std::string PARTIAL_ID) // works with name as well.
 {
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
             (NULL != pNym),
             "NULL pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
@@ -315,9 +313,8 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(
 
     // OK, let's try it by the name, then...
     //
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
             (NULL != pNym),
             "NULL pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
@@ -362,9 +359,8 @@ bool OTWallet::GetNym(const int32_t iIndex, OTIdentifier& NYM_ID,
     if (iIndex < GetNymCount() && iIndex >= 0) {
         int32_t iCurrentIndex = (-1);
 
-        FOR_EACH(mapOfNyms, m_mapNyms)
-        {
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : m_mapNyms) {
+            OTPseudonym* pNym = it.second;
             OT_ASSERT(NULL != pNym);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -389,9 +385,8 @@ bool OTWallet::GetServer(const int32_t iIndex, OTIdentifier& THE_ID,
     if (iIndex < GetServerCount() && iIndex >= 0) {
         int32_t iCurrentIndex = (-1);
 
-        FOR_EACH(mapOfServers, m_mapServers)
-        {
-            OTServerContract* pServer = (*it).second;
+        for (auto& it : m_mapServers) {
+            OTServerContract* pServer = it.second;
             OT_ASSERT(NULL != pServer);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -417,9 +412,8 @@ bool OTWallet::GetAssetType(const int32_t iIndex, OTIdentifier& THE_ID,
     if (iIndex < GetAssetTypeCount() && iIndex >= 0) {
         int32_t iCurrentIndex = (-1);
 
-        FOR_EACH(mapOfContracts, m_mapContracts)
-        {
-            OTAssetContract* pAssetType = (*it).second;
+        for (auto& it : m_mapContracts) {
+            OTAssetContract* pAssetType = it.second;
             OT_ASSERT(NULL != pAssetType);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -445,9 +439,8 @@ bool OTWallet::GetAccount(const int32_t iIndex, OTIdentifier& THE_ID,
     if (iIndex < GetAccountCount() && iIndex >= 0) {
         int32_t iCurrentIndex = (-1);
 
-        FOR_EACH(mapOfAccounts, m_mapAccounts)
-        {
-            OTAccount* pAccount = (*it).second;
+        for (auto& it : m_mapAccounts) {
+            OTAccount* pAccount = it.second;
             OT_ASSERT(NULL != pAccount);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -473,9 +466,8 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
 
     strOutput.Concatenate("\nPSEUDONYM(s):\n\n");
 
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG((NULL != pNym), "NULL pseudonym pointer in "
                                       "OTWallet::m_mapNyms, "
                                       "OTWallet::DisplayStatistics.");
@@ -487,9 +479,8 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
         "\n-------------------------------------------------\n");
     strOutput.Concatenate("ASSET CONTRACTS:\n\n");
 
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTContract* pContract = (*it).second;
+    for (auto& it : m_mapContracts) {
+        OTContract* pContract = it.second;
         OT_ASSERT_MSG(NULL != pContract, "NULL contract pointer in "
                                          "OTWallet::m_mapContracts, "
                                          "OTWallet::DisplayStatistics");
@@ -501,9 +492,8 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
         "-------------------------------------------------\n");
     strOutput.Concatenate("SERVER CONTRACTS:\n\n");
 
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto& it : m_mapServers) {
+        OTContract* pServer = it.second;
         OT_ASSERT_MSG(NULL != pServer, "NULL server pointer in "
                                        "OTWallet::m_mapServers, "
                                        "OTWallet::DisplayStatistics");
@@ -515,9 +505,8 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
         "-------------------------------------------------\n");
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTAccount* pAccount = it.second;
         OT_ASSERT_MSG(NULL != pAccount, "NULL account pointer in "
                                         "OTWallet::m_mapAccounts, "
                                         "OTWallet::DisplayStatistics");
@@ -542,9 +531,8 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
 
     OTString strName;
 
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
+        OTPseudonym* pNym = it->second;
         OT_ASSERT(NULL != pNym);
 
         pNym->GetIdentifier(aNymID);
@@ -583,9 +571,8 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
     // Should use a smart pointer.
     OTIdentifier anAccountID;
 
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
+        OTAccount* pAccount = it->second;
         OT_ASSERT(NULL != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
@@ -614,9 +601,8 @@ OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
 {
     // loop through the accounts and find one with a specific ID.
     //
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTAccount* pAccount = it.second;
         OT_ASSERT(NULL != pAccount);
 
         OTIdentifier anAccountID;
@@ -632,9 +618,8 @@ OTAccount* OTWallet::GetAccountPartialMatch(
     const std::string PARTIAL_ID) // works with the name, too.
 {
     // loop through the accounts and find one with a specific ID.
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTAccount* pAccount = it.second;
         OT_ASSERT(NULL != pAccount);
 
         OTIdentifier anAccountID;
@@ -648,9 +633,8 @@ OTAccount* OTWallet::GetAccountPartialMatch(
 
     // Okay, let's try it by name, then...
     //
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTAccount* pAccount = it.second;
         OT_ASSERT(NULL != pAccount);
 
         OTString strName;
@@ -669,9 +653,8 @@ OTAccount* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
     // loop through the accounts and find one with a specific asset type ID.
     // (And with the issuer type set.)
     //
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pIssuerAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTAccount* pIssuerAccount = it.second;
         OT_ASSERT(NULL != pIssuerAccount);
 
         if ((pIssuerAccount->GetAssetTypeID() == theAssetTypeID) &&
@@ -685,9 +668,8 @@ OTAccount* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
 // Pass in the Server ID and get the pointer back.
 OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
 {
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto& it : m_mapServers) {
+        OTContract* pServer = it.second;
         OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
                                          "OTWallet::m_mapServers, "
                                          "OTWallet::GetServerContract");
@@ -705,9 +687,8 @@ OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
 OTServerContract* OTWallet::GetServerContractPartialMatch(
     const std::string PARTIAL_ID)
 {
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto& it : m_mapServers) {
+        OTContract* pServer = it.second;
         OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
                                          "OTWallet::m_mapServers, "
                                          "OTWallet::GetServerContract");
@@ -724,9 +705,8 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
 
     // Okay, let's try it by the name, then.
     //
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto& it : m_mapServers) {
+        OTContract* pServer = it.second;
         OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
                                          "OTWallet::m_mapServers, "
                                          "OTWallet::GetServerContract");
@@ -1119,9 +1099,8 @@ OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
 // removing from wallet.
 bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
 {
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
+        OTPseudonym* pNym = it->second;
         OT_ASSERT_MSG((NULL != pNym),
                       "NULL pseudonym pointer in OTWallet::RemoveNym.");
 
@@ -1132,9 +1111,8 @@ bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
             // So if we're removing the Nym from the wallet, we also remove its
             // ID from that set.
             //
-            FOR_EACH_IT_CONST(setOfIdentifiers, m_setNymsOnCachedKey, it_master)
-            {
-                const OTIdentifier& theNymID = *it_master;
+            for (const auto& it_master : m_setNymsOnCachedKey) {
+                const OTIdentifier& theNymID = it_master;
                 if (theTargetID == theNymID) {
                     m_setNymsOnCachedKey.erase(it_master);
                     break;
@@ -1155,9 +1133,8 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
     // here, base64-encoded, of course.
     OTIdentifier aContractID;
 
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTAssetContract* pContract = (*it).second;
+    for (auto it(m_mapContracts.begin()); it != m_mapContracts.end(); ++it) {
+        OTAssetContract* pContract = it->second;
         OT_ASSERT(NULL != pContract);
 
         pContract->GetIdentifier(aContractID);
@@ -1176,9 +1153,8 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
 
 bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
 {
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto it(m_mapServers.begin()); it != m_mapServers.end(); ++it) {
+        OTContract* pServer = it->second;
         OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
                                          "OTWallet::m_mapServers, "
                                          "OTWallet::RemoveServerContract");
@@ -1207,18 +1183,15 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
     // loop through the accounts and find one with a specific ID.
     OTIdentifier anAccountID;
 
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTAccount* pAccount = (*it).second;
+    for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
+        OTAccount* pAccount = it->second;
         OT_ASSERT(NULL != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
 
         if (anAccountID == theTargetID) {
             m_mapAccounts.erase(it);
-
             delete pAccount;
-
             return true;
         }
     }
@@ -1228,9 +1201,8 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
 
 OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
 {
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTAssetContract* pContract = (*it).second;
+    for (auto& it : m_mapContracts) {
+        OTAssetContract* pContract = it.second;
         OT_ASSERT(NULL != pContract);
 
         OTIdentifier aContractID;
@@ -1245,9 +1217,8 @@ OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
 OTAssetContract* OTWallet::GetAssetContractPartialMatch(
     const std::string PARTIAL_ID) // works with name, too.
 {
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTAssetContract* pContract = (*it).second;
+    for (auto& it : m_mapContracts) {
+        OTAssetContract* pContract = it.second;
         OT_ASSERT(NULL != pContract);
 
         OTIdentifier aContractID;
@@ -1262,9 +1233,8 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
 
     // Okay, let's try it by the name, then...
     //
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTAssetContract* pContract = (*it).second;
+    for (auto& it : m_mapContracts) {
+        OTAssetContract* pContract = it.second;
         OT_ASSERT(NULL != pContract);
 
         OTString strName;
@@ -1310,10 +1280,9 @@ bool OTWallet::SaveContract(OTString& strContract)
     // encrypt his local sql-lite DB's record of his Bitmessage connect string,
     // or any other local data.)
     //
-    FOR_EACH(mapOfSymmetricKeys, m_mapExtraKeys)
-    {
-        const std::string str_id = it->first;
-        std::shared_ptr<OTSymmetricKey> pKey = it->second;
+    for (auto& it : m_mapExtraKeys) {
+        const std::string str_id = it.first;
+        std::shared_ptr<OTSymmetricKey> pKey = it.second;
 
         OTString strKeyID(str_id.c_str());
         OTASCIIArmor ascKeyID;
@@ -1338,19 +1307,16 @@ bool OTWallet::SaveContract(OTString& strContract)
     // before the Nyms themselves, so that they are all loaded up and available
     // in LoadWallet before the Nyms themselves are loaded.
     //
-    FOR_EACH_CONST(setOfIdentifiers, m_setNymsOnCachedKey)
-    {
-        const OTIdentifier& theNymID = *it;
+    for (const auto& it : m_setNymsOnCachedKey) {
+        const OTIdentifier& theNymID = it;
         OTString strNymID(theNymID);
 
         strContract.Concatenate("<nymUsingCachedKey id=\"%s\" />\n\n",
                                 strNymID.Get());
     }
 
-    //
-    FOR_EACH(mapOfNyms, m_mapNyms)
-    {
-        OTPseudonym* pNym = (*it).second;
+    for (auto& it : m_mapNyms) {
+        OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(NULL != pNym, "NULL pseudonym pointer in "
                                     "OTWallet::m_mapNyms, "
                                     "OTWallet::SaveContract");
@@ -1358,9 +1324,8 @@ bool OTWallet::SaveContract(OTString& strContract)
         pNym->SavePseudonymWallet(strContract);
     }
 
-    FOR_EACH(mapOfContracts, m_mapContracts)
-    {
-        OTContract* pContract = (*it).second;
+    for (auto& it : m_mapContracts) {
+        OTContract* pContract = it.second;
         OT_ASSERT_MSG(NULL != pContract, "NULL contract pointer in "
                                          "OTWallet::m_mapContracts, "
                                          "OTWallet::SaveContract");
@@ -1368,9 +1333,8 @@ bool OTWallet::SaveContract(OTString& strContract)
         pContract->SaveContractWallet(strContract);
     }
 
-    FOR_EACH(mapOfServers, m_mapServers)
-    {
-        OTContract* pServer = (*it).second;
+    for (auto& it : m_mapServers) {
+        OTContract* pServer = it.second;
         OT_ASSERT_MSG(NULL != pServer, "NULL server pointer in "
                                        "OTWallet::m_mapServers, "
                                        "OTWallet::SaveContract");
@@ -1378,9 +1342,8 @@ bool OTWallet::SaveContract(OTString& strContract)
         pServer->SaveContractWallet(strContract);
     }
 
-    FOR_EACH(mapOfAccounts, m_mapAccounts)
-    {
-        OTContract* pAccount = (*it).second;
+    for (auto& it : m_mapAccounts) {
+        OTContract* pAccount = it.second;
         OT_ASSERT_MSG(NULL != pAccount, "NULL account pointer in "
                                         "OTWallet::m_mapAccounts, "
                                         "OTWallet::SaveContract");
@@ -1468,10 +1431,9 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
     //
     mapOfSymmetricKeys mapChanged;
 
-    FOR_EACH(mapOfSymmetricKeys, m_mapExtraKeys)
-    {
-        const std::string str_id = it->first;
-        std::shared_ptr<OTSymmetricKey> pOldKey = it->second;
+    for (auto& it : m_mapExtraKeys) {
+        const std::string str_id = it.first;
+        std::shared_ptr<OTSymmetricKey> pOldKey = it.second;
 
         OTPayload thePayload;
 
@@ -1494,9 +1456,8 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
     // on each key in there. If they all succeed, we'll clear the old
     // map and copy mapChanged into it.
     //
-    FOR_EACH(mapOfSymmetricKeys, mapChanged)
-    {
-        std::shared_ptr<OTSymmetricKey> pNewKey = it->second;
+    for (auto& it : mapChanged) {
+        std::shared_ptr<OTSymmetricKey> pNewKey = it.second;
 
         if (pNewKey) {
             if (!pNewKey->ChangePassphrase(oldPassphrase, newPassphrase))
@@ -2088,9 +2049,8 @@ bool OTWallet::LoadWallet(const char* szFilename /*=NULL*/)
         // NOW we can go through and convert them all, now that they're all
         // loaded.
 
-        FOR_EACH(mapOfNyms, m_mapNyms)
-        {
-            OTPseudonym* pNym = (*it).second;
+        for (auto& it : m_mapNyms) {
+            OTPseudonym* pNym = it.second;
             OT_ASSERT_MSG(
                 (NULL != pNym),
                 "ASSERT: OTWallet::LoadWallet: NULL pseudonym pointer.");
@@ -2148,10 +2108,9 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
             }
 
             // Here we do the actual credentials.
-            FOR_EACH(mapOfStrings, mapCredFiles)
-            {
-                std::string str_cred_id = (*it).first;
-                OTString strCredential((*it).second);
+            for (auto& it : mapCredFiles) {
+                std::string str_cred_id = it.first;
+                OTString strCredential(it.second);
 
                 strOutput.Release();
                 OTASCIIArmor ascLoopArmor(strCredential);
@@ -2198,11 +2157,8 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
 bool OTWallet::IsNymOnCachedKey(const OTIdentifier& needle) const // needle and
                                                                   // haystack.
 {
-    FOR_EACH_CONST(setOfIdentifiers, m_setNymsOnCachedKey)
-    {
-        const OTIdentifier& theNymID = *it;
-
-        if (needle == theNymID) return true;
+    for (const auto& it : m_setNymsOnCachedKey) {
+        if (needle == it) return true;
     }
     return false;
 }

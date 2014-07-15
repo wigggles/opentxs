@@ -336,11 +336,8 @@ bool OTNumList::Verify(const std::set<int64_t>& theNumbers) const
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Verify(lValue)) // It must have NOT already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Verify(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 
@@ -358,11 +355,8 @@ bool OTNumList::Verify(const OTNumList& rhs) const
 
     // Verify each value on *this is also found on rhs.
     //
-    FOR_EACH(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
-
-        if (false == rhs.Verify(lValue)) return false;
+    for (auto& it : m_setData) {
+        if (false == rhs.Verify(it)) return false;
     }
 
     return true;
@@ -379,11 +373,8 @@ bool OTNumList::VerifyAny(const OTNumList& rhs) const
 ///
 bool OTNumList::VerifyAny(const std::set<int64_t>& setData) const
 {
-    FOR_EACH_CONST(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
-
-        std::set<int64_t>::const_iterator it_find = setData.find(lValue);
+    for (const auto& it : m_setData) {
+        std::set<int64_t>::const_iterator it_find = setData.find(it);
 
         if (it_find != setData.end()) // found a match.
             return true;
@@ -409,11 +400,8 @@ bool OTNumList::Add(const std::set<int64_t>& theNumbers) // if false, means the
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Add(lValue)) // It must have already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Add(it)) // It must have already been there.
             bSuccess = false;
     }
 
@@ -428,11 +416,8 @@ bool OTNumList::Remove(const std::set<int64_t>& theNumbers) // if false, means
 {
     bool bSuccess = true;
 
-    FOR_EACH_CONST(std::set<int64_t>, theNumbers)
-    {
-        const int64_t lValue = *it;
-
-        if (!this->Remove(lValue)) // It must have NOT already been there.
+    for (const auto& it : theNumbers) {
+        if (!this->Remove(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 
@@ -458,9 +443,7 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
 {
     int32_t nIterationCount = 0;
 
-    FOR_EACH(std::set<int64_t>, m_setData)
-    {
-        const int64_t lValue = *it;
+    for (auto& it : m_setData) {
         nIterationCount++;
 
         strOutput.Concatenate(
@@ -468,7 +451,7 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
             // If first iteration, prepend a blank string (instead of a comma.)
             // Like this:  "%lld"
             // But for all subsequent iterations, concatenate: ",%lld"
-            (1 == nIterationCount) ? "" : ",", lValue);
+            (1 == nIterationCount) ? "" : ",", it);
     }
 
     return (m_setData.size() > 0) ? true : false;

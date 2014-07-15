@@ -151,9 +151,8 @@ bool OTParty::HasTransactionNum(const int64_t& lInput) const
 {
     if (lInput == m_lOpeningTransNo) return true;
 
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        const OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -167,9 +166,8 @@ void OTParty::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 {
     if (m_lOpeningTransNo > 0) numlistOutput.Add(m_lOpeningTransNo);
 
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        const OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -184,9 +182,8 @@ int32_t OTParty::GetAccountCount(const std::string str_agent_name) const
 {
     int32_t nCount = 0;
 
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        const OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -504,18 +501,16 @@ OTParty::~OTParty()
 
 void OTParty::ClearTemporaryPointers()
 {
-    FOR_EACH(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT_MSG(NULL != pAgent,
                       "Unexpected NULL agent pointer in party map.");
 
         pAgent->ClearTemporaryPointers();
     }
 
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -633,9 +628,8 @@ bool OTParty::HasActiveAgent() const
     // Loop through all agents and call IsAnIndividual() on each.
     // then return true if any is true. else return false;
     //
-    FOR_EACH_CONST(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (const auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT(NULL != pAgent);
 
         if (pAgent->IsAnIndividual()) return true;
@@ -676,9 +670,8 @@ OTAgent* OTParty::GetAgentByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfAgents, m_mapAgents)
-        {
-            OTAgent* pAgent = (*it).second;
+        for (auto& it : m_mapAgents) {
+            OTAgent* pAgent = it.second;
             OT_ASSERT(NULL != pAgent);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -711,26 +704,6 @@ OTPartyAccount* OTParty::GetAccount(const std::string& str_acct_name) const
     else
         otErr << "OTParty::GetAccount: Failed: str_acct_name is invalid.\n";
 
-    //    otErr << "DEBUGGING OTParty::GetAccount: After find attempt, didn't
-    // find account on this party (%s).  \n",
-    //                  "Looping through accounts, to show you their
-    // names...\n", GetPartyName().c_str());
-    //
-    //    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    //    {
-    //        std::string str_map_key = (*it).first;
-    //        OTPartyAccount * pAcct = (*it).second;
-    //        OT_ASSERT(NULL != pAcct);
-    //
-    //
-    //        otErr << "DEBUGGING OTParty::GetAccount: Account name: %s.  Name
-    // as used for map key: %s \n",
-    //                      pAcct->GetName().Get(), str_map_key.c_str());
-    //    }
-    //
-    //    otErr << "OTParty::GetAccount: DEBUGGING: (Finished displaying account
-    // names.)\n";
-
     return NULL;
 }
 
@@ -745,9 +718,8 @@ OTPartyAccount* OTParty::GetAccountByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-        {
-            OTPartyAccount* pAcct = (*it).second;
+        for (auto& it : m_mapPartyAccounts) {
+            OTPartyAccount* pAcct = it.second;
             OT_ASSERT(NULL != pAcct);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -764,9 +736,8 @@ OTPartyAccount* OTParty::GetAccountByIndex(int32_t nIndex)
 OTPartyAccount* OTParty::GetAccountByAgent(const std::string& str_agent_name)
 {
     if (OTScriptable::ValidateName(str_agent_name)) {
-        FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-        {
-            OTPartyAccount* pAcct = (*it).second;
+        for (auto& it : m_mapPartyAccounts) {
+            OTPartyAccount* pAcct = it.second;
             OT_ASSERT(NULL != pAcct);
 
             if (pAcct->GetAgentName().Compare(str_agent_name.c_str()))
@@ -784,9 +755,8 @@ OTPartyAccount* OTParty::GetAccountByAgent(const std::string& str_agent_name)
 // Returns NULL on failure.
 OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
 {
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
 
         if (pAcct->IsAccountByID(theAcctID)) return pAcct;
@@ -801,9 +771,8 @@ OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
 bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
                              OTPartyAccount** ppPartyAccount /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
 
         if (pAcct->IsAccountByID(theAcctID)) {
@@ -821,9 +790,8 @@ bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
 bool OTParty::HasAccount(OTAccount& theAccount,
                          OTPartyAccount** ppPartyAccount /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
 
         if (pAcct->IsAccount(theAccount)) {
@@ -842,9 +810,8 @@ bool OTParty::HasAccount(OTAccount& theAccount,
 //
 bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (const auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT(NULL != pAgent);
 
         if (pAgent->IsValidSigner(theNym)) {
@@ -860,9 +827,8 @@ bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/) const
 bool OTParty::HasAgentByNymID(const OTIdentifier& theNymID,
                               OTAgent** ppAgent /*=NULL*/) const
 {
-    FOR_EACH_CONST(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (const auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT(NULL != pAgent);
 
         if (pAgent->IsValidSignerID(theNymID)) {
@@ -944,9 +910,8 @@ bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
 
 void OTParty::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
 {
-    FOR_EACH(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT(NULL != pAgent);
 
         pAgent->RetrieveNymPointer(map_Nyms_Already_Loaded);
@@ -1055,9 +1020,8 @@ bool OTParty::DropFinalReceiptToInboxes(
 
     // By this point, we know pSmartContract is a good pointer.
 
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -1104,9 +1068,8 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
 
     // By this point, we know pSmartContract is a good pointer.
 
-    FOR_EACH(mapOfAgents, m_mapAgents)
-    {
-        OTAgent* pAgent = (*it).second;
+    for (auto& it : m_mapAgents) {
+        OTAgent* pAgent = it.second;
         OT_ASSERT_MSG(NULL != pAgent,
                       "Unexpected NULL agent pointer in party map.");
 
@@ -1141,9 +1104,8 @@ bool OTParty::SendNoticeToParty(
     const int64_t lOpeningTransNo = this->GetOpeningTransNo();
 
     if (lOpeningTransNo > 0) {
-        FOR_EACH(mapOfAgents, m_mapAgents)
-        {
-            OTAgent* pAgent = (*it).second;
+        for (auto& it : m_mapAgents) {
+            OTAgent* pAgent = it.second;
             OT_ASSERT_MSG(NULL != pAgent,
                           "Unexpected NULL agent pointer in party map.");
 
@@ -1168,11 +1130,10 @@ bool OTParty::LoadAndVerifyAssetAccounts(
     std::set<std::string> theAcctIDSet; // Make sure all the acct IDs are
                                         // unique.
 
-    FOR_EACH_IT(mapOfPartyAccounts, m_mapPartyAccounts, it_acct)
-    {
-        const std::string str_acct_name = (*it_acct).first;
-        OTPartyAccount* pPartyAcct = (*it_acct).second;
-        OT_ASSERT(NULL != pPartyAcct);
+    for (auto& it_acct : m_mapPartyAccounts) {
+        const std::string str_acct_name = it_acct.first;
+        OTPartyAccount* pPartyAcct = it_acct.second;
+        OT_ASSERT(pPartyAcct != nullptr);
 
         bool bHadToLoadtheAcctMyself = true;
         OTAccount* pAccount = NULL;
@@ -1302,14 +1263,9 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 
     const OTString strServerNymID(theServerNym);
 
-    FOR_EACH_IT(mapOfAgents, m_mapAgents, it_agent) // Until entities are coded,
-                                                    // there can only be one
-                                                    // agent, who has the same
-                                                    // ID as the owner (Nym
-                                                    // representing himself)
-    {
-        OTAgent* pAgent = (*it_agent).second;
-        OT_ASSERT_MSG(NULL != pAgent,
+    for (auto& it_agent : m_mapAgents) {
+        OTAgent* pAgent = it_agent.second;
+        OT_ASSERT_MSG(pAgent != nullptr,
                       "Unexpected NULL agent pointer in party map.");
 
         if (!pAgent->IsAnIndividual() || !pAgent->DoesRepresentHimself()) {
@@ -1456,10 +1412,9 @@ bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
     // should ALREADY
     // be loaded up in memory!
     //
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const std::string str_acct_name = (*it).first;
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        const std::string str_acct_name = it.first;
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct,
                       "Unexpected NULL partyaccount pointer in party map.");
 
@@ -1529,9 +1484,8 @@ void OTParty::HarvestClosingNumbers(const OTString& strServerID,
                                     OTPseudonym* pSignerNym /*=NULL*/)
 {
 
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct, "OTParty::HarvestClosingNumbers: "
                                      "Unexpected NULL partyaccount pointer in "
                                      "party map.");
@@ -1554,7 +1508,7 @@ void OTParty::HarvestClosingNumbers(const OTString& strServerID,
                 pAcct->GetClosingTransNo(), strServerID, bSave,
                 pSignerNym); // server passes in serverNym here, otherwise each
                              // agent uses its own nym.
-    }                        // FOR_EACH
+    }
 }
 
 // Done
@@ -1563,9 +1517,8 @@ void OTParty::HarvestClosingNumbers(const OTString& strServerID,
 void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
                                     const OTString& strServerID)
 {
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT_MSG(NULL != pAcct, "OTParty::HarvestClosingNumbers: "
                                      "Unexpected NULL partyaccount pointer in "
                                      "partyaccount map.");
@@ -1586,7 +1539,7 @@ void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
         // We don't break here, on success, because this agent might represent
         // multiple accounts.
         // else nothing...
-    } // FOR_EACH
+    }
 }
 
 // Done.
@@ -1747,9 +1700,8 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
     // ITS AUTHORIZED AGENT.
     // (Do this for each account on this party.)
     //
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pPartyAccount = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pPartyAccount = it.second;
         OT_ASSERT(NULL != pPartyAccount);
 
         if (!pPartyAccount->GetAgentName().Exists()) {
@@ -1794,8 +1746,7 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
         // BELOW THIS POINT, the CLOSING TRANSACTION # has been reserved for
         // this account,
         // and MUST BE RETRIEVED in the event of failure.
-
-    } // FOR_EACH
+    }
 
     // BY THIS POINT, we have successfully reserved the Opening Transaction #
     // for the party (from its
@@ -1832,17 +1783,15 @@ void OTParty::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/,
         bCalculatingID ? 0 : m_mapAgents.size(), m_mapPartyAccounts.size());
 
     if (!bCalculatingID) {
-        FOR_EACH(mapOfAgents, m_mapAgents)
-        {
-            OTAgent* pAgent = (*it).second;
+        for (auto& it : m_mapAgents) {
+            OTAgent* pAgent = it.second;
             OT_ASSERT(NULL != pAgent);
             pAgent->Serialize(strAppend);
         }
     }
 
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        OTPartyAccount* pAcct = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
         pAcct->Serialize(strAppend, bCalculatingID, bSpecifyAssetID);
     }
@@ -1861,10 +1810,9 @@ void OTParty::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/,
 //
 void OTParty::RegisterAccountsForExecution(OTScript& theScript)
 {
-    FOR_EACH(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const std::string str_acct_name = (*it).first;
-        OTPartyAccount* pAccount = (*it).second;
+    for (auto& it : m_mapPartyAccounts) {
+        const std::string str_acct_name = it.first;
+        OTPartyAccount* pAccount = it.second;
         OT_ASSERT((NULL != pAccount) && (str_acct_name.size() > 0));
 
         pAccount->RegisterForExecution(theScript);
@@ -1938,10 +1886,9 @@ bool OTParty::Compare(const OTParty& rhs) const
         return false;
     }
 
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const std::string str_acct_name = (*it).first;
-        OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        const std::string str_acct_name = it.first;
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
 
         OTPartyAccount* p2 = rhs.GetAccount(str_acct_name);
@@ -1972,10 +1919,9 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
     theParty.CleanupAccounts(); // (We're going to copy our own accounts into
                                 // theParty.)
 
-    FOR_EACH_CONST(mapOfPartyAccounts, m_mapPartyAccounts)
-    {
-        const std::string str_acct_name = (*it).first;
-        OTPartyAccount* pAcct = (*it).second;
+    for (const auto& it : m_mapPartyAccounts) {
+        const std::string str_acct_name = it.first;
+        OTPartyAccount* pAcct = it.second;
         OT_ASSERT(NULL != pAcct);
 
         if (false == theParty.AddAccount(pAcct->GetAgentName(),

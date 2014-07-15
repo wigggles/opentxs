@@ -1076,10 +1076,8 @@ bool OTSmartContract::SetServerIDIfEmpty(const OTIdentifier& theID)
 
 bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 {
-
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->GetOpeningTransNo() == lOpeningNum) return true;
@@ -1094,9 +1092,8 @@ bool OTSmartContract::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 //
 bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        const OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        const OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         if (pParty->HasTransactionNum(lInput)) return true;
@@ -1107,9 +1104,8 @@ bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
 
 void OTSmartContract::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 {
-    FOR_EACH_CONST(mapOfParties, m_mapParties)
-    {
-        const OTParty* pParty = (*it).second;
+    for (const auto& it : m_mapParties) {
+        const OTParty* pParty = it.second;
         OT_ASSERT(NULL != pParty);
 
         pParty->GetAllTransactionNumbers(numlistOutput);
@@ -3662,14 +3658,13 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
     //
     // We would have:
     // "theOriginator" (GetSenderUserID()) and "pActingNym" and pParty /
-    // pPartyNym (FOR_EACH Party[0..n])
+    // pPartyNym (for Party[0..n])
     //
     // Just like here:
     //
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT_MSG(NULL != pParty, "Unexpected NULL pointer in party map.");
 
         // The Nym who is actively requesting to remove a cron item will be
@@ -3865,8 +3860,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         pParty->ClearTemporaryPointers();
-
-    } // FOR_EACH m_mapParties
+    }
 }
 
 // OTCron calls this regularly, which is my chance to expire, etc.
@@ -3994,11 +3988,9 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
                                                                  // param.
 {
     // Loop through the clauses passed in, and execute them all.
-    //
-    FOR_EACH_IT(mapOfClauses, theClauses, it_clauses)
-    {
-        const std::string str_clause_name = (*it_clauses).first;
-        OTClause* pClause = (*it_clauses).second;
+    for (auto& it_clauses : theClauses) {
+        const std::string str_clause_name = it_clauses.first;
+        OTClause* pClause = it_clauses.second;
         OT_ASSERT((NULL != pClause) && (str_clause_name.size() > 0));
         OTBylaw* pBylaw = pClause->GetBylaw();
         OT_ASSERT(NULL != pBylaw);
@@ -4028,10 +4020,9 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
 
             // Register all the parties with the script.
             //
-            FOR_EACH(mapOfParties, m_mapParties)
-            {
-                const std::string str_party_name = (*it).first;
-                OTParty* pParty = (*it).second;
+            for (auto& it : m_mapParties) {
+                const std::string str_party_name = it.first;
+                OTParty* pParty = it.second;
                 OT_ASSERT((NULL != pParty) && (str_party_name.size() > 0));
 
                 pScript->AddParty(str_party_name, *pParty); // This also
@@ -4135,7 +4126,7 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
             otErr << "OTSmartContract::ExecuteClauses: Error instantiating "
                      "script!\n";
         }
-    } // FOR_EACH clauses...
+    }
 
     // "Important" variables.
     // (If any of them have changed, then I need to notice the parties.)
@@ -4815,11 +4806,9 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                          // failed verification.
 
     // LOOP THROUGH ALL PARTIES AND VERIFY THEM.
-    //
-    FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
-    {
-        const std::string str_party_name = (*it_party).first;
-        OTParty* pParty = (*it_party).second;
+    for (auto& it_party : m_mapParties) {
+        const std::string str_party_name = it_party.first;
+        OTParty* pParty = it_party.second;
         OT_ASSERT_MSG(NULL != pParty, "OTSmartContract::VerifySmartContract: "
                                       "Unexpected NULL pointer in party "
                                       "map.\n");
@@ -4949,7 +4938,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
             // parties to burn their opening #s, to keep things consistent for
             // the client GUI code.
         }
-    } // FOR_EACH (mapOfParties...)
+    }
 
     // (MOVED TO FARTHER BELOW.)
     //
@@ -5131,10 +5120,9 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
 
      */
 
-    FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
-    {
-        const std::string str_party_name = (*it_party).first;
-        OTParty* pParty = (*it_party).second;
+    for (auto& it_party : m_mapParties) {
+        const std::string str_party_name = it_party.first;
+        OTParty* pParty = it_party.second;
         OT_ASSERT_MSG(NULL != pParty, "Unexpected NULL pointer in party map.");
 
         // SKIP FAILED PARTIES...
@@ -5255,8 +5243,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
         // do this, or we'll leak. Even if something returned
         //      OTSmartContract::CleanupAccts(map_Accts_NewlyLoaded); // false,
         // some objects may have been loaded before it failed.
-
-    } // FOR_EACH_IT(mapOfParties, m_mapParties, it_party)
+    }
 
     const bool bSuccess = (!bAreAnyInvalidParties &&
                            !bAreAnyInvalidAccounts); // <=== THE RETURN VALUE
@@ -5357,9 +5344,8 @@ void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym /*=NULL*/)
 {
     const OTString strServerID(GetServerID());
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT_MSG(NULL != pParty, "OTSmartContract::CloseoutOpeningNumbers:"
                                       " Unexpected NULL pointer in party map.");
 
@@ -5371,7 +5357,7 @@ void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym /*=NULL*/)
                                          // NotarizeTransaction.)
             pParty->CloseoutOpeningNumber(strServerID, true, // bSave=true
                                           pSignerNym);
-    } // FOR_EACH ---------------------------------------------
+    }
 }
 
 // Used for adding the closing transaction numbers BACK to all the Nyms, after
@@ -5391,10 +5377,9 @@ void OTSmartContract::HarvestClosingNumbers(
 {
     const OTString strServerID(GetServerID());
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        const std::string str_party_name = it->first;
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        const std::string str_party_name = it.first;
+        OTParty* pParty = it.second;
         OT_ASSERT_MSG(NULL != pParty, "OTSmartContract::HarvestClosingNumbers: "
                                       "Unexpected NULL pointer in party map.");
 
@@ -5440,7 +5425,7 @@ void OTSmartContract::HarvestClosingNumbers(
             strServerID, // <==============  (THE HARVEST.)
             true,        // bSave=true
             pSignerNym);
-    } // FOR_EACH ---------------------------------------------
+    }
 }
 
 // Used for adding transaction numbers back to a Nym, after deciding not to use
@@ -5470,9 +5455,8 @@ void OTSmartContract::HarvestClosingNumbers(OTPseudonym& theNym)
     const int32_t nTransNumCount = theNym.GetTransactionNumCount(
         GetServerID()); // save this to see if it changed, later.
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT_MSG(NULL != pParty, "Unexpected NULL pointer in party map.");
 
         pParty->HarvestClosingNumbers(theNym, strServerID);
@@ -5514,9 +5498,8 @@ void OTSmartContract::HarvestOpeningNumber(OTPseudonym& theNym)
     const int32_t nTransNumCount = theNym.GetTransactionNumCount(
         GetServerID()); // save this to see if it changed, later.
 
-    FOR_EACH(mapOfParties, m_mapParties)
-    {
-        OTParty* pParty = (*it).second;
+    for (auto& it : m_mapParties) {
+        OTParty* pParty = it.second;
         OT_ASSERT_MSG(NULL != pParty, "Unexpected NULL pointer in party map.");
 
         pParty->HarvestOpeningNumber(theNym, strServerID);
@@ -5972,14 +5955,12 @@ void OTSmartContract::UpdateContents()
         // This is a map of OTStash's, by stash_name.
         // EACH ONE contains a map of OTStashItems, by asset_type_id
 
-        FOR_EACH(mapOfStashes, m_mapStashes) // These stashes are what the
-                                             // scripts interact with. They have
-                                             // names.
-        { // Whereas the stash accts (above) are the actual accountIDs
-            OTStash* pStash = (*it).second; // where the actual funds are stored
-                                            // for each asset type.
+        // These stashes are what the scripts interact with. They have names.
+        // Whereas the stash accts (above) are the actual accountIDs
+        for (auto& it : m_mapStashes) {
+            // where the actual funds are stored for each asset type.
+            OTStash* pStash = it.second;
             OT_ASSERT(NULL != pStash);
-
             pStash->Serialize(m_xmlUnsigned);
         }
     }

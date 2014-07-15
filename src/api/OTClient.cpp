@@ -375,9 +375,8 @@ bool OTClient::AcceptEntireNymbox(
     // own, new,
     // "process nymbox" transaction that I'm sending out.
     //
-    FOR_EACH(mapOfTransactions, theNymbox.GetTransactionMap())
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : theNymbox.GetTransactionMap()) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
         // ------------------------------------------------------------
         // This is now possible (abbreviated notices in the box), since we try
@@ -558,9 +557,8 @@ bool OTClient::AcceptEntireNymbox(
                                           // the numlist object.
             // Iterate through those numbers...
             //
-            FOR_EACH(std::set<int64_t>, theNumbers)
-            {
-                const int64_t lValue = *it;
+            for (auto& it : theNumbers) {
+                const int64_t lValue = it;
 
                 if (false == pNym->VerifyTentativeNum(strServerID, lValue))
                     OTLog::vOutput(1, "%s: OTTransaction::successNotice: This "
@@ -779,9 +777,8 @@ bool OTClient::AcceptEntireNymbox(
             std::set<int64_t> theNumbers;
             theNumlist.Output(theNumbers);
 
-            FOR_EACH(std::set<int64_t>, theNumbers)
-            {
-                const int64_t lTransactionNumber = *it;
+            for (auto& it : theNumbers) {
+                const int64_t lTransactionNumber = it;
                 // Loop FOR EACH TRANSACTION NUMBER in the "blank" (there could
                 // be 20 of them...)
                 //
@@ -971,9 +968,8 @@ bool OTClient::AcceptEntireNymbox(
             // Nym ID: %s \n", lViolator, strNymID.Get());
             //            else
             {
-                FOR_EACH(std::set<int64_t>, setNoticeNumbers)
-                {
-                    const int64_t lNoticeNum = (*it);
+                for (auto& it : setNoticeNumbers) {
+                    const int64_t lNoticeNum = it;
 
                     if (pNym->RemoveTentativeNum(
                             strServerID,
@@ -1258,9 +1254,8 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
     // own, new,
     // "process inbox" transaction that I'm sending out.
     //
-    FOR_EACH(mapOfTransactions, theInbox.GetTransactionMap())
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : theInbox.GetTransactionMap()) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         // If this transaction references the item that I'm trying to accept...
@@ -2110,9 +2105,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
     // Loop through ledger transactions,
 
-    FOR_EACH(mapOfTransactions, theLedger.GetTransactionMap())
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : theLedger.GetTransactionMap()) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT_MSG(NULL != pTransaction, "NULL transaction pointer in "
                                             "OTServer::"
                                             "UserCmdNotarizeTransactions\n");
@@ -3297,45 +3291,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     }
 }
 
-// Usually a transaction from the server includes some new transaction numbers.
-// Use this function to harvest them.
-// void OTClient::HarvestTransactionNumbers(OTTransaction & theTransaction,
-// OTPseudonym & theNym)
-//{
-//    FOR_EACH(listOfItems, theTransaction.GetItemList())
-//    {
-//        OTItem * pItem = *it;
-//        OT_ASSERT(NULL != pItem);
-//
-//        if (OTItem::atTransaction == pItem->GetType())
-//        {
-//            if (OTItem::acknowledgement == pItem->GetStatus())
-//            {
-//                OTLog::Output(0, "SUCCESS -- Received new transaction
-// number(s) from Server for storage.\n");
-//
-//                OTString strAttachment;
-//                pItem->GetAttachment(strAttachment);
-//                if (strAttachment.GetLength())
-//                {
-//                    OTPseudonym thePseudonym;
-//
-//                    if (thePseudonym.LoadFromString(strAttachment))
-//                    {
-//                        theNym.HarvestTransactionNumbers(pItem->GetPurportedServerID(),
-// theNym, thePseudonym);
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                OTLog::Output(0, "FAILURE -- Server refuses to send
-// transaction num.\n"); // in practice will never occur.
-//            }
-//        }
-//    }    // for each
-//}
-
 void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
                                           OTServerConnection& theConnection,
                                           OTMessage& theReply)
@@ -3351,9 +3306,8 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
     // loop through the ALL items that make up this transaction and check to see
     // if a response to pay dividend.
 
-    FOR_EACH(listOfItems, theTransaction.GetItemList())
-    {
-        OTItem* pItem = *it;
+    for (auto& it : theTransaction.GetItemList()) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         // if pointer not null, and it's a dividend payout, and it's an
@@ -3388,9 +3342,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
     // loop through the ALL items that make up this transaction and check to see
     // if a response to deposit.
 
-    FOR_EACH(listOfItems, theTransaction.GetItemList())
-    {
-        OTItem* pReplyItem = *it;
+    for (auto& it : theTransaction.GetItemList()) {
+        OTItem* pReplyItem = it;
         OT_ASSERT(NULL != pReplyItem);
 
         // if pointer not null, and it's a deposit, and it's an acknowledgement
@@ -3686,9 +3639,8 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
 
     // if pointer not null, and it's a withdrawal, and it's an acknowledgement
     // (not a rejection or error)
-    FOR_EACH(listOfItems, theTransaction.GetItemList())
-    {
-        OTItem* pItem = *it;
+    for (auto& it : theTransaction.GetItemList()) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
         // VOUCHER WITHDRAWAL
         //
@@ -3997,9 +3949,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_AcknowledgedReplies.Output(
             numlist_ack_reply)) // returns false if the numlist was empty.
     {
-        FOR_EACH(std::set<int64_t>, numlist_ack_reply)
-        {
-            const int64_t lTempRequestNum = *it;
+        for (auto& it : numlist_ack_reply) {
+            const int64_t lTempRequestNum = it;
             OTPseudonym* pSignerNym = pNym;
 
             if (pNym->RemoveAcknowledgedNum(*pSignerNym, strServerID,
@@ -4200,10 +4151,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                               "public credential list for Nym: "
                                               "%s\n",
                                            strNymID2.Get());
-                            FOR_EACH(mapOfStrings, theMap)
-                            {
-                                std::string str_cred_id = (*it).first;
-                                OTString strCredential((*it).second);
+                            for (auto& it : theMap) {
+                                std::string str_cred_id = it.first;
+                                OTString strCredential(it.second);
                                 bool bStoredCredential = false;
                                 strOutput.Release();
                                 OTASCIIArmor ascLoopArmor(strCredential);
@@ -4228,7 +4178,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                       "saving public "
                                                       "credential ID: %s\n",
                                                    str_cred_id.c_str());
-                            } // FOR_EACH
+                            }
                         } // Success decoding string map of credential contents.
                     }
                 }
@@ -4907,11 +4857,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             // from my issued list of transaction numbers (like
                             // above.)
 
-                            FOR_EACH_IT(listOfItems,
-                                        pReplyTransaction->GetItemList(),
-                                        it_bigloop)
-                            {
-                                OTItem* pReplyItem = *it_bigloop;
+                            for (auto& it_bigloop :
+                                 pReplyTransaction->GetItemList()) {
+                                OTItem* pReplyItem = it_bigloop;
                                 OT_ASSERT_MSG(NULL != pReplyItem,
                                               "OTClient::ProcessServerReply: "
                                               "Pointer should not have been "
@@ -6151,9 +6099,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         // from my issued list of transaction numbers (like
                         // above.)
                         //
-                        FOR_EACH(listOfItems, pReplyTransaction->GetItemList())
-                        {
-                            OTItem* pReplyItem = *it;
+                        for (auto& it : pReplyTransaction->GetItemList()) {
+                            OTItem* pReplyItem = it;
                             OT_ASSERT_MSG(NULL != pReplyItem,
                                           "OTClient::ProcessServerReply: "
                                           "Pointer should not have been NULL.");
@@ -8092,10 +8039,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         // REMOVE ITS "in reference to" NUMBER FROM MY
                         // ISSUED LIST. Here is clearly the best place for that:
                         //
-                        FOR_EACH(mapOfTransactions,
-                                 theInbox.GetTransactionMap())
-                        {
-                            OTTransaction* pTempTrans = (*it).second;
+                        for (auto& it : theInbox.GetTransactionMap()) {
+                            OTTransaction* pTempTrans = it.second;
                             OT_ASSERT(NULL != pTempTrans);
 
                             // TODO security: Keep a client-side list of issued
@@ -8336,9 +8281,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             // "in reference to" NUMBER FROM MY
             // ISSUED LIST. Here is clearly the best place for that:
             //
-            FOR_EACH(mapOfTransactions, theInbox.GetTransactionMap())
-            {
-                OTTransaction* pTempTrans = (*it).second;
+            for (auto& it : theInbox.GetTransactionMap()) {
+                OTTransaction* pTempTrans = it.second;
                 OT_ASSERT(NULL != pTempTrans);
 
                 // TODO security: Keep a client-side list of issued #s for

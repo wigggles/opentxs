@@ -159,9 +159,8 @@ void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/)
                           m_mapCallbacks.size(), // How many CALLBACK?
                           m_strLanguage.Get());
 
-    FOR_EACH(mapOfVariables, m_mapVariables)
-    {
-        OTVariable* pVar = (*it).second;
+    for (auto& it : m_mapVariables) {
+        OTVariable* pVar = it.second;
         OT_ASSERT(NULL != pVar);
 
         pVar->Serialize(strAppend, bCalculatingID); // Variables save in a
@@ -171,28 +170,25 @@ void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/)
                                                     // value.)
     }
 
-    FOR_EACH(mapOfClauses, m_mapClauses)
-    {
-        OTClause* pClause = (*it).second;
+    for (auto& it : m_mapClauses) {
+        OTClause* pClause = it.second;
         OT_ASSERT(NULL != pClause);
 
         pClause->Serialize(strAppend);
     }
 
-    FOR_EACH(mapOfHooks, m_mapHooks)
-    {
-        const std::string& str_hook_name = (*it).first;
-        const std::string& str_clause_name = (*it).second;
+    for (auto& it : m_mapHooks) {
+        const std::string& str_hook_name = it.first;
+        const std::string& str_clause_name = it.second;
 
         strAppend.Concatenate("<hook\n name=\"%s\"\n"
                               " clause=\"%s\" />\n\n",
                               str_hook_name.c_str(), str_clause_name.c_str());
     }
 
-    FOR_EACH(mapOfCallbacks, m_mapCallbacks)
-    {
-        const std::string& str_callback_name = (*it).first;
-        const std::string& str_clause_name = (*it).second;
+    for (auto& it : m_mapCallbacks) {
+        const std::string& str_callback_name = it.first;
+        const std::string& str_clause_name = it.second;
 
         strAppend.Concatenate("<callback\n name=\"%s\"\n"
                               " clause=\"%s\" />\n\n",
@@ -210,9 +206,8 @@ bool OTBylaw::IsDirty() const
 {
     bool bIsDirty = false;
 
-    FOR_EACH_CONST(mapOfVariables, m_mapVariables)
-    {
-        OTVariable* pVar = (*it).second;
+    for (const auto& it : m_mapVariables) {
+        OTVariable* pVar = it.second;
         OT_ASSERT(NULL != pVar);
 
         // "Persistent" *AND* "Important" Variables are both considered
@@ -242,9 +237,8 @@ bool OTBylaw::IsDirtyImportant() const
 {
     bool bIsDirty = false;
 
-    FOR_EACH_CONST(mapOfVariables, m_mapVariables)
-    {
-        OTVariable* pVar = (*it).second;
+    for (const auto& it : m_mapVariables) {
+        OTVariable* pVar = it.second;
         OT_ASSERT(NULL != pVar);
 
         // "Persistent" *AND* "Important" Variables are both considered
@@ -268,9 +262,8 @@ bool OTBylaw::IsDirtyImportant() const
 //
 void OTBylaw::SetAsClean()
 {
-    FOR_EACH(mapOfVariables, m_mapVariables)
-    {
-        OTVariable* pVar = (*it).second;
+    for (auto& it : m_mapVariables) {
+        OTVariable* pVar = it.second;
         OT_ASSERT(NULL != pVar);
 
         pVar->SetAsClean(); // so we can check for dirtiness later, if it's
@@ -283,10 +276,9 @@ void OTBylaw::SetAsClean()
 //
 void OTBylaw::RegisterVariablesForExecution(OTScript& theScript)
 {
-    FOR_EACH(mapOfVariables, m_mapVariables)
-    {
-        const std::string str_var_name = (*it).first;
-        OTVariable* pVar = (*it).second;
+    for (auto& it : m_mapVariables) {
+        const std::string str_var_name = it.first;
+        OTVariable* pVar = it.second;
         OT_ASSERT((NULL != pVar) && (str_var_name.size() > 0));
 
         pVar->RegisterForExecution(theScript);
@@ -322,10 +314,8 @@ bool OTBylaw::Compare(OTBylaw& rhs)
         // THE COUNTS MATCH, Now let's look up each one by NAME and verify that
         // they match...
 
-        //
-        FOR_EACH_CONST(mapOfVariables, m_mapVariables)
-        {
-            OTVariable* pVar = (*it).second;
+        for (const auto& it : m_mapVariables) {
+            OTVariable* pVar = it.second;
             OT_ASSERT(NULL != pVar);
 
             OTVariable* pVar2 = rhs.GetVariable(pVar->GetName().Get());
@@ -342,9 +332,8 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             }
         }
 
-        FOR_EACH_CONST(mapOfClauses, m_mapClauses)
-        {
-            OTClause* pClause = (*it).second;
+        for (const auto& it : m_mapClauses) {
+            OTClause* pClause = it.second;
             OT_ASSERT(NULL != pClause);
 
             OTClause* pClause2 = rhs.GetClause(pClause->GetName().Get());
@@ -361,10 +350,9 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             }
         }
 
-        FOR_EACH_CONST(mapOfCallbacks, m_mapCallbacks)
-        {
-            const std::string& str_callback_name = (*it).first;
-            const std::string& str_clause_name = (*it).second;
+        for (const auto& it : m_mapCallbacks) {
+            const std::string& str_callback_name = it.first;
+            const std::string& str_clause_name = it.second;
 
             OTClause* pCallbackClause = this->GetCallback(str_callback_name);
             OTClause* pCallbackClause2 = rhs.GetCallback(str_callback_name);
@@ -413,18 +401,16 @@ bool OTBylaw::Compare(OTBylaw& rhs)
 
         // There might be MANY entries with the SAME HOOK NAME. So we add them
         // all to a SET in order to get unique keys.
-        FOR_EACH_CONST(mapOfHooks, m_mapHooks)
-        {
-            const std::string& str_hook_name = (*it).first;
+        for (const auto& it : m_mapHooks) {
+            const std::string& str_hook_name = it.first;
             //            const std::string & str_clause_name    = (*it).second;
 
             theHookSet.insert(str_hook_name);
         }
         // Now we loop through all the unique hook names, and get
         // the list of clauses for EACH bylaw for THAT HOOK.
-        FOR_EACH_IT_CONST(std::set<std::string>, theHookSet, it_hook)
-        {
-            const std::string& str_hook_name = *it_hook;
+        for (const auto& it_hook : theHookSet) {
+            const std::string& str_hook_name = it_hook;
 
             mapOfClauses theHookClauses, theHookClauses2;
 
@@ -444,13 +430,9 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 return false;
             }
 
-            //            typedef std::map<std::string, OTClause *>
-            // mapOfClauses;
-
-            FOR_EACH(mapOfClauses, theHookClauses)
-            {
-                const std::string str_clause_name = (*it).first;
-                OTClause* pClause = (*it).second;
+            for (auto& it : theHookClauses) {
+                const std::string str_clause_name = it.first;
+                OTClause* pClause = it.second;
                 OT_ASSERT(NULL != pClause);
 
                 mapOfClauses::iterator it_rhs =
@@ -481,7 +463,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 //                    return false;
                 //                }
             }
-        } // FOR_EACH_IT(std::set<std::string>, theHookSet, it_hook)
+        }
 
         return true;
     }
@@ -498,14 +480,9 @@ const std::string OTBylaw::GetCallbackNameByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfCallbacks, m_mapCallbacks)
-        {
-            const std::string& str_callback_name = (*it).first;
-            //          const std::string & str_clause_name        =
-            // (*it).second;  // FYI.
-
+        for (auto& it : m_mapCallbacks) {
+            const std::string& str_callback_name = it.first;
             ++nLoopIndex; // 0 on first iteration.
-
             if (nLoopIndex == nIndex) return str_callback_name;
         }
     }
@@ -526,10 +503,9 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
         return NULL;
     }
 
-    FOR_EACH(mapOfCallbacks, m_mapCallbacks)
-    {
-        const std::string& str_callback_name = (*it).first;
-        const std::string& str_clause_name = (*it).second;
+    for (auto& it : m_mapCallbacks) {
+        const std::string& str_callback_name = it.first;
+        const std::string& str_clause_name = it.second;
 
         // IF this entry (of a clause registered for a specific callback)
         // MATCHES the callback name passed in...
@@ -657,9 +633,8 @@ OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfVariables, m_mapVariables)
-        {
-            OTVariable* pVar = (*it).second;
+        for (auto& it : m_mapVariables) {
+            OTVariable* pVar = it.second;
             OT_ASSERT(NULL != pVar);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -698,9 +673,8 @@ OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfClauses, m_mapClauses)
-        {
-            OTClause* pClause = (*it).second;
+        for (auto& it : m_mapClauses) {
+            OTClause* pClause = it.second;
             OT_ASSERT(NULL != pClause);
 
             ++nLoopIndex; // 0 on first iteration.
@@ -719,12 +693,8 @@ const std::string OTBylaw::GetHookNameByIndex(int32_t nIndex)
     else {
         int32_t nLoopIndex = -1;
 
-        FOR_EACH(mapOfHooks, m_mapHooks)
-        {
-            const std::string& str_hook_name = (*it).first;
-            //          const std::string & str_clause_name    = (*it).second;
-            // // FYI.
-
+        for (auto& it : m_mapHooks) {
+            const std::string& str_hook_name = it.first;
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return str_hook_name;
@@ -755,10 +725,9 @@ bool OTBylaw::GetHooks(const std::string str_HookName, mapOfClauses& theResults)
 
     bool bReturnVal = false;
 
-    FOR_EACH(mapOfHooks, m_mapHooks)
-    {
-        const std::string& str_hook_name = (*it).first;
-        const std::string& str_clause_name = (*it).second;
+    for (auto& it : m_mapHooks) {
+        const std::string& str_hook_name = it.first;
+        const std::string& str_clause_name = it.second;
 
         // IF this entry (of a clause registered for a specific hook) MATCHES
         // the hook name passed in...

@@ -183,10 +183,9 @@ void OTAcctList::Serialize(OTString& strAppend)
     strAppend.Concatenate("<accountList type=\"%s\" count=\"%d\" >\n\n",
                           strAcctType.Get(), m_mapAcctIDs.size());
 
-    FOR_EACH(mapOfStrings, m_mapAcctIDs)
-    {
-        const std::string str_asset_type_id = (*it).first;
-        const std::string str_account_id = (*it).second;
+    for (auto& it : m_mapAcctIDs) {
+        const std::string str_asset_type_id = it.first;
+        const std::string str_account_id = it.second;
         OT_ASSERT((str_asset_type_id.size() > 0) &&
                   (str_account_id.size() > 0));
 

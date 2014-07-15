@@ -4056,9 +4056,8 @@ bool OTTransaction::VerifyItems(OTPseudonym& theNym)
     // if pointer not null, and it's a withdrawal, and it's an acknowledgement
     // (not a rejection or error)
     //
-    FOR_EACH(listOfItems, GetItemList())
-    {
-        pItem = *it;
+    for (auto& it : GetItemList()) {
+        pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (GetTransactionNum() != pItem->GetTransactionNum()) return false;
@@ -4437,9 +4436,8 @@ void OTTransaction::AddItem(OTItem& theItem)
 // certain type.
 OTItem* OTTransaction::GetItem(const OTItem::itemType theType)
 {
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (pItem->GetType() == theType) return pItem;
@@ -4459,9 +4457,8 @@ OTItem* OTTransaction::GetItemInRefTo(const int64_t lReference)
                     "NumberOfOrigin?");
     }
 
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (pItem->GetReferenceToNum() == lReference) return pItem;
@@ -4478,9 +4475,8 @@ int32_t OTTransaction::GetItemCountInRefTo(const int64_t lReference)
 {
     int32_t nCount = 0;
 
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         if (pItem->GetReferenceToNum() == lReference) nCount++;
@@ -4564,9 +4560,8 @@ bool OTTransaction::GetSuccess()
 
     if ((OTTransaction::atProcessInbox == GetType()) ||
         (OTTransaction::atProcessNymbox == GetType())) {
-        FOR_EACH(listOfItems, m_listItems)
-        {
-            OTItem* pItem = *it;
+        for (auto& it : m_listItems) {
+            OTItem* pItem = it;
             OT_ASSERT(NULL != pItem);
 
             switch (pItem->GetType()) {
@@ -4705,7 +4700,7 @@ bool OTTransaction::GetSuccess()
                          "for processNymbox or processInbox transaction.\n";
                 return false;
             } // switch
-        }     // FOR_EACH
+        }
 
         return (bFoundABalanceAgreement && bFoundAnActionItem);
 
@@ -4715,9 +4710,8 @@ bool OTTransaction::GetSuccess()
     //
     // Maybe it's one of these other transaction types...
 
-    FOR_EACH(listOfItems, m_listItems)
-    {
-        OTItem* pItem = *it;
+    for (auto& it : m_listItems) {
+        OTItem* pItem = it;
         OT_ASSERT(NULL != pItem);
 
         switch (pItem->GetType()) {
@@ -5607,9 +5601,8 @@ void OTTransaction::UpdateContents()
         // -----------------------------------------------------
         // loop through the items that make up this transaction and print them
         // out here, base64-encoded, of course.
-        FOR_EACH(listOfItems, m_listItems)
-        {
-            OTItem* pItem = *it;
+        for (auto& it : m_listItems) {
+            OTItem* pItem = it;
             OT_ASSERT(NULL != pItem);
 
             OTString strItem;
@@ -6765,9 +6758,9 @@ void OTTransaction::ProduceInboxReportItem(OTItem& theBalanceItem)
     if (OTTransaction::processInbox == theOwner.GetType()) // <==== IF it's a
     process inbox !!!
     {
-        FOR_EACH(listOfItems, theOwner.GetItemList())
+        for (auto& it : theOwner.GetItemList())
         {
-            OTItem * pItem = *it;
+            OTItem * pItem = it;
             OT_ASSERT_MSG(NULL != pItem, "Pointer should not have been NULL.");
 
             // In this place, it means that someone is trying to PROCESS his

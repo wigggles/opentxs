@@ -251,9 +251,8 @@ bool OTLedger::SaveBoxReceipts() // For ALL full transactions, save the actual
                                  // box receipt for each to its own place.
 {
     bool bRetVal = true;
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         // We only save full versions of transactions as box receipts, not
@@ -327,9 +326,8 @@ bool OTLedger::LoadBoxReceipts(
     //
     std::set<int64_t> the_set;
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
         the_set.insert(pTransaction->GetTransactionNum());
     }
@@ -338,9 +336,8 @@ bool OTLedger::LoadBoxReceipts(
     //
     bool bRetVal = true;
 
-    FOR_EACH(std::set<int64_t>, the_set)
-    {
-        int64_t lSetNum = *it;
+    for (auto& it : the_set) {
+        int64_t lSetNum = it;
 
         OTTransaction* pTransaction = this->GetTransaction(lSetNum);
         OT_ASSERT(NULL != pTransaction);
@@ -1227,9 +1224,8 @@ OTTransaction* OTLedger::GetTransaction(
 {
     // loop through the items that make up this transaction
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (theType == pTransaction->GetType()) return pTransaction;
@@ -1246,9 +1242,8 @@ int32_t OTLedger::GetTransactionIndex(int64_t lTransactionNum)
     //
     int32_t nIndex = -1;
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         ++nIndex; // 0 on first iteration.
@@ -1266,9 +1261,8 @@ OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum)
 {
     // loop through the transactions inside this ledger
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (pTransaction->GetTransactionNum() == lTransactionNum) {
@@ -1287,9 +1281,8 @@ int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum)
 {
     int32_t nCount = 0;
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) nCount++;
@@ -1307,10 +1300,9 @@ OTTransaction* OTLedger::GetTransactionByIndex(int32_t nIndex)
 
     int32_t nIndexCount = -1;
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
+    for (auto& it : m_mapTransactions) {
         nIndexCount++; // On first iteration, this is now 0, same as nIndex.
-        OTTransaction* pTransaction = (*it).second;
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT((NULL != pTransaction)); // Should always be good.
 
         // If this transaction is the one at the requested index
@@ -1327,9 +1319,8 @@ OTTransaction* OTLedger::GetTransactionByIndex(int32_t nIndex)
 OTTransaction* OTLedger::GetReplyNotice(const int64_t& lRequestNum)
 {
     // loop through the transactions that make up this ledger.
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (OTTransaction::replyNotice != pTransaction->GetType()) // <=======
@@ -1344,9 +1335,8 @@ OTTransaction* OTLedger::GetReplyNotice(const int64_t& lRequestNum)
 OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
 {
     // loop through the transactions that make up this ledger.
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (OTTransaction::transferReceipt == pTransaction->GetType()) {
@@ -1421,9 +1411,8 @@ OTTransaction* OTLedger::GetChequeReceipt(
     const int64_t lChequeNum,
     OTCheque** ppChequeOut /*=NULL*/) // CALLER RESPONSIBLE TO DELETE.
 {
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pCurrentReceipt = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pCurrentReceipt = it.second;
         OT_ASSERT(NULL != pCurrentReceipt);
 
         if ((pCurrentReceipt->GetType() != OTTransaction::chequeReceipt) &&
@@ -1504,7 +1493,7 @@ OTTransaction* OTLedger::GetChequeReceipt(
                 }
             }
         }
-    } // FOR_EACH
+    }
 
     return NULL;
 }
@@ -1526,9 +1515,8 @@ OTTransaction* OTLedger::GetChequeReceipt(
 OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 {
     // loop through the transactions that make up this ledger.
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (OTTransaction::finalReceipt != pTransaction->GetType()) // <=======
@@ -1551,9 +1539,8 @@ OTTransaction* OTLedger::GetPaymentReceipt(
     OTPayment** ppPaymentOut /*=NULL*/) // CALLER RESPONSIBLE TO DELETE.
 {
     // loop through the transactions that make up this ledger.
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (OTTransaction::paymentReceipt !=
@@ -1734,9 +1721,8 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
     otInfo << "About to loop through the inbox items and produce a report for "
               "each one...\n";
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         otInfo << "Producing a report...\n";
@@ -1778,9 +1764,8 @@ int64_t OTLedger::GetTotalPendingValue()
         return 0;
     }
 
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         if (pTransaction->GetType() == OTTransaction::pending)
@@ -1810,9 +1795,8 @@ void OTLedger::ProduceOutboxReport(OTItem& theBalanceItem)
     // the balance item.
     // (So the balance item contains a complete report on the outoing transfers
     // in this outbox.)
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         // it only reports receipts where we don't yet have balance agreement.
@@ -2099,9 +2083,8 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     int32_t nPartialACTUALCount = 0;
 
     // loop through the transactions and print them out here.
-    FOR_EACH(mapOfTransactions, m_mapTransactions)
-    {
-        OTTransaction* pTransaction = (*it).second;
+    for (auto& it : m_mapTransactions) {
+        OTTransaction* pTransaction = it.second;
         OT_ASSERT(NULL != pTransaction);
 
         OTString strTransaction;
@@ -2156,7 +2139,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
 
             strLedgerContents.Concatenate("%s", strTransaction.Get());
         }
-    } // FOR_EACH(transactions)
+    }
 
     OT_ASSERT_MSG(nPartialACTUALCount == nPartialRecordCount,
                   "ASSERT: OTLedger::UpdateContents: "

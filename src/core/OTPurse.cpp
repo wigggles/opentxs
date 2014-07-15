@@ -371,9 +371,8 @@ bool OTPurse::Merge(
         // map...
         // If it's already there, then just delete it (duplicate).
         //
-        FOR_EACH(mapOfTokenPointers, theMap)
-        {
-            OTToken* pTempToken = (*it).second;
+        for (auto it(theMap.begin()); it != theMap.end(); ++it) {
+            OTToken* pTempToken = it->second;
             OT_ASSERT(NULL != pTempToken);
 
             const OTASCIIArmor& ascTempTokenID = pTempToken->GetSpendable();
@@ -422,9 +421,8 @@ bool OTPurse::Merge(
         // I just popped a Token off of theNewPurse. Let's see if it's in my
         // temporary map...
         // If it's already there, then just delete it (it's a duplicate.)
-        FOR_EACH(mapOfTokenPointers, theMap)
-        {
-            OTToken* pTempToken = (*it).second;
+        for (auto it(theMap.begin()); it != theMap.end(); ++it) {
+            OTToken* pTempToken = it->second;
             OT_ASSERT(NULL != pTempToken);
 
             const OTASCIIArmor& ascTempTokenID = pTempToken->GetSpendable();
@@ -498,9 +496,8 @@ bool OTPurse::Merge(
 
     bool bSuccess = true;
 
-    FOR_EACH(mapOfTokenPointers, theMap)
-    {
-        OTToken* pToken = (*it).second;
+    for (auto& it : theMap) {
+        OTToken* pToken = it.second;
         OT_ASSERT(NULL != pToken);
 
         bool bPush = this->Push(theOldNym, // can be public, if a Nym.
@@ -1531,9 +1528,8 @@ void OTPurse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
     m_tLatestValidFrom = OT_TIME_ZERO;
     m_tEarliestValidTo = OT_TIME_ZERO;
 
-    FOR_EACH(dequeOfTokens, m_dequeTokens)
-    {
-        OTASCIIArmor* pArmor = *it;
+    for (auto& it : m_dequeTokens) {
+        OTASCIIArmor* pArmor = it;
         OT_ASSERT(NULL != pArmor);
 
         OTEnvelope theEnvelope(*pArmor);

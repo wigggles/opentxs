@@ -212,9 +212,8 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput,
         OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM));
     OTCleanup<OTDB::OfferListNym> theListAngel(*pOfferList);
 
-    FOR_EACH(mapOfMarkets, m_mapMarkets)
-    {
-        OTMarket* pMarket = (*it).second;
+    for (auto& it : m_mapMarkets) {
+        OTMarket* pMarket = it.second;
         OT_ASSERT(NULL != pMarket);
 
         int32_t nNymOfferCount = 0;
@@ -294,9 +293,8 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
         OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST));
     OTCleanup<OTDB::MarketList> theListAngel(*pMarketList);
 
-    FOR_EACH(mapOfMarkets, m_mapMarkets)
-    {
-        pMarket = (*it).second;
+    for (auto& it : m_mapMarkets) {
+        pMarket = it.second;
         OT_ASSERT(NULL != pMarket);
 
         OTDB::MarketData* pMarketData = dynamic_cast<OTDB::MarketData*>(
@@ -606,9 +604,8 @@ void OTCron::UpdateContents()
 
     // Save the Market entries (the markets themselves are saved in a markets
     // folder.)
-    FOR_EACH(mapOfMarkets, m_mapMarkets)
-    {
-        OTMarket* pMarket = (*it).second;
+    for (auto& it : m_mapMarkets) {
+        OTMarket* pMarket = it.second;
         OT_ASSERT(NULL != pMarket);
 
         OTIdentifier MARKET_ID(*pMarket);
@@ -627,12 +624,11 @@ void OTCron::UpdateContents()
     }
 
     // Save the Cron Items
-    FOR_EACH(multimapOfCronItems, m_multimapCronItems)
-    {
-        OTCronItem* pItem = (*it).second;
+    for (auto& it : m_multimapCronItems) {
+        OTCronItem* pItem = it.second;
         OT_ASSERT(NULL != pItem);
 
-        time64_t tDateAdded = (*it).first;
+        time64_t tDateAdded = it.first;
         int64_t lDateAdded = OTTimeGetSecondsFromTime(tDateAdded);
 
         OTString strItem(
@@ -648,9 +644,8 @@ void OTCron::UpdateContents()
     //
     int64_t lTransactionNumber = 0;
 
-    FOR_EACH(listOfLongNumbers, m_listTransactionNumbers)
-    {
-        lTransactionNumber = *it;
+    for (auto& it : m_listTransactionNumbers) {
+        lTransactionNumber = it;
 
         m_xmlUnsigned.Concatenate("<transactionNum value=\"%lld\" />\n\n",
                                   lTransactionNumber);
@@ -723,9 +718,7 @@ void OTCron::ProcessCronItems()
          it != m_multimapCronItems.end();  // (This is necessary for market
                                            // orders to process properly.)
                                            /* NOTICE THIS THIRD SPOT IS EMPTY*/
-         )
-        //    FOR_EACH(multimapOfCronItems, m_multimapCronItems)
-    {
+         ) {
         const int32_t nTwentyPercent2 = OTCron::GetCronRefillAmount() / 5;
 
         if (GetTransactionCount() <= nTwentyPercent2) {
@@ -1069,9 +1062,8 @@ OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
         // since it will often be the right one, and avoids doing this
         // longer search. Basically for optimization purposes.)
         //
-        FOR_EACH(mapOfCronItems, m_mapCronItems)
-        {
-            OTCronItem* pItem = (*it).second;
+        for (auto& it : m_mapCronItems) {
+            OTCronItem* pItem = it.second;
             OT_ASSERT((NULL != pItem));
 
             if (pItem->IsValidOpeningNumber(lOpeningNum)) // Todo optimization.

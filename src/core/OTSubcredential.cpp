@@ -251,13 +251,12 @@ void OTSubcredential::UpdatePublicContentsToString(
         strAppendTo.Concatenate("<publicContents count=\"%d\">\n\n",
                                 m_mapPublicInfo.size());
 
-        FOR_EACH(mapOfStrings, m_mapPublicInfo)
-        {
-            OTString strInfo((*it).second);
+        for (auto& it : m_mapPublicInfo) {
+            OTString strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
             strAppendTo.Concatenate(
                 "<publicInfo key=\"%s\">\n%s</publicInfo>\n\n",
-                (*it).first.c_str(), ascInfo.Get());
+                it.first.c_str(), ascInfo.Get());
         }
 
         strAppendTo.Concatenate("</publicContents>\n\n");
@@ -283,13 +282,12 @@ void OTSubcredential::UpdatePrivateContentsToString(
         strAppendTo.Concatenate("<privateContents count=\"%d\">\n\n",
                                 m_mapPrivateInfo.size());
 
-        FOR_EACH(mapOfStrings, m_mapPrivateInfo)
-        {
-            OTString strInfo((*it).second);
+        for (auto& it : m_mapPrivateInfo) {
+            OTString strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
             strAppendTo.Concatenate(
                 "<privateInfo key=\"%s\">\n%s</privateInfo>\n\n",
-                (*it).first.c_str(), ascInfo.Get());
+                it.first.c_str(), ascInfo.Get());
         }
         strAppendTo.Concatenate("</privateContents>\n\n");
     }
