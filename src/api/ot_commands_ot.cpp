@@ -244,7 +244,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                     print(to_string(nAssetIndex) + ": " + strAssetID);
                 }
             }
-        } // for
+        }
         if (nAssetCount > 0) {
             OTAPI_Wrap::Output(0, "\n");
         }
@@ -393,7 +393,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     case 1: {
         OTAPI_Wrap::Output(
             0, "\n\n SUCCESS in issue_basket_currency! Server response:\n\n");
-        print(strResponse); // stdout
+        print(strResponse);
 
         string strNewID = OTAPI_Wrap::Message_GetNewAssetTypeID(strResponse);
         bool bGotNewID = VerifyStringVal(strNewID);
@@ -419,7 +419,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     case 0:
         OTAPI_Wrap::Output(
             0, "\n\n FAILURE in issue_basket_currency! Server response:\n\n");
-        print(strResponse); // stdout
+        print(strResponse);
         OTAPI_Wrap::Output(0, " FAILURE in issue_basket_currency!\n");
         break;
     default:
@@ -429,14 +429,14 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
 
         if (VerifyStringVal(strResponse)) {
             OTAPI_Wrap::Output(0, "Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             OTAPI_Wrap::Output(
                 0, "\nError in issue_basket_currency! nStatus is: " +
                        to_string(nStatus) + "\n");
         }
         break;
     }
-    OTAPI_Wrap::Output(0, "\n"); // stderr
+    OTAPI_Wrap::Output(0, "\n");
 
     return (0 == nStatus) ? -1 : nStatus;
 }
@@ -713,7 +713,7 @@ OT_Command::details_exchange_basket(const string& strServer,
         strBasket = strTempBasket;
 
         OTAPI_Wrap::Output(0, "\n\n");
-    } // for
+    }
 
     // Send the exchange transaction...
     //
@@ -883,7 +883,7 @@ OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
                     else {
                         print("Error trying to stat an account: " + strID);
                     }
-                    // stderr
+
                     print("");
                 }
             }
@@ -995,8 +995,7 @@ OT_Command::details_discard_incoming(const string& strServer,
                     nSuccess = -1;
                 }
             } // if (!bContinue)
-
-        } // for
+        }
 
     } // if (nCount > 0)
     else {
@@ -1381,7 +1380,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                     strServer, strMyNym,
                                     false, // true == payments inbox. false ==
                                            // payments outbox.
-                                    nIndex, false); // bSaveCopy = false.
+                                    nIndex, false);
                                 if (!bRecorded) {
                                     nSuccess = -1;
                                 }
@@ -1503,7 +1502,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_cancel_outgoing()
             int32_t nCount = OTAPI_Wrap::GetNym_OutpaymentsCount(MyNym);
 
             for (int32_t nPayments = 0; nPayments < nCount; ++nPayments) {
-                show_outpayment(MyNym, nPayments, false); // bShowInFull=false
+                show_outpayment(MyNym, nPayments, false);
             }
 
             OTAPI_Wrap::Output(0, "\nPlease enter the index (in your "
@@ -2136,7 +2135,7 @@ OT_COMMANDS_OT bool OT_Command::show_unconfirmed_parties(
                                       strPartyName + "\n");
             ++nUnconfirmedPartyCount;
         }
-    } // for
+    }
 
     if (nUnconfirmedPartyCount <= 0) {
         OTAPI_Wrap::Output(0, "SHOULD NEVER HAPPEN: "
@@ -2348,7 +2347,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
                 strExpiry = strTempExpiry;
             }
         }
-        OTAPI_Wrap::Output(0, "\n"); // stderr
+        OTAPI_Wrap::Output(0, "\n");
 
         if (!VerifyStringVal(strConsideration)) {
             OTAPI_Wrap::Output(0, "\nDescribe the product or service being "
@@ -2363,16 +2362,14 @@ OT_COMMANDS_OT int32_t OT_Command::main_propose_plan() // payment plan -- called
             }
         }
 
-        OTAPI_Wrap::Output(0, "date_range (from,to): " + strDates +
-                                  "\n"); // stderr
-        OTAPI_Wrap::Output(0, "consideration: " + strConsideration +
-                                  "\n"); // stderr
+        OTAPI_Wrap::Output(0, "date_range (from,to): " + strDates + "\n");
+        OTAPI_Wrap::Output(0, "consideration: " + strConsideration + "\n");
         OTAPI_Wrap::Output(0, "initial_payment (amount,delay): " +
-                                  strInitialPayment + "\n"); // stderr
+                                  strInitialPayment + "\n");
         OTAPI_Wrap::Output(0, "payment_plan (amount,delay,period): " +
-                                  strPaymentPlan + "\n"); // stderr
-        OTAPI_Wrap::Output(0, "plan_expiry (length,number): " + strExpiry +
-                                  "\n"); // stderr
+                                  strPaymentPlan + "\n");
+        OTAPI_Wrap::Output(0,
+                           "plan_expiry (length,number): " + strExpiry + "\n");
 
         return details_propose_plan(
             Server, MyNym, MyAcct, HisNym, HisAcct, strDates, strConsideration,
@@ -2499,8 +2496,7 @@ OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
                 strServerID, strSenderUserID, strSenderAcctID, strAttempt,
                 strResponse);
 
-            if (1 == nInterpretReply) // Success.
-            {
+            if (1 == nInterpretReply) {
                 // Download all the intermediary files (account balance, inbox,
                 // outbox, etc)
                 // since they have probably changed from this operation.
@@ -2650,8 +2646,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                     while (nCurrentAcctCount > 0) {
                         OTAPI_Wrap::Output(0, "\n");
-                        stat_partyaccounts(strSmartContract, strPartyName,
-                                           2); // nDepth=2
+                        stat_partyaccounts(strSmartContract, strPartyName, 2);
 
                         OTAPI_Wrap::Output(
                             0, "\n There are " + to_string(nCurrentAcctCount) +
@@ -3028,7 +3023,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                         }
                                     }
                                 }
-                            } // for
+                            }
 
                             if (!bFoundAccounts) {
                                 OTAPI_Wrap::Output(
@@ -3434,8 +3429,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                         // account ID and the agent name and call
                         // activate_smart_contract.
                         //
-                        stat_partyaccounts(strSmartContract, strPartyName,
-                                           2); // nDepth=2
+                        stat_partyaccounts(strSmartContract, strPartyName, 2);
 
                         OTAPI_Wrap::Output(0, "\n\n Enter the index for the "
                                               "account you'll use to ACTIVATE "
@@ -3669,8 +3663,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                         strServerID, strNymID, strMyAcctID, strAttempt,
                         strResponse);
 
-                    if (1 == nInterpretReply) // Success.
-                    {
+                    if (1 == nInterpretReply) {
                         // Download all the intermediary files (account balance,
                         // inbox, outbox, etc)
                         // since they have probably changed from this operation.
@@ -3904,7 +3897,7 @@ OT_Command::main_confirm() // smart contract and payment plan
             }
         }
     }
-    OTAPI_Wrap::Output(0, "\n\n"); // stderr
+    OTAPI_Wrap::Output(0, "\n\n");
     string strInstrument = "";
 
     if (-1 == nIndex) // No index provided, so they need to paste the smart
@@ -4033,11 +4026,10 @@ OT_Command::main_confirm() // smart contract and payment plan
             // inbox, and move to record box.
 
             // Note: this harvests.
-            if (OTAPI_Wrap::RecordPayment(Server, MyNym, true, // bIsInbox=true
-                                          nIndex, true)) // bSaveCopy=true.
-                                                         // (Will be saved in
-                                                         // expired box, since
-                                                         // it's expired.)
+            if (OTAPI_Wrap::RecordPayment(Server, MyNym, true, nIndex, true))
+                // (Will be saved in
+                // expired box, since
+                // it's expired.)
             {
                 return 0;
             }
@@ -4091,21 +4083,18 @@ OT_COMMANDS_OT int32_t OT_Command::main_encode()
         0, "\n\n--------------------------------------\n You entered:\n" +
                strInput + "\n\n");
 
-    string strOutput = OTAPI_Wrap::Encode(strInput, true); // bLineBreaks=true
+    string strOutput = OTAPI_Wrap::Encode(strInput, true);
 
-    // stderr
     OTAPI_Wrap::Output(
         0, "-------------------------------------- \n Encoded:\n\n");
 
-    // stdout
     if (VerifyStringVal(strOutput)) {
         print(strOutput);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n\n");
         return 1;
     }
 
-    // stderr
     OTAPI_Wrap::Output(0, "\n\n");
 
     return -1;
@@ -4128,21 +4117,18 @@ OT_COMMANDS_OT int32_t OT_Command::main_decode()
         0, "\n\n--------------------------------------\n You entered:\n" +
                strInput + "\n\n");
 
-    string strOutput = OTAPI_Wrap::Decode(strInput, true); // bLineBreaks=true
+    string strOutput = OTAPI_Wrap::Decode(strInput, true);
 
-    // stderr
     OTAPI_Wrap::Output(0,
                        "--------------------------------------\n Decoded:\n\n");
 
-    // stdout
     if (VerifyStringVal(strOutput)) {
         print(strOutput);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n\n");
         return 1;
     }
 
-    // stderr
     OTAPI_Wrap::Output(0, "\n\n");
 
     return -1;
@@ -4169,17 +4155,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_encrypt()
             0, "\n\n--------------------------------------\n You entered:\n" +
                    strInput + "\n\n");
 
-        string strOutput =
-            OTAPI_Wrap::Encrypt(HisNym, strInput); // bLineBreaks=true
+        string strOutput = OTAPI_Wrap::Encrypt(HisNym, strInput);
 
-        // stdout
         if (VerifyStringVal(strOutput)) {
-            // stderr
+
             OTAPI_Wrap::Output(
                 0, "-------------------------------------- \n Encrypted:\n\n");
 
             print(strOutput);
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
@@ -4210,17 +4194,15 @@ OT_COMMANDS_OT int32_t OT_Command::main_decrypt()
             0, "\n\n--------------------------------------\n You entered:\n" +
                    strInput + "\n\n");
 
-        string strOutput =
-            OTAPI_Wrap::Decrypt(MyNym, strInput); // bLineBreaks=true
+        string strOutput = OTAPI_Wrap::Decrypt(MyNym, strInput);
 
-        // stdout
         if (VerifyStringVal(strOutput)) {
-            // stderr
+
             OTAPI_Wrap::Output(
                 0, "-------------------------------------- \n Decrypted:\n\n");
 
             print(strOutput);
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
@@ -4251,15 +4233,14 @@ OT_COMMANDS_OT int32_t OT_Command::main_password_encrypt()
         string strCiphertext =
             OTAPI_Wrap::SymmetricEncrypt(strKey, strPlaintext);
 
-        // stdout
         if (VerifyStringVal(strCiphertext)) {
-            // stderr
+
             OTAPI_Wrap::Output(
                 0,
                 "-------------------------------------- \n strCiphertext:\n\n");
 
             print(strCiphertext);
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
@@ -4291,14 +4272,13 @@ OT_COMMANDS_OT int32_t OT_Command::main_password_decrypt()
         string strPlaintext =
             OTAPI_Wrap::SymmetricDecrypt(strKey, strCiphertext);
 
-        // stdout
         if (VerifyStringVal(strPlaintext)) {
-            // stderr
+
             OTAPI_Wrap::Output(
                 0, "-------------------------------------- \n Plaintext:\n\n");
 
             print(strPlaintext);
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
@@ -4371,10 +4351,10 @@ OT_COMMANDS_OT int32_t OT_Command::main_export_nym()
             return -1;
         }
         else {
-            OTAPI_Wrap::Output(0, "\n\n SUCCESS exporting Nym: " + MyNym +
-                                      "\n\n"); // stderr
-            print(strExportedNym);             // stdout
-            OTAPI_Wrap::Output(0, "\n");       // stderr
+            OTAPI_Wrap::Output(0,
+                               "\n\n SUCCESS exporting Nym: " + MyNym + "\n\n");
+            print(strExportedNym);
+            OTAPI_Wrap::Output(0, "\n");
             return 1;
         }
     }
@@ -5188,17 +5168,16 @@ OT_COMMANDS_OT int32_t OT_Command::main_write_cheque()
     OTAPI_Wrap::Output(0, strUsage);
 
     string strCheque = "";
-    int32_t nReturnVal =
-        details_write_cheque(strCheque, false); // bIsInvoice=false
+    int32_t nReturnVal = details_write_cheque(strCheque, false);
 
     if ((1 == nReturnVal) && VerifyStringVal(strCheque)) {
-        // stderr
+
         OTAPI_Wrap::Output(
             0,
             "\n-------------------------------------------\n the cheque:\n\n");
-        // stdout
+
         print(strCheque);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n");
     }
 
@@ -5218,17 +5197,16 @@ OT_COMMANDS_OT int32_t OT_Command::main_write_invoice()
     OTAPI_Wrap::Output(0, strUsage);
 
     string strCheque = "";
-    int32_t nReturnVal =
-        details_write_cheque(strCheque, true); // bIsInvoice=true
+    int32_t nReturnVal = details_write_cheque(strCheque, true);
 
     if ((1 == nReturnVal) && VerifyStringVal(strCheque)) {
-        // stderr
+
         OTAPI_Wrap::Output(
             0,
             "\n-------------------------------------------\n the invoice:\n\n");
-        // stdout
+
         print(strCheque);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n");
     }
 
@@ -5432,8 +5410,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcash()
     // then grab them and use them instead of asking the user to enter them
     // at the command line.
     //
-    if (VerifyExists("Args", false)) // displayErrorMsg=false
-    {
+    if (VerifyExists("Args", false)) {
         strIndices = OT_CLI_GetValueByKey(
             Args, "indices"); // OTNumList will be used for this value.
 
@@ -5514,17 +5491,16 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendcheque()
     OTAPI_Wrap::Output(0, strUsage);
 
     string strCheque = "";
-    int32_t nReturnVal =
-        details_write_cheque(strCheque, false); // bIsInvoice=false
+    int32_t nReturnVal = details_write_cheque(strCheque, false);
 
     if ((1 == nReturnVal) && VerifyStringVal(strCheque)) {
-        // stderr
+
         OTAPI_Wrap::Output(
             0,
             "\n-------------------------------------------\n the cheque:\n\n");
-        // stdout
+
         print(strCheque);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n");
 
         // TODO: Store a copy in outpayments box (OR VERIFY THAT IT'S ALREADY
@@ -5601,17 +5577,16 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendinvoice()
     OTAPI_Wrap::Output(0, strUsage);
 
     string strCheque = "";
-    int32_t nReturnVal =
-        details_write_cheque(strCheque, true); // bIsInvoice=true
+    int32_t nReturnVal = details_write_cheque(strCheque, true);
 
     if ((1 == nReturnVal) && VerifyStringVal(strCheque)) {
-        // stderr
+
         OTAPI_Wrap::Output(
             0,
             "\n-------------------------------------------\n the invoice:\n\n");
-        // stdout
+
         print(strCheque);
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n");
 
         // TODO: Store a copy in outpayments box (OR VERIFY THAT IT'S ALREADY
@@ -6028,7 +6003,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_server_contract()
                 OTAPI_Wrap::CreateServerContract(MyNym, strXML);
 
             if (VerifyStringVal(strContractID)) {
-                // stderr
+
                 OTAPI_Wrap::Output(0, "----------------------------------------"
                                       "---\nNew server ID: " +
                                           strContractID + "\n\n");
@@ -6037,11 +6012,10 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_server_contract()
                     OTAPI_Wrap::GetServer_Contract(strContractID);
 
                 if (VerifyStringVal(strContract)) {
-                    // stderr
+
                     OTAPI_Wrap::Output(0, "------------------------------------"
                                           "-------\nNew server contract:\n\n");
 
-                    // stdout
                     print(strContract);
 
                     OTAPI_Wrap::Output(0, "\n\n");
@@ -6080,7 +6054,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_asset_contract()
                 OTAPI_Wrap::CreateAssetContract(MyNym, strXML);
 
             if (VerifyStringVal(strContractID)) {
-                // stderr
+
                 OTAPI_Wrap::Output(0, "----------------------------------------"
                                       "---\nNew asset ID: " +
                                           strContractID + "\n\n");
@@ -6089,11 +6063,10 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_asset_contract()
                     OTAPI_Wrap::GetAssetType_Contract(strContractID);
 
                 if (VerifyStringVal(strContract)) {
-                    // stderr
+
                     OTAPI_Wrap::Output(0, "------------------------------------"
                                           "-------\nNew asset contract:\n\n");
 
-                    // stdout
                     print(strContract);
 
                     OTAPI_Wrap::Output(0, "\n\n");
@@ -6140,11 +6113,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_create_acct()
         }
         else {
             OTAPI_Wrap::Output(
-                0,
-                "Success in create_asset_acct! Server response:\n\n"); // stderr
-            print(strResponse);                                        // stdout
-            OTAPI_Wrap::Output(
-                0, "\n (Success in create_asset_acct)\n\n"); // stderr
+                0, "Success in create_asset_acct! Server response:\n\n");
+            print(strResponse);
+            OTAPI_Wrap::Output(0, "\n (Success in create_asset_acct)\n\n");
             return 1;
         }
     }
@@ -6178,14 +6149,11 @@ OT_COMMANDS_OT int32_t OT_Command::main_add_signature()
 
         string strOutput = OTAPI_Wrap::AddSignature(MyNym, strInput);
 
-        // stderr
         OTAPI_Wrap::Output(
             0, "-------------------------------------------\nSigned:\n\n");
 
-        // stdout
         print(strOutput);
 
-        // stderr
         OTAPI_Wrap::Output(0, "\n\n");
 
         return 1;
@@ -6259,11 +6227,10 @@ OT_COMMANDS_OT int32_t OT_Command::main_sign_contract()
         int32_t nReturnVal = -1;
 
         if (VerifyStringVal(strOutput)) {
-            // stderr
+
             OTAPI_Wrap::Output(
                 0, "-------------------------------------------\nSigned:\n\n");
 
-            // stdout
             print(strOutput);
 
             nReturnVal = 1;
@@ -6273,7 +6240,6 @@ OT_COMMANDS_OT int32_t OT_Command::main_sign_contract()
                                "\nSorry, but OT was unable to sign. Oh well.");
         }
 
-        // stderr
         OTAPI_Wrap::Output(0, "\n\n");
 
         return nReturnVal;
@@ -6319,8 +6285,8 @@ OT_COMMANDS_OT int32_t OT_Command::details_kill_offer(const string& strServerID,
         else {
             OTAPI_Wrap::Output(
                 0, "\n\nSuccess in killoffer! Server response:\n\n");
-            print(strResponse);          // stdout
-            OTAPI_Wrap::Output(0, "\n"); // stderr
+            print(strResponse);
+            OTAPI_Wrap::Output(0, "\n");
             return 1;
         }
     }
@@ -6414,8 +6380,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_kill_plan()
                 OTAPI_Wrap::Output(
                     0,
                     "\n\nSuccess in kill_payment_plan! Server response:\n\n");
-                print(strResponse);            // stdout
-                OTAPI_Wrap::Output(0, "\n\n"); // stderr
+                print(strResponse);
+                OTAPI_Wrap::Output(0, "\n\n");
                 return 1;
             }
         }
@@ -6529,7 +6495,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_stat_accounts()
         else {
             print("Error trying to stat an asset account: " + strID);
         }
-        // stderr
+
         print("");
     }
     print("------------------------------------------------------------------");
@@ -6551,7 +6517,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_stat()
 
 OT_COMMANDS_OT int32_t OT_Command::details_stat_account(const string& strID)
 {
-    // stderr
+
     OTAPI_Wrap::Output(0, "\n\n------------------------------------------------"
                           "------------------\n");
 
@@ -6566,7 +6532,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_stat_account(const string& strID)
     else {
         print("Error trying to stat an asset account: " + strID + "\n");
     }
-    // stderr
+
     OTAPI_Wrap::Output(0, "\n");
 
     return nSuccess;
@@ -6600,9 +6566,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_account_balance(const string& strID)
 
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strID);
 
-    OTAPI_Wrap::Output(0, "\n    Balance: ");                  // stderr
-    print(OTAPI_Wrap::FormatAmount(strAssetID, lBalance));     // stdout
-    OTAPI_Wrap::Output(0, strID + "   (" + strName + ")\n\n"); // stderr
+    OTAPI_Wrap::Output(0, "\n    Balance: ");
+    print(OTAPI_Wrap::FormatAmount(strAssetID, lBalance));
+    OTAPI_Wrap::Output(0, strID + "   (" + strName + ")\n\n");
 
     return 1;
 }
@@ -6662,11 +6628,10 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_mint()
             OTAPI_Wrap::Output(0, "\n\n load_or_retrieve_mint: Failed.\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0, "\n\n"); // stderr
-            print(strMint);                // stdout
-            OTAPI_Wrap::Output(0, "\n\n"); // stderr
+        else {
+            OTAPI_Wrap::Output(0, "\n\n");
+            print(strMint);
+            OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
     }
@@ -6696,9 +6661,9 @@ OT_Command::details_create_nym(const int32_t nKeybits, const string& strName,
         return -1;
     }
     OTAPI_Wrap::Output(0, "Success creating! " + to_string(nKeybits) +
-                              " keybits, new ID: "); // stderr
-    print(strNymID);                                 // stdout
-    OTAPI_Wrap::Output(0, "\n");                     // stderr
+                              " keybits, new ID: ");
+    print(strNymID);
+    OTAPI_Wrap::Output(0, "\n");
 
     bool bSetName = OTAPI_Wrap::SetNym_Name(strNymID, // subject
                                             strNymID, // signer
@@ -6709,8 +6674,7 @@ OT_Command::details_create_nym(const int32_t nKeybits, const string& strName,
         return -1;
     }
 
-    OTAPI_Wrap::Output(0, "Success setting name to: " + strName +
-                              "\n\n"); // stderr
+    OTAPI_Wrap::Output(0, "Success setting name to: " + strName + "\n\n");
     return 1;
 }
 
@@ -6892,7 +6856,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
     //
     if (!MsgUtil.getIntermediaryFiles(strServerID, strMyNymID,
                                       strMyAcctID)) // boolean
-                                                    // bForceDownload=false
     {
         OTAPI_Wrap::Output(0, "Unable to download necessary intermediary files "
                               "for this inbox/account. (Failure.)\n");
@@ -6926,10 +6889,9 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
         OTAPI_Wrap::Output(0, "\n\n OT_API_LoadInbox: Failed.\n\n");
         return -1;
     }
-    else // Success!
-    {
-        OTAPI_Wrap::Output(0, "\n\n"); // stderr
-        //  print(strInbox)          // stdout
+    else {
+        OTAPI_Wrap::Output(0, "\n\n");
+        //  print(strInbox)
 
         int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                      strMyAcctID, strInbox);
@@ -7046,7 +7008,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                         strResponseLEDGER = strNEW_ResponseLEDGER;
                     }
                 }
-            } // for
+            }
 
             if (!VerifyStringVal(strResponseLEDGER)) {
                 // This means there were receipts in the box, but they were
@@ -7102,7 +7064,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
             }
 
             //
-            // Success!
+
             //
             return nInterpretReply;
 
@@ -7376,8 +7338,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_check_user()
         if (1 == VerifyMessageSuccess(strResponse)) {
             OTAPI_Wrap::Output(0,
                                "\n\nSuccess in checknym! Server response:\n\n");
-            print(strResponse);            // stdout
-            OTAPI_Wrap::Output(0, "\n\n"); // stderr
+            print(strResponse);
+            OTAPI_Wrap::Output(0, "\n\n");
             return 1;
         }
         else {
@@ -7545,10 +7507,8 @@ OT_COMMANDS_OT int32_t OT_Command::main_verify_last_receipt()
                                   "verifying again.\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0,
-                               "\n\nVerify receipt:  success!\n\n"); // stderr
+        else {
+            OTAPI_Wrap::Output(0, "\n\nVerify receipt:  success!\n\n");
             return 1;
         }
     }
@@ -7582,7 +7542,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_register_nym()
         switch (nSuccess) {
         case 1:
             OTAPI_Wrap::Output(0, "\n\n Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             OTAPI_Wrap::Output(0, "\n\n SUCCESS in register_nym!\n(Also, "
                                   "success syncronizing the request "
                                   "number.)\n\n");
@@ -7590,18 +7550,18 @@ OT_COMMANDS_OT int32_t OT_Command::main_register_nym()
         case 0:
             OTAPI_Wrap::Output(
                 0, "\n\n FAILURE in register_nym! Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             break;
         default:
             OTAPI_Wrap::Output(0, "\n\nError in register_nym!\n");
 
             if (VerifyStringVal(strResponse)) {
                 OTAPI_Wrap::Output(0, "Server response:\n\n");
-                print(strResponse); // stdout
+                print(strResponse);
             }
             break;
         }
-        OTAPI_Wrap::Output(0, "\n\n"); // stderr
+        OTAPI_Wrap::Output(0, "\n\n");
 
         return nSuccess;
     }
@@ -7667,7 +7627,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_refresh_nym()
         bool bWasMsgSent = false;
         bool bReturnVal = details_refresh_nym(Server, MyNym, bWasMsgSent, true);
 
-        OTAPI_Wrap::Output(0, "\n"); // stderr
+        OTAPI_Wrap::Output(0, "\n");
 
         if (bReturnVal) {
             return 1;
@@ -8001,8 +7961,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_withdraw_cash()
         // then grab them and use them instead of asking the user to enter them
         // at the command line.
         //
-        if (VerifyExists("Args", false)) // displayErrorMsg=false
-        {
+        if (VerifyExists("Args", false)) {
             string strNewAmount =
                 OT_CLI_GetValueByKey(Args, "amount"); // any integer value
 
@@ -8202,8 +8161,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strServerID, strMyNymID, MyAcct, strAttempt, strResponse);
 
-    if (1 == nInterpretReply) // Success!
-    {
+    if (1 == nInterpretReply) {
 
         string strLedger = OTAPI_Wrap::Message_GetLedger(strResponse);
 
@@ -8267,9 +8225,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
                                " retrieving intermediary files for account.\n");
 
         OTAPI_Wrap::Output(0, "details_withdraw_voucher: Voucher returned by "
-                              "OT_API_Transaction_GetVoucher:\n\n"); // stderr
-        print(strOutput);                                            // stdout
-        OTAPI_Wrap::Output(0, "\n\n");                               // stderr.
+                              "OT_API_Transaction_GetVoucher:\n\n");
+        print(strOutput);
+        OTAPI_Wrap::Output(0, "\n\n"); // stderr.
 
         OTAPI_Wrap::Output(
             0, "\n\nServer response (" + strAttempt +
@@ -8335,12 +8293,12 @@ OT_COMMANDS_OT int32_t OT_Command::main_sendvoucher()
 
         //
         if ((1 == nReturnVal) && VerifyStringVal(strCheque)) {
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n------------------------------------------"
                                   "-\n the voucher:\n\n");
-            // stdout
+
             print(strCheque);
-            // stderr
+
             OTAPI_Wrap::Output(0, "\n");
 
             // TODO: Store a copy in outpayments box (OR VERIFY THAT IT'S
@@ -8434,7 +8392,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
         return NULL;
     }
 
-    return marketList; // success.
+    return marketList;
 
     // This WAS a "load or create" sort of function, but I commented out the
     // "create" part because
@@ -8844,7 +8802,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_adjust_usage_credits()
         switch (nStatus) {
         case 1: {
             OTAPI_Wrap::Output(0, "\n\n Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
 
             // IF THE_MESSAGE is of command type @usageCredits, and IF it was a
             // SUCCESS,
@@ -8902,13 +8860,13 @@ OT_COMMANDS_OT int32_t OT_Command::main_adjust_usage_credits()
         }
         case 0:
             OTAPI_Wrap::Output(0, "\n\nServer response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             OTAPI_Wrap::Output(0, "\n\n FAILURE in adjust_usage_credits!\n\n");
             break;
         default:
             if (VerifyStringVal(strResponse)) {
                 OTAPI_Wrap::Output(0, "Server response:\n\n");
-                print(strResponse); // stdout
+                print(strResponse);
             }
             OTAPI_Wrap::Output(
                 0, "\n\nError in adjust_usage_credits! nStatus is: " +
@@ -8916,7 +8874,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_adjust_usage_credits()
             break;
         }
 
-        OTAPI_Wrap::Output(0, "\n\n"); // stderr
+        OTAPI_Wrap::Output(0, "\n\n");
 
         return (0 == nStatus) ? -1 : nStatus;
     }
@@ -9158,8 +9116,7 @@ OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         Server, strMyNymID, MyAcct, strAttempt, strResponse);
 
-    if (1 == nInterpretReply) // Success!
-    {
+    if (1 == nInterpretReply) {
 
         // Download all the intermediary files (account balance, inbox, outbox,
         // etc)
@@ -10388,10 +10345,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_export_cash()
             bPasswordProtected, strRetainedCopy);
 
         if (VerifyStringVal(strExportedPurse)) {
-            print("\n" + strExportedPurse + "\n"); // stdout
-            OTAPI_Wrap::Output(0,
-                               "Success exporting cash purse!\n\n"); // stderr
-            return 1;                                                // Success!
+            print("\n" + strExportedPurse + "\n");
+            OTAPI_Wrap::Output(0, "Success exporting cash purse!\n\n");
+            return 1;
         }
     }
 
@@ -10880,13 +10836,11 @@ OT_COMMANDS_OT int32_t OT_Command::main_new_symmetric_key()
     string strKey = OTAPI_Wrap::CreateSymmetricKey();
 
     if (VerifyStringVal(strKey)) {
-        // stderr
+
         OTAPI_Wrap::Output(0, "\n");
 
-        // stdout
         print(strKey);
 
-        // stderr
         OTAPI_Wrap::Output(0, "\n");
 
         return 1;
@@ -11161,9 +11115,8 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
         // remove it from payments inbox and move it to the recordbox.
         //
         if ((nIndex != -1) && (1 == nDepositPurse)) {
-            OTAPI_Wrap::RecordPayment(strServerID, strMyNymID,
-                                      true,          // bIsInbox=true
-                                      nIndex, true); // bSaveCopy=true.
+            OTAPI_Wrap::RecordPayment(strServerID, strMyNymID, true, nIndex,
+                                      true);
         }
 
         return nDepositPurse;
@@ -11402,7 +11355,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_payinvoice()
             }
         }
     }
-    OTAPI_Wrap::Output(0, "\n\n"); // stderr
+    OTAPI_Wrap::Output(0, "\n\n");
     //
     int32_t nPaidInvoice = handle_payment_index(MyAcct, nIndex, "INVOICE", "");
 
@@ -11677,7 +11630,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_active()
                             }
                         }
                     }
-                } // for
+                }
                 OTAPI_Wrap::Output(0, "\n");
             }
             else {
@@ -11740,10 +11693,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
             OTAPI_Wrap::Output(0, "\n\n OT_API_LoadPaymentInbox: Failed.\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0, "\n\n"); // stderr
-            //          print(strInbox)          // stdout
+        else {
+            OTAPI_Wrap::Output(0, "\n\n");
+            //          print(strInbox)
 
             int32_t nCount =
                 OTAPI_Wrap::Ledger_GetCount(Server, MyNym, MyNym, strInbox);
@@ -11919,7 +11871,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payment()
 
             } // VerifyIntVal (nCount)
 
-            //          OTAPI_Wrap::Output(0, "\n\n") // stderr
+            //          OTAPI_Wrap::Output(0, "\n\n")
             return 1;
         }
     }
@@ -12003,10 +11955,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payments_inbox()
                                       MyNym + " / " + Server + " )\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0, "\n"); // stderr
-            //          print(strInbox)          // stdout
+        else {
+            OTAPI_Wrap::Output(0, "\n");
+            //          print(strInbox)
 
             int32_t nCount =
                 OTAPI_Wrap::Ledger_GetCount(Server, MyNym, MyNym, strInbox);
@@ -12128,7 +12079,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_payments_inbox()
 
                         print(strOut1 + strOut2 + strOut3 + strOut4 + strOut5 +
                               strOut6);
-                    } // for
+                    }
 
                     OTAPI_Wrap::Output(
                         0, "\n For the above, try: acceptpayments, "
@@ -12162,7 +12113,6 @@ OT_Command::details_show_record(const string& strServerID,
         return false;
     }
 
-    // Success!
     //
     string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
         strServerID, strMyNymID, strMyAcctID, strRecordBox, nIndex);
@@ -12245,9 +12195,9 @@ OT_Command::details_show_records(const string& strServerID,
             0, "\n\n details_show_records: OT_API_LoadRecordBox: Failed.\n\n");
         return -1;
     }
-    // Success!
-    OTAPI_Wrap::Output(0, "\n\n"); // stderr
-    //  print(strRecordBox)      // stdout
+
+    OTAPI_Wrap::Output(0, "\n\n");
+    //  print(strRecordBox)
 
     int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                  strMyAcctID, strRecordBox);
@@ -12265,8 +12215,8 @@ OT_Command::details_show_records(const string& strServerID,
                                       "details_show_record.\n");
                 return -1;
             }
-        } // for
-    }     // VerifyIntVal (nCount)
+        }
+    } // VerifyIntVal (nCount)
 
     return 1;
 }
@@ -12393,7 +12343,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_records()
     }
 
     if (2 == (nNymRecords + nAcctRecords)) {
-        return 1; // success.
+        return 1;
     }
 
     return -1;
@@ -12519,7 +12469,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_clear_records()
         details_clear_records(strServerID, strMyNymID, MyAcct);
 
     if (2 == (nNymRecords + nAcctRecords)) {
-        return 1; // success.
+        return 1;
     }
 
     return -1;
@@ -12584,7 +12534,6 @@ OT_Command::details_show_expired(const string& strServerID,
         return false;
     }
 
-    // Success!
     //
     string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
         strServerID, strMyNymID, strMyNymID, strExpiredBox, nIndex);
@@ -12664,9 +12613,9 @@ OT_Command::details_show_expired_records(const string& strServerID,
                               "OT_API_LoadExpiredBox: Failed.\n\n");
         return -1;
     }
-    // Success!
-    OTAPI_Wrap::Output(0, "\n\n"); // stderr
-    //  print(strExpiredBox)      // stdout
+
+    OTAPI_Wrap::Output(0, "\n\n");
+    //  print(strExpiredBox)
 
     int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                  strMyNymID, strExpiredBox);
@@ -12684,8 +12633,8 @@ OT_Command::details_show_expired_records(const string& strServerID,
                                       "calling details_show_expired.\n");
                 return -1;
             }
-        } // for
-    }     // VerifyIntVal (nCount)
+        }
+    } // VerifyIntVal (nCount)
 
     return 1;
 }
@@ -12763,10 +12712,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_inbox()
                                       " )\n Perhaps it doesn't exist yet?\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0, "\n"); // stderr
-            //          print(strInbox)          // stdout
+        else {
+            OTAPI_Wrap::Output(0, "\n");
+            //          print(strInbox)
 
             int32_t nCount = OTAPI_Wrap::Ledger_GetCount(
                 strServerID, strMyNymID, MyAcct, strInbox);
@@ -12865,7 +12813,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_inbox()
                         OTAPI_Wrap::Output(
                             0, strUserDenoter + strUserID + strSeparator +
                                    strAcctDenoter + strAcctID + "\n");
-                    } // for
+                    }
 
                     OTAPI_Wrap::Output(0, "\n For the above, try: "
                                           "accepttransfers, acceptreceipts, "
@@ -12932,10 +12880,9 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outbox()
             OTAPI_Wrap::Output(0, "\n\n OT_API_LoadOutbox: Failed.\n\n");
             return -1;
         }
-        else // Success!
-        {
-            OTAPI_Wrap::Output(0, "\n"); // stderr
-            //          print(strOutbox)         // stdout
+        else {
+            OTAPI_Wrap::Output(0, "\n");
+            //          print(strOutbox)
 
             int32_t nCount = OTAPI_Wrap::Ledger_GetCount(
                 strServerID, strMyNymID, MyAcct, strOutbox);
@@ -13036,7 +12983,7 @@ OT_COMMANDS_OT int32_t OT_Command::main_show_outbox()
                         OTAPI_Wrap::Output(
                             0, strUserDenoter + strUserID + strSeparator +
                                    strAcctDenoter + strAcctID + "\n");
-                    } // for
+                    }
                 }
             } // VerifyIntVal (nCount)
 
@@ -13162,7 +13109,7 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
                        to_string(nIndex) + " for nym: " + strMyNymID + " \n");
             nReturnVal = -1;
         }
-    } // for
+    }
 
     return nReturnVal;
 }
@@ -13424,7 +13371,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
                        to_string(nIndex) + " for nym: " + strMyNymID + " \n");
             nReturnVal = -1;
         }
-    } // for
+    }
 
     return nReturnVal;
 }
@@ -13751,12 +13698,12 @@ OT_COMMANDS_OT int32_t OT_Command::main_issue_asset()
         case 1:
             OTAPI_Wrap::Output(
                 0, "\n\n SUCCESS in issue_asset! Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             break;
         case 0:
             OTAPI_Wrap::Output(
                 0, "\n\n FAILURE in issue_asset! Server response:\n\n");
-            print(strResponse); // stdout
+            print(strResponse);
             break;
         default:
             OTAPI_Wrap::Output(0, "\n\nError in issue_asset! nStatus is: " +
@@ -13764,11 +13711,11 @@ OT_COMMANDS_OT int32_t OT_Command::main_issue_asset()
 
             if (VerifyStringVal(strResponse)) {
                 OTAPI_Wrap::Output(0, "Server response:\n\n");
-                print(strResponse); // stdout
+                print(strResponse);
             }
             break;
         }
-        OTAPI_Wrap::Output(0, "\n\n"); // stderr
+        OTAPI_Wrap::Output(0, "\n\n");
 
         return (0 == nStatus) ? -1 : nStatus;
     }
