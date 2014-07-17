@@ -389,7 +389,7 @@ bool OTPurse::Merge(
                 // one.
             }
         }
-        while (listOfTokenMapIterators.size() > 0) {
+        while (!listOfTokenMapIterators.empty()) {
             OTToken* pTempToken = (listOfTokenMapIterators.back())->second;
             theMap.erase(listOfTokenMapIterators.back());
             delete pTempToken;
@@ -439,7 +439,7 @@ bool OTPurse::Merge(
                 // one.
             }
         }
-        while (listOfTokenMapIterators.size() > 0) {
+        while (!listOfTokenMapIterators.empty()) {
             OTToken* pTempToken = (listOfTokenMapIterators.back())->second;
             theMap.erase(listOfTokenMapIterators.back());
             delete pTempToken;

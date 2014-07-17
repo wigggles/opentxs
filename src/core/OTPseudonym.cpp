@@ -1648,23 +1648,23 @@ void OTPseudonym::RemoveAllNumbers(
         listOfRecentHash.push_back(it);
     }
 
-    while (listOfHighestNums.size() > 0) {
+    while (!listOfHighestNums.empty()) {
         m_mapHighTransNo.erase(listOfHighestNums.back());
         listOfHighestNums.pop_back();
     }
-    while (listOfNymboxHash.size() > 0) {
+    while (!listOfNymboxHash.empty()) {
         m_mapNymboxHash.erase(listOfNymboxHash.back());
         listOfNymboxHash.pop_back();
     }
-    while (listOfInboxHash.size() > 0) {
+    while (!listOfInboxHash.empty()) {
         m_mapInboxHash.erase(listOfInboxHash.back());
         listOfInboxHash.pop_back();
     }
-    while (listOfOutboxHash.size() > 0) {
+    while (!listOfOutboxHash.empty()) {
         m_mapOutboxHash.erase(listOfOutboxHash.back());
         listOfOutboxHash.pop_back();
     }
-    while (listOfRecentHash.size() > 0) {
+    while (!listOfRecentHash.empty()) {
         m_mapRecentHash.erase(listOfRecentHash.back());
         listOfRecentHash.pop_back();
     }
@@ -2855,7 +2855,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
     // (tentative numbers we had already been waiting for,
     // yet hadn't processed onto our issued list yet...)
     //
-    if (setInput.size() > 0) {
+    if (!setInput.empty()) {
         const OTString strServerID(theServerID), strNymID(m_nymID);
 
         int64_t lViolator = this->UpdateHighestNum(

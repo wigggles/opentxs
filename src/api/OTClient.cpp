@@ -946,7 +946,7 @@ bool OTClient::AcceptEntireNymbox(
         // Therefore need to REMOVE from Tentative list, and add to actual
         // issued/available lists.
         //
-        if (setNoticeNumbers.size() > 0) {
+        if (!setNoticeNumbers.empty()) {
             //
             // Note: No need to update highest num here, since that should have
             // already been done when they were

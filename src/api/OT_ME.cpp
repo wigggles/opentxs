@@ -216,7 +216,7 @@ std::string OT_CLI_GetValueByKey(const std::string str_Args,
     std::string str_retval = "";
     mapOfArguments map_values;
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
-    if (bTokenized && (map_values.size() > 0)) {
+    if (bTokenized && (!map_values.empty())) {
         // Okay we now have key/value pairs -- let's look it up!
         mapOfArguments::iterator it = map_values.find(str_key);
 
