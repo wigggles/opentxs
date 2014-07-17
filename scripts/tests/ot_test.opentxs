@@ -47,7 +47,7 @@ checknym --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 shownyms
 
 # display wallet contents.
-stat
+showwallet
 
 # show the statistics for a specific nym.
 !shownym
@@ -69,16 +69,16 @@ getmarkets --server $SERVER --mynym $FTNYM
 !showmarkets --server $SERVER
 
 # show account stats for a single account.
-!showacct
-!showacct --myacct dummy
-showacct --myacct $FTACCT
+!showaccount
+!showaccount --myacct dummy
+showaccount --myacct $FTACCT
 
-# display balance for a specific account.
-!balance
-!balance --myacct dummy
-balance --myacct $FTACCT
+# show balance for a specific account.
+!showbalance
+!showbalance --myacct dummy
+showbalance --myacct $FTACCT
 
-# performs both refreshnym and refreshacct.
+# performs both refreshnym and refreshaccount.
 !refresh
 !refresh                  --mynym $FTNYM --myacct $FTACCT
 !refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
@@ -146,9 +146,9 @@ showpurse --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
 
 # show account stats for a single account.
-!showacct
-!showacct --myacct dummy
-showacct --myacct $BOBACCT
+!showaccount
+!showaccount --myacct dummy
+showaccount --myacct $BOBACCT
 
 # send cash from mypurse to recipient, withdraw since purse should be empty.
 !sendcash
@@ -167,9 +167,9 @@ sendcash --myacct $FTACCT --hisnym $BOBNYM --args "amount 16 memo 'Test FTs send
 acceptmoney --myacct $BOBACCT
 
 # show account stats for a single account.
-!showacct
-!showacct --myacct dummy
-showacct --myacct $BOBACCT
+!showaccount
+!showaccount --myacct dummy
+showaccount --myacct $BOBACCT
 
 #
 # ----------------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ showacct --myacct $BOBACCT
 #!transfer --myacct $FTACCT --hisacct $BOBACCT --args nonsense
 transfer --myacct $FTACCT --hisacct $BOBACCT --args "amount 11 memo 'Test FTs transfer memo.'"
 
-# display outbox of a particular account.
+# show outbox of a particular account.
 !outbox
 !outbox --myacct dummy
 outbox --myacct $FTACCT
@@ -201,7 +201,7 @@ outbox --myacct $FTACCT
 !refresh --server $SERVER --mynym $BOBNYM --myacct dummy
 refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
 
-# display inbox of a particular account.
+# show inbox of a particular account.
 !inbox
 !inbox --myacct dummy
 inbox --myacct $BOBACCT
@@ -221,14 +221,14 @@ inbox --myacct $BOBACCT
 # TESTING "MAIL" SYSTEM.
 
 # send a message to another nym's in-mail.
-!sendmsg
-!sendmsg                  --mynym $FTNYM --hisnym $BOBNYM
-!sendmsg --server dummy   --mynym $FTNYM --hisnym $BOBNYM
-!sendmsg --server $SERVER                --hisnym $BOBNYM
-!sendmsg --server $SERVER --mynym dummy  --hisnym $BOBNYM
-!sendmsg --server $SERVER --mynym $FTNYM
-!sendmsg --server $SERVER --mynym $FTNYM --hisnym dummy
-sendmsg --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
+!sendmessage
+!sendmessage                  --mynym $FTNYM --hisnym $BOBNYM
+!sendmessage --server dummy   --mynym $FTNYM --hisnym $BOBNYM
+!sendmessage --server $SERVER                --hisnym $BOBNYM
+!sendmessage --server $SERVER --mynym dummy  --hisnym $BOBNYM
+!sendmessage --server $SERVER --mynym $FTNYM
+!sendmessage --server $SERVER --mynym $FTNYM --hisnym dummy
+sendmessage --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 Blabla message text
 ~
 
@@ -240,36 +240,36 @@ Blabla message text
 !refreshnym --server $SERVER --mynym dummy
 refreshnym --server $SERVER --mynym $BOBNYM
 
-# display in-mail for a particular nym.
-!mail
-!mail --mynym dummy
-mail --mynym $BOBNYM
+# show in-mail for a particular nym.
+!inmail
+!inmail --mynym dummy
+inmail --mynym $BOBNYM
 
-# display a specific in-mail item.
-!mail
-!mail                 --args "index 0"
-!mail --mynym dummy   --args "index 0"
-!mail --mynym $BOBNYM --args "index 666"
-mail --mynym $BOBNYM --args "index 0"
+# show a specific in-mail item.
+!inmail
+!inmail                 --args "index 0"
+!inmail --mynym dummy   --args "index 0"
+!inmail --mynym $BOBNYM --args "index 666"
+inmail --mynym $BOBNYM --args "index 0"
 
 # delete a specific in-mail item.
-!delmail
-!delmail                 --args "index 0"
-!delmail --mynym dummy   --args "index 0"
-#!delmail --mynym $BOBNYM --args "index 666"
-delmail --mynym $BOBNYM --args "index 0"
+!deleteinmail
+!deleteinmail                 --args "index 0"
+!deleteinmail --mynym dummy   --args "index 0"
+#!deleteinmail --mynym $BOBNYM --args "index 666"
+deleteinmail --mynym $BOBNYM --args "index 0"
 
-# display in-mail for a particular nym.
-!mail
-!mail --mynym dummy
-mail --mynym $BOBNYM
+# show in-mail for a particular nym.
+!inmail
+!inmail --mynym dummy
+inmail --mynym $BOBNYM
 
-# display out-mail for a particular nym.
+# show out-mail for a particular nym.
 !outmail
 !outmail --mynym dummy
 outmail --mynym $FTNYM
 
-# display a specific out-mail item.
+# show a specific out-mail item.
 !outmail
 !outmail                --args "index 0"
 !outmail --mynym dummy  --args "index 0"
@@ -277,13 +277,13 @@ outmail --mynym $FTNYM
 outmail --mynym $FTNYM --args "index 0"
 
 # delete a specific out-mail item.
-!deloutmail
-!deloutmail                 --args "index 0"
-!deloutmail --mynym dummy   --args "index 0"
-#!deloutmail --mynym $FTNYM --args "index 666"
-deloutmail --mynym $FTNYM --args "index 0"
+!deleteoutmail
+!deleteoutmail                 --args "index 0"
+!deleteoutmail --mynym dummy   --args "index 0"
+#!deleteoutmail --mynym $FTNYM --args "index 666"
+deleteoutmail --mynym $FTNYM --args "index 0"
 
-# display out-mail for a particular nym.
+# show out-mail for a particular nym.
 !outmail
 !outmail --mynym dummy
 outmail --mynym $FTNYM
@@ -304,12 +304,12 @@ outmail --mynym $FTNYM
 #!sendcheque --myacct $FTACCT --hisnym $BOBNYM --args nonsense
 sendcheque --myacct $FTACCT --hisnym $BOBNYM --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
 
-# display contents of outgoing payments box.
+# show contents of outgoing payments box.
 !outpayment
 !outpayment --mynym dummy
 outpayment --mynym $FTNYM
 
-# display details for both(?) cheques
+# show details for both(?) cheques
 outpayment --mynym $FTNYM --args "index 0"
 outpayment --mynym $FTNYM --args "index 1"
 
@@ -321,13 +321,13 @@ outpayment --mynym $FTNYM --args "index 1"
 !refreshnym --server $SERVER --mynym dummy
 refreshnym --server $SERVER --mynym $BOBNYM
 
-# display contents of Bob's incoming payments box.
-!payments
-!payments                  --mynym $BOBNYM
-!payments --server dummy   --mynym $BOBNYM
-!payments --server $SERVER
-!payments --server $SERVER --mynym dummy
-payments --server $SERVER --mynym $BOBNYM
+# show contents of Bob's incoming payments box.
+!inpayments
+!inpayments                  --mynym $BOBNYM
+!inpayments --server dummy   --mynym $BOBNYM
+!inpayments --server $SERVER
+!inpayments --server $SERVER --mynym dummy
+inpayments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
 !showpayment
@@ -354,12 +354,12 @@ acceptpayments --myacct $BOBACCT
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # show payments inbox again to see that the incoming payments are now gone (processed)...
-!payments
-!payments                  --mynym $BOBNYM
-!payments --server dummy   --mynym $BOBNYM
-!payments --server $SERVER
-!payments --server $SERVER --mynym dummy
-payments --server $SERVER --mynym $BOBNYM
+!inpayments
+!inpayments                  --mynym $BOBNYM
+!inpayments --server dummy   --mynym $BOBNYM
+!inpayments --server $SERVER
+!inpayments --server $SERVER --mynym dummy
+inpayments --server $SERVER --mynym $BOBNYM
 
 # --------
 
@@ -396,7 +396,7 @@ acceptreceipts --myacct $FTACCT
 inbox --myacct $FTACCT
 
 # Show that his outpayment box is empty again (since accepting the chequeReceipt from inbox...)
-# display contents of outgoing payments box.
+# show contents of outgoing payments box.
 !outpayment
 !outpayment --mynym dummy
 outpayment --mynym $FTNYM
@@ -447,14 +447,14 @@ inbox --myacct $BOBACCT
 # write an invoice and then send it to the recipient.
 sendinvoice --myacct $FTACCT --hisnym $BOBNYM --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
 
-# display contents of outgoing payments box.
+# show contents of outgoing payments box.
 outpayment --mynym $FTNYM
 
 # refresh Bob's intermediary files before looking at his payments inbox.
 refreshnym --server $SERVER --mynym $BOBNYM
 
-# display contents of Bob's incoming payments box.
-payments --server $SERVER --mynym $BOBNYM
+# show contents of Bob's incoming payments box.
+inpayments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
 showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
@@ -466,7 +466,7 @@ acceptinvoices --mynym $BOBNYM --myacct $BOBACCT
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # show payments inbox again to see that the incoming payments are now gone (processed)...
-payments --server $SERVER --mynym $BOBNYM
+inpayments --server $SERVER --mynym $BOBNYM
 
 # --------
 
@@ -490,7 +490,7 @@ acceptreceipts --mynym $FTNYM --myacct $FTACCT
 inbox --myacct $FTACCT
 
 # Show that his outpayment box is empty again (since accepting the chequeReceipt from inbox...)
-# display contents of outgoing payments box.
+# show contents of outgoing payments box.
 outpayment --mynym $FTNYM
 
 #
