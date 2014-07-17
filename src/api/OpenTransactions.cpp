@@ -1631,7 +1631,7 @@ bool OT_API::Wallet_ChangePassphrase()
         ~ot_change_pw()
         {
             if (NULL != m_plist_nyms) {
-                while (m_plist_nyms->size() > 0) // Here's the cleanup.
+                while (!m_plist_nyms->empty()) // Here's the cleanup.
                 {
                     std::list<OTPseudonym*>::iterator it =
                         m_plist_nyms->begin();

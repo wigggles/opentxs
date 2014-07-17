@@ -4,7 +4,7 @@
 # in the same commit. Use cppcheck --inline-suppr for false positives.
 sup_warn="--suppress=nullPointer"
 sup_info="--suppress=ConfigurationNotChecked"
-sup_perf="--suppress=stlSize --suppress=passedByValue --suppress=postfixOperator"
+sup_perf="--suppress=passedByValue --suppress=postfixOperator"
 sup_style="--suppress=variableScope \
            --suppress=noCopyConstructor \
            --suppress=multiCondition"
