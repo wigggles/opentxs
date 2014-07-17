@@ -309,6 +309,10 @@ sendcheque --myacct $FTACCT --hisnym $BOBNYM --args "amount 1 validfor 2592000 m
 !outpayment --mynym dummy
 outpayment --mynym $FTNYM
 
+# display details for both(?) cheques
+outpayment --mynym $FTNYM --args "index 0"
+outpayment --mynym $FTNYM --args "index 1"
+
 # refresh Bob's intermediary files before looking at his payments inbox.
 !refreshnym
 !refreshnym                  --mynym $BOBNYM
@@ -318,13 +322,28 @@ outpayment --mynym $FTNYM
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # display contents of Bob's incoming payments box.
+!payments
+!payments                  --mynym $BOBNYM
+!payments --server dummy   --mynym $BOBNYM
+!payments --server $SERVER
+!payments --server $SERVER --mynym dummy
 payments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
+!showpayment
+!showpayment                  --mynym $BOBNYM --args "index 0"
+!showpayment --server dummy   --mynym $BOBNYM --args "index 0"
+!showpayment --server $SERVER                 --args "index 0"
+!showpayment --server $SERVER --mynym dummy   --args "index 0"
+#!showpayment --server $SERVER --mynym $BOBNYM
+#!showpayment --server $SERVER --mynym $BOBNYM --args
+#!showpayment --server $SERVER --mynym $BOBNYM --args nonsense
 showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
 
 # accept all incoming payments for mynym.
-acceptpayments --mynym $BOBNYM --myacct $BOBACCT
+!acceptpayments
+!acceptpayments --myacct dummy
+acceptpayments --myacct $BOBACCT
 
 # refresh Bob's intermediary files before looking at his payments inbox.
 !refreshnym
@@ -335,6 +354,11 @@ acceptpayments --mynym $BOBNYM --myacct $BOBACCT
 refreshnym --server $SERVER --mynym $BOBNYM
 
 # show payments inbox again to see that the incoming payments are now gone (processed)...
+!payments
+!payments                  --mynym $BOBNYM
+!payments --server dummy   --mynym $BOBNYM
+!payments --server $SERVER
+!payments --server $SERVER --mynym dummy
 payments --server $SERVER --mynym $BOBNYM
 
 # --------
@@ -346,20 +370,35 @@ payments --server $SERVER --mynym $BOBNYM
 # Then refresh FT's Nym, and show that his outpayment box is empty again.
 
 # refresh FT's intermediary files before looking at his asset acct inbox. (for cheque receipt.)
+!refresh
+!refresh                  --mynym $FTNYM --myacct $FTACCT
+!refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
+!refresh --server $SERVER                --myacct $FTACCT
+!refresh --server $SERVER --mynym dummy  --myacct $FTACCT
+!refresh --server $SERVER --mynym $FTNYM
+!refresh --server $SERVER --mynym $FTNYM --myacct dummy
 refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
 
 # and then show his inbox (to see the chequereceipt)
+!inbox
+!inbox --myacct dummy
 inbox --myacct $FTACCT
 
 # then acceptreceipts (to get the chequereceipt out of his inbox.)
 # accept all incoming receipts for myacct.
-acceptreceipts --mynym $FTNYM --myacct $FTACCT
+!acceptreceipts
+!acceptreceipts --myacct dummy
+acceptreceipts --myacct $FTACCT
 
 # Then show that his inbox is empty again.
+!inbox
+!inbox --myacct dummy
 inbox --myacct $FTACCT
 
 # Show that his outpayment box is empty again (since accepting the chequeReceipt from inbox...)
 # display contents of outgoing payments box.
+!outpayment
+!outpayment --mynym dummy
 outpayment --mynym $FTNYM
 
 
@@ -371,15 +410,34 @@ outpayment --mynym $FTNYM
 # -- which is what acceptinbox is for, after all.)
 
 # send a transfer from myacct to hisacct.
+!transfer
+!transfer                  --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
+!transfer --myacct dummy   --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
+!transfer --myacct $FTACCT                    --args "amount 12 memo 'Test FTs transfer memo.'"
+!transfer --myacct $FTACCT --hisacct dummy    --args "amount 12 memo 'Test FTs transfer memo.'"
+#!transfer --myacct $FTACCT --hisacct $BOBACCT
+#!transfer --myacct $FTACCT --hisacct $BOBACCT --args
+#!transfer --myacct $FTACCT --hisacct $BOBACCT --args nonsense
 transfer --myacct $FTACCT --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
 
 # refresh Bob's intermediary files before looking at his inbox.
+!refresh
+!refresh                  --mynym $BOBNYM --myacct $BOBACCT
+!refresh --server dummy   --mynym $BOBNYM --myacct $BOBACCT
+!refresh --server $SERVER                 --myacct $BOBACCT
+!refresh --server $SERVER --mynym dummy   --myacct $BOBACCT
+!refresh --server $SERVER --mynym $BOBNYM
+!refresh --server $SERVER --mynym $BOBNYM --myacct dummy
 refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
 
 # accept all incoming transfers and receipts for myacct.
-acceptinbox --mynym $BOBNYM --myacct $BOBACCT
+!acceptinbox
+!acceptinbox --myacct dummy
+acceptinbox --myacct $BOBACCT
 
 # show inbox again to see that the transfers are now gone...
+!inbox
+!inbox --myacct dummy
 inbox --myacct $BOBACCT
 
 #
