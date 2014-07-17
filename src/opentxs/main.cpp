@@ -11,7 +11,7 @@ Hash: SHA1
 *                 OPEN TRANSACTIONS
 *
 *       Financial Cryptography and Digital Cash
-*       Library, Protocol, API, str_Server, CLI, GUI
+*       Library, Protocol, API, server, CLI, GUI
 *
 *       -- Anonymous Numbered Accounts.
 *       -- Untraceable Digital Cash.
@@ -43,7 +43,7 @@ Hash: SHA1
 *   -- otlib.........A class library.......LICENSE:...LAGPLv3
 *   -- otapi.........A client API..........LICENSE:...LAGPLv3
 *   -- opentxs/ot....Command-line client...LICENSE:...LAGPLv3
-*   -- otserver......str_Server Application....LICENSE:....AGPLv3
+*   -- otserver......server Application....LICENSE:....AGPLv3
 *  Github.com/FellowTraveler/Open-Transactions/wiki/Components
 *
 *  All of the above OT components were designed and written by
@@ -426,14 +426,14 @@ CommandEntry commands[] = {
 
 const string spaces18 = "                  ";
 
-static std::string str_Args;
-static std::string str_HisAcct;
-static std::string str_HisNym;
-static std::string str_HisPurse;
-static std::string str_MyAcct;
-static std::string str_MyNym;
-static std::string str_MyPurse;
-static std::string str_Server;
+static std::string argsStr;
+static std::string hisAcctStr;
+static std::string hisNymStr;
+static std::string hisPurseStr;
+static std::string myAcctStr;
+static std::string myNymStr;
+static std::string myPurseStr;
+static std::string serverStr;
 
 namespace
 {
@@ -459,14 +459,14 @@ inline std::string& trim(std::string& s)
     return ltrim(rtrim(s));
 }
 
-void HandleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
+void handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
 {
-    OTString strConfigPath(OTPaths::AppDataFolder());
-    bool bConfigPathFound =
-        strConfigPath.Exists() && 3 < strConfigPath.GetLength();
-    OT_ASSERT_MSG(bConfigPathFound,
+    OTString configPath(OTPaths::AppDataFolder());
+    bool configPath =
+        configPath.Exists() && 3 < configPath.GetLength();
+    OT_ASSERT_MSG(cnfigPathFound,
                   "RegisterAPIWithScript: Must set Config Path first!\n");
-    OTLog::vOutput(1, "Using configuration path:  %s\n", strConfigPath.Get());
+    OTLog::vOutput(1, "Using configuration path:  %s\n", configPath.Get());
 
     opt.addUsage("");
     opt.addUsage(" Opentxs CLI Usage:  ");
@@ -496,38 +496,37 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     opt.setFileOption("defaulthisnym");
     opt.setFileOption("defaulthispurse");
 
-    // process the commandline option file
-    OTString strOptionsFile("command-line-ot.opt"), strIniFileExact;
-    bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(
-        strIniFileExact, strConfigPath, strOptionsFile);
-    OT_ASSERT_MSG(bBuildFullPathSuccess, "Unalbe to set Full Path");
+    OTString optionsFile("command-line-ot.opt"), iniFileExact;
+    bool buildFullPathSuccess = OTPaths::RelativeToCanonical(
+        iniFileExact, configPath, optionsFile);
+    OT_ASSERT_MSG(buildFullPathSuccess, "Unalbe to set Full Path");
 
-    opt.processFile(strIniFileExact.Get());
+    opt.processFile(iniFileExact.Get());
     opt.processCommandArgs(argc, argv);
 }
 
-const char* GetOption(AnyOption& opt, const char* pDefaultName,
-                      const char* pOptionName)
+const char* getOption(AnyOption& opt, const char* defaultName,
+                      const char* optionName)
 {
     // can we get the default value from the command line?
-    const char* pValue = opt.getValue(pOptionName);
-    if (NULL != pValue) {
-        OTLog::vOutput(1, "Option  %s: %s\n", pOptionName, pValue);
-        return pValue;
+    const char* value = opt.getValue(optionName);
+    if (NULL != value) {
+        OTLog::vOutput(1, "Option  %s: %s\n", optionName, value);
+        return value;
     }
 
     // can we get the default value from the options file?
-    pValue = opt.getValue(pDefaultName);
-    if (NULL != pValue) {
-        OTLog::vOutput(1, "Default %s: %s\n", pOptionName, pValue);
-        return pValue;
+    value = opt.getValue(defaultName);
+    if (NULL != value) {
+        OTLog::vOutput(1, "Default %s: %s\n", optionName, value);
+        return value;
     }
 
     // clear option value
     return "";
 }
 
-OTVariable* SetGlobalVariable(OT_ME& madeEasy, const std::string& name,
+OTVariable* setGlobalVariable(OT_ME& madeEasy, const std::string& name,
                               const std::string& value)
 {
     if (value.size() == 0) {
@@ -538,13 +537,13 @@ OTVariable* SetGlobalVariable(OT_ME& madeEasy, const std::string& name,
     OTLog::vOutput(1, "Variable %s has value: %s\n", name.c_str(),
                    value.c_str());
 
-    OTVariable* pVar = new OTVariable(name, value, OTVariable::Var_Constant);
-    OT_ASSERT(NULL != pVar);
-    madeEasy.AddVariable(name, *pVar);
-    return pVar;
+    OTVariable* var = new OTVariable(name, value, OTVariable::Var_Constant);
+    OT_ASSERT(NULL != var);
+    madeEasy.AddVariable(name, *var);
+    return var;
 }
 
-int OpentxsCommand(const string& command)
+int opentxsCommand(const string& command)
 {
     if ("exit" == command || "quit" == command) {
         return -2;
@@ -613,162 +612,164 @@ int OpentxsCommand(const string& command)
     return -1;
 }
 
-int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
+int processCommand(OT_ME& madeEasy, AnyOption& opt)
 {
-    // process default/command line values such as acctid, nymid, etc.
-    str_Args = GetOption(opt, "defaultargs", "args");
-    str_HisAcct = GetOption(opt, "defaulthisacct", "hisacct");
-    str_HisNym = GetOption(opt, "defaulthisnym", "hisnym");
-    str_HisPurse = GetOption(opt, "defaulthispurse", "hispurse");
-    str_MyAcct = GetOption(opt, "defaultmyacct", "myacct");
-    str_MyNym = GetOption(opt, "defaultmynym", "mynym");
-    str_MyPurse = GetOption(opt, "defaultmypurse", "mypurse");
-    str_Server = GetOption(opt, "defaultserver", "server");
+    // process command line values such as account ID, Nym ID, etc.
+    // Also available as defaults in a config file in the ~/.ot folder
+    argsStr = getOption(opt, "defaultargs", "args");
+    hisAcctStr = getOption(opt, "defaulthisacct", "hisacct");
+    hisNymStr = getOption(opt, "defaulthisnym", "hisnym");
+    hisPurseStr = getOption(opt, "defaulthispurse", "hispurse");
+    myAcctStr = getOption(opt, "defaultmyacct", "myacct");
+    myNymStr = getOption(opt, "defaultmynym", "mynym");
+    myPurseStr = getOption(opt, "defaultmypurse", "mypurse");
+    serverStr = getOption(opt, "defaultserver", "server");
 
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet();
+    OTWallet* wallet = OTAPI_Wrap::OTAPI()->GetWallet();
+
     OT_ASSERT_MSG(
-        NULL != pWallet,
+        NULL != wallet,
         "The wallet object is still NULL, somehow. Please load it.\n");
 
-    OTServerContract* pServerContract = NULL;
-    if (str_Server.size() > 0) {
-        pServerContract = pWallet->GetServerContract(str_Server);
-        if (NULL == pServerContract) {
-            pServerContract =
-                pWallet->GetServerContractPartialMatch(str_Server);
-            if (NULL == pServerContract) {
+    OTServerContract* serverContract = NULL;
+    if (serverStr.size() > 0) {
+        serverContract = wallet->GetServerContract(serverStr);
+        if (NULL == serverContract) {
+            serverContract =
+                wallet->GetServerContractPartialMatch(serverStr);
+            if (NULL == serverContract) {
                 OTLog::vOutput(
                     0, "Unknown default server contract for --server %s\n",
-                    str_Server.c_str());
+                    serverStr.c_str());
             }
         }
-        if (NULL != pServerContract) {
-            OTString strTemp;
-            pServerContract->GetIdentifier(strTemp);
-            str_Server = strTemp.Get();
-            OTLog::vOutput(0, "Using as server: %s\n", str_Server.c_str());
+        if (NULL != serverContract) {
+            OTString tmp;
+            serverContract->GetIdentifier(tmp);
+            serverStr = tmp.Get();
+            OTLog::vOutput(0, "Using as server: %s\n", serverStr.c_str());
         }
     }
 
-    OTPseudonym* pMyNym = NULL;
-    if (str_MyNym.size() > 0) {
-        pMyNym = pWallet->GetNymByID(str_MyNym);
-        if (NULL == pMyNym) {
-            pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
-            if (NULL == pMyNym) {
+    OTPseudonym* myNym = NULL;
+    if (myNymStr.size() > 0) {
+        myNym = wallet->GetNymByID(myNymStr);
+        if (NULL == myNym) {
+            myNym = wallet->GetNymByIDPartialMatch(myNymStr);
+            if (NULL == myNym) {
                 OTLog::vOutput(0, "Unknown default nym for --mynym %s\n",
-                               str_MyNym.c_str());
+                               myNymStr.c_str());
             }
         }
-        if (NULL != pMyNym) {
-            OTString strTemp;
-            pMyNym->GetIdentifier(strTemp);
-            str_MyNym = strTemp.Get();
-            OTLog::vOutput(0, "Using as mynym: %s\n", str_MyNym.c_str());
+        if (NULL != myNym) {
+            OTString tmp;
+            myNym->GetIdentifier(tmp);
+            myNymStr = tmp.Get();
+            OTLog::vOutput(0, "Using as mynym: %s\n", myNymStr.c_str());
         }
     }
 
-    OTAccount* pMyAccount = NULL;
-    if (str_MyAcct.size() > 0) {
-        pMyAccount = pWallet->GetAccount(str_MyAcct);
-        if (NULL == pMyAccount) {
-            pMyAccount = pWallet->GetAccountPartialMatch(str_MyAcct);
-            if (NULL == pMyAccount) {
+    OTAccount* myAccount = NULL;
+    if (myAcctStr.size() > 0) {
+        myAccount = wallet->GetAccount(myAcctStr);
+        if (NULL == myAccount) {
+            myAccount = wallet->GetAccountPartialMatch(myAcctStr);
+            if (NULL == myAccount) {
                 OTLog::vOutput(0, "Unknown default account for --myacct %s\n",
-                               str_MyAcct.c_str());
+                               myAcctStr.c_str());
             }
         }
-        if (NULL != pMyAccount) {
-            OTString strTemp;
-            pMyAccount->GetPurportedAccountID().GetString(strTemp);
-            str_MyAcct = strTemp.Get();
-            OTLog::vOutput(0, "Using as myacct: %s\n", str_MyAcct.c_str());
+        if (NULL != myAccount) {
+            OTString tmp;
+            myAccount->GetPurportedAccountID().GetString(tmp);
+            myAcctStr = tmp.Get();
+            OTLog::vOutput(0, "Using as myacct: %s\n", myAcctStr.c_str());
         }
     }
 
-    OTPseudonym* pHisNym = NULL;
-    if (str_HisNym.size() > 0) {
-        pHisNym = pWallet->GetNymByID(str_HisNym);
-        if (NULL == pHisNym) {
-            pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
-            if (NULL == pHisNym) {
+    OTPseudonym* hisNym = NULL;
+    if (hisNymStr.size() > 0) {
+        hisNym = wallet->GetNymByID(hisNymStr);
+        if (NULL == hisNym) {
+            hisNym = wallet->GetNymByIDPartialMatch(str_HisNym);
+            if (NULL == hisNym) {
                 OTLog::vOutput(0, "Unknown default nym for --hisnym %s\n",
                                str_HisNym.c_str());
             }
         }
-        if (NULL != pHisNym) {
-            OTString strTemp;
-            pHisNym->GetIdentifier(strTemp);
-            str_HisNym = strTemp.Get();
+        if (NULL != hisNym) {
+            OTString tmp;
+            hisNym->GetIdentifier(tmp);
+            str_HisNym = tmp.Get();
             OTLog::vOutput(0, "Using as hisnym: %s\n", str_HisNym.c_str());
         }
     }
 
-    OTAccount* pHisAccount = NULL;
-    if (str_HisAcct.size() > 0) {
-        pHisAccount = pWallet->GetAccount(str_HisAcct);
-        if (NULL == pHisAccount) {
-            pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
-            if (NULL == pHisAccount) {
+    OTAccount* hisAccount = NULL;
+    if (hisAcctStr.size() > 0) {
+        hisAccount = wallet->GetAccount(hisAcctStr);
+        if (NULL == hisAccount) {
+            hisAccount = wallet->GetAccountPartialMatch(hisAcctStr);
+            if (NULL == hisAccount) {
                 OTLog::vOutput(0, "Unknown default account for --hisacct %s\n",
-                               str_HisAcct.c_str());
+                               hisAcctStr.c_str());
             }
         }
-        if (NULL != pHisAccount) {
-            OTString strTemp;
-            pHisAccount->GetPurportedAccountID().GetString(strTemp);
-            str_HisAcct = strTemp.Get();
-            OTLog::vOutput(0, "Using as hisacct: %s\n", str_HisAcct.c_str());
+        if (NULL != hisAccount) {
+            OTString tmp;
+            hisAccount->GetPurportedAccountID().GetString(tmp);
+            hisAcctStr = tmp.Get();
+            OTLog::vOutput(0, "Using as hisacct: %s\n", hisAcctStr.c_str());
         }
     }
 
-    OTIdentifier thePurseAssetTypeID;
-    OTAssetContract* pMyAssetContract = NULL;
-    if (str_MyPurse.size() > 0) {
-        pMyAssetContract = pWallet->GetAssetContract(str_MyPurse);
-        if (NULL == pMyAssetContract) {
-            pMyAssetContract =
-                pWallet->GetAssetContractPartialMatch(str_MyPurse);
-            if (NULL == pMyAssetContract) {
+    OTIdentifier purseAssetTypeID;
+    OTAssetContract* myAssetContract = NULL;
+    if (myPurseStr.size() > 0) {
+        myAssetContract = wallet->GetAssetContract(myPurseStr);
+        if (NULL == myAssetContract) {
+            myAssetContract =
+                wallet->GetAssetContractPartialMatch(myPurseStr);
+            if (NULL == myAssetContract) {
                 OTLog::vOutput(0, "Unknown default purse for --mypurse %s\n",
-                               str_MyPurse.c_str());
+                               myPurseStr.c_str());
             }
         }
-        if (NULL != pMyAssetContract) {
-            pMyAssetContract->GetIdentifier(thePurseAssetTypeID);
-            OTString strTemp;
-            pMyAssetContract->GetIdentifier(strTemp);
-            str_MyPurse = strTemp.Get();
-            OTLog::vOutput(0, "Using as mypurse: %s\n", str_MyPurse.c_str());
+        if (NULL != myAssetContract) {
+            myAssetContract->GetIdentifier(purseAssetTypeID);
+            OTString tmp;
+            myAssetContract->GetIdentifier(tmp);
+            myPurseStr = tmp.Get();
+            OTLog::vOutput(0, "Using as mypurse: %s\n", myPurseStr.c_str());
         }
     }
 
     OTIdentifier hisPurseAssetTypeID;
-    OTAssetContract* pHisAssetContract = NULL;
-    if (str_HisPurse.size() > 0) {
-        pHisAssetContract = pWallet->GetAssetContract(str_HisPurse);
-        if (NULL == pHisAssetContract) {
-            pHisAssetContract =
-                pWallet->GetAssetContractPartialMatch(str_HisPurse);
-            if (NULL == pHisAssetContract) {
+    OTAssetContract* hisAssetContract = NULL;
+    if (hisPurseStr.size() > 0) {
+        hisAssetContract = wallet->GetAssetContract(hisPurseStr);
+        if (NULL == hisAssetContract) {
+            hisAssetContract =
+                wallet->GetAssetContractPartialMatch(hisPurseStr);
+            if (NULL == hisAssetContract) {
                 OTLog::vOutput(0, "Unknown default purse for --hispurse %s\n",
-                               str_HisPurse.c_str());
+                               hisPurseStr.c_str());
             }
         }
-        if (NULL != pHisAssetContract) {
-            pHisAssetContract->GetIdentifier(hisPurseAssetTypeID);
-            OTString strTemp;
-            pHisAssetContract->GetIdentifier(strTemp);
-            str_HisPurse = strTemp.Get();
-            OTLog::vOutput(0, "Using as hispurse: %s\n", str_HisPurse.c_str());
+        if (NULL != hisAssetContract) {
+            hisAssetContract->GetIdentifier(hisPurseAssetTypeID);
+            OTString tmp;
+            hisAssetContract->GetIdentifier(tmp);
+            hisPurseStr = tmp.Get();
+            OTLog::vOutput(0, "Using as hispurse: %s\n", hisPurseStr.c_str());
         }
     }
 
     OTLog::Output(0, "\n");
 
-    if (NULL != pServerContract && NULL != pMyNym) {
+    if (NULL != serverContract && NULL != myNym) {
         OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
-            *pServerContract, *pMyNym,
+            *serverContract, *myNym,
             OTAPI_Wrap::OTAPI()->GetTransportCallback());
     }
 
@@ -781,21 +782,21 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
     }
 
     OTCleanup<OTVariable> angelArgs(
-        SetGlobalVariable(madeEasy, "Args", str_Args));
+        setGlobalVariable(madeEasy, "Args", argsStr));
     OTCleanup<OTVariable> angelMyAcct(
-        SetGlobalVariable(madeEasy, "MyAcct", str_MyAcct));
+        setGlobalVariable(madeEasy, "MyAcct", myAcctStr));
     OTCleanup<OTVariable> angelMyNym(
-        SetGlobalVariable(madeEasy, "MyNym", str_MyNym));
+        setGlobalVariable(madeEasy, "MyNym", myNymStr));
     OTCleanup<OTVariable> angelMyPurse(
-        SetGlobalVariable(madeEasy, "MyPurse", str_MyPurse));
+        setGlobalVariable(madeEasy, "MyPurse", myPurseStr));
     OTCleanup<OTVariable> angelHisAcct(
-        SetGlobalVariable(madeEasy, "HisAcct", str_HisAcct));
+        setGlobalVariable(madeEasy, "HisAcct", hisAcctStr));
     OTCleanup<OTVariable> angelHisNym(
-        SetGlobalVariable(madeEasy, "HisNym", str_HisNym));
+        setGlobalVariable(madeEasy, "HisNym", str_HisNym));
     OTCleanup<OTVariable> angelHisPurse(
-        SetGlobalVariable(madeEasy, "HisPurse", str_HisPurse));
+        setGlobalVariable(madeEasy, "HisPurse", hisPurseStr));
     OTCleanup<OTVariable> angelServer(
-        SetGlobalVariable(madeEasy, "Server", str_Server));
+        setGlobalVariable(madeEasy, "Server", serverStr));
 
     OTAPI_Func::CopyVariables();
 
@@ -838,21 +839,21 @@ int main(int argc, char* argv[])
     OT_ME madeEasy;
 
     AnyOption opt;
-    HandleCommandLineArguments(argc, argv, opt);
+    handleCommandLineArguments(argc, argv, opt);
 
     if (opt.getArgc() != 0) {
-        return ProcessCommand(madeEasy, opt);
+        return processCommand(madeEasy, opt);
     }
 
     int lineNumber = 0;
-    bool bEchoCommand = opt.getFlag("echocommand") || opt.getFlag("test");
-    bool bEchoExpand = opt.getFlag("echoexpand") || opt.getFlag("test");
-    bool bNoPrompt = opt.getFlag("noprompt") || opt.getFlag("test");
+    bool echoCommand = opt.getFlag("echocommand") || opt.getFlag("test");
+    bool echoExpand = opt.getFlag("echoexpand") || opt.getFlag("test");
+    bool noPrompt = opt.getFlag("noprompt") || opt.getFlag("test");
     int processed = 0;
     int failed = 0;
     while (true) {
         // get next command line from input stream
-        if (!bNoPrompt) {
+        if (!noPrompt) {
             std::cout << "\nopentxs> ";
         }
         std::string cmd;
@@ -867,7 +868,7 @@ int main(int argc, char* argv[])
 
         // quit/exit the command loop?
         cmd = trim(cmd);
-        if (bEchoCommand) {
+        if (echoCommand) {
             std::cout << cmd << std::endl;
         }
 
@@ -991,7 +992,7 @@ int main(int argc, char* argv[])
             cmd = cmd.substr(0, macro) + macroValue + cmd.substr(macroEnd);
         }
 
-        if (bEchoExpand && cmd != originalCmd) {
+        if (echoExpand && cmd != originalCmd) {
             std::cout << cmd << std::endl;
         }
 
@@ -1002,7 +1003,7 @@ int main(int argc, char* argv[])
 
         // '!' indicates that we expect this command to fail
         //     which is very useful for running a test script
-        bool bExpectFailure = cmd[0] == '!';
+        bool expectFailure = cmd[0] == '!';
 
         // Parse command string into its separate parts so it can be passed as
         // an argc/argv combo
@@ -1019,11 +1020,11 @@ int main(int argc, char* argv[])
         arguments.push_back(argv[0]);
 
         // set up buffer that will receive the separate arguments
-        char* pBuf = new char[cmd.length() + 1];
-        char* pArg = pBuf;
+        char* buf = new char[cmd.length() + 1];
+        char* arg = buf;
 
         // start at actual command
-        size_t i = bExpectFailure ? 1 : 0;
+        size_t i = expectFailure ? 1 : 0;
         while (i < cmd.length()) {
             // skip any whitespace
             while (i < cmd.length() && std::isspace(cmd[i])) {
@@ -1035,7 +1036,7 @@ int main(int argc, char* argv[])
             }
 
             // remember where we start this new argument in the buffer
-            char* pStart = pArg;
+            char* start = arg;
 
             // unquoted argument?
             if (cmd[i] != '"') {
@@ -1044,19 +1045,19 @@ int main(int argc, char* argv[])
                     // unescaped literal character?
                     if (cmd[i] != '\\') {
                         // yep, add to buffer and go for next
-                        *pArg++ = cmd[i++];
+                        *arg++ = cmd[i++];
                         continue;
                     }
 
                     // take next character literal unless it was the end of line
                     // in which case we simply add the backslash as a literal
                     // character
-                    *pArg++ = i < cmd.length() ? cmd[i++] : '\\';
+                    *arg++ = i < cmd.length() ? cmd[i++] : '\\';
                 }
 
                 // end of argument reached, terminate an add to arguments array
-                *pArg++ = '\0';
-                arguments.push_back(pStart);
+                *arg++ = '\0';
+                arguments.push_back(start);
 
                 // look for next argument
                 continue;
@@ -1070,19 +1071,19 @@ int main(int argc, char* argv[])
                 // unescaped literal character?
                 if (cmd[i] != '\\') {
                     // yep, add to buffer and go for next
-                    *pArg++ = cmd[i++];
+                    *arg++ = cmd[i++];
                     continue;
                 }
 
                 // take next character literal unless it was the end of line
                 // in which case we simply add the backslash as a literal
                 // character
-                *pArg++ = i < cmd.length() ? cmd[i++] : '\\';
+                *arg++ = i < cmd.length() ? cmd[i++] : '\\';
             }
 
             // end of argument reached, terminate an add to arguments array
-            *pArg++ = '\0';
-            arguments.push_back(pStart);
+            *arg++ = '\0';
+            arguments.push_back(start);
 
             // skip terminating double quote or end of line
             i++;
@@ -1097,10 +1098,10 @@ int main(int argc, char* argv[])
 
         // preprocess the command line
         AnyOption opt;
-        HandleCommandLineArguments(newArgc, newArgv, opt);
+        handleCommandLineArguments(newArgc, newArgv, opt);
 
-        bool bFailedCommand = 0 != ProcessCommand(madeEasy, opt);
-        if (bExpectFailure) {
+        bool bFailedCommand = 0 != processCommand(madeEasy, opt);
+        if (expectFailure) {
             if (!bFailedCommand) {
                 failed++;
                 OTLog::vOutput(0, "\n\n***ERROR***\nExpected command to "
@@ -1121,7 +1122,7 @@ int main(int argc, char* argv[])
         }
 
         delete[] newArgv;
-        delete[] pBuf;
+        delete[] buf;
 
         OTLog::Output(0, "\n\n");
         processed++;
