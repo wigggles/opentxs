@@ -12,7 +12,6 @@ set(cxx-sources
   OTAcctList.cpp
   OTAgent.cpp
   OTAgreement.cpp
-  OTAmount.cpp
   OTASCIIArmor.cpp
   OTAssert.cpp
   OTAssetContract.cpp
