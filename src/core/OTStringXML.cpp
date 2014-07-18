@@ -151,49 +151,37 @@ public:
 
     int read(void* buffer, unsigned sizeToRead)
     {
-        return this->super->read(buffer, sizeToRead);
-    };
+        return super->read(buffer, sizeToRead);
+    }
 
     int getSize()
     {
-        return this->super->getSize();
-    };
+        return super->getSize();
+    }
 };
 
 OTStringXML::OTStringXML()
     : OTString()
-    , pvt(new OTStringXMLPvt(this))
+    , pvt_(new OTStringXMLPvt(this))
 {
 }
 
-OTStringXML::OTStringXML(const OTString& strValue)
-    : OTString(strValue)
-    , pvt(new OTStringXMLPvt(this))
+OTStringXML::OTStringXML(const OTString& value)
+    : OTString(value)
+    , pvt_(new OTStringXMLPvt(this))
 {
 }
 
-OTStringXML::OTStringXML(const OTStringXML& strValue)
-    : OTString(strValue)
-    , pvt(new OTStringXMLPvt(this))
+OTStringXML::OTStringXML(const OTStringXML& value)
+    : OTString(value)
+    , pvt_(new OTStringXMLPvt(this))
 {
 }
 
-/*
- Derived& Derived::operator= (Derived const& d)
- {
-    ← make sure self-assignment is benign
-    Base::operator= (d);
-    ← do the rest of your assignment operator here...
-    ...do the rest of your assignment operator here...
-    return *this;
- }
- */
 OTStringXML& OTStringXML::operator=(const OTString& rhs)
 {
     if ((&rhs) != (&(dynamic_cast<const OTString&>(*this)))) {
-        this->OTString::operator=(rhs); // no need to cast here since same type.
-        //        irr::io::IFileReadCallBack::operator=(rhs); // rhs is not
-        // derived from irr::io::IFileReadCallBack like *this is.
+        OTString::operator=(rhs);
     }
     return *this;
 }
@@ -201,22 +189,19 @@ OTStringXML& OTStringXML::operator=(const OTString& rhs)
 OTStringXML& OTStringXML::operator=(const OTStringXML& rhs)
 {
     if ((&rhs) != this) {
-        this->OTString::operator=(dynamic_cast<const OTString&>(rhs));
-        // irr::io::IFileReadCallBack::operator=(rhs);
+        OTString::operator=(dynamic_cast<const OTString&>(rhs));
     }
     return *this;
 }
 
 OTStringXML::~OTStringXML()
 {
-    // Base class destructor is called automatically.
-    // (And that calls Release_String().)
-    delete pvt;
+    delete pvt_;
 }
 
 OTStringXML::operator irr::io::IFileReadCallBack*()
 {
-    return this->pvt;
+    return pvt_;
 }
 
 int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)

@@ -135,21 +135,15 @@
 
 #include "OTString.hpp"
 
-// class OTStringXML : public OTString, public irr::io::IFileReadCallBack
-
 namespace opentxs
 {
 
 class OTStringXML : public OTString
 {
-private:
-    class OTStringXMLPvt;
-    OTStringXMLPvt* const pvt;
-
 public:
     OTStringXML();
-    EXPORT OTStringXML(const OTString& strValue);
-    OTStringXML(const OTStringXML& strValue);
+    EXPORT OTStringXML(const OTString& value);
+    OTStringXML(const OTStringXML& value);
     EXPORT ~OTStringXML();
 
     EXPORT operator irr::io::IFileReadCallBack*();
@@ -161,6 +155,10 @@ public:
 
     int32_t read(void* buffer, uint32_t sizeToRead);
     int32_t getSize();
+
+private:
+    class OTStringXMLPvt;
+    OTStringXMLPvt* const pvt_;
 };
 
 } // namespace opentxs
