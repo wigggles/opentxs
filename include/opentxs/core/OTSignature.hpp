@@ -143,17 +143,39 @@ class OTString;
 
 class OTSignature : public OTASCIIArmor
 {
-private: // BASE CLASS
-    typedef OTASCIIArmor ot_super;
+public:
+    OTSignature() : OTASCIIArmor()
+    {
+    }
 
-public: // PUBLIC INTERFACE
-    OTSignatureMetadata m_metadata;
+    virtual ~OTSignature()
+    {
+    }
 
-    OTSignature();
-    OTSignature(const char* szValue);
-    OTSignature(const OTString& strValue);
-    OTSignature(const OTASCIIArmor& strValue);
-    virtual ~OTSignature();
+    OTSignature(const OTString& value) : OTASCIIArmor(value)
+    {
+    }
+
+    OTSignature(const OTASCIIArmor& value) : OTASCIIArmor(value)
+    {
+    }
+
+    OTSignature(const char* value) : OTASCIIArmor(value)
+    {
+    }
+
+    OTSignatureMetadata& getMetaData()
+    {
+        return metadata_;
+    }
+
+    const OTSignatureMetadata& getMetaData() const
+    {
+        return metadata_;
+    }
+
+private:
+    OTSignatureMetadata metadata_;
 };
 
 } // namespace opentxs

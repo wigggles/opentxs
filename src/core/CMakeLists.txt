@@ -70,7 +70,7 @@ set(cxx-sources
   OTScriptChai.cpp
   OTServerContract.cpp
   OTSettings.cpp
-  OTSignature.cpp
+  OTSignatureMetadata.cpp
   OTSignedFile.cpp
   OTSmartContract.cpp
   OTStash.cpp

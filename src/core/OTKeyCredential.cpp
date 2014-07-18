@@ -195,7 +195,7 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(
     // Key type was not specified, because we only want keys that match the
     // metadata on theSignature.
     // And if theSignature has no metadata, then we want to return 0 keys.
-    if (('0' == cKeyType) && (false == theSignature.m_metadata.HasMetadata()))
+    if (('0' == cKeyType) && !theSignature.getMetaData().HasMetadata())
         return 0;
 
     // By this point, we know that EITHER exact metadata matches must occur, and
@@ -207,10 +207,10 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(
     int32_t nCount = 0;
     switch (cKeyType) {
     // Specific search only for signatures with metadata.
-    case '0'
-        : { // FYI, theSignature.m_metadata.HasMetadata() is true, in this case.
+    // FYI, theSignature.getMetaData().HasMetadata() is true, in this case.
+    case '0': {
         // That's why I can just assume theSignature has a key type here:
-        switch (theSignature.m_metadata.GetKeyType()) {
+        switch (theSignature.getMetaData().GetKeyType()) {
         case 'A':
             nCount =
                 m_AuthentKey.GetPublicKeyBySignature(listOutput, theSignature);
@@ -224,10 +224,9 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(
                 m_SigningKey.GetPublicKeyBySignature(listOutput, theSignature);
             break; // bInclusive=false by default
         default:
-            otErr
-                << __FUNCTION__
-                << ": Unexpected value for theSignature.m_metadata.GetKeyType: "
-                << theSignature.m_metadata.GetKeyType() << " (failure)\n";
+            otErr << __FUNCTION__
+                  << ": Unexpected keytype value in signature metadata: "
+                  << theSignature.getMetaData().GetKeyType() << " (failure)\n";
             return 0;
         }
         break;

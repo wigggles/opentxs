@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTSignature.hpp"
+#include "OTSignatureMetadata.hpp"
 
 #include "OTCrypto.hpp"
 #include "OTLog.hpp"
@@ -198,26 +198,6 @@ bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
             (this->FirstCharNymID() == rhs.FirstCharNymID()) &&
             (this->FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
             (this->FirstCharSubCredID() == rhs.FirstCharSubCredID()));
-}
-
-OTSignature::OTSignature() : ot_super()
-{
-}
-
-OTSignature::~OTSignature()
-{
-}
-
-OTSignature::OTSignature(const OTString& strValue) : ot_super(strValue)
-{
-}
-
-OTSignature::OTSignature(const OTASCIIArmor& strValue) : ot_super(strValue)
-{
-}
-
-OTSignature::OTSignature(const char* szValue) : ot_super(szValue)
-{
 }
 
 /*

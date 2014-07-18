@@ -667,7 +667,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
     // in case."
     //
     if ((false == bInclusive) &&
-        (false == theSignature.m_metadata.HasMetadata()))
+        (false == theSignature.getMetaData().HasMetadata()))
         return 0;
 
     // Below this point, metadata is used if it's available.
@@ -676,16 +676,13 @@ int32_t OTKeypair::GetPublicKeyBySignature(
     // (But if it IS available, then it must match, or the key won't be
     // returned.)
     //
-    if ((false == theSignature.m_metadata.HasMetadata()) || // If the signature
-                                                            // has no metadata,
-        (false ==
-         m_pkeyPublic->m_pMetadata->HasMetadata()) || // Or if m_pkeyPublic has
-                                                      // no metadata,
-        (m_pkeyPublic->m_pMetadata->HasMetadata() &&  // OR if they BOTH have
-                                                      // metadata, and
-         theSignature.m_metadata.HasMetadata() &&     // their metadata is a
-                                                      // MATCH...
-         (theSignature.m_metadata == *(m_pkeyPublic->m_pMetadata)))) {
+    // If the signature has no metadata, or if m_pkeyPublic has no metadata, or
+    // if they BOTH have metadata, and their metadata is a MATCH...
+    if (!theSignature.getMetaData().HasMetadata() ||
+        !m_pkeyPublic->m_pMetadata->HasMetadata() ||
+        (m_pkeyPublic->m_pMetadata->HasMetadata() &&
+         theSignature.getMetaData().HasMetadata() &&
+         (theSignature.getMetaData() == *(m_pkeyPublic->m_pMetadata)))) {
         // ...Then add m_pkeyPublic as a possible match, to listOutput.
         //
         listOutput.push_back(m_pkeyPublic);

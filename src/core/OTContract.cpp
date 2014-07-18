@@ -814,7 +814,7 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
     // be on the key, so we just copy it over to the signature.
     //
     if (NULL != theKey.m_pMetadata) {
-        theSignature.m_metadata = *(theKey.m_pMetadata);
+        theSignature.getMetaData() = *(theKey.m_pMetadata);
     }
 
     // Update the contents, (not always necessary, many contracts are read-only)
@@ -960,7 +960,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
         OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
-        if (bNymID && pSig->m_metadata.HasMetadata()) {
+        if (bNymID && pSig->getMetaData().HasMetadata()) {
             // If the signature has metadata, then it knows the first character
             // of the NymID that signed it. We know the first character of the
             // NymID
@@ -968,7 +968,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
             // this
             // signature without having to try to verify it at all.
             //
-            if (pSig->m_metadata.FirstCharNymID() != cNymID) continue;
+            if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
         }
 
         if (this->VerifySigAuthent(theNym, *pSig, pPWData)) return true;
@@ -990,7 +990,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
         OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
-        if (bNymID && pSig->m_metadata.HasMetadata()) {
+        if (bNymID && pSig->getMetaData().HasMetadata()) {
             // If the signature has metadata, then it knows the first character
             // of the NymID that signed it. We know the first character of the
             // NymID
@@ -998,7 +998,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
             // this
             // signature without having to try to verify it at all.
             //
-            if (pSig->m_metadata.FirstCharNymID() != cNymID) continue;
+            if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
         }
 
         if (this->VerifySignature(theNym, *pSig, pPWData)) return true;
@@ -1014,17 +1014,12 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
         OTSignature* pSig = it;
         OT_ASSERT(NULL != pSig);
 
-        if ((NULL !=
-             theKey.m_pMetadata) && // This should never actually be NULL.
-            theKey.m_pMetadata->HasMetadata() && // If this key actually has its
-                                                 // metadata set.
-            pSig->m_metadata.HasMetadata()) // And if the signature ALSO has its
-                                            // metadata set...
-        {
+        if (theKey.m_pMetadata && theKey.m_pMetadata->HasMetadata() &&
+            pSig->getMetaData().HasMetadata()) {
             // Since key and signature both have metadata, we can use it
             // to skip signatures which don't match this key.
             //
-            if (pSig->m_metadata != *(theKey.m_pMetadata)) continue;
+            if (pSig->getMetaData() != *(theKey.m_pMetadata)) continue;
         }
 
         OTPasswordData thePWData("OTContract::VerifyWithKey");
@@ -1135,8 +1130,8 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
     // (The metadata may eliminate it as a possibility.)
     //
     if ((NULL != theKey.m_pMetadata) && theKey.m_pMetadata->HasMetadata() &&
-        theSignature.m_metadata.HasMetadata()) {
-        if (theSignature.m_metadata != *(theKey.m_pMetadata)) return false;
+        theSignature.getMetaData().HasMetadata()) {
+        if (theSignature.getMetaData() != *(theKey.m_pMetadata)) return false;
     }
 
     OTPasswordData thePWData("OTContract::VerifySignature 2");
@@ -1335,12 +1330,12 @@ bool OTContract::AddBookendsAroundContent(
                             "Open-Transactions/wiki\n",
                             strContractType.Get(), OTLog::Version());
 
-        if (pSig->m_metadata.HasMetadata())
+        if (pSig->getMetaData().HasMetadata())
             strTemp.Concatenate("Meta:    %c%c%c%c\n",
-                                pSig->m_metadata.GetKeyType(),
-                                pSig->m_metadata.FirstCharNymID(),
-                                pSig->m_metadata.FirstCharMasterCredID(),
-                                pSig->m_metadata.FirstCharSubCredID());
+                                pSig->getMetaData().GetKeyType(),
+                                pSig->getMetaData().FirstCharNymID(),
+                                pSig->getMetaData().FirstCharMasterCredID(),
+                                pSig->getMetaData().FirstCharSubCredID());
 
         strTemp.Concatenate("\n%s",
                             pSig->Get()); // <=== *** THE SIGNATURE ITSELF ***
@@ -1717,7 +1712,7 @@ bool OTContract::ParseRawFile()
 
                         OT_ASSERT(NULL != pSig);
                         if (false ==
-                            pSig->m_metadata.SetMetadata(
+                            pSig->getMetaData().SetMetadata(
                                 line.at(9), line.at(10), line.at(11),
                                 line.at(12))) // "knms" from "Meta:    knms"
                         {
