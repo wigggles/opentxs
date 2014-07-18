@@ -140,50 +140,60 @@ namespace opentxs
 
 class OTSignatureMetadata
 {
-private:                 // PRIVATE MEMBERS
-    bool m_bHasMetadata; // Defaults to false. Is set true by calling
-                         // SetMetadata.
-    char m_cMetaKeyType; // Can be A, E, or S (authentication, encryption, or
-                         // signing. Also, E would be unusual.)
-    char m_cMetaNymID;   // Can be any letter from base62 alphabet. Represents
-                         // first letter of a Nym's ID.
-    char m_cMetaMasterCredID; // Can be any letter from base62 alphabet.
-                              // Represents first letter of a Master Credential
-                              // ID (for that Nym.)
-    char m_cMetaSubCredID; // Can be any letter from base62 alphabet. Represents
-                           // first letter of a SubCredential ID (signed by that
-                           // Master.)
-
-public: // PUBLIC INTERFACE
-    bool SetMetadata(char cMetaKeyType, char cMetaNymID, char cMetaMasterCredID,
-                     char cMetaSubCredID);
-    inline bool HasMetadata() const
-    {
-        return m_bHasMetadata;
-    }
-    inline char GetKeyType() const
-    {
-        return m_cMetaKeyType;
-    }
-    inline char FirstCharNymID() const
-    {
-        return m_cMetaNymID;
-    }
-    inline char FirstCharMasterCredID() const
-    {
-        return m_cMetaMasterCredID;
-    }
-    inline char FirstCharSubCredID() const
-    {
-        return m_cMetaSubCredID;
-    }
-    // ...Sticking with the default destructor and operator=
+public:
     OTSignatureMetadata();
+
     bool operator==(const OTSignatureMetadata& rhs) const;
+
     bool operator!=(const OTSignatureMetadata& rhs) const
     {
         return !(this->operator==(rhs));
     }
+
+    bool SetMetadata(char metaKeyType, char metaNymID, char metaMasterCredID,
+                     char metaSubCredID);
+
+    inline bool HasMetadata() const
+    {
+        return hasMetadata_;
+    }
+
+    inline char GetKeyType() const
+    {
+        return metaKeyType_;
+    }
+
+    inline char FirstCharNymID() const
+    {
+        return metaNymID_;
+    }
+
+    inline char FirstCharMasterCredID() const
+    {
+        return metaMasterCredID_;
+    }
+
+    inline char FirstCharSubCredID() const
+    {
+        return metaSubCredID_;
+    }
+
+private:
+    // Defaults to false. Is set true by calling SetMetadata
+    bool hasMetadata_;
+    // Can be A, E, or S (authentication, encryption, or signing.
+    // Also, E would be unusual.)
+    char metaKeyType_;
+    // Can be any letter from base62 alphabet. Represents
+    // first letter of a Nym's ID.
+    char metaNymID_;
+    // Can be any letter from base62 alphabet.
+    // Represents first letter of a Master Credential
+    // ID (for that Nym.)
+    char metaMasterCredID_;
+    // Can be any letter from base62 alphabet. Represents
+    // first letter of a SubCredential ID (signed by that Master.)
+    char metaSubCredID_;
 };
 
 } // namespace opentxs

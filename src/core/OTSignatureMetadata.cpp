@@ -133,61 +133,61 @@
 #include "stdafx.hpp"
 
 #include "OTSignatureMetadata.hpp"
-
 #include "OTCrypto.hpp"
 #include "OTLog.hpp"
+#include <string>
 
 namespace opentxs
 {
 
-bool OTSignatureMetadata::SetMetadata(char cMetaKeyType, char cMetaNymID,
-                                      char cMetaMasterCredID,
-                                      char cMetaSubCredID)
+bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
+                                      char metaMasterCredID, char metaSubCredID)
 {
-    switch (cMetaKeyType) {
-    case 'A'
-        : // authentication (used for signing transmissions and stored files.)
-    case 'E': // encryption (unusual BTW, to see this in a signature. Should
-              // never actually happen, or at least should be rare and strange
-              // when it does.)
-    case 'S': // signing (a "legal signature.")
+    switch (metaKeyType) {
+    // authentication (used for signing transmissions and stored files.)
+    case 'A':
+    // encryption (unusual BTW, to see this in a signature. Should
+    // never actually happen, or at least should be rare and strange
+    // when it does.)
+    case 'E':
+    // signing (a "legal signature.")
+    case 'S':
         break;
-
     default:
         otErr << __FUNCTION__
               << ": Expected key type of A, E, or S, but instead found: "
-              << cMetaKeyType << " (bad data or error)\n";
+              << metaKeyType << " (bad data or error)\n";
         return false;
     }
 
     std::string str_verify_base62;
 
-    str_verify_base62 += cMetaNymID;
-    str_verify_base62 += cMetaMasterCredID;
-    str_verify_base62 += cMetaSubCredID;
+    str_verify_base62 += metaNymID;
+    str_verify_base62 += metaMasterCredID;
+    str_verify_base62 += metaSubCredID;
 
-    if (false == OTCrypto::It()->IsBase62(str_verify_base62)) {
+    if (!OTCrypto::It()->IsBase62(str_verify_base62)) {
         otErr << __FUNCTION__
               << ": Metadata for signature failed base62 validation: "
               << str_verify_base62 << "\n";
         return false;
     }
 
-    m_cMetaKeyType = cMetaKeyType;
-    m_cMetaNymID = cMetaNymID;
-    m_cMetaMasterCredID = cMetaMasterCredID;
-    m_cMetaSubCredID = cMetaSubCredID;
-    m_bHasMetadata = true; // <==== Success.
+    metaKeyType_ = metaKeyType;
+    metaNymID_ = metaNymID;
+    metaMasterCredID_ = metaMasterCredID;
+    metaSubCredID_ = metaSubCredID;
+    hasMetadata_ = true;
 
     return true;
 }
 
 OTSignatureMetadata::OTSignatureMetadata()
-    : m_bHasMetadata(false)
-    , m_cMetaKeyType(0)
-    , m_cMetaNymID(0)
-    , m_cMetaMasterCredID(0)
-    , m_cMetaSubCredID(0)
+    : hasMetadata_(false)
+    , metaKeyType_(0)
+    , metaNymID_(0)
+    , metaMasterCredID_(0)
+    , metaSubCredID_(0)
 {
 }
 
@@ -199,148 +199,5 @@ bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
             (this->FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
             (this->FirstCharSubCredID() == rhs.FirstCharSubCredID()));
 }
-
-/*
-
-EVP_Seal... and EVP_Open... provide public key encryption and decryption to
-implement digital ``envelopes''.
-
-The EVP_Sign... and EVP_Verify... functions implement digital signatures.
-
-Symmetric encryption is available with the EVP_Encrypt... functions.
-
-The EVP_Digest... functions provide message digests.
-
-The EVP_PKEY... functions provide a high level interface to asymmetric
-algorithms.
-
-Algorithms are loaded with OpenSSL_add_all_algorithms(3).
-
-
-
-int32_t EVP_DigestSignInit(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
-                       const EVP_MD *type, ENGINE *e, EVP_PKEY *pkey);
-int32_t EVP_DigestSignUpdate(EVP_MD_CTX *ctx, const void *d, uint32_t cnt);
-int32_t EVP_DigestSignFinal(EVP_MD_CTX *ctx, uint8_t *sig, size_t *siglen);
-
-
-
-OTASCIIArmor -> OTSignature
-
-OTPseudonym stores Identity including Cert info.
-
-Keys will be stored in OTASCIIArmor -> OTKey
-
-
-
-
-
-void do_cipher(char *pw, int32_t operation,char * InBuf,int32_t InLen,char *
-               OutBuf,int32_t *OutBuflen)
-{
-    //operation:    0:DECRYPT
-    //              1:ENCRYPT
-
-
-    uint8_t iv[EVP_MAX_IV_LENGTH], key[EVP_MAX_KEY_LENGTH];
-    const uint8_t salt[] = "thesaltgoeshere1982w";
-
-    // uint32_t ekeylen, net_ekeylen;
-    EVP_CIPHER_CTX ectx;
-
-    EVP_BytesToKey(EVP_idea_cbc(), EVP_md5(), salt, pw, strlen(pw), 1, key, iv);
-
-    EVP_CipherInit(&ectx, EVP_idea_cbc(), key, iv, operation);
-
-    EVP_CipherUpdate(&ectx, OutBuf, OutBuflen, InBuf, InLen);
-
-    EVP_CipherFinal(&ectx, OutBuf, OutBuflen);
-
-}
-void main(void)
-{
-    char InBuf[512],OutBuf[512+8],OutBuf2[512+8];
-    int32_t i, OutLen;
-
-    for ( i = 0 ; i < 8 ; i++ )
-        InBuf[i] = 30+i;
-
-    do_cipher("test",1,InBuf,8,OutBuf,&OutLen);  //OutLen=8
-    do_cipher("test",0,OutBuf,8,OutBuf2,&OutLen); //but now OutLen=0
-}
-
-
-memcpy(iv, "12345678", 8);
-EVP_BytesToKey(EVP_idea_cbc(), EVP_md5(), "salt", pw, strlen(pw), 1, key, iv);
-
-The salt value should be at least 8 bytes int64_t - you're getting 3
-random bytes here.
-
-You don't need to specify an iv value as this function creates it.
-
-- Dale.
-
-*/
-
-/* Deprecated code:
- SHA256_CTX context;
- uint8_t md[SHA256_DIGEST_LENGTH];
-
- SHA256_Init(&context);
- SHA256_Update(&context, (uint8_t*)input, length);
- SHA256_Final(md, &context);
-
- Replaced with:
- */
-
-// TODO: stop hardcoding the digest algorithm
-
-/*
-bool OTSignature::CalculateDigest(OTData & dataInput)
-{
-    Release();
-
-    EVP_MD_CTX mdctx;
-    const EVP_MD *md;
-    const char * hashAlgorithm = "sha256";
-
-    uint32_t md_len, i;
-    uint8_t md_value[EVP_MAX_MD_SIZE];
-
-    if (s_bFirstTime)
-    {
-        s_bFirstTime = false;
-        OpenSSL_add_all_digests();
-    }
-
-    md = EVP_get_digestbyname(hashAlgorithm);
-
-    if(!md)
-    {
-        otErr << "Unknown message digest algorithm in
-OTSignature::CalculateDigest: %s\n",
-                hashAlgorithm);
-        return false;
-    }
-
-    EVP_MD_CTX_init(&mdctx);
-    EVP_DigestInit_ex(&mdctx, md, NULL);
-    EVP_DigestUpdate(&mdctx, dataInput.GetPointer(), dataInput.GetSize());
-    EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-    EVP_MD_CTX_cleanup(&mdctx);
-
-    otLog5 << "Calculated digest: ");
-
-    for (i = 0; i < md_len; i++)
-        otLog5 << "%02x", md_value[i]);
-
-    otLog5 << "\n");
-
-    Assign(md_value, md_len);
-
-    return true;
-}
-
-*/
 
 } // namespace opentxs
