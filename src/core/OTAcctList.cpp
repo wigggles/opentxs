@@ -133,16 +133,16 @@
 #include "stdafx.hpp"
 
 #include "OTAcctList.hpp"
-
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 #include "OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
 
-#ifdef _WIN32
-//#include <Mmsystem.h>
-#else
+#include <string>
+#include <utility>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/time.h>
 #endif
@@ -153,133 +153,18 @@ using namespace io;
 namespace opentxs
 {
 
-void TranslateAccountTypeToString(OTAccount::AccountType theType,
-                                  OTString& strAcctType);
+void TranslateAccountTypeToString(OTAccount::AccountType type,
+                                  OTString& acctType);
 
 OTAccount::AccountType TranslateAccountTypeStringToEnum(
-    const OTString& strAcctType);
+    const OTString& acctType);
 
-// mapOfStrings            m_mapAcctIDs; // AcctIDs as second mapped by ASSET
-// TYPE ID as first.
-// mapOfWeakAccounts    m_mapWeakAccts; // Weak pointers to accounts that may
-// still be in memory, mapped by ACCOUNT ID.
-
-OTAcctList::OTAcctList()
-    : m_AcctType(OTAccount::voucher) // the default type of acct it will create
-                                     // when it needs to, unless default is
-                                     // changed.
+OTAcctList::OTAcctList() : acctType_(OTAccount::voucher)
 {
 }
 
-OTAcctList::OTAcctList(OTAccount::AccountType eAcctType) : m_AcctType(eAcctType)
+OTAcctList::OTAcctList(OTAccount::AccountType acctType) : acctType_(acctType)
 {
-}
-
-void OTAcctList::Serialize(OTString& strAppend)
-{
-    OTString strAcctType;
-    TranslateAccountTypeToString(m_AcctType, strAcctType);
-
-    strAppend.Concatenate("<accountList type=\"%s\" count=\"%d\" >\n\n",
-                          strAcctType.Get(), m_mapAcctIDs.size());
-
-    for (auto& it : m_mapAcctIDs) {
-        const std::string str_asset_type_id = it.first;
-        const std::string str_account_id = it.second;
-        OT_ASSERT((str_asset_type_id.size() > 0) &&
-                  (str_account_id.size() > 0));
-
-        strAppend.Concatenate(
-            "<accountEntry assetTypeID=\"%s\" accountID=\"%s\" />\n\n",
-            str_asset_type_id.c_str(), str_account_id.c_str());
-    }
-
-    strAppend.Concatenate("</accountList>\n\n");
-}
-
-int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                    const OTString& strAcctType,
-                                    const OTString& strAcctCount)
-{
-    if (!strAcctType.Exists()) {
-        otErr << "OTAcctList::ReadFromXMLNode: Failed: Empty accountList "
-                 "'type' attribute.\n";
-        return (-1);
-    }
-
-    m_AcctType = TranslateAccountTypeStringToEnum(strAcctType);
-
-    if (OTAccount::err_acct == m_AcctType) {
-        otErr << "OTAcctList::ReadFromXMLNode: Failed: accountList 'type' "
-                 "attribute contains unknown value.\n";
-        return (-1);
-    }
-
-    //
-    // Load up the account IDs.
-    //
-    int32_t nCount = strAcctCount.Exists() ? atoi(strAcctCount.Get()) : 0;
-    if (nCount > 0) {
-        while (nCount-- > 0) {
-            //            xml->read();
-            if (false == OTContract::SkipToElement(xml)) {
-                otOut << "OTAcctList::ReadFromXMLNode: Failure: Unable to find "
-                         "expected element.\n";
-                return (-1);
-            }
-
-            if ((xml->getNodeType() == EXN_ELEMENT) &&
-                (!strcmp("accountEntry", xml->getNodeName()))) {
-                OTString strAssetTypeID = xml->getAttributeValue(
-                    "assetTypeID"); // Asset Type ID of this account.
-                OTString strAccountID = xml->getAttributeValue(
-                    "accountID"); // Account ID for this account.
-
-                if (!strAssetTypeID.Exists() || !strAccountID.Exists()) {
-                    otErr << "OTAcctList::ReadFromXMLNode: Error loading "
-                             "accountEntry: Either the assetTypeID ("
-                          << strAssetTypeID << "), "
-                                               "or the accountID ("
-                          << strAccountID << ") was EMPTY.\n";
-                    return (-1);
-                }
-
-                // Success
-                m_mapAcctIDs.insert(std::pair<std::string, std::string>(
-                    strAssetTypeID.Get(),
-                    strAccountID.Get())); // <=============
-            }
-            else {
-                otErr << "OTAcctList::ReadFromXMLNode: Expected accountEntry "
-                         "element in accountList.\n";
-                return (-1); // error condition
-            }
-        } // while
-    }
-
-    if (false == OTContract::SkipAfterLoadingField(xml)) // </accountList>
-    {
-        otOut << "*** OTAcctList::ReadFromXMLNode: Bad data? Expected "
-                 "EXN_ELEMENT_END here, but "
-                 "didn't get it. Returning false.\n";
-        return (-1);
-    }
-
-    return 1;
-}
-
-// So far, no need to call this in the destructor, since these clean themselves
-// up ANYWAY.
-//
-void OTAcctList::Release_AcctList()
-{
-    m_mapAcctIDs.clear();
-    m_mapWeakAccts.clear();
-}
-
-void OTAcctList::Release()
-{
-    Release_AcctList();
 }
 
 OTAcctList::~OTAcctList()
@@ -287,53 +172,139 @@ OTAcctList::~OTAcctList()
     Release_AcctList();
 }
 
-std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
-    OTPseudonym& theServerNym, const OTIdentifier& ACCOUNT_OWNER_ID,
-    const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
-    bool& bWasAcctCreated, // this will be set to true if the acct is created
-                           // here. Otherwise set to false;
-    const int64_t lStashTransNum /*=0*/)
+void OTAcctList::Serialize(OTString& append)
 {
-    std::shared_ptr<OTAccount> pRetVal;
-    bWasAcctCreated = false;
+    OTString acctType;
+    TranslateAccountTypeToString(acctType_, acctType);
 
-    if (OTAccount::stash == m_AcctType) {
-        if (lStashTransNum <= 0) {
+    append.Concatenate("<accountList type=\"%s\" count=\"%d\" >\n\n",
+                       acctType.Get(), mapAcctIDs_.size());
+
+    for (auto& it : mapAcctIDs_) {
+        std::string assetTypeId = it.first;
+        std::string accountId = it.second;
+        OT_ASSERT((assetTypeId.size() > 0) && (accountId.size() > 0));
+
+        append.Concatenate(
+            "<accountEntry assetTypeID=\"%s\" accountID=\"%s\" />\n\n",
+            assetTypeId.c_str(), accountId.c_str());
+    }
+
+    append.Concatenate("</accountList>\n\n");
+}
+
+int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
+                                    const OTString& acctType,
+                                    const OTString& acctCount)
+{
+    if (!acctType.Exists()) {
+        otErr << "OTAcctList::ReadFromXMLNode: Failed: Empty accountList "
+                 "'type' attribute.\n";
+        return -1;
+    }
+
+    acctType_ = TranslateAccountTypeStringToEnum(acctType);
+
+    if (OTAccount::err_acct == acctType_) {
+        otErr << "OTAcctList::ReadFromXMLNode: Failed: accountList 'type' "
+                 "attribute contains unknown value.\n";
+        return -1;
+    }
+
+    // Load up the account IDs.
+    int32_t count = acctCount.Exists() ? atoi(acctCount.Get()) : 0;
+    if (count > 0) {
+        while (count-- > 0) {
+            if (!OTContract::SkipToElement(xml)) {
+                otOut << "OTAcctList::ReadFromXMLNode: Failure: Unable to find "
+                         "expected element.\n";
+                return -1;
+            }
+
+            if ((xml->getNodeType() == EXN_ELEMENT) &&
+                (!strcmp("accountEntry", xml->getNodeName()))) {
+                OTString assetTypeID = xml->getAttributeValue(
+                    "assetTypeID"); // Asset Type ID of this account.
+                OTString accountID = xml->getAttributeValue(
+                    "accountID"); // Account ID for this account.
+
+                if (!assetTypeID.Exists() || !accountID.Exists()) {
+                    otErr << "Error loading accountEntry: Either the "
+                             "assetTypeID (" << assetTypeID
+                          << "), or the accountID (" << accountID
+                          << ") was EMPTY.\n";
+                    return -1;
+                }
+
+                mapAcctIDs_.insert(
+                    std::make_pair(assetTypeID.Get(), accountID.Get()));
+            }
+            else {
+                otErr << "Expected accountEntry element in accountList.\n";
+                return -1;
+            }
+        }
+    }
+
+    if (!OTContract::SkipAfterLoadingField(xml)) // </accountList>
+    {
+        otOut << "*** OTAcctList::ReadFromXMLNode: Bad data? Expected "
+                 "EXN_ELEMENT_END here, but "
+                 "didn't get it. Returning false.\n";
+        return -1;
+    }
+
+    return 1;
+}
+
+void OTAcctList::Release_AcctList()
+{
+    mapAcctIDs_.clear();
+    mapWeakAccts_.clear();
+}
+
+void OTAcctList::Release()
+{
+    Release_AcctList();
+}
+
+std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
+    OTPseudonym& serverNym, const OTIdentifier& accountOwnerId,
+    const OTIdentifier& assetTypeId, const OTIdentifier& serverId,
+    // this will be set to true if the acct is created here.
+    // Otherwise set to false;
+    bool& wasAcctCreated, const int64_t stashTransNum)
+{
+    std::shared_ptr<OTAccount> account;
+    wasAcctCreated = false;
+
+    if (OTAccount::stash == acctType_) {
+        if (stashTransNum <= 0) {
             otErr << "OTAcctList::GetOrCreateAccount: Failed attempt to create "
                      "stash account without cron item #.\n";
-            return pRetVal;
+            return account;
         }
     }
 
     // First, we'll see if there's already an account ID available for the
     // requested asset type ID.
-    //
-    const OTString strAssetTypeID(ASSET_TYPE_ID);
-    const std::string str_asset_type_id = strAssetTypeID.Get();
+    std::string assetTypeIdString = OTString(assetTypeId).Get();
 
-    OTString strAcctType;
-    TranslateAccountTypeToString(m_AcctType, strAcctType);
+    OTString acctTypeString;
+    TranslateAccountTypeToString(acctType_, acctTypeString);
 
-    mapOfStrings::iterator it_acct_ids = m_mapAcctIDs.find(str_asset_type_id);
-    if (m_mapAcctIDs.end() !=
-        it_acct_ids) // Account ID *IS* already there for this asset type...
-    {
-        const std::string str_account_id =
-            (*it_acct_ids).second; // grab account ID
-        mapOfWeakAccounts::iterator it_weak = m_mapWeakAccts.find(
-            str_account_id); // Try to find account pointer...
+    mapOfStrings::iterator acctIDsIt = mapAcctIDs_.find(assetTypeIdString);
+    // Account ID *IS* already there for this asset type
+    if (mapAcctIDs_.end() != acctIDsIt) {
+        // grab account ID
+        std::string accountIdString = (*acctIDsIt).second;
+        auto weakIt = mapWeakAccts_.find(accountIdString);
 
-        if (m_mapWeakAccts.end() != it_weak) // FOUND the weak ptr to the
-                                             // account! Maybe it's already
-                                             // loaded
-        {
-            //            bool bSuccess = true;
-
-            std::weak_ptr<OTAccount> pWeak = it_weak->second;
-
+        // FOUND the weak ptr to the account! Maybe it's already loaded
+        if (mapWeakAccts_.end() != weakIt) {
             try
             {
-                std::shared_ptr<OTAccount> pShared(pWeak);
+                std::shared_ptr<OTAccount> weakAccount(weakIt->second);
 
                 // If success, then we have a shared pointer. But it's worrying
                 // (TODO) because this should have
@@ -347,15 +318,14 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
                 // now. I'm assuming that if the account's loaded
                 // already somewhere, it's just a pointer sitting there, and
                 // we're not walking on each other's toes.
-                //
-                if (pShared) {
+                if (weakAccount) {
                     otOut
                         << "OTAcctList::GetOrCreateAccount: Warning: account ("
-                        << str_account_id
+                        << accountIdString
                         << ") was already in memory so I gave you a "
                            "pointer to the existing one. (But who else has a "
                            "copy of it?) \n";
-                    return pShared;
+                    return weakAccount;
                 }
             }
             catch (...)
@@ -363,101 +333,85 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
             }
 
             // Though the weak pointer was there, the resource must have since
-            // been destroyed,
-            // because I cannot lock a new shared ptr onto it.   :-(
-            //
+            // been destroyed, because I cannot lock a new shared ptr onto it.
             // Therefore remove it from the map, and RE-LOAD IT.
-            //
-            m_mapWeakAccts.erase(it_weak);
+            mapWeakAccts_.erase(weakIt);
         }
 
         // DIDN'T find the acct pointer, even though we had the ID.
         // (Or it was there, but we couldn't lock a shared_ptr onto it, so we
         // erased it...)
-        //
         // So let's load it now. After all, the Account ID *does* exist...
-        //
-        const OTString strAcctID(str_account_id.c_str());
-        const OTIdentifier theAccountID(strAcctID);
+        OTString acctIDString(accountIdString.c_str());
+        OTIdentifier accountID(acctIDString);
 
         // The Account ID exists, but we don't have the pointer to a loaded
-        // account for it.
-        // Soo.... let's load it.
-        //
-        OTAccount* pAccount =
-            OTAccount::LoadExistingAccount(theAccountID, SERVER_ID);
+        // account for it. So, let's load it.
+        OTAccount* loadedAccount =
+            OTAccount::LoadExistingAccount(accountID, serverId);
 
-        if (NULL == pAccount)
-            otErr << "OTAcctList::GetOrCreateAccount: Failed trying to load "
-                  << strAcctType << " account with account ID: " << strAcctID
-                  << "\n";
-        else if (!pAccount->VerifySignature(theServerNym))
-            otErr << "OTAcctList::GetOrCreateAccount: Failed verifying "
-                     "server's signature on " << strAcctType
-                  << " account with account ID: " << strAcctID << "\n";
-        else if (!pAccount->VerifyOwnerByID(ACCOUNT_OWNER_ID)) {
-            const OTString strOwnerID(ACCOUNT_OWNER_ID);
-            otErr << "OTAcctList::GetOrCreateAccount: Failed verifying owner ID"
-                     " (" << strOwnerID << ") on " << strAcctType
-                  << " account ID: " << strAcctID << "\n";
+        if (!loadedAccount) {
+            otErr << "Failed trying to load " << acctTypeString
+                  << " account with account ID: " << acctIDString << '\n';
         }
-        else // SUCCESS loading the account...
-        {
-            otLog3 << "Successfully loaded " << strAcctType
-                   << " account ID: " << strAcctID
-                   << " Asset Type ID: " << str_asset_type_id << "\n";
+        else if (!loadedAccount->VerifySignature(serverNym)) {
+            otErr << "Failed verifying server's signature on " << acctTypeString
+                  << " account with account ID: " << acctIDString << '\n';
+        }
+        else if (!loadedAccount->VerifyOwnerByID(accountOwnerId)) {
+            OTString strOwnerID(accountOwnerId);
+            otErr << "Failed verifying owner ID (" << strOwnerID << ") on "
+                  << acctTypeString << " account ID: " << acctIDString << '\n';
+        }
+        else {
+            otLog3 << "Successfully loaded " << acctTypeString
+                   << " account ID: " << acctIDString
+                   << " Asset Type ID: " << assetTypeIdString << "\n";
 
-            pRetVal = std::shared_ptr<OTAccount>(pAccount);
+            account = std::shared_ptr<OTAccount>(loadedAccount);
             // save a weak pointer to the acct, so we'll never load it twice,
             // but we'll also know if it's been deleted.
-            m_mapWeakAccts[strAcctID.Get()] = std::weak_ptr<OTAccount>(pRetVal);
+            mapWeakAccts_[acctIDString.Get()] =
+                std::weak_ptr<OTAccount>(account);
         }
-        return pRetVal;
-        //
-    } // (Asset Type ID was found on the AcctID Map -- a corresponding Account
-      // ID is already there for that asset type.)
+        return account;
+    }
 
-    // Not found... There's no account ID yet for that asset type ID.
-    // That means we can create it...
-    //
-    OTMessage theMessage; // Here we set up theMessage
-    ACCOUNT_OWNER_ID.GetString(theMessage.m_strNymID);
-    ASSET_TYPE_ID.GetString(theMessage.m_strAssetID);
-    SERVER_ID.GetString(theMessage.m_strServerID);
+    // Not found. There's no account ID yet for that asset type ID. That means
+    // we can create it.
+    OTMessage message;
+    accountOwnerId.GetString(message.m_strNymID);
+    assetTypeId.GetString(message.m_strAssetID);
+    serverId.GetString(message.m_strServerID);
 
-    OTAccount* pAccount = OTAccount::GenerateNewAccount(
-        ACCOUNT_OWNER_ID,       // theUserID
-        SERVER_ID,              // theServerID
-        theServerNym,           // theServerNym
-        theMessage, m_AcctType, // OTAccount::voucher is default.
-        lStashTransNum);
+    OTAccount* createdAccount = OTAccount::GenerateNewAccount(
+        accountOwnerId, serverId, serverNym, message, acctType_, stashTransNum);
 
-    if (NULL == pAccount)
+    if (!createdAccount) {
         otErr << " OTAcctList::GetOrCreateAccount: Failed trying to generate"
-              << strAcctType
-              << " account with asset type ID: " << str_asset_type_id << "\n";
-    else // SUCCESS creating the account...
-    {
-        OTString strAcctID;
-        pAccount->GetIdentifier(strAcctID);
+              << acctTypeString
+              << " account with asset type ID: " << assetTypeIdString << "\n";
+    }
+    else {
+        OTString acctIDString;
+        createdAccount->GetIdentifier(acctIDString);
 
-        otOut << "Successfully created " << strAcctType
-              << " account ID: " << strAcctID
-              << " Asset Type ID: " << str_asset_type_id << "\n";
+        otOut << "Successfully created " << acctTypeString
+              << " account ID: " << acctIDString
+              << " Asset Type ID: " << assetTypeIdString << "\n";
 
-        pRetVal = std::shared_ptr<OTAccount>(pAccount);
+        account = std::shared_ptr<OTAccount>(createdAccount);
 
         // save a weak pointer to the acct, so we'll never load it twice,
         // but we'll also know if it's been deleted.
-        m_mapWeakAccts[strAcctID.Get()] = std::weak_ptr<OTAccount>(pRetVal);
-        m_mapAcctIDs[theMessage.m_strAssetID.Get()] =
-            strAcctID.Get(); // Save the new acct ID in a map, keyed by asset
-                             // type ID.
+        mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<OTAccount>(account);
+        // Save the new acct ID in a map, keyed by asset type ID.
+        mapAcctIDs_[message.m_strAssetID.Get()] = acctIDString.Get();
 
-        bWasAcctCreated = true;
+        wasAcctCreated = true;
     }
 
-    return pRetVal;
+    return account;
 }
 
 } // namespace opentxs
