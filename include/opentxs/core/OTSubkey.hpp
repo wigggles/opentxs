@@ -152,9 +152,8 @@
 //
 // The same class (subcredential/subkey) is used because there are master
 // credentials and subcredentials, so we're using inheritance for
-// "subcredential"
-// and "subkey" to encapsulate the credentials, so we don't have to repeat code
-// across both.
+// "subcredential" and "subkey" to encapsulate the credentials, so we don't have
+// to repeat code across both.
 // We're using a "has-a" model here, since the OTCredential "has a" master
 // subkey, and also "has a" list of subcredentials, some of which are subkeys.
 //
@@ -177,15 +176,14 @@ class OTCredential;
 
 class OTSubkey : public OTKeyCredential
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTKeyCredential ot_super;
     friend class OTCredential;
 
 public:
-    virtual bool VerifySignedByMaster();
     OTSubkey();
-    OTSubkey(OTCredential& theOwner);
+    OTSubkey(OTCredential& other);
     virtual ~OTSubkey();
+
+    virtual bool VerifySignedByMaster();
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };
