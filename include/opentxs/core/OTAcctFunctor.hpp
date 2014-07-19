@@ -133,64 +133,50 @@
 #ifndef __OT_ACCT_FUNCTOR_HPP__
 #define __OT_ACCT_FUNCTOR_HPP__
 
-#include "OTCommon.hpp"
-
+#include "OTIdentifier.hpp"
 #include <map>
+#include <string>
 
 namespace opentxs
 {
 
 class OTAccount;
-class OTAcctFunctor;
-class OTIdentifier;
 
 typedef std::map<std::string, OTAccount*> mapOfAccounts;
 
 // This class is used by ForEachAccountRecord (above) which loops through
 // all the "simple" accounts of a specific asset type, and calls this functor
 // for each one.
-//
 class OTAcctFunctor
 {
-protected:
-    OTIdentifier* m_pServerID;        // owned.
-    mapOfAccounts* m_pLoadedAccounts; // not owned.
-
 public:
-    EXPORT OTAcctFunctor(const OTIdentifier& theServerID,
-                         mapOfAccounts* pLoadedAccounts = NULL);
-    EXPORT virtual ~OTAcctFunctor();
+    EXPORT OTAcctFunctor(const OTIdentifier& serverId,
+                         mapOfAccounts* loadedAccounts = nullptr)
+        : serverId_(serverId)
+        , loadedAccounts_(loadedAccounts)
+    {
+    }
+
+    EXPORT virtual ~OTAcctFunctor()
+    {
+    }
 
     EXPORT OTIdentifier* GetServerID()
     {
-        return m_pServerID;
+        return &serverId_;
     }
+
     EXPORT mapOfAccounts* GetLoadedAccts()
     {
-        return m_pLoadedAccounts;
+        return loadedAccounts_;
     }
 
-    EXPORT virtual bool Trigger(OTAccount& theAccount) = 0; // We still provide
-                                                            // an
-                                                            // implementation,
-                                                            // however.
+    EXPORT virtual bool Trigger(OTAccount& account) = 0;
+
+protected:
+    OTIdentifier serverId_;
+    mapOfAccounts* loadedAccounts_;
 };
-
-// todo: Make an "OTAcctFunctor_Audit" subclass of this.
-
-// NOTE: Moved to OTServer.hpp and .cpp
-// Because the Trigger method needs to be able to call
-// OTServer-specific functions, and thus can't be in the otlib,
-// which doesn't know of the server.
-//
-// class OTAcctFunctor_PayDividend
-//{
-// public:
-//    OTAcctFunctor_PayDividend(const OTIdentifier & theServerID);
-//    virtual ~OTAcctFunctor_PayDividend();
-//
-//    virtual bool Trigger(OTAccount & theAccount);
-//};
 
 } // namespace opentxs
 

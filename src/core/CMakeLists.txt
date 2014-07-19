@@ -8,7 +8,6 @@ set(cxx-sources
   anyoption.cpp
   mkcert.cpp
   OTAccount.cpp
-  OTAcctFunctor.cpp
   OTAcctList.cpp
   OTAgent.cpp
   OTAgreement.cpp
