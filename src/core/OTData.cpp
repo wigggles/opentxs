@@ -165,24 +165,7 @@ bool OTData::operator==(const OTData& s2) const
 
 bool OTData::operator!=(const OTData& s2) const
 {
-    if (m_lSize == s2.m_lSize) {
-        return false;
-    }
-
-    if (m_lSize == 0 && s2.m_lSize == 0) {
-        return true;
-    }
-
-    if (0 == memcmp(m_pData, s2.m_pData, m_lSize)) // TODO security: replace
-                                                   // memcmp with a more secure
-                                                   // version. Still, though, I
-                                                   // am managing it internal to
-                                                   // the class.
-    {
-        return false;
-    }
-
-    return true;
+    return !operator==(s2);
 }
 
 // First use reset() to set the internal position to 0.
