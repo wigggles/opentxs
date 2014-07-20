@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTPaths.hpp"
-
+#include "StringUtils.hpp"
 #include "OTLog.hpp"
 #ifdef _WIN32
 #include "OTWindowsRegistryTools.hpp"
@@ -1347,8 +1347,7 @@ bool OTPaths::BuildFolderPath(const OTString& strFolderPath,
 
     std::vector<std::string> vFolders;
 
-    OTString::split_byChar(vFolders, l_strFolderPath, "/",
-                           OTString::split::no_empties);
+    split_byChar(vFolders, l_strFolderPath, "/", split::no_empties);
 
     size_t nSize = vFolders.size();
 
@@ -1397,8 +1396,7 @@ bool OTPaths::BuildFilePath(const OTString& strFolderPath,
 
     std::vector<std::string> vFolders;
 
-    OTString::split_byChar(vFolders, l_strFilePath, "/",
-                           OTString::split::no_empties);
+    split_byChar(vFolders, l_strFilePath, "/", split::no_empties);
 
     size_t nSize = vFolders.size();
 

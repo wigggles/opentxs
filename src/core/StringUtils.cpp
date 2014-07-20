@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAssert.hpp
+ *  StringUtils.cpp
  *
  */
 
@@ -130,51 +130,84 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASSERT_HPP__
-#define __OT_ASSERT_HPP__
+#include "StringUtils.hpp"
+#include "OTAssert.hpp"
 
-#include "ExportWrapper.h"
-#include <exception>
-
-#define OT_FAIL                                                                \
-    {                                                                          \
-        OTAssert::Assert(__FILE__, __LINE__, NULL);                            \
-        std::terminate();                                                      \
-    };
-#define OT_FAIL_MSG(s)                                                         \
-    {                                                                          \
-        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
-        std::terminate();                                                      \
-    };
-
-#define OT_ASSERT(x)                                                           \
-    if (false == (x)) {                                                        \
-        OTAssert::Assert(__FILE__, __LINE__, NULL);                            \
-        std::terminate();                                                      \
-    };
-#define OT_ASSERT_MSG(x, s)                                                    \
-    if (false == (x)) {                                                        \
-        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
-        std::terminate();                                                      \
-    };
-
-class OTAssert
+namespace opentxs
 {
-public:
-    typedef size_t(fpt_Assert_sz_n_sz)(const char*, size_t, const char*);
 
-private:
-    fpt_Assert_sz_n_sz* m_fpt_Assert;
+// If 10 is passed in, then 11 will be allocated,
+// then the data is copied, and then the result[10] (11th element)
+// is set to 0. This way the original 10-length string is untouched.
+//
+char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
+                                                 // include the byte for the
+                                                 // terminating 0.
+{
+    char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
+                                          // (NOT PART OF LENGTH)
+    OT_ASSERT(NULL != str_new);
 
-    fpt_Assert_sz_n_sz(m_AssertDefault);
+#ifdef _WIN32
+    strncpy_s(str_new, length + 1, str, length);
+#else
+    strncpy(str_new, str, length);
+#endif
 
-public:
-    // if not null, must be deleted before changed.
-    static OTAssert* s_pOTAssert;
+    // INITIALIZE EXTRA BYTE OF SPACE
+    //
+    // If length is 10, then buffer is created with 11 elements,
+    // indexed from 0 (first element) through 10 (11th element).
+    //
+    // Therefore str_new[length==10] is the 11th element, which was
+    // the extra one created on our buffer, to store the \0 null terminator.
+    //
+    // This way I know I'm never cutting off data that was in the string itself.
+    // Rather, I am only setting to 0 an EXTRA byte that I created myself, AFTER
+    // the string's length itself.
+    //
+    str_new[length] = '\0';
 
-    EXPORT OTAssert(fpt_Assert_sz_n_sz& fp1);
+    return str_new;
+}
 
-    EXPORT static fpt_Assert_sz_n_sz(Assert); // assert
-};
+// ***** Implementation *****
 
-#endif // __OT_ASSERT_HPP__
+// Checks if s2 is the first word in s1.
+// s1 ends at the first space character.
+// len_cmp("load wallet.xml", "load") returns true
+// used for USER INPUT ONLY.  And it's sloppy.
+bool len_cmp(const char* s1, const char* s2)
+{
+    OT_ASSERT(NULL != s1);
+    OT_ASSERT(NULL != s2);
+
+    for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
+        if (toupper(*s1) != toupper(*s2)) return false;
+
+    // bug: as long as it's a partial match while the loop continues,
+    // this function will for example return true even if the user entered
+    // "c" when the command was "continue"
+    return true;
+}
+
+// Note: this version doesn't take a length for str,
+// which is a security problem. todo.
+// (Do we use this anymore anyway?)
+//
+char* str_dup1(const char* str)
+{
+    char* str_new = new char[strlen(str) + 1];
+
+    OT_ASSERT(NULL != str_new);
+
+#ifdef _WIN32
+    strcpy_s(str_new, strlen(str), str);
+#else
+    strlcpy(str_new, str, strlen(str));
+#endif
+
+    return str_new;
+}
+
+} // namespace opentxs

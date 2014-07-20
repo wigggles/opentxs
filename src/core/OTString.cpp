@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTString.hpp"
-
+#include "StringUtils.hpp"
 #include "OTContract.hpp"
 #include "OTLog.hpp"
 #include "OTPassword.hpp"
@@ -891,41 +891,6 @@ OTString::OTString(const std::string& new_string)
     LowLevelSet(new_string.c_str(), static_cast<uint32_t>(new_string.length()));
 }
 
-// If 10 is passed in, then 11 will be allocated,
-// then the data is copied, and then the result[10] (11th element)
-// is set to 0. This way the original 10-length string is untouched.
-//
-char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
-                                                 // include the byte for the
-                                                 // terminating 0.
-{
-    char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
-                                          // (NOT PART OF LENGTH)
-    OT_ASSERT(NULL != str_new);
-
-#ifdef _WIN32
-    strncpy_s(str_new, length + 1, str, length);
-#else
-    strncpy(str_new, str, length);
-#endif
-
-    // INITIALIZE EXTRA BYTE OF SPACE
-    //
-    // If length is 10, then buffer is created with 11 elements,
-    // indexed from 0 (first element) through 10 (11th element).
-    //
-    // Therefore str_new[length==10] is the 11th element, which was
-    // the extra one created on our buffer, to store the \0 null terminator.
-    //
-    // This way I know I'm never cutting off data that was in the string itself.
-    // Rather, I am only setting to 0 an EXTRA byte that I created myself, AFTER
-    // the string's length itself.
-    //
-    str_new[length] = '\0';
-
-    return str_new;
-}
-
 void OTString::LowLevelSetStr(const OTString& strBuf)
 {
     OT_ASSERT(NULL == m_strBuffer); // otherwise memory leak.
@@ -1407,45 +1372,6 @@ void OTString::WriteToFile(FILE * fl) const
         fwrite_string(fl, m_strBuffer);
 }
 */
-
-// ***** Implementation *****
-
-// Checks if s2 is the first word in s1.
-// s1 ends at the first space character.
-// len_cmp("load wallet.xml", "load") returns true
-// used for USER INPUT ONLY.  And it's sloppy.
-bool len_cmp(const char* s1, const char* s2)
-{
-    OT_ASSERT(NULL != s1);
-    OT_ASSERT(NULL != s2);
-
-    for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
-        if (toupper(*s1) != toupper(*s2)) return false;
-
-    // bug: as long as it's a partial match while the loop continues,
-    // this function will for example return true even if the user entered
-    // "c" when the command was "continue"
-    return true;
-}
-
-// Note: this version doesn't take a length for str,
-// which is a security problem. todo.
-// (Do we use this anymore anyway?)
-//
-char* str_dup1(const char* str)
-{
-    char* str_new = new char[strlen(str) + 1];
-
-    OT_ASSERT(NULL != str_new);
-
-#ifdef _WIN32
-    strcpy_s(str_new, strlen(str), str);
-#else
-    strlcpy(str_new, str, strlen(str));
-#endif
-
-    return str_new;
-}
 
 // true  == there are more lines to read.
 // false == this is the last line. Like EOF.

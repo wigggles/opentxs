@@ -134,6 +134,7 @@
 
 #include <OTClient.hpp>
 
+#include <StringUtils.hpp>
 #include <OTCleanup.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>

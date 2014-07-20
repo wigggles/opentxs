@@ -139,13 +139,14 @@
 #include "win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
-#include <cstdarg>
 #include <list>
 #include <iostream>
 #include <map>
+#include <string>
 #include <sstream>
 
-#include <string.h>
+#include <cstdarg>
+#include <cstring>
 
 // All of the below PRI values are defined in inttypes.h
 // Therefore if it's NOT defined, then we must probably be
@@ -202,102 +203,8 @@ class OTSignature;
 typedef std::list<std::string> listOfStrings;
 typedef std::map<std::string, std::string> mapOfStrings;
 
-// If you've already strlen'd the string,
-// you can pass the length to str_hsh or str_dup
-// and save it the trouble.
-//
-char* str_dup1(const char* str);
-char* str_dup2(const char* str, uint32_t length);
-int32_t len_cmp(char* s1, char* s2);
-
-template <class T> inline std::string to_string(const T& t)
-{
-    std::stringstream ss;
-    ss << t;
-    return ss.str();
-}
-
-/*
- * strlcpy and strlcat
- *
- * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/*
- * Copy src to string dst of size siz.  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz == 0).
- * Returns strlen(src); if retval >= siz, truncation occurred.
- */
-inline size_t strlcpy(char* dst, const char* src, size_t siz)
-{
-    char* d = dst;
-    const char* s = src;
-    size_t n = siz;
-
-    /* Copy as many bytes as will fit */
-    if (n != 0) {
-        while (--n != 0) {
-            if ((*d++ = *s++) == '\0') break;
-        }
-    }
-
-    /* Not enough room in dst, add NUL and traverse rest of src */
-    if (n == 0) {
-        if (siz != 0) *d = '\0'; /* NUL-terminate dst */
-        while (*s++)
-            ;
-    }
-
-    return (s - src - 1); /* count does not include NUL */
-}
-/*
- * Appends src to string dst of size siz (unlike strncat, siz is the
- * full size of dst, not space left).  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
- * Returns strlen(src) + MIN(siz, strlen(initial dst)).
- * If retval >= siz, truncation occurred.
- */
-inline size_t strlcat(char* dst, const char* src, size_t siz)
-{
-    char* d = dst;
-    const char* s = src;
-    size_t n = siz;
-    size_t dlen;
-
-    /* Find the end of dst and adjust bytes left but don't go past end */
-    while (n-- != 0 && *d != '\0') d++;
-    dlen = d - dst;
-    n = siz - dlen;
-
-    if (n == 0) return (dlen + strlen(s));
-    while (*s != '\0') {
-        if (n != 1) {
-            *d++ = *s;
-            n--;
-        }
-        s++;
-    }
-    *d = '\0';
-
-    return (dlen + (s - src)); /* count does not include NUL */
-}
-// (End of the Todd Miller code.)
-
 class OTString
 {
-    // Construction -- Destruction
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os,
                                            const OTString& obj);
@@ -317,9 +224,6 @@ public:
     void Initialize();
 
     EXPORT OTString& operator=(OTString rhs);
-    //    OTString& operator=(const char * new_string);       // Many unexpected
-    // side-effects if you mess with this.  }:-)
-    //    OTString& operator=(const std::string & strValue);
 
     static bool vformat(const char* fmt, std::va_list* pvl,
                         std::string& str_output);
@@ -330,6 +234,7 @@ public:
     bool operator<=(const OTString& s2) const;
     bool operator>=(const OTString& s2) const;
     EXPORT bool operator==(const OTString& s2) const;
+
     EXPORT static std::string& trim(std::string& str);
     EXPORT static const std::string replace_chars(const std::string& str,
                                                   const std::string& charsFrom,
@@ -339,50 +244,6 @@ public:
     EXPORT static std::string ws2s(const std::wstring& s);
 #endif
 
-    // from: http://www.cplusplus.com/faq/sequences/strings/split/
-    //
-    struct split
-    {
-        enum empties_t {
-            empties_ok,
-            no_empties
-        };
-    };
-
-    template <typename Container>
-    static Container& split_byChar(
-        Container& result, const typename Container::value_type& s,
-        const typename Container::value_type& delimiters,
-        split::empties_t empties)
-    {
-        result.clear();
-        size_t current;
-        int64_t next = -1;
-        do {
-            if (empties == split::no_empties) {
-                next = s.find_first_not_of(delimiters,
-                                           static_cast<uint32_t>(next) + 1);
-                if (static_cast<size_t>(next) == Container::value_type::npos)
-                    break;
-                next -= 1;
-            }
-            current = static_cast<size_t>(next + 1);
-            next = s.find_first_of(delimiters, current);
-            result.push_back(
-                s.substr(current, static_cast<uint32_t>(next) - current));
-        } while (static_cast<size_t>(next) != Container::value_type::npos);
-        return result;
-    }
-
-private: // Implementation
-    // You better have called Initialize() or Release() before you dare call
-    // this.
-    void LowLevelSetStr(const OTString& strBuf);
-
-    // Only call this right after calling Initialize() or Release().
-    // Also, this function ASSUMES the new_string pointer is good.
-    void LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength);
-    // Operations
 public:
     EXPORT static bool safe_strcpy(
         char* dest, const char* src,
@@ -402,14 +263,14 @@ public:
     EXPORT bool At(uint32_t lIndex, char& c) const;
     EXPORT bool Exists() const;
     EXPORT bool DecodeIfArmored(bool bEscapedIsAllowed = true);
-    EXPORT uint32_t GetLength(void) const;
+    EXPORT uint32_t GetLength() const;
     EXPORT bool Compare(const char* strCompare) const;
     EXPORT bool Compare(const OTString& strCompare) const;
 
     EXPORT bool Contains(const char* strCompare) const;
     bool Contains(const OTString& strCompare) const;
 
-    EXPORT const char* Get(void) const;
+    EXPORT const char* Get() const;
     // new_string MUST be at least nEnforcedMaxLength in size if
     // nEnforcedMaxLength is passed in at all.
     //
@@ -435,15 +296,24 @@ public:
     // false == this is the last line. Like EOF.
     bool sgets(char* szBuffer, uint32_t nBufSize);
 
-    char sgetc(void);
-    void sungetc(void);
-    void reset(void);
+    char sgetc();
+    void sungetc();
+    void reset();
 
     void WriteToFile(std::ostream& ofs) const;
-    EXPORT virtual void Release(void);
-    void Release_String(void);
+    EXPORT virtual void Release();
+    void Release_String();
     EXPORT void zeroMemory();
-    // Internal properties
+
+private:
+    // You better have called Initialize() or Release() before you dare call
+    // this.
+    void LowLevelSetStr(const OTString& strBuf);
+
+    // Only call this right after calling Initialize() or Release().
+    // Also, this function ASSUMES the new_string pointer is good.
+    void LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength);
+
 protected:
     uint32_t m_lLength;
     uint32_t m_lPosition;
