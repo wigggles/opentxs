@@ -134,7 +134,6 @@
 #define __OT_DATA_HPP__
 
 #include "OTCommon.hpp"
-
 #include "OTCleanup.hpp"
 
 namespace opentxs
@@ -149,53 +148,59 @@ class OTData
     friend class OTEnvelope;
     friend class OTCrypto;
 
-private:
-    void* m_pData;
-    uint32_t m_lPosition;
-    uint32_t m_lSize; // TODO... MAX_SIZE ?? security.
+public:
+    EXPORT OTData();
+    EXPORT OTData(const void* data, uint32_t size);
+    EXPORT OTData(const OTData& source);
+    EXPORT OTData(const OTASCIIArmor& source);
+    EXPORT virtual ~OTData();
+
+    EXPORT virtual void Release();
+
+    EXPORT void Release_Data();
+    void SetSize(uint32_t size);
+
+    inline const void* GetPointer() const
+    {
+        return data_;
+    }
+
+    EXPORT OTData& operator=(OTData rhs);
+    EXPORT void swap(OTData& rhs);
+    EXPORT bool operator==(const OTData& rhs) const;
+    EXPORT bool operator!=(const OTData& rhs) const;
+    EXPORT OTData& operator+=(const OTData& rhs);
+    EXPORT bool IsEmpty() const;
+
+    inline uint32_t GetSize() const
+    {
+        return size_;
+    }
+
+    EXPORT void Assign(const OTData& source);
+    EXPORT void Assign(const void* data, uint32_t size);
+    EXPORT void Concatenate(const void* data, uint32_t size);
+    EXPORT bool Randomize(uint32_t size);
+    EXPORT void zeroMemory();
+    EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
+
+    inline void reset()
+    {
+        position_ = 0;
+    }
 
 protected:
     inline void Initialize()
     {
-        m_pData = NULL;
-        m_lSize = 0;
-        m_lPosition = 0;
+        data_ = nullptr;
+        size_ = 0;
+        position_ = 0;
     }
 
-public:
-    EXPORT OTData();
-    EXPORT OTData(const void* pNewData, uint32_t nNewSize);
-    EXPORT OTData(const OTData& theSource);
-    EXPORT OTData(const OTASCIIArmor& theSource);
-    EXPORT virtual void Release();
-    EXPORT void Release_Data();
-    EXPORT virtual ~OTData();
-    void SetSize(uint32_t lNewSize);
-    inline const void* GetPointer() const
-    {
-        return m_pData;
-    }
-    EXPORT OTData& operator=(OTData rhs);
-    EXPORT void swap(OTData& rhs);
-    EXPORT bool operator==(const OTData& s2) const;
-    EXPORT bool operator!=(const OTData& s2) const;
-    EXPORT OTData& operator+=(const OTData& rhs);
-    EXPORT bool IsEmpty() const;
-    inline uint32_t GetSize() const
-    {
-        return m_lSize;
-    }
-    EXPORT void Assign(const OTData& theSource);
-    EXPORT void Assign(const void* pNewData, uint32_t lNewSize);
-    EXPORT void Concatenate(const void* pAppendData, uint32_t lAppendSize);
-    EXPORT bool Randomize(uint32_t lNewSize);
-    EXPORT void zeroMemory();
-    EXPORT uint32_t OTfread(uint8_t* buf, uint32_t buflen);
-
-    inline void reset()
-    {
-        m_lPosition = 0;
-    };
+private:
+    void* data_;
+    uint32_t position_;
+    uint32_t size_; // TODO: MAX_SIZE ?? security.
 };
 
 } // namespace opentxs
