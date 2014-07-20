@@ -140,35 +140,19 @@ namespace opentxs
 
 class OTInstrument : public OTScriptable
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTScriptable ot_super;
-
-protected:
-    OTIdentifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
-    OTIdentifier m_ServerID;    // ...As well as a Server ID...
-    // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
-                           // FROM.
-    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    inline void SetValidFrom(time64_t TIME_FROM)
-    {
-        m_VALID_FROM = TIME_FROM;
-    }
-    inline void SetValidTo(time64_t TIME_TO)
-    {
-        m_VALID_TO = TIME_TO;
-    }
-    inline void SetAssetID(const OTIdentifier& ASSET_ID)
-    {
-        m_AssetTypeID = ASSET_ID;
-    }
-    inline void SetServerID(const OTIdentifier& SERVER_ID)
-    {
-        m_ServerID = SERVER_ID;
-    }
-
 public:
+    OTInstrument();
+    OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    virtual ~OTInstrument();
+
+    virtual void Release();
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+
+    void Release_Instrument();
+    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
+                                     // WITHIN the VALID FROM / TO dates.
+    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
+                             // "VALID TO" date.
     inline time64_t GetValidFrom() const
     {
         return m_VALID_FROM;
@@ -188,20 +172,33 @@ public:
     }
     void InitInstrument();
 
-    OTInstrument();
-    OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    virtual ~OTInstrument();
+protected:
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-    virtual void Release();
-    void Release_Instrument();
-    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
-                                     // WITHIN the VALID FROM / TO dates.
-    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
-                             // "VALID TO" date.
-    // overridden in child classes, not here.
-    //  virtual void UpdateContents(); // I may remove this, since the
-    // subclasses will handle it.
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    inline void SetValidFrom(time64_t TIME_FROM)
+    {
+        m_VALID_FROM = TIME_FROM;
+    }
+    inline void SetValidTo(time64_t TIME_TO)
+    {
+        m_VALID_TO = TIME_TO;
+    }
+    inline void SetAssetID(const OTIdentifier& ASSET_ID)
+    {
+        m_AssetTypeID = ASSET_ID;
+    }
+    inline void SetServerID(const OTIdentifier& SERVER_ID)
+    {
+        m_ServerID = SERVER_ID;
+    }
+
+protected:
+    OTIdentifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
+    OTIdentifier m_ServerID;    // ...As well as a Server ID...
+    // Expiration Date (valid from/to date)
+    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
+                           // FROM.
+    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
 };
 
 } // namespace opentxs

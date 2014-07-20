@@ -177,7 +177,7 @@ void OTInstrument::InitInstrument()
 }
 
 OTInstrument::OTInstrument()
-    : ot_super()
+    : OTScriptable()
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -186,16 +186,13 @@ OTInstrument::OTInstrument()
 
 OTInstrument::OTInstrument(const OTIdentifier& SERVER_ID,
                            const OTIdentifier& ASSET_ID)
-    : ot_super()
+    : OTScriptable()
     , m_AssetTypeID(ASSET_ID)
     , m_ServerID(SERVER_ID)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
     InitInstrument();
-    //
-    //    m_ServerID        = SERVER_ID;
-    //    m_AssetTypeID    = ASSET_ID;
 }
 
 OTInstrument::~OTInstrument()
@@ -214,11 +211,9 @@ void OTInstrument::Release_Instrument()
 void OTInstrument::Release()
 {
     Release_Instrument(); // My own cleanup is performed here.
-
     // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
-
+    // since I've overridden the base class, I call it now
+    OTScriptable::Release();
     // Initialize everything back to 0
     //    InitInstrument(); // unnecessary.
 }
@@ -243,12 +238,12 @@ int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     //
 
-    nReturnVal = ot_super::ProcessXMLNode(xml);
+    nReturnVal = OTScriptable::ProcessXMLNode(xml);
 
-    if (nReturnVal !=
-        0) // -1 is error, and 1 is "found it". Either way, return.
+    // -1 is error, and 1 is "found it". Either way, return.
+    if (nReturnVal != 0) {
         return nReturnVal; // 0 means "nothing happened, keep going."
-
+    }
     // This is from OTCronItem. It's only here as sample code.
     //
     //  if (!strcmp("closingTransactionNumber", xml->getNodeName()))
