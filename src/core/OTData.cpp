@@ -134,8 +134,8 @@
 
 #include "OTData.hpp"
 #include "OTASCIIArmor.hpp"
-#include "OTLog.hpp"
 #include "OTPassword.hpp"
+#include "OTAssert.hpp"
 
 namespace opentxs
 {
@@ -333,9 +333,7 @@ void OTData::Concatenate(const void* data, uint32_t size)
     OT_ASSERT(data != nullptr);
     OT_ASSERT(size > 0);
 
-    // It's unsigned, so it CAN'T be less than 0.
     if (size == 0) {
-        otErr << "OTData::Concatenate: Error: size is unexpectedly 0.\n";
         return;
     }
 
