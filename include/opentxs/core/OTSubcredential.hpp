@@ -208,15 +208,15 @@ protected:
                                 // master credential.
     OTString m_strNymID; // All subcredentials within the same OTCredential
                          // (including m_MasterKey) must have
-    OTString m_strSourceForNymID; // the same NymID and source.
-    mapOfStrings m_mapPublicInfo; // A map of strings containing the
-                                  // credential's public info. This was
-                                  // originally 1 string but subclasses ended up
-                                  // needing a map of them. Who'da thought.
-    mapOfStrings m_mapPrivateInfo; // A map of strings containing the
-                                   // credential's private info. This was
-                                   // originally 1 string but subclasses ended
-                                   // up needing a map of them. Who'da thought.
+    OTString m_strSourceForNymID;   // the same NymID and source.
+    OTString::Map m_mapPublicInfo;  // A map of strings containing the
+                                    // credential's public info. This was
+                                    // originally 1 string but subclasses ended
+                                    // up needing a map of them. Who'da thought.
+    OTString::Map m_mapPrivateInfo; // A map of strings containing the
+                                    // credential's private info. This was
+                                    // originally 1 string but subclasses ended
+                                    // up needing a map of them. Who'da thought.
     OTString m_strMasterSigned; // A public version of the credential with the
                                 // master credential's signature on it. (The
                                 // final public version will contain the
@@ -261,17 +261,17 @@ protected:
     {
         m_StoreAs = credPublicInfo;
     } // Upon signing, the credential reverts to credPrivateInfo again.
-    virtual bool SetPublicContents(const mapOfStrings& mapPublic);
+    virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
-        const mapOfStrings& mapPrivate,
+        const OTString::Map& mapPrivate,
         OTPassword* pImportPassword = NULL); // if not NULL, it means to use
                                              // this password by default.
 public:
-    const mapOfStrings& GetPublicMap() const
+    const OTString::Map& GetPublicMap() const
     {
         return m_mapPublicInfo;
     }
-    const mapOfStrings& GetPrivateMap() const
+    const OTString::Map& GetPrivateMap() const
     {
         return m_mapPrivateInfo;
     }

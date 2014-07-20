@@ -318,12 +318,12 @@ const OTString& OTCredential::GetPriCredential() const
     return m_Masterkey.GetPriCredential();
 }
 
-bool OTCredential::SetPublicContents(const mapOfStrings& mapPublic)
+bool OTCredential::SetPublicContents(const OTString::Map& mapPublic)
 {
     return m_Masterkey.SetPublicContents(mapPublic);
 }
 
-bool OTCredential::SetPrivateContents(const mapOfStrings& mapPrivate)
+bool OTCredential::SetPrivateContents(const OTString::Map& mapPrivate)
 {
     return m_Masterkey.SetPrivateContents(mapPrivate);
 }
@@ -1029,11 +1029,11 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
 // contain 3 keypairs: signing, authentication, and encryption.
 //
 bool OTCredential::AddNewSubkey(
-    const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL
-    const mapOfStrings* pmapPrivate /*=NULL*/, // Public keys are derived from
-                                               // the private.
-    OTPasswordData* pPWData /*=NULL*/, // The master key will sign the subkey.
-    OTSubkey** ppSubkey /*=NULL*/)     // output
+    const int32_t nBits,              // Ignored unless pmapPrivate is NULL
+    const OTString::Map* pmapPrivate, // Public keys are derived from
+                                      // the private.
+    OTPasswordData* pPWData,          // The master key will sign the subkey.
+    OTSubkey** ppSubkey)              // output
 {
     OTSubkey* pSub = new OTSubkey(*this);
     OT_ASSERT(NULL != pSub);
@@ -1112,7 +1112,7 @@ bool OTCredential::AddNewSubkey(
 // For adding non-key credentials, such as for 3rd-party authentication.
 //
 bool OTCredential::AddNewSubcredential(
-    const mapOfStrings& mapPrivate, const mapOfStrings& mapPublic,
+    const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
     OTPasswordData* pPWData /*=NULL*/,     // The master key will sign the
                                            // subcredential.
     OTSubcredential** ppSubcred /*=NULL*/) // output
@@ -1186,15 +1186,15 @@ bool OTCredential::AddNewSubcredential(
 // static
 OTCredential* OTCredential::CreateMaster(
     const OTString& strSourceForNymID,
-    const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL.
-    const mapOfStrings* pmapPrivate /*=NULL*/, // If NULL, then the keys are
-                                               // generated in here.
-    const mapOfStrings* pmapPublic /*=NULL*/, // In the case of key credentials,
-                                              // public is optional since it can
-                                              // already be derived from
-                                              // private. But not all
-                                              // credentials are keys...
-    OTPasswordData* pPWData /*=NULL*/)
+    const int32_t nBits,              // Ignored unless pmapPrivate is NULL.
+    const OTString::Map* pmapPrivate, // If NULL, then the keys are
+                                      // generated in here.
+    const OTString::Map* pmapPublic,  // In the case of key credentials,
+                                      // public is optional since it can
+                                      // already be derived from
+                                      // private. But not all
+                                      // credentials are keys...
+    OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
     OT_ASSERT(NULL != pCredential);
@@ -1554,8 +1554,8 @@ void OTCredential::ClearSubcredentials()
 //
 void OTCredential::SerializeIDs(OTString& strOutput,
                                 OTString::List& listRevokedIDs,
-                                mapOfStrings* pmapPubInfo /*=NULL*/,
-                                mapOfStrings* pmapPriInfo /*=NULL*/,
+                                OTString::Map* pmapPubInfo /*=NULL*/,
+                                OTString::Map* pmapPriInfo /*=NULL*/,
                                 bool bShowRevoked /*=false*/,
                                 bool bValid /*=true*/) const
 {

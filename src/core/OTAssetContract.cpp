@@ -611,7 +611,7 @@ bool OTAssetContract::ForEachAccountRecord(
                                          "(How did you even construct the "
                                          "thing?)");
 
-        mapOfStrings& theMap = pMap->the_map;
+        auto& theMap = pMap->the_map;
 
         // todo: optimize: will probably have to use a database for this,
         // int64_t term.
@@ -753,8 +753,8 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
         return false;
     }
 
-    mapOfStrings& theMap = pMap->the_map;
-    mapOfStrings::iterator map_it = theMap.find(strAcctID.Get());
+    auto& theMap = pMap->the_map;
+    auto map_it = theMap.find(strAcctID.Get());
 
     if (theMap.end() != map_it) // we found it.
     {                           // We were ADDING IT, but it was ALREADY THERE.
@@ -855,8 +855,8 @@ bool OTAssetContract::EraseAccountRecord(
 
     // Before we can erase it, let's see if it's even there....
     //
-    mapOfStrings& theMap = pMap->the_map;
-    mapOfStrings::iterator map_it = theMap.find(strAcctID.Get());
+    auto& theMap = pMap->the_map;
+    auto map_it = theMap.find(strAcctID.Get());
 
     // we found it!
     if (theMap.end() != map_it) //  Acct ID was already there...

@@ -200,12 +200,11 @@ class OTIdentifier;
 class OTPseudonym;
 class OTSignature;
 
-typedef std::map<std::string, std::string> mapOfStrings;
-
 class OTString
 {
 public:
     typedef std::list<std::string> List;
+    typedef std::map<std::string, std::string> Map;
 
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os,
@@ -292,7 +291,7 @@ public:
     EXPORT void Format(const char* fmt, ...);
     void ConvertToLowerCase();
     void ConvertToUpperCase();
-    EXPORT bool TokenizeIntoKeyValuePairs(mapOfStrings& mapOutput) const;
+    EXPORT bool TokenizeIntoKeyValuePairs(Map& mapOutput) const;
     EXPORT void OTfgets(std::istream& ofs);
     // true  == there are more lines to read.
     // false == this is the last line. Like EOF.

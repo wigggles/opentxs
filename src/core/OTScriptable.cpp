@@ -3161,7 +3161,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             OTString strTextExpected; // clause's script code
                                                       // will go here.
 
-                            mapOfStrings temp_MapAttributes;
+                            OTString::Map temp_MapAttributes;
                             //
                             // This map contains values we will also want, when
                             // we read the clause...
@@ -3207,7 +3207,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             // kind of harsh validation for both, then
                             // create a clause object and add to my list here.
 
-                            mapOfStrings::iterator it =
+                            OTString::Map::iterator it =
                                 temp_MapAttributes.find("name");
 
                             if ((it != temp_MapAttributes.end())) // We expected

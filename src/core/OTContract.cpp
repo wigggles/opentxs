@@ -2126,7 +2126,7 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
 // static
 bool OTContract::LoadEncodedTextFieldByName(
     IrrXMLReader*& xml, OTString& strOutput, const char*& szName,
-    mapOfStrings* pmapExtraVars /*=NULL*/)
+    OTString::Map* pmapExtraVars /*=NULL*/)
 {
     OT_ASSERT(NULL != szName);
 
@@ -2145,7 +2145,7 @@ bool OTContract::LoadEncodedTextFieldByName(
 // static
 bool OTContract::LoadEncodedTextFieldByName(
     IrrXMLReader*& xml, OTASCIIArmor& ascOutput, const char*& szName,
-    mapOfStrings* pmapExtraVars /*=NULL*/)
+    OTString::Map* pmapExtraVars /*=NULL*/)
 {
     OT_ASSERT(NULL != szName);
 
@@ -2176,7 +2176,7 @@ bool OTContract::LoadEncodedTextFieldByName(
             if (NULL != pmapExtraVars) // If the caller wants values for certain
                                        // names expected to be on this node.
             {
-                mapOfStrings& mapExtraVars = (*pmapExtraVars);
+                OTString::Map& mapExtraVars = (*pmapExtraVars);
 
                 for (auto& it : mapExtraVars) {
                     std::string first = it.first;
@@ -2305,7 +2305,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                    // contract.
             {
                 OTString strCredList, strSignerNymID;
-                mapOfStrings mapCredFiles;
+                OTString::Map mapCredFiles;
                 theSigner.GetIdentifier(strSignerNymID);
                 theSigner.GetPublicCredentials(strCredList, &mapCredFiles);
 
@@ -2497,7 +2497,7 @@ void OTContract::CreateInnerContents()
                     else // It instantiated.
                     {
                         OTString strCredList;
-                        mapOfStrings& theMap = pMap->the_map;
+                        OTString::Map& theMap = pMap->the_map;
 
                         pNym->GetPublicCredentials(strCredList, &theMap);
 
@@ -2756,7 +2756,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                 else // IF the list saved, then we save the credentials
                      // themselves...
                 {
-                    mapOfStrings& theMap = pMap->the_map;
+                    OTString::Map& theMap = pMap->the_map;
 
                     OTPseudonym* pNym = new OTPseudonym;
                     OT_ASSERT(NULL != pNym);

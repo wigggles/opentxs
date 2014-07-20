@@ -205,14 +205,14 @@ void OTSubcredential::Release_Subcredential()
 }
 
 // virtual
-bool OTSubcredential::SetPublicContents(const mapOfStrings& mapPublic)
+bool OTSubcredential::SetPublicContents(const OTString::Map& mapPublic)
 {
     m_mapPublicInfo = mapPublic;
     return true;
 }
 
 // virtual
-bool OTSubcredential::SetPrivateContents(const mapOfStrings& mapPrivate,
+bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
                                          OTPassword* /*=NULL*/) // if not NULL,
                                                                 // it means to
                                                                 // use this
@@ -413,7 +413,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
         if (nCount > 0) {
             int32_t nTempCount = nCount;
-            mapOfStrings mapPublic;
+            OTString::Map mapPublic;
 
             while (nTempCount-- > 0) {
 
@@ -426,7 +426,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // all the values
                 // as specified in this map.)
                 //
-                mapOfStrings temp_MapAttributes;
+                OTString::Map temp_MapAttributes;
                 temp_MapAttributes.insert(std::pair<std::string, std::string>(
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
@@ -440,7 +440,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     return (-1); // error condition
                 }
 
-                mapOfStrings::iterator it = temp_MapAttributes.find("key");
+                OTString::Map::iterator it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string& str_key = it->second;
@@ -512,7 +512,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
         if (nCount > 0) {
             int32_t nTempCount = nCount;
-            mapOfStrings mapPrivate;
+            OTString::Map mapPrivate;
 
             while (nTempCount-- > 0) {
 
@@ -525,7 +525,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // all the values
                 // as specified in this map.)
                 //
-                mapOfStrings temp_MapAttributes;
+                OTString::Map temp_MapAttributes;
                 temp_MapAttributes.insert(std::pair<std::string, std::string>(
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
@@ -539,7 +539,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     return (-1); // error condition
                 }
 
-                mapOfStrings::iterator it = temp_MapAttributes.find("key");
+                OTString::Map::iterator it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string& str_key = it->second;

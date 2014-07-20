@@ -2083,7 +2083,7 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
         //
         if (theNym.GetMasterCredentialCount() > 0) {
             OTString strNymID, strCredList, strOutput;
-            mapOfStrings mapCredFiles;
+            OTString::Map mapCredFiles;
 
             theNym.GetIdentifier(strNymID);
             theNym.GetPrivateCredentials(strCredList, &mapCredFiles);

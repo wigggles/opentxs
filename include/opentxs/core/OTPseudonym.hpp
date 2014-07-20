@@ -298,9 +298,9 @@ private:
                                      // subkeys.)
 public:
     EXPORT void GetPrivateCredentials(OTString& strCredList,
-                                      mapOfStrings* pmapCredFiles = NULL);
+                                      OTString::Map* pmapCredFiles = NULL);
     EXPORT void GetPublicCredentials(OTString& strCredList,
-                                     mapOfStrings* pmapCredFiles =
+                                     OTString::Map* pmapCredFiles =
                                          NULL); // If the Nym's source is a URL,
                                                 // he needs to post his valid
                                                 // master credential IDs there,
@@ -318,9 +318,9 @@ public:
                                                    // (presumed) existing pubkey
                                                    // as the source.
         const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL.
-        const mapOfStrings* pmapPrivate =
+        const OTString::Map* pmapPrivate =
             NULL, // If NULL, then the keys are generated in here.
-        const mapOfStrings* pmapPublic =
+        const OTString::Map* pmapPublic =
             NULL, // In the case of key credentials, public is optional since it
                   // can already be derived from private. For now we pass it
                   // through... May eliminate this parameter later if not
@@ -341,7 +341,7 @@ public:
     EXPORT bool AddNewSubkey(
         const OTIdentifier& idMasterCredential,
         const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL.
-        const mapOfStrings* pmapPrivate =
+        const OTString::Map* pmapPrivate =
             NULL, // If NULL, then the keys are generated in here.
         OTPasswordData* pPWData = NULL, // Pass in the string to show users
                                         // here, if/when asking for the
@@ -352,9 +352,9 @@ public:
 
     EXPORT bool AddNewSubcredential(
         const OTIdentifier& idMasterCredential,
-        const mapOfStrings* pmapPrivate =
+        const OTString::Map* pmapPrivate =
             NULL, // If NULL, then the keys are generated in here.
-        const mapOfStrings* pmapPublic =
+        const OTString::Map* pmapPublic =
             NULL, // In the case of key credentials, public is optional since it
                   // can already be derived from private. For now we pass it
                   // through... May eliminate this parameter later if not
@@ -561,8 +561,8 @@ public:
     EXPORT bool SaveCredentialList();
     EXPORT void SaveCredentialListToString(OTString& strOutput);
     EXPORT void SaveCredentialsToString(OTString& strOutput,
-                                        mapOfStrings* pmapPubInfo = NULL,
-                                        mapOfStrings* pmapPriInfo = NULL);
+                                        OTString::Map* pmapPubInfo = NULL,
+                                        OTString::Map* pmapPriInfo = NULL);
     EXPORT bool LoadCredentials(bool bLoadPrivate =
                                     false, // Loads public credentials by
                                            // default. For private, pass true.
@@ -582,7 +582,7 @@ public:
     EXPORT bool SaveSignedNymfile(OTPseudonym& SIGNER_NYM);
     EXPORT bool LoadNymfile(const char* szFilename = NULL);
     EXPORT bool LoadFromString(const OTString& strNym,
-                               mapOfStrings* pMapCredentials =
+                               OTString::Map* pMapCredentials =
                                    NULL, // pMapCredentials can be passed, if
                                          // you prefer to use a specific set,
                                          // instead of just loading the actual
