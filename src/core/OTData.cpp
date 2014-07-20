@@ -300,7 +300,7 @@ void OTData::Assign(const void* data, uint32_t size)
 
     if (data != nullptr && size > 0) {
         data_ = static_cast<void*>(new uint8_t[size]);
-        OT_ASSERT(nullptr != data_);
+        OT_ASSERT(data_ != nullptr);
         OTPassword::safe_memcpy(data_, size, data, size);
         size_ = size;
     }
@@ -312,7 +312,7 @@ bool OTData::Randomize(uint32_t size)
     Release(); // This releases all memory and zeros out all members.
     if (size > 0) {
         data_ = static_cast<void*>(new uint8_t[size]);
-        OT_ASSERT(nullptr != data_);
+        OT_ASSERT(data_ != nullptr);
 
         if (!OTPassword::randomizeMemory_uint8(static_cast<uint8_t*>(data_),
                                                size)) {
@@ -366,15 +366,12 @@ void OTData::Concatenate(const void* data, uint32_t size)
         OTPassword::safe_memcpy(static_cast<uint8_t*>(newData) + GetSize(),
                                 newSize - GetSize(), data, size);
     }
-    // If I wasn't already empty, then erase whatever I had
-    // in there before...
+
     if (data_ != nullptr) {
         delete[] static_cast<uint8_t*>(data_);
     }
-    // Set my internal memory to the new buffer (or nullptr,
-    // but unlikely.)
+
     data_ = newData;
-    // Set my internal size to the new size.
     size_ = newSize;
 }
 
