@@ -593,6 +593,7 @@ various sequence numbers. Hm.
 #include "stdafx.hpp"
 
 #include "OTSmartContract.hpp"
+#include "OTCleanup.hpp"
 #include "OTAgent.hpp"
 #include "OTBylaw.hpp"
 #include "OTClause.hpp"

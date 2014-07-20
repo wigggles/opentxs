@@ -134,7 +134,7 @@
 #include "stdafx.hpp"
 
 #include "OTContract.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTAssetContract.hpp"
 #include "OTAsymmetricKey.hpp"
 #include "OTCheque.hpp"

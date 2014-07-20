@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTTrade.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTLog.hpp"
 #include "OTMarket.hpp"

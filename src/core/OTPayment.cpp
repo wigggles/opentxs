@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTPayment.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTCheque.hpp"
 #include "OTLog.hpp"
 #include "OTPaymentPlan.hpp"

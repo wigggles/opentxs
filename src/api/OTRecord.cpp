@@ -136,6 +136,7 @@
 #include <OTAPI.hpp>
 #include <OTAPI_Exec.hpp>
 
+#include <OTCleanup.hpp>
 #include <OTString.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPayment.hpp>

@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTAssetContract.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTAcctFunctor.hpp"
 #include "OTAmount.hpp"

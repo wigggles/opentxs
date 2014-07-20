@@ -137,6 +137,7 @@
 #include <OpenTransactions.hpp>
 #include <OTAPI.hpp>
 #include <OTAPI_Exec.hpp>
+#include <OTCleanup.hpp>
 #include <OTWallet.hpp>
 #include <OTPayment.hpp>
 #include <OTAccount.hpp>

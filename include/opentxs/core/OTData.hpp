@@ -134,7 +134,6 @@
 #define __OT_DATA_HPP__
 
 #include "OTCommon.hpp"
-#include "OTCleanup.hpp"
 
 namespace opentxs
 {
