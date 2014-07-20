@@ -136,6 +136,7 @@
 #include "OTASCIIArmor.hpp"
 #include "OTPassword.hpp"
 #include "OTAssert.hpp"
+#include <cstring>
 
 namespace opentxs
 {
@@ -190,7 +191,7 @@ bool OTData::operator==(const OTData& rhs) const
     // TODO security: replace memcmp with a more secure
     // version. Still, though, I am managing it internal to
     // the class.
-    if (memcmp(data_, rhs.data_, size_) == 0) {
+    if (std::memcmp(data_, rhs.data_, size_) == 0) {
         return true;
     }
 
