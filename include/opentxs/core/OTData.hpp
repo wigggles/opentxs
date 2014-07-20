@@ -133,7 +133,7 @@
 #ifndef __OT_DATA_HPP__
 #define __OT_DATA_HPP__
 
-#include "OTCommon.hpp"
+#include "ExportWrapper.h"
 
 namespace opentxs
 {
