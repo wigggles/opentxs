@@ -1300,7 +1300,7 @@ size_t OTCredential::GetSubcredentialCount() const
 
 const OTSubcredential* OTCredential::GetSubcredential(
     const OTString& strSubID,
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1310,7 +1310,7 @@ const OTSubcredential* OTCredential::GetSubcredential(
         // See if pSub, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked credential.
@@ -1369,7 +1369,7 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
 }
 
 const OTKeypair& OTCredential::GetAuthKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1382,7 +1382,7 @@ const OTKeypair& OTCredential::GetAuthKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1406,7 +1406,7 @@ const OTKeypair& OTCredential::GetAuthKeypair(
 }
 
 const OTKeypair& OTCredential::GetEncrKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1419,7 +1419,7 @@ const OTKeypair& OTCredential::GetEncrKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1443,7 +1443,7 @@ const OTKeypair& OTCredential::GetEncrKeypair(
 }
 
 const OTKeypair& OTCredential::GetSignKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1456,7 +1456,7 @@ const OTKeypair& OTCredential::GetSignKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1487,37 +1487,37 @@ const OTKeypair& OTCredential::GetSignKeypair(
 // (Optional.)
 
 const OTAsymmetricKey& OTCredential::GetPublicAuthKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetAuthKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicEncrKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetEncrKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicSignKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetSignKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateAuthKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetAuthKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateEncrKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetEncrKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateSignKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetSignKeypair(plistRevokedIDs).GetPrivateKey();
 }
@@ -1553,7 +1553,7 @@ void OTCredential::ClearSubcredentials()
 // be placed inside, if a pointer is provided.
 //
 void OTCredential::SerializeIDs(OTString& strOutput,
-                                listOfStrings& listRevokedIDs,
+                                OTString::List& listRevokedIDs,
                                 mapOfStrings* pmapPubInfo /*=NULL*/,
                                 mapOfStrings* pmapPriInfo /*=NULL*/,
                                 bool bShowRevoked /*=false*/,
@@ -1585,7 +1585,7 @@ void OTCredential::SerializeIDs(OTString& strOutput,
         // subcredential IDs.
         // If so, we'll skip serializing it here.
         //
-        listOfStrings::iterator iter = std::find(
+        OTString::List::iterator iter = std::find(
             listRevokedIDs.begin(), listRevokedIDs.end(), str_cred_id);
 
         // Was it on the 'revoked' list?

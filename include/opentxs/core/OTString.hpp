@@ -200,11 +200,13 @@ class OTIdentifier;
 class OTPseudonym;
 class OTSignature;
 
-typedef std::list<std::string> listOfStrings;
 typedef std::map<std::string, std::string> mapOfStrings;
 
 class OTString
 {
+public:
+    typedef std::list<std::string> List;
+
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os,
                                            const OTString& obj);

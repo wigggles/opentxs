@@ -291,11 +291,11 @@ private:
     mapOfCredentials m_mapCredentials; // The credentials for this Nym. (Each
                                        // with a master key and various
                                        // subcredentials.)
-    mapOfCredentials m_mapRevoked;  // We keep track of old master credentials
-                                    // after they are revoked.
-    listOfStrings m_listRevokedIDs; // std::string list, any revoked Credential
-                                    // IDs. (Mainly for subcredentials /
-                                    // subkeys.)
+    mapOfCredentials m_mapRevoked;   // We keep track of old master credentials
+                                     // after they are revoked.
+    OTString::List m_listRevokedIDs; // std::string list, any revoked Credential
+                                     // IDs. (Mainly for subcredentials /
+                                     // subkeys.)
 public:
     EXPORT void GetPrivateCredentials(OTString& strCredList,
                                       mapOfStrings* pmapCredFiles = NULL);

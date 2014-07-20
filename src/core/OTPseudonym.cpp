@@ -5132,7 +5132,7 @@ bool OTPseudonym::LoadFromString(
             else if (strNodeName.Compare("revokedCredential")) {
                 const OTString strRevokedID = xml->getAttributeValue("ID");
                 otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
-                listOfStrings::iterator iter =
+                auto iter =
                     std::find(m_listRevokedIDs.begin(), m_listRevokedIDs.end(),
                               strRevokedID.Get());
                 if (iter == m_listRevokedIDs.end()) // It's not already there,
