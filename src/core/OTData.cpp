@@ -136,6 +136,7 @@
 #include "OTASCIIArmor.hpp"
 #include "OTPassword.hpp"
 #include "OTAssert.hpp"
+#include <utility>
 #include <cstring>
 
 namespace opentxs
@@ -260,7 +261,7 @@ void OTData::Release()
 
 OTData& OTData::operator=(OTData rhs)
 {
-    this->swap(rhs);
+    swap(rhs);
     return *this;
 }
 
