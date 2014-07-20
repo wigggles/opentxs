@@ -340,7 +340,7 @@ void OTData::Concatenate(const void* data, uint32_t size)
     }
 
     if (size_ == 0) {
-        this->Assign(data, size);
+        Assign(data, size);
         return;
     }
 
@@ -381,7 +381,7 @@ void OTData::Concatenate(const void* data, uint32_t size)
 OTData& OTData::operator+=(const OTData& rhs)
 {
     if (rhs.GetSize() > 0) {
-        this->Concatenate(rhs.data_, rhs.GetSize());
+        Concatenate(rhs.data_, rhs.GetSize());
     }
     return *this;
 }
