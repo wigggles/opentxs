@@ -159,9 +159,9 @@ namespace opentxs
 // carries
 // a request number that cannot be found in this queue.
 
-OTMessageOutbuffer::OTMessageOutbuffer() : m_strDataFolder(OTDataFolder::Get())
+OTMessageOutbuffer::OTMessageOutbuffer() : dataFolder_(OTDataFolder::Get())
 {
-    OT_ASSERT(m_strDataFolder.Exists());
+    OT_ASSERT(dataFolder_.Exists());
 }
 
 void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
@@ -179,9 +179,9 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // servers) that happen to have the same request number. So we verify
     // that here, before removing any old ones with the same number and IDs.
     //
-    mapOfMessages::iterator it = m_mapMessages.begin();
+    mapOfMessages::iterator it = messagesMap_.begin();
 
-    for (; it != m_mapMessages.end(); ++it) {
+    for (; it != messagesMap_.end(); ++it) {
 
         const int64_t& lTempReqNum = it->first;
 
@@ -204,7 +204,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
         else {
             delete pMsg;
             pMsg = NULL;
-            m_mapMessages.erase(it);
+            messagesMap_.erase(it);
             break;
         }
     }
@@ -215,7 +215,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // server ID and Nym ID), we go ahead and add the new message to the map.
     // (And take ownership.)
     //
-    m_mapMessages.insert(
+    messagesMap_.insert(
         std::pair<int64_t, OTMessage*>(lRequestNum, &theMessage));
 
     //
@@ -234,9 +234,9 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
 
     OTString strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
-    OTPaths::AppendFolder(strFolderPath, m_strDataFolder, strFolder);
-    OTPaths::AppendFolder(strFolder1Path, m_strDataFolder, strFolder1);
-    OTPaths::AppendFolder(strFolder2Path, m_strDataFolder, strFolder2);
+    OTPaths::AppendFolder(strFolderPath, dataFolder_, strFolder);
+    OTPaths::AppendFolder(strFolder1Path, dataFolder_, strFolder1);
+    OTPaths::AppendFolder(strFolder2Path, dataFolder_, strFolder2);
 
     OTPaths::ConfirmCreateFolder(strFolderPath, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);
@@ -262,8 +262,8 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     else // it doesn't exist on disk, so let's just create it from the list we
            // have in RAM so we can store it to disk.
     {
-        it = m_mapMessages.begin();
-        while (it != m_mapMessages.end()) {
+        it = messagesMap_.begin();
+        while (it != messagesMap_.end()) {
 
             const int64_t& lTempReqNum = it->first;
 
@@ -312,9 +312,9 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
                                               const OTString& strServerID,
                                               const OTString& strNymID)
 {
-    mapOfMessages::iterator it = m_mapMessages.begin();
+    mapOfMessages::iterator it = messagesMap_.begin();
 
-    for (; it != m_mapMessages.end(); ++it) {
+    for (; it != messagesMap_.end(); ++it) {
 
         const int64_t& lTempReqNum = it->first;
 
@@ -374,7 +374,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
-                m_mapMessages.insert(
+                messagesMap_.insert(
                     std::pair<int64_t, OTMessage*>(lRequestNum, pMsg));
                 theMsgAngel.SetCleanupTargetPointer(NULL);
                 return pMsg;
@@ -398,9 +398,9 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID /*=NULL*/,
 {
     //  const char * szFuncName        = "OTMessageOutbuffer::Clear";
 
-    mapOfMessages::iterator it = m_mapMessages.begin();
+    mapOfMessages::iterator it = messagesMap_.begin();
 
-    while (it != m_mapMessages.end()) {
+    while (it != messagesMap_.end()) {
 
         const int64_t& lRequestNum = it->first;
         OTMessage* pThisMsg = it->second;
@@ -585,7 +585,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID /*=NULL*/,
 
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
-            m_mapMessages.erase(it);
+            messagesMap_.erase(it);
             it = temp_it; // here's where the iterator gets incremented (during
                           // the erase, basically.)
 
@@ -617,15 +617,15 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID /*=NULL*/,
                 { // NOTE: this may be unnecessary since we are "clear"ing them
                     // all anyway. But that just means we can remove this
                     // block during optimization. Todo optimize.
-                    // Since we create the NumList based on m_mapMessages, and
+                    // Since we create the NumList based on messagesMap_, and
                     // since the message for this iteration was already removed
                     // above, we don't need to remove anything at this point, we
                     // just create the NumList to contain the same numbers as
                     // are
-                    // in m_mapMessages.
+                    // in messagesMap_.
                     //
-                    it = m_mapMessages.begin();
-                    while (it != m_mapMessages.end()) {
+                    it = messagesMap_.begin();
+                    while (it != messagesMap_.end()) {
 
                         const int64_t& lTempReqNum = it->first;
 
@@ -700,11 +700,11 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
     strFile.Format("%lld.msg", lRequestNum);
 
-    mapOfMessages::iterator it = m_mapMessages.begin();
+    mapOfMessages::iterator it = messagesMap_.begin();
 
     bool bReturnValue = false;
 
-    while (it != m_mapMessages.end()) {
+    while (it != messagesMap_.end()) {
 
         const int64_t& lTempReqNum = it->first;
 
@@ -731,7 +731,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
 
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
-            m_mapMessages.erase(it);
+            messagesMap_.erase(it);
             it = temp_it; // here's where it gets incremented. (During the
                           // erase, basically.)
 
@@ -759,8 +759,8 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     else // it doesn't exist on disk, so let's just create it from the list we
            // have in RAM so we can store it to disk.
     {
-        it = m_mapMessages.begin();
-        while (it != m_mapMessages.end()) {
+        it = messagesMap_.begin();
+        while (it != messagesMap_.end()) {
 
             const int64_t& lTempReqNum = it->first;
 

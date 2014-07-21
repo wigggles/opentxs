@@ -166,9 +166,6 @@ typedef std::multimap<int64_t, OTMessage*> mapOfMessages;
 // functionality is required.
 class OTMessageOutbuffer
 {
-    mapOfMessages m_mapMessages;
-    OTString m_strDataFolder;
-
 public:
     EXPORT OTMessageOutbuffer();
     EXPORT ~OTMessageOutbuffer();
@@ -199,6 +196,10 @@ public:
 private:
     OTMessageOutbuffer(const OTMessageOutbuffer&);
     OTMessageOutbuffer& operator=(const OTMessageOutbuffer&);
+
+private:
+    mapOfMessages messagesMap_;
+    OTString dataFolder_;
 };
 
 } // namespace opentxs
