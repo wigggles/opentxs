@@ -49,6 +49,7 @@ set(cxx-sources
   OTMasterkey.cpp
   OTMessage.cpp
   OTMessageBuffer.cpp
+  OTMessageOutbuffer.cpp
   OTMint.cpp
   OTMintLucre.cpp
   OTNumList.cpp
