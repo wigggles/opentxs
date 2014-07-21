@@ -163,26 +163,25 @@ enum {
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(OTPseudonym& theNym,
+bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
                                OTPseudonym&, // Not needed in this version of
                                              // the override.
-                               mapOfNyms* /*=NULL*/)
+                               mapOfNyms* preloadedMap /*=NULL*/)
 {
-    return this->VerifySignature(theNym);
+    return this->VerifySignature(nym);
 }
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                         OTAccount& theAccount)
+bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym, OTAccount& account)
 {
-    return theAccount.VerifyOwner(theNym);
+    return account.VerifyOwner(nym);
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
+    int32_t returnVal = 0;
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -193,12 +192,11 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
     //
-    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) return nReturnVal;
+    if (0 != (returnVal = ot_super::ProcessXMLNode(xml))) return returnVal;
 
     if (!strcmp("trade", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
-        m_nTradesAlreadyDone =
-            atoi(xml->getAttributeValue("completedNoTrades"));
+        tradesAlreadyDone_ = atoi(xml->getAttributeValue("completedNoTrades"));
 
         SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
 
@@ -217,9 +215,9 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strActivated(xml->getAttributeValue("hasActivated"));
 
         if (strActivated.Compare("true"))
-            m_bHasTradeActivated = true;
+            hasTradeActivated_ = true;
         else
-            m_bHasTradeActivated = false;
+            hasTradeActivated_ = false;
 
         const OTString strServerID(xml->getAttributeValue("serverID")),
             strUserID(xml->getAttributeValue("userID")),
@@ -241,7 +239,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetCurrencyAcctID(CURRENCY_ACCT_ID);
 
         otLog3 << "\n\nTrade. Transaction Number: " << m_lTransactionNum
-               << "   Completed # of Trades: " << m_nTradesAlreadyDone << "\n";
+               << "   Completed # of Trades: " << tradesAlreadyDone_ << "\n";
 
         otWarn << " Creation Date: " << tCreation
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
@@ -254,26 +252,26 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " currencyTypeID: " << strCurrencyTypeID
                << "\n currencyAcctID: " << strCurrencyAcctID << "\n ";
 
-        nReturnVal = 1;
+        returnVal = 1;
     }
 
     if (!strcmp("stopOrder", xml->getNodeName())) {
         OTString strSign(xml->getAttributeValue("sign"));
 
         if (strSign.Compare("0")) {
-            m_cStopSign = 0; // Zero means it isn't a stop order. So why is the
-                             // tag in the file?
+            stopSign_ = 0; // Zero means it isn't a stop order. So why is the
+                           // tag in the file?
             otErr << "Strange: Stop order tag found in trade, but sign "
                      "character set to 0.\n"
                      "(Zero means: NOT a stop order.)\n";
             return (-1);
         }
         else if (strSign.Compare("<"))
-            m_cStopSign = '<';
+            stopSign_ = '<';
         else if (strSign.Compare(">"))
-            m_cStopSign = '>';
+            stopSign_ = '>';
         else {
-            m_cStopSign = 0;
+            stopSign_ = 0;
             otErr << "Unexpected or nonexistent value in stop order sign: "
                   << strSign << "\n";
             return (-1);
@@ -281,34 +279,34 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Now we know the sign is properly formed, let's grab the price value.
 
-        m_lStopPrice = atol(xml->getAttributeValue("price"));
+        stopPrice_ = atol(xml->getAttributeValue("price"));
 
         OTString strActivated(xml->getAttributeValue("hasActivated"));
 
         if (strActivated.Compare("true"))
-            m_bHasStopActivated = true;
+            stopActivated_ = true;
         else
-            m_bHasStopActivated = false;
+            stopActivated_ = false;
 
         otLog3 << "\n\nStop order -- "
-               << (m_bHasStopActivated ? "Already activated" : "Will activate")
-               << " when price " << (m_bHasStopActivated ? "was" : "reaches")
-               << " " << (('<' == m_cStopSign) ? "LESS THAN" : "GREATER THAN")
-               << ": " << m_lStopPrice << ".\n";
+               << (stopActivated_ ? "Already activated" : "Will activate")
+               << " when price " << (stopActivated_ ? "was" : "reaches") << " "
+               << (('<' == stopSign_) ? "LESS THAN" : "GREATER THAN") << ": "
+               << stopPrice_ << ".\n";
 
-        nReturnVal = 1;
+        returnVal = 1;
     }
     else if (!strcmp("offer", xml->getNodeName())) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_strOffer)) {
+        if (false == OTContract::LoadEncodedTextField(xml, marketOffer_)) {
             otErr << "Error in OTTrade::ProcessXMLNode: offer field without "
                      "value.\n";
             return (-1); // error condition
         }
 
-        nReturnVal = 1;
+        returnVal = 1;
     }
 
-    return nReturnVal;
+    return returnVal;
 }
 
 void OTTrade::UpdateContents()
@@ -338,10 +336,10 @@ void OTTrade::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), (m_bHasTradeActivated ? "true" : "false"),
+        m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
         SERVER_ID.Get(), ASSET_TYPE_ID.Get(), ASSET_ACCT_ID.Get(),
         CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), USER_ID.Get(),
-        m_nTradesAlreadyDone, m_lTransactionNum,
+        tradesAlreadyDone_, m_lTransactionNum,
         OTTimeGetSecondsFromTime(GetCreationDate()),
         OTTimeGetSecondsFromTime(GetValidFrom()),
         OTTimeGetSecondsFromTime(GetValidTo()));
@@ -360,18 +358,18 @@ void OTTrade::UpdateContents()
             "<closingTransactionNumber value=\"%lld\"/>\n\n", lClosingNumber);
     }
 
-    if (('<' == m_cStopSign) || ('>' == m_cStopSign)) {
+    if (('<' == stopSign_) || ('>' == stopSign_)) {
         m_xmlUnsigned.Concatenate("<stopOrder\n"
                                   " hasActivated=\"%s\"\n"
                                   " sign=\"%c\"\n"
                                   " price=\"%lld\""
                                   " />\n\n",
-                                  (m_bHasStopActivated ? "true" : "false"),
-                                  m_cStopSign, m_lStopPrice);
+                                  (stopActivated_ ? "true" : "false"),
+                                  stopSign_, stopPrice_);
     }
 
-    if (m_strOffer.Exists()) {
-        OTASCIIArmor ascOffer(m_strOffer);
+    if (marketOffer_.Exists()) {
+        OTASCIIArmor ascOffer(marketOffer_);
         m_xmlUnsigned.Concatenate("<offer>\n%s</offer>\n\n", ascOffer.Get());
     }
 
@@ -421,15 +419,15 @@ bool OTTrade::VerifyOffer(OTOffer& theOffer)
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 //
-OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
-                           OTMarket** ppMarket /*=NULL*/)
+OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
+                           OTMarket** market /*=NULL*/)
 {
     OT_ASSERT(NULL != GetCron());
 
     // See if the offer has already been instantiated onto a market...
-    if (NULL != m_pOffer) {
-        m_pOffer->SetTrade(*this); // Probably don't need this line. I'll remove
-                                   // it someday while optimizing.
+    if (NULL != offer_) {
+        offer_->SetTrade(*this); // Probably don't need this line. I'll remove
+                                 // it someday while optimizing.
         // In fact since it should already be set, having this here would
         // basically
         // hide it from me if the memory was ever walked on from a bug
@@ -437,9 +435,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
 
         // It loaded. Let's get the Market ID off of it so we can locate the
         // market.
-        const OTIdentifier OFFER_MARKET_ID(*m_pOffer);
+        const OTIdentifier OFFER_MARKET_ID(*offer_);
 
-        if (NULL != ppMarket) {
+        if (NULL != market) {
             OTMarket* pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
 
             // Sometimes the caller function would like a copy of this market
@@ -448,26 +446,26 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
             // have to do this work again
             // to look it up.
             if (NULL != pMarket)
-                *ppMarket = pMarket; // <=================
+                *market = pMarket; // <=================
             else
                 otErr << "OTTrade::" << __FUNCTION__
-                      << ": m_pOffer already exists, yet unable to find the "
+                      << ": offer_ already exists, yet unable to find the "
                          "market it's supposed to be on.\n";
         }
 
-        if (NULL != pOFFER_MARKET_ID) {
+        if (NULL != offerMarketId) {
             // Sometimes the caller function would like a copy of this ID. So I
             // give the option to pass in a pointer so I can give it here.
-            pOFFER_MARKET_ID->Assign(OFFER_MARKET_ID);
+            offerMarketId->Assign(OFFER_MARKET_ID);
         }
 
-        return m_pOffer;
-    } // if m_pOffer ALREADY EXISTS.
+        return offer_;
+    } // if offer_ ALREADY EXISTS.
 
-    // else (BELOW) m_pOffer IS NULL, and thus it didn't exist yet...
+    // else (BELOW) offer_ IS NULL, and thus it didn't exist yet...
 
-    if (!m_strOffer.Exists()) {
-        otErr << "OTTrade::GetOffer called with empty m_strOffer.\n";
+    if (!marketOffer_.Exists()) {
+        otErr << "OTTrade::GetOffer called with empty marketOffer_.\n";
         return NULL;
     }
 
@@ -477,7 +475,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
     // already there on the market.)
-    if (!pOffer->LoadContractFromString(m_strOffer)) {
+    if (!pOffer->LoadContractFromString(marketOffer_)) {
         otErr << "Error loading offer from string in OTTrade::GetOffer\n";
         delete pOffer;
         pOffer = NULL;
@@ -494,10 +492,10 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
     // It loaded. Let's get the Market ID off of it so we can locate the market.
     OTIdentifier OFFER_MARKET_ID(*pOffer);
 
-    if (NULL != pOFFER_MARKET_ID) {
+    if (NULL != offerMarketId) {
         // Sometimes the caller function would like a copy of this ID. So I
         // give the option to pass in a pointer so I can give it here.
-        pOFFER_MARKET_ID->Assign(OFFER_MARKET_ID);
+        offerMarketId->Assign(OFFER_MARKET_ID);
     }
 
     // Previously if a user tried to use a market that didn't exist, I'd just
@@ -525,13 +523,13 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
     }
 
     // If the caller passed in the address of a market pointer (optional)
-    if (NULL != ppMarket) {
+    if (NULL != market) {
         // Sometimes the caller function would like a copy of this market
         // pointer, when available.
         // So I pass it back to him here, if he wants. That way he doesn't have
         // to do this work again
         // to look it up.
-        *ppMarket = pMarket;
+        *market = pMarket;
     }
 
     // At this point, I have heap-allocated the offer, used it to get the Market
@@ -553,22 +551,22 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
     // first find it here, and thus return the pointer before getting any
     // farther.
     //
-    // IN ALL CASES, we make sure to call m_pOffer->SetTrade() so that it has a
+    // IN ALL CASES, we make sure to call offer_->SetTrade() so that it has a
     // pointer BACK to
     // this Trade object! (When actually processing the offer, the market will
     // need the account
     // numbers and Nym IDs... which are stored here on the trade.)
     if (NULL != pMarketOffer) {
-        m_pOffer = pMarketOffer;
+        offer_ = pMarketOffer;
 
         // Since the Offer already exists on the market, no need anymore for the
         // one we allocated above (to get the market ID.) So we delete it now.
         delete pOffer;
         pOffer = NULL;
 
-        m_pOffer->SetTrade(*this);
+        offer_->SetTrade(*this);
 
-        return m_pOffer;
+        return offer_;
     }
 
     // Okay so the offer ISN'T already on the market. If it's not a stop order,
@@ -578,7 +576,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
     // this, in the else block.)
     //
     if (!IsStopOrder()) {
-        if (m_bHasTradeActivated) {
+        if (hasTradeActivated_) {
             // Error -- how has the trade already activated, yet not on the
             // market and null in my pointer?
             otErr << "How has the trade already activated, yet not on the "
@@ -596,9 +594,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
         }
         else {
             // SUCCESS!
-            m_pOffer = pOffer;
+            offer_ = pOffer;
 
-            m_bHasTradeActivated = true;
+            hasTradeActivated_ = true;
 
             // The Trade (stored on Cron) has a copy of the Original Offer, with
             // the User's signature on it.
@@ -611,9 +609,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
             // So thus I am FREE to release the signatures on the offer, and
             // sign with the server instead.
             // The server-signed offer will be stored by the OTMarket.
-            m_pOffer->ReleaseSignatures();
-            m_pOffer->SignContract(*(GetCron()->GetServerNym()));
-            m_pOffer->SaveContract();
+            offer_->ReleaseSignatures();
+            offer_->SignContract(*(GetCron()->GetServerNym()));
+            offer_->SaveContract();
 
             pMarket->SaveMarket();
 
@@ -628,16 +626,16 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
             // are also released and it is now server-signed. (With a copy
             // stored of the original.)
 
-            m_pOffer->SetTrade(*this);
+            offer_->SetTrade(*this);
 
-            return m_pOffer;
+            return offer_;
         }
     }
 
     // It's a stop order, and not activated yet.
     // Should we activate it now?
     //
-    else if (IsStopOrder() && !m_bHasStopActivated) {
+    else if (IsStopOrder() && !stopActivated_) {
         int64_t lRelevantPrice = 0;
 
         // If the stop order is trying to sell something, then it cares about
@@ -662,10 +660,10 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
             }
             else {
                 // SUCCESS!
-                m_pOffer = pOffer;
+                offer_ = pOffer;
 
-                m_bHasStopActivated = true;
-                m_bHasTradeActivated = true;
+                stopActivated_ = true;
+                hasTradeActivated_ = true;
 
                 // The Trade (stored on Cron) has a copy of the Original Offer,
                 // with the User's signature on it.
@@ -678,9 +676,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
                 // So thus I am FREE to release the signatures on the offer, and
                 // sign with the server instead.
                 // The server-signed offer will be stored by the OTMarket.
-                m_pOffer->ReleaseSignatures();
-                m_pOffer->SignContract(*(GetCron()->GetServerNym()));
-                m_pOffer->SaveContract();
+                offer_->ReleaseSignatures();
+                offer_->SignContract(*(GetCron()->GetServerNym()));
+                offer_->SaveContract();
 
                 pMarket->SaveMarket();
 
@@ -695,9 +693,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* pOFFER_MARKET_ID /*=NULL*/,
                 // are also released and it is now server-signed. (With a copy
                 // stored of the original.)
 
-                m_pOffer->SetTrade(*this);
+                offer_->SetTrade(*this);
 
-                return m_pOffer;
+                return offer_;
             }
         }
     }
@@ -733,10 +731,10 @@ void OTTrade::onRemovalFromCron()
     int64_t lScale = 1; // todo stop hardcoding.
     int64_t lTransactionNum = 0;
 
-    if (NULL == m_pOffer) {
-        if (!m_strOffer.Exists()) {
-            otErr << "OTTrade::onRemovalFromCron called with NULL m_pOffer and "
-                     "empty m_strOffer.\n";
+    if (NULL == offer_) {
+        if (!marketOffer_.Exists()) {
+            otErr << "OTTrade::onRemovalFromCron called with NULL offer_ and "
+                     "empty marketOffer_.\n";
             return;
         }
 
@@ -751,7 +749,7 @@ void OTTrade::onRemovalFromCron()
         // (So I can use it to lookup the Market ID, so I can see if the offer
         // is
         // already there on the market.)
-        if (!pOffer->LoadContractFromString(m_strOffer)) {
+        if (!pOffer->LoadContractFromString(marketOffer_)) {
             otErr << "Error loading offer from string in "
                      "OTTrade::onRemovalFromCron\n";
             return;
@@ -761,8 +759,8 @@ void OTTrade::onRemovalFromCron()
         lTransactionNum = pOffer->GetTransactionNum();
     }
     else {
-        lScale = m_pOffer->GetScale();
-        lTransactionNum = m_pOffer->GetTransactionNum();
+        lScale = offer_->GetScale();
+        lTransactionNum = offer_->GetTransactionNum();
     }
 
     OTMarket* pMarket =
@@ -784,9 +782,9 @@ void OTTrade::onRemovalFromCron()
     // The Offer is already on the Market.
     //
     if (NULL != pMarketOffer) {
-        m_pOffer = pMarketOffer;
+        offer_ = pMarketOffer;
 
-        m_pOffer->SetTrade(*this);
+        offer_->SetTrade(*this);
     }
 
     pMarket->RemoveOffer(lTransactionNum);
@@ -795,14 +793,14 @@ void OTTrade::onRemovalFromCron()
 //    GetSenderAcctID()    -- asset account.
 //    GetCurrencyAcctID()    -- currency account.
 
-int64_t OTTrade::GetClosingNumber(const OTIdentifier& theAcctID) const
+int64_t OTTrade::GetClosingNumber(const OTIdentifier& acctId) const
 {
     const OTIdentifier& theAssetAcctID = this->GetSenderAcctID();
     const OTIdentifier& theCurrencyAcctID = this->GetCurrencyAcctID();
 
-    if (theAcctID == theAssetAcctID)
+    if (acctId == theAssetAcctID)
         return GetAssetAcctClosingNum();
-    else if (theAcctID == theCurrencyAcctID)
+    else if (acctId == theCurrencyAcctID)
         return GetCurrencyAcctClosingNum();
     // else...
     return 0;
@@ -980,8 +978,8 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
     OTString strUpdatedOffer;
     OTString* pstrNote = NULL; // the updated Offer (if available.)
 
-    if (m_pOffer) {
-        m_pOffer->SaveContractRaw(strUpdatedOffer);
+    if (offer_) {
+        offer_->SaveContractRaw(strUpdatedOffer);
         pstrNote = &strUpdatedOffer;
     }
 
@@ -1256,18 +1254,18 @@ bool OTTrade::ProcessCron()
 }
 
 /*
-X OTIdentifier    m_CURRENCY_TYPE_ID;    // GOLD (Asset) is trading for DOLLARS
+X OTIdentifier    currencyTypeID_;    // GOLD (Asset) is trading for DOLLARS
 (Currency).
-X OTIdentifier    m_CURRENCY_ACCT_ID;    // My Dollar account, used for paying
+X OTIdentifier    currencyAcctID_;    // My Dollar account, used for paying
 for my Gold (say) trades.
 
-X int64_t            m_lStopPrice;        // The price limit that activates the
+X int64_t            stopPrice_;        // The price limit that activates the
 STOP order.
-X char            m_cStopSign;        // Value is 0, or '<', or '>'.
+X char            stopSign_;        // Value is 0, or '<', or '>'.
 
 X time64_t        m_CREATION_DATE;    // The date, in seconds, when the trade
 was authorized.
-X int32_t            m_nTradesAlreadyDone;    // How many trades have already
+X int32_t            tradesAlreadyDone_;    // How many trades have already
 processed through this order? We keep track.
 */
 
@@ -1279,7 +1277,7 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
 {
     // Make sure the Stop Sign is within parameters (0, '<', or '>')
     if ((cStopSign == 0) || (cStopSign == '<') || (cStopSign == '>'))
-        m_cStopSign = cStopSign;
+        stopSign_ = cStopSign;
     else {
         otErr << "Bad data in Stop Sign while issuing trade: " << cStopSign
               << "\n";
@@ -1288,16 +1286,16 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
 
     // Make sure, if this IS a Stop order, that the price is within parameters
     // and set.
-    if ((m_cStopSign == '<') || (m_cStopSign == '>')) {
+    if ((stopSign_ == '<') || (stopSign_ == '>')) {
         if (0 >= lStopPrice) {
             otErr << "Expected Stop Price for trade.\n";
             return false;
         }
 
-        m_lStopPrice = lStopPrice;
+        stopPrice_ = lStopPrice;
     }
 
-    m_nTradesAlreadyDone = 0;
+    tradesAlreadyDone_ = 0;
 
     SetCreationDate(
         OTTimeGetCurrentTime()); // This time is set to TODAY NOW  (OTCronItem)
@@ -1311,9 +1309,9 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
         return false;
     }
 
-    //    m_CURRENCY_TYPE_ID // This is already set in the constructors of this
+    //    currencyTypeID_ // This is already set in the constructors of this
     // and the offer. (And compared.)
-    //    m_CURRENCY_ACCT_ID // This is already set in the constructor of this.
+    //    currencyAcctID_ // This is already set in the constructor of this.
 
     // Set the (now validated) date range as per the Offer.
     SetValidFrom(theOffer.GetValidFrom());
@@ -1324,21 +1322,21 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
 
     // Save a copy of the offer, in XML form, here on this Trade.
     OTString strOffer(theOffer);
-    m_strOffer.Set(strOffer);
+    marketOffer_.Set(strOffer);
 
     return true;
 }
 
 OTTrade::OTTrade()
     : ot_super()
-    , m_pOffer(NULL)
-    , m_bHasTradeActivated(false)
-    , m_lStopPrice(0)
-    , m_cStopSign(0)
-    , m_bHasStopActivated(false)
-    , m_nTradesAlreadyDone(0)
+    , offer_(NULL)
+    , hasTradeActivated_(false)
+    , stopPrice_(0)
+    , stopSign_(0)
+    , stopActivated_(false)
+    , tradesAlreadyDone_(0)
 {
-    //    m_pOffer            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = NULL;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.
@@ -1348,16 +1346,16 @@ OTTrade::OTTrade()
     InitTrade();
 }
 
-OTTrade::OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
-    , m_pOffer(NULL)
-    , m_bHasTradeActivated(false)
-    , m_lStopPrice(0)
-    , m_cStopSign(0)
-    , m_bHasStopActivated(false)
-    , m_nTradesAlreadyDone(0)
+OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId)
+    : ot_super(serverId, assetId)
+    , offer_(NULL)
+    , hasTradeActivated_(false)
+    , stopPrice_(0)
+    , stopSign_(0)
+    , stopActivated_(false)
+    , tradesAlreadyDone_(0)
 {
-    //    m_pOffer            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = NULL;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.
@@ -1367,19 +1365,19 @@ OTTrade::OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
     InitTrade();
 }
 
-OTTrade::OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                 const OTIdentifier& ASSET_ACCT_ID, const OTIdentifier& USER_ID,
-                 const OTIdentifier& CURRENCY_ID,
-                 const OTIdentifier& CURRENCY_ACCT_ID)
-    : ot_super(SERVER_ID, ASSET_ID, ASSET_ACCT_ID, USER_ID)
-    , m_pOffer(NULL)
-    , m_bHasTradeActivated(false)
-    , m_lStopPrice(0)
-    , m_cStopSign(0)
-    , m_bHasStopActivated(false)
-    , m_nTradesAlreadyDone(0)
+OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
+                 const OTIdentifier& assetAcctId, const OTIdentifier& userId,
+                 const OTIdentifier& currencyId,
+                 const OTIdentifier& currencyAcctId)
+    : ot_super(serverId, assetId, assetAcctId, userId)
+    , offer_(NULL)
+    , hasTradeActivated_(false)
+    , stopPrice_(0)
+    , stopSign_(0)
+    , stopActivated_(false)
+    , tradesAlreadyDone_(0)
 {
-    //    m_pOffer            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = NULL;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.
@@ -1388,8 +1386,8 @@ OTTrade::OTTrade(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
 
     InitTrade();
 
-    SetCurrencyID(CURRENCY_ID);
-    SetCurrencyAcctID(CURRENCY_ACCT_ID);
+    SetCurrencyID(currencyId);
+    SetCurrencyAcctID(currencyAcctId);
 }
 
 OTTrade::~OTTrade()
@@ -1401,10 +1399,10 @@ OTTrade::~OTTrade()
 void OTTrade::Release_Trade()
 {
     // If there were any dynamically allocated objects, clean them up here.
-    m_CURRENCY_TYPE_ID.Release();
-    m_CURRENCY_ACCT_ID.Release();
+    currencyTypeID_.Release();
+    currencyAcctID_.Release();
 
-    m_strOffer.Release();
+    marketOffer_.Release();
 }
 
 // the framework will call this at the right time.
@@ -1430,15 +1428,15 @@ void OTTrade::InitTrade()
                                                      // seconds.
     // (vs 1 second for Cron items and 1 hour for payment plans)
 
-    m_nTradesAlreadyDone = 0;
+    tradesAlreadyDone_ = 0;
 
-    m_cStopSign = 0;  // IS THIS a STOP order? Value is 0, or '<', or '>'.
-    m_lStopPrice = 0; // The price limit that activates the STOP order.
-    m_bHasStopActivated = false; // Once the Stop Order activates, it puts the
-                                 // order on the market.
+    stopSign_ = 0;          // IS THIS a STOP order? Value is 0, or '<', or '>'.
+    stopPrice_ = 0;         // The price limit that activates the STOP order.
+    stopActivated_ = false; // Once the Stop Order activates, it puts the
+                            // order on the market.
     // I'll put a "HasOrderOnMarket()" bool method that answers this for u.
-    m_bHasTradeActivated = false; // I want to keep track of general activations
-                                  // as well, not just stop orders.
+    hasTradeActivated_ = false; // I want to keep track of general activations
+                                // as well, not just stop orders.
 }
 
 bool OTTrade::SaveContractWallet(std::ofstream&)
