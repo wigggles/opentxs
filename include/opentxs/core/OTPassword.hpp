@@ -174,166 +174,28 @@ namespace opentxs
 #define OT_DEFAULT_BLOCKSIZE 128
 #define OT_DEFAULT_MEMSIZE 129
 
-// https://github.com/lorf/keepassx/blob/master/src/lib/SecString.cpp
-
-// Done:  Although we have good memory ZEROING code (for destruction)
-// we don't have code yet that will keep the contents SECURE while they
-// are in memory. For example, that will prevent them from being paged
-// to the hard drive during swapping. Such code would make OTPassword much
-// more appropriate for use cases such as storing passphrases and private
-// keys, and would even allow timeout procedures...
-//
-// NOTE: For Windows, use VirtualLock instead of mlock.
-//
-
-/*
- #include <sys/mman.h>
-
- void *locking_alloc(size_t numbytes)
- {
-    static short have_warned = 0;
-
-    void *mem = malloc(numbytes);
-
-    if (mlock(mem, numbytes) && !have_warned)
-    {
-
-        // We probably do not have permission.
-        // Sometimes, it might not be possible to lock enough memory.
-
-        fprintf(stderr, "Warning: Using insecure memory!\n");
-
-        have_warned = 1;
-
-    }
-
-    return mem;
- }
-
-The mlock() call generally locks more memory than you want. Locking is done on a
-per-page basis. All of the pages the memory spans will be locked in RAM, and
-will not be swapped out under any circumstances, until the process unlocks
-something in the same page by using mlock().
-
-There are some potentially negative consequences here. First, If your process
-locks two buffers that happen to live on the same page, then unlocking either
-one will unlock the entire page, causing both buffers to unlock. Second, when
-locking lots of data, it is easy to lock more pages than necessary (the
-operating system doesn't move data around once it has been allocated), which can
-slow down machine performance significantly.
-
-Unlocking a chunk of memory looks exactly the same as locking it, except that
-you call munlock():
-        munlock(mem, numbytes);
-
-
- // TODO: Work in some usage of CryptProtectMemory and CryptUnprotectMemory
-(Windows only)
- // with sample code below.  Also should make some kind of UNIX version.
-
-
-#ifndef _WINDOWS_
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#endif
-#include <cstdio>
-#include <Wincrypt.h>
-
-#define SSN_STR_LEN 12  // includes null
-
-void main()
-{
-    HRESULT hr = S_OK;
-    LPWSTR pSensitiveText = NULL;
-    DWORD cbSensitiveText = 0;
-    DWORD cbPlainText = SSN_STR_LEN*sizeof(WCHAR);
-    DWORD dwMod = 0;
-
-    //  Memory to encrypt must be a multiple of CRYPTPROTECTMEMORY_BLOCK_SIZE.
-    if (dwMod = cbPlainText % CRYPTPROTECTMEMORY_BLOCK_SIZE)
-        cbSensitiveText = cbPlainText +
-        (CRYPTPROTECTMEMORY_BLOCK_SIZE - dwMod);
-    else
-        cbSensitiveText = cbPlainText;
-
-    pSensitiveText = (LPWSTR)LocalAlloc(LPTR, cbSensitiveText);
-    if (NULL == pSensitiveText)
-    {
-        wprintf(L"Memory allocation failed.\n");
-        return E_OUTOFMEMORY;
-    }
-
-    //  Place sensitive string to encrypt in pSensitiveText.
-
-    if (!CryptProtectMemory(pSensitiveText, cbSensitiveText,
-        CRYPTPROTECTMEMORY_SAME_PROCESS))
-    {
-        wprintf(L"CryptProtectMemory failed: %d\n", GetLastError());
-        SecureZeroMemory(pSensitiveText, cbSensitiveText);
-        LocalFree(pSensitiveText);
-        pSensitiveText = NULL;
-        return E_FAIL;
-    }
-
-    //  Call CryptUnprotectMemory to decrypt and use the memory.
-
-    SecureZeroMemory(pSensitiveText, cbSensitiveText);
-    LocalFree(pSensitiveText);
-    pSensitiveText = NULL;
-
-    return hr;
-}
-
-
-
-
-#ifndef _WINDOWS_
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#endif
-#include <cstdio>
-#include <Wincrypt.h>
-#include <strsafe.h>
-#pragma comment(lib, "crypt32.lib")
-
-void main()
-{
-    LPWSTR pEncryptedText;  // contains the encrypted text
-    DWORD cbEncryptedText;  // number of bytes to which
-                            // pEncryptedText points
-
-    if (CryptUnprotectMemory(pEncryptedText, cbEncryptedText,
-        CRYPTPROTECTMEMORY_SAME_PROCESS))
-    {
-        // Use the decrypted string.
-    }
-    else
-    {
-        wprintf(L"CryptUnprotectMemory failed: %d\n",
-            GetLastError());
-    }
-
-    // Clear and free memory after using
-    // the decrypted string or if an error occurs.
-    SecureZeroMemory(pEncryptedText, cbEncryptedText);
-    LocalFree(pEncryptedText);
-    pEncryptedText = NULL;
-}
-
-
- */
-
 // Originally written for the safe storage of passwords.
 // Now used for symmetric keys as well.
 // Specifically: when the clear version of a password or key must be stored
 // usually for temporary reasons, it must be stored in memory locked from
-// swapping
-// to disk, and in an object like OTPassword that zeros the memory as soon as
-// we're done.
+// swapping to disk, and in an object like OTPassword that zeros the memory as
+// soon as we're done.
+//
+// OTPassword tries to store a piece of data more securely.
+// During the time I have to take a password from the user and pass it to
+// OpenSSL,
+// I want it stored as securely as possible, and that's what this class was
+// written for.
+// Now I'm adding the ability to store binary data in here, not just a
+// text-based password.
+// That way, OTSymmetricKey can store its plain key in an OTPassword. Well,
+// it actually stores
+// its key in an encrypted format, but whenever, for what brief moments that
+// key is decrypted and
+// USED, the decrypted form of it will be stored in an OTPassword (in binary
+// mode.)
+// This is basically just to save me from duplicating work that's already
+// done here in OTPassword.
 //
 class OTPassword
 {
@@ -361,12 +223,11 @@ public:
     EXPORT OTPassword& operator=(const OTPassword& rhs);
 
     EXPORT bool isPassword() const;
-    EXPORT const uint8_t* getPassword_uint8() const; // asserts if m_bIsText is
-                                                     // false.
+    EXPORT const uint8_t* getPassword_uint8() const;
 
-    EXPORT const char* getPassword() const;  // asserts if m_bIsText is false.
-    EXPORT uint8_t* getPasswordWritable();   // asserts if m_bIsText is false.
-    EXPORT char* getPasswordWritable_char(); // asserts if m_bIsText is false.
+    EXPORT const char* getPassword() const;
+    EXPORT uint8_t* getPasswordWritable();
+    EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT int32_t setPassword(const char* input, int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
@@ -377,15 +238,12 @@ public:
                                                uint32_t size);
     EXPORT static bool randomizePassword(char* destination, uint32_t size);
     EXPORT bool isMemory() const;
-    // asserts if m_bIsBinary is false.
     EXPORT const void* getMemory() const;
-    // asserts if m_bIsBinary is false.
     EXPORT const uint8_t* getMemory_uint8() const;
-    // asserts if m_bIsBinary is false.
     EXPORT void* getMemoryWritable();
-    // (FYI, truncates if nInputSize larger than getBlockSize.)
+    // (FYI, truncates if size larger than getBlockSize.)
     EXPORT int32_t setMemory(const void* input, uint32_t size);
-    // (FYI, truncates if nInputSize + getPasswordSize() is larger than
+    // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
     EXPORT int32_t addMemory(const void* append, uint32_t size);
     EXPORT int32_t randomizeMemory(uint32_t size = DEFAULT_SIZE);
@@ -394,16 +252,14 @@ public:
     EXPORT static bool randomizeMemory(void* destination, uint32_t size);
     EXPORT uint32_t getBlockSize() const;
     EXPORT bool Compare(OTPassword& rhs) const;
-    // asserts if m_bIsText is false.
     EXPORT uint32_t getPasswordSize() const;
-    // asserts if m_bIsBinary is false.
     EXPORT uint32_t getMemorySize() const;
     EXPORT void zeroMemory();
     EXPORT static void zeroMemory(uint8_t* szMemory, uint32_t size);
     EXPORT static void zeroMemory(void* vMemory, uint32_t size);
-    // if true, sets the source buffer to zero after copying is done.
     EXPORT static void* safe_memcpy(void* dest, uint32_t dsize, const void* src,
                                     uint32_t ssize, bool zeroSource = false);
+
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
     // a text buffer of size (versus a 0 size.) This is for
@@ -428,161 +284,13 @@ public:
     EXPORT bool SetSize(uint32_t size);
 
 private:
-    uint32_t size_;                    // [ 0..128 ]  Update: [ 0..9000 ]
-    uint8_t data_[OT_DEFAULT_MEMSIZE]; // a 129-byte block of char. (128
-                                       // + 1 for null terminator)
-    //    uint8_t  data_[OT_LARGE_MEMSIZE];   // 32767 bytes. (32768 + 1
-    // for null terminator) todo: in optimization phase, revisit this array
-    // size.
-
-    // OTPassword tries to store a piece of data more securely.
-    // During the time I have to take a password from the user and pass it to
-    // OpenSSL,
-    // I want it stored as securely as possible, and that's what this class was
-    // written for.
-    // Now I'm adding the ability to store binary data in here, not just a
-    // text-based password.
-    // That way, OTSymmetricKey can store its plain key in an OTPassword. Well,
-    // it actually stores
-    // its key in an encrypted format, but whenever, for what brief moments that
-    // key is decrypted and
-    // USED, the decrypted form of it will be stored in an OTPassword (in binary
-    // mode.)
-    // This is basically just to save me from duplicating work that's already
-    // done here in OTPassword.
-    //
-    bool isText_;       // storing a text passphrase?
-    bool isBinary_;     // storing binary memory?
-    bool isPageLocked_; // is the page locked to prevent us from swapping this
-                        // secret memory to disk?
+    uint32_t size_;
+    uint8_t data_[OT_DEFAULT_MEMSIZE];
+    bool isText_;
+    bool isBinary_;
+    bool isPageLocked_;
     const BlockSize blockSize_;
 };
-
-//#undef OTPASSWORD_BLOCKSIZE
-//#undef OTPASSWORD_MEMSIZE
-//
-//#undef OT_LARGE_BLOCKSIZE
-//#undef OT_LARGE_MEMSIZE
-//
-//#undef OT_DEFAULT_BLOCKSIZE
-//#undef OT_DEFAULT_MEMSIZE
-
-/*
- HOW TO PREVENT MEMORY FROM GOING INTO CORE DUMPS
-
-#include <sys/time.h>
-
-#include <sys/resource.h>
-
-#include <unistd.h>
-
-
-
-int32_t  main(int32_t argc, char **argv)
-
- {
-
-  struct rlimit rlim;
-
-
-
-  getrlimit(RLIMIT_CORE, &rlim);
-
-  rlim.rlim_max = rlim.rlim_cur = 0;
-
-  if(setrlimit(RLIMIT_CORE, &rlim)) {
-
-    exit(-1);
-
-  }
-
-  ...
-
-  return 0;
-
-}
-
-
-
- http://www.drdobbs.com/cpp/184401646
-
-
-
-
- MORE CODE FOR MEMLOCK:
-
- namespace Botan
- {
-
-    bool has_mlock();
-
-    bool lock_mem(void* addr, size_t length);
-
-    void unlock_mem(void* addr, size_t length);
- }
-
-
-//
-// Memory Locking Functions
-// (C) 1999-2007 Jack Lloyd
-//
-// Distributed under the terms of the Botan license
-//
-
-#include <botan/internal/mlock.h>
-
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-  #include <sys/types.h>
-  #include <sys/mman.h>
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-#ifndef _WINDOWS_
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#endif
-#endif
-
-namespace Botan {
-
-bool has_mlock()
-   {
-   byte buf[4096];
-   if(!lock_mem(&buf, sizeof(buf)))
-      return false;
-   unlock_mem(&buf, sizeof(buf));
-   return true;
-   }
-
-//
-// Lock an area of memory into RAM
-//
-bool lock_mem(void* ptr, size_t bytes)
-   {
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-   return (::mlock(static_cast<char*>(ptr), bytes) == 0);
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-   return (::VirtualLock(ptr, bytes) != 0);
-#else
-   return false;
-#endif
-   }
-
-//
-// Unlock a previously locked region of memory
-//
-void unlock_mem(void* ptr, size_t bytes)
-   {
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-   ::munlock(static_cast<char*>(ptr), bytes);
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-   ::VirtualUnlock(ptr, bytes);
-#endif
-   }
-
-}
-
- */
 
 } // namespace opentxs
 
