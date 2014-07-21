@@ -133,8 +133,8 @@
 #ifndef __OT_ACCT_LIST_HPP__
 #define __OT_ACCT_LIST_HPP__
 
-// only necessary because of OTAccount::AccountType
-#include "OTAccount.hpp"
+#include "OTAccount.hpp" // only necessary because of OTAccount::AccountType
+#include <memory>
 
 namespace opentxs
 {
@@ -142,54 +142,52 @@ namespace opentxs
 class OTPseudonym;
 
 // The server needs to store a list of accounts, by asset type ID, to store the
-// backing funds
-// for vouchers.  The below class is useful for that. It's also useful for the
-// same purpose
-// for stashes, in smart contracts.
+// backing funds for vouchers. The below class is useful for that. It's also
+// useful for the same purpose for stashes, in smart contracts.
 // Eventually will add expiration dates, possibly, to this class. (To have
-// series, just like cash
-// already does now.)
+// series, just like cash already does now.)
 //
 class OTAcctList
 {
-    OTAccount::AccountType m_AcctType;
-
-    mapOfStrings m_mapAcctIDs; // AcctIDs as second mapped by ASSET TYPE ID as
-                               // first.
-    mapOfWeakAccounts m_mapWeakAccts; // If someone calls GetOrCreateAccount(),
-                                      // we pass them a shared pointer. We
-    // store the weak pointer here only to make sure accounts don't get loaded
-    // twice.
 public:
     EXPORT OTAcctList();
-    OTAcctList(OTAccount::AccountType eAcctType);
+    OTAcctList(OTAccount::AccountType acctType);
     EXPORT ~OTAcctList();
 
     EXPORT int32_t GetCountAccountIDs() const
     {
-        return static_cast<int32_t>(m_mapAcctIDs.size());
+        return static_cast<int32_t>(mapAcctIDs_.size());
     }
 
     EXPORT void Release();
 
     EXPORT void Release_AcctList();
 
-    EXPORT void Serialize(OTString& strAppend);
+    EXPORT void Serialize(OTString& append);
     EXPORT int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                   const OTString& strAcctType,
-                                   const OTString& strAcctCount);
+                                   const OTString& acctType,
+                                   const OTString& acctCount);
 
-    void SetType(OTAccount::AccountType eAcctType)
+    void SetType(OTAccount::AccountType acctType)
     {
-        m_AcctType = eAcctType;
+        acctType_ = acctType;
     }
 
     EXPORT std::shared_ptr<OTAccount> GetOrCreateAccount(
-        OTPseudonym& theServerNym, const OTIdentifier& ACCOUNT_OWNER_ID,
+        OTPseudonym& serverNym, const OTIdentifier& ACCOUNT_OWNER_ID,
         const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
-        bool& bWasAcctCreated, // this will be set to true if the acct is
-                               // created here. Otherwise set to false;
-        const int64_t lStashTransNum = 0);
+        bool& wasAcctCreated, // this will be set to true if the acct is
+                              // created here. Otherwise set to false;
+        const int64_t stashTransNum = 0);
+
+private:
+    OTAccount::AccountType acctType_;
+    // AcctIDs as second mapped by ASSET TYPE ID as first.
+    mapOfStrings mapAcctIDs_;
+    // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We
+    // store the weak pointer here only to make sure accounts don't get loaded
+    // twice.
+    mapOfWeakAccounts mapWeakAccts_;
 };
 
 } // namespace opentxs

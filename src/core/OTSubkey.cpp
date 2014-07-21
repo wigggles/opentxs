@@ -147,7 +147,6 @@
 #include "stdafx.hpp"
 
 #include "OTSubkey.hpp"
-
 #include "OTASCIIArmor.hpp"
 #include "OTCredential.hpp"
 #include "OTLog.hpp"
@@ -155,14 +154,27 @@
 #include "irrxml/irrXML.hpp"
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-//
 
 namespace opentxs
 {
 
+OTSubkey::OTSubkey() : OTKeyCredential()
+{
+    m_strContractType = "KEY CREDENTIAL";
+}
+
+OTSubkey::OTSubkey(OTCredential& other) : OTKeyCredential(other)
+{
+    m_strContractType = "KEY CREDENTIAL";
+}
+
+OTSubkey::~OTSubkey()
+{
+}
+
 int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = ot_super::ProcessXMLNode(xml);
+    int32_t retval = OTKeyCredential::ProcessXMLNode(xml);
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -172,30 +184,27 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do in the case of OTAccount.
-    //
-    if (0 != nReturnVal) return nReturnVal;
-    // else it was 0 (continue...)
-    const OTString strNodeName(xml->getNodeName());
-    if (strNodeName.Compare("keyCredential")) {
+    if (retval != 0) return retval;
+
+    OTString nodeName(xml->getNodeName());
+    if (nodeName.Compare("keyCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
         m_strMasterCredID = xml->getAttributeValue("masterCredentialID");
 
         OTLog::Output(1, "Loading keyCredential...\n");
-
-        nReturnVal = 1;
+        retval = 1;
     }
-    else if (strNodeName.Compare("masterSigned")) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_strMasterSigned)) {
+    else if (nodeName.Compare("masterSigned")) {
+        if (!OTContract::LoadEncodedTextField(xml, m_strMasterSigned)) {
             OTLog::vError("Error in %s line %d: failed loading expected "
                           "master-signed version while loading "
                           "keyCredential.\n",
                           __FILE__, __LINE__);
-            return (-1); // error condition
+            return -1;
         }
-
-        nReturnVal = 1;
+        retval = 1;
     }
-    return nReturnVal;
+    return retval;
 }
 
 void OTSubkey::UpdateContents()
@@ -206,36 +215,31 @@ void OTSubkey::UpdateContents()
         "<keyCredential nymID=\"%s\"\n"     // a hash of the nymIDSource
         " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential
                                             // that signed this subcredential.
-        this->GetNymID().Get(),
-        this->GetMasterCredID().Get());
+        GetNymID().Get(),
+        GetMasterCredID().Get());
 
-    if (this->GetNymIDSource().Exists()) {
+    if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
-        ascSource.SetString(this->GetNymIDSource()); // A nym should always
-                                                     // verify through its own
-                                                     // source. (Whatever that
-                                                     // may be.)
+        ascSource.SetString(GetNymIDSource()); // A nym should always
+                                               // verify through its own
+                                               // source. (Whatever that
+                                               // may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
                                   ascSource.Get());
     }
     // MASTER-SIGNED INFO
-    //
-    if ((OTSubcredential::credMasterSigned ==
-         m_StoreAs) || // MASTER-SIGNED INFO
-        (OTSubcredential::credPrivateInfo == m_StoreAs)) {
-        this->UpdateMasterPublicToString(m_xmlUnsigned);
-        this->UpdatePublicContentsToString(m_xmlUnsigned);
+    if (OTSubcredential::credMasterSigned == m_StoreAs ||
+        OTSubcredential::credPrivateInfo == m_StoreAs) {
+        UpdateMasterPublicToString(m_xmlUnsigned);
+        UpdatePublicContentsToString(m_xmlUnsigned);
     }
-    // PUBLIC INFO
-    //
-    if ((OTSubcredential::credPublicInfo ==
-         m_StoreAs) || // PUBLIC INFO (signed by subkey, contains master signed
-                       // info.)
-        (OTSubcredential::credPrivateInfo == m_StoreAs)) {
-        OTASCIIArmor ascMasterSigned(
-            this->GetMasterSigned()); // GetMasterSigned() returns the contract
-                                      // containing the master-signed contents
-                                      // from the above block.
+    // PUBLIC INFO (signed by subkey, contains master signed info.)
+    if (OTSubcredential::credPublicInfo == m_StoreAs ||
+        OTSubcredential::credPrivateInfo == m_StoreAs) {
+        // GetMasterSigned() returns the contract
+        // containing the master-signed contents
+        // from the above block.
+        OTASCIIArmor ascMasterSigned(GetMasterSigned());
         m_xmlUnsigned.Concatenate(
             "<masterSigned>\n%s</masterSigned>\n\n", // Contains all the public
                                                      // info, signed by the
@@ -246,33 +250,27 @@ void OTSubkey::UpdateContents()
     // PRIVATE INFO
     //
     // If we're saving the private credential info...
-    //
-    if (OTSubcredential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
-    {
-        this->UpdatePublicCredentialToString(m_xmlUnsigned);
-        this->UpdatePrivateContentsToString(m_xmlUnsigned);
+    if (OTSubcredential::credPrivateInfo == m_StoreAs) {
+        UpdatePublicCredentialToString(m_xmlUnsigned);
+        UpdatePrivateContentsToString(m_xmlUnsigned);
     }
-    // -------------------------------------------------
+
+    // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state
+    // processes ONCE, and then goes back to this again.
     m_xmlUnsigned.Concatenate("</keyCredential>\n");
-    m_StoreAs = OTSubcredential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
-                                                  // BEHAVIOR. Any other state
-                                                  // processes ONCE, and then
-                                                  // goes back to this again.
+    m_StoreAs = OTSubcredential::credPrivateInfo;
 }
 
 bool OTSubkey::VerifySignedByMaster()
 {
     // See if m_strMasterSigned was signed by my master credential.
-    //
-    OTSubkey theMasterSigned(*(this->m_pOwner));
+    OTSubkey masterKey(*m_pOwner);
 
     if (m_strMasterSigned.Exists() &&
-        theMasterSigned.LoadContractFromString(m_strMasterSigned)) {
+        masterKey.LoadContractFromString(m_strMasterSigned)) {
         // Here we need to MAKE SURE that the "master signed" version contains
-        // the same
-        // CONTENTS as the actual version.
-
-        if (false == this->GetNymID().Compare(theMasterSigned.GetNymID())) {
+        // the same CONTENTS as the actual version.
+        if (!GetNymID().Compare(masterKey.GetNymID())) {
             OTLog::vOutput(0, "%s: Failure, NymID of this key credential "
                               "doesn't match NymID of master-signed version of "
                               "this key credential.\n",
@@ -280,8 +278,7 @@ bool OTSubkey::VerifySignedByMaster()
             return false;
         }
 
-        if (false ==
-            this->GetNymIDSource().Compare(theMasterSigned.GetNymIDSource())) {
+        if (!GetNymIDSource().Compare(masterKey.GetNymIDSource())) {
             OTLog::vOutput(0, "%s: Failure, NymIDSource of this key credential "
                               "doesn't match NymIDSource of master-signed "
                               "version of this key credential.\n",
@@ -289,8 +286,7 @@ bool OTSubkey::VerifySignedByMaster()
             return false;
         }
 
-        if (false == this->GetMasterCredID().Compare(
-                         theMasterSigned.GetMasterCredID())) {
+        if (!GetMasterCredID().Compare(masterKey.GetMasterCredID())) {
             OTLog::vOutput(0, "%s: Failure, MasterCredID of this key "
                               "credential doesn't match MasterCredID of "
                               "master-signed version of this key credential.\n",
@@ -298,8 +294,8 @@ bool OTSubkey::VerifySignedByMaster()
             return false;
         }
 
-        if ((this->GetPublicMap().size() > 0) &&
-            (this->GetPublicMap() != theMasterSigned.GetPublicMap())) {
+        if (GetPublicMap().size() > 0 &&
+            GetPublicMap() != masterKey.GetPublicMap()) {
             OTLog::vOutput(0, "%s: Failure, public info of this key credential "
                               "doesn't match public info of master-signed "
                               "version of this key credential.\n",
@@ -314,7 +310,7 @@ bool OTSubkey::VerifySignedByMaster()
         // So we would never expect these to match, since the master signed
         // version should have no private keys in it.
         //
-        //        if (this->GetPrivateMap() != theMasterSigned.GetPrivateMap())
+        //        if (GetPrivateMap() != masterKey.GetPrivateMap())
         //        {
         //            OTLog::vOutput(0, "%s: Failure, private info of this key
         // credential doesn't match private info of master-signed version of
@@ -322,7 +318,7 @@ bool OTSubkey::VerifySignedByMaster()
         //            return false;
         //        }
 
-        const bool bVerifiedWithKey = theMasterSigned.VerifyWithKey(
+        bool verifiedWithKey = masterKey.VerifyWithKey(
             m_pOwner->GetMasterkey().m_SigningKey.GetPublicKey());
 
         // ON SERVER SIDE, THE ACTUAL SUBKEY doesn't have any public key, only
@@ -338,30 +334,13 @@ bool OTSubkey::VerifySignedByMaster()
         // mess with any of the keys.
         // Thus: copy the public info from master signed, to *this, if the above
         // call was successful
-        //
-        if (bVerifiedWithKey && (0 == this->GetPublicMap().size()))
-            return this->SetPublicContents(
-                theMasterSigned.GetPublicMap()); // For master credential.
-
-        return bVerifiedWithKey;
-    } // if (m_strMasterSigned.Exists() &&
-      // theMasterSigned.LoadContractFromString(m_strMasterSigned))
-
+        if (verifiedWithKey && GetPublicMap().size() == 0) {
+            // For master credential.
+            return SetPublicContents(masterKey.GetPublicMap());
+        }
+        return verifiedWithKey;
+    }
     return false;
-}
-
-OTSubkey::OTSubkey() : ot_super()
-{
-    m_strContractType = "KEY CREDENTIAL";
-}
-
-OTSubkey::OTSubkey(OTCredential& theOwner) : ot_super(theOwner)
-{
-    m_strContractType = "KEY CREDENTIAL";
-}
-
-OTSubkey::~OTSubkey()
-{
 }
 
 } // namespace opentxs

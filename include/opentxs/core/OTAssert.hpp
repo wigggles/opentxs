@@ -133,7 +133,7 @@
 #ifndef __OT_ASSERT_HPP__
 #define __OT_ASSERT_HPP__
 
-#include "OTCommon.hpp"
+#include <exception>
 
 #define OT_FAIL                                                                \
     {                                                                          \

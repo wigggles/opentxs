@@ -133,54 +133,70 @@
 #ifndef __OT_AMOUNT_HPP__
 #define __OT_AMOUNT_HPP__
 
-#include "OTCommon.hpp"
+#include <utility>
+#include <stdint.h>
 
 namespace opentxs
 {
 
 class OTAmount
 {
-    int64_t m_lAmount; // $5.45 has m_lAmount set to 545
-
 public:
-    EXPORT friend void swap(OTAmount& first, OTAmount& second) // nothrow
+    EXPORT OTAmount(int64_t amount = 0) : amount_(amount)
     {
-        using std::swap; // enable ADL (good practice)
-        swap(first.m_lAmount, second.m_lAmount);
     }
-    EXPORT bool IsPositive() const
-    {
-        return (m_lAmount > 0);
-    }
-    EXPORT bool IsNegative() const
-    {
-        return (m_lAmount < 0);
-    }
-    EXPORT bool IsZero() const
-    {
-        return (m_lAmount == 0);
-    }
-    EXPORT int64_t GetAmount() const
-    {
-        return m_lAmount;
-    }
-    EXPORT int64_t GetAbsolute() const
-    {
-        return (m_lAmount < 0) ? (m_lAmount * (-1)) : m_lAmount;
-    }
-    EXPORT void SetAmount(int64_t lAmount)
-    {
-        m_lAmount = lAmount;
-    }
-    EXPORT OTAmount(int64_t lAmount = 0);
-    EXPORT OTAmount(const OTAmount& other);
 
-    EXPORT OTAmount& operator=(OTAmount other);
-    //  OTAmount(OTAmount&& other);  // C++11
+    EXPORT OTAmount(const OTAmount& other) : amount_(other.amount_)
+    {
+    }
 
     EXPORT ~OTAmount()
     {
     }
+
+    EXPORT OTAmount& operator=(OTAmount other)
+    {
+        swap(*this, other);
+        return *this;
+    }
+
+    EXPORT friend void swap(OTAmount& first, OTAmount& second)
+    {
+        std::swap(first.amount_, second.amount_);
+    }
+
+    EXPORT bool IsPositive() const
+    {
+        return (amount_ > 0);
+    }
+
+    EXPORT bool IsNegative() const
+    {
+        return (amount_ < 0);
+    }
+
+    EXPORT bool IsZero() const
+    {
+        return (amount_ == 0);
+    }
+
+    EXPORT int64_t GetAmount() const
+    {
+        return amount_;
+    }
+
+    EXPORT int64_t GetAbsolute() const
+    {
+        return (amount_ < 0) ? (amount_ * (-1)) : amount_;
+    }
+
+    EXPORT void SetAmount(int64_t amount)
+    {
+        amount_ = amount;
+    }
+
+private:
+    int64_t amount_; // $5.45 has amount_ set to 545
 };
 
 } // namespace opentxs

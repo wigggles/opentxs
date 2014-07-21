@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAmount.cpp
+ *  OTSignature.cpp
  *
  */
 
@@ -132,30 +132,72 @@
 
 #include "stdafx.hpp"
 
-#include "OTAmount.hpp"
+#include "OTSignatureMetadata.hpp"
+#include "OTCrypto.hpp"
+#include "OTLog.hpp"
+#include <string>
 
 namespace opentxs
 {
 
-OTAmount::OTAmount(int64_t lAmount /*=0*/) : m_lAmount(lAmount)
+bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
+                                      char metaMasterCredID, char metaSubCredID)
+{
+    switch (metaKeyType) {
+    // authentication (used for signing transmissions and stored files.)
+    case 'A':
+    // encryption (unusual BTW, to see this in a signature. Should
+    // never actually happen, or at least should be rare and strange
+    // when it does.)
+    case 'E':
+    // signing (a "legal signature.")
+    case 'S':
+        break;
+    default:
+        otErr << __FUNCTION__
+              << ": Expected key type of A, E, or S, but instead found: "
+              << metaKeyType << " (bad data or error)\n";
+        return false;
+    }
+
+    std::string str_verify_base62;
+
+    str_verify_base62 += metaNymID;
+    str_verify_base62 += metaMasterCredID;
+    str_verify_base62 += metaSubCredID;
+
+    if (!OTCrypto::It()->IsBase62(str_verify_base62)) {
+        otErr << __FUNCTION__
+              << ": Metadata for signature failed base62 validation: "
+              << str_verify_base62 << "\n";
+        return false;
+    }
+
+    metaKeyType_ = metaKeyType;
+    metaNymID_ = metaNymID;
+    metaMasterCredID_ = metaMasterCredID;
+    metaSubCredID_ = metaSubCredID;
+    hasMetadata_ = true;
+
+    return true;
+}
+
+OTSignatureMetadata::OTSignatureMetadata()
+    : hasMetadata_(false)
+    , metaKeyType_(0)
+    , metaNymID_(0)
+    , metaMasterCredID_(0)
+    , metaSubCredID_(0)
 {
 }
 
-OTAmount::OTAmount(const OTAmount& other) : m_lAmount(other.GetAmount())
+bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
 {
+    return ((this->HasMetadata() == rhs.HasMetadata()) &&
+            (this->GetKeyType() == rhs.GetKeyType()) &&
+            (this->FirstCharNymID() == rhs.FirstCharNymID()) &&
+            (this->FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
+            (this->FirstCharSubCredID() == rhs.FirstCharSubCredID()));
 }
-
-OTAmount& OTAmount::operator=(OTAmount other)
-{
-    swap(*this, other);
-    return *this;
-}
-
-// C++11  (move constructor)
-// OTAmount::OTAmount(OTAmount&& other)
-//: OTAmount() // initialize via default constructor, C++11 only
-//{
-//    swap(*this, other);
-//}
 
 } // namespace opentxs

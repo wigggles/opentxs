@@ -12,7 +12,6 @@ set(cxx-sources
   OTAcctList.cpp
   OTAgent.cpp
   OTAgreement.cpp
-  OTAmount.cpp
   OTASCIIArmor.cpp
   OTAssert.cpp
   OTAssetContract.cpp
@@ -71,7 +70,7 @@ set(cxx-sources
   OTScriptChai.cpp
   OTServerContract.cpp
   OTSettings.cpp
-  OTSignature.cpp
+  OTSignatureMetadata.cpp
   OTSignedFile.cpp
   OTSmartContract.cpp
   OTStash.cpp
