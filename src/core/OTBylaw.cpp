@@ -403,7 +403,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
         // all to a SET in order to get unique keys.
         for (const auto& it : m_mapHooks) {
             const std::string& str_hook_name = it.first;
-            //            const std::string & str_clause_name    = (*it).second;
+            //            const std::string & str_clause_name    = it->second;
 
             theHookSet.insert(str_hook_name);
         }
@@ -452,7 +452,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 // make sure that we got them both via the same
                 // name, and that the counts are the same (as already verified
                 // above) and that should actually be good enough.
-                //                OTClause * pClause2 = (*it_rhs).second;
+                //                OTClause * pClause2 = it_rhs->second;
                 //                OT_ASSERT(NULL != pClause2);
                 //
                 //                if (!pClause->Compare(*pClause2))
@@ -542,7 +542,7 @@ bool OTBylaw::AddCallback(const std::string str_CallbackName,
 
     if (m_mapCallbacks.end() != it) // It's already there. (Can't add it twice.)
     {
-        const std::string str_existing_clause = (*it).second;
+        const std::string str_existing_clause = it->second;
         otOut << "OTBylaw::AddCallback: Failed to add callback ("
               << str_CallbackName << ") to bylaw " << m_strName
               << ", already there as " << str_existing_clause << ".\n";
@@ -616,7 +616,7 @@ OTVariable* OTBylaw::GetVariable(const std::string str_var_name) // not a
 
     if (m_mapVariables.end() == it) return NULL;
 
-    OTVariable* pVar = (*it).second;
+    OTVariable* pVar = it->second;
     OT_ASSERT(NULL != pVar);
 
     return pVar;
@@ -656,7 +656,7 @@ OTClause* OTBylaw::GetClause(const std::string str_clause_name)
 
     if (m_mapClauses.end() == it) return NULL;
 
-    OTClause* pClause = (*it).second;
+    OTClause* pClause = it->second;
     OT_ASSERT(NULL != pClause);
 
     return pClause;

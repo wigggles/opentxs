@@ -755,7 +755,7 @@ bool OTCronItem::MoveFunds(
     if (map_NymsAlreadyLoaded.end() !=
         it_sender) // found the sender in list of Nyms that are already loaded.
     {
-        pSenderNym = (*it_sender).second;
+        pSenderNym = it_sender->second;
         OT_ASSERT((NULL != pSenderNym) &&
                   (pSenderNym->CompareID(SENDER_USER_ID)));
     }
@@ -763,7 +763,7 @@ bool OTCronItem::MoveFunds(
                                                      // list of Nyms that are
                                                      // already loaded.
     {
-        pRecipientNym = (*it_recipient).second;
+        pRecipientNym = it_recipient->second;
         OT_ASSERT((NULL != pRecipientNym) &&
                   (pRecipientNym->CompareID(RECIPIENT_USER_ID)));
     }

@@ -221,7 +221,7 @@ std::string OT_CLI_GetValueByKey(const std::string str_Args,
         mapOfArguments::iterator it = map_values.find(str_key);
 
         if (map_values.end() != it) // found it
-            str_retval = (*it).second;
+            str_retval = it->second;
     }
     return str_retval;
 }
@@ -241,8 +241,8 @@ std::string OT_CLI_GetValueByIndex(const std::string str_Args,
         int32_t nMapIndex = (-1);
         for (auto& it : map_values) {
             ++nMapIndex;
-            //   const std::string str_key = (*it).first;
-            //   const std::string str_val = (*it).second;
+            //   const std::string str_key = it->first;
+            //   const std::string str_val = it->second;
             // BY this point, nMapIndex contains the index we're at on
             // map_values
             // (compare to nIndex.) And str_key and str_val contain the
@@ -273,8 +273,8 @@ std::string OT_CLI_GetKeyByIndex(const std::string str_Args,
         int32_t nMapIndex = (-1);
         for (auto& it : map_values) {
             ++nMapIndex;
-            //   const std::string str_key = (*it).first;
-            //   const std::string str_val = (*it).second;
+            //   const std::string str_key = it->first;
+            //   const std::string str_val = it->second;
             // BY this point, nMapIndex contains the index we're at on
             // map_values
             // (compare to nIndex.) And str_key and str_val contain the

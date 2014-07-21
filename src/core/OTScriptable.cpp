@@ -1976,7 +1976,7 @@ OTBylaw* OTScriptable::GetBylaw(const std::string str_bylaw_name)
         return NULL;
     }
 
-    OTBylaw* pBylaw = (*iii).second;
+    OTBylaw* pBylaw = iii->second;
     OT_ASSERT(NULL != pBylaw);
 
     return pBylaw;
@@ -2003,7 +2003,7 @@ OTParty* OTScriptable::GetParty(const std::string str_party_name)
         return NULL;
     }
 
-    OTParty* pParty = (*it).second;
+    OTParty* pParty = it->second;
     OT_ASSERT(NULL != pParty);
 
     return pParty;
@@ -2150,7 +2150,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
 
     if (it_delete != m_mapParties.end()) // It was already there. (Good.)
     {
-        OTParty* pParty = (*it_delete).second;
+        OTParty* pParty = it_delete->second;
         OT_ASSERT(NULL != pParty);
 
         if (!pParty->Compare(theParty)) // Make sure my party compares to the
@@ -3213,7 +3213,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             if ((it != temp_MapAttributes.end())) // We expected
                                                                   // this much.
                             {
-                                std::string& str_name = (*it).second;
+                                std::string& str_name = it->second;
 
                                 if (str_name.size() > 0) // SUCCESS
                                 {

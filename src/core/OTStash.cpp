@@ -289,7 +289,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
         return pStashItem;
     }
 
-    OTStashItem* pStashItem = (*it).second;
+    OTStashItem* pStashItem = it->second;
     OT_ASSERT(NULL != pStashItem);
 
     return pStashItem;

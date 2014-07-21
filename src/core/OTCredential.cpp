@@ -860,7 +860,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
     {
         otErr << __FUNCTION__ << ": Warning: Deleting and re-loading "
                                  "keyCredential that was already loaded.\n";
-        OTSubcredential* pSub = (*it).second;
+        OTSubcredential* pSub = it->second;
         OT_ASSERT(NULL != pSub);
         delete pSub;
         m_mapSubcredentials.erase(it);
@@ -949,7 +949,7 @@ bool OTCredential::LoadSubcredentialFromString(
     {
         otErr << __FUNCTION__ << ": Warning: Deleting and re-loading "
                                  "subCredential that was already loaded.\n";
-        OTSubcredential* pSub = (*it).second;
+        OTSubcredential* pSub = it->second;
         OT_ASSERT(NULL != pSub);
         delete pSub;
         m_mapSubcredentials.erase(it);

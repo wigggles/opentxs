@@ -443,7 +443,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 mapOfStrings::iterator it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
-                    std::string& str_key = (*it).second;
+                    std::string& str_key = it->second;
 
                     if (str_key.size() >
                         0) // Success finding key type ('A' 'E' or 'S')
@@ -542,7 +542,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 mapOfStrings::iterator it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
-                    std::string& str_key = (*it).second;
+                    std::string& str_key = it->second;
 
                     if (str_key.size() >
                         0) // Success finding key type ('A' 'E' or 'S')

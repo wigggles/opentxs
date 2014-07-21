@@ -651,7 +651,7 @@ bool OTAssetContract::ForEachAccountRecord(
 
                     if (pLoadedAccounts->end() != found_it) // FOUND IT.
                     {
-                        pAccount = (*found_it).second;
+                        pAccount = found_it->second;
                         OT_ASSERT(NULL != pAccount);
 
                         if (theAccountID != pAccount->GetPurportedAccountID()) {
@@ -765,8 +765,8 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
         // asset type ID as its filename...)
         //
         const std::string& str2 =
-            (*map_it).second; // Containing the asset type ID. (Just in case
-                              // someone copied the wrong file here,
+            map_it->second; // Containing the asset type ID. (Just in case
+                            // someone copied the wrong file here,
         // --------------------------------          // every account should map
         // to the SAME asset ID.)
 

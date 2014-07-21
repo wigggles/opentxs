@@ -619,11 +619,11 @@ int64_t OTMint::GetDenomination(int32_t nIndex)
 
     for (mapOfArmor::iterator ii = m_mapPublic.begin(); ii != m_mapPublic.end();
          ++ii, nIterateIndex++) {
-        OTASCIIArmor* pArmor = (*ii).second;
+        OTASCIIArmor* pArmor = ii->second;
         OT_ASSERT_MSG(NULL != pArmor,
                       "NULL mint pointer in OTMint::GetDenomination.\n");
 
-        if (nIndex == nIterateIndex) return (*ii).first;
+        if (nIndex == nIterateIndex) return ii->first;
     }
 
     return 0;

@@ -931,7 +931,7 @@ bool OTPseudonym::AddNewSubkey(
         return false;
     }
 
-    OTCredential* pMaster = (*it).second;
+    OTCredential* pMaster = it->second;
     OT_ASSERT(NULL != pMaster);
 
     OTSubkey* pSubkey = NULL;
@@ -1020,7 +1020,7 @@ bool OTPseudonym::AddNewSubcredential(
         return false;
     }
 
-    OTCredential* pMaster = (*it).second;
+    OTCredential* pMaster = it->second;
     OT_ASSERT(NULL != pMaster);
 
     OTSubcredential* pSubcredential = NULL;
@@ -3634,7 +3634,7 @@ bool OTPseudonym::VerifyPseudonym() const
         if (!m_pkeypair->HasPublicKey()) {
             mapOfCredentials::const_iterator it = m_mapCredentials.begin();
             OT_ASSERT(m_mapCredentials.end() != it);
-            OTCredential* pCredential = (*it).second;
+            OTCredential* pCredential = it->second;
             OT_ASSERT(NULL != pCredential);
 
             OTString strSigningKey;
@@ -3846,7 +3846,7 @@ bool OTPseudonym::LoadPublicKey()
     {
         //        mapOfCredentials::iterator it = m_mapCredentials.begin();
         //        OT_ASSERT(m_mapCredentials.end() != it);
-        //        OTCredential * pCredential = (*it).second;
+        //        OTCredential * pCredential = it->second;
         //        OT_ASSERT(NULL != pCredential);
 
         //        OTString strSigningKey;
@@ -4853,7 +4853,7 @@ OTCredential* OTPseudonym::GetMasterCredential(const OTString& strID)
     OTCredential* pCredential = NULL;
 
     if (iter != m_mapCredentials.end()) // found it
-        pCredential = (*iter).second;
+        pCredential = iter->second;
 
     return pCredential;
 }
@@ -4864,7 +4864,7 @@ OTCredential* OTPseudonym::GetRevokedCredential(const OTString& strID)
     OTCredential* pCredential = NULL;
 
     if (iter != m_mapRevoked.end()) // found it
-        pCredential = (*iter).second;
+        pCredential = iter->second;
 
     return pCredential;
 }
@@ -4920,7 +4920,7 @@ const OTSubcredential* OTPseudonym::GetSubcredential(
     const OTCredential* pMaster = NULL;
 
     if (iter != m_mapCredentials.end()) // found it
-        pMaster = (*iter).second;
+        pMaster = iter->second;
 
     if (NULL != pMaster) {
         const OTSubcredential* pSub =
@@ -4944,7 +4944,7 @@ const OTSubcredential* OTPseudonym::GetRevokedSubcred(
     const OTCredential* pMaster = NULL;
 
     if (iter != m_mapRevoked.end()) // found it
-        pMaster = (*iter).second;
+        pMaster = iter->second;
 
     if (NULL != pMaster) {
         const OTSubcredential* pSub = pMaster->GetSubcredential(strSubCredID);
@@ -5178,7 +5178,7 @@ bool OTPseudonym::LoadFromString(
                          // from storage, we'll load from string instead.)
                     {
                         const OTString strMasterCredential(
-                            (*it_cred).second.c_str());
+                            it_cred->second.c_str());
                         if (strMasterCredential.Exists()) {
                             OTPasswordData thePWData(
                                 NULL == pstrReason
@@ -5278,7 +5278,7 @@ bool OTPseudonym::LoadFromString(
                              // instead.)
                         {
                             const OTString strSubCredential(
-                                (*it_cred).second.c_str());
+                                it_cred->second.c_str());
                             if (strSubCredential.Exists())
                                 bLoaded = pCredential->LoadSubkeyFromString(
                                     strSubCredential, strID, pImportPassword);
@@ -5355,7 +5355,7 @@ bool OTPseudonym::LoadFromString(
                              // instead.)
                         {
                             const OTString strSubCredential(
-                                (*it_cred).second.c_str());
+                                it_cred->second.c_str());
                             if (strSubCredential.Exists())
                                 bLoaded =
                                     pCredential->LoadSubcredentialFromString(
@@ -6193,7 +6193,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(
         //      return true;
         mapOfCredentials::iterator it = m_mapCredentials.begin();
         OT_ASSERT(m_mapCredentials.end() != it);
-        OTCredential* pCredential = (*it).second;
+        OTCredential* pCredential = it->second;
         OT_ASSERT(NULL != pCredential);
 
         OTString strPubAndPrivCert;

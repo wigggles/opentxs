@@ -436,7 +436,7 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
     if (this->ot_super::SetPublicContents(mapPublic)) {
 
         OTString strKey;
-        strKey.Set((*iiAuth).second.c_str());
+        strKey.Set(iiAuth->second.c_str());
         if (false == m_AuthentKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public authentication key based "
@@ -445,7 +445,7 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
         }
 
         strKey.Release();
-        strKey.Set((*iiEncr).second.c_str());
+        strKey.Set(iiEncr->second.c_str());
         if (false == m_EncryptKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public encryption key based on "
@@ -454,7 +454,7 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
         }
 
         strKey.Release();
-        strKey.Set((*iiSign).second.c_str());
+        strKey.Set(iiSign->second.c_str());
         if (false == m_SigningKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public signing key based on "
@@ -527,8 +527,8 @@ bool OTKeyCredential::SetPrivateContents(
         mapOfStrings mapPublic;
 
         OTString strPrivate;
-        strPrivate.Set((*iiAuth).second.c_str()); // strPrivate now contains the
-                                                  // private Cert string.
+        strPrivate.Set(iiAuth->second.c_str()); // strPrivate now contains the
+                                                // private Cert string.
 
         if (false == m_AuthentKey.LoadPrivateKeyFromCertString(
                          strPrivate, false /*bEscaped true by default*/,
@@ -566,7 +566,7 @@ bool OTKeyCredential::SetPrivateContents(
         }
 
         strPrivate.Release();
-        strPrivate.Set((*iiEncr).second.c_str());
+        strPrivate.Set(iiEncr->second.c_str());
 
         if (false == m_EncryptKey.LoadPrivateKeyFromCertString(
                          strPrivate, false /*bEscaped true by default*/,
@@ -603,7 +603,7 @@ bool OTKeyCredential::SetPrivateContents(
         }
 
         strPrivate.Release();
-        strPrivate.Set((*iiSign).second.c_str());
+        strPrivate.Set(iiSign->second.c_str());
 
         if (false == m_SigningKey.LoadPrivateKeyFromCertString(
                          strPrivate, false /*bEscaped true by default*/,

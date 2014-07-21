@@ -1185,7 +1185,7 @@ bool OTLedger::RemoveTransaction(int64_t lTransactionNum,
     }
     // Otherwise, if it WAS already there, remove it properly.
     else {
-        OTTransaction* pTransaction = (*it).second;
+        OTTransaction* pTransaction = it->second;
         OT_ASSERT(NULL != pTransaction);
         m_mapTransactions.erase(it);
 
