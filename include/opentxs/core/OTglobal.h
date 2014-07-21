@@ -1,6 +1,6 @@
 /************************************************************
  *    
- *  OTGlobal.h
+ *  OTglobal.h
  *  
  */
 
@@ -135,7 +135,6 @@
 
 #include "OTCommon.hpp"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -144,29 +143,28 @@ extern "C" {
 #define TYPE_1_CMD_2	2
 #define TYPE_1_CMD_3	3
 #define TYPE_1_CMD_4	4
-	
+
 #define CMD_TYPE_1		1
-	
+
 #define OT_CMD_HEADER_SIZE  9
-	
-	typedef uint8_t	BYTE;
-	typedef uint16_t	USHORT;
-	
-	union u_header
-	{
-		BYTE buf[OT_CMD_HEADER_SIZE];
-		struct {
-			BYTE		type_id;	// 1 byte
-			BYTE		command_id;	// 1 byte
-			BYTE		filler[2];	// 2 extra bytes here so the size begins on a 4-byte boundary
-			uint32_t	size;		// 4 bytes to describe size of payload
-			BYTE		checksum;	// 1 byte
-		} fields;	// total of 9 bytes
-	};
-	
+
+    typedef uint8_t BYTE;
+    typedef uint16_t USHORT;
+
+    union u_header
+    {
+        BYTE buf[OT_CMD_HEADER_SIZE];
+        struct {
+            BYTE     type_id;    // 1 byte
+            BYTE     command_id; // 1 byte
+            BYTE     filler[2];  // 2 bytes padding
+            uint32_t size;       // 4 bytes
+            BYTE     checksum;   // 1 byte
+        } fields;                // 9 bytes total
+    };
+
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif // __OT_GLOBAL_H__
