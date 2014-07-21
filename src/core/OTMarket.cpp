@@ -638,7 +638,7 @@ OTOffer* OTMarket::GetOffer(const int64_t& lTransactionNum)
     }
     // Found it!
     else {
-        OTOffer* pOffer = (*ii).second;
+        OTOffer* pOffer = ii->second;
 
         OT_ASSERT((NULL != pOffer));
 
@@ -669,7 +669,7 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
     }
     // Otherwise, if it WAS already there, remove it properly.
     else {
-        OTOffer* pOffer = (*ii).second;
+        OTOffer* pOffer = ii->second;
 
         OT_ASSERT(NULL != pOffer);
 
@@ -691,7 +691,7 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
 
         for (mapOfOffers::iterator iii = pMap->begin(); iii != pMap->end();
              ++iii) {
-            pSameOffer = (*iii).second;
+            pSameOffer = iii->second;
 
             OT_ASSERT_MSG(NULL != pSameOffer,
                           "NULL offer pointer in OTMarket::RemoveOffer.\n");
@@ -932,7 +932,7 @@ int64_t OTMarket::GetHighestBidPrice()
     mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
 
     if (rr != m_mapBids.rend()) {
-        lPrice = (*rr).first;
+        lPrice = rr->first;
     }
 
     return lPrice;
@@ -947,7 +947,7 @@ int64_t OTMarket::GetLowestAskPrice()
     mapOfOffers::iterator ii = m_mapAsks.begin();
 
     if (ii != m_mapAsks.end()) {
-        lPrice = (*ii).first;
+        lPrice = ii->first;
 
         // Market orders have a 0 price, so we need to skip any if they are
         // here.
@@ -962,7 +962,7 @@ int64_t OTMarket::GetLowestAskPrice()
 
             if (ii == m_mapAsks.end()) break;
 
-            lPrice = (*ii).first;
+            lPrice = ii->first;
         }
     }
 
@@ -2505,7 +2505,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         // no other bids within my price range.
         for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
              rr != m_mapBids.rend(); rr++) {
-            pBid = (*rr).second;
+            pBid = rr->second;
             OT_ASSERT(NULL != pBid);
 
             // NOTE: Market orders only process once, and they are processed in

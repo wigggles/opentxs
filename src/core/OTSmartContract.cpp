@@ -2666,7 +2666,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     if (map_NymsAlreadyLoaded.end() !=
         it_party) // found the party in list of Nyms that are already loaded.
     {
-        pPartyNym = (*it_party).second;
+        pPartyNym = it_party->second;
         OT_ASSERT((NULL != pPartyNym) && (pPartyNym->CompareID(PARTY_USER_ID)));
     }
 
@@ -5691,7 +5691,7 @@ OTStash* OTSmartContract::GetStash(const std::string str_stash_name)
         return pStash;
     }
 
-    OTStash* pStash = (*it).second;
+    OTStash* pStash = it->second;
     OT_ASSERT(NULL != pStash);
 
     return pStash;

@@ -879,7 +879,7 @@ Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
 
     if (details::pFunctionMap->end() == ii) return NULL;
 
-    InstantiateFunc* pFunc = (*ii).second;
+    InstantiateFunc* pFunc = ii->second;
 
     if (NULL != pFunc) {
         pStorable = (*pFunc)(); // Now we instantiate the object...
@@ -955,7 +955,7 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
     // This line (commented out) shows how the line below it would have looked
     // if I had ended
     // up using polymorphic templates:
-    //    if (false == makeTStorable(*pStorable).pack(*pBuffer))
+    //    if (false == makeTStorablepStorable->pack(*pBuffer))
 
     if (false == pStorable->onPack(*pBuffer, inObj)) {
         delete pBuffer;
@@ -1366,10 +1366,10 @@ template <class theBaseType, class theInternalType,
     return (&__pb_obj);
 }
 
-//    if (false == makeTStorable(*pStorable).pack(*pBuffer))
+//    if (false == makeTStorablepStorable->pack(*pBuffer))
 //::google::protobuf::MessageLite    &    IStorablePB::getPBMessage()
 //{
-//    return makeTStorablePB(*this).getPBMessage();
+//    return makeTStorablePBthis->getPBMessage();
 //}
 
 bool IStorablePB::onPack(PackedBuffer& theBuffer,
@@ -1595,8 +1595,8 @@ template <> void StringMapPB::hookBeforePack()
     for (std::map<std::string, std::string>::iterator ii = the_map.begin();
          ii != the_map.end(); ++ii) {
         KeyValue_InternalPB* pNode = __pb_obj.add_node();
-        pNode->set_key((*ii).first);
-        pNode->set_value((*ii).second);
+        pNode->set_key(ii->first);
+        pNode->set_value(ii->second);
     }
 }
 

@@ -297,7 +297,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
     // Account ID *IS* already there for this asset type
     if (mapAcctIDs_.end() != acctIDsIt) {
         // grab account ID
-        std::string accountIdString = (*acctIDsIt).second;
+        std::string accountIdString = acctIDsIt->second;
         auto weakIt = mapWeakAccts_.find(accountIdString);
 
         // FOUND the weak ptr to the account! Maybe it's already loaded

@@ -755,7 +755,7 @@ bool OTAgent::DropFinalReceiptToInbox(
 
             if (pNymMap->end() != ittt) // found it!
             {
-                pNym = (*ittt).second;
+                pNym = ittt->second;
                 OT_ASSERT(NULL != pNym);
             }
         }

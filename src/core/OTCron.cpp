@@ -736,7 +736,7 @@ void OTCron::ProcessCronItems()
             break;
         }
 
-        OTCronItem* pItem = (*it).second;
+        OTCronItem* pItem = it->second;
         OT_ASSERT(NULL != pItem);
 
         bool bProcessCron = false;
@@ -935,7 +935,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
 
     // Otherwise, if it WAS already there, remove it properly.
     else {
-        OTCronItem* pItem = (*it_map).second;
+        OTCronItem* pItem = it_map->second;
         //      OT_ASSERT(NULL != pItem); // Already done in FindItemOnMap.
 
         // We have to remove it from the multimap as well.
@@ -976,7 +976,7 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
 
     if (itt != m_mapCronItems.end()) // Found it!
     {
-        OTCronItem* pItem = (*itt).second;
+        OTCronItem* pItem = itt->second;
         OT_ASSERT((NULL != pItem));
         OT_ASSERT(pItem->GetTransactionNum() == lTransactionNum);
 
@@ -1001,7 +1001,7 @@ multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
     multimapOfCronItems::iterator itt = m_multimapCronItems.begin();
 
     while (m_multimapCronItems.end() != itt) {
-        OTCronItem* pItem = (*itt).second;
+        OTCronItem* pItem = itt->second;
         OT_ASSERT((NULL != pItem));
 
         if (pItem->GetTransactionNum() == lTransactionNum) break;
@@ -1029,7 +1029,7 @@ OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
 
     if (itt != m_mapCronItems.end()) // Found it!
     {
-        OTCronItem* pItem = (*itt).second;
+        OTCronItem* pItem = itt->second;
         OT_ASSERT((NULL != pItem));
         OT_ASSERT(pItem->GetTransactionNum() == lTransactionNum);
 
@@ -1074,7 +1074,7 @@ OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
     }
     // Found it!
     else {
-        OTCronItem* pItem = (*itt).second;
+        OTCronItem* pItem = itt->second;
         OT_ASSERT((NULL != pItem));
         OT_ASSERT(pItem->IsValidOpeningNumber(
             lOpeningNum)); // Todo optimization. Probably can remove this check.
@@ -1168,7 +1168,7 @@ bool OTCron::RemoveMarket(const OTIdentifier& MARKET_ID) // if false, market
     }
     // Otherwise, if it WAS already there, remove it properly.
     else {
-        OTMarket* pMarket = (*ii).second;
+        OTMarket* pMarket = ii->second;
 
         OT_ASSERT(NULL != pMarket);
 
@@ -1235,7 +1235,7 @@ OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
     }
     // Found it!
     else {
-        OTMarket* pMarket = (*ii).second;
+        OTMarket* pMarket = ii->second;
 
         OT_ASSERT((NULL != pMarket));
 

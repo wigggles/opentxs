@@ -442,7 +442,7 @@ int64_t OTParty::GetClosingTransNo(const std::string str_for_acct_name) const
         return 0;
     }
 
-    OTPartyAccount* pPartyAccount = (*it).second;
+    OTPartyAccount* pPartyAccount = it->second;
     OT_ASSERT(NULL != pPartyAccount);
 
     return pPartyAccount->GetClosingTransNo();
@@ -647,7 +647,7 @@ OTAgent* OTParty::GetAgent(const std::string& str_agent_name)
 
         if (m_mapAgents.end() != it) // If we found something...
         {
-            OTAgent* pAgent = (*it).second;
+            OTAgent* pAgent = it->second;
             OT_ASSERT(NULL != pAgent);
 
             return pAgent;
@@ -695,7 +695,7 @@ OTPartyAccount* OTParty::GetAccount(const std::string& str_acct_name) const
 
         if (m_mapPartyAccounts.end() != it) // If we found something...
         {
-            OTPartyAccount* pAcct = (*it).second;
+            OTPartyAccount* pAcct = it->second;
             OT_ASSERT(NULL != pAcct);
 
             return pAcct;
@@ -856,7 +856,7 @@ bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym,
 
         if (m_mapAgents.end() != it) // If we found something...
         {
-            OTAgent* pAgent = (*it).second;
+            OTAgent* pAgent = it->second;
             OT_ASSERT(NULL != pAgent);
 
             if (pAgent->IsValidSigner(theNym)) // if theNym is valid signer for
@@ -887,7 +887,7 @@ bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
 
         if (m_mapAgents.end() != it) // If we found something...
         {
-            OTAgent* pAgent = (*it).second;
+            OTAgent* pAgent = it->second;
             OT_ASSERT(NULL != pAgent);
 
             if (pAgent->IsValidSignerID(theNymID)) // if theNym is valid signer
@@ -937,7 +937,7 @@ OTPseudonym* OTParty::LoadAuthorizingAgentNym(
 
         if (m_mapAgents.end() != it) // If we found something...
         {
-            OTAgent* pAgent = (*it).second;
+            OTAgent* pAgent = it->second;
             OT_ASSERT(NULL != pAgent);
 
             OTPseudonym* pNym = NULL;
@@ -1172,7 +1172,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
 
         if (map_Accts_Already_Loaded.end() != ii) // Found it.
         {
-            pAccount = (*ii).second;
+            pAccount = ii->second;
             OT_ASSERT(NULL != pAccount);
 
             // Now we KNOW the Account is "already loaded" and we KNOW the
@@ -1324,7 +1324,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 
         if (map_Nyms_Already_Loaded.end() != ii) // Found it.
         {
-            pNym = (*ii).second;
+            pNym = ii->second;
             OT_ASSERT(NULL != pNym);
 
             // Now we KNOW the Nym is "already loaded" and we KNOW the agent has
