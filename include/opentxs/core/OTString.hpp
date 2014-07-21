@@ -211,30 +211,31 @@ public:
                                            const OTString& obj);
 
     EXPORT OTString();
-    EXPORT OTString(const OTString& strValue);
-    EXPORT OTString(const OTASCIIArmor& strValue);
-    OTString(const OTSignature& strValue);
-    EXPORT OTString(const OTContract& theValue);
-    EXPORT OTString(const OTIdentifier& theValue);
-    OTString(OTPseudonym& theValue);
-    EXPORT OTString(const char* new_string);
-    OTString(const char* new_string, size_t sizeLength);
-    EXPORT OTString(const std::string& new_string);
+    EXPORT OTString(const OTString& value);
+    EXPORT OTString(const OTASCIIArmor& value);
+    OTString(const OTSignature& value);
+    EXPORT OTString(const OTContract& value);
+    EXPORT OTString(const OTIdentifier& value);
+    OTString(OTPseudonym& value);
+    EXPORT OTString(const char* value);
+    OTString(const char* value, size_t size);
+    EXPORT OTString(const std::string& value);
     EXPORT virtual ~OTString();
+
+    EXPORT virtual void Release();
 
     void Initialize();
 
     EXPORT OTString& operator=(OTString rhs);
 
-    static bool vformat(const char* fmt, std::va_list* pvl,
-                        std::string& str_output);
+    static bool vformat(const char* fmt, std::va_list* pvl, std::string& s);
 
     void swap(OTString& rhs);
-    bool operator>(const OTString& s2) const;
-    bool operator<(const OTString& s2) const;
-    bool operator<=(const OTString& s2) const;
-    bool operator>=(const OTString& s2) const;
-    EXPORT bool operator==(const OTString& s2) const;
+    bool operator>(const OTString& rhs) const;
+    bool operator<(const OTString& rhs) const;
+    bool operator<=(const OTString& rhs) const;
+    bool operator>=(const OTString& rhs) const;
+    EXPORT bool operator==(const OTString& rhs) const;
 
     EXPORT static std::string& trim(std::string& str);
     EXPORT static const std::string replace_chars(const std::string& str,
@@ -248,28 +249,29 @@ public:
 public:
     EXPORT static bool safe_strcpy(
         char* dest, const char* src,
-        size_t dest_size, // max size of destination must be passed here.
-        bool bZeroSource = false); // if true, sets the source buffer to zero
-                                   // after copying is done.
+        // max size of destination must be passed here.
+        size_t destSize,
+        // if true, sets the source buffer to zero after copying is done.
+        bool zeroSource = false);
     static size_t safe_strlen(const char* s, size_t max);
 
-    EXPORT static int64_t StringToLong(const std::string& strNumber);
+    EXPORT static int64_t StringToLong(const std::string& number);
 
     EXPORT int64_t ToLong() const;
 
-    EXPORT static uint64_t StringToUlong(const std::string& strNumber);
+    EXPORT static uint64_t StringToUlong(const std::string& number);
 
     EXPORT uint64_t ToUlong() const;
 
-    EXPORT bool At(uint32_t lIndex, char& c) const;
+    EXPORT bool At(uint32_t index, char& c) const;
     EXPORT bool Exists() const;
-    EXPORT bool DecodeIfArmored(bool bEscapedIsAllowed = true);
+    EXPORT bool DecodeIfArmored(bool escapedIsAllowed = true);
     EXPORT uint32_t GetLength() const;
-    EXPORT bool Compare(const char* strCompare) const;
-    EXPORT bool Compare(const OTString& strCompare) const;
+    EXPORT bool Compare(const char* compare) const;
+    EXPORT bool Compare(const OTString& compare) const;
 
-    EXPORT bool Contains(const char* strCompare) const;
-    bool Contains(const OTString& strCompare) const;
+    EXPORT bool Contains(const char* compare) const;
+    bool Contains(const OTString& compare) const;
 
     EXPORT const char* Get() const;
     // new_string MUST be at least nEnforcedMaxLength in size if
@@ -280,45 +282,44 @@ public:
     // the valid range is 0..9. Therefore 9 (10 minus 1) is where the
     // NULL terminator goes.
     //
-    EXPORT void Set(const char* new_string, uint32_t nEnforcedMaxLength = 0);
-    EXPORT void Set(const OTString& strBuf);
+    EXPORT void Set(const char* data, uint32_t enforcedMaxLength = 0);
+    EXPORT void Set(const OTString& data);
     // For a straight-across, exact-size copy of bytes.
     // Source not expected to be null-terminated.
-    EXPORT bool MemSet(const char* pMem, uint32_t theSize);
+    EXPORT bool MemSet(const char* mem, uint32_t size);
     EXPORT void Concatenate(const char* arg, ...);
-    void Concatenate(const OTString& strBuf);
-    void Truncate(uint32_t lAt);
+    void Concatenate(const OTString& data);
+    void Truncate(uint32_t index);
     EXPORT void Format(const char* fmt, ...);
     void ConvertToLowerCase();
     void ConvertToUpperCase();
-    EXPORT bool TokenizeIntoKeyValuePairs(Map& mapOutput) const;
+    EXPORT bool TokenizeIntoKeyValuePairs(Map& map) const;
     EXPORT void OTfgets(std::istream& ofs);
     // true  == there are more lines to read.
     // false == this is the last line. Like EOF.
-    bool sgets(char* szBuffer, uint32_t nBufSize);
+    bool sgets(char* buffer, uint32_t size);
 
     char sgetc();
     void sungetc();
     void reset();
 
     void WriteToFile(std::ostream& ofs) const;
-    EXPORT virtual void Release();
     void Release_String();
     EXPORT void zeroMemory();
 
 private:
     // You better have called Initialize() or Release() before you dare call
     // this.
-    void LowLevelSetStr(const OTString& strBuf);
+    void LowLevelSetStr(const OTString& buffer);
 
     // Only call this right after calling Initialize() or Release().
     // Also, this function ASSUMES the new_string pointer is good.
-    void LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength);
+    void LowLevelSet(const char* data, uint32_t enforcedMaxLength);
 
 protected:
-    uint32_t m_lLength;
-    uint32_t m_lPosition;
-    char* m_strBuffer;
+    uint32_t length_;
+    uint32_t position_;
+    char* data_;
 };
 
 // bool operator >(const OTString& s1, const OTString& s2);
