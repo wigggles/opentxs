@@ -141,6 +141,7 @@
 
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
+#include <OTCleanup.hpp>
 #include <OTEnvelope.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
