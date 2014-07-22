@@ -172,20 +172,20 @@ char const* const __TypeStrings[] = {
              // smart contracts.)
     "err_acct"};
 
-char const* OTAccount::_GetTypeString(AccountType theType)
+char const* OTAccount::_GetTypeString(AccountType type)
 {
-    int32_t nType = static_cast<int32_t>(theType);
+    int32_t nType = static_cast<int32_t>(type);
     return __TypeStrings[nType];
 }
 
 // Caller responsible to delete.
-OTLedger* OTAccount::LoadInbox(OTPseudonym& theNym)
+OTLedger* OTAccount::LoadInbox(OTPseudonym& nym)
 {
     OTLedger* pBox =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
     OT_ASSERT(NULL != pBox);
 
-    if (pBox->LoadInbox() && pBox->VerifyAccount(theNym)) {
+    if (pBox->LoadInbox() && pBox->VerifyAccount(nym)) {
         return pBox;
     }
     else {
@@ -199,13 +199,13 @@ OTLedger* OTAccount::LoadInbox(OTPseudonym& theNym)
 }
 
 // Caller responsible to delete.
-OTLedger* OTAccount::LoadOutbox(OTPseudonym& theNym)
+OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym)
 {
     OTLedger* pBox =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
     OT_ASSERT(NULL != pBox);
 
-    if (pBox->LoadOutbox() && pBox->VerifyAccount(theNym)) {
+    if (pBox->LoadOutbox() && pBox->VerifyAccount(nym)) {
         return pBox;
     }
     else {
@@ -221,13 +221,13 @@ OTLedger* OTAccount::LoadOutbox(OTPseudonym& theNym)
 // pHash is optional, the account will update its internal copy of the hash
 // anyway.
 //
-bool OTAccount::SaveInbox(OTLedger& theBox, OTIdentifier* pHash /*=NULL*/)
+bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* pHash /*=NULL*/)
 {
-    if (!IsSameAccount(theBox)) {
+    if (!IsSameAccount(box)) {
         const OTString strAcctID(GetRealAccountID()),
             strServerID(GetRealServerID()),
-            strBoxAcctID(theBox.GetRealAccountID()),
-            strBoxSvrID(theBox.GetRealServerID());
+            strBoxAcctID(box.GetRealAccountID()),
+            strBoxSvrID(box.GetRealServerID());
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
@@ -239,7 +239,7 @@ bool OTAccount::SaveInbox(OTLedger& theBox, OTIdentifier* pHash /*=NULL*/)
     OTIdentifier theHash; // Use pHash.
     if (NULL == pHash) pHash = &theHash;
 
-    bool bSuccess = theBox.SaveInbox(pHash);
+    bool bSuccess = box.SaveInbox(pHash);
 
     if (bSuccess) this->SetInboxHash(*pHash);
 
@@ -249,17 +249,17 @@ bool OTAccount::SaveInbox(OTLedger& theBox, OTIdentifier* pHash /*=NULL*/)
 // pHash is optional, the account will update its internal copy of the hash
 // anyway.
 //
-bool OTAccount::SaveOutbox(OTLedger& theBox,
+bool OTAccount::SaveOutbox(OTLedger& box,
                            OTIdentifier* pHash /*=NULL*/) // If you pass the
                                                           // identifier in, the
                                                           // hash is recorded
                                                           // there
 {
-    if (!IsSameAccount(theBox)) {
+    if (!IsSameAccount(box)) {
         const OTString strAcctID(GetRealAccountID()),
             strServerID(GetRealServerID()),
-            strBoxAcctID(theBox.GetRealAccountID()),
-            strBoxSvrID(theBox.GetRealServerID());
+            strBoxAcctID(box.GetRealAccountID()),
+            strBoxSvrID(box.GetRealServerID());
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
@@ -271,32 +271,32 @@ bool OTAccount::SaveOutbox(OTLedger& theBox,
     OTIdentifier theHash; // Use pHash.
     if (NULL == pHash) pHash = &theHash;
 
-    bool bSuccess = theBox.SaveOutbox(pHash);
+    bool bSuccess = box.SaveOutbox(pHash);
 
     if (bSuccess) this->SetOutboxHash(*pHash);
 
     return bSuccess;
 }
 
-void OTAccount::SetInboxHash(const OTIdentifier& theInput)
+void OTAccount::SetInboxHash(const OTIdentifier& input)
 {
-    m_InboxHash = theInput;
+    m_InboxHash = input;
 }
 
-bool OTAccount::GetInboxHash(OTIdentifier& theOutput)
+bool OTAccount::GetInboxHash(OTIdentifier& output)
 {
-    theOutput.Release();
+    output.Release();
 
     if (!m_InboxHash.IsEmpty()) {
-        theOutput = m_InboxHash;
+        output = m_InboxHash;
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealServerID().IsEmpty()) {
-        OTLedger theInbox(GetUserID(), GetRealAccountID(), GetRealServerID());
+        OTLedger inbox(GetUserID(), GetRealAccountID(), GetRealServerID());
 
-        if (theInbox.LoadInbox() && theInbox.CalculateInboxHash(theOutput)) {
-            SetInboxHash(theOutput);
+        if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
+            SetInboxHash(output);
             return true;
         }
     }
@@ -304,26 +304,25 @@ bool OTAccount::GetInboxHash(OTIdentifier& theOutput)
     return false;
 }
 
-void OTAccount::SetOutboxHash(const OTIdentifier& theInput)
+void OTAccount::SetOutboxHash(const OTIdentifier& input)
 {
-    m_OutboxHash = theInput;
+    m_OutboxHash = input;
 }
 
-bool OTAccount::GetOutboxHash(OTIdentifier& theOutput)
+bool OTAccount::GetOutboxHash(OTIdentifier& output)
 {
-    theOutput.Release();
+    output.Release();
 
     if (!m_OutboxHash.IsEmpty()) {
-        theOutput = m_OutboxHash;
+        output = m_OutboxHash;
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealServerID().IsEmpty()) {
-        OTLedger theOutbox(GetUserID(), GetRealAccountID(), GetRealServerID());
+        OTLedger outbox(GetUserID(), GetRealAccountID(), GetRealServerID());
 
-        if (theOutbox.LoadOutbox() &&
-            theOutbox.CalculateOutboxHash(theOutput)) {
-            SetOutboxHash(theOutput);
+        if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
+            SetOutboxHash(output);
             return true;
         }
     }
@@ -445,17 +444,16 @@ const OTIdentifier& OTAccount::GetAssetTypeID() const
 }
 
 // Used for generating accounts, thus no accountID needed.
-OTAccount::OTAccount(const OTIdentifier& theUserID,
-                     const OTIdentifier& theServerID)
+OTAccount::OTAccount(const OTIdentifier& userID, const OTIdentifier& serverID)
     : ot_super()
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
 
-    SetUserID(theUserID);
-    SetRealServerID(theServerID);
-    SetPurportedServerID(theServerID);
+    SetUserID(userID);
+    SetRealServerID(serverID);
+    SetPurportedServerID(serverID);
 }
 
 void OTAccount::InitAccount()
@@ -474,10 +472,9 @@ OTAccount::OTAccount()
     InitAccount();
 }
 
-OTAccount::OTAccount(const OTIdentifier& theUserID,
-                     const OTIdentifier& theAccountID,
-                     const OTIdentifier& theServerID, const OTString& name)
-    : ot_super(theUserID, theAccountID, theServerID)
+OTAccount::OTAccount(const OTIdentifier& userID, const OTIdentifier& accountID,
+                     const OTIdentifier& serverID, const OTString& name)
+    : ot_super(userID, accountID, serverID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -486,10 +483,9 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
     m_strName = name;
 }
 
-OTAccount::OTAccount(const OTIdentifier& theUserID,
-                     const OTIdentifier& theAccountID,
-                     const OTIdentifier& theServerID)
-    : ot_super(theUserID, theAccountID, theServerID)
+OTAccount::OTAccount(const OTIdentifier& userID, const OTIdentifier& accountID,
+                     const OTIdentifier& serverID)
+    : ot_super(userID, accountID, serverID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -500,11 +496,11 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
 // Because we use the ID in this function, so make sure that it is verified
 // before calling this.
 //
-bool OTAccount::VerifyOwner(const OTPseudonym& theCandidate) const
+bool OTAccount::VerifyOwner(const OTPseudonym& candidate) const
 {
     OTIdentifier ID_CANDIDATE;
-    theCandidate.GetIdentifier(ID_CANDIDATE); // ID_CANDIDATE now contains the
-                                              // ID of the Nym we're testing.
+    candidate.GetIdentifier(ID_CANDIDATE); // ID_CANDIDATE now contains the
+                                           // ID of the Nym we're testing.
 
     if (m_AcctUserID == ID_CANDIDATE) {
         return true;
@@ -514,17 +510,17 @@ bool OTAccount::VerifyOwner(const OTPseudonym& theCandidate) const
 
 // Todo: when entities and roles are added, probably more will go here.
 //
-bool OTAccount::VerifyOwnerByID(const OTIdentifier& theNymID) const
+bool OTAccount::VerifyOwnerByID(const OTIdentifier& nymID) const
 {
-    return (theNymID == m_AcctUserID);
+    return (nymID == m_AcctUserID);
 }
 
 // Let's say you don't have or know the UserID, and you just want to load the
 // damn thing up.
 // Then call this function. It will set userID and server ID for you.
 
-OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& theAccountID,
-                                          const OTIdentifier& theServerID)
+OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& accountID,
+                                          const OTIdentifier& serverID)
 {
     bool bFolderAlreadyExist = false, bFolderIsNew = false;
 
@@ -548,10 +544,10 @@ OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& theAccountID,
 
     OT_ASSERT(NULL != pAccount);
 
-    pAccount->SetRealAccountID(theAccountID);
-    pAccount->SetRealServerID(theServerID);
+    pAccount->SetRealAccountID(accountID);
+    pAccount->SetRealServerID(serverID);
 
-    OTString strAcctID(theAccountID);
+    OTString strAcctID(accountID);
 
     pAccount->m_strFoldername = OTFolders::Account().Get();
     pAccount->m_strFilename = strAcctID.Get();
@@ -577,15 +573,15 @@ OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& theAccountID,
 // static method (call it without an instance, using notation:
 // OTAccount::GenerateNewAccount)
 OTAccount* OTAccount::GenerateNewAccount(
-    const OTIdentifier& theUserID, const OTIdentifier& theServerID,
-    const OTPseudonym& theServerNym, const OTMessage& theMessage,
+    const OTIdentifier& userID, const OTIdentifier& serverID,
+    const OTPseudonym& serverNym, const OTMessage& message,
     const OTAccount::AccountType eAcctType /*=OTAccount::simple*/,
     int64_t lStashTransNum /*=0*/)
 {
-    OTAccount* pAccount = new OTAccount(theUserID, theServerID);
+    OTAccount* pAccount = new OTAccount(userID, serverID);
 
     if (pAccount) {
-        if (pAccount->GenerateNewAccount(theServerNym, theMessage, eAcctType,
+        if (pAccount->GenerateNewAccount(serverNym, message, eAcctType,
                                          lStashTransNum)) // This is only for
                                                           // stash accounts.
             return pAccount;
@@ -600,24 +596,24 @@ OTAccount* OTAccount::GenerateNewAccount(
 
 /*
 
- Just make sure theMessage has these members populated:
+ Just make sure message has these members populated:
 theMessage.m_strNymID;
 theMessage.m_strAssetID;
 theMessage.m_strServerID;
  */
 // The above method uses this one internally...
 bool OTAccount::GenerateNewAccount(
-    const OTPseudonym& theServer, const OTMessage& theMessage,
+    const OTPseudonym& server, const OTMessage& message,
     const OTAccount::AccountType eAcctType /*=OTAccount::simple*/,
     int64_t lStashTransNum /*=0*/)
 {
     // First we generate a secure random number into a binary object...
     //
-    OTPayload thePayload;
+    OTPayload payload;
 
-    if (false == thePayload.Randomize(100)) // todo hardcoding. Plus: is 100
-                                            // bytes of random a little much
-                                            // here?
+    if (false == payload.Randomize(100)) // todo hardcoding. Plus: is 100
+                                         // bytes of random a little much
+                                         // here?
     {
         otErr << __FUNCTION__ << ": Failed trying to acquire random numbers.\n";
         return false;
@@ -628,7 +624,7 @@ bool OTAccount::GenerateNewAccount(
     // OTIdentifier).
     //
     OTIdentifier newID;
-    if (!newID.CalculateDigest(thePayload)) {
+    if (!newID.CalculateDigest(payload)) {
         otErr << __FUNCTION__ << ": Error generating new account ID.\n";
         return false;
     }
@@ -667,18 +663,18 @@ bool OTAccount::GenerateNewAccount(
     if (IsInternalServerAcct()) // basket, basketsub, mint, voucher, and stash
                                 // accounts are all "owned" by the server.
     {
-        theServer.GetIdentifier(m_AcctUserID);
+        server.GetIdentifier(m_AcctUserID);
     }
     else {
-        m_AcctUserID.SetString(theMessage.m_strNymID);
+        m_AcctUserID.SetString(message.m_strNymID);
     }
 
-    m_AcctAssetTypeID.SetString(theMessage.m_strAssetID);
+    m_AcctAssetTypeID.SetString(message.m_strAssetID);
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
-           << theMessage.m_strAssetID << "\n";
+           << message.m_strAssetID << "\n";
 
-    OTIdentifier SERVER_ID(theMessage.m_strServerID);
+    OTIdentifier SERVER_ID(message.m_strServerID);
     SetRealServerID(SERVER_ID); // todo this assumes the serverID on the message
                                 // is correct. It's vetted, but still...
     SetPurportedServerID(SERVER_ID);
@@ -700,7 +696,7 @@ bool OTAccount::GenerateNewAccount(
     // account file on the server if the code wasn't designed to verify the
     // signature on the
     // account.
-    SignContract(theServer);
+    SignContract(server);
     SaveContract();
 
     // Save the Account to storage (based on its ID.)
@@ -728,32 +724,32 @@ int64_t OTAccount::GetBalance() const
 OTAccount::AccountType TranslateAccountTypeStringToEnum(
     const OTString& strAcctType)
 {
-    OTAccount::AccountType theReturnVal = OTAccount::err_acct;
+    OTAccount::AccountType returnVal = OTAccount::err_acct;
 
     if (strAcctType.Compare("simple"))
-        theReturnVal = OTAccount::simple;
+        returnVal = OTAccount::simple;
     else if (strAcctType.Compare("issuer"))
-        theReturnVal = OTAccount::issuer;
+        returnVal = OTAccount::issuer;
     else if (strAcctType.Compare("basket"))
-        theReturnVal = OTAccount::basket;
+        returnVal = OTAccount::basket;
     else if (strAcctType.Compare("basketsub"))
-        theReturnVal = OTAccount::basketsub;
+        returnVal = OTAccount::basketsub;
     else if (strAcctType.Compare("mint"))
-        theReturnVal = OTAccount::mint;
+        returnVal = OTAccount::mint;
     else if (strAcctType.Compare("voucher"))
-        theReturnVal = OTAccount::voucher;
+        returnVal = OTAccount::voucher;
     else if (strAcctType.Compare("stash"))
-        theReturnVal = OTAccount::stash;
+        returnVal = OTAccount::stash;
     else
         otErr << "Error: Unknown account type: " << strAcctType << "\n";
 
-    return theReturnVal;
+    return returnVal;
 }
 
-void TranslateAccountTypeToString(OTAccount::AccountType theType,
+void TranslateAccountTypeToString(OTAccount::AccountType type,
                                   OTString& strAcctType)
 {
-    switch (theType) {
+    switch (type) {
     case OTAccount::simple:
         strAcctType.Set("simple");
         break;

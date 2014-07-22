@@ -183,7 +183,7 @@ protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
     virtual void UpdateContents();
-    OTAccount(const OTIdentifier& theUserID, const OTIdentifier& theServerID);
+    OTAccount(const OTIdentifier& userID, const OTIdentifier& serverID);
     OTAccount();
     int64_t stashTransNum_; // the Transaction Number of a smart contract
                             // running on cron, if this is a stash account.
@@ -225,42 +225,40 @@ public:
     {
         stashTransNum_ = lTransNum;
     }
-    EXPORT OTAccount(const OTIdentifier& theUserID,
-                     const OTIdentifier& theAccountID,
-                     const OTIdentifier& theServerID, const OTString& name);
-    EXPORT OTAccount(const OTIdentifier& theUserID,
-                     const OTIdentifier& theAccountID,
-                     const OTIdentifier& theServerID);
+    EXPORT OTAccount(const OTIdentifier& userID, const OTIdentifier& accountID,
+                     const OTIdentifier& serverID, const OTString& name);
+    EXPORT OTAccount(const OTIdentifier& userID, const OTIdentifier& accountID,
+                     const OTIdentifier& serverID);
     EXPORT void InitAccount();
     EXPORT virtual ~OTAccount();
     EXPORT virtual void Release();
 
     EXPORT void Release_Account();
     EXPORT static OTAccount* GenerateNewAccount(
-        const OTIdentifier& theUserID, const OTIdentifier& theServerID,
-        const OTPseudonym& theServerNym, const OTMessage& theMessage,
+        const OTIdentifier& userID, const OTIdentifier& serverID,
+        const OTPseudonym& serverNym, const OTMessage& message,
         const AccountType eAcctType = simple, int64_t lStashTransNum = 0);
 
-    EXPORT bool GenerateNewAccount(const OTPseudonym& theServer,
-                                   const OTMessage& theMessage,
+    EXPORT bool GenerateNewAccount(const OTPseudonym& server,
+                                   const OTMessage& message,
                                    const AccountType eAcctType = simple,
                                    int64_t lStashTransNum = 0);
     // Let's say you don't have or know the UserID, and you just want to load
     // the damn thing up.
     // Then call this function. It will set userID for you.
-    EXPORT static OTAccount* LoadExistingAccount(
-        const OTIdentifier& theAccountID, const OTIdentifier& theServerID);
-    EXPORT OTLedger* LoadInbox(OTPseudonym& theNym);  // Caller responsible to
-                                                      // delete.
-    EXPORT OTLedger* LoadOutbox(OTPseudonym& theNym); // Caller responsible to
-                                                      // delete.
+    EXPORT static OTAccount* LoadExistingAccount(const OTIdentifier& accountID,
+                                                 const OTIdentifier& serverID);
+    EXPORT OTLedger* LoadInbox(OTPseudonym& nym);  // Caller responsible to
+                                                   // delete.
+    EXPORT OTLedger* LoadOutbox(OTPseudonym& nym); // Caller responsible to
+                                                   // delete.
 
-    EXPORT bool SaveInbox(OTLedger& theBox,
+    EXPORT bool SaveInbox(OTLedger& box,
                           OTIdentifier* pHash = NULL); // If you pass the
                                                        // identifier in, the
                                                        // inbox hash is recorded
                                                        // there
-    EXPORT bool SaveOutbox(OTLedger& theBox,
+    EXPORT bool SaveOutbox(OTLedger& box,
                            OTIdentifier* pHash = NULL); // If you pass the
                                                         // identifier in, the
                                                         // outbox hash is
@@ -277,8 +275,8 @@ public:
                                                 // subtracted somewhere)
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
-    EXPORT bool VerifyOwner(const OTPseudonym& theCandidate) const;
-    EXPORT bool VerifyOwnerByID(const OTIdentifier& theNymID) const;
+    EXPORT bool VerifyOwner(const OTPseudonym& candidate) const;
+    EXPORT bool VerifyOwnerByID(const OTIdentifier& nymID) const;
     EXPORT virtual bool LoadContract(); // overriding this so I can set the
                                         // filename automatically inside based
                                         // on ID.
@@ -290,12 +288,12 @@ public:
     EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
     EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
     EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
-    EXPORT void SetInboxHash(const OTIdentifier& theInput);
-    EXPORT bool GetInboxHash(OTIdentifier& theOutput);
+    EXPORT void SetInboxHash(const OTIdentifier& input);
+    EXPORT bool GetInboxHash(OTIdentifier& output);
 
-    EXPORT void SetOutboxHash(const OTIdentifier& theInput);
-    EXPORT bool GetOutboxHash(OTIdentifier& theOutput);
-    EXPORT static char const* _GetTypeString(AccountType theType);
+    EXPORT void SetOutboxHash(const OTIdentifier& input);
+    EXPORT bool GetOutboxHash(OTIdentifier& output);
+    EXPORT static char const* _GetTypeString(AccountType type);
     EXPORT char const* GetTypeString()
     {
         return OTAccount::_GetTypeString(m_AcctType);
