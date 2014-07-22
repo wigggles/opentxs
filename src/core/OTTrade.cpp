@@ -166,7 +166,7 @@ enum {
 bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
                                OTPseudonym&, // Not needed in this version of
                                              // the override.
-                               mapOfNyms* preloadedMap /*=NULL*/)
+                               mapOfNyms* /*=nullptr*/)
 {
     return this->VerifySignature(nym);
 }
@@ -418,13 +418,13 @@ bool OTTrade::VerifyOffer(OTOffer& offer)
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 //
-OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
-                           OTMarket** market /*=NULL*/)
+OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=nullptr*/,
+                           OTMarket** market /*=nullptr*/)
 {
-    OT_ASSERT(NULL != GetCron());
+    OT_ASSERT(GetCron() != nullptr);
 
     // See if the offer has already been instantiated onto a market...
-    if (NULL != offer_) {
+    if (offer_ != nullptr) {
         offer_->SetTrade(*this); // Probably don't need this line. I'll remove
                                  // it someday while optimizing.
         // In fact since it should already be set, having this here would
@@ -436,7 +436,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         // market.
         const OTIdentifier OFFER_MARKET_ID(*offer_);
 
-        if (NULL != market) {
+        if (market != nullptr) {
             OTMarket* pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
 
             // Sometimes the caller function would like a copy of this market
@@ -444,7 +444,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
             // So I pass it back to him here, if he wants. That way he doesn't
             // have to do this work again
             // to look it up.
-            if (NULL != pMarket)
+            if (pMarket != nullptr)
                 *market = pMarket; // <=================
             else
                 otErr << "OTTrade::" << __FUNCTION__
@@ -452,7 +452,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
                          "market it's supposed to be on.\n";
         }
 
-        if (NULL != offerMarketId) {
+        if (offerMarketId != nullptr) {
             // Sometimes the caller function would like a copy of this ID. So I
             // give the option to pass in a pointer so I can give it here.
             offerMarketId->Assign(OFFER_MARKET_ID);
@@ -461,15 +461,15 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         return offer_;
     } // if offer_ ALREADY EXISTS.
 
-    // else (BELOW) offer_ IS NULL, and thus it didn't exist yet...
+    // else (BELOW) offer_ IS nullptr, and thus it didn't exist yet...
 
     if (!marketOffer_.Exists()) {
         otErr << "OTTrade::GetOffer called with empty marketOffer_.\n";
-        return NULL;
+        return nullptr;
     }
 
     OTOffer* offer = new OTOffer();
-    OT_ASSERT(NULL != offer);
+    OT_ASSERT(offer != nullptr);
 
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
@@ -477,8 +477,8 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     if (!offer->LoadContractFromString(marketOffer_)) {
         otErr << "Error loading offer from string in OTTrade::GetOffer\n";
         delete offer;
-        offer = NULL;
-        return NULL;
+        offer = nullptr;
+        return nullptr;
     }
 
     // No need to do any additional security verification here on the Offer,
@@ -491,7 +491,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // It loaded. Let's get the Market ID off of it so we can locate the market.
     OTIdentifier OFFER_MARKET_ID(*offer);
 
-    if (NULL != offerMarketId) {
+    if (offerMarketId != nullptr) {
         // Sometimes the caller function would like a copy of this ID. So I
         // give the option to pass in a pointer so I can give it here.
         offerMarketId->Assign(OFFER_MARKET_ID);
@@ -512,17 +512,17 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         GetAssetID(), GetCurrencyID(), offer->GetScale());
 
     // Couldn't find (or create) the market.
-    if (NULL == pMarket) {
+    if (pMarket != nullptr) {
         otOut
             << "OTTrade::" << __FUNCTION__
             << ": Unable to find or create market within requested parameters.";
         delete offer;
-        offer = NULL;
-        return NULL;
+        offer = nullptr;
+        return nullptr;
     }
 
     // If the caller passed in the address of a market pointer (optional)
-    if (NULL != market) {
+    if (market != nullptr) {
         // Sometimes the caller function would like a copy of this market
         // pointer, when available.
         // So I pass it back to him here, if he wants. That way he doesn't have
@@ -555,13 +555,13 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // this Trade object! (When actually processing the offer, the market will
     // need the account
     // numbers and Nym IDs... which are stored here on the trade.)
-    if (NULL != marketOffer) {
+    if (marketOffer != nullptr) {
         offer_ = marketOffer;
 
         // Since the Offer already exists on the market, no need anymore for the
         // one we allocated above (to get the market ID.) So we delete it now.
         delete offer;
-        offer = NULL;
+        offer = nullptr;
 
         offer_->SetTrade(*this);
 
@@ -700,9 +700,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     }
 
     delete offer;
-    offer = NULL;
+    offer = nullptr;
 
-    return NULL;
+    return nullptr;
 }
 
 // Cron only removes an item when that item REQUESTS to be removed (by setting
@@ -718,7 +718,7 @@ void OTTrade::onRemovalFromCron()
 {
     OTCron* cron = GetCron();
 
-    OT_ASSERT(NULL != cron);
+    OT_ASSERT(cron != nullptr);
 
     // If I don't already have an offer on the market, then I will have trouble
     // figuring out
@@ -730,18 +730,18 @@ void OTTrade::onRemovalFromCron()
     int64_t scale = 1; // todo stop hardcoding.
     int64_t transactionNum = 0;
 
-    if (NULL == offer_) {
+    if (offer_ != nullptr) {
         if (!marketOffer_.Exists()) {
             otErr << "OTTrade::onRemovalFromCron called with NULL offer_ and "
                      "empty marketOffer_.\n";
             return;
         }
 
-        OTOffer* offer = NULL;
+        OTOffer* offer = nullptr;
         OTCleanup<OTOffer> theOfferAngel;
 
         offer = new OTOffer();
-        OT_ASSERT(NULL != offer);
+        OT_ASSERT(offer != nullptr);
         theOfferAngel.SetCleanupTarget(*offer);
 
         // Trying to load the offer from the trader's original signed request
@@ -767,7 +767,7 @@ void OTTrade::onRemovalFromCron()
 
     // Couldn't find (or create) the market.
     //
-    if (NULL == market) {
+    if (market == nullptr) {
         otErr << "Unable to find market within requested parameters in "
                  "OTTrade::onRemovalFromCron.\n";
         return;
@@ -780,7 +780,7 @@ void OTTrade::onRemovalFromCron()
 
     // The Offer is already on the Market.
     //
-    if (NULL != marketOffer) {
+    if (marketOffer != nullptr) {
         offer_ = marketOffer;
 
         offer_->SetTrade(*this);
@@ -903,10 +903,10 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     const char* szFunc = "OTTrade::onFinalReceipt";
 
     OTCron* cron = GetCron();
-    OT_ASSERT(NULL != cron);
+    OT_ASSERT(cron != nullptr);
 
     OTPseudonym* serverNym = cron->GetServerNym();
-    OT_ASSERT(NULL != serverNym);
+    OT_ASSERT(serverNym != nullptr);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -971,7 +971,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     OTString updatedCronItem(*this);
     OTString* attachment = &updatedCronItem; // the Updated TRADE.
     OTString updatedOffer;
-    OTString* note = NULL; // the updated Offer (if available.)
+    OTString* note = nullptr; // the updated Offer (if available.)
 
     if (offer_) {
         offer_->SaveContractRaw(updatedOffer);
@@ -980,7 +980,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
     const OTString strOrigCronItem(origCronItem);
 
-    OTPseudonym* actualNym = NULL; // use this. DON'T use theActualNym.
+    OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use actualNym.)
 
@@ -1009,11 +1009,11 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
         const OTIdentifier actualNymId = GetSenderUserID();
 
-        if ((NULL != serverNym) && serverNym->CompareID(actualNymId))
+        if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
             actualNym = serverNym;
         else if (originator.CompareID(actualNymId))
             actualNym = &originator;
-        else if ((NULL != remover) && remover->CompareID(actualNymId))
+        else if ((remover != nullptr) && remover->CompareID(actualNymId))
             actualNym = remover;
 
         else // We couldn't find the Nym among those already loaded--so we have
@@ -1189,7 +1189,7 @@ bool OTTrade::ProcessCron()
         true; // by default stay on the market (until some rule expires me.)
 
     OTIdentifier OFFER_MARKET_ID;
-    OTMarket* market = NULL;
+    OTMarket* market = nullptr;
 
     // If the Offer is already active on a market, then I already have a pointer
     // to
@@ -1203,7 +1203,7 @@ bool OTTrade::ProcessCron()
 
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.
-    if (NULL == offer) {
+    if (offer == nullptr) {
         // The offer SHOULD HAVE been on the market, since we're within the
         // valid range,
         // and GetOffer adds it when it's not already there.
@@ -1217,7 +1217,7 @@ bool OTTrade::ProcessCron()
         // time a stop order
         // checks its prices.
     }
-    else if (NULL == market) {
+    else if (market == nullptr) {
         // todo. (This will already leave a log above in GetOffer somewhere.)
         //        otErr << "OTTrade::ProcessCron: Market was NULL.\n"; //
         // comment this out
@@ -1323,7 +1323,7 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign /*=0*/,
 
 OTTrade::OTTrade()
     : ot_super()
-    , offer_(NULL)
+    , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
     , stopSign_(0)
@@ -1342,7 +1342,7 @@ OTTrade::OTTrade()
 
 OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId)
     : ot_super(serverId, assetId)
-    , offer_(NULL)
+    , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
     , stopSign_(0)
@@ -1364,7 +1364,7 @@ OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
                  const OTIdentifier& currencyId,
                  const OTIdentifier& currencyAcctId)
     : ot_super(serverId, assetId, assetAcctId, userId)
-    , offer_(NULL)
+    , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
     , stopSign_(0)
