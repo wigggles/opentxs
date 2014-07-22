@@ -187,7 +187,7 @@ protected:
     OTAccount();
     int64_t m_lStashTransNum; // the Transaction Number of a smart contract
                               // running on cron, if this is a stash account.
-    bool m_bMarkForDeletion;  // Default FALSE. When set to true, saves a
+    bool markForDeletion_;    // Default FALSE. When set to true, saves a
                               // "DELETED" flag with this Account,
     // for easy cleanup later when the server is doing some maintenance.
     OTIdentifier m_InboxHash;  // Hash of this account's Inbox, so we don't
@@ -197,11 +197,11 @@ protected:
 public:
     inline void MarkForDeletion()
     {
-        m_bMarkForDeletion = true;
+        markForDeletion_ = true;
     }
     inline bool IsMarkedForDeletion() const
     {
-        return m_bMarkForDeletion;
+        return markForDeletion_;
     }
     EXPORT bool IsInternalServerAcct() const;
 

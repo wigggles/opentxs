@@ -449,7 +449,7 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theServerID)
     : ot_super()
     , m_lStashTransNum(0)
-    , m_bMarkForDeletion(false)
+    , markForDeletion_(false)
 {
     InitAccount();
 
@@ -469,7 +469,7 @@ void OTAccount::InitAccount()
 OTAccount::OTAccount()
     : ot_super()
     , m_lStashTransNum(0)
-    , m_bMarkForDeletion(false)
+    , markForDeletion_(false)
 {
     InitAccount();
 }
@@ -479,7 +479,7 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theServerID, const OTString& name)
     : ot_super(theUserID, theAccountID, theServerID)
     , m_lStashTransNum(0)
-    , m_bMarkForDeletion(false)
+    , markForDeletion_(false)
 {
     InitAccount();
 
@@ -491,7 +491,7 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theServerID)
     : ot_super(theUserID, theAccountID, theServerID)
     , m_lStashTransNum(0)
-    , m_bMarkForDeletion(false)
+    , markForDeletion_(false)
 {
     InitAccount();
 }
@@ -918,7 +918,7 @@ void OTAccount::UpdateContents()
     m_xmlUnsigned.Concatenate("<balance date=\"%s\" amount=\"%s\"/>\n\n",
                               m_BalanceDate.Get(), m_BalanceAmount.Get());
 
-    if (m_bMarkForDeletion)
+    if (markForDeletion_)
         m_xmlUnsigned.Concatenate(
             "<MARKED_FOR_DELETION>\n"
             "%s</MARKED_FOR_DELETION>\n\n",
@@ -1012,7 +1012,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
-        m_bMarkForDeletion = true;
+        markForDeletion_ = true;
         otLog3 << "This asset account has been MARKED_FOR_DELETION (at some "
                   "point prior.)\n";
 
