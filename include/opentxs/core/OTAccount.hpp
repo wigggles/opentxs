@@ -254,15 +254,15 @@ public:
                                                    // delete.
 
     EXPORT bool SaveInbox(OTLedger& box,
-                          OTIdentifier* pHash = NULL); // If you pass the
-                                                       // identifier in, the
-                                                       // inbox hash is recorded
-                                                       // there
+                          OTIdentifier* hash = NULL); // If you pass the
+                                                      // identifier in, the
+                                                      // inbox hash is recorded
+                                                      // there
     EXPORT bool SaveOutbox(OTLedger& box,
-                           OTIdentifier* pHash = NULL); // If you pass the
-                                                        // identifier in, the
-                                                        // outbox hash is
-                                                        // recorded there
+                           OTIdentifier* hash = NULL); // If you pass the
+                                                       // identifier in, the
+                                                       // outbox hash is
+                                                       // recorded there
     EXPORT const OTIdentifier& GetAssetTypeID() const;
     EXPORT int64_t GetBalance() const;
     EXPORT bool Debit(const int64_t& lAmount);  // Debit a certain amount from

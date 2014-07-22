@@ -181,12 +181,12 @@ char const* OTAccount::_GetTypeString(AccountType type)
 // Caller responsible to delete.
 OTLedger* OTAccount::LoadInbox(OTPseudonym& nym)
 {
-    OTLedger* pBox =
+    OTLedger* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
-    OT_ASSERT(NULL != pBox);
+    OT_ASSERT(NULL != box);
 
-    if (pBox->LoadInbox() && pBox->VerifyAccount(nym)) {
-        return pBox;
+    if (box->LoadInbox() && box->VerifyAccount(nym)) {
+        return box;
     }
     else {
         OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
@@ -201,12 +201,12 @@ OTLedger* OTAccount::LoadInbox(OTPseudonym& nym)
 // Caller responsible to delete.
 OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym)
 {
-    OTLedger* pBox =
+    OTLedger* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
-    OT_ASSERT(NULL != pBox);
+    OT_ASSERT(NULL != box);
 
-    if (pBox->LoadOutbox() && pBox->VerifyAccount(nym)) {
-        return pBox;
+    if (box->LoadOutbox() && box->VerifyAccount(nym)) {
+        return box;
     }
     else {
         OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
@@ -218,10 +218,10 @@ OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym)
     return NULL;
 }
 
-// pHash is optional, the account will update its internal copy of the hash
+// hash is optional, the account will update its internal copy of the hash
 // anyway.
 //
-bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* pHash /*=NULL*/)
+bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* hash /*=NULL*/)
 {
     if (!IsSameAccount(box)) {
         const OTString strAcctID(GetRealAccountID()),
@@ -236,24 +236,24 @@ bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* pHash /*=NULL*/)
         return false;
     }
 
-    OTIdentifier theHash; // Use pHash.
-    if (NULL == pHash) pHash = &theHash;
+    OTIdentifier theHash; // Use hash.
+    if (NULL == hash) hash = &theHash;
 
-    bool bSuccess = box.SaveInbox(pHash);
+    bool bSuccess = box.SaveInbox(hash);
 
-    if (bSuccess) this->SetInboxHash(*pHash);
+    if (bSuccess) this->SetInboxHash(*hash);
 
     return bSuccess;
 }
 
-// pHash is optional, the account will update its internal copy of the hash
+// hash is optional, the account will update its internal copy of the hash
 // anyway.
 //
 bool OTAccount::SaveOutbox(OTLedger& box,
-                           OTIdentifier* pHash /*=NULL*/) // If you pass the
-                                                          // identifier in, the
-                                                          // hash is recorded
-                                                          // there
+                           OTIdentifier* hash /*=NULL*/) // If you pass the
+                                                         // identifier in, the
+                                                         // hash is recorded
+                                                         // there
 {
     if (!IsSameAccount(box)) {
         const OTString strAcctID(GetRealAccountID()),
@@ -268,12 +268,12 @@ bool OTAccount::SaveOutbox(OTLedger& box,
         return false;
     }
 
-    OTIdentifier theHash; // Use pHash.
-    if (NULL == pHash) pHash = &theHash;
+    OTIdentifier theHash; // Use hash.
+    if (NULL == hash) hash = &theHash;
 
-    bool bSuccess = box.SaveOutbox(pHash);
+    bool bSuccess = box.SaveOutbox(hash);
 
-    if (bSuccess) this->SetOutboxHash(*pHash);
+    if (bSuccess) this->SetOutboxHash(*hash);
 
     return bSuccess;
 }
@@ -540,31 +540,31 @@ OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& accountID,
         return NULL;
     }
 
-    OTAccount* pAccount = new OTAccount();
+    OTAccount* account = new OTAccount();
 
-    OT_ASSERT(NULL != pAccount);
+    OT_ASSERT(NULL != account);
 
-    pAccount->SetRealAccountID(accountID);
-    pAccount->SetRealServerID(serverID);
+    account->SetRealAccountID(accountID);
+    account->SetRealServerID(serverID);
 
     OTString strAcctID(accountID);
 
-    pAccount->m_strFoldername = OTFolders::Account().Get();
-    pAccount->m_strFilename = strAcctID.Get();
+    account->m_strFoldername = OTFolders::Account().Get();
+    account->m_strFilename = strAcctID.Get();
 
-    if (false == OTDB::Exists(pAccount->m_strFoldername.Get(),
-                              pAccount->m_strFilename.Get())) {
+    if (false == OTDB::Exists(account->m_strFoldername.Get(),
+                              account->m_strFilename.Get())) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
-               << pAccount->m_strFoldername << OTLog::PathSeparator()
-               << pAccount->m_strFilename << "\n";
+               << account->m_strFoldername << OTLog::PathSeparator()
+               << account->m_strFilename << "\n";
         return NULL;
     }
 
-    if (pAccount->LoadContract() && pAccount->VerifyContractID())
-        return pAccount;
+    if (account->LoadContract() && account->VerifyContractID())
+        return account;
     else {
-        delete pAccount;
-        pAccount = NULL;
+        delete account;
+        account = NULL;
     }
 
     return NULL;
@@ -578,16 +578,16 @@ OTAccount* OTAccount::GenerateNewAccount(
     const OTAccount::AccountType eAcctType /*=OTAccount::simple*/,
     int64_t lStashTransNum /*=0*/)
 {
-    OTAccount* pAccount = new OTAccount(userID, serverID);
+    OTAccount* account = new OTAccount(userID, serverID);
 
-    if (pAccount) {
-        if (pAccount->GenerateNewAccount(serverNym, message, eAcctType,
-                                         lStashTransNum)) // This is only for
-                                                          // stash accounts.
-            return pAccount;
+    if (account) {
+        if (account->GenerateNewAccount(serverNym, message, eAcctType,
+                                        lStashTransNum)) // This is only for
+                                                         // stash accounts.
+            return account;
         else {
-            delete pAccount;
-            pAccount = NULL;
+            delete account;
+            account = NULL;
         }
     }
 
