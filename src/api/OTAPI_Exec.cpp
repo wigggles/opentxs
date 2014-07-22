@@ -138,6 +138,7 @@
 
 #include <OpenTransactions.hpp>
 
+#include "OTCleanup.hpp"
 #include "OTAgent.hpp"
 #include "OTAssetContract.hpp"
 #include "OTAsymmetricKey.hpp"

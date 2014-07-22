@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTAgent.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTAgreement.hpp"
 #include "OTLog.hpp"
 #include "OTParty.hpp"

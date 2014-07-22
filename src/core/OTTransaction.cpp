@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTTransaction.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTBasket.hpp"
 #include "OTCheque.hpp"
 #include "OTFolders.hpp"

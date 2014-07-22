@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTItem.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTCheque.hpp"
 #include "OTLedger.hpp"

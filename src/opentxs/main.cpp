@@ -146,6 +146,7 @@ kamH0Y/n11lCvo1oQxM+
 #include <OT_ME.hpp>
 #include <OTClient.hpp>
 
+#include <OTCleanup.hpp>
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
 #include <OTLog.hpp>

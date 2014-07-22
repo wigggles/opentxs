@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTCachedKey.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTASCIIArmor.hpp"
 #include "OTAsymmetricKey.hpp"
 #include "OTCrypto.hpp"

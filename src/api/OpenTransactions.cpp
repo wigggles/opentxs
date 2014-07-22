@@ -143,6 +143,7 @@
 #include <OTClient.hpp>
 #include <OTAPI.hpp>
 
+#include <OTCleanup.hpp>
 #include <OTAgent.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>

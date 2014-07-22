@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTPseudonym.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTCredential.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"

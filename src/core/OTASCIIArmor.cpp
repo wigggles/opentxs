@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTASCIIArmor.hpp"
-
+#include "OTCleanup.hpp"
 #include "OTCrypto.hpp"
 #include "OTEnvelope.hpp"
 #include "OTLog.hpp"
