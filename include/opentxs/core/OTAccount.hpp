@@ -185,10 +185,10 @@ protected:
     virtual void UpdateContents();
     OTAccount(const OTIdentifier& theUserID, const OTIdentifier& theServerID);
     OTAccount();
-    int64_t m_lStashTransNum; // the Transaction Number of a smart contract
-                              // running on cron, if this is a stash account.
-    bool markForDeletion_;    // Default FALSE. When set to true, saves a
-                              // "DELETED" flag with this Account,
+    int64_t stashTransNum_; // the Transaction Number of a smart contract
+                            // running on cron, if this is a stash account.
+    bool markForDeletion_;  // Default FALSE. When set to true, saves a
+                            // "DELETED" flag with this Account,
     // for easy cleanup later when the server is doing some maintenance.
     OTIdentifier m_InboxHash;  // Hash of this account's Inbox, so we don't
                                // download it more often than necessary.
@@ -219,11 +219,11 @@ public:
 
     EXPORT const int64_t& GetStashTransNum() const
     {
-        return m_lStashTransNum;
+        return stashTransNum_;
     }
     EXPORT void SetStashTransNum(const int64_t& lTransNum)
     {
-        m_lStashTransNum = lTransNum;
+        stashTransNum_ = lTransNum;
     }
     EXPORT OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theAccountID,

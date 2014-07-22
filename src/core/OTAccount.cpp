@@ -448,7 +448,7 @@ const OTIdentifier& OTAccount::GetAssetTypeID() const
 OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theServerID)
     : ot_super()
-    , m_lStashTransNum(0)
+    , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
@@ -468,7 +468,7 @@ void OTAccount::InitAccount()
 // this is private for now. hopefully keep that way.
 OTAccount::OTAccount()
     : ot_super()
-    , m_lStashTransNum(0)
+    , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
@@ -478,7 +478,7 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theAccountID,
                      const OTIdentifier& theServerID, const OTString& name)
     : ot_super(theUserID, theAccountID, theServerID)
-    , m_lStashTransNum(0)
+    , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
@@ -490,7 +490,7 @@ OTAccount::OTAccount(const OTIdentifier& theUserID,
                      const OTIdentifier& theAccountID,
                      const OTIdentifier& theServerID)
     : ot_super(theUserID, theAccountID, theServerID)
-    , m_lStashTransNum(0)
+    , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
@@ -692,7 +692,7 @@ bool OTAccount::GenerateNewAccount(
         OT_ASSERT_MSG(lStashTransNum > 0, "You created a stash account, but "
                                           "with a zero-or-negative transaction "
                                           "number for its cron item.");
-        m_lStashTransNum = lStashTransNum;
+        stashTransNum_ = lStashTransNum;
     }
 
     // Sign the Account (so we know that we did)... Otherwise someone could put
@@ -900,7 +900,7 @@ void OTAccount::UpdateContents()
                               strAssetTYPEID.Get());
     if (IsStashAcct())
         m_xmlUnsigned.Concatenate("<stashinfo cronItemNum=\"%lld\"/>\n\n",
-                                  m_lStashTransNum);
+                                  stashTransNum_);
 
     if (!m_InboxHash.IsEmpty()) {
         const OTString strHash(m_InboxHash);
@@ -1049,16 +1049,16 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         const OTString strStashTransNum = xml->getAttributeValue("cronItemNum");
         if (!strStashTransNum.Exists() ||
             ((lTransNum = atol(strStashTransNum.Get())) <= 0)) {
-            m_lStashTransNum = 0;
+            stashTransNum_ = 0;
             otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number "
                      "for supposed corresponding cron item: " << lTransNum
                   << " \n";
             return (-1);
         }
         else
-            m_lStashTransNum = lTransNum;
+            stashTransNum_ = lTransNum;
 
-        otLog3 << "\nSTASH INFO:   CronItemNum     --  " << m_lStashTransNum
+        otLog3 << "\nSTASH INFO:   CronItemNum     --  " << stashTransNum_
                << "\n";
 
         nReturnVal = 1;
