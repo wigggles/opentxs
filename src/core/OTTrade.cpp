@@ -157,7 +157,7 @@ enum {
 //
 // An OTTrade is derived from OTCronItem. OTCron has a list of those items.
 
-// Used to be I could just call pTrade->VerifySignature(theNym), which is what
+// Used to be I could just call pTrade->VerifySignature(nym), which is what
 // I still call here, inside this function. But that's a special case -- an
 // override
 // from the OTScriptable / OTSmartContract version, which verifies parties and
@@ -200,36 +200,35 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
 
-        const OTString str_creation = xml->getAttributeValue("creationDate");
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const OTString creationStr = xml->getAttributeValue("creationDate");
+        const OTString validFromStr = xml->getAttributeValue("validFrom");
+        const OTString validToStr = xml->getAttributeValue("validTo");
 
-        int64_t tCreation = str_creation.ToLong();
-        int64_t tValidFrom = str_valid_from.ToLong();
-        int64_t tValidTo = str_valid_to.ToLong();
+        int64_t creation = creationStr.ToLong();
+        int64_t validFrom = validFromStr.ToLong();
+        int64_t validTo = validToStr.ToLong();
 
-        SetCreationDate(OTTimeGetTimeFromSeconds(tCreation));
-        SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
-        SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
+        SetCreationDate(OTTimeGetTimeFromSeconds(creation));
+        SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
+        SetValidTo(OTTimeGetTimeFromSeconds(validTo));
 
-        OTString strActivated(xml->getAttributeValue("hasActivated"));
+        OTString activated(xml->getAttributeValue("hasActivated"));
 
-        if (strActivated.Compare("true"))
+        if (activated.Compare("true"))
             hasTradeActivated_ = true;
         else
             hasTradeActivated_ = false;
 
-        const OTString strServerID(xml->getAttributeValue("serverID")),
-            strUserID(xml->getAttributeValue("userID")),
-            strAssetTypeID(xml->getAttributeValue("assetTypeID")),
-            strAssetAcctID(xml->getAttributeValue("assetAcctID")),
-            strCurrencyTypeID(xml->getAttributeValue("currencyTypeID")),
-            strCurrencyAcctID(xml->getAttributeValue("currencyAcctID"));
+        const OTString serverID(xml->getAttributeValue("serverID")),
+            userID(xml->getAttributeValue("userID")),
+            assetTypeID(xml->getAttributeValue("assetTypeID")),
+            assetAcctID(xml->getAttributeValue("assetAcctID")),
+            currencyTypeID(xml->getAttributeValue("currencyTypeID")),
+            currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const OTIdentifier SERVER_ID(strServerID), USER_ID(strUserID),
-            ASSET_TYPE_ID(strAssetTypeID), ASSET_ACCT_ID(strAssetAcctID),
-            CURRENCY_TYPE_ID(strCurrencyTypeID),
-            CURRENCY_ACCT_ID(strCurrencyAcctID);
+        const OTIdentifier SERVER_ID(serverID), USER_ID(userID),
+            ASSET_TYPE_ID(assetTypeID), ASSET_ACCT_ID(assetAcctID),
+            CURRENCY_TYPE_ID(currencyTypeID), CURRENCY_ACCT_ID(currencyAcctID);
 
         SetServerID(SERVER_ID);
         SetSenderUserID(USER_ID);
@@ -241,24 +240,24 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otLog3 << "\n\nTrade. Transaction Number: " << m_lTransactionNum
                << "   Completed # of Trades: " << tradesAlreadyDone_ << "\n";
 
-        otWarn << " Creation Date: " << tCreation
-               << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
+        otWarn << " Creation Date: " << creation
+               << "   Valid From: " << validFrom << "\n Valid To: " << validTo
                << "\n"
-                  " assetTypeID: " << strAssetTypeID
-               << "\n assetAcctID: " << strAssetAcctID
-               << "\n"
-                  " ServerID: " << strServerID << "\n UserID: " << strUserID
+                  " assetTypeID: " << assetTypeID
+               << "\n assetAcctID: " << assetAcctID << "\n"
+                                                       " ServerID: " << serverID
+               << "\n UserID: " << userID
                << "\n "
-                  " currencyTypeID: " << strCurrencyTypeID
-               << "\n currencyAcctID: " << strCurrencyAcctID << "\n ";
+                  " currencyTypeID: " << currencyTypeID
+               << "\n currencyAcctID: " << currencyAcctID << "\n ";
 
         returnVal = 1;
     }
 
     if (!strcmp("stopOrder", xml->getNodeName())) {
-        OTString strSign(xml->getAttributeValue("sign"));
+        OTString sign(xml->getAttributeValue("sign"));
 
-        if (strSign.Compare("0")) {
+        if (sign.Compare("0")) {
             stopSign_ = 0; // Zero means it isn't a stop order. So why is the
                            // tag in the file?
             otErr << "Strange: Stop order tag found in trade, but sign "
@@ -266,14 +265,14 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "(Zero means: NOT a stop order.)\n";
             return (-1);
         }
-        else if (strSign.Compare("<"))
+        else if (sign.Compare("<"))
             stopSign_ = '<';
-        else if (strSign.Compare(">"))
+        else if (sign.Compare(">"))
             stopSign_ = '>';
         else {
             stopSign_ = 0;
             otErr << "Unexpected or nonexistent value in stop order sign: "
-                  << strSign << "\n";
+                  << sign << "\n";
             return (-1);
         }
 
@@ -281,9 +280,9 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         stopPrice_ = atol(xml->getAttributeValue("price"));
 
-        OTString strActivated(xml->getAttributeValue("hasActivated"));
+        OTString activated(xml->getAttributeValue("hasActivated"));
 
-        if (strActivated.Compare("true"))
+        if (activated.Compare("true"))
             stopActivated_ = true;
         else
             stopActivated_ = false;
@@ -351,11 +350,11 @@ void OTTrade::UpdateContents()
     // out.
 
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
-        int64_t lClosingNumber = GetClosingTransactionNoAt(i);
-        OT_ASSERT(lClosingNumber > 0);
+        int64_t closingNumber = GetClosingTransactionNoAt(i);
+        OT_ASSERT(closingNumber > 0);
 
         m_xmlUnsigned.Concatenate(
-            "<closingTransactionNumber value=\"%lld\"/>\n\n", lClosingNumber);
+            "<closingTransactionNumber value=\"%lld\"/>\n\n", closingNumber);
     }
 
     if (('<' == stopSign_) || ('>' == stopSign_)) {
@@ -380,31 +379,31 @@ void OTTrade::UpdateContents()
 // This function verifies that offer against the trade,
 // and also verifies the signature on the offer.
 //
-// The Nym's ID is compared to theOffer's SenderUserID, and then the Signature
+// The Nym's ID is compared to offer's SenderUserID, and then the Signature
 // is checked
 // on the offer.  It also compares the server ID, asset and currency IDs,
 // transaction #, etc
 // between this trade and the offer, in order to fully verify the offer's
 // authenticity.
 //
-bool OTTrade::VerifyOffer(OTOffer& theOffer)
+bool OTTrade::VerifyOffer(OTOffer& offer)
 {
     // At this point, I have a working, loaded, model of the Offer.
     // Let's verify the thing.
 
-    if (GetTransactionNum() != theOffer.GetTransactionNum()) {
+    if (GetTransactionNum() != offer.GetTransactionNum()) {
         otErr << "While verifying offer, failed matching transaction number.\n";
         return false;
     }
-    else if (GetServerID() != theOffer.GetServerID()) {
+    else if (GetServerID() != offer.GetServerID()) {
         otErr << "While verifying offer, failed matching Server ID.\n";
         return false;
     }
-    else if (GetAssetID() != theOffer.GetAssetID()) {
+    else if (GetAssetID() != offer.GetAssetID()) {
         otErr << "While verifying offer, failed matching asset type ID.\n";
         return false;
     }
-    else if (GetCurrencyID() != theOffer.GetCurrencyID()) {
+    else if (GetCurrencyID() != offer.GetCurrencyID()) {
         otErr << "While verifying offer, failed matching currency type ID.\n";
         return false;
     }
@@ -469,16 +468,16 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         return NULL;
     }
 
-    OTOffer* pOffer = new OTOffer();
-    OT_ASSERT(NULL != pOffer);
+    OTOffer* offer = new OTOffer();
+    OT_ASSERT(NULL != offer);
 
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
     // already there on the market.)
-    if (!pOffer->LoadContractFromString(marketOffer_)) {
+    if (!offer->LoadContractFromString(marketOffer_)) {
         otErr << "Error loading offer from string in OTTrade::GetOffer\n";
-        delete pOffer;
-        pOffer = NULL;
+        delete offer;
+        offer = NULL;
         return NULL;
     }
 
@@ -490,7 +489,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // *Also remember we saved a copy of the original in the cron folder.
 
     // It loaded. Let's get the Market ID off of it so we can locate the market.
-    OTIdentifier OFFER_MARKET_ID(*pOffer);
+    OTIdentifier OFFER_MARKET_ID(*offer);
 
     if (NULL != offerMarketId) {
         // Sometimes the caller function would like a copy of this ID. So I
@@ -508,17 +507,17 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // actually, without making it impossible for certain Nyms to get rid of
     // certain issued #s.
     //
-    //    OTMarket * pMarket = m_pCron->GetMarket(OFFER_MARKET_ID);
+    //    OTMarket * pMarket = m_cron->GetMarket(OFFER_MARKET_ID);
     OTMarket* pMarket = GetCron()->GetOrCreateMarket(
-        GetAssetID(), GetCurrencyID(), pOffer->GetScale());
+        GetAssetID(), GetCurrencyID(), offer->GetScale());
 
     // Couldn't find (or create) the market.
     if (NULL == pMarket) {
         otOut
             << "OTTrade::" << __FUNCTION__
             << ": Unable to find or create market within requested parameters.";
-        delete pOffer;
-        pOffer = NULL;
+        delete offer;
+        offer = NULL;
         return NULL;
     }
 
@@ -538,7 +537,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     //
     // Let's see if the offer is ALREADY allocated and on this market!
     // If so, delete the one I just allocated. If not, add it to the market.
-    OTOffer* pMarketOffer = pMarket->GetOffer(pOffer->GetTransactionNum());
+    OTOffer* marketOffer = pMarket->GetOffer(offer->GetTransactionNum());
 
     // The Offer is already on the Market.
     // NOTE: It may just start out this way, without ever being added.
@@ -556,13 +555,13 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // this Trade object! (When actually processing the offer, the market will
     // need the account
     // numbers and Nym IDs... which are stored here on the trade.)
-    if (NULL != pMarketOffer) {
-        offer_ = pMarketOffer;
+    if (NULL != marketOffer) {
+        offer_ = marketOffer;
 
         // Since the Offer already exists on the market, no need anymore for the
         // one we allocated above (to get the market ID.) So we delete it now.
-        delete pOffer;
-        pOffer = NULL;
+        delete offer;
+        offer = NULL;
 
         offer_->SetTrade(*this);
 
@@ -582,10 +581,10 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
             otErr << "How has the trade already activated, yet not on the "
                      "market and null in my pointer?\n";
         }
-        else if (!pMarket->AddOffer(this, *pOffer, true)) // Since we're
-                                                            // actually adding
-                                                            // an offer to the
-                                                            // market (not just
+        else if (!pMarket->AddOffer(this, *offer, true)) // Since we're
+                                                           // actually adding
+                                                           // an offer to the
+                                                           // market (not just
         { // loading from disk) the we actually want to save the market.
             // bSaveFile=true.
             // Error adding the offer to the market!
@@ -594,7 +593,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         }
         else {
             // SUCCESS!
-            offer_ = pOffer;
+            offer_ = offer;
 
             hasTradeActivated_ = true;
 
@@ -636,23 +635,23 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
     // Should we activate it now?
     //
     else if (IsStopOrder() && !stopActivated_) {
-        int64_t lRelevantPrice = 0;
+        int64_t relevantPrice = 0;
 
         // If the stop order is trying to sell something, then it cares about
         // the highest bidder.
-        if (pOffer->IsAsk())
-            lRelevantPrice = pMarket->GetHighestBidPrice();
+        if (offer->IsAsk())
+            relevantPrice = pMarket->GetHighestBidPrice();
         else // But if the stop order is trying to buy something, then it cares
              // about the lowest ask price.
-            lRelevantPrice = pMarket->GetLowestAskPrice();
+            relevantPrice = pMarket->GetLowestAskPrice();
 
         // It's a stop order that hasn't activated yet. SHOULD IT ACTIVATE NOW?
-        if ((IsGreaterThan() && (lRelevantPrice > GetStopPrice())) ||
-            (IsLessThan() && (lRelevantPrice < GetStopPrice()))) {
+        if ((IsGreaterThan() && (relevantPrice > GetStopPrice())) ||
+            (IsLessThan() && (relevantPrice < GetStopPrice()))) {
             // Activate the stop order!
-            if (!pMarket->AddOffer(this, *pOffer, true)) // Since we're actually
-                                                         // adding an offer to
-                                                         // the market (not just
+            if (!pMarket->AddOffer(this, *offer, true)) // Since we're actually
+                                                        // adding an offer to
+                                                        // the market (not just
             { // loading from disk) the we actually want to save the market.
                 // Error adding the offer to the market!    // bSaveFile=true.
                 otErr << "Error adding the stop order to the market! (Even "
@@ -660,7 +659,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
             }
             else {
                 // SUCCESS!
-                offer_ = pOffer;
+                offer_ = offer;
 
                 stopActivated_ = true;
                 hasTradeActivated_ = true;
@@ -700,8 +699,8 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
         }
     }
 
-    delete pOffer;
-    pOffer = NULL;
+    delete offer;
+    offer = NULL;
 
     return NULL;
 }
@@ -717,9 +716,9 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=NULL*/,
 //
 void OTTrade::onRemovalFromCron()
 {
-    OTCron* pCron = GetCron();
+    OTCron* cron = GetCron();
 
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(NULL != cron);
 
     // If I don't already have an offer on the market, then I will have trouble
     // figuring out
@@ -728,8 +727,8 @@ void OTTrade::onRemovalFromCron()
     // store the original internally) and I will look up the scale.
     //
 
-    int64_t lScale = 1; // todo stop hardcoding.
-    int64_t lTransactionNum = 0;
+    int64_t scale = 1; // todo stop hardcoding.
+    int64_t transactionNum = 0;
 
     if (NULL == offer_) {
         if (!marketOffer_.Exists()) {
@@ -738,37 +737,37 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        OTOffer* pOffer = NULL;
+        OTOffer* offer = NULL;
         OTCleanup<OTOffer> theOfferAngel;
 
-        pOffer = new OTOffer();
-        OT_ASSERT(NULL != pOffer);
-        theOfferAngel.SetCleanupTarget(*pOffer);
+        offer = new OTOffer();
+        OT_ASSERT(NULL != offer);
+        theOfferAngel.SetCleanupTarget(*offer);
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer
         // is
         // already there on the market.)
-        if (!pOffer->LoadContractFromString(marketOffer_)) {
+        if (!offer->LoadContractFromString(marketOffer_)) {
             otErr << "Error loading offer from string in "
                      "OTTrade::onRemovalFromCron\n";
             return;
         }
 
-        lScale = pOffer->GetScale();
-        lTransactionNum = pOffer->GetTransactionNum();
+        scale = offer->GetScale();
+        transactionNum = offer->GetTransactionNum();
     }
     else {
-        lScale = offer_->GetScale();
-        lTransactionNum = offer_->GetTransactionNum();
+        scale = offer_->GetScale();
+        transactionNum = offer_->GetTransactionNum();
     }
 
-    OTMarket* pMarket =
-        pCron->GetOrCreateMarket(GetAssetID(), GetCurrencyID(), lScale);
+    OTMarket* market =
+        cron->GetOrCreateMarket(GetAssetID(), GetCurrencyID(), scale);
 
     // Couldn't find (or create) the market.
     //
-    if (NULL == pMarket) {
+    if (NULL == market) {
         otErr << "Unable to find market within requested parameters in "
                  "OTTrade::onRemovalFromCron.\n";
         return;
@@ -777,17 +776,17 @@ void OTTrade::onRemovalFromCron()
     //
     // Let's see if the offer is ALREADY allocated and on this market!
     //
-    OTOffer* pMarketOffer = pMarket->GetOffer(lTransactionNum);
+    OTOffer* marketOffer = market->GetOffer(transactionNum);
 
     // The Offer is already on the Market.
     //
-    if (NULL != pMarketOffer) {
-        offer_ = pMarketOffer;
+    if (NULL != marketOffer) {
+        offer_ = marketOffer;
 
         offer_->SetTrade(*this);
     }
 
-    pMarket->RemoveOffer(lTransactionNum);
+    market->RemoveOffer(transactionNum);
 }
 
 //    GetSenderAcctID()    -- asset account.
@@ -795,14 +794,10 @@ void OTTrade::onRemovalFromCron()
 
 int64_t OTTrade::GetClosingNumber(const OTIdentifier& acctId) const
 {
-    const OTIdentifier& theAssetAcctID = this->GetSenderAcctID();
-    const OTIdentifier& theCurrencyAcctID = this->GetCurrencyAcctID();
-
-    if (acctId == theAssetAcctID)
+    if (acctId == this->GetSenderAcctID())
         return GetAssetAcctClosingNum();
-    else if (acctId == theCurrencyAcctID)
+    else if (acctId == this->GetCurrencyAcctID())
         return GetCurrencyAcctClosingNum();
-    // else...
     return 0;
 }
 
@@ -818,9 +813,9 @@ int64_t OTTrade::GetCurrencyAcctClosingNum() const
                                           : 0; // todo stop hardcoding.
 }
 
-/// See if theNym has rights to remove this item from Cron.
+/// See if nym has rights to remove this item from Cron.
 ///
-bool OTTrade::CanRemoveItemFromCron(OTPseudonym& theNym)
+bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
 {
     // I don't call the parent class' version of this function, in the case of
     // OTTrade,
@@ -832,14 +827,14 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& theNym)
     // related closing #s)
     // signed out to him on his last receipt...
     //
-    if (false == theNym.CompareID(GetSenderUserID())) {
-        otLog5 << "OTTrade::CanRemoveItem: theNym is not the originator of "
+    if (false == nym.CompareID(GetSenderUserID())) {
+        otLog5 << "OTTrade::CanRemoveItem: nym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
         return false;
     }
 
-    // By this point, that means theNym is DEFINITELY the originator (sender)...
+    // By this point, that means nym is DEFINITELY the originator (sender)...
     else if (this->GetCountClosingNumbers() < 2) {
         otOut
             << "OTTrade::CanRemoveItem Weird: Sender tried to remove a market "
@@ -849,32 +844,32 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& theNym)
         return false;
     }
 
-    const OTString strServerID(GetServerID());
+    const OTString serverID(GetServerID());
 
     if (false ==
-        theNym.VerifyIssuedNum(strServerID, this->GetAssetAcctClosingNum())) {
+        nym.VerifyIssuedNum(serverID, this->GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for asset account.\n";
         return false;
     }
 
-    if (false == theNym.VerifyIssuedNum(strServerID,
-                                        this->GetCurrencyAcctClosingNum())) {
+    if (false ==
+        nym.VerifyIssuedNum(serverID, this->GetCurrencyAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for currency account.\n";
         return false;
     }
 
-    // By this point, we KNOW theNym is the sender, and we KNOW there are the
+    // By this point, we KNOW nym is the sender, and we KNOW there are the
     // proper number of transaction
     // numbers available to close. We also know that this cron item really was
     // on the cron object, since
     // that is where it was looked up from, when this function got called! So
     // I'm pretty sure, at this point,
     // to authorize removal, as long as the transaction num is still issued to
-    // theNym (this check here.)
+    // nym (this check here.)
     //
-    return theNym.VerifyIssuedNum(strServerID, this->GetOpeningNum());
+    return nym.VerifyIssuedNum(serverID, this->GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -901,17 +896,17 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& theNym)
 // (After calling this method, HookRemovalFromCron then calls
 // onRemovalFromCron.)
 //
-void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
-                             const int64_t& lNewTransactionNumber,
-                             OTPseudonym& theOriginator, OTPseudonym* pRemover)
+void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
+                             const int64_t& newTransactionNumber,
+                             OTPseudonym& originator, OTPseudonym* remover)
 {
     const char* szFunc = "OTTrade::onFinalReceipt";
 
-    OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OTCron* cron = GetCron();
+    OT_ASSERT(NULL != cron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OTPseudonym* serverNym = cron->GetServerNym();
+    OT_ASSERT(NULL != serverNym);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -922,25 +917,25 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
     // on the FINAL RECEIPT (with that receipt being "InReferenceTo"
     // this->GetTransactionNum())
     //
-    const int64_t lOpeningNumber = theOrigCronItem.GetTransactionNum();
+    const int64_t openingNumber = origCronItem.GetTransactionNum();
 
-    const int64_t lClosingAssetNumber =
-        (theOrigCronItem.GetCountClosingNumbers() > 0)
-            ? theOrigCronItem.GetClosingTransactionNoAt(0)
+    const int64_t closingAssetNumber =
+        (origCronItem.GetCountClosingNumbers() > 0)
+            ? origCronItem.GetClosingTransactionNoAt(0)
             : 0;
-    const int64_t lClosingCurrencyNumber =
-        (theOrigCronItem.GetCountClosingNumbers() > 1)
-            ? theOrigCronItem.GetClosingTransactionNoAt(1)
+    const int64_t closingCurrencyNumber =
+        (origCronItem.GetCountClosingNumbers() > 1)
+            ? origCronItem.GetClosingTransactionNoAt(1)
             : 0;
 
-    const OTString strServerID(GetServerID());
+    const OTString serverID(GetServerID());
 
     // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
     // And the **UPDATED OFFER** is stored on the ATTACHMENT on the **ITEM.**
     //
     // BUT!!! This is not a marketReceipt Item, is it? ***This is a finalReceipt
     // ITEM!***
-    // I'm reversing pstrNote and pstrAttachment for finalReceipt, with the
+    // I'm reversing note and attachment for finalReceipt, with the
     // intention of
     // eventually reversing them for marketReceipt as well. (Making them all in
     // line with paymentReceipt.)
@@ -973,21 +968,21 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    OTString strUpdatedCronItem(*this);
-    OTString* pstrAttachment = &strUpdatedCronItem; // the Updated TRADE.
-    OTString strUpdatedOffer;
-    OTString* pstrNote = NULL; // the updated Offer (if available.)
+    OTString updatedCronItem(*this);
+    OTString* attachment = &updatedCronItem; // the Updated TRADE.
+    OTString updatedOffer;
+    OTString* note = NULL; // the updated Offer (if available.)
 
     if (offer_) {
-        offer_->SaveContractRaw(strUpdatedOffer);
-        pstrNote = &strUpdatedOffer;
+        offer_->SaveContractRaw(updatedOffer);
+        note = &updatedOffer;
     }
 
-    const OTString strOrigCronItem(theOrigCronItem);
+    const OTString strOrigCronItem(origCronItem);
 
-    OTPseudonym* pActualNym = NULL; // use this. DON'T use theActualNym.
+    OTPseudonym* actualNym = NULL; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
-                              // (use pActualNym.)
+                              // (use actualNym.)
 
     // The OPENING transaction number must still be signed-out.
     // It is this act of placing the final receipt, which then finally closes
@@ -996,42 +991,42 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
     // Receipt is ACCEPTED
     // (which happens in a "process inbox" transaction.)
     //
-    if ((lOpeningNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lOpeningNumber)) {
+    if ((openingNumber > 0) &&
+        originator.VerifyIssuedNum(serverID, openingNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
         // So when the number is released from the Nym, we also take it off that
         // list.
         //
-        std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
-        theIDSet.erase(lOpeningNumber);
+        std::set<int64_t>& idSet = originator.GetSetOpenCronItems();
+        idSet.erase(openingNumber);
 
-        theOriginator.RemoveIssuedNum(*pServerNym, strServerID, lOpeningNumber,
-                                      false);         // bSave=false
-        theOriginator.SaveSignedNymfile(*pServerNym); // forcing a save here,
-                                                      // since multiple things
-                                                      // have changed.
+        originator.RemoveIssuedNum(*serverNym, serverID, openingNumber,
+                                   false);        // bSave=false
+        originator.SaveSignedNymfile(*serverNym); // forcing a save here,
+                                                  // since multiple things
+                                                  // have changed.
 
-        const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
+        const OTIdentifier actualNymId = GetSenderUserID();
 
-        if ((NULL != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
-            pActualNym = pServerNym;
-        else if (theOriginator.CompareID(ACTUAL_NYM_ID))
-            pActualNym = &theOriginator;
-        else if ((NULL != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
-            pActualNym = pRemover;
+        if ((NULL != serverNym) && serverNym->CompareID(actualNymId))
+            actualNym = serverNym;
+        else if (originator.CompareID(actualNymId))
+            actualNym = &originator;
+        else if ((NULL != remover) && remover->CompareID(actualNymId))
+            actualNym = remover;
 
         else // We couldn't find the Nym among those already loaded--so we have
              // to load
         {    // it ourselves (so we can update its NymboxHash value.)
-            theActualNym.SetIdentifier(ACTUAL_NYM_ID);
+            theActualNym.SetIdentifier(actualNymId);
 
             if (false == theActualNym.LoadPublicKey()) // Note: this step may be
                                                        // unnecessary since we
                                                        // are only updating his
                                                        // Nymfile, not his key.
             {
-                OTString strNymID(ACTUAL_NYM_ID);
+                OTString strNymID(actualNymId);
                 otErr << szFunc
                       << ": Failure loading public key for Nym : " << strNymID
                       << ". "
@@ -1040,18 +1035,18 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
             else if (theActualNym.VerifyPseudonym() && // this line may be
                                                          // unnecessary.
                        theActualNym.LoadSignedNymfile(
-                           *pServerNym)) // ServerNym here is not theActualNym's
-                                         // identity, but merely the signer on
-                                         // this file.
+                           *serverNym)) // ServerNym here is not theActualNym's
+                                        // identity, but merely the signer on
+                                        // this file.
             {
                 otLog3
                     << szFunc
                     << ": Loading actual Nym, since he wasn't already loaded. "
                        "(To update his NymboxHash.)\n";
-                pActualNym = &theActualNym; //  <=====
+                actualNym = &theActualNym; //  <=====
             }
             else {
-                OTString strNymID(ACTUAL_NYM_ID);
+                OTString strNymID(actualNymId);
                 otErr
                     << szFunc
                     << ": Failure loading or verifying Actual Nym public key: "
@@ -1061,52 +1056,51 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         if (false == this->DropFinalReceiptToNymbox(
-                         GetSenderUserID(), lNewTransactionNumber,
-                         strOrigCronItem, pstrNote, pstrAttachment,
-                         pActualNym)) {
+                         GetSenderUserID(), newTransactionNumber,
+                         strOrigCronItem, note, attachment, actualNym)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
         }
     }
     else {
         otErr << szFunc << ": Problem verifying Opening Number when calling "
-                           "VerifyIssuedNum(lOpeningNumber)\n";
+                           "VerifyIssuedNum(openingNumber)\n";
     }
 
     // ASSET ACCT
     //
-    if ((lClosingAssetNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lClosingAssetNumber)) {
+    if ((closingAssetNumber > 0) &&
+        originator.VerifyIssuedNum(serverID, closingAssetNumber)) {
         this->DropFinalReceiptToInbox(
-            GetSenderUserID(), GetSenderAcctID(), lNewTransactionNumber,
-            lClosingAssetNumber, // The closing transaction number to put on the
-                                 // receipt.
-            strOrigCronItem, pstrNote, pstrAttachment);
+            GetSenderUserID(), GetSenderAcctID(), newTransactionNumber,
+            closingAssetNumber, // The closing transaction number to put on the
+                                // receipt.
+            strOrigCronItem, note, attachment);
     }
     else {
         otErr << szFunc
               << ": Failed verifying "
-                 "lClosingAssetNumber=theOrigCronItem."
+                 "closingAssetNumber=origCronItem."
                  "GetClosingTransactionNoAt(0)>0 &&  "
-                 "theOriginator.VerifyTransactionNum(lClosingAssetNumber)\n";
+                 "originator.VerifyTransactionNum(closingAssetNumber)\n";
     }
 
     // CURRENCY ACCT
     //
-    if ((lClosingCurrencyNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lClosingCurrencyNumber)) {
+    if ((closingCurrencyNumber > 0) &&
+        originator.VerifyIssuedNum(serverID, closingCurrencyNumber)) {
         this->DropFinalReceiptToInbox(
-            GetSenderUserID(), GetCurrencyAcctID(), lNewTransactionNumber,
-            lClosingCurrencyNumber, // closing transaction number for the
-                                    // receipt.
-            strOrigCronItem, pstrNote, pstrAttachment);
+            GetSenderUserID(), GetCurrencyAcctID(), newTransactionNumber,
+            closingCurrencyNumber, // closing transaction number for the
+                                   // receipt.
+            strOrigCronItem, note, attachment);
     }
     else {
         otErr << szFunc
               << ": Failed verifying "
-                 "lClosingCurrencyNumber=theOrigCronItem."
+                 "closingCurrencyNumber=origCronItem."
                  "GetClosingTransactionNoAt(1)>0 "
                  "&&  "
-                 "theOriginator.VerifyTransactionNum(lClosingCurrencyNumber)\n";
+                 "originator.VerifyTransactionNum(closingCurrencyNumber)\n";
     }
 
     // the RemoveIssued call means the original transaction# (to find this cron
@@ -1125,11 +1119,11 @@ void OTTrade::onFinalReceipt(OTCronItem& theOrigCronItem,
     // processing your inbox.)
     //
     //      if (bDroppedReceiptAssetAcct)
-    //          theOriginator.RemoveIssuedNum(strServerID, lClosingAssetNumber,
+    //          originator.RemoveIssuedNum(serverID, closingAssetNumber,
     // true); //bSave=false
     //      else if (bDroppedReceiptCurrencyAcct)
-    //          theOriginator.RemoveIssuedNum(strServerID,
-    // lClosingCurrencyNumber, true); //bSave=false
+    //          originator.RemoveIssuedNum(serverID,
+    // closingCurrencyNumber, true); //bSave=false
     //    }
     //    else
     //    {
@@ -1195,7 +1189,7 @@ bool OTTrade::ProcessCron()
         true; // by default stay on the market (until some rule expires me.)
 
     OTIdentifier OFFER_MARKET_ID;
-    OTMarket* pMarket = NULL;
+    OTMarket* market = NULL;
 
     // If the Offer is already active on a market, then I already have a pointer
     // to
@@ -1204,12 +1198,12 @@ bool OTTrade::ProcessCron()
     // the market and then sets the pointer and returns. If it can't find it, IT
     // TRIES
     // TO ADD IT TO THE MARKET and sets the pointer and returns it.
-    OTOffer* pOffer = GetOffer(
-        &OFFER_MARKET_ID, &pMarket); // Both of these parameters are optional.
+    OTOffer* offer = GetOffer(
+        &OFFER_MARKET_ID, &market); // Both of these parameters are optional.
 
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.
-    if (NULL == pOffer) {
+    if (NULL == offer) {
         // The offer SHOULD HAVE been on the market, since we're within the
         // valid range,
         // and GetOffer adds it when it's not already there.
@@ -1223,7 +1217,7 @@ bool OTTrade::ProcessCron()
         // time a stop order
         // checks its prices.
     }
-    else if (NULL == pMarket) {
+    else if (NULL == market) {
         // todo. (This will already leave a log above in GetOffer somewhere.)
         //        otErr << "OTTrade::ProcessCron: Market was NULL.\n"; //
         // comment this out
@@ -1241,7 +1235,7 @@ bool OTTrade::ProcessCron()
         {
             otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
 
-            bStayOnMarket = pMarket->ProcessTrade(*this, *pOffer);
+            bStayOnMarket = market->ProcessTrade(*this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }
@@ -1272,14 +1266,14 @@ processed through this order? We keep track.
 // This is called by the client side. First you call MakeOffer() to set up the
 // Offer,
 // then you call IssueTrade() and pass the Offer into it here.
-bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
-                         int64_t lStopPrice /*=0*/)
+bool OTTrade::IssueTrade(OTOffer& offer, char stopSign /*=0*/,
+                         int64_t stopPrice /*=0*/)
 {
     // Make sure the Stop Sign is within parameters (0, '<', or '>')
-    if ((cStopSign == 0) || (cStopSign == '<') || (cStopSign == '>'))
-        stopSign_ = cStopSign;
+    if ((stopSign == 0) || (stopSign == '<') || (stopSign == '>'))
+        stopSign_ = stopSign;
     else {
-        otErr << "Bad data in Stop Sign while issuing trade: " << cStopSign
+        otErr << "Bad data in Stop Sign while issuing trade: " << stopSign
               << "\n";
         return false;
     }
@@ -1287,12 +1281,12 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
     // Make sure, if this IS a Stop order, that the price is within parameters
     // and set.
     if ((stopSign_ == '<') || (stopSign_ == '>')) {
-        if (0 >= lStopPrice) {
+        if (0 >= stopPrice) {
             otErr << "Expected Stop Price for trade.\n";
             return false;
         }
 
-        stopPrice_ = lStopPrice;
+        stopPrice_ = stopPrice;
     }
 
     tradesAlreadyDone_ = 0;
@@ -1301,11 +1295,11 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
         OTTimeGetCurrentTime()); // This time is set to TODAY NOW  (OTCronItem)
 
     // Validate the Server ID, Asset Type ID, Currency Type ID, and Date Range.
-    if ((GetServerID() != theOffer.GetServerID()) ||
-        (GetCurrencyID() != theOffer.GetCurrencyID()) ||
-        (GetAssetID() != theOffer.GetAssetID()) ||
-        (theOffer.GetValidFrom() < OT_TIME_ZERO) ||
-        (theOffer.GetValidTo() < theOffer.GetValidFrom())) {
+    if ((GetServerID() != offer.GetServerID()) ||
+        (GetCurrencyID() != offer.GetCurrencyID()) ||
+        (GetAssetID() != offer.GetAssetID()) ||
+        (offer.GetValidFrom() < OT_TIME_ZERO) ||
+        (offer.GetValidTo() < offer.GetValidFrom())) {
         return false;
     }
 
@@ -1314,14 +1308,14 @@ bool OTTrade::IssueTrade(OTOffer& theOffer, char cStopSign /*=0*/,
     //    currencyAcctID_ // This is already set in the constructor of this.
 
     // Set the (now validated) date range as per the Offer.
-    SetValidFrom(theOffer.GetValidFrom());
-    SetValidTo(theOffer.GetValidTo());
+    SetValidFrom(offer.GetValidFrom());
+    SetValidTo(offer.GetValidTo());
 
     // Get the transaction number from the Offer.
-    SetTransactionNum(theOffer.GetTransactionNum());
+    SetTransactionNum(offer.GetTransactionNum());
 
     // Save a copy of the offer, in XML form, here on this Trade.
-    OTString strOffer(theOffer);
+    OTString strOffer(offer);
     marketOffer_.Set(strOffer);
 
     return true;

@@ -173,10 +173,9 @@ class OTPseudonym;
 
 class OTTrade : public OTCronItem
 {
-private: // Private prevents erroneous use by other classes.
+private:
     typedef OTCronItem ot_super;
 
-private:
     OTIdentifier currencyTypeID_; // GOLD (Asset) is trading for DOLLARS
                                   // (Currency).
     OTIdentifier currencyAcctID_; // My Dollar account, used for paying for
@@ -216,12 +215,17 @@ public:
     inline bool GetOfferString(OTString& offer)
     {
         offer.Set(marketOffer_);
-        return marketOffer_.Exists() ? true : false;
+        if (marketOffer_.Exists()) {
+            return true;
+        }
+        return false;
     }
 
     inline bool IsStopOrder() const
     {
-        if ((stopSign_ == '<') || (stopSign_ == '>')) return true;
+        if ((stopSign_ == '<') || (stopSign_ == '>')) {
+            return true;
+        }
         return false;
     }
 
@@ -232,22 +236,29 @@ public:
 
     inline bool IsGreaterThan() const
     {
-        if ((stopSign_ == '>')) return true;
+        if (stopSign_ == '>') {
+            return true;
+        }
         return false;
     }
+
     inline bool IsLessThan() const
     {
-        if ((stopSign_ == '<')) return true;
+        if (stopSign_ == '<') {
+            return true;
+        }
         return false;
     }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(OTIdentifier* offerMarketId = NULL,
-                      OTMarket* *market = NULL);
+    OTOffer* GetOffer(OTIdentifier* offerMarketId = nullptr,
+                      OTMarket* *market = nullptr);
+
     inline const OTIdentifier& GetCurrencyID() const
     {
         return currencyTypeID_;
     }
+
     inline void SetCurrencyID(const OTIdentifier& currencyId)
     {
         currencyTypeID_ = currencyId;
@@ -257,18 +268,22 @@ public:
     {
         return currencyAcctID_;
     }
+
     inline void SetCurrencyAcctID(const OTIdentifier& currencyAcctID)
     {
         currencyAcctID_ = currencyAcctID;
     }
+
     inline void IncrementTradesAlreadyDone()
     {
         tradesAlreadyDone_++;
     }
+
     inline int32_t GetCompletedCount()
     {
         return tradesAlreadyDone_;
     }
+
     EXPORT int64_t GetAssetAcctClosingNum() const;
     EXPORT int64_t GetCurrencyAcctClosingNum() const;
 
