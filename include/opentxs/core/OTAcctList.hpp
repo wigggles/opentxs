@@ -134,6 +134,8 @@
 #define __OT_ACCT_LIST_HPP__
 
 #include "OTAccount.hpp" // only necessary because of OTAccount::AccountType
+#include <string>
+#include <map>
 #include <memory>
 
 namespace opentxs
@@ -181,13 +183,16 @@ public:
         const int64_t stashTransNum = 0);
 
 private:
+    typedef std::map<std::string, std::weak_ptr<OTAccount>> MapOfWeakAccounts;
+
+private:
     OTAccount::AccountType acctType_;
     // AcctIDs as second mapped by ASSET TYPE ID as first.
     mapOfStrings mapAcctIDs_;
     // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We
     // store the weak pointer here only to make sure accounts don't get loaded
     // twice.
-    mapOfWeakAccounts mapWeakAccts_;
+    MapOfWeakAccounts mapWeakAccts_;
 };
 
 } // namespace opentxs
