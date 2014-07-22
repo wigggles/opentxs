@@ -173,11 +173,11 @@ public:
        // top of the .CPP file.
 
 protected:
-    AccountType m_AcctType;
-    OTIdentifier m_AcctAssetTypeID; // These are all the variables from the
-                                    // account file itself.
-    OTString m_BalanceDate;
-    OTString m_BalanceAmount;
+    AccountType acctType_;
+    OTIdentifier acctAssetTypeID_; // These are all the variables from the
+                                   // account file itself.
+    OTString balanceDate_;
+    OTString balanceAmount_;
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
@@ -190,10 +190,10 @@ protected:
     bool markForDeletion_;  // Default FALSE. When set to true, saves a
                             // "DELETED" flag with this Account,
     // for easy cleanup later when the server is doing some maintenance.
-    OTIdentifier m_InboxHash;  // Hash of this account's Inbox, so we don't
-                               // download it more often than necessary.
-    OTIdentifier m_OutboxHash; // Hash of this account's Outbox, so we don't
-                               // download it more often than necessary.
+    OTIdentifier inboxHash_;  // Hash of this account's Inbox, so we don't
+                              // download it more often than necessary.
+    OTIdentifier outboxHash_; // Hash of this account's Outbox, so we don't
+                              // download it more often than necessary.
 public:
     inline void MarkForDeletion()
     {
@@ -214,7 +214,7 @@ public:
     //
     EXPORT bool IsStashAcct() const
     {
-        return (m_AcctType == stash);
+        return (acctType_ == stash);
     }
 
     EXPORT const int64_t& GetStashTransNum() const
@@ -296,7 +296,7 @@ public:
     EXPORT static char const* _GetTypeString(AccountType type);
     EXPORT char const* GetTypeString()
     {
-        return OTAccount::_GetTypeString(m_AcctType);
+        return OTAccount::_GetTypeString(acctType_);
     }
 };
 

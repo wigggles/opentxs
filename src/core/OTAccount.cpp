@@ -280,15 +280,15 @@ bool OTAccount::SaveOutbox(OTLedger& box,
 
 void OTAccount::SetInboxHash(const OTIdentifier& input)
 {
-    m_InboxHash = input;
+    inboxHash_ = input;
 }
 
 bool OTAccount::GetInboxHash(OTIdentifier& output)
 {
     output.Release();
 
-    if (!m_InboxHash.IsEmpty()) {
-        output = m_InboxHash;
+    if (!inboxHash_.IsEmpty()) {
+        output = inboxHash_;
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
@@ -306,15 +306,15 @@ bool OTAccount::GetInboxHash(OTIdentifier& output)
 
 void OTAccount::SetOutboxHash(const OTIdentifier& input)
 {
-    m_OutboxHash = input;
+    outboxHash_ = input;
 }
 
 bool OTAccount::GetOutboxHash(OTIdentifier& output)
 {
     output.Release();
 
-    if (!m_OutboxHash.IsEmpty()) {
-        output = m_OutboxHash;
+    if (!outboxHash_.IsEmpty()) {
+        output = outboxHash_;
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
@@ -368,7 +368,7 @@ bool OTAccount::Debit(const int64_t& lAmount)
         return false;
      */
 
-    int64_t lOldBalance = atol(m_BalanceAmount.Get());
+    int64_t lOldBalance = atol(balanceAmount_.Get());
 
     int64_t lNewBalance = lOldBalance - lAmount; // The MINUS here is the big
                                                  // difference between Debit and
@@ -384,10 +384,10 @@ bool OTAccount::Debit(const int64_t& lAmount)
                       // recent,
     else // and it means that we now allow <0 debits on normal accounts,
     {    // AS LONG AS the result is a HIGHER BALANCE  :-)
-        m_BalanceAmount.Format("%lld", lNewBalance);
+        balanceAmount_.Format("%lld", lNewBalance);
 
         const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-        m_BalanceDate.Format("%d", tDate);
+        balanceDate_.Format("%d", tDate);
 
         return true;
     }
@@ -403,7 +403,7 @@ bool OTAccount::Credit(const int64_t& lAmount)
      return false;
      */
 
-    int64_t lOldBalance = atol(m_BalanceAmount.Get());
+    int64_t lOldBalance = atol(balanceAmount_.Get());
 
     int64_t lNewBalance = lOldBalance + lAmount; // The PLUS here is the big
                                                  // difference between Debit and
@@ -413,9 +413,9 @@ bool OTAccount::Credit(const int64_t& lAmount)
     // int64_t int32_t.
     // We'll maybe explicitly check that it's not negative in order to prevent
     // that. TODO.
-    //    if (lNewBalance > 0 || (OTAccount::simple != m_AcctType))
+    //    if (lNewBalance > 0 || (OTAccount::simple != acctType_))
     //    {
-    //        m_BalanceAmount.Format("%lld", lNewBalance);
+    //        balanceAmount_.Format("%lld", lNewBalance);
     //        return true;
     //    }
 
@@ -429,10 +429,10 @@ bool OTAccount::Credit(const int64_t& lAmount)
                       // recent,
     else // and it means that we now allow <0 credits on normal accounts,
     {    // AS LONG AS the result is a HIGHER BALANCE  :-)
-        m_BalanceAmount.Format("%lld", lNewBalance);
+        balanceAmount_.Format("%lld", lNewBalance);
 
         const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-        m_BalanceDate.Format("%d", tDate);
+        balanceDate_.Format("%d", tDate);
 
         return true;
     }
@@ -440,7 +440,7 @@ bool OTAccount::Credit(const int64_t& lAmount)
 
 const OTIdentifier& OTAccount::GetAssetTypeID() const
 {
-    return m_AcctAssetTypeID;
+    return acctAssetTypeID_;
 }
 
 // Used for generating accounts, thus no accountID needed.
@@ -460,7 +460,7 @@ void OTAccount::InitAccount()
 {
     m_strContractType = "ACCOUNT";
 
-    m_AcctType = OTAccount::simple;
+    acctType_ = OTAccount::simple;
 }
 
 // this is private for now. hopefully keep that way.
@@ -657,8 +657,8 @@ bool OTAccount::GenerateNewAccount(
     }
 
     // Set up the various important starting values of the account.
-    m_AcctType = eAcctType; // account type defaults to OTAccount::simple. But
-                            // there are also issuer accts...
+    acctType_ = eAcctType; // account type defaults to OTAccount::simple. But
+                           // there are also issuer accts...
 
     if (IsInternalServerAcct()) // basket, basketsub, mint, voucher, and stash
                                 // accounts are all "owned" by the server.
@@ -669,7 +669,7 @@ bool OTAccount::GenerateNewAccount(
         m_AcctUserID.SetString(message.m_strNymID);
     }
 
-    m_AcctAssetTypeID.SetString(message.m_strAssetID);
+    acctAssetTypeID_.SetString(message.m_strAssetID);
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
            << message.m_strAssetID << "\n";
@@ -680,9 +680,9 @@ bool OTAccount::GenerateNewAccount(
     SetPurportedServerID(SERVER_ID);
 
     const time64_t tDate = OTTimeGetCurrentTime(); // Today, now.
-    m_BalanceDate.Format("%d", tDate);
+    balanceDate_.Format("%d", tDate);
 
-    m_BalanceAmount.Set("0");
+    balanceAmount_.Set("0");
 
     if (IsStashAcct()) {
         OT_ASSERT_MSG(lStashTransNum > 0, "You created a stash account, but "
@@ -716,7 +716,7 @@ bool OTAccount::GenerateNewAccount(
 
 int64_t OTAccount::GetBalance() const
 {
-    if (m_BalanceAmount.Exists()) return atol(m_BalanceAmount.Get());
+    if (balanceAmount_.Exists()) return atol(balanceAmount_.Get());
 
     return 0;
 }
@@ -781,10 +781,10 @@ bool OTAccount::DisplayStatistics(OTString& strContents) const
 {
     const OTString strAccountID(GetPurportedAccountID()),
         strServerID(GetPurportedServerID()), strUserID(GetUserID()),
-        strAssetTypeID(m_AcctAssetTypeID);
+        strAssetTypeID(acctAssetTypeID_);
 
     OTString strAcctType;
-    TranslateAccountTypeToString(m_AcctType, strAcctType);
+    TranslateAccountTypeToString(acctType_, strAcctType);
 
     strContents.Concatenate(" Asset Account (%s) Name: %s\n"
                             " Last retrieved Balance: %s  on date: %s\n"
@@ -794,7 +794,7 @@ bool OTAccount::DisplayStatistics(OTString& strContents) const
                             " assetTypeID: %s\n"
                             "\n",
                             strAcctType.Get(), m_strName.Get(),
-                            m_BalanceAmount.Get(), m_BalanceDate.Get(),
+                            balanceAmount_.Get(), balanceDate_.Get(),
                             strAccountID.Get(), strUserID.Get(),
                             strServerID.Get(), strAssetTypeID.Get());
 
@@ -805,10 +805,10 @@ bool OTAccount::SaveContractWallet(OTString& strContents) const
 {
     const OTString strAccountID(GetPurportedAccountID()),
         strServerID(GetPurportedServerID()), strUserID(GetUserID()),
-        strAssetTypeID(m_AcctAssetTypeID);
+        strAssetTypeID(acctAssetTypeID_);
 
     OTString strAcctType;
-    TranslateAccountTypeToString(m_AcctType, strAcctType);
+    TranslateAccountTypeToString(acctType_, strAcctType);
 
     OTASCIIArmor ascName;
 
@@ -825,7 +825,7 @@ bool OTAccount::SaveContractWallet(OTString& strContents) const
         " userID=\"%s\"\n"
         " serverID=\"%s\" />\n"
         "<!-- assetTypeID: %s -->\n\n",
-        m_BalanceAmount.Get(), m_BalanceDate.Get(), strAcctType.Get(),
+        balanceAmount_.Get(), balanceDate_.Get(), strAcctType.Get(),
         m_strName.Exists() ? ascName.Get() : "", strAccountID.Get(),
         strUserID.Get(), strServerID.Get(), strAssetTypeID.Get());
     return true;
@@ -875,13 +875,13 @@ strServerID.Get(), strAccountID.Get());
 
 void OTAccount::UpdateContents()
 {
-    OTString strAssetTYPEID(m_AcctAssetTypeID); // asset type
+    OTString strAssetTYPEID(acctAssetTypeID_); // asset type
 
     OTString ACCOUNT_ID(GetPurportedAccountID()),
         SERVER_ID(GetPurportedServerID()), USER_ID(GetUserID());
 
     OTString strAcctType;
-    TranslateAccountTypeToString(m_AcctType, strAcctType);
+    TranslateAccountTypeToString(acctType_, strAcctType);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -898,21 +898,21 @@ void OTAccount::UpdateContents()
         m_xmlUnsigned.Concatenate("<stashinfo cronItemNum=\"%lld\"/>\n\n",
                                   stashTransNum_);
 
-    if (!m_InboxHash.IsEmpty()) {
-        const OTString strHash(m_InboxHash);
+    if (!inboxHash_.IsEmpty()) {
+        const OTString strHash(inboxHash_);
         m_xmlUnsigned.Concatenate("<inboxHash value=\"%s\"/>\n\n",
                                   strHash.Get());
     }
-    if (!m_OutboxHash.IsEmpty()) {
-        const OTString strHash(m_OutboxHash);
+    if (!outboxHash_.IsEmpty()) {
+        const OTString strHash(outboxHash_);
         m_xmlUnsigned.Concatenate("<outboxHash value=\"%s\"/>\n\n",
                                   strHash.Get());
     }
 
     //    m_xmlUnsigned.Concatenate("<balance amount=\"%s\"/>\n\n",
-    // m_BalanceAmount.Get());
+    // balanceAmount_.Get());
     m_xmlUnsigned.Concatenate("<balance date=\"%s\" amount=\"%s\"/>\n\n",
-                              m_BalanceDate.Get(), m_BalanceAmount.Get());
+                              balanceDate_.Get(), balanceAmount_.Get());
 
     if (markForDeletion_)
         m_xmlUnsigned.Concatenate(
@@ -953,9 +953,9 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
             return (-1);
         }
 
-        m_AcctType = TranslateAccountTypeStringToEnum(strAcctType);
+        acctType_ = TranslateAccountTypeStringToEnum(strAcctType);
 
-        if (OTAccount::err_acct == m_AcctType) {
+        if (OTAccount::err_acct == acctType_) {
             otErr << "OTAccount::ProcessXMLNode: Failed: assetAccount 'type' "
                      "attribute contains unknown value.\n";
             return (-1);
@@ -964,7 +964,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         const OTString strAcctAssetType = xml->getAttributeValue("assetTypeID");
 
         if (strAcctAssetType.Exists())
-            m_AcctAssetTypeID.SetString(strAcctAssetType);
+            acctAssetTypeID_.SetString(strAcctAssetType);
 
         OTString strAccountID(xml->getAttributeValue("accountID")),
             strServerID(xml->getAttributeValue("serverID")),
@@ -977,7 +977,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         SetPurportedServerID(SERVER_ID);
         SetUserID(USER_ID);
 
-        OTString strAssetTypeID(m_AcctAssetTypeID);
+        OTString strAssetTypeID(acctAssetTypeID_);
         otLog3 <<
             //    "\n===> Loading XML for Account into memory structures..."
             "\n\nAccount Type: " << strAcctType
@@ -992,7 +992,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     else if (strNodeName.Compare("inboxHash")) {
 
         const OTString strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) m_InboxHash.SetString(strHash);
+        if (strHash.Exists()) inboxHash_.SetString(strHash);
 
         otLog3 << "Account inboxHash: " << strHash << "\n";
 
@@ -1001,7 +1001,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     else if (strNodeName.Compare("outboxHash")) {
 
         const OTString strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) m_OutboxHash.SetString(strHash);
+        if (strHash.Exists()) outboxHash_.SetString(strHash);
 
         otLog3 << "Account outboxHash: " << strHash << "\n";
 
@@ -1015,22 +1015,22 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("balance")) {
-        m_BalanceDate = xml->getAttributeValue("date");
-        m_BalanceAmount = xml->getAttributeValue("amount");
+        balanceDate_ = xml->getAttributeValue("date");
+        balanceAmount_ = xml->getAttributeValue("amount");
 
         // I convert to integer / int64_t and back to string.
         // (Just an easy way to keep the data clean.)
 
-        int32_t nDate = atoi(m_BalanceDate.Get());
-        int64_t lAmount = atol(m_BalanceAmount.Get());
+        int32_t nDate = atoi(balanceDate_.Get());
+        int64_t lAmount = atol(balanceAmount_.Get());
 
-        m_BalanceDate.Format("%d", nDate);
-        m_BalanceAmount.Format("%lld", lAmount);
+        balanceDate_.Format("%d", nDate);
+        balanceAmount_.Format("%lld", lAmount);
 
         //        otWarn << "\nBALANCE  --  %s\n",
-        //                       m_BalanceAmount.Get());
-        otLog3 << "\nBALANCE  --  " << m_BalanceAmount << "\nDATE     --  "
-               << m_BalanceDate << "\n";
+        //                       balanceAmount_.Get());
+        otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
+               << balanceDate_ << "\n";
 
         nReturnVal = 1;
     }
@@ -1082,7 +1082,7 @@ bool OTAccount::IsInternalServerAcct() const
 {
     bool bReturnVal = false;
 
-    switch (m_AcctType) {
+    switch (acctType_) {
     case OTAccount::simple:
     case OTAccount::issuer:
         bReturnVal = false;
@@ -1107,7 +1107,7 @@ bool OTAccount::IsOwnedByUser() const
 {
     bool bReturnVal = false;
 
-    switch (m_AcctType) {
+    switch (acctType_) {
     case OTAccount::simple:
     case OTAccount::issuer:
         bReturnVal = true;
@@ -1135,14 +1135,14 @@ bool OTAccount::IsOwnedByEntity() const
 
 bool OTAccount::IsIssuer() const
 {
-    return (OTAccount::issuer == m_AcctType);
+    return (OTAccount::issuer == acctType_);
 }
 
 bool OTAccount::IsAllowedToGoNegative() const
 {
     bool bReturnVal = false;
 
-    switch (m_AcctType) {
+    switch (acctType_) {
     case OTAccount::issuer: // issuer acct controlled by a user
     case OTAccount::basket
         : // basket issuer acct controlled by the server (for a basket currency)
@@ -1171,11 +1171,11 @@ bool OTAccount::IsAllowedToGoNegative() const
 
 void OTAccount::Release_Account()
 {
-    m_BalanceDate.Release();
-    m_BalanceAmount.Release();
+    balanceDate_.Release();
+    balanceAmount_.Release();
 
-    m_InboxHash.Release();
-    m_OutboxHash.Release();
+    inboxHash_.Release();
+    outboxHash_.Release();
 }
 
 void OTAccount::Release()
