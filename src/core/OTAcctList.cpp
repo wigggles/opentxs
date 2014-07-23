@@ -293,7 +293,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
     OTString acctTypeString;
     TranslateAccountTypeToString(acctType_, acctTypeString);
 
-    mapOfStrings::iterator acctIDsIt = mapAcctIDs_.find(assetTypeIdString);
+    auto acctIDsIt = mapAcctIDs_.find(assetTypeIdString);
     // Account ID *IS* already there for this asset type
     if (mapAcctIDs_.end() != acctIDsIt) {
         // grab account ID

@@ -400,39 +400,39 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
 //
 bool OTPseudonym::AddNewMasterCredential(
     OTString& strOutputMasterCredID,
-    const OTString* pstrSourceForNymID /*=NULL*/, // If NULL, it uses the Nym's
-                                                  // (presumed) existing source
-                                                  // as the source.
-    const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL.
-    const mapOfStrings* pmapPrivate /*=NULL*/, // If NULL, then the keys are
-                                               // generated in here.
-    const mapOfStrings* pmapPublic /*=NULL*/, // In the case of key credentials,
-                                              // public is optional since it can
-                                              // already be derived from
-                                              // private. For now we pass it
-                                              // through... May eliminate this
-                                              // parameter later if not needed.
-    OTPasswordData* pPWData /*=NULL*/, // Pass in the string to show users here,
-                                       // if/when asking for the passphrase.
-    bool bChangeNymID /*=false*/) // Must be explicitly set to true, to change
-                                  // the Nym's ID. Other restrictions also
-                                  // apply... must be your first master
-                                  // credential. Must have no accounts.
-                                  // Basically can only be used for brand-new
-                                  // Nyms in circumstances where it's assumed
-                                  // the Nym's ID is in the process of being
-                                  // generated anyway. Should never be used on
-                                  // some existing Nym who is already in the
-                                  // wallet and who may even have accounts
-                                  // somewhere already.
+    const OTString* pstrSourceForNymID, // If NULL, it uses the Nym's
+                                        // (presumed) existing source
+                                        // as the source.
+    const int32_t nBits,                // Ignored unless pmapPrivate is NULL.
+    const OTString::Map* pmapPrivate,   // If NULL, then the keys are
+                                        // generated in here.
+    const OTString::Map* pmapPublic,    // In the case of key credentials,
+                                        // public is optional since it can
+                                        // already be derived from
+                                        // private. For now we pass it
+                                        // through... May eliminate this
+                                        // parameter later if not needed.
+    OTPasswordData* pPWData, // Pass in the string to show users here,
+                             // if/when asking for the passphrase.
+    bool bChangeNymID)       // Must be explicitly set to true, to change
+                             // the Nym's ID. Other restrictions also
+                             // apply... must be your first master
+                             // credential. Must have no accounts.
+                             // Basically can only be used for brand-new
+                             // Nyms in circumstances where it's assumed
+                             // the Nym's ID is in the process of being
+                             // generated anyway. Should never be used on
+                             // some existing Nym who is already in the
+                             // wallet and who may even have accounts
+                             // somewhere already.
 {
     const OTString* pstrSourceToUse = NULL;
     OTString strTempSource; // Used sometimes.
 
-    const mapOfStrings* pmapActualPrivate = NULL;
-    const mapOfStrings* pmapActualPublic = NULL;
+    const OTString::Map* pmapActualPrivate = NULL;
+    const OTString::Map* pmapActualPublic = NULL;
 
-    mapOfStrings mapPrivate, mapPublic; // Used sometimes.
+    OTString::Map mapPrivate, mapPublic; // Used sometimes.
 
     // If keys are passed in, then those are the keys we're meant to use for the
     // credential.
@@ -915,8 +915,8 @@ bool OTPseudonym::AddNewMasterCredential(
 bool OTPseudonym::AddNewSubkey(
     const OTIdentifier& idMasterCredential,
     const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL.
-    const mapOfStrings* pmapPrivate /*=NULL*/, // If NULL, then the keys are
-                                               // generated in here.
+    const OTString::Map* pmapPrivate /*=NULL*/, // If NULL, then the keys are
+                                                // generated in here.
     OTPasswordData* pPWData /*=NULL*/, OTString* pstrNewID /*=NULL*/)
 {
     const OTString strMasterCredID(idMasterCredential);
@@ -998,15 +998,15 @@ bool OTPseudonym::AddNewSubkey(
 
 bool OTPseudonym::AddNewSubcredential(
     const OTIdentifier& idMasterCredential,
-    const mapOfStrings* pmapPrivate /*=NULL*/, // If NULL, then the keys are
-                                               // generated in here.
-    const mapOfStrings* pmapPublic /*=NULL*/, // In the case of key credentials,
-                                              // public is optional since it can
-                                              // already be derived from
-                                              // private. For now we pass it
-                                              // through... May eliminate this
-                                              // parameter later if not needed.
-    OTPasswordData* pPWData /*=NULL*/)
+    const OTString::Map* pmapPrivate, // If NULL, then the keys are
+                                      // generated in here.
+    const OTString::Map* pmapPublic,  // In the case of key credentials,
+                                      // public is optional since it can
+                                      // already be derived from
+                                      // private. For now we pass it
+                                      // through... May eliminate this
+                                      // parameter later if not needed.
+    OTPasswordData* pPWData)
 {
     const OTString strMasterCredID(idMasterCredential);
 
@@ -4201,7 +4201,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
 // credential IDs.
 //
 void OTPseudonym::GetPublicCredentials(OTString& strCredList,
-                                       mapOfStrings* pmapCredFiles /*=NULL*/)
+                                       OTString::Map* pmapCredFiles /*=NULL*/)
 {
     OTString strNymID;
     this->GetIdentifier(strNymID);
@@ -4233,7 +4233,7 @@ void OTPseudonym::GetPublicCredentials(OTString& strCredList,
 }
 
 void OTPseudonym::GetPrivateCredentials(OTString& strCredList,
-                                        mapOfStrings* pmapCredFiles /*=NULL*/)
+                                        OTString::Map* pmapCredFiles /*=NULL*/)
 {
     OTString strNymID;
     this->GetIdentifier(strNymID);
@@ -4412,8 +4412,8 @@ bool OTPseudonym::LoadCredentials(
 }
 
 void OTPseudonym::SaveCredentialsToString(OTString& strOutput,
-                                          mapOfStrings* pmapPubInfo /*=NULL*/,
-                                          mapOfStrings* pmapPriInfo /*=NULL*/)
+                                          OTString::Map* pmapPubInfo /*=NULL*/,
+                                          OTString::Map* pmapPriInfo /*=NULL*/)
 {
 
     // IDs for revoked subcredentials are saved here.
@@ -4984,13 +4984,13 @@ const OTSubcredential* OTPseudonym::GetRevokedSubcred(
 // todo optimize
 bool OTPseudonym::LoadFromString(
     const OTString& strNym,
-    mapOfStrings* pMapCredentials /*=NULL*/, // pMapCredentials can be passed,
-                                             // if you prefer to use a specific
-                                             // set, instead of just loading the
-                                             // actual set from storage (such as
-                                             // during registration, when the
-                                             // credentials have been sent
-                                             // inside a message.)
+    OTString::Map* pMapCredentials, // pMapCredentials can be passed,
+                                    // if you prefer to use a specific
+                                    // set, instead of just loading the
+                                    // actual set from storage (such as
+                                    // during registration, when the
+                                    // credentials have been sent
+                                    // inside a message.)
     OTString* pstrReason /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
 {
     bool bSuccess = false;
@@ -5132,7 +5132,7 @@ bool OTPseudonym::LoadFromString(
             else if (strNodeName.Compare("revokedCredential")) {
                 const OTString strRevokedID = xml->getAttributeValue("ID");
                 otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
-                listOfStrings::iterator iter =
+                auto iter =
                     std::find(m_listRevokedIDs.begin(), m_listRevokedIDs.end(),
                               strRevokedID.Get());
                 if (iter == m_listRevokedIDs.end()) // It's not already there,
@@ -5160,7 +5160,7 @@ bool OTPseudonym::LoadFromString(
                     pCredential = OTCredential::LoadMaster(strNymID, strID);
                 else // In this case, it potentially is on the map...
                 {
-                    mapOfStrings::iterator it_cred =
+                    OTString::Map::iterator it_cred =
                         pMapCredentials->find(strID.Get());
 
                     if (it_cred ==
@@ -5258,7 +5258,7 @@ bool OTPseudonym::LoadFromString(
                         bLoaded = pCredential->LoadSubkey(strID);
                     else // In this case, it potentially is on the map...
                     {
-                        mapOfStrings::iterator it_cred =
+                        OTString::Map::iterator it_cred =
                             pMapCredentials->find(strID.Get());
 
                         if (it_cred ==
@@ -5335,7 +5335,7 @@ bool OTPseudonym::LoadFromString(
                         bLoaded = pCredential->LoadSubcredential(strID);
                     else // In this case, it potentially is on the map...
                     {
-                        mapOfStrings::iterator it_cred =
+                        OTString::Map::iterator it_cred =
                             pMapCredentials->find(strID.Get());
 
                         if (it_cred ==

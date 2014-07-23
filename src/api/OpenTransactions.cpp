@@ -1880,7 +1880,7 @@ bool OT_API::Wallet_ChangePassphrase()
                 {
                     bSavedCredentials = true;
                     OTString strNymID, strCredList, strOutput;
-                    mapOfStrings mapCredFiles;
+                    OTString::Map mapCredFiles;
 
                     pNym->GetIdentifier(strNymID);
                     pNym->GetPrivateCredentials(strCredList, &mapCredFiles);
@@ -2517,7 +2517,7 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
             else // It instantiated.
             {
                 OTString strCredList;
-                mapOfStrings& theMap = pMap->the_map;
+                OTString::Map& theMap = pMap->the_map;
 
                 pNym->GetPrivateCredentials(strCredList, &theMap);
                 // Serialize the StringMap to a string...
@@ -2584,7 +2584,7 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
                       __FUNCTION__);
         return false;
     }
-    mapOfStrings& theMap = pMap->the_map;
+    OTString::Map& theMap = pMap->the_map;
     theMap["id"] = str_nym_id;
     theMap["name"] = str_nym_name;
     theMap["nymfile"] = strNymfile.Get();
@@ -2782,8 +2782,8 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
 
     OTPasswordData thePWDataLoad(strReasonToLoad.Get());
     OTPasswordData thePWDataSave(strReasonToSave.Get());
-    mapOfStrings::iterator it_credlist = theMap.find("credlist");
-    mapOfStrings::iterator it_credentials = theMap.find("credentials");
+    OTString::Map::iterator it_credlist = theMap.find("credlist");
+    OTString::Map::iterator it_credentials = theMap.find("credentials");
     bool bHasCredentials = false;
     // found "credlist"
     //
@@ -2818,7 +2818,7 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
                 else // IF the list saved, then we save the credentials
                        // themselves...
                 {
-                    mapOfStrings& thePrivateMap = pPrivateMap->the_map;
+                    OTString::Map& thePrivateMap = pPrivateMap->the_map;
                     if (false ==
                         pNym->LoadFromString(strCredList, &thePrivateMap,
                                              &strReasonToLoad,

@@ -318,12 +318,12 @@ const OTString& OTCredential::GetPriCredential() const
     return m_Masterkey.GetPriCredential();
 }
 
-bool OTCredential::SetPublicContents(const mapOfStrings& mapPublic)
+bool OTCredential::SetPublicContents(const OTString::Map& mapPublic)
 {
     return m_Masterkey.SetPublicContents(mapPublic);
 }
 
-bool OTCredential::SetPrivateContents(const mapOfStrings& mapPrivate)
+bool OTCredential::SetPrivateContents(const OTString::Map& mapPrivate)
 {
     return m_Masterkey.SetPrivateContents(mapPrivate);
 }
@@ -1029,11 +1029,11 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
 // contain 3 keypairs: signing, authentication, and encryption.
 //
 bool OTCredential::AddNewSubkey(
-    const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL
-    const mapOfStrings* pmapPrivate /*=NULL*/, // Public keys are derived from
-                                               // the private.
-    OTPasswordData* pPWData /*=NULL*/, // The master key will sign the subkey.
-    OTSubkey** ppSubkey /*=NULL*/)     // output
+    const int32_t nBits,              // Ignored unless pmapPrivate is NULL
+    const OTString::Map* pmapPrivate, // Public keys are derived from
+                                      // the private.
+    OTPasswordData* pPWData,          // The master key will sign the subkey.
+    OTSubkey** ppSubkey)              // output
 {
     OTSubkey* pSub = new OTSubkey(*this);
     OT_ASSERT(NULL != pSub);
@@ -1112,7 +1112,7 @@ bool OTCredential::AddNewSubkey(
 // For adding non-key credentials, such as for 3rd-party authentication.
 //
 bool OTCredential::AddNewSubcredential(
-    const mapOfStrings& mapPrivate, const mapOfStrings& mapPublic,
+    const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
     OTPasswordData* pPWData /*=NULL*/,     // The master key will sign the
                                            // subcredential.
     OTSubcredential** ppSubcred /*=NULL*/) // output
@@ -1186,15 +1186,15 @@ bool OTCredential::AddNewSubcredential(
 // static
 OTCredential* OTCredential::CreateMaster(
     const OTString& strSourceForNymID,
-    const int32_t nBits /*=1024*/, // Ignored unless pmapPrivate is NULL.
-    const mapOfStrings* pmapPrivate /*=NULL*/, // If NULL, then the keys are
-                                               // generated in here.
-    const mapOfStrings* pmapPublic /*=NULL*/, // In the case of key credentials,
-                                              // public is optional since it can
-                                              // already be derived from
-                                              // private. But not all
-                                              // credentials are keys...
-    OTPasswordData* pPWData /*=NULL*/)
+    const int32_t nBits,              // Ignored unless pmapPrivate is NULL.
+    const OTString::Map* pmapPrivate, // If NULL, then the keys are
+                                      // generated in here.
+    const OTString::Map* pmapPublic,  // In the case of key credentials,
+                                      // public is optional since it can
+                                      // already be derived from
+                                      // private. But not all
+                                      // credentials are keys...
+    OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
     OT_ASSERT(NULL != pCredential);
@@ -1300,7 +1300,7 @@ size_t OTCredential::GetSubcredentialCount() const
 
 const OTSubcredential* OTCredential::GetSubcredential(
     const OTString& strSubID,
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1310,7 +1310,7 @@ const OTSubcredential* OTCredential::GetSubcredential(
         // See if pSub, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked credential.
@@ -1369,7 +1369,7 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
 }
 
 const OTKeypair& OTCredential::GetAuthKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1382,7 +1382,7 @@ const OTKeypair& OTCredential::GetAuthKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1406,7 +1406,7 @@ const OTKeypair& OTCredential::GetAuthKeypair(
 }
 
 const OTKeypair& OTCredential::GetEncrKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1419,7 +1419,7 @@ const OTKeypair& OTCredential::GetEncrKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1443,7 +1443,7 @@ const OTKeypair& OTCredential::GetEncrKeypair(
 }
 
 const OTKeypair& OTCredential::GetSignKeypair(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1456,7 +1456,7 @@ const OTKeypair& OTCredential::GetSignKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (NULL != plistRevokedIDs) {
-            listOfStrings::const_iterator iter = std::find(
+            OTString::List::const_iterator iter = std::find(
                 plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
@@ -1487,37 +1487,37 @@ const OTKeypair& OTCredential::GetSignKeypair(
 // (Optional.)
 
 const OTAsymmetricKey& OTCredential::GetPublicAuthKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetAuthKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicEncrKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetEncrKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicSignKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetSignKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateAuthKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetAuthKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateEncrKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetEncrKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateSignKey(
-    const listOfStrings* plistRevokedIDs /*=NULL*/) const
+    const OTString::List* plistRevokedIDs /*=NULL*/) const
 {
     return this->GetSignKeypair(plistRevokedIDs).GetPrivateKey();
 }
@@ -1553,9 +1553,9 @@ void OTCredential::ClearSubcredentials()
 // be placed inside, if a pointer is provided.
 //
 void OTCredential::SerializeIDs(OTString& strOutput,
-                                listOfStrings& listRevokedIDs,
-                                mapOfStrings* pmapPubInfo /*=NULL*/,
-                                mapOfStrings* pmapPriInfo /*=NULL*/,
+                                OTString::List& listRevokedIDs,
+                                OTString::Map* pmapPubInfo /*=NULL*/,
+                                OTString::Map* pmapPriInfo /*=NULL*/,
                                 bool bShowRevoked /*=false*/,
                                 bool bValid /*=true*/) const
 {
@@ -1585,7 +1585,7 @@ void OTCredential::SerializeIDs(OTString& strOutput,
         // subcredential IDs.
         // If so, we'll skip serializing it here.
         //
-        listOfStrings::iterator iter = std::find(
+        OTString::List::iterator iter = std::find(
             listRevokedIDs.begin(), listRevokedIDs.end(), str_cred_id);
 
         // Was it on the 'revoked' list?

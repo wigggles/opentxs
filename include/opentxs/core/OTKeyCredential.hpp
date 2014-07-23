@@ -252,9 +252,9 @@ private: // Private prevents erroneous use by other classes.
     friend class OTCredential;
 
 protected:
-    virtual bool SetPublicContents(const mapOfStrings& mapPublic);
+    virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
-        const mapOfStrings& mapPrivate,
+        const OTString::Map& mapPrivate,
         OTPassword* pImportPassword = NULL); // if not NULL, it means to use
                                              // this password by default.
 public:

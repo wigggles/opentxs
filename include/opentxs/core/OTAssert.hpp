@@ -133,6 +133,7 @@
 #ifndef __OT_ASSERT_HPP__
 #define __OT_ASSERT_HPP__
 
+#include "ExportWrapper.h"
 #include <exception>
 
 #define OT_FAIL                                                                \

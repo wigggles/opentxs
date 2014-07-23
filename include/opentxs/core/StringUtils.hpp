@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTInstrument.hpp
+ *  StringUtils.hpp
  *
  */
 
@@ -130,77 +130,145 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_INSTRUMENT_HPP__
-#define __OT_INSTRUMENT_HPP__
+#ifndef __OPENTXS_STRINGUTILS_HPP__
+#define __OPENTXS_STRINGUTILS_HPP__
 
-#include "OTScriptable.hpp"
+#include <string>
+#include <sstream>
+#include <string.h>
 
 namespace opentxs
 {
 
-class OTInstrument : public OTScriptable
+// from: http://www.cplusplus.com/faq/sequences/strings/split/
+//
+struct split
 {
-public:
-    OTInstrument();
-    OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    virtual ~OTInstrument();
-
-    virtual void Release();
-    virtual bool SaveContractWallet(std::ofstream& ofs);
-
-    void Release_Instrument();
-    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
-                                     // WITHIN the VALID FROM / TO dates.
-    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
-                             // "VALID TO" date.
-    inline time64_t GetValidFrom() const
-    {
-        return m_VALID_FROM;
-    }
-    inline time64_t GetValidTo() const
-    {
-        return m_VALID_TO;
-    }
-
-    inline const OTIdentifier& GetAssetID() const
-    {
-        return m_AssetTypeID;
-    }
-    inline const OTIdentifier& GetServerID() const
-    {
-        return m_ServerID;
-    }
-    void InitInstrument();
-
-protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-
-    inline void SetValidFrom(time64_t TIME_FROM)
-    {
-        m_VALID_FROM = TIME_FROM;
-    }
-    inline void SetValidTo(time64_t TIME_TO)
-    {
-        m_VALID_TO = TIME_TO;
-    }
-    inline void SetAssetID(const OTIdentifier& ASSET_ID)
-    {
-        m_AssetTypeID = ASSET_ID;
-    }
-    inline void SetServerID(const OTIdentifier& SERVER_ID)
-    {
-        m_ServerID = SERVER_ID;
-    }
-
-protected:
-    OTIdentifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
-    OTIdentifier m_ServerID;    // ...As well as a Server ID...
-    // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
-                           // FROM.
-    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
+    enum empties_t {
+        empties_ok,
+        no_empties
+    };
 };
+
+template <typename Container>
+static Container& split_byChar(Container& result,
+                               const typename Container::value_type& s,
+                               const typename Container::value_type& delimiters,
+                               split::empties_t empties)
+{
+    result.clear();
+    size_t current;
+    int64_t next = -1;
+    do {
+        if (empties == split::no_empties) {
+            next = s.find_first_not_of(delimiters,
+                                       static_cast<uint32_t>(next) + 1);
+            if (static_cast<size_t>(next) == Container::value_type::npos) {
+                break;
+            }
+            next -= 1;
+        }
+        current = static_cast<size_t>(next + 1);
+        next = s.find_first_of(delimiters, current);
+        result.push_back(
+            s.substr(current, static_cast<uint32_t>(next) - current));
+    } while (static_cast<size_t>(next) != Container::value_type::npos);
+    return result;
+}
+
+// If you've already strlen'd the string,
+// you can pass the length to str_hsh or str_dup
+// and save it the trouble.
+//
+char* str_dup1(const char* str);
+char* str_dup2(const char* str, uint32_t length);
+int32_t len_cmp(char* s1, char* s2);
+
+template <typename T> inline std::string to_string(const T& t)
+{
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
+
+/*
+ * strlcpy and strlcat
+ *
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/*
+ * Copy src to string dst of size siz.  At most siz-1 characters
+ * will be copied.  Always NUL terminates (unless siz == 0).
+ * Returns strlen(src); if retval >= siz, truncation occurred.
+ */
+inline size_t strlcpy(char* dst, const char* src, size_t siz)
+{
+    char* d = dst;
+    const char* s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit */
+    if (n != 0) {
+        while (--n != 0) {
+            if ((*d++ = *s++) == '\0') break;
+        }
+    }
+
+    /* Not enough room in dst, add NUL and traverse rest of src */
+    if (n == 0) {
+        if (siz != 0) *d = '\0'; /* NUL-terminate dst */
+        while (*s++)
+            ;
+    }
+
+    return (s - src - 1); /* count does not include NUL */
+}
+/*
+ * Appends src to string dst of size siz (unlike strncat, siz is the
+ * full size of dst, not space left).  At most siz-1 characters
+ * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
+ * Returns strlen(src) + MIN(siz, strlen(initial dst)).
+ * If retval >= siz, truncation occurred.
+ */
+inline size_t strlcat(char* dst, const char* src, size_t siz)
+{
+    char* d = dst;
+    const char* s = src;
+    size_t n = siz;
+    size_t dlen;
+
+    /* Find the end of dst and adjust bytes left but don't go past end */
+    while (n-- != 0 && *d != '\0') d++;
+    dlen = d - dst;
+    n = siz - dlen;
+
+    if (n == 0) return (dlen + strlen(s));
+    while (*s != '\0') {
+        if (n != 1) {
+            *d++ = *s;
+            n--;
+        }
+        s++;
+    }
+    *d = '\0';
+
+    return (dlen + (s - src)); /* count does not include NUL */
+}
+// (End of the Todd Miller code.)
 
 } // namespace opentxs
 
-#endif // __OT_INSTRUMENT_HPP__
+#endif // __OPENTXS_STRINGUTILS_HPP__

@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTInstrument.hpp
+ *  StringUtils.cpp
  *
  */
 
@@ -130,77 +130,84 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_INSTRUMENT_HPP__
-#define __OT_INSTRUMENT_HPP__
-
-#include "OTScriptable.hpp"
+#include "StringUtils.hpp"
+#include "OTAssert.hpp"
 
 namespace opentxs
 {
 
-class OTInstrument : public OTScriptable
+// If 10 is passed in, then 11 will be allocated,
+// then the data is copied, and then the result[10] (11th element)
+// is set to 0. This way the original 10-length string is untouched.
+//
+char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
+                                                 // include the byte for the
+                                                 // terminating 0.
 {
-public:
-    OTInstrument();
-    OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    virtual ~OTInstrument();
+    char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
+                                          // (NOT PART OF LENGTH)
+    OT_ASSERT(NULL != str_new);
 
-    virtual void Release();
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+#ifdef _WIN32
+    strncpy_s(str_new, length + 1, str, length);
+#else
+    strncpy(str_new, str, length);
+#endif
 
-    void Release_Instrument();
-    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
-                                     // WITHIN the VALID FROM / TO dates.
-    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
-                             // "VALID TO" date.
-    inline time64_t GetValidFrom() const
-    {
-        return m_VALID_FROM;
-    }
-    inline time64_t GetValidTo() const
-    {
-        return m_VALID_TO;
-    }
+    // INITIALIZE EXTRA BYTE OF SPACE
+    //
+    // If length is 10, then buffer is created with 11 elements,
+    // indexed from 0 (first element) through 10 (11th element).
+    //
+    // Therefore str_new[length==10] is the 11th element, which was
+    // the extra one created on our buffer, to store the \0 null terminator.
+    //
+    // This way I know I'm never cutting off data that was in the string itself.
+    // Rather, I am only setting to 0 an EXTRA byte that I created myself, AFTER
+    // the string's length itself.
+    //
+    str_new[length] = '\0';
 
-    inline const OTIdentifier& GetAssetID() const
-    {
-        return m_AssetTypeID;
-    }
-    inline const OTIdentifier& GetServerID() const
-    {
-        return m_ServerID;
-    }
-    void InitInstrument();
+    return str_new;
+}
 
-protected:
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+// ***** Implementation *****
 
-    inline void SetValidFrom(time64_t TIME_FROM)
-    {
-        m_VALID_FROM = TIME_FROM;
-    }
-    inline void SetValidTo(time64_t TIME_TO)
-    {
-        m_VALID_TO = TIME_TO;
-    }
-    inline void SetAssetID(const OTIdentifier& ASSET_ID)
-    {
-        m_AssetTypeID = ASSET_ID;
-    }
-    inline void SetServerID(const OTIdentifier& SERVER_ID)
-    {
-        m_ServerID = SERVER_ID;
-    }
+// Checks if s2 is the first word in s1.
+// s1 ends at the first space character.
+// len_cmp("load wallet.xml", "load") returns true
+// used for USER INPUT ONLY.  And it's sloppy.
+bool len_cmp(const char* s1, const char* s2)
+{
+    OT_ASSERT(NULL != s1);
+    OT_ASSERT(NULL != s2);
 
-protected:
-    OTIdentifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
-    OTIdentifier m_ServerID;    // ...As well as a Server ID...
-    // Expiration Date (valid from/to date)
-    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
-                           // FROM.
-    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
-};
+    for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
+        if (toupper(*s1) != toupper(*s2)) return false;
+
+    // bug: as long as it's a partial match while the loop continues,
+    // this function will for example return true even if the user entered
+    // "c" when the command was "continue"
+    return true;
+}
+
+// Note: this version doesn't take a length for str,
+// which is a security problem. todo.
+// (Do we use this anymore anyway?)
+//
+char* str_dup1(const char* str)
+{
+    char* str_new = new char[strlen(str) + 1];
+
+    OT_ASSERT(NULL != str_new);
+
+#ifdef _WIN32
+    strcpy_s(str_new, strlen(str), str);
+#else
+    strlcpy(str_new, str, strlen(str));
+#endif
+
+    return str_new;
+}
 
 } // namespace opentxs
-
-#endif // __OT_INSTRUMENT_HPP__

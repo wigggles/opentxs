@@ -193,8 +193,8 @@ protected:
     OTString m_strEntityShortName;
     OTString m_strEntityLongName;
     OTString m_strEntityEmail;
-    mapOfStrings m_mapConditions; // The legal conditions, usually
-                                  // human-readable, on a contract.
+    OTString::Map m_mapConditions; // The legal conditions, usually
+                                   // human-readable, on a contract.
     bool LoadContractXML(); // The XML file is in m_xmlUnsigned. Load it from
                             // there into members here.
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -241,11 +241,11 @@ public:
     static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
                                            OTASCIIArmor& ascOutput,
                                            const char*& szName,
-                                           mapOfStrings* pmapExtraVars = NULL);
+                                           OTString::Map* pmapExtraVars = NULL);
     static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
                                            OTString& strOutput,
                                            const char*& szName,
-                                           mapOfStrings* pmapExtraVars = NULL);
+                                           OTString::Map* pmapExtraVars = NULL);
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);

@@ -75,6 +75,7 @@ set(cxx-sources
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
+  StringUtils.cpp
   OTString.cpp
   OTStringXML.cpp
   OTSubcredential.cpp

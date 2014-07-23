@@ -188,7 +188,7 @@ private:
 private:
     OTAccount::AccountType acctType_;
     // AcctIDs as second mapped by ASSET TYPE ID as first.
-    mapOfStrings mapAcctIDs_;
+    OTString::Map mapAcctIDs_;
     // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We
     // store the weak pointer here only to make sure accounts don't get loaded
     // twice.

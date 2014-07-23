@@ -328,7 +328,7 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits /*=1024*/) // Gotta start
     // maps.)
     //
     OTString strPublicKey, strPrivateCert;
-    mapOfStrings mapPublic, mapPrivate;
+    OTString::Map mapPublic, mapPrivate;
 
     const OTString strReason("Generating keys for new credential...");
 
@@ -394,7 +394,7 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits /*=1024*/) // Gotta start
 }
 
 // virtual
-bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
+bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 {
     // NOTE: We might use this on the server side, we'll see, but so far on the
     // client
@@ -410,10 +410,9 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
         return false;
     }
 
-    mapOfStrings::const_iterator iiAuth =
-        mapPublic.find("A"); // Authentication key
-    mapOfStrings::const_iterator iiEncr = mapPublic.find("E"); // Encryption key
-    mapOfStrings::const_iterator iiSign = mapPublic.find("S"); // Signing key
+    auto iiAuth = mapPublic.find("A"); // Authentication key
+    auto iiEncr = mapPublic.find("E"); // Encryption key
+    auto iiSign = mapPublic.find("S"); // Signing key
 
     if (mapPublic.end() == iiAuth) {
         otErr << __FILE__ << " line " << __LINE__
@@ -486,7 +485,7 @@ bool OTKeyCredential::SetPublicContents(const mapOfStrings& mapPublic)
 
 // virtual
 bool OTKeyCredential::SetPrivateContents(
-    const mapOfStrings& mapPrivate,
+    const OTString::Map& mapPrivate,
     OTPassword* pImportPassword /*=NULL*/) // if not NULL, it means to use this
                                            // password by default.
 {
@@ -498,11 +497,11 @@ bool OTKeyCredential::SetPrivateContents(
         return false;
     }
 
-    mapOfStrings::const_iterator iiAuth =
+    OTString::Map::const_iterator iiAuth =
         mapPrivate.find("A"); // Authentication key
-    mapOfStrings::const_iterator iiEncr =
+    OTString::Map::const_iterator iiEncr =
         mapPrivate.find("E"); // Encryption key
-    mapOfStrings::const_iterator iiSign = mapPrivate.find("S"); // Signing key
+    OTString::Map::const_iterator iiSign = mapPrivate.find("S"); // Signing key
 
     if (mapPrivate.end() == iiAuth) {
         otErr << __FILE__ << " line " << __LINE__
@@ -524,7 +523,7 @@ bool OTKeyCredential::SetPrivateContents(
 
     if (this->ot_super::SetPrivateContents(mapPrivate, pImportPassword)) {
         const OTString strReason("Loading private key from credential.");
-        mapOfStrings mapPublic;
+        OTString::Map mapPublic;
 
         OTString strPrivate;
         strPrivate.Set(iiAuth->second.c_str()); // strPrivate now contains the
@@ -691,7 +690,7 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
     // If success, we now have the updated versions of the private certs.
     //
     if (bSuccessReEncrypting) {
-        mapOfStrings mapPrivate;
+        OTString::Map mapPrivate;
 
         for (auto& it : m_mapPrivateInfo) {
             std::string str_key_type = it.first; // A, E, S.

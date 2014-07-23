@@ -134,6 +134,7 @@
 
 #include <OTClient.hpp>
 
+#include <StringUtils.hpp>
 #include <OTCleanup.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
@@ -4098,7 +4099,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                 else // IF the list saved, then we save the credentials
                      // themselves...
                 {
-                    mapOfStrings& theMap = pMap->the_map;
+                    OTString::Map& theMap = pMap->the_map;
                     OTPseudonym theTargetNym;
                     theTargetNym.SetIdentifier(strNymID2);
 
@@ -7929,11 +7930,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                   "@getAccountFiles.\n",
                                __FUNCTION__);
             else {
-                mapOfStrings& theMap = pMap->the_map;
+                OTString::Map& theMap = pMap->the_map;
                 OTString strAccount, strInbox, strOutbox;
-                mapOfStrings::iterator it_account = theMap.find("account");
-                mapOfStrings::iterator it_inbox = theMap.find("inbox");
-                mapOfStrings::iterator it_outbox = theMap.find("outbox");
+                OTString::Map::iterator it_account = theMap.find("account");
+                OTString::Map::iterator it_inbox = theMap.find("inbox");
+                OTString::Map::iterator it_outbox = theMap.find("outbox");
                 if ((theMap.end() != it_account) &&
                     (it_account->second.size() > 0))
                     strAccount = it_account->second.c_str();
@@ -9126,7 +9127,7 @@ int32_t OTClient::ProcessUserCommand(
         else // It instantiated.
         {
             OTString strCredList;
-            mapOfStrings& theMap = pMap->the_map;
+            OTString::Map& theMap = pMap->the_map;
 
             // Credentials exist already.
             if (theNym.GetMasterCredentialCount() > 0) {

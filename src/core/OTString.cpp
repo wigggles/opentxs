@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTString.hpp"
-
+#include "StringUtils.hpp"
 #include "OTContract.hpp"
 #include "OTLog.hpp"
 #include "OTPassword.hpp"
@@ -463,13 +463,13 @@ std::string OTString::ws2s(const std::wstring& s)
 
 bool OTString::operator>(const OTString& s2) const
 {
-    if (s2.m_lLength == 0) {
+    if (s2.length_ == 0) {
         return (true);
     }
-    if (m_lLength == 0) {
+    if (length_ == 0) {
         return (false);
     }
-    if (strcmp(m_strBuffer, s2.m_strBuffer) <= 0) {
+    if (strcmp(data_, s2.data_) <= 0) {
         return (false);
     }
     return (true);
@@ -477,13 +477,13 @@ bool OTString::operator>(const OTString& s2) const
 
 bool OTString::operator<(const OTString& s2) const
 {
-    if (m_lLength == 0) {
+    if (length_ == 0) {
         return (true);
     }
-    if (s2.m_lLength == 0) {
+    if (s2.length_ == 0) {
         return (false);
     }
-    if (strcmp(m_strBuffer, s2.m_strBuffer) >= 0) {
+    if (strcmp(data_, s2.data_) >= 0) {
         return (false);
     }
     return (true);
@@ -491,13 +491,13 @@ bool OTString::operator<(const OTString& s2) const
 
 bool OTString::operator<=(const OTString& s2) const
 {
-    if (m_lLength == 0) {
+    if (length_ == 0) {
         return (true);
     }
-    if (s2.m_lLength == 0) {
+    if (s2.length_ == 0) {
         return (false);
     }
-    if (strcmp(m_strBuffer, s2.m_strBuffer) > 0) {
+    if (strcmp(data_, s2.data_) > 0) {
         return (false);
     }
     return (true);
@@ -505,13 +505,13 @@ bool OTString::operator<=(const OTString& s2) const
 
 bool OTString::operator>=(const OTString& s2) const
 {
-    if (s2.m_lLength == 0) {
+    if (s2.length_ == 0) {
         return (true);
     }
-    if (m_lLength == 0) {
+    if (length_ == 0) {
         return (false);
     }
-    if (strcmp(m_strBuffer, s2.m_strBuffer) < 0) {
+    if (strcmp(data_, s2.data_) < 0) {
         return (false);
     }
     return (true);
@@ -744,23 +744,23 @@ int64_t OTString::ToLong() const
 
 void OTString::zeroMemory()
 {
-    if (NULL != m_strBuffer) {
-        OTPassword::zeroMemory(m_strBuffer, m_lLength);
+    if (NULL != data_) {
+        OTPassword::zeroMemory(data_, length_);
     }
 }
 
 void OTString::Release_String(void)
 {
-    if (NULL != m_strBuffer) {
+    if (NULL != data_) {
         // for security purposes.
         //
-        OTPassword::zeroMemory(m_strBuffer, m_lLength);
-        //        memset(m_strBuffer, 0, m_lLength);
-        delete[] m_strBuffer;
+        OTPassword::zeroMemory(data_, length_);
+        //        memset(data_, 0, length_);
+        delete[] data_;
     }
-    m_strBuffer = NULL;
-    m_lPosition = 0;
-    m_lLength = 0;
+    data_ = NULL;
+    position_ = 0;
+    length_ = 0;
 }
 
 void OTString::Release(void)
@@ -779,15 +779,15 @@ OTString::~OTString()
 
 void OTString::Initialize()
 {
-    m_lLength = 0;
-    m_lPosition = 0;
-    m_strBuffer = NULL;
+    length_ = 0;
+    position_ = 0;
+    data_ = NULL;
 }
 
 OTString::OTString()
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 }
@@ -796,9 +796,9 @@ OTString::OTString()
 // and sets that string on this object. (For when you need a string
 // version of an ID.)
 OTString::OTString(const OTIdentifier& theValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 
@@ -806,9 +806,9 @@ OTString::OTString(const OTIdentifier& theValue)
 }
 
 OTString::OTString(const OTContract& theValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 
@@ -818,9 +818,9 @@ OTString::OTString(const OTContract& theValue)
 // This version base64-DECODES the ascii-armored string passed in,
 // and then sets the decoded plaintext string onto this object.
 OTString::OTString(const OTASCIIArmor& strValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 
@@ -836,9 +836,9 @@ OTString::OTString(const OTASCIIArmor& strValue)
 // provided this constructor to easily base64-decode them to prepare for
 // loading into a bio and then a Lucre object.
 OTString::OTString(const OTSignature& strValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 
@@ -846,9 +846,9 @@ OTString::OTString(const OTSignature& strValue)
 }
 
 OTString::OTString(OTPseudonym& theValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
 
@@ -856,92 +856,57 @@ OTString::OTString(OTPseudonym& theValue)
 }
 
 OTString::OTString(const OTString& strValue)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
     LowLevelSetStr(strValue);
 }
 
 OTString::OTString(const char* new_string)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
     LowLevelSet(new_string, 0);
 }
 
 OTString::OTString(const char* new_string, size_t sizeLength)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
     LowLevelSet(new_string, static_cast<uint32_t>(sizeLength));
 }
 
 OTString::OTString(const std::string& new_string)
-    : m_lLength(0)
-    , m_lPosition(0)
-    , m_strBuffer(NULL)
+    : length_(0)
+    , position_(0)
+    , data_(NULL)
 {
     //    Initialize();
     LowLevelSet(new_string.c_str(), static_cast<uint32_t>(new_string.length()));
 }
 
-// If 10 is passed in, then 11 will be allocated,
-// then the data is copied, and then the result[10] (11th element)
-// is set to 0. This way the original 10-length string is untouched.
-//
-char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
-                                                 // include the byte for the
-                                                 // terminating 0.
-{
-    char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
-                                          // (NOT PART OF LENGTH)
-    OT_ASSERT(NULL != str_new);
-
-#ifdef _WIN32
-    strncpy_s(str_new, length + 1, str, length);
-#else
-    strncpy(str_new, str, length);
-#endif
-
-    // INITIALIZE EXTRA BYTE OF SPACE
-    //
-    // If length is 10, then buffer is created with 11 elements,
-    // indexed from 0 (first element) through 10 (11th element).
-    //
-    // Therefore str_new[length==10] is the 11th element, which was
-    // the extra one created on our buffer, to store the \0 null terminator.
-    //
-    // This way I know I'm never cutting off data that was in the string itself.
-    // Rather, I am only setting to 0 an EXTRA byte that I created myself, AFTER
-    // the string's length itself.
-    //
-    str_new[length] = '\0';
-
-    return str_new;
-}
-
 void OTString::LowLevelSetStr(const OTString& strBuf)
 {
-    OT_ASSERT(NULL == m_strBuffer); // otherwise memory leak.
+    OT_ASSERT(NULL == data_); // otherwise memory leak.
 
     if (strBuf.Exists()) {
-        m_lLength = (MAX_STRING_LENGTH > strBuf.m_lLength)
-                        ? strBuf.m_lLength
-                        : (MAX_STRING_LENGTH - 1);
+        length_ = (MAX_STRING_LENGTH > strBuf.length_)
+                      ? strBuf.length_
+                      : (MAX_STRING_LENGTH - 1);
 
-        OT_ASSERT_MSG(m_lLength < (MAX_STRING_LENGTH - 10),
+        OT_ASSERT_MSG(length_ < (MAX_STRING_LENGTH - 10),
                       "ASSERT: OTString::LowLevelSetStr: Exceeded "
                       "MAX_STRING_LENGTH! (String would not have fully fit "
                       "anyway--it would have been truncated here, potentially "
                       "causing data corruption.)"); // 10 being a buffer.
 
-        m_strBuffer = str_dup2(strBuf.m_strBuffer, m_lLength);
+        data_ = str_dup2(strBuf.data_, length_);
     }
 }
 
@@ -959,7 +924,7 @@ void OTString::LowLevelSetStr(const OTString& strBuf)
 //
 void OTString::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 {
-    OT_ASSERT(NULL == m_strBuffer); // otherwise memory leak.
+    OT_ASSERT(NULL == data_); // otherwise memory leak.
 
     if (NULL != new_string) {
         uint32_t nLength =
@@ -988,12 +953,12 @@ void OTString::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
         //
         //      new_string[nLength] = '\0';
 
-        m_strBuffer = str_dup2(new_string, nLength);
+        data_ = str_dup2(new_string, nLength);
 
-        if (NULL != m_strBuffer)
-            m_lLength = nLength;
+        if (NULL != data_)
+            length_ = nLength;
         else
-            m_lLength = 0;
+            length_ = 0;
     }
 }
 
@@ -1038,8 +1003,8 @@ bool OTString::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
         OTString::safe_strlen(str_new, static_cast<size_t>(theSize)));
     str_new[nLength] = '\0'; // This SHOULD be superfluous as well...
 
-    m_lLength = nLength; // the length doesn't count the 0.
-    m_strBuffer = str_new;
+    length_ = nLength; // the length doesn't count the 0.
+    data_ = str_new;
 
     return true;
 }
@@ -1053,15 +1018,15 @@ OTString& OTString::operator=(OTString rhs)
 
 void OTString::swap(OTString& rhs)
 {
-    std::swap(m_lLength, rhs.m_lLength);
-    std::swap(m_lPosition, rhs.m_lPosition);
-    std::swap(m_strBuffer, rhs.m_strBuffer);
+    std::swap(length_, rhs.length_);
+    std::swap(position_, rhs.position_);
+    std::swap(data_, rhs.data_);
 }
 
 bool OTString::At(uint32_t lIndex, char& c) const
 {
-    if (lIndex < m_lLength) {
-        c = m_strBuffer[lIndex];
+    if (lIndex < length_) {
+        c = data_[lIndex];
         return true;
     }
     else
@@ -1070,17 +1035,17 @@ bool OTString::At(uint32_t lIndex, char& c) const
 
 bool OTString::Exists(void) const
 {
-    return (NULL != m_strBuffer) ? true : false;
+    return (NULL != data_) ? true : false;
 }
 
 uint32_t OTString::GetLength(void) const
 {
-    return m_lLength;
+    return length_;
 }
 
 const char* OTString::Get(void) const
 {
-    return (NULL != m_strBuffer) ? const_cast<const char*>(m_strBuffer) : "";
+    return (NULL != data_) ? const_cast<const char*>(data_) : "";
 }
 
 // new_string MUST be at least nEnforcedMaxLength in size if nEnforcedMaxLength
@@ -1090,7 +1055,7 @@ const char* OTString::Get(void) const
 
 void OTString::Set(const char* new_string, uint32_t nEnforcedMaxLength /*=0*/)
 {
-    if (new_string == m_strBuffer) // Already the same string.
+    if (new_string == data_) // Already the same string.
         return;
 
     Release();
@@ -1113,19 +1078,19 @@ void OTString::Set(const OTString& strBuf)
 bool OTString::operator==(const OTString& s2) const
 {
     // If they are not the same length, return false
-    if (m_lLength != s2.m_lLength) {
+    if (length_ != s2.length_) {
         return (false);
     }
 
     // At this point we know they are at least the same length.
     // Next--are they both 0? If they are both 0, return true
-    if (m_lLength == 0 && s2.m_lLength == 0) {
+    if (length_ == 0 && s2.length_ == 0) {
         return (true);
     }
 
     // At this point we have 2 identical-length strings.
     // Now we call strcmp and convert it to true or false.
-    if (strcmp(m_strBuffer, s2.m_strBuffer) ==
+    if (strcmp(data_, s2.data_) ==
         0) { // TODO security: use a replacement for strcmp.
         return (true);
     }
@@ -1137,11 +1102,11 @@ bool OTString::operator==(const OTString& s2) const
 // Compare is simple.  True if they match, False if they don't match.
 bool OTString::Compare(const char* strCompare) const
 {
-    if (NULL == m_strBuffer || NULL == strCompare) {
+    if (NULL == data_ || NULL == strCompare) {
         return false;
     }
 
-    char* s1 = m_strBuffer;
+    char* s1 = data_;
     char* s2 = (char*)strCompare;
 
     for (; *s1 && *s2; s1++, s2++)
@@ -1154,11 +1119,11 @@ bool OTString::Compare(const char* strCompare) const
 
 bool OTString::Compare(const OTString& strCompare) const
 {
-    if (NULL == m_strBuffer || !strCompare.Exists()) {
+    if (NULL == data_ || !strCompare.Exists()) {
         return false;
     }
 
-    char* s1 = m_strBuffer;
+    char* s1 = data_;
     const char* s2 = strCompare.Get();
 
     for (; *s1 && *s1 != ' '; s1++, s2++)
@@ -1172,22 +1137,22 @@ bool OTString::Compare(const OTString& strCompare) const
 // Should be easy to modify if the need arises.
 bool OTString::Contains(const char* strCompare) const
 {
-    if (NULL == m_strBuffer || NULL == strCompare) {
+    if (NULL == data_ || NULL == strCompare) {
         return false;
     }
 
-    if (strstr(m_strBuffer, strCompare)) return true;
+    if (strstr(data_, strCompare)) return true;
 
     return false;
 }
 
 bool OTString::Contains(const OTString& strCompare) const
 {
-    if (NULL == m_strBuffer || !strCompare.Exists()) {
+    if (NULL == data_ || !strCompare.Exists()) {
         return false;
     }
 
-    if (strstr(m_strBuffer, strCompare.Get())) return true;
+    if (strstr(data_, strCompare.Get())) return true;
 
     return false;
 }
@@ -1206,22 +1171,24 @@ void OTString::OTfgets(std::istream& ifs)
 
 void OTString::ConvertToLowerCase()
 {
-    if (m_strBuffer == NULL) {
+    if (data_ == NULL) {
         return;
     }
 
-    for (char* s1 = m_strBuffer; *s1; s1++)
+    for (char* s1 = data_; *s1; s1++) {
         *s1 = static_cast<char>(tolower(*s1));
+    }
 }
 
 void OTString::ConvertToUpperCase()
 {
-    if (m_strBuffer == NULL) {
+    if (data_ == NULL) {
         return;
     }
 
-    for (char* s1 = m_strBuffer; *s1; s1++)
+    for (char* s1 = data_; *s1; s1++) {
         *s1 = static_cast<char>(toupper(*s1));
+    }
 }
 
 void OTString::Truncate(uint32_t lAt)
@@ -1388,7 +1355,7 @@ void OTString::Concatenate(const OTString& strBuf)
 {
     std::string str_output;
 
-    if ((m_lLength > 0) && (NULL != m_strBuffer)) str_output += m_strBuffer;
+    if ((length_ > 0) && (NULL != data_)) str_output += data_;
 
     if (strBuf.Exists() && (strBuf.GetLength() > 0)) str_output += strBuf.Get();
 
@@ -1397,55 +1364,16 @@ void OTString::Concatenate(const OTString& strBuf)
 
 void OTString::WriteToFile(std::ostream& ofs) const
 {
-    fwrite_string(ofs, m_strBuffer);
+    fwrite_string(ofs, data_);
 }
 
 /*
 void OTString::WriteToFile(FILE * fl) const
 {
     if (fl != NULL)
-        fwrite_string(fl, m_strBuffer);
+        fwrite_string(fl, data_);
 }
 */
-
-// ***** Implementation *****
-
-// Checks if s2 is the first word in s1.
-// s1 ends at the first space character.
-// len_cmp("load wallet.xml", "load") returns true
-// used for USER INPUT ONLY.  And it's sloppy.
-bool len_cmp(const char* s1, const char* s2)
-{
-    OT_ASSERT(NULL != s1);
-    OT_ASSERT(NULL != s2);
-
-    for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
-        if (toupper(*s1) != toupper(*s2)) return false;
-
-    // bug: as long as it's a partial match while the loop continues,
-    // this function will for example return true even if the user entered
-    // "c" when the command was "continue"
-    return true;
-}
-
-// Note: this version doesn't take a length for str,
-// which is a security problem. todo.
-// (Do we use this anymore anyway?)
-//
-char* str_dup1(const char* str)
-{
-    char* str_new = new char[strlen(str) + 1];
-
-    OT_ASSERT(NULL != str_new);
-
-#ifdef _WIN32
-    strcpy_s(str_new, strlen(str), str);
-#else
-    strlcpy(str_new, str, strlen(str));
-#endif
-
-    return str_new;
-}
 
 // true  == there are more lines to read.
 // false == this is the last line. Like EOF.
@@ -1456,26 +1384,26 @@ bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
         return false;
     }
 
-    if (m_lPosition >= m_lLength) return false;
+    if (position_ >= length_) return false;
 
     uint32_t lIndex = 0;
-    char* pChar = (char*)(m_strBuffer + m_lPosition);
+    char* pChar = (char*)(data_ + position_);
 
     // while *pChar isn't at the end of the source string,
     // and lIndex hasn't reached the end of the destination buffer,
     //
-    while (0 != *pChar && (m_lPosition < m_lLength) &&
+    while (0 != *pChar && (position_ < length_) &&
            lIndex < (nBufSize - 1)) // the -1 leaves room for a forced null
                                     // terminator.
     {
         // If the current character isn't a newline, then copy it...
         if ('\n' != *pChar) {
             szBuffer[lIndex] = *pChar;
-            lIndex++;      // increment the buffer
-            m_lPosition++; // increment the string's internal memory of where it
-                           // stopped.
-            pChar++; // increment this for convenience (could calcuate from
-                     // position)
+            lIndex++;    // increment the buffer
+            position_++; // increment the string's internal memory of where it
+                         // stopped.
+            pChar++;     // increment this for convenience (could calcuate from
+                         // position)
         }
         // Until we reach a newline...
         else {
@@ -1483,9 +1411,9 @@ bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
 
             szBuffer[lIndex] =
                 0; // destination buffer, this is the end of the line for him.
-            m_lPosition++; // This still moves past the newline, so the next
-                           // call will get the next
-                           // string.
+            position_++; // This still moves past the newline, so the next
+                         // call will get the next
+                         // string.
             // lIndex does NOT increment here because we reach the end of this
             // string.
             // neither does pChar. These local variables go away since we are
@@ -1517,23 +1445,26 @@ char OTString::sgetc(void)
 {
     char answer;
 
-    if (m_lPosition >= m_lLength) return EOF;
+    if (position_ >= length_) {
+        return EOF;
+    }
+    answer = (char)(*(data_ + position_));
 
-    answer = (char)(*(m_strBuffer + m_lPosition));
-
-    ++m_lPosition;
+    ++position_;
 
     return answer;
 }
 
 void OTString::sungetc(void)
 {
-    if (m_lPosition > 0) --m_lPosition;
+    if (position_ > 0) {
+        --position_;
+    }
 }
 
 void OTString::reset(void)
 {
-    m_lPosition = 0;
+    position_ = 0;
 }
 
 } // namespace opentxs
