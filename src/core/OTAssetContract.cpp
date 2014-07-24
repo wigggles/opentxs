@@ -323,8 +323,7 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
 // static
 std::string OTAssetContract::formatLongAmount(
     int64_t lValue, int32_t nFactor /*=100*/, int32_t nPower /*=2*/,
-    const char* szCurrencySymbol /*=""*/,
-    const char* szThousandSeparator /*=","*/,
+    const char* szCurrencySymbol, const char* szThousandSeparator /*=","*/,
     const char* szDecimalPoint /*="."*/)
 {
     std::stringstream sss;

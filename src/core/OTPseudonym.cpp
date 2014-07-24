@@ -285,7 +285,7 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
 
 // static
 OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
-                                         const bool bChecking /*=false*/,
+                                         const bool bChecking,
                                          OTString* pstrName,
                                          const char* szFuncName,
                                          OTPasswordData* pPWData,
@@ -1258,8 +1258,7 @@ int32_t OTPseudonym::GetOutpaymentsIndexByTransNum(const int64_t lTransNum)
 }
 
 // if this function returns false, outpayments index was bad.
-bool OTPseudonym::RemoveOutpaymentsByIndex(const int32_t nIndex,
-                                           bool bDeleteIt /*=true*/)
+bool OTPseudonym::RemoveOutpaymentsByIndex(const int32_t nIndex, bool bDeleteIt)
 {
     const uint32_t uIndex = nIndex;
 
@@ -1391,7 +1390,7 @@ bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString& strOutput,
     return m_pkeypair->SaveCertAndPrivateKeyToString(strOutput, pstrReason);
 }
 
-bool OTPseudonym::Savex509CertAndPrivateKey(bool bCreateFile /*=true*/,
+bool OTPseudonym::Savex509CertAndPrivateKey(bool bCreateFile,
                                             const OTString* pstrReason)
 {
 
@@ -1454,13 +1453,13 @@ bool OTPseudonym::Savex509CertAndPrivateKey(bool bCreateFile /*=true*/,
 // use this to actually generate a new key pair and assorted nym files.
 //
 bool OTPseudonym::GenerateNym(int32_t nBits /*=1024*/,
-                              bool bCreateFile /*=true*/, // By default, it
-                                                          // creates the various
-                                                          // nym files
+                              bool bCreateFile, // By default, it
+                                                // creates the various
+                                                // nym files
                               // and certs in local storage. (Pass false when
                               // creating a temp Nym, like for OTPurse.)
-                              const std::string str_id_source /*=""*/,
-                              const std::string str_alt_location /*=""*/)
+                              const std::string str_id_source,
+                              const std::string str_alt_location)
 {
 
     OT_ASSERT(NULL != m_pkeypair);
@@ -1585,10 +1584,11 @@ bool OTPseudonym::SetIdentifierByPubkey()
 // nym.
 // So I added this method to make such a thing easy to do.
 //
-void OTPseudonym::RemoveAllNumbers(
-    const OTString* pstrServerID,
-    const bool bRemoveHighestNum /*=true*/) // Some callers don't want to wipe
-                                            // the highest num. Some do.
+void OTPseudonym::RemoveAllNumbers(const OTString* pstrServerID,
+                                   const bool bRemoveHighestNum) // Some callers
+                                                                 // don't want
+                                                                 // to wipe
+// the highest num. Some do.
 {
     std::string str_ServerID(pstrServerID ? pstrServerID->Get() : "");
 
@@ -2803,7 +2803,7 @@ bool OTPseudonym::RemoveAcknowledgedNum(OTPseudonym& SIGNER_NYM,
 void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
                                             OTPseudonym& SIGNER_NYM,
                                             OTPseudonym& theOtherNym,
-                                            bool bSave /*=true*/)
+                                            bool bSave)
 {
     const char* szFunc = "OTPseudonym::HarvestTransactionNumbers";
 
@@ -2939,8 +2939,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
 //
 void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
                                        OTPseudonym& SIGNER_NYM,
-                                       OTPseudonym& theOtherNym,
-                                       bool bSave /*=false*/)
+                                       OTPseudonym& theOtherNym, bool bSave)
 {
     bool bChangedTheNym = false;
     int64_t lTransactionNumber = 0;
@@ -2992,9 +2991,9 @@ void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
 bool OTPseudonym::ClawbackTransactionNumber(
     const OTIdentifier& theServerID,
     const int64_t& lTransClawback, // the number being clawed back.
-    bool bSave /*=false*/, // false because you might call this function 10
-                           // times in a loop, and not want to save EVERY
-                           // iteration.
+    bool bSave, // false because you might call this function 10
+                // times in a loop, and not want to save EVERY
+                // iteration.
     OTPseudonym* pSIGNER_NYM)
 {
     if (NULL == pSIGNER_NYM) pSIGNER_NYM = this;
@@ -3020,8 +3019,7 @@ bool OTPseudonym::ClawbackTransactionNumber(
 /// SAVES if successful.
 bool OTPseudonym::GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
                                         const OTString& strServerID,
-                                        int64_t& lTransNum,
-                                        bool bSave /*=true*/)
+                                        int64_t& lTransNum, bool bSave)
 {
     bool bRetVal = false;
     std::string strID = strServerID.Get();
@@ -3120,7 +3118,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym& SIGNER_NYM,
                                       std::set<int64_t>& setNumbers,
                                       std::set<int64_t>& setOutputGood,
                                       std::set<int64_t>& setOutputBad,
-                                      bool bSave /*=false*/)
+                                      bool bSave)
 {
     bool bFoundServerID = false;
     int64_t lReturnVal = 0; // 0 is success.
@@ -4335,10 +4333,11 @@ bool OTPseudonym::SaveCredentialList()
 // call VerifyPseudonym, and then load the actual Nymfile using
 // LoadSignedNymfile.
 //
-bool OTPseudonym::LoadCredentials(
-    bool bLoadPrivate /*=false*/, // Loads public credentials by default. For
-                                  // private, pass true.
-    OTPasswordData* pPWData, OTPassword* pImportPassword)
+bool OTPseudonym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
+                                                     // by default. For
+                                                     // private, pass true.
+                                  OTPasswordData* pPWData,
+                                  OTPassword* pImportPassword)
 {
     OTString strReason(NULL == pPWData ? OT_PW_DISPLAY
                                        : pPWData->GetDisplayString());
@@ -6171,7 +6170,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
 // Todo: if the above function works fine, then call it in the below function
 // (to reduce code bloat.)
 
-bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking /*=false*/,
+bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
                                             OTPasswordData* pPWData,
                                             OTPassword* pImportPassword)
 {
@@ -6287,8 +6286,7 @@ bool OTPseudonym::HasPrivateKey()
 
 // This version WILL handle the bookends: -----BEGIN CERTIFICATE------
 // It will also handle the escaped version: - -----BEGIN CERTIFICATE-----
-bool OTPseudonym::SetCertificate(const OTString& strCert,
-                                 bool bEscaped /*=true*/)
+bool OTPseudonym::SetCertificate(const OTString& strCert, bool bEscaped)
 {
     OT_ASSERT(NULL != m_pkeypair);
 
@@ -6297,7 +6295,7 @@ bool OTPseudonym::SetCertificate(const OTString& strCert,
 
 // This version WILL handle the bookends -----BEGIN PUBLIC KEY------
 // It will also handle the escaped version: - -----BEGIN PUBLIC KEY------
-bool OTPseudonym::SetPublicKey(const OTString& strKey, bool bEscaped /*=true*/)
+bool OTPseudonym::SetPublicKey(const OTString& strKey, bool bEscaped)
 {
     OT_ASSERT(NULL != m_pkeypair);
 
@@ -6316,7 +6314,7 @@ bool OTPseudonym::SetPublicKey(const OTASCIIArmor& strKey)
 // It will also handle the escaped version: - -----BEGIN ENCRYPTED PRIVATE
 // KEY------
 //
-bool OTPseudonym::SetPrivateKey(const OTString& strKey, bool bEscaped /*=true*/)
+bool OTPseudonym::SetPrivateKey(const OTString& strKey, bool bEscaped)
 {
     OT_ASSERT(NULL != m_pkeypair);
 

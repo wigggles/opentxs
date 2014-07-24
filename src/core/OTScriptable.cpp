@@ -1029,14 +1029,14 @@ bool OTScriptable::VerifyPartyAuthorization(
     // that, then you must delete them
     // yourself after calling this
     // function.)
-    const bool bBurnTransNo /*=false*/) // In OTServer::VerifySmartContract(),
-                                        // it not only wants to verify the # is
-                                        // properly issued, but it additionally
-                                        // wants to see that it hasn't been USED
-                                        // yet -- AND it wants to burn it, so it
-                                        // can't be used again!  This bool
-                                        // allows you to tell the function
-                                        // whether or not to do that.
+    const bool bBurnTransNo) // In OTServer::VerifySmartContract(),
+                             // it not only wants to verify the # is
+                             // properly issued, but it additionally
+                             // wants to see that it hasn't been USED
+                             // yet -- AND it wants to burn it, so it
+                             // can't be used again!  This bool
+                             // allows you to tell the function
+                             // whether or not to do that.
 {
     // This function DOES assume that theParty was initially FOUND on
     // OTScriptable.
@@ -1548,15 +1548,15 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
                                   // Nym.
     const OTString& strServerID,  // For verifying issued num, need the serverID
                                   // the # goes with.
-    const bool bBurnTransNo /*=false*/) // In OTServer::VerifySmartContract(),
-                                        // it not only wants to verify the
-                                        // closing # is properly issued, but it
-                                        // additionally wants to see that it
-                                        // hasn't been USED yet -- AND it wants
-                                        // to burn it, so it can't be used
-                                        // again!  This bool allows you to tell
-                                        // the function whether or not to do
-                                        // that.
+    const bool bBurnTransNo)      // In OTServer::VerifySmartContract(),
+                                  // it not only wants to verify the
+                                  // closing # is properly issued, but it
+                                  // additionally wants to see that it
+                                  // hasn't been USED yet -- AND it wants
+                                  // to burn it, so it can't be used
+                                  // again!  This bool allows you to tell
+                                  // the function whether or not to do
+                                  // that.
 {
     OTParty* pParty = thePartyAcct.GetParty();
 

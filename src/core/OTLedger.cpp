@@ -943,8 +943,7 @@ OTLedger* OTLedger::GenerateLedger(
     const OTIdentifier& theUserID,
     const OTIdentifier& theAcctID, // AcctID should be "OwnerID" since could be
                                    // acct OR Nym (with nymbox)
-    const OTIdentifier& theServerID, const ledgerType theType,
-    bool bCreateFile /*=false*/)
+    const OTIdentifier& theServerID, const ledgerType theType, bool bCreateFile)
 {
     OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theServerID);
     OT_ASSERT(NULL != pLedger);
@@ -957,8 +956,7 @@ OTLedger* OTLedger::GenerateLedger(
 
 bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
                               const OTIdentifier& theServerID,
-                              const ledgerType theType,
-                              bool bCreateFile /*=false*/)
+                              const ledgerType theType, bool bCreateFile)
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
@@ -1167,8 +1165,7 @@ mapOfTransactions& OTLedger::GetTransactionMap()
 /// If transaction #87, in reference to #74, is in the inbox, you can remove it
 /// by calling this function and passing in 87. Deletes.
 ///
-bool OTLedger::RemoveTransaction(int64_t lTransactionNum,
-                                 bool bDeleteIt /*=true*/)
+bool OTLedger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
 {
     const char* szFunc = "OTLedger::RemoveTransaction";
 

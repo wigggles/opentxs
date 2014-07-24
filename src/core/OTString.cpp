@@ -352,10 +352,10 @@ of this function to OTPassword.cpp
 
 // static
 bool OTString::safe_strcpy(char* dest, const char* src, size_t dest_size,
-                           bool bZeroSource /*=false*/) // if true, initializes
-                                                        // the source buffer to
-                                                        // zero after the
-                                                        // copying is done.
+                           bool bZeroSource) // if true, initializes
+                                             // the source buffer to
+                                             // zero after the
+                                             // copying is done.
 {
     // Make sure they don't overlap.
     //
@@ -981,7 +981,7 @@ bool OTString::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
     //                                 const
     //                                 void   * src,
     //                                 uint32_t src_length,
-    //                                 bool     bZeroSource/*=false*/)
+    //                                 bool     bZeroSource)
 
     OTPassword::safe_memcpy(static_cast<void*>(str_new), theSize + 1, pMem,
                             theSize);
@@ -1210,7 +1210,7 @@ void OTString::Truncate(uint32_t lAt)
 // unarmored now.)
 //               false == There was some error or the string is empty.
 //
-bool OTString::DecodeIfArmored(bool bEscapedIsAllowed /*=true*/)
+bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
 {
     if (!this->Exists()) return false;
 

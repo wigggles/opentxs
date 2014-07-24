@@ -356,10 +356,10 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
 // static
 void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,
                               uint32_t src_length,
-                              bool bZeroSource /*=false*/) // if true, sets the
-                                                           // source buffer to
-                                                           // zero after copying
-                                                           // is done.
+                              bool bZeroSource) // if true, sets the
+                                                // source buffer to
+                                                // zero after copying
+                                                // is done.
 {
     // Make sure they aren't null.
     OT_ASSERT(NULL != dest);

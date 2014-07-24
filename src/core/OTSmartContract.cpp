@@ -4753,7 +4753,7 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                           OTAccount& theAcct,
                                           OTPseudonym& theServerNym,
-                                          const bool bBurnTransNo /*=false*/)
+                                          const bool bBurnTransNo)
 {
     OTAgent* pAuthAgent = NULL;
     OTParty* pAuthParty = FindPartyBasedOnNymAsAuthAgent(theNym, &pAuthAgent);

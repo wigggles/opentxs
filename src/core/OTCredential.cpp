@@ -1554,9 +1554,8 @@ void OTCredential::ClearSubcredentials()
 void OTCredential::SerializeIDs(OTString& strOutput,
                                 OTString::List& listRevokedIDs,
                                 OTString::Map* pmapPubInfo,
-                                OTString::Map* pmapPriInfo,
-                                bool bShowRevoked /*=false*/,
-                                bool bValid /*=true*/) const
+                                OTString::Map* pmapPriInfo, bool bShowRevoked,
+                                bool bValid) const
 {
     if (bValid || bShowRevoked) {
         strOutput.Concatenate("<masterCredential\n"

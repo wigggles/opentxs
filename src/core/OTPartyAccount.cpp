@@ -446,9 +446,8 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
     return pAccount;
 }
 
-void OTPartyAccount::Serialize(OTString& strAppend,
-                               bool bCalculatingID /*=false*/,
-                               bool bSpecifyAssetID /*=false*/)
+void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
+                               bool bSpecifyAssetID)
 {
     //    strAppend.Concatenate("<assetAccount>\n\n");
 

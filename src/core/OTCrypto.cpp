@@ -589,8 +589,7 @@ memcpy(buf, tmp, len);
 return len;
  */
 
-bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput,
-                                      bool bRepeat /*=false*/) const
+bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
 {
     int32_t nAttempts = 0;
 
@@ -714,7 +713,7 @@ void OTCrypto::Cleanup_Override()
 }
 
 bool OTCrypto::Base64Encode(const OTData& theInput, OTString& strOutput,
-                            bool bLineBreaks /*=true*/) const
+                            bool bLineBreaks) const
 {
 
     const uint8_t* pDataIn = static_cast<const uint8_t*>(theInput.GetPointer());
@@ -743,7 +742,7 @@ bool OTCrypto::Base64Encode(const OTData& theInput, OTString& strOutput,
 }
 
 bool OTCrypto::Base64Decode(const OTString& strInput, OTData& theOutput,
-                            bool bLineBreaks /*=true*/) const
+                            bool bLineBreaks) const
 {
 
     const char* szInput = strInput.Get();

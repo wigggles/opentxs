@@ -165,7 +165,7 @@ void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509* x509)
 }
 
 void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
-    EVP_PKEY& theKey, bool bIsPrivateKey /*=false*/, OTPasswordData* pPWData,
+    EVP_PKEY& theKey, bool bIsPrivateKey, OTPasswordData* pPWData,
     OTPassword* pImportPassword)
 {
     backlink->Release();

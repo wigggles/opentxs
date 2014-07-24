@@ -179,8 +179,8 @@ namespace opentxs
 
 bool OTItem::VerifyTransactionStatement(
     OTPseudonym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
-    const bool bIsRealTransaction /*=true*/) // Sometimes the trans# is 0 (like
-                                             // when processing Nymbox)
+    const bool bIsRealTransaction) // Sometimes the trans# is 0 (like
+                                   // when processing Nymbox)
 {
     if (this->GetType() != OTItem::transactionStatement) {
         otOut << __FUNCTION__

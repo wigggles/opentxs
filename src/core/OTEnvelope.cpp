@@ -157,7 +157,7 @@ namespace opentxs
 // Form"
 //
 bool OTEnvelope::GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks /*=true*/) const
+                                     bool bLineBreaks) const
 {
     return theArmoredText.SetData(m_dataContents, bLineBreaks);
 }
@@ -173,14 +173,14 @@ bool OTEnvelope::GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
 // plaintext. Fear not, just call this function.
 //
 bool OTEnvelope::SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks /*=true*/)
+                                     bool bLineBreaks)
 {
     return theArmoredText.GetData(m_dataContents, bLineBreaks);
 }
 
 bool OTEnvelope::GetAsBookendedString(
     OTString& strArmorWithBookends, // output (if successful.)
-    bool bEscaped /*=false*/) const
+    bool bEscaped) const
 {
     OTASCIIArmor theArmoredText;
     // This function will base64 ENCODE m_dataContents, and then
@@ -208,7 +208,7 @@ bool OTEnvelope::GetAsBookendedString(
 
 bool OTEnvelope::SetFromBookendedString(
     const OTString& strArmorWithBookends, // input
-    bool bEscaped /*=false*/)
+    bool bEscaped)
 {
     OTASCIIArmor theArmoredText;
     const bool bLoaded = theArmoredText.LoadFromString(

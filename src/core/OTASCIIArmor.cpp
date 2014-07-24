@@ -482,14 +482,13 @@ bool OTASCIIArmor::GetString(OTString& strData,
 }
 
 bool OTASCIIArmor::GetStringMap(std::map<std::string, std::string>& the_map,
-                                bool bLineBreaks /*=true*/) const
+                                bool bLineBreaks) const
 {
     return GetAndUnpackStringMap(the_map, bLineBreaks);
 }
 
 bool OTASCIIArmor::GetAndUnpackStringMap(
-    std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/) const
+    std::map<std::string, std::string>& the_map, bool bLineBreaks) const
 {
     size_t outSize = 0;
     uint8_t* pData = NULL;
@@ -547,15 +546,13 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
 }
 
 bool OTASCIIArmor::SetStringMap(
-    const std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/)
+    const std::map<std::string, std::string>& the_map, bool bLineBreaks)
 {
     return SetAndPackStringMap(the_map, bLineBreaks);
 }
 
 bool OTASCIIArmor::SetAndPackStringMap(
-    const std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/)
+    const std::map<std::string, std::string>& the_map, bool bLineBreaks)
 {
     char* pString = NULL;
 
@@ -694,7 +691,7 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
 
 // This function will base64 ENCODE theData,
 // and then Set() that as the string contents.
-bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks /*=true*/)
+bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 {
     return SetAndPackData(theData, bLineBreaks);
 }
@@ -703,8 +700,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks /*=true*/)
 // and then Set() that as the string contents.
 // Additionally it will pack and compress the data!
 //
-bool OTASCIIArmor::SetAndPackData(const OTData& theData,
-                                  bool bLineBreaks /*=true*/)
+bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
 {
     char* pString = NULL;
 
@@ -964,7 +960,7 @@ bool OTASCIIArmor::WriteArmoredFile(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped /*=false*/)
+    bool bEscaped)
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
@@ -1005,7 +1001,7 @@ bool OTASCIIArmor::WriteArmoredString(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped /*=false*/)
+    bool bEscaped)
 {
     const char* szEscape = "- ";
 
@@ -1042,9 +1038,9 @@ bool OTASCIIArmor::WriteArmoredString(
 // are escaped with a "- " before the rest of the ------- starts.)
 //
 bool OTASCIIArmor::LoadFromString(
-    OTString& theStr,               // input
-    bool bEscaped /*=false*/, const // This szOverride sub-string determines
-                                    // where the content starts, when loading.
+    OTString& theStr,    // input
+    bool bEscaped, const // This szOverride sub-string determines
+                         // where the content starts, when loading.
     std::string str_override /*="-----BEGIN"*/) // Default is "-----BEGIN"
 {
     // Should never be 0 size, as default is "-----BEGIN"

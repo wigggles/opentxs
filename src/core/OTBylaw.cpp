@@ -144,7 +144,7 @@
 namespace opentxs
 {
 
-void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/)
+void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID)
 {
     strAppend.Concatenate("<bylaw\n name=\"%s\"\n"
                           " numVariables=\"%d\"\n"

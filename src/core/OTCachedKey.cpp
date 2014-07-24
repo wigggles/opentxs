@@ -627,8 +627,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
 //
 bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                                     OTPassword& theOutput,
-                                    const char* szDisplay,
-                                    bool bVerifyTwice /*=false*/)
+                                    const char* szDisplay, bool bVerifyTwice)
 {
     tthread::lock_guard<tthread::mutex> lock(
         m_Mutex); // Multiple threads can't get inside here at the same time.

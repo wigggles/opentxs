@@ -623,7 +623,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 // static  NOTE: this version circumvents the master key.
 OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     const OTString* pstrDisplay,
-    const bool bAskTwice /*=false*/) // returns a text OTPassword, or NULL.
+    const bool bAskTwice) // returns a text OTPassword, or NULL.
 {
     // Caller MUST delete!
 
@@ -714,8 +714,7 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
 // static
 bool OTSymmetricKey::Encrypt(const OTString& strKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay,
-                             const bool bBookends /*=true*/,
+                             const OTString* pstrDisplay, const bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
@@ -741,8 +740,7 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 // static
 bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay,
-                             const bool bBookends /*=true*/,
+                             const OTString* pstrDisplay, const bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
@@ -899,8 +897,7 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
     return bSuccess;
 }
 
-bool OTSymmetricKey::SerializeTo(OTString& strOutput,
-                                 bool bEscaped /*=false*/) const
+bool OTSymmetricKey::SerializeTo(OTString& strOutput, bool bEscaped) const
 {
     OTASCIIArmor ascOutput;
 
@@ -911,8 +908,7 @@ bool OTSymmetricKey::SerializeTo(OTString& strOutput,
     return false;
 }
 
-bool OTSymmetricKey::SerializeFrom(const OTString& strInput,
-                                   bool bEscaped /*=false*/)
+bool OTSymmetricKey::SerializeFrom(const OTString& strInput, bool bEscaped)
 {
     OTASCIIArmor ascInput;
 

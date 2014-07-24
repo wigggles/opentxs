@@ -396,7 +396,7 @@ bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
 //
 bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
-                                             bool bEscaped /*=true*/,
+                                             bool bEscaped,
                                              const OTString* pstrReason,
                                              OTPassword* pImportPassword)
 {
@@ -409,8 +409,7 @@ bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
 // Load Public Key from Cert (file or string)
 //
 bool OTKeypair::LoadPublicKeyFromCertString(
-    const OTString& strCert, bool bEscaped /*=true*/,
-    const OTString* pstrReason,
+    const OTString& strCert, bool bEscaped, const OTString* pstrReason,
     OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
 {
     OT_ASSERT(NULL != m_pkeyPublic);
@@ -517,7 +516,7 @@ bool OTKeypair::GetPublicKey(OTASCIIArmor& strKey) const
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
-bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped /*=true*/) const
+bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped) const
 {
     OT_ASSERT(NULL != m_pkeyPublic);
 
@@ -539,7 +538,7 @@ bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
 // This is the version that will handle the bookends ( -----BEGIN PUBLIC
 // KEY-----)
 //
-bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped /*=false*/)
+bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
 {
     OT_ASSERT(NULL != m_pkeyPublic);
 
@@ -569,7 +568,7 @@ bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped /*=false*/)
 // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
 // Notice the "- " before the rest of the bookend starts.
 //
-bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped /*=true*/) const
+bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped) const
 {
     OT_ASSERT(NULL != m_pkeyPrivate);
 
@@ -589,7 +588,7 @@ bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
 // and sets that as the m_pPrivateKey on this object.
 // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
 // PRIVATE KEY-----)
-bool OTKeypair::SetPrivateKey(const OTString& strKey, bool bEscaped /*=false*/)
+bool OTKeypair::SetPrivateKey(const OTString& strKey, bool bEscaped)
 {
     OT_ASSERT(NULL != m_pkeyPrivate);
 
@@ -654,7 +653,7 @@ bool OTKeypair::CalculateID(OTIdentifier& theOutput) const
 int32_t OTKeypair::GetPublicKeyBySignature(
     listOfAsymmetricKeys& listOutput, // Inclusive means, return the key even
                                       // when theSignature has no metadata.
-    const OTSignature& theSignature, bool bInclusive /*=false*/) const
+    const OTSignature& theSignature, bool bInclusive) const
 {
     OT_ASSERT(NULL != m_pkeyPublic);
     OT_ASSERT(NULL != m_pkeyPublic->m_pMetadata);
