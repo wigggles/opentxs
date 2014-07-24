@@ -114,7 +114,7 @@
 //#include "OTMasterkey.hpp"
 //#include "OTMessageBuffer.hpp"
 //#include "OTMessage.hpp"
-//#include "OTMessageOutBuffer.hpp"
+//#include "OTMessageOutbuffer.hpp"
 //#include "OTMint.hpp"
 //#include "OTMintLucre.hpp"
 //#include "OTNumList.hpp"

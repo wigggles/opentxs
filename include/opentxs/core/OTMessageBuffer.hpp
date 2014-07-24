@@ -134,7 +134,6 @@
 #define __OT_MESSAGE_BUFFER_HPP__
 
 #include "OTCommon.hpp"
-
 #include <list>
 
 namespace opentxs
@@ -143,42 +142,31 @@ namespace opentxs
 class OTMessage;
 class OTString;
 
-typedef std::list<OTMessage*> listOfMessages; // Incoming server replies to your
-                                              // messages.
-
-// INCOMING SERVER REPLIES.
-//
-// The purpose of this class is to cache server replies (internally to OT)
-// so that the developer using the OT API has access to them.
-//
-// This class is pretty generic and so may be used as an output buffer
-// as well. (If "stack" form is preferable.)
-//
 class OTMessageBuffer
 {
-    listOfMessages m_listMessages;
-    // Just to keep you out of trouble.
-    OTMessageBuffer(const OTMessageBuffer&)
-    {
-    }
-    OTMessageBuffer& operator=(const OTMessageBuffer&)
-    {
-        return *this;
-    }
-
 public:
     OTMessageBuffer()
     {
     }
+
     EXPORT ~OTMessageBuffer();
 
     EXPORT void Clear();
-    EXPORT void Push(OTMessage& theMessage); // Push: theMessage must be
-                                             // heap-allocated. Takes ownership.
-    EXPORT OTMessage* Pop(const int64_t& lRequestNum, // Pop:  Caller IS
-                                                      // responsible to delete.
-                          const OTString& strServerID,
-                          const OTString& strNymID);
+    // message must be heap-allocated. Takes ownership.
+    EXPORT void Push(OTMessage& message);
+    // Caller IS responsible to delete.
+    EXPORT OTMessage* Pop(const int64_t& requestNum, const OTString& serverId,
+                          const OTString& nymId);
+
+private:
+    OTMessageBuffer(const OTMessageBuffer&);
+    OTMessageBuffer& operator=(const OTMessageBuffer&);
+
+private:
+    typedef std::list<OTMessage*> Messages;
+
+private:
+    Messages messages_;
 };
 
 } // namespace opentxs

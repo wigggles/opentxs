@@ -137,7 +137,7 @@
 
 #include "OTServerConnection.hpp"
 
-#include "OTMessageOutBuffer.hpp"
+#include "OTMessageOutbuffer.hpp"
 
 namespace opentxs
 {
