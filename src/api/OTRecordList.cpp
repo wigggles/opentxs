@@ -494,19 +494,19 @@ void OTRecordList::ClearAccounts()
     m_accounts.clear();
 }
 
-void OTRecordList::AcceptChequesAutomatically(bool bVal /*=true*/)
+void OTRecordList::AcceptChequesAutomatically(bool bVal)
 {
     m_bAutoAcceptCheques = bVal;
 }
-void OTRecordList::AcceptReceiptsAutomatically(bool bVal /*=true*/)
+void OTRecordList::AcceptReceiptsAutomatically(bool bVal)
 {
     m_bAutoAcceptReceipts = bVal;
 }
-void OTRecordList::AcceptTransfersAutomatically(bool bVal /*=true*/)
+void OTRecordList::AcceptTransfersAutomatically(bool bVal)
 {
     m_bAutoAcceptTransfers = bVal;
 }
-void OTRecordList::AcceptCashAutomatically(bool bVal /*=true*/)
+void OTRecordList::AcceptCashAutomatically(bool bVal)
 {
     m_bAutoAcceptCash = bVal;
 }

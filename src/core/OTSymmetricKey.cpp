@@ -714,8 +714,7 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
 // static
 bool OTSymmetricKey::Encrypt(const OTString& strKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay,
-                             const bool bBookends /*=true*/,
+                             const OTString* pstrDisplay, const bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
@@ -741,8 +740,7 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 // static
 bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay,
-                             const bool bBookends /*=true*/,
+                             const OTString* pstrDisplay, const bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {

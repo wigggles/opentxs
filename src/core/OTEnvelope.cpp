@@ -157,7 +157,7 @@ namespace opentxs
 // Form"
 //
 bool OTEnvelope::GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks /*=true*/) const
+                                     bool bLineBreaks) const
 {
     return theArmoredText.SetData(m_dataContents, bLineBreaks);
 }
@@ -173,7 +173,7 @@ bool OTEnvelope::GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
 // plaintext. Fear not, just call this function.
 //
 bool OTEnvelope::SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
-                                     bool bLineBreaks /*=true*/)
+                                     bool bLineBreaks)
 {
     return theArmoredText.GetData(m_dataContents, bLineBreaks);
 }

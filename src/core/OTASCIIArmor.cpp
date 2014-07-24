@@ -482,14 +482,13 @@ bool OTASCIIArmor::GetString(OTString& strData,
 }
 
 bool OTASCIIArmor::GetStringMap(std::map<std::string, std::string>& the_map,
-                                bool bLineBreaks /*=true*/) const
+                                bool bLineBreaks) const
 {
     return GetAndUnpackStringMap(the_map, bLineBreaks);
 }
 
 bool OTASCIIArmor::GetAndUnpackStringMap(
-    std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/) const
+    std::map<std::string, std::string>& the_map, bool bLineBreaks) const
 {
     size_t outSize = 0;
     uint8_t* pData = NULL;
@@ -547,15 +546,13 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
 }
 
 bool OTASCIIArmor::SetStringMap(
-    const std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/)
+    const std::map<std::string, std::string>& the_map, bool bLineBreaks)
 {
     return SetAndPackStringMap(the_map, bLineBreaks);
 }
 
 bool OTASCIIArmor::SetAndPackStringMap(
-    const std::map<std::string, std::string>& the_map,
-    bool bLineBreaks /*=true*/)
+    const std::map<std::string, std::string>& the_map, bool bLineBreaks)
 {
     char* pString = NULL;
 
@@ -694,7 +691,7 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
 
 // This function will base64 ENCODE theData,
 // and then Set() that as the string contents.
-bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks /*=true*/)
+bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 {
     return SetAndPackData(theData, bLineBreaks);
 }
@@ -703,8 +700,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks /*=true*/)
 // and then Set() that as the string contents.
 // Additionally it will pack and compress the data!
 //
-bool OTASCIIArmor::SetAndPackData(const OTData& theData,
-                                  bool bLineBreaks /*=true*/)
+bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
 {
     char* pString = NULL;
 

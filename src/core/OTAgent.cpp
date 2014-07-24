@@ -285,7 +285,7 @@ OTAgent::OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
 }
 
 OTAgent::OTAgent(const std::string str_agent_name, OTPseudonym& theNym,
-                 bool bNymRepresentsSelf /*=true*/)
+                 bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : m_bNymRepresentsSelf(bNymRepresentsSelf),
       m_bIsAnIndividual(true),
@@ -1007,8 +1007,7 @@ bool OTAgent::HarvestTransactionNumber(
 //
 bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
                                       const OTString& strServerID,
-                                      OTPseudonym& SIGNER_NYM,
-                                      bool bSave /*=true*/)
+                                      OTPseudonym& SIGNER_NYM, bool bSave)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {

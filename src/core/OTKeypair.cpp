@@ -396,7 +396,7 @@ bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
 //
 bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
-                                             bool bEscaped /*=true*/,
+                                             bool bEscaped,
                                              const OTString* pstrReason,
                                              OTPassword* pImportPassword)
 {
@@ -409,8 +409,7 @@ bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
 // Load Public Key from Cert (file or string)
 //
 bool OTKeypair::LoadPublicKeyFromCertString(
-    const OTString& strCert, bool bEscaped /*=true*/,
-    const OTString* pstrReason,
+    const OTString& strCert, bool bEscaped, const OTString* pstrReason,
     OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
 {
     OT_ASSERT(NULL != m_pkeyPublic);
@@ -517,7 +516,7 @@ bool OTKeypair::GetPublicKey(OTASCIIArmor& strKey) const
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
-bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped /*=true*/) const
+bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped) const
 {
     OT_ASSERT(NULL != m_pkeyPublic);
 
@@ -569,7 +568,7 @@ bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
 // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
 // Notice the "- " before the rest of the bookend starts.
 //
-bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped /*=true*/) const
+bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped) const
 {
     OT_ASSERT(NULL != m_pkeyPrivate);
 

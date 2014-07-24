@@ -1210,7 +1210,7 @@ void OTString::Truncate(uint32_t lAt)
 // unarmored now.)
 //               false == There was some error or the string is empty.
 //
-bool OTString::DecodeIfArmored(bool bEscapedIsAllowed /*=true*/)
+bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
 {
     if (!this->Exists()) return false;
 

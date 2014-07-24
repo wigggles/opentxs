@@ -3171,7 +3171,7 @@ time64_t OT_API::GetTime()
  return            ascEncoded.Get();            // We return it.
  */
 bool OT_API::Encode(const OTString& strPlaintext, OTString& strOutput,
-                    bool bLineBreaks /*=true*/)
+                    bool bLineBreaks)
 {
     OTASCIIArmor ascArmor;
     bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks); // encodes.
@@ -3199,7 +3199,7 @@ bool OT_API::Encode(const OTString& strPlaintext, OTString& strOutput,
  return            strPlain.Get();            // We return it.
  */
 bool OT_API::Decode(const OTString& strEncoded, OTString& strOutput,
-                    bool bLineBreaks /*=true*/)
+                    bool bLineBreaks)
 {
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
@@ -5388,19 +5388,19 @@ OTPurse* OT_API::CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
 OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     const OTIdentifier& theServerID, const OTIdentifier& theAssetTypeID,
     const OTString& strPurse, OTPurse& thePurse, // output
-    OTPassword& thePassword, // Only used in the case of password-protected
-                             // purses. Passed in so it won't go out of scope
-                             // when pOwner is set to point to it.
-    const bool bForEncrypting /*=true*/, // true==encrypting,false==decrypting.
-                                         // Only relevant if there's an owner.
-    const OTIdentifier* pOWNER_ID,       // This can be NULL, **IF** purse
-                                         // is password-protected. (It's
-                                         // just ignored in that case.)
-                                         // Otherwise MUST contain the NymID
-                                         // for the Purse owner.
-    const OTString* pstrDisplay1,        // for purses owned by the wallet
-                                         // already
-    const OTString* pstrDisplay2)        // for password-protected purses
+    OTPassword& thePassword,   // Only used in the case of password-protected
+                               // purses. Passed in so it won't go out of scope
+                               // when pOwner is set to point to it.
+    const bool bForEncrypting, // true==encrypting,false==decrypting.
+                               // Only relevant if there's an owner.
+    const OTIdentifier* pOWNER_ID, // This can be NULL, **IF** purse
+                                   // is password-protected. (It's
+                                   // just ignored in that case.)
+                                   // Otherwise MUST contain the NymID
+                                   // for the Purse owner.
+    const OTString* pstrDisplay1,  // for purses owned by the wallet
+                                   // already
+    const OTString* pstrDisplay2)  // for password-protected purses
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const char* szFunc = __FUNCTION__; //"LoadPurseAndOwnerFromString";

@@ -1481,8 +1481,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
 bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
                                const OTString& strPlaintext,
                                OTString& strOutput, const OTString* pstrDisplay,
-                               const bool bBookends /*=true*/
-                               )
+                               const bool bBookends)
 {
     if (key_id.empty() || !strPlaintext.Exists()) return false;
 

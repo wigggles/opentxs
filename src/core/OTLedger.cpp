@@ -1165,8 +1165,7 @@ mapOfTransactions& OTLedger::GetTransactionMap()
 /// If transaction #87, in reference to #74, is in the inbox, you can remove it
 /// by calling this function and passing in 87. Deletes.
 ///
-bool OTLedger::RemoveTransaction(int64_t lTransactionNum,
-                                 bool bDeleteIt /*=true*/)
+bool OTLedger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
 {
     const char* szFunc = "OTLedger::RemoveTransaction";
 

@@ -220,7 +220,7 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook()
 //
 bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     const OTString& strCert, // Contains certificate and private key.
-    bool bEscaped /*=true*/, // "escaped" means pre-pended with "- " as in:   -
+    bool bEscaped,           // "escaped" means pre-pended with "- " as in:   -
                              // -----BEGIN CER....
     const OTString* pstrReason,  // This reason is what displays on the
                                  // passphrase dialog.
@@ -371,8 +371,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
 // This function will remove the escapes.
 //
 bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
-    const OTString& strCert, bool bEscaped /*=true*/,
-    const OTString* pstrReason, OTPassword* pImportPassword)
+    const OTString& strCert, bool bEscaped, const OTString* pstrReason,
+    OTPassword* pImportPassword)
 {
     Release();
 

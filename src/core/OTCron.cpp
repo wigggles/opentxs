@@ -1088,7 +1088,7 @@ OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
 // OTCron IS responsible for cleaning up theMarket, and takes ownership.
 // So make SURE it is allocated on the HEAP before you pass it in here, and
 // also make sure to delete it again if this call fails!
-bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile /*=true*/)
+bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 {
     OT_ASSERT(NULL != GetServerNym());
 

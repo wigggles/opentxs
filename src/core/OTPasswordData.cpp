@@ -207,7 +207,7 @@ bool OTPasswordData::isUsingOldSystem() const
     return m_bUsingOldSystem;
 }
 
-void OTPasswordData::setUsingOldSystem(bool bUsing /*=true*/)
+void OTPasswordData::setUsingOldSystem(bool bUsing)
 {
     m_bUsingOldSystem = bUsing;
 }

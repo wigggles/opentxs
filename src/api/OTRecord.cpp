@@ -1313,7 +1313,7 @@ const std::string& OTRecord::GetMsgTypeDisplay() const
 {
     return m_str_msg_type_display;
 }
-void OTRecord::SetSpecialMail(bool bIsSpecial /*=true*/)
+void OTRecord::SetSpecialMail(bool bIsSpecial)
 {
     m_bIsSpecialMail = bIsSpecial;
 }

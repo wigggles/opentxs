@@ -795,8 +795,7 @@ bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
 // PUBLIC KEY --------
 // This version, so far, is escaped-only. Notice the "- " before the rest of the
 // bookend starts.
-bool OTAsymmetricKey::GetPublicKey(OTString& strKey,
-                                   bool bEscaped /*=true*/) const
+bool OTAsymmetricKey::GetPublicKey(OTString& strKey, bool bEscaped) const
 {
     OTASCIIArmor theArmor;
 
@@ -904,8 +903,7 @@ bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
 // This version, so far, is escaped-only. Notice the "- " before the rest of the
 // bookend starts.
 //
-bool OTAsymmetricKey::GetPrivateKey(OTString& strKey,
-                                    bool bEscaped /*=true*/) const
+bool OTAsymmetricKey::GetPrivateKey(OTString& strKey, bool bEscaped) const
 {
     OTASCIIArmor theArmor;
 
