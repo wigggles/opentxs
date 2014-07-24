@@ -10,7 +10,6 @@ set(cxx-sources
   OTAPI.cpp
   OTAPI_Exec.cpp
   OTClient.cpp
-  OTMeChai.cpp
   OTMeCpp.cpp
   OTRecord.cpp
   OTRecordList.cpp
