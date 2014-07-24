@@ -274,16 +274,10 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 // derivation process!!
 
 // ppDerivedKey: CALLER RESPONSIBLE TO DELETE.  (optional arg.)
-//
+
+// Output. If you want, I can pass this back to you.
 bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
-                                 OTPassword** ppDerivedKey /*=NULL*/) // Output.
-                                                                      // If you
-                                                                      // want, I
-                                                                      // can
-                                                                      // pass
-                                                                      // this
-                                                                      // back to
-                                                                      // you.
+                                 OTPassword** ppDerivedKey)
 {
     OT_ASSERT(m_uIterationCount > 1000);
     OT_ASSERT(!m_bIsGenerated);
@@ -539,10 +533,9 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
 // encrypted form, via its passphrase being used to derive a key for that
 // purpose.
 //
-bool OTSymmetricKey::GetRawKeyFromPassphrase(const OTPassword& thePassphrase,
-                                             OTPassword& theRawKeyOutput,
-                                             OTPassword* pDerivedKey /*=NULL*/)
-    const // Optionally pass this, to save me the step.
+bool OTSymmetricKey::GetRawKeyFromPassphrase(
+    const OTPassword& thePassphrase, OTPassword& theRawKeyOutput,
+    OTPassword* pDerivedKey) const // Optionally pass this, to save me the step.
 {
     OT_ASSERT(m_bIsGenerated);
     //  OT_ASSERT(thePassphrase.isPassword());
@@ -629,7 +622,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 //
 // static  NOTE: this version circumvents the master key.
 OTPassword* OTSymmetricKey::GetPassphraseFromUser(
-    const OTString* pstrDisplay /*=NULL*/,
+    const OTString* pstrDisplay,
     const bool bAskTwice /*=false*/) // returns a text OTPassword, or NULL.
 {
     // Caller MUST delete!
@@ -674,8 +667,8 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
 
 // static
 bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
-                                  const OTString* pstrDisplay /*=NULL*/,
-                                  const OTPassword* pAlreadyHavePW /*=NULL*/)
+                                  const OTString* pstrDisplay,
+                                  const OTPassword* pAlreadyHavePW)
 {
     OTPassword* pPassUserInput = NULL;
     OTCleanup<OTPassword> thePWAngel;
@@ -721,9 +714,9 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
 // static
 bool OTSymmetricKey::Encrypt(const OTString& strKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay /*=NULL*/,
+                             const OTString* pstrDisplay,
                              const bool bBookends /*=true*/,
-                             const OTPassword* pAlreadyHavePW /*=NULL*/)
+                             const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
         otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
@@ -748,9 +741,9 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 // static
 bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay /*=NULL*/,
+                             const OTString* pstrDisplay,
                              const bool bBookends /*=true*/,
-                             const OTPassword* pAlreadyHavePW /*=NULL*/)
+                             const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
         otWarn << __FUNCTION__
@@ -819,9 +812,8 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 
 // static
 bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
-                             OTString& strOutput,
-                             const OTString* pstrDisplay /*=NULL*/,
-                             const OTPassword* pAlreadyHavePW /*=NULL*/)
+                             OTString& strOutput, const OTString* pstrDisplay,
+                             const OTPassword* pAlreadyHavePW)
 {
 
     if (!strKey.Exists()) {
@@ -848,8 +840,8 @@ bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
 // static
 bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
                              OTString& strCiphertext, OTString& strOutput,
-                             const OTString* pstrDisplay /*=NULL*/,
-                             const OTPassword* pAlreadyHavePW /*=NULL*/)
+                             const OTString* pstrDisplay,
+                             const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
         otWarn << __FUNCTION__

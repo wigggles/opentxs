@@ -391,10 +391,9 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 // @getNymbox has been received!
 // See comments below for more details.
 //
-void OTMessageOutbuffer::Clear(const OTString* pstrServerID /*=NULL*/,
-                               const OTString* pstrNymID /*=NULL*/,
-                               OTPseudonym* pNym /*=NULL*/,
-                               const bool* pbHarvestingForRetry /*=NULL*/)
+void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
+                               const OTString* pstrNymID, OTPseudonym* pNym,
+                               const bool* pbHarvestingForRetry)
 {
     //  const char * szFuncName        = "OTMessageOutbuffer::Clear";
 

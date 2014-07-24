@@ -352,8 +352,8 @@ bool OTPartyAccount::VerifyAgency()
 bool OTPartyAccount::DropFinalReceiptToInbox(
     mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/)
+    const OTString& strOrigCronItem, OTString* pstrNote,
+    OTString* pstrAttachment)
 {
     const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 

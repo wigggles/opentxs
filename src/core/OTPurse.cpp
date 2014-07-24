@@ -176,8 +176,7 @@ bool OTPurse::GetNymID(OTIdentifier& theOutput) const
 // Prompts the user to enter his actual passphrase, if necessary to unlock it.
 // (May not need unlocking yet -- there is a timeout.)
 //
-bool OTPurse::GetPassphrase(OTPassword& theOutput,
-                            const char* szDisplay /*=NULL*/)
+bool OTPurse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
 {
     const char* szFunc = "OTPurse::GetPassphrase";
 
@@ -834,9 +833,8 @@ bool OTPurse::LoadContract()
     return LoadPurse();
 }
 
-bool OTPurse::LoadPurse(const char* szServerID /*=NULL*/,
-                        const char* szUserID /*=NULL*/,
-                        const char* szAssetTypeID /*=NULL*/)
+bool OTPurse::LoadPurse(const char* szServerID, const char* szUserID,
+                        const char* szAssetTypeID)
 {
     OT_ASSERT(!this->IsPasswordProtected());
 
@@ -892,9 +890,8 @@ bool OTPurse::LoadPurse(const char* szServerID /*=NULL*/,
     return LoadContractFromString(strRawFile);
 }
 
-bool OTPurse::SavePurse(const char* szServerID /*=NULL*/,
-                        const char* szUserID /*=NULL*/,
-                        const char* szAssetTypeID /*=NULL*/)
+bool OTPurse::SavePurse(const char* szServerID, const char* szUserID,
+                        const char* szAssetTypeID)
 {
     OT_ASSERT(!this->IsPasswordProtected());
 

@@ -724,8 +724,8 @@ bool OTAgent::DropFinalReceiptToInbox(
     mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
     OTSmartContract& theSmartContract, const OTIdentifier& theAccountID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/)
+    const OTString& strOrigCronItem, OTString* pstrNote,
+    OTString* pstrAttachment)
 {
     // TODO: When entites and ROLES are added, this function may change a bit to
     // accommodate them.
@@ -812,13 +812,13 @@ bool OTAgent::DropFinalReceiptToInbox(
 
 bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/,
-    OTPseudonym* pActualNym /*=NULL*/) // IF the Nym was already loaded, then I
-                                       // HAD to pass it here. But it may not be
-                                       // here. Also: It may not be the right
-                                       // Nym, so need to check before actually
-                                       // using for anything.
+    const OTString& strOrigCronItem, OTString* pstrNote,
+    OTString* pstrAttachment,
+    OTPseudonym* pActualNym) // IF the Nym was already loaded, then I
+                             // HAD to pass it here. But it may not be
+                             // here. Also: It may not be the right
+                             // Nym, so need to check before actually
+                             // using for anything.
 {
     OTIdentifier theAgentNymID;
     bool bNymID = this->GetNymID(theAgentNymID);
@@ -847,8 +847,8 @@ bool OTAgent::DropServerNoticeToNymbox(
                       // it FAILS to activate.
     OTPseudonym& theServerNym, const OTIdentifier& theServerID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-    const OTString& strReference, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/, OTPseudonym* pActualNym /*=NULL*/)
+    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    OTPseudonym* pActualNym)
 {
     OTIdentifier theAgentNymID;
     bool bNymID = this->GetNymID(theAgentNymID);
@@ -935,10 +935,10 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::HarvestTransactionNumber(
     const int64_t& lNumber, const OTString& strServerID,
-    bool bSave /*=false*/, // Each agent's nym is used if pSignerNym is NULL,
-                           // whereas the server
-    OTPseudonym* pSignerNym /*=NULL*/) // uses this optional arg to substitute
-                                       // serverNym as signer.
+    bool bSave /*=false*/,   // Each agent's nym is used if pSignerNym is NULL,
+                             // whereas the server
+    OTPseudonym* pSignerNym) // uses this optional arg to substitute
+                             // serverNym as signer.
 {
 
     // Todo: this function may change when entities / roles are added.
@@ -1052,8 +1052,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
                                  const OTString& strServerID,
-                                 bool bSave /*=false*/,
-                                 OTPseudonym* pSignerNym /*=NULL*/)
+                                 bool bSave /*=false*/, OTPseudonym* pSignerNym)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {

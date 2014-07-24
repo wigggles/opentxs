@@ -2480,8 +2480,7 @@ bool Storage::EraseValueByKey(std::string strFolder, std::string oneStr /*=""*/,
 // folder wasn't
 // already there, that is.)
 //
-bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName,
-                                      struct stat* /*=NULL*/)
+bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 {
     bool bConfirmOrCreateSuccess = false, bFolderAlreadyExist = false;
     OTString strFolderName(szFolderName);
@@ -2495,7 +2494,7 @@ bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName,
 // Returns true or false whether a specific file exists.
 // Adds the main path prior to checking.
 //
-bool StorageFS::ConfirmFile(const char* szFileName, struct stat* /*=NULL*/)
+bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
 {
     OTString strFilePath("");
     OTPaths::AppendFile(strFilePath, m_strDataPath, szFileName);

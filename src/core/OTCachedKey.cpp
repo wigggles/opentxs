@@ -595,7 +595,7 @@ bool OTCachedKey::GetIdentifier(OTString& strIdentifier) const
 // Caller must delete!
 // static
 std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
-    OTPassword& theOutput, const char* szDisplay /*=NULL*/,
+    OTPassword& theOutput, const char* szDisplay,
     int32_t nTimeoutSeconds /*=OT_MASTER_KEY_TIMEOUT*/)
 {
     std::shared_ptr<OTCachedKey> pMaster(new OTCachedKey(nTimeoutSeconds));

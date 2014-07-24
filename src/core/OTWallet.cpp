@@ -779,7 +779,7 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
 bool OTWallet::VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
                                   const OTIdentifier& SERVER_ID,
                                   const OTString& strAcctID,
-                                  const char* szFuncName /*=NULL*/)
+                                  const char* szFuncName)
 {
     const char* szFunc =
         (NULL != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
@@ -824,7 +824,7 @@ bool OTWallet::VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
 OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
                                       const OTIdentifier& ACCT_ID,
                                       const OTIdentifier& SERVER_ID,
-                                      const char* szFuncName /*=NULL*/)
+                                      const char* szFuncName)
 {
     const char* szFunc =
         (NULL != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
@@ -865,7 +865,7 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
 OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
                                  const OTIdentifier& ACCT_ID,
                                  const OTIdentifier& SERVER_ID,
-                                 const char* szFuncName /*=NULL*/)
+                                 const char* szFuncName)
 {
     const char* szFunc =
         (NULL != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
@@ -909,7 +909,7 @@ OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
 // No need to cleanup, since it adds the Nym to the wallet.
 //
 OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
-                                          const char* szFuncName /*=NULL*/)
+                                          const char* szFuncName)
 {
     const OTString strNymID(NYM_ID);
     const char* szFunc = "OTWallet::GetOrLoadPublicNym";
@@ -953,10 +953,11 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 // sees that it's only a public nym (no private key) then it
 // reloads it as a private nym at that time.
 //
-OTPseudonym* OTWallet::GetOrLoadPrivateNym(
-    const OTIdentifier& NYM_ID, const bool bChecking /*=false*/,
-    const char* szFuncName /*=NULL*/, OTPasswordData* pPWData /*=NULL*/,
-    OTPassword* pImportPassword /*=NULL*/)
+OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
+                                           const bool bChecking /*=false*/,
+                                           const char* szFuncName,
+                                           OTPasswordData* pPWData,
+                                           OTPassword* pImportPassword)
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ":" << szFuncName
@@ -1069,8 +1070,8 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(
 //
 OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
                                     const bool bChecking /*=false*/,
-                                    const char* szFuncName /*=NULL*/,
-                                    OTPasswordData* pPWData /*=NULL*/)
+                                    const char* szFuncName,
+                                    OTPasswordData* pPWData)
 {
     OTPseudonym* pNym = this->GetOrLoadPublicNym(NYM_ID, szFuncName);
 
@@ -1365,7 +1366,7 @@ bool OTWallet::SaveContract(OTString& strContract)
 // a password to use it, except when the master key itself has expired.
 //
 std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
-    const std::string& str_KeyID, const std::string* pReason /*=NULL*/)
+    const std::string& str_KeyID, const std::string* pReason)
 {
     //  const std::string str_KeyID("mc_sql_lite");
 
@@ -1479,8 +1480,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
 
 bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
                                const OTString& strPlaintext,
-                               OTString& strOutput,
-                               const OTString* pstrDisplay /*=NULL*/,
+                               OTString& strOutput, const OTString* pstrDisplay,
                                const bool bBookends /*=true*/
                                )
 {
@@ -1507,8 +1507,7 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
 }
 bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
                                OTString& strCiphertext, OTString& strOutput,
-                               const OTString* pstrDisplay /*=NULL*/
-                               )
+                               const OTString* pstrDisplay)
 {
     if (key_id.empty() || !strCiphertext.Exists()) return false;
 
@@ -1564,7 +1563,7 @@ bool OTWallet::addExtraKey(const std::string& str_id,
 // If you pass NULL, it remembers full path from last time.
 // (Better to do that.)
 //
-bool OTWallet::SaveWallet(const char* szFilename /*=NULL*/)
+bool OTWallet::SaveWallet(const char* szFilename)
 {
     if (NULL != szFilename) m_strFilename.Set(szFilename);
 
@@ -1615,7 +1614,7 @@ HXTM/x449Al2z8zBHBTRF77jhHkYLj8MIgqrJ2Ep
 </wallet>
 
  */
-bool OTWallet::LoadWallet(const char* szFilename /*=NULL*/)
+bool OTWallet::LoadWallet(const char* szFilename)
 {
     OT_ASSERT_MSG(m_strFilename.Exists() || (NULL != szFilename),
                   "OTWallet::LoadWallet: NULL filename.\n");

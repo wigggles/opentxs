@@ -2103,8 +2103,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 bool OTCronItem::DropFinalReceiptToInbox(
     const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/, OTAccount* pActualAcct /*=NULL*/)
+    const OTString& strOrigCronItem, OTString* pstrNote,
+    OTString* pstrAttachment, OTAccount* pActualAcct)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(NULL != pCron);
@@ -2295,9 +2295,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
 bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                           const int64_t& lNewTransactionNumber,
                                           const OTString& strOrigCronItem,
-                                          OTString* pstrNote /*=NULL*/,
-                                          OTString* pstrAttachment /*=NULL*/,
-                                          OTPseudonym* pActualNym /*=NULL*/)
+                                          OTString* pstrNote,
+                                          OTString* pstrAttachment,
+                                          OTPseudonym* pActualNym)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(NULL != pCron);

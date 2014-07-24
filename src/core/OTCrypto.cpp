@@ -3008,8 +3008,7 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 // RSA / AES
 
 bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                            OTString& theOutput,
-                            OTPasswordData* pPWData /*=NULL*/) const
+                            OTString& theOutput, OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Open";
 
@@ -3740,7 +3739,7 @@ prog_end:
  */
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
     const OTString& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, OTPasswordData* /*=NULL*/) const
+    OTSignature& theSignature, OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::SignContractDefaultHash";
 
@@ -4011,7 +4010,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     const OTString& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, OTPasswordData* /*=NULL*/) const
+    const OTSignature& theSignature, OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::VerifyContractDefaultHash";
 
@@ -4645,7 +4644,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     const OTString& strContractUnsigned, const EVP_PKEY* pkey,
     OTSignature& theSignature, const OTString& strHashType,
-    OTPasswordData* pPWData /*=NULL*/) const
+    OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(NULL != pkey,
                   "Null private key sent to OTCrypto_OpenSSL::SignContract.\n");
@@ -4776,7 +4775,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTAsymmetricKey& theKey,
                                     OTSignature& theSignature, // output
                                     const OTString& strHashType,
-                                    OTPasswordData* pPWData /*=NULL*/) const
+                                    OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::SignContract";
 
@@ -4801,7 +4800,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
                                        const OTAsymmetricKey& theKey,
                                        const OTSignature& theSignature,
                                        const OTString& strHashType,
-                                       OTPasswordData* pPWData /*=NULL*/) const
+                                       OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::VerifySignature";
 
@@ -4828,7 +4827,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     const OTString& strContractToVerify, const EVP_PKEY* pkey,
     const OTSignature& theSignature, const OTString& strHashType,
-    OTPasswordData* pPWData /*=NULL*/) const
+    OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
                   "OTCrypto_OpenSSL::VerifySignature: ASSERT FAILURE: "
@@ -4928,7 +4927,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTString& strSigHashType,
                                     const std::string& strCertFileContents,
                                     OTSignature& theSignature,
-                                    OTPasswordData* pPWData /*=NULL*/) const
+                                    OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractUnsigned.Exists(), "OTCrypto_OpenSSL::"
                                                 "SignContract: ASSERT FAILURE: "
@@ -4987,7 +4986,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
                                        const OTString& strSigHashType,
                                        const std::string& strCertFileContents,
                                        const OTSignature& theSignature,
-                                       OTPasswordData* pPWData /*=NULL*/) const
+                                       OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
                   "OTCrypto_OpenSSL::VerifySignature: ASSERT FAILURE: "

@@ -214,7 +214,7 @@ OTNameLookup::~OTNameLookup()
 
 // virtual
 std::string OTNameLookup::GetNymName(const std::string& str_id,
-                                     const std::string* /*=NULL*/) const
+                                     const std::string*) const
 {
     if (str_id.empty()) return "";
 
@@ -223,9 +223,8 @@ std::string OTNameLookup::GetNymName(const std::string& str_id,
 
 // virtual
 std::string OTNameLookup::GetAcctName(const std::string& str_id,
-                                      const std::string* /*=NULL*/,
-                                      const std::string* /*=NULL*/,
-                                      const std::string* /*=NULL*/) const
+                                      const std::string*, const std::string*,
+                                      const std::string*) const
 {
     if (str_id.empty()) return "";
 
@@ -288,8 +287,7 @@ bool OTLookupCaller::isCallbackSet() const
 }
 
 std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
-                                       const std::string* p_server_id /*=NULL*/)
-    const
+                                       const std::string* p_server_id) const
 {
     if (isCallbackSet()) {
         OTLog::Output(1, "OTLookupCaller::GetNymName: FYI, Executing address "
@@ -304,11 +302,10 @@ std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
     return "";
 }
 
-std::string OTLookupCaller::GetAcctName(
-    const std::string& str_id, // AcctID
-    const std::string* p_nym_id /*=NULL*/,
-    const std::string* p_server_id /*=NULL*/,
-    const std::string* p_asset_id /*=NULL*/) const
+std::string OTLookupCaller::GetAcctName(const std::string& str_id, // AcctID
+                                        const std::string* p_nym_id,
+                                        const std::string* p_server_id,
+                                        const std::string* p_asset_id) const
 {
     if (isCallbackSet()) {
         OTLog::Output(1, "OTLookupCaller::GetAcctName: FYI, Executing address "

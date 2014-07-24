@@ -576,7 +576,7 @@ bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys,
 // RSA / AES
 
 bool OTEnvelope::Open(const OTPseudonym& theRecipient, OTString& theOutput,
-                      OTPasswordData* pPWData /*=NULL*/)
+                      OTPasswordData* pPWData)
 {
     return OTCrypto::It()->Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);

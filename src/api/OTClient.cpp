@@ -3819,14 +3819,14 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
 /// verified and processed, versus whether
 ///
 bool OTClient::ProcessServerReply(OTMessage& theReply,
-                                  OTLedger* pNymbox /*=NULL*/) // IF the Nymbox
-                                                               // is passed in,
-                                                               // then use that
-                                                               // one, where
-                                                               // appropriate,
-                                                               // instead of
-                                                               // loading it
-                                                               // internally.
+                                  OTLedger* pNymbox) // IF the Nymbox
+                                                     // is passed in,
+                                                     // then use that
+                                                     // one, where
+                                                     // appropriate,
+                                                     // instead of
+                                                     // loading it
+                                                     // internally.
 {
     OT_ASSERT(NULL != m_pConnection);
 
@@ -9027,10 +9027,9 @@ int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, OTMessage& theMessage,
     OTPseudonym& theNym,
     //                                  OTAssetContract & theContract,
-    OTServerContract& theServer, OTAccount* pAccount /*=NULL*/,
-    int64_t lTransactionAmount /*=0*/,
-    OTAssetContract* pMyAssetContract /*=NULL*/,
-    OTIdentifier* pHisNymID /*=NULL*/, OTIdentifier* pHisAcctID /*=NULL*/)
+    OTServerContract& theServer, OTAccount* pAccount,
+    int64_t lTransactionAmount /*=0*/, OTAssetContract* pMyAssetContract,
+    OTIdentifier* pHisNymID, OTIdentifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
     // -- only

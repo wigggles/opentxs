@@ -235,7 +235,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTPseudonym& theNym,
-    const OTString* pstrDisplay /*=NULL*/) // construct with nym
+    const OTString* pstrDisplay) // construct with nym
     : m_pNym(const_cast<OTPseudonym*>(&theNym)),
       m_pKey(NULL),
       m_pPassword(NULL),
@@ -246,7 +246,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
-    const OTString* pstrDisplay /*=NULL*/) // construct with key
+    const OTString* pstrDisplay) // construct with key
     : m_pNym(NULL),
       m_pKey(const_cast<OTSymmetricKey*>(&theKey)),
       m_pPassword(NULL),
@@ -258,7 +258,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
     const OTPassword& thePassword, // construct with key and password.
-    const OTString* pstrDisplay /*=NULL*/)
+    const OTString* pstrDisplay)
     : m_pNym(NULL)
     , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
     , m_pPassword(const_cast<OTPassword*>(&thePassword))
@@ -365,9 +365,9 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTString& strIdentifier) const
 //    bool SetFromBookendedString(const OTString     & strArmorWithBookends,
 // bool bEscaped    = false );
 
-bool OTNym_or_SymmetricKey::Open_or_Decrypt(
-    const OTEnvelope& inputEnvelope, OTString& strOutput,
-    const OTString* pstrDisplay /*=NULL*/)
+bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
+                                            OTString& strOutput,
+                                            const OTString* pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Open_or_Decrypt";
 
@@ -439,9 +439,9 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
     return bSuccess;
 }
 
-bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
-    OTEnvelope& outputEnvelope, const OTString strInput,
-    const OTString* pstrDisplay /*=NULL*/)
+bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
+                                            const OTString strInput,
+                                            const OTString* pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Seal_or_Encrypt";
 

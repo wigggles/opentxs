@@ -646,7 +646,7 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey()
 // internally, then this is what you should call.
 //
 bool OTContract::SignContract(const OTPseudonym& theNym,
-                              OTPasswordData* pPWData /*=NULL*/)
+                              OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -670,7 +670,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 // Signs using authentication key instead of signing key.
 //
 bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData /*=NULL*/)
+                                     OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(NULL != pSig, "OTContract::SignContractAuthent: Error "
@@ -695,7 +695,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 // It is NOT attached to the contract.  This is just a utility function.
 bool OTContract::SignContract(const OTPseudonym& theNym,
                               OTSignature& theSignature,
-                              OTPasswordData* pPWData /*=NULL*/)
+                              OTPasswordData* pPWData)
 {
     return this->SignContract(theNym.GetPrivateSignKey(), theSignature,
                               m_strSigHashType, pPWData);
@@ -704,7 +704,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 // Uses authentication key instead of signing key.
 bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                                      OTSignature& theSignature,
-                                     OTPasswordData* pPWData /*=NULL*/)
+                                     OTPasswordData* pPWData)
 {
     return this->SignContract(theNym.GetPrivateAuthKey(), theSignature,
                               m_strSigHashType, pPWData);
@@ -723,7 +723,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 // ready yet to signing anything with.
 //
 bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
-                             OTPasswordData* pPWData /*=NULL*/)
+                             OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -806,7 +806,7 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
 bool OTContract::SignContract(const OTAsymmetricKey& theKey,
                               OTSignature& theSignature,
                               const OTString& strHashType,
-                              OTPasswordData* pPWData /*=NULL*/)
+                              OTPasswordData* pPWData)
 {
     const char* szFunc = "OTContract::SignContract";
 
@@ -847,7 +847,7 @@ bool OTContract::SignContract(const char* szFoldername,
                               const char* szFilename,    // for Certfile, for
                                                          // private key.
                               OTSignature& theSignature, // output
-                              OTPasswordData* pPWData /*=NULL*/)
+                              OTPasswordData* pPWData)
 {
     OT_ASSERT(NULL != szFoldername);
     OT_ASSERT(NULL != szFilename);
@@ -899,10 +899,11 @@ bool OTContract::SignContract(const char* szFoldername,
 // contract and is
 // somewhere in m_listSignatures. Now it is being verified.
 //
-bool OTContract::VerifySignature(
-    const char* szFoldername, const char* szFilename, // for Cert.
-    const OTSignature& theSignature,
-    OTPasswordData* pPWData /*=NULL*/) const // optional in/out
+bool OTContract::VerifySignature(const char* szFoldername,
+                                 const char* szFilename, // for Cert.
+                                 const OTSignature& theSignature,
+                                 OTPasswordData* pPWData) const // optional
+                                                                // in/out
 {
     OT_ASSERT_MSG(
         NULL != szFoldername,
@@ -948,7 +949,7 @@ bool OTContract::VerifySignature(
 }
 
 bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
-                                  OTPasswordData* pPWData /*=NULL*/)
+                                  OTPasswordData* pPWData)
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -978,7 +979,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifySignature(const OTPseudonym& theNym,
-                                 OTPasswordData* pPWData /*=NULL*/)
+                                 OTPasswordData* pPWData)
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -1008,7 +1009,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
-                               OTPasswordData* pPWData /*=NULL*/)
+                               OTPasswordData* pPWData)
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -1039,7 +1040,7 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
 //
 bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
                                   const OTSignature& theSignature,
-                                  OTPasswordData* pPWData /*=NULL*/) const
+                                  OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySigAuthent 1");
@@ -1084,7 +1085,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 //
 bool OTContract::VerifySignature(const OTPseudonym& theNym,
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData /*=NULL*/) const
+                                 OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySignature 1");
@@ -1124,7 +1125,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const OTString& strHashType,
-                                 OTPasswordData* pPWData /*=NULL*/) const
+                                 OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)
@@ -2124,9 +2125,10 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
 
 // Loads it up and also decodes it to a string.
 // static
-bool OTContract::LoadEncodedTextFieldByName(
-    IrrXMLReader*& xml, OTString& strOutput, const char*& szName,
-    OTString::Map* pmapExtraVars /*=NULL*/)
+bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
+                                            OTString& strOutput,
+                                            const char*& szName,
+                                            OTString::Map* pmapExtraVars)
 {
     OT_ASSERT(NULL != szName);
 
@@ -2143,9 +2145,10 @@ bool OTContract::LoadEncodedTextFieldByName(
 
 // Loads it up and keeps it encoded in an ascii-armored object.
 // static
-bool OTContract::LoadEncodedTextFieldByName(
-    IrrXMLReader*& xml, OTASCIIArmor& ascOutput, const char*& szName,
-    OTString::Map* pmapExtraVars /*=NULL*/)
+bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
+                                            OTASCIIArmor& ascOutput,
+                                            const char*& szName,
+                                            OTString::Map* pmapExtraVars)
 {
     OT_ASSERT(NULL != szName);
 

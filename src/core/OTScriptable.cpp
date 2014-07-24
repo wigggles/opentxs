@@ -241,7 +241,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
 }
 
 // virtual
-void OTScriptable::SetDisplayLabel(const std::string* pstrLabel /*=NULL*/)
+void OTScriptable::SetDisplayLabel(const std::string* pstrLabel)
 {
     m_strLabel = (NULL != pstrLabel) ? pstrLabel->c_str() : "";
 }
@@ -693,8 +693,8 @@ bool OTScriptable::SendNoticeToAllParties(
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
     //                                          const int64_t & lInReferenceTo,
     // // Each party has its own opening trans #.
-    const OTString& strReference, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/, OTPseudonym* pActualNym /*=NULL*/)
+    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    OTPseudonym* pActualNym)
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
@@ -883,7 +883,7 @@ OTPartyAccount ** ppPartyAccount=NULL);
 */
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
-    const OTIdentifier& theNymID, OTAgent** ppAgent /*=NULL*/) const
+    const OTIdentifier& theNymID, OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -895,7 +895,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
-    const OTIdentifier& theNymID, OTAgent** ppAgent /*=NULL*/)
+    const OTIdentifier& theNymID, OTAgent** ppAgent)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -908,7 +908,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnAccountID(
-    const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount /*=NULL*/)
+    const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -922,7 +922,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
-                                                  OTAgent** ppAgent /*=NULL*/)
+                                                  OTAgent** ppAgent)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -933,8 +933,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
     return NULL;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
-    OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/)
+OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
+                                                      OTAgent** ppAgent)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -945,8 +945,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
     return NULL;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnAccount(
-    OTAccount& theAccount, OTPartyAccount** ppPartyAccount /*=NULL*/)
+OTParty* OTScriptable::FindPartyBasedOnAccount(OTAccount& theAccount,
+                                               OTPartyAccount** ppPartyAccount)
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -1017,14 +1017,14 @@ bool OTScriptable::VerifyPartyAuthorization(
                                  // Nym, when loading it
     const OTString& strServerID, // For verifying issued num, need the serverID
                                  // the # goes with.
-    mapOfNyms* pmap_ALREADY_LOADED /*=NULL*/, // If some nyms are already
-                                              // loaded, pass them here so we
-                                              // don't load them twice on
-                                              // accident.
-    mapOfNyms* pmap_NEWLY_LOADED /*=NULL*/,   // If some nyms had to be loaded,
-                                              // then they will be deleted, too.
-                                              // UNLESS you pass a map here, in
-                                              // which case they will instead be
+    mapOfNyms* pmap_ALREADY_LOADED, // If some nyms are already
+                                    // loaded, pass them here so we
+                                    // don't load them twice on
+                                    // accident.
+    mapOfNyms* pmap_NEWLY_LOADED,   // If some nyms had to be loaded,
+                                    // then they will be deleted, too.
+                                    // UNLESS you pass a map here, in
+                                    // which case they will instead be
     // added to this map. (But if you do
     // that, then you must delete them
     // yourself after calling this
@@ -1325,7 +1325,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 //
 bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
                                     OTPseudonym& theSignerNym,
-                                    mapOfNyms* pmap_ALREADY_LOADED /*=NULL*/)
+                                    mapOfNyms* pmap_ALREADY_LOADED)
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:

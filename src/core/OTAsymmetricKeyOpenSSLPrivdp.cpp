@@ -165,8 +165,8 @@ void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509* x509)
 }
 
 void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
-    EVP_PKEY& theKey, bool bIsPrivateKey /*=false*/,
-    OTPasswordData* pPWData /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
+    EVP_PKEY& theKey, bool bIsPrivateKey /*=false*/, OTPasswordData* pPWData,
+    OTPassword* pImportPassword)
 {
     backlink->Release();
     OTPasswordData thePWData(NULL == pImportPassword
@@ -230,7 +230,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 }
 
 const EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(
-    OTPasswordData* pPWData /*=NULL*/)
+    OTPasswordData* pPWData)
 {
     OT_ASSERT_MSG(NULL != backlink->m_p_ascKey,
                   "OTAsymmetricKey_OpenSSL::GetKey: NULL != m_p_ascKey\n");
@@ -258,7 +258,7 @@ const EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(
 
 // Low-level / private
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiateKey(OTPasswordData* pPWData /*=NULL*/)
+    InstantiateKey(OTPasswordData* pPWData)
 {
     if (backlink->IsPublic())
         return InstantiatePublicKey(pPWData); // this is the ONLY place,
@@ -279,8 +279,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 
 // static      // CALLER must EVP_pkey_free!
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
-    EVP_PKEY& theKey, OTPasswordData* pPWData /*=NULL*/,
-    OTPassword* pImportPassword /*=NULL*/)
+    EVP_PKEY& theKey, OTPasswordData* pPWData, OTPassword* pImportPassword)
 {
 
     // Create a new memory buffer on the OpenSSL side
@@ -396,8 +395,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
 //
 // static      // CALLER must EVP_pkey_free!
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    CopyPrivateKey(EVP_PKEY& theKey, OTPasswordData* pPWData /*=NULL*/,
-                   OTPassword* pImportPassword /*=NULL*/)
+    CopyPrivateKey(EVP_PKEY& theKey, OTPasswordData* pPWData,
+                   OTPassword* pImportPassword)
 {
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
@@ -590,7 +589,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 //
 //
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiatePublicKey(OTPasswordData* pPWData /*=NULL*/)
+    InstantiatePublicKey(OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == NULL);
     OT_ASSERT(backlink->m_p_ascKey != NULL);
@@ -650,7 +649,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 }
 
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiatePrivateKey(OTPasswordData* pPWData /*=NULL*/)
+    InstantiatePrivateKey(OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == NULL);
     OT_ASSERT(backlink->m_p_ascKey != NULL);
@@ -735,7 +734,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 // static
 bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
     EVP_PKEY& theKey, OTASCIIArmor& ascKey, Timer& theTimer,
-    OTPasswordData* pPWData /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
+    OTPasswordData* pPWData, OTPassword* pImportPassword)
 {
     bool bReturnVal = false;
 
