@@ -2349,10 +2349,10 @@ bool OTAPI_Exec::Wallet_ChangePassphrase()
 }
 
 // bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString & strOutput,
-// OTString * pstrReason/*=""*/)
+// OTString * pstrReason)
 
 // bool OTPseudonym::Savex509CertAndPrivateKey(bool       bCreateFile,
-//                                            OTString * pstrReason/*=""*/)
+//                                            OTString * pstrReason)
 
 // Attempts to find a full ID in the wallet, based on a partial of the same ID.
 // Returns "" on failure, otherwise returns the full ID.

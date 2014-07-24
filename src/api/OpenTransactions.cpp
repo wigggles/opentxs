@@ -1415,8 +1415,8 @@ OTAccount* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
 // Adds to wallet. (No need to delete.)
 //
 OTPseudonym* OT_API::CreateNym(int32_t nKeySize /*=1024*/,
-                               const std::string str_id_source /*=""*/,
-                               const std::string str_alt_location /*=""*/)
+                               const std::string str_id_source,
+                               const std::string str_alt_location)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const char* szFuncName = __FUNCTION__;

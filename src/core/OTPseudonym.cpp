@@ -1458,8 +1458,8 @@ bool OTPseudonym::GenerateNym(int32_t nBits /*=1024*/,
                                                 // nym files
                               // and certs in local storage. (Pass false when
                               // creating a temp Nym, like for OTPurse.)
-                              const std::string str_id_source /*=""*/,
-                              const std::string str_alt_location /*=""*/)
+                              const std::string str_id_source,
+                              const std::string str_alt_location)
 {
 
     OT_ASSERT(NULL != m_pkeypair);
