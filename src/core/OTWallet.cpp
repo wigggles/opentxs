@@ -954,7 +954,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 // reloads it as a private nym at that time.
 //
 OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
-                                           const bool bChecking /*=false*/,
+                                           const bool bChecking,
                                            const char* szFuncName,
                                            OTPasswordData* pPWData,
                                            OTPassword* pImportPassword)
@@ -1069,7 +1069,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 // Nym to the wallet, which will take ownership.
 //
 OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
-                                    const bool bChecking /*=false*/,
+                                    const bool bChecking,
                                     const char* szFuncName,
                                     OTPasswordData* pPWData)
 {

@@ -4526,7 +4526,7 @@ OTPseudonym* OT_API::LoadPublicNym(const OTIdentifier& NYM_ID,
 /// CALLER is responsible to delete the Nym that's returned here!
 /// (Low level.)
 OTPseudonym* OT_API::LoadPrivateNym(const OTIdentifier& NYM_ID,
-                                    const bool bChecking /*=false*/,
+                                    const bool bChecking,
                                     const char* szFuncName,
                                     OTPasswordData* pPWData,
                                     OTPassword* pImportPassword)
@@ -4778,7 +4778,7 @@ OTPseudonym* OT_API::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 /// reloads it as a private nym at that time.
 ///
 OTPseudonym* OT_API::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
-                                         const bool bChecking /*=false*/,
+                                         const bool bChecking,
                                          const char* szFuncName,
                                          OTPasswordData* pPWData,
                                          OTPassword* pImportPassword)
@@ -4810,8 +4810,7 @@ OTPseudonym* OT_API::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 /// the wallet takes ownership.
 ///
 OTPseudonym* OT_API::GetOrLoadNym(const OTIdentifier& NYM_ID,
-                                  const bool bChecking /*=false*/,
-                                  const char* szFuncName,
+                                  const bool bChecking, const char* szFuncName,
                                   OTPasswordData* pPWData)
 {
     if (NYM_ID.IsEmpty()) {
@@ -5541,18 +5540,18 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
     OTPassword& thePassword, // Only used in the case of password-protected
                              // purses. Passed in so it won't go out of scope
                              // when pOwner is set to point to it.
-    const bool bCanBePublic /*=false*/, // true==private nym isn't mandatory.
-                                        // false==private nym IS mandatory.
-                                        // (Only relevant if there's an owner.)
-    const OTIdentifier* pOWNER_ID,      // This can be NULL, **IF** purse
-                                        // is password-protected. (It's
-                                        // just ignored in that case.)
-                                        // Otherwise if it's Nym-protected,
-                                        // the purse will have a NymID on
-                                        // it already. If not (it's
-                                        // optional), then pOWNER_ID is the
-                                        // ID it will try next, before
-                                        // failing.
+    const bool bCanBePublic, // true==private nym isn't mandatory.
+                             // false==private nym IS mandatory.
+                             // (Only relevant if there's an owner.)
+    const OTIdentifier* pOWNER_ID, // This can be NULL, **IF** purse
+                                   // is password-protected. (It's
+                                   // just ignored in that case.)
+                                   // Otherwise if it's Nym-protected,
+                                   // the purse will have a NymID on
+                                   // it already. If not (it's
+                                   // optional), then pOWNER_ID is the
+                                   // ID it will try next, before
+                                   // failing.
     const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
@@ -6810,8 +6809,8 @@ OTLedger* OT_API::LoadExpiredBoxNoVerify(const OTIdentifier& SERVER_ID,
 
 bool OT_API::ClearExpired(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID, const int32_t nIndex,
-                          const bool bClearAll /*=false*/) // if true, nIndex is
-                                                           // ignored.
+                          const bool bClearAll) // if true, nIndex is
+                                                // ignored.
 {
     OTPseudonym* pNym = this->GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (NULL == pNym) return false;
@@ -8257,8 +8256,7 @@ bool OT_API::RecordPayment(
 bool OT_API::ClearRecord(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
     const OTIdentifier& ACCOUNT_ID, // USER_ID can be passed here as well.
-    const int32_t nIndex,
-    const bool bClearAll /*=false*/) // if true, nIndex is ignored.
+    const int32_t nIndex, const bool bClearAll) // if true, nIndex is ignored.
 {
     OTPseudonym* pNym = this->GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (NULL == pNym) return false;

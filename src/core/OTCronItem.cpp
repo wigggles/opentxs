@@ -1718,7 +1718,7 @@ bool OTCronItem::ProcessCron()
 // to cron after a server reboot.)
 //
 void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes NULL.
-                                      bool bForTheFirstTime /*=false*/)
+                                      bool bForTheFirstTime)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(NULL != pCron);

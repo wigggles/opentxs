@@ -935,7 +935,7 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::HarvestTransactionNumber(
     const int64_t& lNumber, const OTString& strServerID,
-    bool bSave /*=false*/,   // Each agent's nym is used if pSignerNym is NULL,
+    bool bSave,              // Each agent's nym is used if pSignerNym is NULL,
                              // whereas the server
     OTPseudonym* pSignerNym) // uses this optional arg to substitute
                              // serverNym as signer.
@@ -1051,8 +1051,8 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
-                                 const OTString& strServerID,
-                                 bool bSave /*=false*/, OTPseudonym* pSignerNym)
+                                 const OTString& strServerID, bool bSave,
+                                 OTPseudonym* pSignerNym)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {

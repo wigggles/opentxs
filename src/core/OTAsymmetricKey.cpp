@@ -857,8 +857,7 @@ bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
 // SetPublicKey
 // (the one that takes an OTASCIIArmor object.)
 //
-bool OTAsymmetricKey::SetPublicKey(const OTString& strKey,
-                                   bool bEscaped /*=false*/)
+bool OTAsymmetricKey::SetPublicKey(const OTString& strKey, bool bEscaped)
 {
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
@@ -951,8 +950,7 @@ bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
 // and sets that as the keypointer on this object.
 // This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
 // PRIVATE KEY -------)
-bool OTAsymmetricKey::SetPrivateKey(const OTString& strKey,
-                                    bool bEscaped /*=false*/)
+bool OTAsymmetricKey::SetPrivateKey(const OTString& strKey, bool bEscaped)
 {
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;

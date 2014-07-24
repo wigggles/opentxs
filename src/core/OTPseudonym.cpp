@@ -285,7 +285,7 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
 
 // static
 OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
-                                         const bool bChecking /*=false*/,
+                                         const bool bChecking,
                                          OTString* pstrName,
                                          const char* szFuncName,
                                          OTPasswordData* pPWData,
@@ -2939,8 +2939,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
 //
 void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
                                        OTPseudonym& SIGNER_NYM,
-                                       OTPseudonym& theOtherNym,
-                                       bool bSave /*=false*/)
+                                       OTPseudonym& theOtherNym, bool bSave)
 {
     bool bChangedTheNym = false;
     int64_t lTransactionNumber = 0;
@@ -2992,9 +2991,9 @@ void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
 bool OTPseudonym::ClawbackTransactionNumber(
     const OTIdentifier& theServerID,
     const int64_t& lTransClawback, // the number being clawed back.
-    bool bSave /*=false*/, // false because you might call this function 10
-                           // times in a loop, and not want to save EVERY
-                           // iteration.
+    bool bSave, // false because you might call this function 10
+                // times in a loop, and not want to save EVERY
+                // iteration.
     OTPseudonym* pSIGNER_NYM)
 {
     if (NULL == pSIGNER_NYM) pSIGNER_NYM = this;
@@ -3120,7 +3119,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym& SIGNER_NYM,
                                       std::set<int64_t>& setNumbers,
                                       std::set<int64_t>& setOutputGood,
                                       std::set<int64_t>& setOutputBad,
-                                      bool bSave /*=false*/)
+                                      bool bSave)
 {
     bool bFoundServerID = false;
     int64_t lReturnVal = 0; // 0 is success.
@@ -4335,10 +4334,11 @@ bool OTPseudonym::SaveCredentialList()
 // call VerifyPseudonym, and then load the actual Nymfile using
 // LoadSignedNymfile.
 //
-bool OTPseudonym::LoadCredentials(
-    bool bLoadPrivate /*=false*/, // Loads public credentials by default. For
-                                  // private, pass true.
-    OTPasswordData* pPWData, OTPassword* pImportPassword)
+bool OTPseudonym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
+                                                     // by default. For
+                                                     // private, pass true.
+                                  OTPasswordData* pPWData,
+                                  OTPassword* pImportPassword)
 {
     OTString strReason(NULL == pPWData ? OT_PW_DISPLAY
                                        : pPWData->GetDisplayString());
@@ -6171,7 +6171,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
 // Todo: if the above function works fine, then call it in the below function
 // (to reduce code bloat.)
 
-bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking /*=false*/,
+bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
                                             OTPasswordData* pPWData,
                                             OTPassword* pImportPassword)
 {

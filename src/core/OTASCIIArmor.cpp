@@ -964,7 +964,7 @@ bool OTASCIIArmor::WriteArmoredFile(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped /*=false*/)
+    bool bEscaped)
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
@@ -1005,7 +1005,7 @@ bool OTASCIIArmor::WriteArmoredString(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped /*=false*/)
+    bool bEscaped)
 {
     const char* szEscape = "- ";
 
@@ -1042,9 +1042,9 @@ bool OTASCIIArmor::WriteArmoredString(
 // are escaped with a "- " before the rest of the ------- starts.)
 //
 bool OTASCIIArmor::LoadFromString(
-    OTString& theStr,               // input
-    bool bEscaped /*=false*/, const // This szOverride sub-string determines
-                                    // where the content starts, when loading.
+    OTString& theStr,    // input
+    bool bEscaped, const // This szOverride sub-string determines
+                         // where the content starts, when loading.
     std::string str_override /*="-----BEGIN"*/) // Default is "-----BEGIN"
 {
     // Should never be 0 size, as default is "-----BEGIN"

@@ -589,8 +589,7 @@ memcpy(buf, tmp, len);
 return len;
  */
 
-bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput,
-                                      bool bRepeat /*=false*/) const
+bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
 {
     int32_t nAttempts = 0;
 

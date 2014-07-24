@@ -1554,8 +1554,7 @@ void OTCredential::ClearSubcredentials()
 void OTCredential::SerializeIDs(OTString& strOutput,
                                 OTString::List& listRevokedIDs,
                                 OTString::Map* pmapPubInfo,
-                                OTString::Map* pmapPriInfo,
-                                bool bShowRevoked /*=false*/,
+                                OTString::Map* pmapPriInfo, bool bShowRevoked,
                                 bool bValid /*=true*/) const
 {
     if (bValid || bShowRevoked) {

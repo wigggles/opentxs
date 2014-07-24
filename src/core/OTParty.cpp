@@ -226,7 +226,7 @@ OTParty::OTParty()
 }
 
 OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
-                 const char* szAuthAgent, const bool bCreateAgent /*=false*/)
+                 const char* szAuthAgent, const bool bCreateAgent)
     : m_pstr_party_name(NULL)
     , m_bPartyIsNym(bIsOwnerNym)
     , m_str_owner_id(szOwnerID != NULL ? szOwnerID : "")
@@ -1399,7 +1399,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 //
 bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                                             const OTString& strServerID,
-                                            const bool bBurnTransNo /*=false*/)
+                                            const bool bBurnTransNo)
 {
     OT_ASSERT(NULL != m_pOwnerAgreement);
 
@@ -1476,8 +1476,7 @@ bool OTParty::SignContract(OTContract& theInput)
 // harvest the closing trans#s.
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::HarvestClosingNumbers(const OTString& strServerID,
-                                    bool bSave /*=false*/,
+void OTParty::HarvestClosingNumbers(const OTString& strServerID, bool bSave,
                                     OTPseudonym* pSignerNym)
 {
 
@@ -1620,8 +1619,7 @@ void OTParty::HarvestAllTransactionNumbers(const OTString& strServerID)
 
 // Calls OTAgent::RemoveIssuedNumber (above)
 //
-void OTParty::CloseoutOpeningNumber(const OTString& strServerID,
-                                    bool bSave /*=false*/,
+void OTParty::CloseoutOpeningNumber(const OTString& strServerID, bool bSave,
                                     OTPseudonym* pSignerNym)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
@@ -1756,9 +1754,8 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
     return true;
 }
 
-void OTParty::Serialize(OTString& strAppend, bool bCalculatingID /*=false*/,
-                        bool bSpecifyAssetID /*=false*/,
-                        bool bSpecifyParties /*=false*/)
+void OTParty::Serialize(OTString& strAppend, bool bCalculatingID,
+                        bool bSpecifyAssetID, bool bSpecifyParties)
 {
     strAppend.Concatenate(
         "<party\n name=\"%s\"\n"
