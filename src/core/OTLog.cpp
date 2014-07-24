@@ -862,7 +862,7 @@ void OTLog::Error(const char* szError)
 // of this function, replacing with a message about the unavailability of errno.
 //
 // static
-void OTLog::Errno(const char* szLocation /*=NULL*/) // stderr
+void OTLog::Errno(const char* szLocation) // stderr
 {
     bool bHaveLogger(false);
     if (NULL != pLogger)

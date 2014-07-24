@@ -2669,8 +2669,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
 }
 
 // Make sure the offer is for the right asset type, the right currency, etc.
-bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer,
-                                      OTString* pReason /*=NULL*/)
+bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason)
 {
     bool bValidOffer = true;
     OTString strReason("");

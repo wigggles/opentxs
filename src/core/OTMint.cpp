@@ -376,10 +376,10 @@ bool OTMint::LoadContract()
     return LoadMint();
 }
 
-bool OTMint::LoadMint(const char* szAppend /*=NULL*/) // todo: server should
-                                                      // always pass something
-                                                      // here. client never
-                                                      // should. Enforcement?
+bool OTMint::LoadMint(const char* szAppend) // todo: server should
+                                            // always pass something
+                                            // here. client never
+                                            // should. Enforcement?
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
@@ -438,7 +438,7 @@ bool OTMint::LoadMint(const char* szAppend /*=NULL*/) // todo: server should
     return bSuccess;
 }
 
-bool OTMint::SaveMint(const char* szAppend /*=NULL*/)
+bool OTMint::SaveMint(const char* szAppend)
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 

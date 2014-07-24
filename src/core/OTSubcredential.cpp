@@ -213,11 +213,11 @@ bool OTSubcredential::SetPublicContents(const OTString::Map& mapPublic)
 
 // virtual
 bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
-                                         OTPassword* /*=NULL*/) // if not NULL,
-                                                                // it means to
-                                                                // use this
-                                                                // password by
-                                                                // default.)
+                                         OTPassword*) // if not NULL,
+                                                      // it means to
+                                                      // use this
+                                                      // password by
+                                                      // default.)
 {
     m_mapPrivateInfo = mapPrivate;
     return true;

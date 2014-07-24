@@ -152,8 +152,8 @@ bool OTAgreement::SendNoticeToAllParties(
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
     //                                       const int64_t & lInReferenceTo,
     // // Each party has its own opening trans #.
-    const OTString& strReference, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/, OTPseudonym* pActualNym /*=NULL*/)
+    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    OTPseudonym* pActualNym)
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
@@ -275,8 +275,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
     const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
     const int64_t& lInReferenceTo, const OTString& strReference,
-    OTString* pstrNote /*=NULL*/, OTString* pstrAttachment /*=NULL*/,
-    OTPseudonym* pActualNym /*=NULL*/)
+    OTString* pstrNote, OTString* pstrAttachment, OTPseudonym* pActualNym)
 {
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
 
@@ -509,7 +508,7 @@ void OTAgreement::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 //
 bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
                                    OTPseudonym&, // Not needed in this override.
-                                   mapOfNyms* /*=NULL*/)
+                                   mapOfNyms*)
 {
     return this->VerifySignature(theNym);
 }
@@ -1275,9 +1274,8 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
 // THIS FUNCTION IS CALLED BY THE CUSTOMER
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
-bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM,
-                          OTPseudonym* pMERCHANT_NYM /*=NULL*/,
-                          const OTIdentifier* p_id_MERCHANT_NYM /*=NULL*/)
+bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
+                          const OTIdentifier* p_id_MERCHANT_NYM)
 {
 
     OTIdentifier id_PAYER_NYM;

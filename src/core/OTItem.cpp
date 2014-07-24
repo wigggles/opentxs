@@ -1453,9 +1453,9 @@ void OTItem::GetNote(OTString& theStr) const
 // you are creating this item yourself, not verifying it from someone else.
 // Use this function to create the new Item before you add it to your new
 // Transaction.
-OTItem* OTItem::CreateItemFromTransaction(
-    const OTTransaction& theOwner, OTItem::itemType theType,
-    OTIdentifier* pDestinationAcctID /*=NULL*/)
+OTItem* OTItem::CreateItemFromTransaction(const OTTransaction& theOwner,
+                                          OTItem::itemType theType,
+                                          OTIdentifier* pDestinationAcctID)
 {
     OTItem* pItem =
         new OTItem(theOwner.GetUserID(), theOwner, theType, pDestinationAcctID);
@@ -1584,8 +1584,7 @@ OTItem::OTItem(const OTIdentifier& theUserID, const OTItem& theOwner)
 }
 
 OTItem::OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner,
-               OTItem::itemType theType,
-               OTIdentifier* pDestinationAcctID /*=NULL*/)
+               OTItem::itemType theType, OTIdentifier* pDestinationAcctID)
     : OTTransactionType(theUserID, theOwner.GetRealAccountID(),
                         theOwner.GetRealServerID(),
                         theOwner.GetTransactionNum())

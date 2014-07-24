@@ -1198,11 +1198,11 @@ int32_t main(int32_t argc, char* argv[])
         //         OTMessage & theMessage,
         //         OTPseudonym & theNym,
         //         OTServerContract & theServer,
-        //         OTAccount * pAccount/*=NULL*/,
+        //         OTAccount * pAccount,
         //         lAmount
-        //         OTAssetContract * pMyAssetType/*=NULL*/,
-        //         OTAccount * pHisAcct/*=NULL*/,
-        //         OTPseudonym * pHisNym/*=NULL*/)
+        //         OTAssetContract * pMyAssetType,
+        //         OTAccount * pHisAcct,
+        //         OTPseudonym * pHisNym)
 
         // COMMANDS
 

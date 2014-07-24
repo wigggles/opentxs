@@ -3870,8 +3870,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // their contents just before signing.
 // See OTMessage::UpdateContents near the top of this file for an example.
 //
-bool OTMessage::SignContract(const OTPseudonym& theNym,
-                             OTPasswordData* pPWData /*=NULL*/)
+bool OTMessage::SignContract(const OTPseudonym& theNym, OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures(); // Note: this might change with credentials. We might
@@ -3896,7 +3895,7 @@ bool OTMessage::SignContract(const OTPseudonym& theNym,
 
 // virtual (OTContract)
 bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                OTPasswordData* pPWData /*=NULL*/)
+                                OTPasswordData* pPWData)
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing

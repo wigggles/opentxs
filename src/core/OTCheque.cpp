@@ -329,10 +329,10 @@ bool OTCheque::IssueCheque(
     const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on the
                                         // asset account,
     // AND must verify the cheque signature with that user's key.
-    const OTString& strMemo,                          // Optional memo field.
-    const OTIdentifier* pRECIPIENT_USER_ID /*=NULL*/) // Recipient optional.
-                                                      // (Might be a blank
-                                                      // cheque.)
+    const OTString& strMemo,                // Optional memo field.
+    const OTIdentifier* pRECIPIENT_USER_ID) // Recipient optional.
+                                            // (Might be a blank
+                                            // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo = strMemo;

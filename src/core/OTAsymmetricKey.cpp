@@ -1231,11 +1231,13 @@ void OTAsymmetricKey::Release()
 }
 
 // Load the private key from a .pem file
-bool OTAsymmetricKey::LoadPrivateKey(
-    const OTString& strFoldername, const OTString& strFilename,
-    const OTString* pstrReason /*=NULL*/,
-    OTPassword* pImportPassword /*=NULL*/) // This reason is what displays on
-                                           // the passphrase dialog.
+bool OTAsymmetricKey::LoadPrivateKey(const OTString& strFoldername,
+                                     const OTString& strFilename,
+                                     const OTString* pstrReason,
+                                     OTPassword* pImportPassword) // This reason
+                                                                  // is what
+                                                                  // displays on
+// the passphrase dialog.
 {
     Release();
 
@@ -1313,9 +1315,10 @@ bool OTAsymmetricKey::LoadPublicKey(const OTString& strFoldername,
 }
 
 // Load the public key from a x509 stored in a .pem file
-bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
-    const OTString& strFoldername, const OTString& strFilename,
-    const OTString* pstrReason /*=NULL*/, OTPassword* pImportPassword /*=NULL*/)
+bool OTAsymmetricKey::LoadPublicKeyFromCertFile(const OTString& strFoldername,
+                                                const OTString& strFilename,
+                                                const OTString* pstrReason,
+                                                OTPassword* pImportPassword)
 {
     Release();
 

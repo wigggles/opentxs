@@ -256,9 +256,8 @@ OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
 OTParty::OTParty(const std::string str_PartyName,
                  OTPseudonym& theNym, // Nym is BOTH owner AND agent, when using
                                       // this constructor.
-                 const std::string str_agent_name,
-                 OTAccount* pAccount /*=NULL*/,
-                 const std::string* pstr_account_name /*=NULL*/,
+                 const std::string str_agent_name, OTAccount* pAccount,
+                 const std::string* pstr_account_name,
                  const int64_t lClosingTransNo /*=0*/
                  )
     : m_pstr_party_name(new std::string(str_PartyName))
@@ -520,7 +519,7 @@ void OTParty::ClearTemporaryPointers()
 
 // as used "IN THE SCRIPT."
 //
-std::string OTParty::GetPartyName(bool* pBoolSuccess /*=NULL*/) const
+std::string OTParty::GetPartyName(bool* pBoolSuccess) const
 {
     std::string retVal("");
 
@@ -572,7 +571,7 @@ bool OTParty::IsEntity() const
 
 // ACTUAL PARTY OWNER
 //
-std::string OTParty::GetNymID(bool* pBoolSuccess /*=NULL*/) const
+std::string OTParty::GetNymID(bool* pBoolSuccess) const
 {
     if (IsNym() && (m_str_owner_id.size() > 0)) {
         if (NULL != pBoolSuccess) *pBoolSuccess = true;
@@ -587,7 +586,7 @@ std::string OTParty::GetNymID(bool* pBoolSuccess /*=NULL*/) const
     return retVal; // empty ID on failure.
 }
 
-std::string OTParty::GetEntityID(bool* pBoolSuccess /*=NULL*/) const
+std::string OTParty::GetEntityID(bool* pBoolSuccess) const
 {
     if (IsEntity() && (m_str_owner_id.size() > 0)) {
         if (NULL != pBoolSuccess) *pBoolSuccess = true;
@@ -602,7 +601,7 @@ std::string OTParty::GetEntityID(bool* pBoolSuccess /*=NULL*/) const
     return retVal;
 }
 
-std::string OTParty::GetPartyID(bool* pBoolSuccess /*=NULL*/) const
+std::string OTParty::GetPartyID(bool* pBoolSuccess) const
 {
     // If party is a Nym, this is the NymID. Else return EntityID().
     // if error, return false.
@@ -769,7 +768,7 @@ OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
 
 // If account is present for Party, return true.
 bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
-                             OTPartyAccount** ppPartyAccount /*=NULL*/) const
+                             OTPartyAccount** ppPartyAccount) const
 {
     for (const auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -788,7 +787,7 @@ bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
 // If account is present for Party, set account's pointer to theAccount and
 // return true.
 bool OTParty::HasAccount(OTAccount& theAccount,
-                         OTPartyAccount** ppPartyAccount /*=NULL*/) const
+                         OTPartyAccount** ppPartyAccount) const
 {
     for (const auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -808,7 +807,7 @@ bool OTParty::HasAccount(OTAccount& theAccount,
 // If so, make sure that agent has a pointer to theNym and return true.
 // else return false.
 //
-bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/) const
+bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapAgents) {
         OTAgent* pAgent = it.second;
@@ -825,7 +824,7 @@ bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent /*=NULL*/) const
 }
 
 bool OTParty::HasAgentByNymID(const OTIdentifier& theNymID,
-                              OTAgent** ppAgent /*=NULL*/) const
+                              OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapAgents) {
         OTAgent* pAgent = it.second;
@@ -846,8 +845,7 @@ bool OTParty::HasAgentByNymID(const OTIdentifier& theNymID,
 // If so, make sure that agent has a pointer to theNym and return true.
 // else return false.
 //
-bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym,
-                                  OTAgent** ppAgent /*=NULL*/)
+bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym, OTAgent** ppAgent)
     const // ppAgent lets you get the agent ptr if it was there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
@@ -878,7 +876,7 @@ bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym,
 }
 
 bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
-                                         OTAgent** ppAgent /*=NULL*/)
+                                         OTAgent** ppAgent)
     const // ppAgent lets you get the agent ptr if it was there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
@@ -926,11 +924,10 @@ void OTParty::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
 // to verify that the serverNym isn't the one you were looking for.
 // This is a low-level function.
 // CALLER IS RESPONSIBLE TO DELETE.
-//
-OTPseudonym* OTParty::LoadAuthorizingAgentNym(
-    OTPseudonym& theSignerNym, OTAgent** ppAgent /*=NULL*/) // ppAgent lets you
-                                                            // get the agent ptr
-                                                            // if it was there.
+
+// ppAgent lets you get the agent ptr if it was there.
+OTPseudonym* OTParty::LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
+                                              OTAgent** ppAgent)
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
         mapOfAgents::iterator it = m_mapAgents.find(m_str_authorizing_agent);
@@ -1000,7 +997,7 @@ bool OTParty::VerifyOwnershipOfAccount(const OTAccount& theAccount) const
 bool OTParty::DropFinalReceiptToInboxes(
     mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
     const int64_t& lNewTransactionNumber, const OTString& strOrigCronItem,
-    OTString* pstrNote /*=NULL*/, OTString* pstrAttachment /*=NULL*/)
+    OTString* pstrNote, OTString* pstrAttachment)
 {
     bool bSuccess = true; // Success is defined as "all inboxes were notified"
     const char* szFunc = "OTParty::DropFinalReceiptToInboxes";
@@ -1045,9 +1042,9 @@ bool OTParty::DropFinalReceiptToInboxes(
 //
 bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
                                          const OTString& strOrigCronItem,
-                                         OTString* pstrNote /*=NULL*/,
-                                         OTString* pstrAttachment /*=NULL*/,
-                                         OTPseudonym* pActualNym /*=NULL*/)
+                                         OTString* pstrNote,
+                                         OTString* pstrAttachment,
+                                         OTPseudonym* pActualNym)
 {
     bool bSuccess =
         false; // Success is defined as "at least one agent was notified"
@@ -1090,8 +1087,8 @@ bool OTParty::SendNoticeToParty(
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
     //                                const int64_t & lInReferenceTo, // todo
     // Maybe have each party just use their own opening trans# here. Maybe not.
-    const OTString& strReference, OTString* pstrNote /*=NULL*/,
-    OTString* pstrAttachment /*=NULL*/, OTPseudonym* pActualNym /*=NULL*/)
+    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    OTPseudonym* pActualNym)
 {
     bool bSuccess =
         false; // Success is defined as "at least one agent was notified"
@@ -1481,7 +1478,7 @@ bool OTParty::SignContract(OTContract& theInput)
 //
 void OTParty::HarvestClosingNumbers(const OTString& strServerID,
                                     bool bSave /*=false*/,
-                                    OTPseudonym* pSignerNym /*=NULL*/)
+                                    OTPseudonym* pSignerNym)
 {
 
     for (auto& it : m_mapPartyAccounts) {
@@ -1625,7 +1622,7 @@ void OTParty::HarvestAllTransactionNumbers(const OTString& strServerID)
 //
 void OTParty::CloseoutOpeningNumber(const OTString& strServerID,
                                     bool bSave /*=false*/,
-                                    OTPseudonym* pSignerNym /*=NULL*/)
+                                    OTPseudonym* pSignerNym)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         otErr << "OTParty::" << __FUNCTION__

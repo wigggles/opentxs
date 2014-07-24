@@ -316,11 +316,9 @@ bool OTLedger::DeleteBoxReceipt(const int64_t& lTransactionNum)
 //
 // For all failures to load the box receipt, if a set pointer was passed in,
 // then add that transaction# to the set. (psetUnloaded)
-//
-bool OTLedger::LoadBoxReceipts(
-    std::set<int64_t>* psetUnloaded /*=NULL*/) // if psetUnloaded passed in,
-                                               // then use it to return the #s
-                                               // that weren't there.
+
+// if psetUnloaded passed in, then use it to return the #s that weren't there.
+bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
 {
     // Grab a copy of all the transaction #s stored inside this ledger.
     //
@@ -538,7 +536,7 @@ bool OTLedger::LoadExpiredBoxFromString(const OTString& strBox)
   instead of from a file.
  */
 bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
-                           const OTString* pString /*=NULL*/)
+                           const OTString* pString)
 {
     m_Type = theType;
 
@@ -799,11 +797,11 @@ bool OTLedger::CalculateNymboxHash(OTIdentifier& theOutput)
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash /*=NULL*/) // If you pass
-                                                               // the identifier
-                                                               // in, the hash
-                                                               // is recorded
-                                                               // there.
+bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash) // If you pass
+                                                     // the identifier
+                                                     // in, the hash
+                                                     // is recorded
+                                                     // there.
 {
     if (m_Type != OTLedger::nymbox) {
         otErr << "Wrong ledger type passed to OTLedger::SaveNymbox.\n";
@@ -833,10 +831,10 @@ bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash /*=NULL*/) // If you pass
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveInbox(OTIdentifier* pInboxHash /*=NULL*/) // If you pass the
-                                                             // identifier in,
-                                                             // the hash is
-                                                             // recorded there.
+bool OTLedger::SaveInbox(OTIdentifier* pInboxHash) // If you pass the
+                                                   // identifier in,
+                                                   // the hash is
+                                                   // recorded there.
 {
 
     //    OTString strTempBlah, strTempBlah2(*this);
@@ -877,11 +875,11 @@ bool OTLedger::SaveInbox(OTIdentifier* pInboxHash /*=NULL*/) // If you pass the
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveOutbox(OTIdentifier* pOutboxHash /*=NULL*/) // If you pass
-                                                               // the identifier
-                                                               // in, the hash
-                                                               // is recorded
-                                                               // there.
+bool OTLedger::SaveOutbox(OTIdentifier* pOutboxHash) // If you pass
+                                                     // the identifier
+                                                     // in, the hash
+                                                     // is recorded
+                                                     // there.
 {
     if (m_Type != OTLedger::outbox) {
         otErr << "Wrong ledger type passed to OTLedger::SaveOutbox.\n";
@@ -1407,9 +1405,10 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
 // (But of course do NOT delete the OTTransaction that's returned, since that is
 // owned by the ledger.)
 //
-OTTransaction* OTLedger::GetChequeReceipt(
-    const int64_t lChequeNum,
-    OTCheque** ppChequeOut /*=NULL*/) // CALLER RESPONSIBLE TO DELETE.
+OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
+                                          OTCheque** ppChequeOut) // CALLER
+                                                                  // RESPONSIBLE
+                                                                  // TO DELETE.
 {
     for (auto& it : m_mapTransactions) {
         OTTransaction* pCurrentReceipt = it.second;
@@ -1536,7 +1535,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 OTTransaction* OTLedger::GetPaymentReceipt(
     int64_t lReferenceNum, // pass in the opening number for the cron item that
                            // this is a receipt for.
-    OTPayment** ppPaymentOut /*=NULL*/) // CALLER RESPONSIBLE TO DELETE.
+    OTPayment** ppPaymentOut) // CALLER RESPONSIBLE TO DELETE.
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {

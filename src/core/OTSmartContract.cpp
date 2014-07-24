@@ -3972,7 +3972,7 @@ bool OTSmartContract::ProcessCron()
 }
 
 // virtual
-void OTSmartContract::SetDisplayLabel(const std::string* pstrLabel /*=NULL*/)
+void OTSmartContract::SetDisplayLabel(const std::string* pstrLabel)
 {
     m_strLabel.Format("smartcontract trans# %lld, clause: %s",
                       GetTransactionNum(),
@@ -3980,13 +3980,13 @@ void OTSmartContract::SetDisplayLabel(const std::string* pstrLabel /*=NULL*/)
 }
 
 void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
-                                     OTString* pParam /*=NULL*/) // someday
-                                                                 // pParam could
-                                                                 // be a
-                                                                 // stringMap
-                                                                 // instead of a
-                                                                 // single
-                                                                 // param.
+                                     OTString* pParam) // someday
+                                                       // pParam could
+                                                       // be a
+                                                       // stringMap
+                                                       // instead of a
+                                                       // single
+                                                       // param.
 {
     // Loop through the clauses passed in, and execute them all.
     for (auto& it_clauses : theClauses) {
@@ -5341,7 +5341,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
 //
 // (Server-side.)
 //
-void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym /*=NULL*/)
+void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym)
 {
     const OTString strServerID(GetServerID());
 
@@ -5372,9 +5372,8 @@ void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym /*=NULL*/)
 //
 // (Server-side.)
 //
-void OTSmartContract::HarvestClosingNumbers(
-    OTPseudonym* pSignerNym /*=NULL*/,
-    std::set<OTParty*>* pFailedParties /*=NULL*/)
+void OTSmartContract::HarvestClosingNumbers(OTPseudonym* pSignerNym,
+                                            std::set<OTParty*>* pFailedParties)
 {
     const OTString strServerID(GetServerID());
 
