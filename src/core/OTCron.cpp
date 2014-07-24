@@ -784,7 +784,7 @@ void OTCron::ProcessCronItems()
             // Remove from Map
             //
             mapOfCronItems::iterator it_map =
-                this->FindItemOnMap(pItem->GetTransactionNum());
+                FindItemOnMap(pItem->GetTransactionNum());
             OT_ASSERT(m_mapCronItems.end() != it_map); // If it's on the
                                                        // multimap, then it
                                                        // should also ALWAYS be
@@ -818,8 +818,7 @@ bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
 
     // See if there's something else already there with the same transaction
     // number.
-    OTCronItem* pCronItem =
-        this->GetItemByOfficialNum(theItem.GetTransactionNum());
+    OTCronItem* pCronItem = GetItemByOfficialNum(theItem.GetTransactionNum());
 
     // If it's not already on the list, then add it...
     if (NULL == pCronItem) {
@@ -924,7 +923,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
                                                      // wasn't found.
 {
     // See if there's a cron item with that transaction number.
-    mapOfCronItems::iterator it_map = this->FindItemOnMap(lTransactionNum);
+    mapOfCronItems::iterator it_map = FindItemOnMap(lTransactionNum);
 
     // If it's not already on the list, then there's nothing to remove.
     if (m_mapCronItems.end() == it_map) {
@@ -940,7 +939,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
 
         // We have to remove it from the multimap as well.
         multimapOfCronItems::iterator it_multimap =
-            this->FindItemOnMultimap(lTransactionNum);
+            FindItemOnMultimap(lTransactionNum);
         OT_ASSERT(m_multimapCronItems.end() !=
                   it_multimap); // If found on map, MUST be on multimap also.
 

@@ -223,7 +223,7 @@ bool OTAgent::VerifySignature(OTContract& theContract)
 OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
 {
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
         OTPseudonym* pNym = new OTPseudonym;
@@ -240,7 +240,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
         }
         else if (pNym->VerifyPseudonym() &&
                    pNym->LoadSignedNymfile(theServerNym)) {
-            this->SetNymPointer(
+            SetNymPointer(
                 *pNym); // set this pointer in case I need it for later.
             // also remember, caller is responsible to delete, so there's no
             // guarantee the pointer
@@ -534,7 +534,7 @@ bool OTAgent::GetSignerID(OTIdentifier& theOutput) const
 bool OTAgent::IsValidSignerID(const OTIdentifier& theNymID)
 {
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNymID...
     //
@@ -550,7 +550,7 @@ bool OTAgent::IsValidSignerID(const OTIdentifier& theNymID)
 bool OTAgent::IsValidSigner(OTPseudonym& theNym)
 {
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNym's ID...
     //
@@ -558,7 +558,7 @@ bool OTAgent::IsValidSigner(OTPseudonym& theNym)
         // That means theNym *is* the Nym for this agent!
         // We'll save his pointer, for future reference...
         //
-        this->SetNymPointer(theNym);
+        SetNymPointer(theNym);
 
         return true;
     }
@@ -706,7 +706,7 @@ bool OTAgent::VerifyAgencyOfAccount(const OTAccount& theAccount) const
 {
     OTIdentifier theSignerID;
 
-    if (!this->GetSignerID(theSignerID)) {
+    if (!GetSignerID(theSignerID)) {
         otErr << "OTAgent::VerifyAgencyOfAccount: ERROR: Entities and roles "
                  "haven't been coded yet.\n";
         return false;
@@ -732,7 +732,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     const char* szFunc = "OTAgent::DropFinalReceiptToInbox";
 
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
     // But in the case of Inboxes for asset accounts, shouldn't the agent be a
@@ -774,7 +774,7 @@ bool OTAgent::DropFinalReceiptToInbox(
             // against those Nyms again,
             // before loading it. Let's load it up!)
             //
-            if (NULL == (pNym = this->LoadNym(theServerNym)))
+            if (NULL == (pNym = LoadNym(theServerNym)))
                 otErr << szFunc << ": Failed loading Nym.\n";
             else
                 theNymAngel.SetCleanupTarget(*pNym); // CLEANUP  :-)
@@ -787,7 +787,7 @@ bool OTAgent::DropFinalReceiptToInbox(
         // Therefore, no point in letting this agent continue to point to bad
         // memory...
         //
-        this->ClearTemporaryPointers();
+        ClearTemporaryPointers();
 
         if ((NULL != pNym) && (lClosingNumber > 0) &&
             pNym->VerifyIssuedNum(strServerID,
@@ -821,7 +821,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
                              // using for anything.
 {
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
 
@@ -851,7 +851,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     OTPseudonym* pActualNym)
 {
     OTIdentifier theAgentNymID;
-    bool bNymID = this->GetNymID(theAgentNymID);
+    bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
 

@@ -301,13 +301,13 @@ bool OTRecord::FormatDescription(std::string& str_output)
     if (!IsCash())
         strTransNumForDisplay.Format(" #%ld", GetTransNumForDisplay());
     if (IsRecord()) {
-        if (this->IsTransfer())
+        if (IsTransfer())
             strDescription.Format("%s%s%s %s", strKind.Get(), "transfer",
                                   strTransNumForDisplay.Get(), strStatus.Get());
-        else if (this->IsVoucher())
+        else if (IsVoucher())
             strDescription.Format("%s%s%s %s", strKind.Get(), "payment",
                                   strTransNumForDisplay.Get(), strStatus.Get());
-        else if (this->IsReceipt()) {
+        else if (IsReceipt()) {
             std::string str_instrument_type;
 
             if (0 == GetInstrumentType().compare("transferReceipt"))
@@ -367,14 +367,14 @@ bool OTRecord::FormatDescription(std::string& str_output)
                                   strTransNumForDisplay.Get(), strStatus.Get());
     }
     else {
-        if (this->IsTransfer())
+        if (IsTransfer())
             strDescription.Format("%s %s%s%s", strStatus.Get(), strKind.Get(),
                                   "transfer", strTransNumForDisplay.Get());
-        else if (this->IsVoucher())
+        else if (IsVoucher())
             strDescription.Format("%s %s%s%s", strStatus.Get(), strKind.Get(),
                                   "payment", strTransNumForDisplay.Get());
 
-        else if (this->IsReceipt()) {
+        else if (IsReceipt()) {
             std::string str_instrument_type;
 
             if (0 == GetInstrumentType().compare("transferReceipt")) {
@@ -550,12 +550,12 @@ OTRecord::OTRecordType OTRecord::GetRecordType() const
 //
 bool OTRecord::CanDeleteRecord() const
 {
-    if (this->IsMail()) return true;
+    if (IsMail()) return true;
 
-    if (false == this->IsRecord()) return false;
+    if (false == IsRecord()) return false;
 
-    if (this->IsPending()) // This may be superfluous given the above 'if'
-                           // statement.
+    if (IsPending()) // This may be superfluous given the above 'if'
+                     // statement.
         return false;
 
     return true;
@@ -566,28 +566,28 @@ bool OTRecord::CanAcceptIncoming() const
 {
     // Commented out because a transferReceipt is in the inbox, but it
     // represents an outgoing payment.
-    //    if (this->IsOutgoing()) // If it's outgoing, then it's definitely not
+    //    if (IsOutgoing()) // If it's outgoing, then it's definitely not
     // an incoming thing you can accept.
     //        return false;
 
-    if (this->IsRecord()) // Records must be archived or deleted, not accepted
-                          // or discarded.
+    if (IsRecord()) // Records must be archived or deleted, not accepted
+                    // or discarded.
         return false;
 
-    if (this->IsExpired()) return false;
+    if (IsExpired()) return false;
 
-    if (this->IsReceipt()) // It's NOT a record... If it's a receipt, then yes,
-                           // we can accept it.
+    if (IsReceipt()) // It's NOT a record... If it's a receipt, then yes,
+                     // we can accept it.
         return true;
 
-    if (this->IsMail()) // Can't "accept" mail, can only delete it.
+    if (IsMail()) // Can't "accept" mail, can only delete it.
         return false;
 
-    if (this->IsPending() && this->IsOutgoing()) // It's not a record, it's not
-                                                 // a receipt. If it's pending,
-                                                 // is it Outgoing pending? (Can
-                                                 // only accept INCOMING
-                                                 // pending, not outgoing.)
+    if (IsPending() && IsOutgoing()) // It's not a record, it's not
+                                     // a receipt. If it's pending,
+                                     // is it Outgoing pending? (Can
+                                     // only accept INCOMING
+                                     // pending, not outgoing.)
         return false;
 
     return true;
@@ -596,23 +596,23 @@ bool OTRecord::CanAcceptIncoming() const
 //
 bool OTRecord::CanDiscardIncoming() const
 {
-    if (this->IsOutgoing()) return false;
+    if (IsOutgoing()) return false;
 
-    if (!this->IsPending()) return false;
+    if (!IsPending()) return false;
 
-    if (this->IsMail()) return false;
+    if (IsMail()) return false;
 
-    if (this->IsRecord()) // This may be superfluous given the above 'if'
-                          // pending.
+    if (IsRecord()) // This may be superfluous given the above 'if'
+                    // pending.
         return false;
 
-    if (this->IsReceipt()) // Receipts must be accepted, not discarded.
+    if (IsReceipt()) // Receipts must be accepted, not discarded.
         return false;
 
-    if (OTRecord::Transfer == this->GetRecordType()) // All incoming, pending
-                                                     // instruments EXCEPT
-                                                     // transfer can be
-                                                     // discarded.
+    if (OTRecord::Transfer == GetRecordType()) // All incoming, pending
+                                               // instruments EXCEPT
+                                               // transfer can be
+                                               // discarded.
         return false;
 
     return true;
@@ -622,11 +622,11 @@ bool OTRecord::CanDiscardOutgoingCash() const // For OUTgoing cash. (No way to
                                               // this lets you erase the record
                                               // of sending it.)
 {
-    if (false == this->IsOutgoing()) return false;
+    if (false == IsOutgoing()) return false;
 
-    if (false == this->IsPending()) return false;
+    if (false == IsPending()) return false;
 
-    if (false == this->IsCash()) return false;
+    if (false == IsCash()) return false;
 
     if (!(GetBoxIndex() >= 0)) return false;
 
@@ -636,27 +636,27 @@ bool OTRecord::CanDiscardOutgoingCash() const // For OUTgoing cash. (No way to
 //
 bool OTRecord::CanCancelOutgoing() const
 {
-    if (false == this->IsOutgoing()) return false;
+    if (false == IsOutgoing()) return false;
 
-    if (this->IsCanceled()) // It's already canceled!
+    if (IsCanceled()) // It's already canceled!
         return false;
 
-    if (false == this->IsPending()) return false;
+    if (false == IsPending()) return false;
 
-    if (this->IsMail()) return false;
+    if (IsMail()) return false;
 
-    if (this->IsRecord()) // This may be superfluous given the above 'if'
-                          // pending.
+    if (IsRecord()) // This may be superfluous given the above 'if'
+                    // pending.
         return false;
 
-    if (this->IsReceipt()) // Receipts can't be canceled. (Probably
-                           // superfluous.)
+    if (IsReceipt()) // Receipts can't be canceled. (Probably
+                     // superfluous.)
         return false;
 
-    if (OTRecord::Transfer == this->GetRecordType()) // All outgoing, pending
-                                                     // instruments EXCEPT
-                                                     // transfer can be
-                                                     // canceled.
+    if (OTRecord::Transfer == GetRecordType()) // All outgoing, pending
+                                               // instruments EXCEPT
+                                               // transfer can be
+                                               // canceled.
         return false;
 
     return true;
@@ -664,7 +664,7 @@ bool OTRecord::CanCancelOutgoing() const
 
 bool OTRecord::DiscardOutgoingCash()
 {
-    if (!this->CanDiscardOutgoingCash()) return false;
+    if (!CanDiscardOutgoingCash()) return false;
     return OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex(m_str_nym_id,
                                                     GetBoxIndex());
 }
@@ -673,7 +673,7 @@ bool OTRecord::DiscardOutgoingCash()
 //
 bool OTRecord::DeleteRecord()
 {
-    if (!this->CanDeleteRecord()) return false;
+    if (!CanDeleteRecord()) return false;
     if (!m_bIsSpecialMail &&
         (m_str_server_id.empty() || m_str_nym_id.empty())) {
         OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
@@ -683,8 +683,8 @@ bool OTRecord::DeleteRecord()
     }
     std::string str_using_account;
 
-    if ((OTRecord::Transfer == this->GetRecordType()) ||
-        (OTRecord::Receipt == this->GetRecordType())) {
+    if ((OTRecord::Transfer == GetRecordType()) ||
+        (OTRecord::Receipt == GetRecordType())) {
         if (m_str_account_id.empty()) {
             OTLog::vError(
                 "%s: Error: missing account id for transfer or receipt.\n",
@@ -696,7 +696,7 @@ bool OTRecord::DeleteRecord()
     }
     else
         str_using_account = m_str_nym_id; // For instruments.
-    switch (this->GetRecordType()) {
+    switch (GetRecordType()) {
     // Delete from in-mail or out-mail.
     //
     case OTRecord::Mail: {
@@ -749,7 +749,7 @@ bool OTRecord::DeleteRecord()
         break;
     default:
         OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      this->GetInstrumentType().c_str());
+                      GetInstrumentType().c_str());
         return false;
     }
     // The below section handles both the Nym's recordbox AND the Asset Account
@@ -795,17 +795,17 @@ bool OTRecord::DeleteRecord()
 }
 bool OTRecord::AcceptIncomingTransfer()
 {
-    return this->AcceptIncomingTransferOrReceipt();
+    return AcceptIncomingTransferOrReceipt();
 } // For incoming, pending (not-yet-accepted) transfers.
 bool OTRecord::AcceptIncomingReceipt()
 {
-    return this->AcceptIncomingTransferOrReceipt();
+    return AcceptIncomingTransferOrReceipt();
 } // For incoming, (not-yet-accepted) receipts.
 bool OTRecord::AcceptIncomingTransferOrReceipt()
 {
-    if (!this->CanAcceptIncoming()) return false;
+    if (!CanAcceptIncoming()) return false;
 
-    switch (this->GetRecordType()) {
+    switch (GetRecordType()) {
     // Accept transfer or receipt from asset account inbox.
     //
     case OTRecord::Transfer:
@@ -863,7 +863,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
     } break;
     default:
         OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      this->GetInstrumentType().c_str());
+                      GetInstrumentType().c_str());
         return false;
     }
 
@@ -873,9 +873,9 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
 //
 bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
 {
-    if (!this->CanAcceptIncoming()) return false;
+    if (!CanAcceptIncoming()) return false;
 
-    switch (this->GetRecordType()) {
+    switch (GetRecordType()) {
     // Accept from Nym's payments inbox.
     //
     case OTRecord::Instrument: {
@@ -944,7 +944,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
     break;
     default:
         OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      this->GetInstrumentType().c_str());
+                      GetInstrumentType().c_str());
         return false;
     }
 
@@ -954,9 +954,9 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
 //
 bool OTRecord::DiscardIncoming()
 {
-    if (!this->CanDiscardIncoming()) return false;
+    if (!CanDiscardIncoming()) return false;
 
-    switch (this->GetRecordType()) {
+    switch (GetRecordType()) {
     case OTRecord::Instrument: {
         if (m_str_server_id.empty() || m_str_nym_id.empty()) {
             OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
@@ -1010,7 +1010,7 @@ bool OTRecord::DiscardIncoming()
     break;
     default:
         OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      this->GetInstrumentType().c_str());
+                      GetInstrumentType().c_str());
         return false;
     }
 
@@ -1050,9 +1050,9 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
                                                               // blank if it's a
                                                               // cheque.
 {
-    if (!this->CanCancelOutgoing()) return false;
+    if (!CanCancelOutgoing()) return false;
 
-    switch (this->GetRecordType()) {
+    switch (GetRecordType()) {
     case OTRecord::Instrument: {
         if (m_str_nym_id.empty()) {
             OTLog::vError("%s: Error: missing nym id (%s)\n", __FUNCTION__,
@@ -1063,7 +1063,7 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
         const OTIdentifier theNymID(m_str_nym_id);
         std::string str_using_acct;
 
-        if (this->IsCheque()) {
+        if (IsCheque()) {
             str_using_acct = m_str_account_id;
         }
         else {
@@ -1164,7 +1164,7 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
     } break;
     default:
         OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      this->GetInstrumentType().c_str());
+                      GetInstrumentType().c_str());
         return false;
     }
 
@@ -1199,7 +1199,7 @@ void OTRecord::SetCanceled()
 }
 bool OTRecord::IsMail() const
 {
-    return OTRecord::Mail == this->GetRecordType();
+    return OTRecord::Mail == GetRecordType();
 }
 bool OTRecord::IsPending() const
 {
@@ -1365,8 +1365,7 @@ void OTRecord::SetContents(const std::string& str_contents)
 {
     m_str_contents = str_contents;
 
-    if (!m_str_contents.empty() &&
-        (OTRecord::Instrument == this->GetRecordType())) {
+    if (!m_str_contents.empty() && (OTRecord::Instrument == GetRecordType())) {
         OTString strPayment(m_str_contents);
         OTPayment thePayment(strPayment);
 

@@ -350,10 +350,10 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
             // Note: no need to start m_timer here since SetKeyAsCopyOf already
             // calls ArmorPrivateKey, which does that.
             //
-            this->dp->SetKeyAsCopyOf(*pkey, true, &thePWData,
-                                     pImportPassword); // bIsPrivateKey=false by
-                                                       // default, but true
-                                                       // here.
+            dp->SetKeyAsCopyOf(*pkey, true, &thePWData,
+                               pImportPassword); // bIsPrivateKey=false by
+                                                 // default, but true
+                                                 // here.
             EVP_PKEY_free(pkey);
             pkey = NULL;
             otLog3 << __FUNCTION__
@@ -462,10 +462,10 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
             otErr << __FUNCTION__ << ": Error reading public key from x509.\n";
         }
         else {
-            this->dp->SetKeyAsCopyOf(
-                *pkey, false, // bIsPrivateKey=false. PUBLIC KEY.
-                &thePWData,
-                pImportPassword); // pImportPassword is sometimes NULL here.
+            dp->SetKeyAsCopyOf(*pkey, false, // bIsPrivateKey=false. PUBLIC KEY.
+                               &thePWData, pImportPassword); // pImportPassword
+                                                             // is sometimes
+                                                             // NULL here.
 
             EVP_PKEY_free(pkey);
             pkey = NULL;
@@ -714,9 +714,8 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(OTString& strOutput,
                 NULL == pstrReason ? "OTAsymmetricKey_OpenSSL::SaveCertToString"
                                    : pstrReason->Get());
 
-            this->dp->SetKeyAsCopyOf(
-                *pPublicKey, false, &thePWData,
-                pImportPassword); // bool bIsPrivateKey=false;
+            dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData,
+                               pImportPassword); // bool bIsPrivateKey=false;
             EVP_PKEY_free(pPublicKey);
             pPublicKey = NULL;
         }

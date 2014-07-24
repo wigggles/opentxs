@@ -239,7 +239,7 @@ void OTServerContract::CreateContents()
 
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
     // etc.
-    this->CreateInnerContents();
+    CreateInnerContents();
 
     m_xmlUnsigned.Concatenate("</%s>\n", "notaryProviderContract");
 }

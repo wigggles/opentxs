@@ -259,7 +259,7 @@ thread::id thread::get_id() const
 //
 unsigned long int thread::get_raw_id() const
 {
-    const thread::id the_id = this->get_id();
+    const thread::id the_id = get_id();
 
     return the_id.get_raw_id();
 }

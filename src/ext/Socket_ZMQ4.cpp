@@ -159,8 +159,8 @@ OTSocket_ZMQ_4::ZMQ4::ZMQ4()
 
 OTSocket_ZMQ_4::ZMQ4::~ZMQ4()
 {
-    delete this->socket_zmq;
-    delete this->context_zmq;
+    delete socket_zmq;
+    delete context_zmq;
 }
 
 OTSocket_ZMQ_4::OTSocket_ZMQ_4() : m_pzmq(new ZMQ4())
@@ -169,8 +169,8 @@ OTSocket_ZMQ_4::OTSocket_ZMQ_4() : m_pzmq(new ZMQ4())
 
 OTSocket_ZMQ_4::~OTSocket_ZMQ_4()
 {
-    this->CloseSocket();
-    delete (this->m_pzmq);
+    CloseSocket();
+    delete (m_pzmq);
 }
 
 bool OTSocket_ZMQ_4::CloseSocket(const bool bNewContext /*= false*/)
@@ -193,7 +193,7 @@ bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
     if (!m_bInitialized) return false;
     if (!m_HasContext) return false;
 
-    if (!this->CloseSocket()) return false;
+    if (!CloseSocket()) return false;
 
     try
     {
@@ -237,7 +237,7 @@ bool OTSocket_ZMQ_4::NewContext()
 
     m_HasContext = false;
 
-    if (!this->CloseSocket(true)) return false;
+    if (!CloseSocket(true)) return false;
 
     if (NULL != m_pzmq->context_zmq) zmq_term(m_pzmq->context_zmq);
     if (NULL != m_pzmq->context_zmq) delete m_pzmq->context_zmq;
@@ -270,10 +270,10 @@ bool OTSocket_ZMQ_4::RemakeSocket(const bool bNewContext /*= false*/)
     bool bConnected = m_bConnected;
     bool bListening = m_bListening;
 
-    if (bNewContext) this->NewContext();
+    if (bNewContext) NewContext();
 
-    if (bConnected) return this->Connect();
-    if (bListening) return this->Listen();
+    if (bConnected) return Connect();
+    if (bListening) return Listen();
 
     return false;
 }
@@ -302,8 +302,7 @@ bool OTSocket_ZMQ_4::Connect()
         OT_FAIL;
     }
 
-    if (!this->NewSocket(true))
-        return false; // NewSocket(true), Request Socket.
+    if (!NewSocket(true)) return false; // NewSocket(true), Request Socket.
 
     try
     {
@@ -343,8 +342,7 @@ bool OTSocket_ZMQ_4::Listen()
         OT_FAIL;
     }
 
-    if (!this->NewSocket(false))
-        return false; // NewSocket(false), Responce Socket.
+    if (!NewSocket(false)) return false; // NewSocket(false), Responce Socket.
 
     try
     {
@@ -378,7 +376,7 @@ bool OTSocket_ZMQ_4::Connect(const OTString& strConnectPath)
 
     m_strConnectPath = strConnectPath; // set the connection path.
 
-    return (this->Connect());
+    return (Connect());
 }
 
 bool OTSocket_ZMQ_4::Listen(const OTString& strBindingPath)
@@ -396,7 +394,7 @@ bool OTSocket_ZMQ_4::Listen(const OTString& strBindingPath)
 
     m_strBindingPath = strBindingPath;
 
-    return (this->Listen());
+    return (Listen());
 }
 
 bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
@@ -530,11 +528,11 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope,
 {
     const bool bNewPath = m_strConnectPath.Compare(strConnectPath);
 
-    if (!bNewPath) this->Connect(strConnectPath);
+    if (!bNewPath) Connect(strConnectPath);
 
     if (!m_bConnected) OT_FAIL;
 
-    return this->Send(ascEnvelope);
+    return Send(ascEnvelope);
 }
 
 bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
@@ -661,7 +659,7 @@ bool OTSocket_ZMQ_4::HandlePollingError()
                      "the members of the items array refers to a socket whose "
                      "associated ØMQ context was terminated. (Deleting and "
                      "re-creating the context.)\n");
-        this->NewContext();
+        NewContext();
         break;
     // The provided items was not valid (NULL).
     case EFAULT:
@@ -714,7 +712,7 @@ bool OTSocket_ZMQ_4::HandleSendingError()
                           "moment due to the socket not being in the "
                           "appropriate state. Deleting socket and "
                           "re-trying...\n");
-        this->RemakeSocket();
+        RemakeSocket();
         bRetVal = true;
         break;
     // The ØMQ context associated with the specified socket was terminated.
@@ -723,14 +721,14 @@ bool OTSocket_ZMQ_4::HandleSendingError()
                      "with the specified socket was terminated. (Deleting and "
                      "re-creating the context and the socket, and trying "
                      "again.)\n");
-        this->RemakeSocket(true);
+        RemakeSocket(true);
         bRetVal = true;
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         OTLog::Error("OTSocket::HandleSendingError: The provided socket was "
                      "invalid. (Deleting socket and re-trying...)\n");
-        this->RemakeSocket();
+        RemakeSocket();
         bRetVal = true;
         break;
     // The operation was interrupted by delivery of a signal before the message
@@ -784,10 +782,10 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
                           "moment due to the socket not being in the "
                           "appropriate state. (Deleting socket and "
                           "re-trying...)\n");
-        this->RemakeSocket();
+        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = this->Send(ascTemp);
+            bRetVal = Send(ascTemp);
         }
         break;
     // The ØMQ context associated with the specified socket was terminated.
@@ -795,20 +793,20 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         OTLog::Error("OTSocket::HandleReceivingError: The ØMQ context "
                      "associated with the specified socket was terminated. "
                      "(Re-creating the context, and trying again...)\n");
-        this->RemakeSocket(true);
+        RemakeSocket(true);
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = this->Send(ascTemp);
+            bRetVal = Send(ascTemp);
         }
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         OTLog::Error("OTSocket::HandleReceivingError: The provided socket was "
                      "invalid. (Deleting socket and re-trying.)\n");
-        this->RemakeSocket();
+        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = this->Send(ascTemp);
+            bRetVal = Send(ascTemp);
         }
         break;
     // The operation was interrupted by delivery of a signal before a message

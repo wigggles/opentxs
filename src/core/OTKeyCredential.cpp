@@ -158,7 +158,7 @@ namespace opentxs
 
 bool OTKeyCredential::VerifySignedBySelf()
 {
-    return this->VerifyWithKey(m_SigningKey.GetPublicKey());
+    return VerifyWithKey(m_SigningKey.GetPublicKey());
 }
 
 // NOTE: You might ask, if we are using theSignature's metadata to narrow down
@@ -270,7 +270,7 @@ bool OTKeyCredential::VerifyInternally()
     // Any OTKeyCredential (both master and subkeys, but no other credentials)
     // must ** sign itself.**
     //
-    if (false == this->VerifySignedBySelf()) {
+    if (false == VerifySignedBySelf()) {
         otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
                                  "signed by itself (its own signing key.)\n";
         return false;
@@ -379,7 +379,7 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits) // Gotta start
         return false;
     }
     else
-        this->ot_super::SetPublicContents(mapPublic);
+        ot_super::SetPublicContents(mapPublic);
 
     if (3 != mapPrivate.size()) {
         otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -388,7 +388,7 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits) // Gotta start
         return false;
     }
     else
-        this->ot_super::SetPrivateContents(mapPrivate);
+        ot_super::SetPrivateContents(mapPrivate);
 
     return true;
 }
@@ -432,7 +432,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
         return false;
     }
 
-    if (this->ot_super::SetPublicContents(mapPublic)) {
+    if (ot_super::SetPublicContents(mapPublic)) {
 
         OTString strKey;
         strKey.Set(iiAuth->second.c_str());
@@ -521,7 +521,7 @@ bool OTKeyCredential::SetPrivateContents(
         return false;
     }
 
-    if (this->ot_super::SetPrivateContents(mapPrivate, pImportPassword)) {
+    if (ot_super::SetPrivateContents(mapPrivate, pImportPassword)) {
         const OTString strReason("Loading private key from credential.");
         OTString::Map mapPublic;
 
@@ -638,7 +638,7 @@ bool OTKeyCredential::SetPrivateContents(
                 std::pair<std::string, std::string>("S", strPublic.Get()));
         }
 
-        if (false == this->ot_super::SetPublicContents(mapPublic)) {
+        if (false == ot_super::SetPublicContents(mapPublic)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: While trying to call: "
                      "ot_super::SetPublicContents(mapPublic)\n"; // Should never
@@ -744,7 +744,7 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
             // so it can be
             // used for that loading. (So I pass &theExportPassword.)
             //
-            bSuccess = this->SetPrivateContents(
+            bSuccess = SetPrivateContents(
                 mapPrivate, bImporting ? NULL : &theExportPassword);
         }
     }
@@ -767,9 +767,9 @@ void OTKeyCredential::SetMetadata()
     // (signed by that Master.)
 
     OTString strSubcredID;
-    this->GetIdentifier(strSubcredID);
+    GetIdentifier(strSubcredID);
 
-    const bool bNymID = this->GetNymID().At(0, cMetaNymID);
+    const bool bNymID = GetNymID().At(0, cMetaNymID);
     const bool bCredID = m_pOwner->GetMasterCredID().At(0, cMetaMasterCredID);
     const bool bSubID =
         strSubcredID.At(0, cMetaSubCredID); // In the case of the master

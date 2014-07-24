@@ -695,14 +695,14 @@ int64_t OTString::StringToLong(const std::string& strNumber)
 
 uint64_t OTString::ToUlong() const
 {
-    const std::string str_number(this->Get());
+    const std::string str_number(Get());
 
     return OTString::StringToUlong(str_number);
 }
 
 int64_t OTString::ToLong() const
 {
-    const std::string str_number(this->Get());
+    const std::string str_number(Get());
 
     return OTString::StringToLong(str_number);
 }
@@ -1011,8 +1011,8 @@ bool OTString::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
 
 OTString& OTString::operator=(OTString rhs)
 {
-    if (this != &rhs)    // Compare addresses.
-        this->swap(rhs); // Only swap if they are different objects.
+    if (this != &rhs) // Compare addresses.
+        swap(rhs);    // Only swap if they are different objects.
     return *this;
 }
 
@@ -1195,9 +1195,9 @@ void OTString::Truncate(uint32_t lAt)
 {
     OTString strTruncated;
 
-    strTruncated.Set(this->Get(), lAt);
+    strTruncated.Set(Get(), lAt);
 
-    this->Set(strTruncated);
+    Set(strTruncated);
 }
 
 // If this string starts with -----BEGIN OT ARMORED...
@@ -1212,12 +1212,12 @@ void OTString::Truncate(uint32_t lAt)
 //
 bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
 {
-    if (!this->Exists()) return false;
+    if (!Exists()) return false;
 
     bool bArmoredAndALSOescaped = false; // "- -----BEGIN OT ARMORED"
     bool bArmoredButNOTescaped = false;  // "-----BEGIN OT ARMORED"
 
-    if (this->Contains(OT_BEGIN_ARMORED_escaped)) // check this one first...
+    if (Contains(OT_BEGIN_ARMORED_escaped)) // check this one first...
     {
         bArmoredAndALSOescaped = true;
 
@@ -1228,7 +1228,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
             return false;
         }
     }
-    else if (this->Contains(OT_BEGIN_ARMORED)) {
+    else if (Contains(OT_BEGIN_ARMORED)) {
         bArmoredButNOTescaped = true;
     }
 
@@ -1255,7 +1255,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
         {
             otErr << __FUNCTION__ << ": Error loading string contents from "
                                      "ascii-armored encoding. "
-                                     "Contents: \n" << this->Get() << "\n";
+                                     "Contents: \n" << Get() << "\n";
             return false;
         }
         else // success loading the actual contents out of the ascii-armored
@@ -1268,7 +1268,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
         }
     }
     else {
-        std::string str_temp(this->Get(), this->GetLength());
+        std::string str_temp(Get(), GetLength());
         str_Trim = OTString::trim(str_temp); // This is the std::string for the
                                              // trim process. (Wasn't armored,
                                              // so here we use it as passed in.)
@@ -1278,11 +1278,11 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
     // were originally ascii-armored OR NOT. (And they are also now trimmed,
     // either way.)
 
-    this->Release();
+    Release();
 
-    if (str_Trim.size() > 0) this->Set(str_Trim.c_str());
+    if (str_Trim.size() > 0) Set(str_Trim.c_str());
 
-    return this->Exists();
+    return Exists();
 }
 
 /*

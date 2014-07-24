@@ -280,10 +280,9 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(OTString& strOutput,
 {
     OTString strCert, strPrivateKey;
 
-    const bool bSaved1 =
-        this->SaveCertToString(strCert, pstrReason, pImportPassword);
-    const bool bSaved2 = this->SavePrivateKeyToString(strPrivateKey, pstrReason,
-                                                      pImportPassword);
+    const bool bSaved1 = SaveCertToString(strCert, pstrReason, pImportPassword);
+    const bool bSaved2 =
+        SavePrivateKeyToString(strPrivateKey, pstrReason, pImportPassword);
 
     if (bSaved1 && bSaved2)
         strOutput.Format(const_cast<char*>("%s%s"), strPrivateKey.Get(),
@@ -300,10 +299,10 @@ bool OTKeypair::LoadCertAndPrivateKeyFromString(const OTString& strInput,
 
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN CER....
     //
-    const bool bPublic = this->LoadPublicKeyFromCertString(
+    const bool bPublic = LoadPublicKeyFromCertString(
         strInput, false, // bool bEscaped=true by default
         pstrReason, pImportPassword);
-    const bool bPrivate = this->LoadPrivateKeyFromCertString(
+    const bool bPrivate = LoadPrivateKeyFromCertString(
         strInput, false, // bool bEscaped=true by default,
         pstrReason, pImportPassword);
     if (!bPublic) {
@@ -339,8 +338,8 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
     OT_ASSERT(NULL != m_pkeyPublic);
 
     OTString strOutput;
-    const bool bSuccess = this->SaveCertAndPrivateKeyToString(
-        strOutput, pstrReason, pImportPassword);
+    const bool bSuccess =
+        SaveCertAndPrivateKeyToString(strOutput, pstrReason, pImportPassword);
 
     if (bSuccess) {
         // todo security. Revisit this part during security audit.
@@ -359,9 +358,9 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
             return false;
         }
 
-        if (false == this->LoadBothKeysFromCertFile(OTFolders::Cert().Get(),
-                                                    strFilename, pstrReason,
-                                                    pImportPassword))
+        if (false == LoadBothKeysFromCertFile(OTFolders::Cert().Get(),
+                                              strFilename, pstrReason,
+                                              pImportPassword))
             return false; // LoadBothKeysFromCertFile already has error logs, no
                           // need to log twice at this point.
 
@@ -699,8 +698,8 @@ bool OTKeypair::ReEncrypt(OTPassword& theExportPassword, bool bImporting,
     OT_ASSERT(NULL != m_pkeyPublic);
     OT_ASSERT(NULL != m_pkeyPrivate);
 
-    OT_ASSERT(this->HasPublicKey());
-    OT_ASSERT(this->HasPrivateKey());
+    OT_ASSERT(HasPublicKey());
+    OT_ASSERT(HasPrivateKey());
 
     // If we were importing, we were in the exported format but now we're in the
     // internal format.
@@ -754,7 +753,7 @@ bool OTKeypair::ReEncrypt(OTPassword& theExportPassword, bool bImporting,
     if (bReEncrypted) {
 
         // Keys won't be right until this happens. Todo: eliminate this need.
-        bGotCert = this->SaveAndReloadBothKeysFromTempFile(
+        bGotCert = SaveAndReloadBothKeysFromTempFile(
             &strOutput, &strReasonBelow,
             bImporting ? NULL : &theExportPassword);
     }

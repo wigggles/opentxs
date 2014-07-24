@@ -1364,7 +1364,7 @@ template <class theBaseType, class theInternalType,
 //    if (false == makeTStorablepStorable->pack(*pBuffer))
 //::google::protobuf::MessageLite    &    IStorablePB::getPBMessage()
 //{
-//    return makeTStorablePBthis->getPBMessage();
+//    return makeTStorablePBgetPBMessage();
 //}
 
 bool IStorablePB::onPack(PackedBuffer& theBuffer,
@@ -2082,7 +2082,7 @@ Storable* Storage::CreateObject(StoredObjectType eType)
     OTPacker* pPacker = GetPacker();
 
     if (NULL == pPacker) {
-        otErr << "OTDB::Storage::CreateObject: Failed, since this->GetPacker() "
+        otErr << "OTDB::Storage::CreateObject: Failed, since GetPacker() "
                  "returned NULL.\n";
         return NULL;
     }
@@ -2507,8 +2507,8 @@ int64_t StorageFS::ConstructAndCreatePath(std::string& strOutput,
                                           const std::string twoStr,
                                           const std::string threeStr)
 {
-    return this->ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr,
-                                            twoStr, threeStr);
+    return ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr,
+                                      twoStr, threeStr);
 }
 
 int64_t StorageFS::ConstructAndConfirmPath(std::string& strOutput,
@@ -2517,8 +2517,8 @@ int64_t StorageFS::ConstructAndConfirmPath(std::string& strOutput,
                                            const std::string twoStr,
                                            const std::string threeStr)
 {
-    return this->ConstructAndConfirmPathImp(false, strOutput, strFolder, oneStr,
-                                            twoStr, threeStr);
+    return ConstructAndConfirmPathImp(false, strOutput, strFolder, oneStr,
+                                      twoStr, threeStr);
 }
 
 int64_t StorageFS::ConstructAndConfirmPathImp(const bool bMakePath,

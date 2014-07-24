@@ -668,7 +668,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
             const OTIdentifier theNymID(theNym);
 
-            // Assumption: if theNymID matches this->GetUserID(), then theNym
+            // Assumption: if theNymID matches GetUserID(), then theNym
             // must be the SENDER / PAYER!
             // Else, he must be RECIPIENT / PAYEE, instead!
             // This assumption is not for proving, since the harvest functions
@@ -677,7 +677,7 @@ bool OTTransaction::HarvestOpeningNumber(
             // logic to use about which harvest
             // functions to call.
             //
-            if (theNymID == this->GetUserID()) // theNym is SENDER / PAYER
+            if (theNymID == GetUserID()) // theNym is SENDER / PAYER
             {
                 // If the server reply message was unambiguously a FAIL, that
                 // means the opening number is STILL GOOD.
@@ -877,7 +877,7 @@ bool OTTransaction::HarvestOpeningNumber(
         // off on the receipt.)
         {
 
-            OTItem* pItem = this->GetItem(OTItem::smartContract);
+            OTItem* pItem = GetItem(OTItem::smartContract);
 
             if (NULL == pItem) {
                 otErr << "OTTransaction::HarvestOpeningNumber: Error: Unable "
@@ -996,7 +996,7 @@ bool OTTransaction::HarvestClosingNumbers(
           // "used" (like opener.)
           // In that last case, you can't claw them back since they are used.
         {
-            OTItem* pItem = this->GetItem(OTItem::marketOffer);
+            OTItem* pItem = GetItem(OTItem::marketOffer);
 
             if (NULL == pItem) {
                 otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable "
@@ -1105,7 +1105,7 @@ bool OTTransaction::HarvestClosingNumbers(
         // but if message succeeds while transaction fails, then closers can be
         // harvested.
         {
-            OTItem* pItem = this->GetItem(OTItem::exchangeBasket);
+            OTItem* pItem = GetItem(OTItem::exchangeBasket);
 
             if (NULL == pItem) {
                 otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable "
@@ -1238,7 +1238,7 @@ bool OTTransaction::HarvestClosingNumbers(
         // point.
 
         {
-            OTItem* pItem = this->GetItem(OTItem::paymentPlan);
+            OTItem* pItem = GetItem(OTItem::paymentPlan);
 
             if (NULL == pItem) {
                 otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable "
@@ -1343,7 +1343,7 @@ bool OTTransaction::HarvestClosingNumbers(
         // off on the receipt.)
         {
 
-            OTItem* pItem = this->GetItem(OTItem::smartContract);
+            OTItem* pItem = GetItem(OTItem::smartContract);
 
             if (NULL == pItem) {
                 otErr << "OTTransaction::HarvestClosingNumbers: Error: Unable "
@@ -2130,7 +2130,7 @@ bool OTTransaction::VerifyBalanceReceipt(
               // tranOut.GetItem(OTItem::atTransactionStatement);
     OTItem* pTransactionItem = NULL;
 
-    if (tranOut.GetDateSigned() > this->GetDateSigned()) // it's newer.
+    if (tranOut.GetDateSigned() > GetDateSigned()) // it's newer.
     {
         // GET THE "AT TRANSACTION STATEMENT" ITEM
         pResponseTransactionItem =
@@ -2240,7 +2240,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD "AT BALANCE STATEMENT" (ITEM)
 
-    OTItem* pResponseBalanceItem = this->GetItem(OTItem::atBalanceStatement);
+    OTItem* pResponseBalanceItem = GetItem(OTItem::atBalanceStatement);
 
     if (NULL == pResponseBalanceItem) {
         // error, return.
@@ -2301,10 +2301,10 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     //
     if ((NULL != pTransactionItem) &&
-        (tranOut.GetDateSigned() > this->GetDateSigned())) // transaction
-                                                           // statement is newer
-                                                           // than (this)
-                                                           // balance statement.
+        (tranOut.GetDateSigned() > GetDateSigned())) // transaction
+                                                     // statement is newer
+                                                     // than (this)
+                                                     // balance statement.
         pItemWithIssuedList =
             pTransactionItem; // already set above, but I'm re-stating here for
                               // clarity, since the else is now possible...
@@ -3924,7 +3924,7 @@ bool OTTransaction::SaveBoxReceipt(OTLedger& theLedger)
                  "(This should never happen.)\n";
         return false;
     }
-    return this->SaveBoxReceipt(lLedgerType);
+    return SaveBoxReceipt(lLedgerType);
 }
 
 // static
@@ -4014,14 +4014,13 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
     }
 
     // THE "IN REFERENCE TO" NUMBER (DISPLAY VERSION)
-    if (this->GetAbbrevInRefDisplay() !=
-        theFullVersion.GetReferenceNumForDisplay()) {
+    if (GetAbbrevInRefDisplay() != theFullVersion.GetReferenceNumForDisplay()) {
         otErr << "OTTransaction::" << __FUNCTION__
               << ": Failure: The purported 'full version' of the transaction "
                  "passed, GetReferenceNumForDisplay() ("
               << theFullVersion.GetReferenceNumForDisplay()
               << ") fails to match the GetAbbrevInRefDisplay ("
-              << this->GetAbbrevInRefDisplay() << ") on this.\n";
+              << GetAbbrevInRefDisplay() << ") on this.\n";
         return false;
     }
 
@@ -4451,7 +4450,7 @@ OTItem* OTTransaction::GetItem(const OTItem::itemType theType)
 //
 OTItem* OTTransaction::GetItemInRefTo(const int64_t lReference)
 {
-    if (this->GetItemCountInRefTo(lReference) > 1) {
+    if (GetItemCountInRefTo(lReference) > 1) {
         OT_FAIL_MSG("CAN'T USE GetItemInRefTo! (There are multiple items in "
                     "reference to the same number...) SWITCH to using "
                     "NumberOfOrigin?");
@@ -5320,10 +5319,10 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealServerID(SERVER_ID);
         }
 
-        if (strOrigin.Exists()) this->SetNumberOfOrigin(atol(strOrigin.Get()));
+        if (strOrigin.Exists()) SetNumberOfOrigin(atol(strOrigin.Get()));
 
-        this->SetTransactionNum(atol(strTransNum.Get()));
-        this->SetReferenceToNum(atol(strInRefTo.Get()));
+        SetTransactionNum(atol(strTransNum.Get()));
+        SetReferenceToNum(atol(strInRefTo.Get()));
 
         // -------------------------------------
         /*  From UpdateContents() (there is writing, above is reading):
@@ -5539,22 +5538,22 @@ void OTTransaction::UpdateContents()
 
             switch (m_pParent->GetType()) {
             case OTLedger::nymbox:
-                this->SaveAbbreviatedNymboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedNymboxRecord(m_xmlUnsigned);
                 break;
             case OTLedger::inbox:
-                this->SaveAbbreviatedInboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedInboxRecord(m_xmlUnsigned);
                 break;
             case OTLedger::outbox:
-                this->SaveAbbreviatedOutboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedOutboxRecord(m_xmlUnsigned);
                 break;
             case OTLedger::paymentInbox:
-                this->SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);
+                SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);
                 break;
             case OTLedger::recordBox:
-                this->SaveAbbrevRecordBoxRecord(m_xmlUnsigned);
+                SaveAbbrevRecordBoxRecord(m_xmlUnsigned);
                 break;
             case OTLedger::expiredBox:
-                this->SaveAbbrevExpiredBoxRecord(m_xmlUnsigned);
+                SaveAbbrevExpiredBoxRecord(m_xmlUnsigned);
                 break;
             /* --- BREAK --- */
             case OTLedger::message:
@@ -5739,9 +5738,9 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the payment
-                                                  // inbox, for example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the payment
+                                            // inbox, for example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -5848,9 +5847,9 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the expired box,
-                                                  // for example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the expired box,
+                                            // for example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -5891,11 +5890,11 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
 }
 
 // case OTLedger::paymentInbox:
-// this->SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);    break;
+// SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);    break;
 // case OTLedger::paymentOutbox:
-// this->SaveAbbrevPaymentOutboxRecord(m_xmlUnsigned);    break;
+// SaveAbbrevPaymentOutboxRecord(m_xmlUnsigned);    break;
 // case OTLedger::recordBox:
-// this->SaveAbbrevRecordBoxRecord(m_xmlUnsigned);        break;
+// SaveAbbrevRecordBoxRecord(m_xmlUnsigned);        break;
 
 /*
  --- paymentOutbox ledger:
@@ -5954,7 +5953,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
 //    {
 //        OTIdentifier    idReceiptHash;                // a hash of the actual
 // transaction is stored with its
-//        this->CalculateContractID(idReceiptHash);    // abbreviated short-form
+//        CalculateContractID(idReceiptHash);    // abbreviated short-form
 // record (in the payment outbox, for example.)
 //        idReceiptHash.GetString(strHash);
 //    }
@@ -6166,9 +6165,9 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the record box,
-                                                  // for example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the record box,
+                                            // for example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -6342,9 +6341,9 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the inbox, for
-                                                  // example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the inbox, for
+                                            // example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -6442,9 +6441,9 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the inbox, for
-                                                  // example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the inbox, for
+                                            // example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -6596,9 +6595,9 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
     else {
         OTIdentifier idReceiptHash; // a hash of the actual transaction is
                                     // stored with its
-        this->CalculateContractID(idReceiptHash); // abbreviated short-form
-                                                  // record (in the inbox, for
-                                                  // example.)
+        CalculateContractID(idReceiptHash); // abbreviated short-form
+                                            // record (in the inbox, for
+                                            // example.)
         idReceiptHash.GetString(strHash);
     }
 
@@ -6953,8 +6952,7 @@ int64_t OTTransaction::GetReceiptAmount()
     OTItem* pOriginalItem = NULL;
     OTCleanup<OTItem> theItemAngel;
 
-    switch (
-        this->GetType()) { // These are the types that have an amount (somehow)
+    switch (GetType()) { // These are the types that have an amount (somehow)
     case OTTransaction::marketReceipt
         : // amount is stored on ** marketReceipt item **, on MY LIST of items.
         pOriginalItem = GetItem(OTItem::marketReceipt); // (The Reference string
@@ -7148,7 +7146,7 @@ int64_t OTTransaction::GetNumberOfOrigin()
 {
 
     if (0 == m_lNumberOfOrigin) {
-        switch (this->GetType()) {
+        switch (GetType()) {
         case transferReceipt: // the server drops this into your inbox, when
                               // someone accepts your transfer.
         case deposit:         // this transaction is a deposit (cash or cheque)
@@ -7161,7 +7159,7 @@ int64_t OTTransaction::GetNumberOfOrigin()
             otErr << __FUNCTION__ << ": In this case, you can't calculate the "
                                      "origin number, you must set it "
                                      "explicitly.\n";
-            this->SetNumberOfOrigin(0); // Not applicable.
+            SetNumberOfOrigin(0); // Not applicable.
             // Comment this out later so people can't use it to crash the
             // server:
             OT_FAIL_MSG("In this case, you can't calculate the origin number, "
@@ -7171,7 +7169,7 @@ int64_t OTTransaction::GetNumberOfOrigin()
             break;
         }
 
-        this->CalculateNumberOfOrigin();
+        CalculateNumberOfOrigin();
     }
 
     return m_lNumberOfOrigin;
@@ -7182,7 +7180,7 @@ void OTTransaction::CalculateNumberOfOrigin()
 {
     OT_ASSERT(!IsAbbreviated());
 
-    switch (this->GetType()) {
+    switch (GetType()) {
     case blank:       // freshly issued transaction number, not used yet
     case message:     // A message from one user to another, also in the nymbox.
     case notice:      // A notice from the server. Used in Nymbox.
@@ -7191,7 +7189,7 @@ void OTTransaction::CalculateNumberOfOrigin()
     case successNotice:   // A transaction # has successfully been signed out.
     case processNymbox:   // process nymbox transaction    // comes from client
     case atProcessNymbox: // process nymbox reply          // comes from server
-        this->SetNumberOfOrigin(0); // Not applicable.
+        SetNumberOfOrigin(0); // Not applicable.
         break;
 
     case pending: // Server puts this in your outbox (when sending) and
@@ -7204,10 +7202,10 @@ void OTTransaction::CalculateNumberOfOrigin()
                        // CronItem expires or is canceled.
     case basketReceipt: // the server drops this into your inboxes, when a
                         // basket exchange is processed.
-        this->SetNumberOfOrigin(this->GetReferenceToNum()); // pending is in
-                                                            // reference to the
-                                                            // original
-                                                            // transfer.
+        SetNumberOfOrigin(GetReferenceToNum()); // pending is in
+                                                // reference to the
+                                                // original
+                                                // transfer.
         break;
 
     case transferReceipt: // the server drops this into your inbox, when someone
@@ -7220,7 +7218,7 @@ void OTTransaction::CalculateNumberOfOrigin()
                               // of these in YOUR paymentInbox.
         otErr << __FUNCTION__ << ": In this case, you can't calculate the "
                                  "origin number, you must set it explicitly.\n";
-        this->SetNumberOfOrigin(0); // Not applicable.
+        SetNumberOfOrigin(0); // Not applicable.
         // Comment this out later so people can't use it to crash the server:
         OT_FAIL_MSG("In this case, you can't calculate the origin number, you "
                     "must set it explicitly.");
@@ -7232,7 +7230,7 @@ void OTTransaction::CalculateNumberOfOrigin()
                          // deposits your voucher.
         {
             OTString strReference;
-            this->GetReferenceString(strReference);
+            GetReferenceString(strReference);
 
             // "In reference to" is the depositor's trans#, which I use here to
             // load
@@ -7243,22 +7241,21 @@ void OTTransaction::CalculateNumberOfOrigin()
             // as its transaction number.
             //
             OTItem* pOriginalItem = OTItem::CreateItemFromString(
-                strReference, this->GetPurportedServerID(),
-                this->GetReferenceToNum());
+                strReference, GetPurportedServerID(), GetReferenceToNum());
             OT_ASSERT(NULL != pOriginalItem);
             OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
             if (OTItem::depositCheque != pOriginalItem->GetType()) {
                 otErr << __FUNCTION__ << ": ERROR: Wrong item type attached to "
-                      << ((chequeReceipt == this->GetType()) ? "chequeReceipt"
-                                                             : "voucherReceipt")
+                      << ((chequeReceipt == GetType()) ? "chequeReceipt"
+                                                       : "voucherReceipt")
                       << " "
                          "(expected OTItem::depositCheque)\n";
-                this->SetNumberOfOrigin(0);
+                SetNumberOfOrigin(0);
                 return;
             }
 
-            this->SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
+            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
         }
         break;
 
@@ -7295,7 +7292,7 @@ void OTTransaction::CalculateNumberOfOrigin()
         : // reply from the server regarding said dividend payment.
 
     default:
-        this->SetNumberOfOrigin(this->GetTransactionNum());
+        SetNumberOfOrigin(GetTransactionNum());
         break;
     } // switch
 }
@@ -7367,7 +7364,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
     case OTTransaction::transferReceipt:
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt:
-        lReferenceNum = this->GetNumberOfOrigin();
+        lReferenceNum = GetNumberOfOrigin();
         break;
 
     default: // All other types have no amount -- return 0.
@@ -7592,8 +7589,8 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
             else {
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unable to load Cron Item. Should never happen. "
-                         "Receipt: " << this->GetTransactionNum()
-                      << "  Origin: " << this->GetNumberOfOrigin() << "\n";
+                         "Receipt: " << GetTransactionNum()
+                      << "  Origin: " << GetNumberOfOrigin() << "\n";
                 return false;
             }
             break;
@@ -7604,7 +7601,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
          Therefore, if I am looping through my Nymbox, iterating through
          transactions, and one of them
          is an *** instrumentNotice *** then I should expect
-         this->GetReferenceString(strOutput) to:
+         GetReferenceString(strOutput) to:
 
          1. load up from string as an OTMessage of type "sendUserInstrument",
          -------------------------------------------------------------------
@@ -7754,7 +7751,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
     OTString strReference;
     GetReferenceString(strReference);
 
-    switch (this->GetType()) {
+    switch (GetType()) {
     //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt
         : // Used for paymentPlans AND for smart contracts...
@@ -7792,8 +7789,8 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
             otErr
                 << "OTTransaction::" << __FUNCTION__
                 << ": Unable to load Cron Item. Should never happen. Receipt: "
-                << this->GetTransactionNum()
-                << "  Origin: " << this->GetNumberOfOrigin() << "\n";
+                << GetTransactionNum() << "  Origin: " << GetNumberOfOrigin()
+                << "\n";
             return false;
         }
     } break; // this break never actually happens. Above always returns, if
@@ -7804,7 +7801,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
          Therefore, if I am looping through my Nymbox, iterating through
          transactions, and one of them
          is an *** instrumentNotice *** then I should expect
-         this->GetReferenceString(strOutput) to:
+         GetReferenceString(strOutput) to:
 
          1. load up from string as an OTMessage of type "sendUserInstrument",
          -------------------------------------------------------------------
@@ -7998,8 +7995,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
             otErr
                 << "OTTransaction::" << __FUNCTION__
                 << ": Unable to load Cron Item. Should never happen. Receipt: "
-                << this->GetTransactionNum()
-                << "  Origin: " << this->GetNumberOfOrigin() << "\n";
+                << GetTransactionNum() << "  Origin: " << GetNumberOfOrigin()
+                << "\n";
             return false;
         }
     } break;
@@ -8099,9 +8096,9 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     OTCleanup<OTCronItem> theCronItemAngel;
 
     OTString strReference;
-    this->GetReferenceString(strReference);
+    GetReferenceString(strReference);
 
-    switch (this->GetType()) {
+    switch (GetType()) {
     //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt: {
         OTString strUpdatedCronItem;
@@ -8137,8 +8134,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
             otErr
                 << "OTTransaction::" << __FUNCTION__
                 << ": Unable to load Cron Item. Should never happen. Receipt: "
-                << this->GetTransactionNum()
-                << "  Origin: " << this->GetNumberOfOrigin() << "\n";
+                << GetTransactionNum() << "  Origin: " << GetNumberOfOrigin()
+                << "\n";
             return false;
         }
     } break; // this break never actually happens. Above always returns, if
@@ -8232,13 +8229,13 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     OTCleanup<OTCronItem> theCronItemAngel;
 
     OTString strReference;
-    this->GetReferenceString(strReference);
+    GetReferenceString(strReference);
 
-    switch (this->GetType()) {
+    switch (GetType()) {
     //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt: {
         OTString strUpdatedCronItem;
-        OTItem* pItem = this->GetItem(OTItem::paymentReceipt);
+        OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
         if (NULL != pItem)
             pItem->GetAttachment(strUpdatedCronItem);
@@ -8271,8 +8268,8 @@ bool OTTransaction::GetMemo(OTString& strMemo)
             otErr
                 << "OTTransaction::" << __FUNCTION__
                 << ": Unable to load Cron Item. Should never happen. Receipt: "
-                << this->GetTransactionNum()
-                << "  Origin: " << this->GetNumberOfOrigin() << "\n";
+                << GetTransactionNum() << "  Origin: " << GetNumberOfOrigin()
+                << "\n";
             return false;
         }
     } break; // this break never actually happens. Above always returns, if
@@ -8301,7 +8298,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     OTCheque theCheque; // allocated on the stack :-)
     OTString strAttachment;
 
-    switch (this->GetType()) {
+    switch (GetType()) {
     case OTTransaction::transferReceipt: {
         if (pOriginalItem->GetType() != OTItem::acceptPending) {
             otErr << __FUNCTION__
@@ -8318,7 +8315,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     case OTTransaction::voucherReceipt: {
         if (pOriginalItem->GetType() != OTItem::depositCheque) {
             otErr << __FUNCTION__ << ": Wrong item type attached to "
-                  << ((OTTransaction::chequeReceipt == this->GetType())
+                  << ((OTTransaction::chequeReceipt == GetType())
                           ? "chequeReceipt"
                           : "voucherReceipt") << " (expected depositCheque)\n";
             return false;

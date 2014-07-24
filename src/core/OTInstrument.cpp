@@ -254,7 +254,7 @@ int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //        {
     //            const int64_t lClosingNumber = atol(strClosingNumber.Get());
     //
-    //            this->AddClosingTransactionNo(lClosingNumber);
+    //            AddClosingTransactionNo(lClosingNumber);
     //        }
     //        else
     //        {

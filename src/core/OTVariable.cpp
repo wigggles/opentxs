@@ -415,7 +415,7 @@ void OTVariable::SetAsClean()
 //
 void OTVariable::UnregisterScript()
 {
-    this->m_pScript = NULL;
+    m_pScript = NULL;
 }
 
 // We keep an internal script pointer here, so if we destruct,
@@ -423,15 +423,15 @@ void OTVariable::UnregisterScript()
 //
 void OTVariable::RegisterForExecution(OTScript& theScript)
 {
-    this->SetAsClean(); // so we can check for dirtiness after execution.
+    SetAsClean(); // so we can check for dirtiness after execution.
 
     const std::string str_var_name = m_strName.Get();
 
     theScript.AddVariable(str_var_name, *this);
 
-    this->m_pScript = &theScript; // So later, if the variable destructs, and
-                                  // this pointer is set, the variable can
-                                  // remove itself from the script.
+    m_pScript = &theScript; // So later, if the variable destructs, and
+                            // this pointer is set, the variable can
+                            // remove itself from the script.
 }
 
 // Done

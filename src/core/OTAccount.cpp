@@ -277,7 +277,7 @@ bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* hash)
 
     bool success = box.SaveInbox(hash);
 
-    if (success) this->SetInboxHash(*hash);
+    if (success) SetInboxHash(*hash);
 
     return success;
 }
@@ -304,7 +304,7 @@ bool OTAccount::SaveOutbox(OTLedger& box, OTIdentifier* hash)
 
     bool success = box.SaveOutbox(hash);
 
-    if (success) this->SetOutboxHash(*hash);
+    if (success) SetOutboxHash(*hash);
 
     return success;
 }

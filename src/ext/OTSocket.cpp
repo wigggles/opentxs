@@ -193,12 +193,12 @@ OTSocket::Mutex::~Mutex()
 
 tthread::mutex* OTSocket::Mutex::Get()
 {
-    return this->m_pMutex;
+    return m_pMutex;
 }
 
 tthread::mutex* OTSocket::GetMutex()
 {
-    return this->m_Mutex.Get();
+    return m_Mutex.Get();
 }
 
 bool OTSocket::Init(const Defaults& defaults)

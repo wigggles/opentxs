@@ -187,8 +187,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 
     OTPassword theActualKey;
 
-    if (!this->GetRawKeyFromPassphrase(oldPassphrase, theActualKey))
-        return false;
+    if (!GetRawKeyFromPassphrase(oldPassphrase, theActualKey)) return false;
 
     OTPayload dataIV, dataSalt;
 
@@ -224,8 +223,8 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // Generate the new derived key from the new passphrase.
     //
     OTCleanup<OTPassword> theDerivedAngel;
-    OTPassword* pNewDerivedKey = this->CalculateNewDerivedKeyFromPassphrase(
-        newPassphrase); // asserts already.
+    OTPassword* pNewDerivedKey =
+        CalculateNewDerivedKeyFromPassphrase(newPassphrase); // asserts already.
     theDerivedAngel.SetCleanupTarget(*pNewDerivedKey);
 
     // Below this point, pNewDerivedKey is NOT null. (And will be cleaned up
@@ -325,8 +324,8 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     //
     OTCleanup<OTPassword> theDerivedAngel;
 
-    OTPassword* pDerivedKey = this->CalculateNewDerivedKeyFromPassphrase(
-        thePassphrase); // asserts already.
+    OTPassword* pDerivedKey =
+        CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
 
     if (NULL != ppDerivedKey) // A pointerpointer was passed in... (caller will
                               // be responsible then, to delete.)
@@ -384,16 +383,16 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
         OT_FAIL;
     }
 
-    if (this->HasHashCheck()) {
+    if (HasHashCheck()) {
         otErr << __FUNCTION__
               << ": Already have a HashCheck, no need to create one!";
         return false;
     }
 
-    OT_ASSERT(this->m_dataHashCheck.IsEmpty());
+    OT_ASSERT(m_dataHashCheck.IsEmpty());
 
-    OTPassword* pDerivedKey = this->CalculateNewDerivedKeyFromPassphrase(
-        thePassphrase); // asserts already.
+    OTPassword* pDerivedKey =
+        CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
 
     if (NULL == pDerivedKey) // A pointerpointer was passed in... (caller will
                              // be responsible then, to delete.)
@@ -402,7 +401,7 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
         return false;
     }
 
-    if (!this->HasHashCheck()) {
+    if (!HasHashCheck()) {
         otErr
             << __FUNCTION__
             << ": Still don't have a hash check (even after generating one)\n!"
@@ -415,17 +414,17 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 
 bool OTSymmetricKey::ReGenerateHashCheck(const OTPassword& thePassphrase)
 {
-    if (!this->HasHashCheck()) {
+    if (!HasHashCheck()) {
         otOut << __FUNCTION__ << ": Warning! We don't have a hash-check yet... "
                                  "will create one anyway.";
     }
 
-    if (!this->m_dataHashCheck.IsEmpty()) this->m_dataHashCheck.zeroMemory();
-    OT_ASSERT(this->m_dataHashCheck.IsEmpty());
+    if (!m_dataHashCheck.IsEmpty()) m_dataHashCheck.zeroMemory();
+    OT_ASSERT(m_dataHashCheck.IsEmpty());
 
-    this->m_bHasHashCheck = false;
+    m_bHasHashCheck = false;
 
-    return this->GenerateHashCheck(thePassphrase);
+    return GenerateHashCheck(thePassphrase);
 }
 
 /*
@@ -476,10 +475,10 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
     //  OT_ASSERT(thePassphrase.isPassword());
     OTPassword* pDerivedKey = NULL;
 
-    OTPayload tmpDataHashCheck = this->m_dataHashCheck;
+    OTPayload tmpDataHashCheck = m_dataHashCheck;
 
     if (bCheckForHashCheck) {
-        if (!this->HasHashCheck()) {
+        if (!HasHashCheck()) {
             otErr << __FUNCTION__ << ": Unable to calculate derived key, as "
                                      "hash check is missing!";
             OT_FAIL;
@@ -487,16 +486,15 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
         OT_ASSERT(!tmpDataHashCheck.IsEmpty());
     }
     else {
-        if (!this->HasHashCheck()) {
+        if (!HasHashCheck()) {
             otOut << __FUNCTION__ << ": Warning!! No hash check, ignoring... "
                                      "(since bCheckForHashCheck was set false)";
             OT_ASSERT(tmpDataHashCheck.IsEmpty());
         }
     }
 
-    pDerivedKey =
-        OTCrypto::It()->DeriveNewKey(thePassphrase, this->m_dataSalt,
-                                     this->m_uIterationCount, tmpDataHashCheck);
+    pDerivedKey = OTCrypto::It()->DeriveNewKey(
+        thePassphrase, m_dataSalt, m_uIterationCount, tmpDataHashCheck);
 
     return pDerivedKey; // can be null
 }
@@ -509,12 +507,11 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
     //  OT_ASSERT(thePassphrase.isPassword());
     OTPassword* pDerivedKey = NULL;
 
-    if (!this->HasHashCheck()) {
-        this->m_dataHashCheck.zeroMemory();
+    if (!HasHashCheck()) {
+        m_dataHashCheck.zeroMemory();
 
         pDerivedKey = OTCrypto::It()->DeriveNewKey(
-            thePassphrase, this->m_dataSalt, this->m_uIterationCount,
-            this->m_dataHashCheck);
+            thePassphrase, m_dataSalt, m_uIterationCount, m_dataHashCheck);
     }
     else {
         otErr << __FUNCTION__
@@ -522,9 +519,9 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
     }
 
     OT_ASSERT(NULL != pDerivedKey);
-    OT_ASSERT(!this->m_dataHashCheck.IsEmpty());
+    OT_ASSERT(!m_dataHashCheck.IsEmpty());
 
-    this->m_bHasHashCheck = true;
+    m_bHasHashCheck = true;
 
     return pDerivedKey;
 }
@@ -549,7 +546,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
         // using it now...
         //
 
-        pDerivedKey = this->CalculateDerivedKeyFromPassphrase(
+        pDerivedKey = CalculateDerivedKeyFromPassphrase(
             thePassphrase, false); // asserts already.
 
         theDerivedAngel.SetCleanupTarget(*pDerivedKey);
@@ -568,7 +565,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
     // store the IV from that
     // encryption bit.)
     //
-    return this->GetRawKeyFromDerivedKey(*pDerivedKey, theRawKeyOutput);
+    return GetRawKeyFromDerivedKey(*pDerivedKey, theRawKeyOutput);
 }
 
 // Assumes key is already generated. Tries to get the raw clear key from its
@@ -901,7 +898,7 @@ bool OTSymmetricKey::SerializeTo(OTString& strOutput, bool bEscaped) const
 {
     OTASCIIArmor ascOutput;
 
-    if (this->SerializeTo(ascOutput))
+    if (SerializeTo(ascOutput))
         return ascOutput.WriteArmoredString(strOutput, "SYMMETRIC KEY",
                                             bEscaped);
 
@@ -915,7 +912,7 @@ bool OTSymmetricKey::SerializeFrom(const OTString& strInput, bool bEscaped)
     if (strInput.Exists() &&
         ascInput.LoadFromString(const_cast<OTString&>(strInput), bEscaped,
                                 "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
-        return this->SerializeFrom(ascInput);
+        return SerializeFrom(ascInput);
     }
 
     return false;
@@ -925,7 +922,7 @@ bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
 {
     OTPayload theOutput;
 
-    if (this->SerializeTo(theOutput)) {
+    if (SerializeTo(theOutput)) {
         ascOutput.SetData(theOutput);
         return true;
     }
@@ -938,7 +935,7 @@ bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
     OTPayload theInput;
 
     if (ascInput.Exists() && ascInput.GetData(theInput)) {
-        return this->SerializeFrom(theInput);
+        return SerializeFrom(theInput);
     }
     return false;
 }
@@ -1268,7 +1265,7 @@ OTSymmetricKey::OTSymmetricKey(const OTPassword& thePassword)
     m_uIterationCount(OTCryptoConfig::IterationCount())
 {
     //  const bool bGenerated =
-    this->GenerateKey(thePassword);
+    GenerateKey(thePassword);
 }
 
 OTSymmetricKey::~OTSymmetricKey()

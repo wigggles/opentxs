@@ -196,7 +196,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
-        OTPurse* pPurse = this->InstantiatePurse();
+        OTPurse* pPurse = InstantiatePurse();
 
         if (NULL == pPurse) {
             otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
@@ -207,10 +207,10 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         OTCleanup<OTPurse> thePurseAngel(
             *pPurse); // (This automates the deletion.)
 
-        return this->SetTempValuesFromPurse(*pPurse);
+        return SetTempValuesFromPurse(*pPurse);
     }
     else {
-        OTTrackable* pTrackable = this->Instantiate();
+        OTTrackable* pTrackable = Instantiate();
 
         if (NULL == pTrackable) {
             otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
@@ -237,7 +237,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
             // Let's grab all the temp values from the cheque!!
             //
             else // success
-                return this->SetTempValuesFromCheque(*pCheque);
+                return SetTempValuesFromCheque(*pCheque);
             break;
 
         case PAYMENT_PLAN:
@@ -249,7 +249,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
             // Let's grab all the temp values from the payment plan!!
             //
             else // success
-                return this->SetTempValuesFromPaymentPlan(*pPaymentPlan);
+                return SetTempValuesFromPaymentPlan(*pPaymentPlan);
             break;
 
         case SMART_CONTRACT:
@@ -261,7 +261,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
             // Let's grab all the temp values from the smart contract!!
             //
             else // success
-                return this->SetTempValuesFromSmartContract(*pSmartContract);
+                return SetTempValuesFromSmartContract(*pSmartContract);
             break;
 
         default:
@@ -542,7 +542,7 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
                                              // m_Type we can't know the
                                              // type...This comment is wrong!!
     {
-        OTTrackable* pTrackable = this->Instantiate();
+        OTTrackable* pTrackable = Instantiate();
         if (NULL == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
@@ -618,7 +618,7 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
                                              // m_Type we can't know the
                                              // type...This comment is wrong!!
     {
-        OTTrackable* pTrackable = this->Instantiate();
+        OTTrackable* pTrackable = Instantiate();
         if (NULL == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
@@ -688,7 +688,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
          m_bAreTempValuesSet) || // m_Type isn't even set if this is false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
-        OTTrackable* pTrackable = this->Instantiate();
+        OTTrackable* pTrackable = Instantiate();
         if (NULL == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
@@ -754,7 +754,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
          m_bAreTempValuesSet) || // m_Type isn't even set if this is false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
-        OTTrackable* pTrackable = this->Instantiate();
+        OTTrackable* pTrackable = Instantiate();
         if (NULL == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
@@ -1348,7 +1348,7 @@ OTTrackable* OTPayment::Instantiate() const
 
 OTTrackable* OTPayment::Instantiate(const OTString& strPayment)
 {
-    if (this->SetPayment(strPayment)) return this->Instantiate();
+    if (SetPayment(strPayment)) return Instantiate();
 
     return NULL;
 }
@@ -1360,7 +1360,7 @@ OTTrackable* OTPayment::Instantiate(const OTString& strPayment)
 //
 OTPurse* OTPayment::InstantiatePurse() const
 {
-    if (OTPayment::PURSE == this->GetType()) {
+    if (OTPayment::PURSE == GetType()) {
         return OTPurse::PurseFactory(m_strPayment);
     }
     else
@@ -1374,7 +1374,7 @@ OTPurse* OTPayment::InstantiatePurse() const
 /*
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID) const
 {
-    if (OTPayment::PURSE == this->GetType())
+    if (OTPayment::PURSE == GetType())
     {
         return OTPurse::PurseFactory(m_strPayment, SERVER_ID);
        }
@@ -1389,7 +1389,7 @@ NOT contain a purse. "
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
 OTIdentifier & ASSET_ID) const
 {
-    if (OTPayment::PURSE == this->GetType())
+    if (OTPayment::PURSE == GetType())
     {
         return OTPurse::PurseFactory(m_strPayment, SERVER_ID, ASSET_ID);
        }
@@ -1404,7 +1404,7 @@ NOT contain a purse. "
 
 OTPurse* OTPayment::InstantiatePurse(const OTString& strPayment)
 {
-    if (false == this->SetPayment(strPayment))
+    if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the "
                  "payment string based on "
                  "what was passed in:\n\n" << strPayment << "\n\n";
@@ -1413,7 +1413,7 @@ OTPurse* OTPayment::InstantiatePurse(const OTString& strPayment)
                  "the "
                  "payment string:\n\n" << strPayment << "\n\n";
     else
-        return this->InstantiatePurse();
+        return InstantiatePurse();
 
     return NULL;
 }
@@ -1422,7 +1422,7 @@ OTPurse* OTPayment::InstantiatePurse(const OTString& strPayment)
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
 OTString & strPayment)
 {
-    if (false == this->SetPayment(strPayment))
+    if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
 payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
@@ -1431,7 +1431,7 @@ payment string based on "
 the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
-        return this->InstantiatePurse(SERVER_ID);
+        return InstantiatePurse(SERVER_ID);
 
     return NULL;
 }
@@ -1440,7 +1440,7 @@ the "
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
 OTIdentifier & ASSET_ID, const OTString & strPayment)
 {
-    if (false == this->SetPayment(strPayment))
+    if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
 payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
@@ -1449,7 +1449,7 @@ payment string based on "
 the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
-        return this->InstantiatePurse(SERVER_ID, ASSET_ID);
+        return InstantiatePurse(SERVER_ID, ASSET_ID);
 
     return NULL;
 }
@@ -1568,7 +1568,7 @@ void OTPayment::UpdateContents() // Before transmission or serialization, this
 
     m_xmlUnsigned.Concatenate("<payment version=\"%s\"\n"
                               " type=\"%s\">\n\n",
-                              m_strVersion.Get(), this->GetTypeString());
+                              m_strVersion.Get(), GetTypeString());
 
     if (m_strPayment.Exists()) {
         const OTASCIIArmor ascContents(m_strPayment);
@@ -1595,7 +1595,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_Type = OTPayment::ERROR_STATE;
 
-        otLog4 << "Loaded payment... Type: " << this->GetTypeString()
+        otLog4 << "Loaded payment... Type: " << GetTypeString()
                << "\n----------\n";
 
         return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
@@ -1604,7 +1604,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strContents;
 
         if (!OTContract::LoadEncodedTextField(xml, strContents) ||
-            !strContents.Exists() || !this->SetPayment(strContents)) {
+            !strContents.Exists() || !SetPayment(strContents)) {
             otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field "
                      "without a value, OR error setting that "
                      "value onto this object. Raw:\n\n" << strContents

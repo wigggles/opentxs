@@ -181,7 +181,7 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
     if (lRequestNumber == nRequestNum) // In this case, it works!
         return nRequestNum;
 
-    return (-2); // some other call can return this->m_lMostRecentRequestNumber
+    return (-2); // some other call can return m_lMostRecentRequestNumber
                  // if needed.
 }
 
@@ -3854,7 +3854,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         pMessage = NULL;
         return false;
     }
-    OTMessage* pSentMsg = this->GetMessageOutbuffer().GetSentMessage(
+    OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
         atol(theReply.m_strRequestNum.Get()), strServerID,
         strNymID); // doesn't delete.
     // We couldn't find it in the "sent message" outbuffer (todo: persist this
@@ -3911,8 +3911,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     const int64_t lReplyRequestNum = atol(theReply.m_strRequestNum.Get());
 
     //  bool bRemoved =
-    this->GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strServerID,
-                                                  strNymID); // deletes.
+    GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strServerID,
+                                            strNymID); // deletes.
     bool bDirtyNym = false;
 
     // Similarly we keep a client side list of all the request numbers that we

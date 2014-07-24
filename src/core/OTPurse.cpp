@@ -156,11 +156,11 @@ bool OTPurse::GetNymID(OTIdentifier& theOutput) const
     bool bSuccess = false;
     theOutput.Release();
 
-    if (this->IsPasswordProtected()) {
+    if (IsPasswordProtected()) {
         bSuccess = false; // optimizer will remove automatically anyway, I
                           // assume. Might as well have it here for clarity.
     }
-    else if (this->IsNymIDIncluded() && !m_UserID.IsEmpty()) {
+    else if (IsNymIDIncluded() && !m_UserID.IsEmpty()) {
         bSuccess = true;
         theOutput = m_UserID;
     }
@@ -180,13 +180,13 @@ bool OTPurse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
 {
     const char* szFunc = "OTPurse::GetPassphrase";
 
-    if (!this->IsPasswordProtected()) {
+    if (!IsPasswordProtected()) {
         otOut << szFunc
               << ": Failed: this purse isn't even password-protected.\n";
         return false;
     }
 
-    std::shared_ptr<OTCachedKey> pCachedKey(this->GetInternalMaster());
+    std::shared_ptr<OTCachedKey> pCachedKey(GetInternalMaster());
     if (!pCachedKey) OT_FAIL;
 
     const OTString strReason((NULL == szDisplay) ? szFunc : szDisplay);
@@ -207,7 +207,7 @@ bool OTPurse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
 std::shared_ptr<OTCachedKey> OTPurse::GetInternalMaster()
 {
 
-    if (!this->IsPasswordProtected() ||
+    if (!IsPasswordProtected() ||
         (!m_pCachedKey)) // this second half of the logic should never happen.
     {
         otOut << __FUNCTION__
@@ -256,8 +256,8 @@ std::shared_ptr<OTCachedKey> OTPurse::GetInternalMaster()
 //
 bool OTPurse::GenerateInternalKey()
 {
-    if (this->IsPasswordProtected() ||
-        (NULL != m_pSymmetricKey) || // this->GetInternalKey())
+    if (IsPasswordProtected() ||
+        (NULL != m_pSymmetricKey) || // GetInternalKey())
         (m_pCachedKey)) {
         otOut << __FUNCTION__
               << ": Failed: internal Key  or master key already exists. "
@@ -265,7 +265,7 @@ bool OTPurse::GenerateInternalKey()
         return false;
     }
 
-    if (!this->IsEmpty()) {
+    if (!IsEmpty()) {
         otOut << __FUNCTION__
               << ": Failed: The purse must be EMPTY before you create a "
                  "new symmetric key, internal to that purse. (For the purposes "
@@ -356,11 +356,10 @@ bool OTPurse::Merge(
 
     mapOfTokenPointers theMap;
 
-    while (this->Count() > 0) {
-        OTToken* pToken = this->Pop(theOldNym); // must be private, if a Nym.
-        OT_ASSERT_MSG(
-            NULL != pToken,
-            "OTPurse::Merge: Assert: NULL != this->Pop(theOldNym) \n");
+    while (Count() > 0) {
+        OTToken* pToken = Pop(theOldNym); // must be private, if a Nym.
+        OT_ASSERT_MSG(NULL != pToken,
+                      "OTPurse::Merge: Assert: NULL != Pop(theOldNym) \n");
 
         const OTASCIIArmor& ascTokenID = pToken->GetSpendable();
 
@@ -499,9 +498,9 @@ bool OTPurse::Merge(
         OTToken* pToken = it.second;
         OT_ASSERT(NULL != pToken);
 
-        bool bPush = this->Push(theOldNym, // can be public, if a Nym.
-                                *pToken);  // The purse makes it's own copy of
-                                           // the token, into string form.
+        bool bPush = Push(theOldNym, // can be public, if a Nym.
+                          *pToken);  // The purse makes it's own copy of
+                                     // the token, into string form.
 
         if (!bPush) {
             otErr << szFunc << ": Error: Failure pushing token into purse.\n";
@@ -836,7 +835,7 @@ bool OTPurse::LoadContract()
 bool OTPurse::LoadPurse(const char* szServerID, const char* szUserID,
                         const char* szAssetTypeID)
 {
-    OT_ASSERT(!this->IsPasswordProtected());
+    OT_ASSERT(!IsPasswordProtected());
 
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
@@ -893,7 +892,7 @@ bool OTPurse::LoadPurse(const char* szServerID, const char* szUserID,
 bool OTPurse::SavePurse(const char* szServerID, const char* szUserID,
                         const char* szAssetTypeID)
 {
-    OT_ASSERT(!this->IsPasswordProtected());
+    OT_ASSERT(!IsPasswordProtected());
 
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
@@ -1478,10 +1477,10 @@ OTToken* OTPurse::Pop(OTNym_or_SymmetricKey theOwner)
 {
     if (m_dequeTokens.empty()) return NULL;
 
-    OTToken* pToken = this->Peek(theOwner);
+    OTToken* pToken = Peek(theOwner);
 
     if (NULL == pToken) {
-        otErr << __FUNCTION__ << ": Failure: this->Peek(theOwner) "
+        otErr << __FUNCTION__ << ": Failure: Peek(theOwner) "
                                  "(And m_dequeTokens isn't empty, either.)\n";
         return NULL;
     }

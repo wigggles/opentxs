@@ -193,10 +193,10 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym& theNym,
 
     // The SUB-CURRENCIES first...
     //
-    const uint32_t nCount = static_cast<uint32_t>(this->Count());
+    const uint32_t nCount = static_cast<uint32_t>(Count());
 
     for (uint32_t i = 0; i < nCount; i++) {
-        BasketItem* pRequestItem = this->At(i);
+        BasketItem* pRequestItem = At(i);
         OT_ASSERT(NULL != pRequestItem);
 
         const int64_t lClosingTransNo = pRequestItem->lClosingTransactionNo;
@@ -217,7 +217,7 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym& theNym,
     } // for
     // Then the BASKET currency itself...
     //
-    const int64_t lClosingTransNo = this->GetClosingNum();
+    const int64_t lClosingTransNo = GetClosingNum();
 
     // This function will only "add it back" if it was really there in the first
     // place.

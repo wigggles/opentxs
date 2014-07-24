@@ -266,8 +266,8 @@ void OTSubcredential::UpdatePublicContentsToString(
 void OTSubcredential::UpdatePublicCredentialToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
-    if (this->GetContents().Exists()) {
-        OTASCIIArmor ascContents(this->GetContents());
+    if (GetContents().Exists()) {
+        OTASCIIArmor ascContents(GetContents());
         if (ascContents.Exists())
             strAppendTo.Concatenate(
                 "<publicCredential>\n%s</publicCredential>\n\n",
@@ -301,15 +301,15 @@ void OTSubcredential::UpdateContents()
         "<subCredential nymID=\"%s\"\n"     // a hash of the nymIDSource
         " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential
                                             // that signed this subcredential.
-        this->GetNymID().Get(),
-        this->GetMasterCredID().Get());
+        GetNymID().Get(),
+        GetMasterCredID().Get());
 
-    if (this->GetNymIDSource().Exists()) {
+    if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
-        ascSource.SetString(this->GetNymIDSource()); // A nym should always
-                                                     // verify through its own
-                                                     // source. (Whatever that
-                                                     // may be.)
+        ascSource.SetString(GetNymIDSource()); // A nym should always
+                                               // verify through its own
+                                               // source. (Whatever that
+                                               // may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
                                   ascSource.Get());
     }
@@ -318,17 +318,17 @@ void OTSubcredential::UpdateContents()
     // public info.)
     {
         // PUBLIC INFO
-        this->UpdateMasterPublicToString(m_xmlUnsigned);
+        UpdateMasterPublicToString(m_xmlUnsigned);
 
-        this->UpdatePublicContentsToString(m_xmlUnsigned);
+        UpdatePublicContentsToString(m_xmlUnsigned);
     }
 
     // If we're saving the private credential info...
     //
     if (OTSubcredential::credPrivateInfo == m_StoreAs) {
-        this->UpdatePublicCredentialToString(m_xmlUnsigned);
+        UpdatePublicCredentialToString(m_xmlUnsigned);
 
-        this->UpdatePrivateContentsToString(m_xmlUnsigned);
+        UpdatePrivateContentsToString(m_xmlUnsigned);
     }
     // -------------------------------------------------
     m_xmlUnsigned.Concatenate("</subCredential>\n");
@@ -480,7 +480,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             }
 
             if (false ==
-                this->SetPublicContents(mapPublic)) // <==============  Success.
+                SetPublicContents(mapPublic)) // <==============  Success.
             {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
                       << ": Subcredential failed setting public contents while "
@@ -608,8 +608,8 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // wallet cached master key is used, and
             // sometimes an actual passphrase is passed in, so we use it.)
 
-            if (false == this->SetPrivateContents(
-                             mapPrivate, m_pOwner->GetImportPassword())) {
+            if (false ==
+                SetPrivateContents(mapPrivate, m_pOwner->GetImportPassword())) {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
                       << ": Subcredential failed setting private contents "
                          "while loading.\n";
@@ -664,7 +664,7 @@ bool OTSubcredential::VerifyInternally()
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
-    if (false == this->VerifyNymID()) return false;
+    if (false == VerifyNymID()) return false;
 
     // Verify that m_pOwner->GetMasterkey() and *this have the same NymID.
     //
@@ -721,7 +721,7 @@ bool OTSubcredential::VerifyInternally()
     // * Any OTSubcredential must also be signed by its master. (Except masters,
     // which already sign themselves.)
     //
-    if (false == this->VerifySignedByMaster()) {
+    if (false == VerifySignedByMaster()) {
         otOut << __FUNCTION__ << ": Failure: This subcredential hasn't been "
                                  "signed by its master credential.\n";
         return false;
@@ -733,19 +733,18 @@ bool OTSubcredential::VerifyInternally()
 bool OTSubcredential::VerifySignedByMaster()
 {
     OT_ASSERT(NULL != m_pOwner);
-    return this->VerifyWithKey(
-        m_pOwner->GetMasterkey().m_SigningKey.GetPublicKey());
+    return VerifyWithKey(m_pOwner->GetMasterkey().m_SigningKey.GetPublicKey());
 }
 
 bool OTSubcredential::VerifyContract()
 {
-    if (false == this->VerifyContractID()) {
+    if (false == VerifyContractID()) {
         otWarn << __FUNCTION__ << ": Failed verifying credential ID against "
                                   "whatever it was expected to be.\n";
         return false;
     }
 
-    if (false == this->VerifyInternally()) // Logs copiously.
+    if (false == VerifyInternally()) // Logs copiously.
         return false;
 
     return true;
@@ -754,7 +753,7 @@ bool OTSubcredential::VerifyContract()
 // Overriding from OTContract.
 void OTSubcredential::CalculateContractID(OTIdentifier& newID)
 {
-    if (!newID.CalculateDigest(this->GetPubCredential()))
+    if (!newID.CalculateDigest(GetPubCredential()))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
 }
 
@@ -779,8 +778,8 @@ const OTString& OTSubcredential::GetPubCredential() const // More intelligent
 {
     // If this is a private (client-side) credential containing private keys,
     // then the public version is stored in GetContents(), and return that.
-    if ((m_mapPrivateInfo.size() > 0) && this->GetContents().Exists())
-        return this->GetContents();
+    if ((m_mapPrivateInfo.size() > 0) && GetContents().Exists())
+        return GetContents();
 
     // Otherwise this is a server-side copy of a Nym's credential, with no
     // private keys inside it.

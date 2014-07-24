@@ -265,7 +265,7 @@ void OTCaller::callOne()
     if (isCallbackSet()) {
         otOut
             << "OTCaller::callOne: FYI, Executing password callback (one)...\n";
-        _callback->runOne(this->GetDisplay(), m_Password);
+        _callback->runOne(GetDisplay(), m_Password);
     }
     else {
         otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger "
@@ -281,7 +281,7 @@ void OTCaller::callTwo()
     if (isCallbackSet()) {
         otOut
             << "OTCaller::callTwo: FYI, Executing password callback (two)...\n";
-        _callback->runTwo(this->GetDisplay(), m_Password);
+        _callback->runTwo(GetDisplay(), m_Password);
     }
     else {
         otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger "
