@@ -116,7 +116,7 @@ if(KEYRING_GNOME)
   set(keyring libgnome-keyring.so)
 endif()
 
-if(MSVC)
+if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
 
@@ -147,7 +147,7 @@ else()
   target_link_libraries(opentxs-core otprotob bigint irrxml lucre protobuf ssl crypto z ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 endif()
 
-if(MSVC)
+if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-core.dll"

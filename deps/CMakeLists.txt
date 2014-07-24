@@ -12,7 +12,7 @@ set(lucre-sources
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/)
 
 
-if(MSVC)
+if(WIN32)
   # suppress sscanf/sprintf being unsafe warnings 
   add_Definitions("/wd4996")
 
@@ -28,7 +28,7 @@ else()
   )
 
   target_link_libraries(lucre ssl crypto)
-endif(MSVC)
+endif()
 
 
 ### Build bigint as library
@@ -42,7 +42,7 @@ set(bigint-sources
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/bigint/)
 
-if(MSVC)
+if(WIN32)
   include_directories(${OPENSSL_INCLUDE_DIR})
   add_library(bigint
     STATIC
@@ -52,18 +52,18 @@ else()
   add_library(bigint
     ${bigint-sources}
   )
-endif(MSVC)
+endif()
 
 
 
 ### Build libzmq as static library
-if(NOT MSVC)
+if(NOT WIN32)
   include(GNUInstallDirs)
   execute_process(COMMAND sed "-i.bak" "s|add_library(libzmq SHARED|add_library(libzmq STATIC|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
   execute_process(COMMAND sed "-i.bak" "s|set(LIBRARY_OUTPUT_PATH  \${CMAKE_CURRENT_BINARY_DIR}/lib)| |" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
   execute_process(COMMAND sed "-i.bak" "s|LIBRARY DESTINATION lib$|LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
   execute_process(COMMAND sed "-i.bak" "s|ARCHIVE DESTINATION lib$|ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}|" "${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/CMakeLists.txt")
-endif(NOT MSVC)
+endif()
 
 set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
 
