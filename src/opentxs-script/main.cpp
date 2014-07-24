@@ -137,6 +137,7 @@
 #include <OTAPI.hpp>
 #include <OpenTransactions.hpp>
 #include <OT_ME.hpp>
+#include <ot_otapi_ot.hpp>
 #include <OTClient.hpp>
 
 #include <OTAccount.hpp>
@@ -151,8 +152,6 @@
 #include <OTServerContract.hpp>
 #include <OTVariable.hpp>
 #include <OTWallet.hpp>
-
-#include "ot_me_switch.hpp"
 
 #include <iterator>
 
@@ -854,7 +853,7 @@ int32_t main(int32_t argc, char* argv[])
 
         // -----------------------------------------------
         OT_ME madeEasy;
-        madeEasy.opentxs_copy_variables();
+        OTAPI_Func::CopyVariables();
         madeEasy.ExecuteScript_ReturnVoid(results, ("stdin"));
         // --------------------------------------------------------------------
 
@@ -1515,21 +1514,10 @@ int32_t main(int32_t argc, char* argv[])
             }
             // ************************************************
 
-            madeEasy.opentxs_copy_variables();
+            OTAPI_Func::CopyVariables();
 
             OTLog::Output(1, "Script output:\n\n");
 
-// OT SCRIPT PROMPT --------------------------------------------
-#if USE_OLD_CHAISCRIPT == 0
-            if (strFilename.size() >= 8) {
-                // request to run opentxs command line script?
-                std::string endsWith =
-                    strFilename.substr(strFilename.size() - 8, 8);
-                if (endsWith == "\\opentxs" || endsWith == "/opentxs") {
-                    return madeEasy.opentxs_main_loop();
-                }
-            }
-#endif
             return madeEasy.ExecuteScript_ReturnInt(results, strFilename);
         }
         // ------------------------------------------------------------------------
@@ -1991,7 +1979,7 @@ int32_t main(int32_t argc, char* argv[])
         else if (strLine.compare(0, 4, "test") == 0) {
             std::string strScript = "print(\"Hello, world\")";
             OT_ME madeEasy;
-            madeEasy.opentxs_copy_variables();
+            OTAPI_Func::CopyVariables();
             madeEasy.ExecuteScript_ReturnVoid(strScript, "hardcoded");
 
             // --------------------------------------------------------------------

@@ -133,6 +133,7 @@
 #ifndef __OPENTXS_STRINGUTILS_HPP__
 #define __OPENTXS_STRINGUTILS_HPP__
 
+#include <cinttypes>
 #include <string>
 #include <sstream>
 #include <string.h>
