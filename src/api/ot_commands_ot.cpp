@@ -7377,67 +7377,37 @@ OT_COMMANDS_OT int32_t OT_Command::mainWithdrawCash()
 
 OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 {
-    // HERE, WE LOOK UP THE NYM ID
-    string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
+    if (!VerifyExists("HisNym")) {
+        return -1;
+    }
 
+    string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
     if (!VerifyStringVal(strMyNymID)) {
         OTAPI_Wrap::Output(0, "\n\nFailure: Unable to find NymID based on "
-                              "myacct. Use: --myacct ACCT_ID\n");
-        OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT "
+                              "myacct. Use: --myacct ACCT_ID\n"
+                              "The designated asset account must be yours. OT "
                               "will find the Nym based on the account.\n\n");
         return -1;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
-
     if (!VerifyStringVal(strServerID)) {
         OTAPI_Wrap::Output(0, "\n\nFailure: Unable to find the server ID based "
-                              "on myacct. Use: --myacct ACCT_ID\n");
-        OTAPI_Wrap::Output(0, "The designated asset account must be yours. OT "
+                              "on myacct. Use: --myacct ACCT_ID\n"
+                              "The designated asset account must be yours. OT "
                               "will find the server ID based on the "
                               "account.\n\n");
         return -1;
     }
 
-    string strHisNymID;
-
-    if (VerifyExists("HisNym")) {
-        strHisNymID = HisNym;
-
-        string strRecipientPubkey = MadeEasy::load_or_retrieve_encrypt_key(
-            strServerID, strMyNymID, strHisNymID);
-
-        if (!VerifyStringVal(strRecipientPubkey)) {
-            OTAPI_Wrap::Output(
-                0, "\n\nFailure: Unable to load or download pubkey for HisNym "
-                   "based on given value (" +
-                       strHisNymID +
-                       "). To override, use: --hisnym HIS_NYM_ID\n\n");
-            return -1;
-        }
-
-    }
-    else {
+    string strRecipientPubkey =
+        MadeEasy::load_or_retrieve_encrypt_key(strServerID, strMyNymID, HisNym);
+    if (!VerifyStringVal(strRecipientPubkey)) {
         OTAPI_Wrap::Output(
-            0, "Optionally, enter recipient NymID (abbreviations accepted): ");
-
-        string strHisPartialNymID = OT_CLI_ReadLine();
-
-        if (VerifyStringVal(strHisPartialNymID)) {
-            strHisNymID =
-                OTAPI_Wrap::Wallet_GetNymIDFromPartial(strHisPartialNymID);
-
-            if (!VerifyStringVal(strHisNymID)) {
-                OTAPI_Wrap::Output(0, "\n\nFailure: Unable to find HisNym "
-                                      "(Recipient) in your wallet. Use: "
-                                      "--hisnym NYM_ID\n");
-                return -1;
-            }
-        }
-        else {
-            strHisNymID = strMyNymID;
-        }
+            0, "\n\nFailure: Unable to load or download pubkey for HisNym "
+               "based on given value (" +
+                   HisNym + "). To override, use: --hisnym HIS_NYM_ID\n\n");
+        return -1;
     }
 
     string strAmount = "0";
@@ -7488,7 +7458,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
     // HERE, WE SEND THE VOUCHER WITHDRAWAL REQUEST TO THE SERVER
     int64_t lAmount = OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount);
     string strResponse = MadeEasy::withdraw_voucher(
-        strServerID, strMyNymID, MyAcct, strHisNymID, strMemo, lAmount);
+        strServerID, strMyNymID, MyAcct, HisNym, strMemo, lAmount);
     string strAttempt = "withdraw_voucher";
 
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
@@ -7633,22 +7603,23 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
             // ALREADY BEING DONE, WHICH I BELIEVE THAT IT IS.)
 
             string strServerID = OTAPI_Wrap::Instrmnt_GetServerID(strCheque);
-            string strSenderNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-            string strRecipientNymID =
-                OTAPI_Wrap::Instrmnt_GetRecipientUserID(strCheque);
-
             if (!VerifyStringVal(strServerID)) {
                 OTAPI_Wrap::Output(0, "Unable to retrieve a Server ID from "
                                       "this voucher! Very strange. "
                                       "(Failure.)\n");
                 return -1;
             }
+
+            string strSenderNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
             if (!VerifyStringVal(strSenderNymID)) {
                 OTAPI_Wrap::Output(0, "Unable to retrieve a Sender Nym ID from "
                                       "this voucher! Very strange. "
                                       "(Failure.)\n");
                 return -1;
             }
+
+            string strRecipientNymID =
+                OTAPI_Wrap::Instrmnt_GetRecipientUserID(strCheque);
             if (!VerifyStringVal(strRecipientNymID)) {
                 OTAPI_Wrap::Output(
                     0,
@@ -7670,17 +7641,15 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
             //
             // Instead, simply check for success or failure:
             nReturnVal = VerifyMessageSuccess(strResponse);
-
-            if (1 != nReturnVal) {
-                OTAPI_Wrap::Output(0, "sendvoucher: Failed.\n");
-            }
-            else {
+            if (1 == nReturnVal) {
                 OTAPI_Wrap::Output(
                     0, "Success in sendvoucher! Server response:\n\n");
                 print(strResponse);
                 OTAPI_Wrap::Output(0, "(Success in sendvoucher)\n");
                 return 1;
             }
+
+            OTAPI_Wrap::Output(0, "sendvoucher: Failed.\n");
         }
 
         return nReturnVal;
