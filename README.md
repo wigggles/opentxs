@@ -33,17 +33,24 @@ the Lucre project.
 
 ### Contributing
 
-All development goes in develop branch - please don't submit pull requests to master.
+All development goes in develop branch - please don't submit pull requests to
+master.
 
 Please do *NOT* use an editor that automatically reformats.
 
-The source code is verified with [cppcheck](https://github.com/danmar/cppcheck/)
-in our continuous integration system. For convenience please enable the git pre-push
-hook which will trigger cppcheck each time you are pushing. To do so type in the
-repo directory:
+As part of our [Continuous Integration system](https://travis-ci.org/monetas/opentxs)
+we run [cppcheck](https://github.com/danmar/cppcheck/) and 
+[clang-format](http://clang.llvm.org/docs/ClangFormat.html). The build will fail
+if either of them finds problems.
+
+#### CppCheck and clang-format Git hooks
+
+For convenience please enable the git hooks which will trigger cppcheck and
+clang-format each time you push or commit. To do so type in the repo directory:
 
     cd .git/hooks  
-    ln -s ../../scripts/git_hooks/pre-push pre-push  
+    ln -s ../../scripts/git_hooks/pre-push
+    ln -s ../../scripts/git_hooks/pre-commit
  
 To check your code without pushing the following command can be used:  
 
