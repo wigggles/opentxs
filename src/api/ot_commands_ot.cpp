@@ -4103,7 +4103,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainTransfer()
             return -1;
         }
 
-        // strAmount and strNote...
         string strAmount = "0";
         string strNote = "";
 
@@ -5831,8 +5830,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainKillOffer()
 
 OT_COMMANDS_OT int32_t OT_Command::mainKillPlan()
 {
-    // string OT_CLI_GetValueByKey(Args, str_key)
-
     string strUsage = "\n\n FYI, used for stopping an active payment "
                       "plan.\nUSAGE: killplan --args \"transnum "
                       "<transaction_number>\"\n\n";
@@ -6626,15 +6623,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptMoney()
 
         int32_t nAcceptedPurses =
             accept_from_paymentbox(MyAcct, strIndices, "PURSE");
-        // Voucher is already interpreted as a form of cheque, so this is
-        // redundant.
-        //      int32_t nAcceptedVouchers = accept_from_paymentbox(MyAcct,
-        // strIndices, "VOUCHER")
+
         int32_t nAcceptedCheques =
             accept_from_paymentbox(MyAcct, strIndices, "CHEQUE");
 
-        // If all five calls succeed, then the total here is 5.
-        // So we return success as well (1).
         if ((nAcceptedTransfers > -1) || (nAcceptedPurses > -1) ||
             (nAcceptedCheques > -1)) {
             return 1;
@@ -6662,10 +6654,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptAll()
         // nym)
         int32_t nAcceptedPurses =
             accept_from_paymentbox(MyAcct, strIndices, "PURSE");
-        // Voucher is already interpreted as a form of cheque, so this is
-        // redundant.
-        //      int32_t nAcceptedVouchers = accept_from_paymentbox(MyAcct,
-        // strIndices, "VOUCHER")
+
         int32_t nAcceptedCheques =
             accept_from_paymentbox(MyAcct, strIndices, "CHEQUE");
 
@@ -6754,7 +6743,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainCheckNym()
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
-        VerifyExists("HisNym") && VerifyExists("Args")) {
+        VerifyExists("HisNym")) {
         string strResponse = details_check_user(Server, MyNym, HisNym);
 
         // -1 is error,
@@ -10329,8 +10318,6 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
     return 1;
 }
 
-// strIndices == "" when you want to loop through all accounts and accept all
-// invoices for them.
 OT_COMMANDS_OT int32_t
 OT_Command::details_accept_invoices(const string& strMyAcctID,
                                     const string& strIndices)
@@ -10363,8 +10350,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptInvoices()
     return -1;
 }
 
-// strIndices == "" to accept all incoming payments from the payments inbox.
-// (NOT Invoices.)
 OT_COMMANDS_OT int32_t
 OT_Command::details_accept_payments(const string& strMyAcctID,
                                     const string& strIndices)
