@@ -815,9 +815,8 @@ bool OTBylaw::AddVariable(OTVariable& theVariable)
     return false;
 }
 
-bool OTBylaw::AddVariable(
-    const std::string str_Name, const bool bValue,
-    const OTVariable::OTVariable_Access theAccess /*=Var_Persistent*/)
+bool OTBylaw::AddVariable(const std::string str_Name, const bool bValue,
+                          const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, bValue, theAccess);
     OT_ASSERT(NULL != pVar);
@@ -830,9 +829,9 @@ bool OTBylaw::AddVariable(
     return true;
 }
 
-bool OTBylaw::AddVariable(
-    const std::string str_Name, const std::string str_Value,
-    const OTVariable::OTVariable_Access theAccess /*=Var_Persistent*/)
+bool OTBylaw::AddVariable(const std::string str_Name,
+                          const std::string str_Value,
+                          const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, str_Value, theAccess);
     OT_ASSERT(NULL != pVar);
@@ -845,9 +844,8 @@ bool OTBylaw::AddVariable(
     return true;
 }
 
-bool OTBylaw::AddVariable(
-    const std::string str_Name, const int32_t nValue,
-    const OTVariable::OTVariable_Access theAccess /*=Var_Persistent*/)
+bool OTBylaw::AddVariable(const std::string str_Name, const int32_t nValue,
+                          const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);
     OT_ASSERT(NULL != pVar);

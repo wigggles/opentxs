@@ -1537,8 +1537,8 @@ bool OTCronItem::MoveFunds(
     return bSuccess;
 }
 
-bool OTCronItem::SetDateRange(const time64_t VALID_FROM /*=0*/,
-                              const time64_t VALID_TO /*=0*/)
+bool OTCronItem::SetDateRange(const time64_t VALID_FROM,
+                              const time64_t VALID_TO)
 {
     // Set the CREATION DATE
     //

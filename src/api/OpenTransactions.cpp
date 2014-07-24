@@ -1414,7 +1414,7 @@ OTAccount* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
 //
 // Adds to wallet. (No need to delete.)
 //
-OTPseudonym* OT_API::CreateNym(int32_t nKeySize /*=1024*/,
+OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
                                const std::string str_id_source,
                                const std::string str_alt_location)
 {
@@ -5015,10 +5015,10 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& PAYMENT_PLAN_PERIOD, // (seconds from now) and happens
     // ----------------------------------------// every period, ad infinitum,
     // until
-    time64_t PAYMENT_PLAN_LENGTH /*=0*/,     // after the length (in seconds)
-    int32_t PAYMENT_PLAN_MAX_PAYMENTS /*=0*/ // expires, or after the maximum
-    )                                        // number of payments. These last
-{                                            // two arguments are optional.
+    time64_t PAYMENT_PLAN_LENGTH,     // after the length (in seconds)
+    int32_t PAYMENT_PLAN_MAX_PAYMENTS // expires, or after the maximum
+    )                                 // number of payments. These last
+{                                     // two arguments are optional.
     OTPseudonym* pNym = this->GetOrLoadPrivateNym(
         RECIPIENT_USER_ID, false, __FUNCTION__); // This logs, ASSERTs, etc.
     if (NULL == pNym) return NULL;
@@ -11823,10 +11823,10 @@ int32_t OT_API::issueMarketOffer(
                                           // minimum increment.
     const int64_t& PRICE_LIMIT,           // Per Minimum Increment...
     const bool bBuyingOrSelling,          //  BUYING == false, SELLING == true.
-    const time64_t tLifespanInSeconds /*=86400*/, // 86400 == 1 day.
-    const char STOP_SIGN /*=0*/,           // For stop orders, set to '<' or '>'
-    const int64_t ACTIVATION_PRICE /*=0*/) // For stop orders, this is
-                                           // threshhold price.
+    const time64_t tLifespanInSeconds,    // 86400 == 1 day.
+    const char STOP_SIGN,                 // For stop orders, set to '<' or '>'
+    const int64_t ACTIVATION_PRICE)       // For stop orders, this is
+                                          // threshhold price.
 {
     OTPseudonym* pNym = this->GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13648,7 +13648,7 @@ int32_t OT_API::getRequest(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
 int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
                              const OTIdentifier& USER_ID,
                              const OTIdentifier& USER_ID_CHECK,
-                             const int64_t lAdjustment /*=0*/)
+                             const int64_t lAdjustment)
 {
     const char* szFuncName = "OT_API::usageCredits";
     OTPseudonym* pNym = this->GetOrLoadPrivateNym(

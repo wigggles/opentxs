@@ -238,7 +238,7 @@ OTStash::OTStash()
     // m_mapStashItems
 }
 
-OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount /*=0*/)
+OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(strAssetTypeID, lAmount);
     OT_ASSERT(NULL != pItem);
@@ -247,8 +247,7 @@ OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount /*=0*/)
         std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
 }
 
-OTStash::OTStash(const OTIdentifier& theAssetTypeID,
-                 const int64_t lAmount /*=0*/)
+OTStash::OTStash(const OTIdentifier& theAssetTypeID, const int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
     OT_ASSERT(NULL != pItem);

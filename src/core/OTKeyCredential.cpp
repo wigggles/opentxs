@@ -189,8 +189,8 @@ bool OTKeyCredential::VerifySignedBySelf()
 //
 int32_t OTKeyCredential::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
-    char cKeyType /*='0'*/) const // 'S' (signing key) or 'E' (encryption key)
-                                  // or 'A' (authentication key)
+    char cKeyType) const // 'S' (signing key) or 'E' (encryption key)
+                         // or 'A' (authentication key)
 {
     // Key type was not specified, because we only want keys that match the
     // metadata on theSignature.
@@ -308,8 +308,8 @@ void OTKeyCredential::Release_Subkey()
     // Release any dynamically allocated members here. (Normally.)
 }
 
-bool OTKeyCredential::GenerateKeys(int32_t nBits /*=1024*/) // Gotta start
-                                                            // somewhere.
+bool OTKeyCredential::GenerateKeys(int32_t nBits) // Gotta start
+                                                  // somewhere.
 {
     const bool bSign = m_SigningKey.MakeNewKeypair(nBits);
     const bool bAuth = m_AuthentKey.MakeNewKeypair(nBits);

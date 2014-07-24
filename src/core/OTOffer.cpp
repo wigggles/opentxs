@@ -444,8 +444,8 @@ bool OTOffer::MakeOffer(
                                       // bought or sold for each transaction
     const int64_t& lTransactionNum,   // The transaction number authorizing this
                                       // trade.
-    const time64_t& VALID_FROM /*=0*/, // defaults to RIGHT NOW
-    const time64_t& VALID_TO /*=0*/)   // defaults to 24 hours (a "Day Order")
+    const time64_t& VALID_FROM,       // defaults to RIGHT NOW
+    const time64_t& VALID_TO)         // defaults to 24 hours (a "Day Order")
 {
     m_bSelling = bBuyingOrSelling; // Bid or Ask?
     SetTransactionNum(lTransactionNum);

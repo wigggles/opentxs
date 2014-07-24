@@ -258,8 +258,7 @@ OTParty::OTParty(const std::string str_PartyName,
                                       // this constructor.
                  const std::string str_agent_name, OTAccount* pAccount,
                  const std::string* pstr_account_name,
-                 const int64_t lClosingTransNo /*=0*/
-                 )
+                 const int64_t lClosingTransNo)
     : m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
     , m_lOpeningTransNo(0)

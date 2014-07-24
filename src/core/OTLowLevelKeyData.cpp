@@ -187,7 +187,7 @@ void OTLowLevelKeyData::Cleanup()
     dp->m_pX509 = NULL;
 }
 
-bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits /*=1024*/)
+bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
 {
 
     //    OpenSSL_BIO        bio_err    =    NULL;

@@ -4322,9 +4322,9 @@ OTTransaction::OTTransaction(
 // transactionType theType, int64_t lTransactionNum=0);
 
 // static
-OTTransaction* OTTransaction::GenerateTransaction(
-    const OTLedger& theOwner, transactionType theType,
-    int64_t lTransactionNum /*=0*/)
+OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
+                                                  transactionType theType,
+                                                  int64_t lTransactionNum)
 {
     OTTransaction* pTransaction = GenerateTransaction(
         theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
@@ -4338,7 +4338,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
 OTTransaction* OTTransaction::GenerateTransaction(
     const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
     const OTIdentifier& theServerID, transactionType theType,
-    int64_t lTransactionNum /*=0*/)
+    int64_t lTransactionNum)
 {
     OTTransaction* pTransaction = new OTTransaction(
         theUserID, theAccountID, theServerID, lTransactionNum);

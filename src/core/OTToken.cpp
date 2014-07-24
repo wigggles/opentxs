@@ -1082,10 +1082,11 @@ bool OTToken::GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
 }
 
 // static
-OTToken* OTToken::InstantiateAndGenerateTokenRequest(
-    const OTPurse& thePurse, const OTPseudonym& theNym, OTMint& theMint,
-    int64_t lDenomination,
-    int32_t nTokenCount /*=OTToken::GetMinimumPrototokenCount()*/)
+OTToken* OTToken::InstantiateAndGenerateTokenRequest(const OTPurse& thePurse,
+                                                     const OTPseudonym& theNym,
+                                                     OTMint& theMint,
+                                                     int64_t lDenomination,
+                                                     int32_t nTokenCount)
 {
     OTToken* pToken =
         OTToken::LowLevelInstantiate(thePurse); // already asserts.

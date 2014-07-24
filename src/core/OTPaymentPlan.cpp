@@ -409,7 +409,7 @@ void OTPaymentPlan::UpdateContents()
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.
 
 bool OTPaymentPlan::SetInitialPayment(const int64_t& lAmount,
-                                      time64_t tTimeUntilInitialPayment /*=0*/)
+                                      time64_t tTimeUntilInitialPayment)
 {
     m_bInitialPayment = true;      // There is now an initial payment.
     m_bInitialPaymentDone = false; // It has not yet been paid.
@@ -535,10 +535,11 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
 
 // *** Set Payment Plan *** / Make sure to call SetAgreement() first.
 // default: 1st payment in 30 days
-bool OTPaymentPlan::SetPaymentPlan(
-    const int64_t& lPaymentAmount, time64_t tTimeUntilPlanStart /*=2592000*/,
-    time64_t tBetweenPayments /*=2592000*/, // Default: 30 days.
-    time64_t tPlanLength /*=0*/, int32_t nMaxPayments /*=0*/)
+bool OTPaymentPlan::SetPaymentPlan(const int64_t& lPaymentAmount,
+                                   time64_t tTimeUntilPlanStart,
+                                   time64_t tBetweenPayments, // Default: 30
+                                                              // days.
+                                   time64_t tPlanLength, int32_t nMaxPayments)
 {
 
     if (lPaymentAmount <= 0) {

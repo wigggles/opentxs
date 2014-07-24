@@ -518,8 +518,7 @@ bool InitDefaultStorage(StorageType eStoreType, PackType ePackType)
 }
 
 // %newobject Factory::createObj();
-Storage* CreateStorageContext(StorageType eStoreType,
-                              PackType ePackType /*=OTDB_DEFAULT_PACKER*/)
+Storage* CreateStorageContext(StorageType eStoreType, PackType ePackType)
 {
     Storage* pStorage = Storage::Create(eStoreType, ePackType);
 
@@ -2054,7 +2053,7 @@ template <> void TradeListNymPB::hookAfterUnpack()
 // instance
 // of Storage.)
 //
-OTPacker* Storage::GetPacker(PackType ePackType /*=OTDB_DEFAULT_PACKER*/)
+OTPacker* Storage::GetPacker(PackType ePackType)
 {
     // Normally if you use Create(), the packer is created at that time.
     // However, in the future, coders using the API may create subclasses of

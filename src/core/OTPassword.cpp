@@ -493,7 +493,7 @@ OTPassword::OTPassword(const OTPassword& rhs)
 }
 
 OTPassword::OTPassword(const char* szInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize /*=DEFAULT_SIZE*/)
+                       OTPassword::BlockSize theBlockSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -506,7 +506,7 @@ OTPassword::OTPassword(const char* szInput, uint32_t nInputSize,
 }
 
 OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize /*=DEFAULT_SIZE*/)
+                       OTPassword::BlockSize theBlockSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -519,7 +519,7 @@ OTPassword::OTPassword(const uint8_t* szInput, uint32_t nInputSize,
 }
 
 OTPassword::OTPassword(const void* vInput, uint32_t nInputSize,
-                       OTPassword::BlockSize theBlockSize /*=DEFAULT_SIZE*/)
+                       OTPassword::BlockSize theBlockSize)
     : size_(0)
     , isText_(false)
     , isBinary_(true)
@@ -820,7 +820,7 @@ bool OTPassword::randomizePassword_uint8(uint8_t* szDestination,
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::randomizePassword(uint32_t nNewSize /*=DEFAULT_SIZE*/)
+int32_t OTPassword::randomizePassword(uint32_t nNewSize)
 {
     uint32_t nSize = nNewSize;
 
@@ -887,7 +887,7 @@ bool OTPassword::randomizeMemory_uint8(uint8_t* szDestination,
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-int32_t OTPassword::randomizeMemory(uint32_t nNewSize /*=DEFAULT_SIZE*/)
+int32_t OTPassword::randomizeMemory(uint32_t nNewSize)
 {
     uint32_t nSize = nNewSize;
 

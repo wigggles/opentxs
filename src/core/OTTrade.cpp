@@ -166,7 +166,7 @@ enum {
 bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
                                OTPseudonym&, // Not needed in this version of
                                              // the override.
-                               mapOfNyms* /*=nullptr*/)
+                               mapOfNyms*)
 {
     return this->VerifySignature(nym);
 }
@@ -418,8 +418,7 @@ bool OTTrade::VerifyOffer(OTOffer& offer)
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 //
-OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId /*=nullptr*/,
-                           OTMarket** market /*=nullptr*/)
+OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId, OTMarket** market)
 {
     OT_ASSERT(GetCron() != nullptr);
 
@@ -1266,8 +1265,7 @@ processed through this order? We keep track.
 // This is called by the client side. First you call MakeOffer() to set up the
 // Offer,
 // then you call IssueTrade() and pass the Offer into it here.
-bool OTTrade::IssueTrade(OTOffer& offer, char stopSign /*=0*/,
-                         int64_t stopPrice /*=0*/)
+bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
 {
     // Make sure the Stop Sign is within parameters (0, '<', or '>')
     if ((stopSign == 0) || (stopSign == '<') || (stopSign == '>'))

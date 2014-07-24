@@ -429,7 +429,7 @@ bool OTKeypair::LoadPublicKeyFromCertFile(
                                                    pstrReason, pImportPassword);
 }
 
-bool OTKeypair::MakeNewKeypair(int32_t nBits /*=1024*/)
+bool OTKeypair::MakeNewKeypair(int32_t nBits)
 {
     const char* szFunc = "OTKeypair::MakeNewKeypair";
 

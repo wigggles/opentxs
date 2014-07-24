@@ -914,7 +914,7 @@ bool OTPseudonym::AddNewMasterCredential(
 
 bool OTPseudonym::AddNewSubkey(
     const OTIdentifier& idMasterCredential,
-    const int32_t nBits /*=1024*/,    // Ignored unless pmapPrivate is NULL.
+    const int32_t nBits,              // Ignored unless pmapPrivate is NULL.
     const OTString::Map* pmapPrivate, // If NULL, then the keys are
                                       // generated in here.
     OTPasswordData* pPWData, OTString* pstrNewID)
@@ -1452,10 +1452,9 @@ bool OTPseudonym::Savex509CertAndPrivateKey(bool bCreateFile,
 
 // use this to actually generate a new key pair and assorted nym files.
 //
-bool OTPseudonym::GenerateNym(int32_t nBits /*=1024*/,
-                              bool bCreateFile, // By default, it
-                                                // creates the various
-                                                // nym files
+bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
+                              // creates the various
+                              // nym files
                               // and certs in local storage. (Pass false when
                               // creating a temp Nym, like for OTPurse.)
                               const std::string str_id_source,
@@ -6594,7 +6593,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 //
 int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                                               const OTSignature& theSignature,
-                                              char cKeyType /*='0'*/) const
+                                              char cKeyType) const
 {
     OT_ASSERT(NULL != m_pkeypair);
 

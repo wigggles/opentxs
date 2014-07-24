@@ -188,8 +188,7 @@ void SetMonitor(const char* filepathexact)
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
 bool OTMint_Lucre::AddDenomination(OTPseudonym& theNotary,
-                                   int64_t lDenomination,
-                                   int32_t nPrimeLength /*=1024*/)
+                                   int64_t lDenomination, int32_t nPrimeLength)
 {
     OT_ASSERT(NULL != m_pKeyPublic);
 

@@ -356,8 +356,8 @@ bool OTItem::VerifyBalanceStatement(
     const int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
     OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
     OTTransaction& TARGET_TRANSACTION,
-    const int64_t lOutboxTrnsNum /*=0*/) // Only used in the case of transfer,
-                                         // where the user
+    const int64_t lOutboxTrnsNum) // Only used in the case of transfer,
+                                  // where the user
 { // doesn't know the outbox trans# in advance, so he sends
     if (GetType() != OTItem::balanceStatement) // a dummy number (currently '1')
                                                // which we verify against

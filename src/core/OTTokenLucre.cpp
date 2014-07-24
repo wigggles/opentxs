@@ -177,9 +177,9 @@ OTToken_Lucre::~OTToken_Lucre()
 // nDenomination must be one of the denominations supported by the mint.
 // sets m_nTokenCount and populates the maps with prototokens (in ASCII-armored
 // format.)
-bool OTToken_Lucre::GenerateTokenRequest(
-    const OTPseudonym& theNym, OTMint& theMint, int64_t lDenomination,
-    int32_t nTokenCount /*=OTToken::nMinimumPrototokenCount*/)
+bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
+                                         OTMint& theMint, int64_t lDenomination,
+                                         int32_t nTokenCount)
 {
     //    otErr << "%s <bank public info> <coin request private output file>
     // <coin request public output file>\n", argv[0]);
