@@ -135,6 +135,8 @@
 
 #include "ExportWrapper.h"
 
+#include <cinttypes>
+
 namespace opentxs
 {
 

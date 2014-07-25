@@ -136,8 +136,6 @@ This could be wrapped by OTAPI_Basic, just as OTAPI was.
 
 #include "stdafx.hpp"
 
-#include "ot_me_switch.hpp"
-
 #include "OT_ME.hpp"
 
 #include "OTAPI.hpp"
@@ -166,12 +164,7 @@ OT_ME::OT_ME() : r_pPrev(NULL)
 {
     r_pPrev = s_pMe;
     s_pMe = this;
-
-#if USE_OLD_CHAISCRIPT == 1
-    m_pImplementation = new OTMeChai(this);
-#else
     m_pImplementation = new OTMeCpp;
-#endif
 }
 
 OT_ME::~OT_ME()
@@ -2697,36 +2690,10 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
             return false;
         }
 
-#if USE_OLD_CHAISCRIPT == 1
-        OTString strHeaderFilePath_03;
-        if (NewScriptExists("ot_made_easy.ot", true, strHeaderFilePath_03)) {
-            OTLog::vOutput(1, " %s\n", strHeaderFilePath_03.Get());
-        }
-        else {
-            OTLog::vError("%s: Header script not found: %s\n", __FUNCTION__,
-                          strHeaderFilePath_03.Get());
-            return false;
-        }
-
-        OTString strHeaderFilePath_04;
-        if (NewScriptExists("ot_commands.ot", true, strHeaderFilePath_04)) {
-            OTLog::vOutput(1, " %s\n\n", strHeaderFilePath_04.Get());
-        }
-        else {
-            OTLog::vError("%s: Header script not found: %s\n", __FUNCTION__,
-                          strHeaderFilePath_04.Get());
-            return false;
-        }
-#endif
-
         try
         {
             theScript.chai->use(strHeaderFilePath_01.Get());
             theScript.chai->use(strHeaderFilePath_02.Get());
-#if USE_OLD_CHAISCRIPT == 1
-            theScript.chai->use(strHeaderFilePath_03.Get());
-            theScript.chai->use(strHeaderFilePath_04.Get());
-#endif
         }
         catch (const chaiscript::exception::eval_error& ee)
         {

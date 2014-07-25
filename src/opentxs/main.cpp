@@ -132,33 +132,299 @@ kamH0Y/n11lCvo1oQxM+
 
 #include <stdafx.hpp>
 
-#include <algorithm>
-#include <cctype>
-#include <functional>
-#include <iostream>
-#include <locale>
-#include <map>
-#include <vector>
-
-#include <anyoption.hpp>
+#include "ot_commands_ot.hpp"
+#include "ot_otapi_ot.hpp"
 
 #include <OpenTransactions.hpp>
-#include <OT_ME.hpp>
-#include <OTClient.hpp>
-
 #include <OTCleanup.hpp>
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
+#include <OTClient.hpp>
 #include <OTLog.hpp>
 #include <OTPaths.hpp>
 #include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
 #include <OTVariable.hpp>
 #include <OTWallet.hpp>
 
-#include "ot_otapi_ot.hpp"
+#include <anyoption.hpp>
+
+#include <algorithm>
+#include <cctype>
+#include <map>
+#include <vector>
 
 using namespace opentxs;
+
+typedef enum {
+    catError = 0,
+    catAdmin = 1,
+    catWallet = 2,
+    catMisc = 3,
+    catMarkets = 4,
+    catAccounts = 5,
+    catOtherUsers = 6,
+    catInstruments = 7,
+    catBaskets = 8,
+    catNyms = 9,
+    catLast = 10
+} Category;
+
+typedef struct
+{
+    const char* command;
+    int32_t (*function)();
+    Category category;
+    const char* helpText;
+} CommandEntry;
+
+static const char* categoryName[] = {
+    "Category Error",           "Advanced utilities",    "The user wallet",
+    "Misc",                     "Markets (bid/ask)",     "Asset accounts",
+    "Dealing with other users", "Financial instruments", "Basket currencies",
+    "Pseudonyms"};
+
+CommandEntry commands[] = {
+    {"acceptall",
+     OT_Command::mainAcceptAll,
+     catAccounts,
+     "accept all incoming transfers, receipts, payments, invoices."},
+    {"acceptinbox",
+     OT_Command::mainAcceptInbox,
+     catAccounts,
+     "accept all incoming transfers and receipts in MyAcct's inbox."},
+    {"acceptinvoices", OT_Command::mainAcceptInvoices,
+     catAccounts,      "pay all invoices in MyNym's payments inbox."},
+    {"acceptmoney", OT_Command::mainAcceptMoney,
+     catAccounts,   "accept all incoming transfers and payments into MyAcct."},
+    {"acceptpayments",
+     OT_Command::mainAcceptPayments,
+     catAccounts,
+     "accept all incoming payments in MyNym's payments inbox."},
+    {"acceptreceipts", OT_Command::mainAcceptReceipts,
+     catAccounts,      "accept all receipts in MyAcct's inbox."},
+    {"accepttransfers", OT_Command::mainAcceptTransfers,
+     catAccounts,       "accept all incoming transfers in MyAcct's inbox."},
+    {"addasset", OT_Command::mainAddAsset,
+     catWallet,  "paste an existing asset contract, import into your wallet."},
+    {"addserver",
+     OT_Command::mainAddServer,
+     catWallet,
+     "paste an existing server contract, import into your wallet."},
+    {"addsignature", OT_Command::mainAddSignature,
+     catAdmin,       "add a signature to a contract without releasing others."},
+    {"cancel",
+     OT_Command::mainCancel,
+     catInstruments,
+     "cancel an uncashed outgoing instrument from outpayment box."},
+    {"changepw", OT_Command::mainChangePw,
+     catWallet,  "change the master passphrase for the wallet."},
+    {"checknym",    OT_Command::mainCheckNym,
+     catOtherUsers, "download a nym's public key based on his ID."},
+    {"clearexpired", OT_Command::mainClearExpired,
+     catMisc,        "clear all expired records."},
+    {"clearrecords", OT_Command::mainClearRecords,
+     catMisc,        "clear all archived records and receipts."},
+    {"confirm",
+     OT_Command::mainConfirm,
+     catInstruments,
+     "confirm your agreement to a smart contract or payment plan."},
+    {"decode", OT_Command::mainDecode,
+     catAdmin, "OT-base64-decode out of armor."},
+    {"decrypt", OT_Command::mainDecrypt,
+     catAdmin,  "decrypt ciphertext using nym's private key."},
+    {"deleteinmail", OT_Command::mainDeleteInmail,
+     catOtherUsers,  "delete an in-mail item."},
+    {"deleteoutmail", OT_Command::mainDeleteOutmail,
+     catOtherUsers,   "delete an out-mail item."},
+    {"deposit",   OT_Command::mainDeposit,
+     catAccounts, "deposit cash, cheque, voucher, or invoice."},
+    {"discard",
+     OT_Command::mainDiscard,
+     catInstruments,
+     "discard an uncashed incoming instrument from payments inbox."},
+    {"editaccount",
+     OT_Command::mainEditAccount,
+     catWallet,
+     "edit an asset account label, as it appears in your wallet."},
+    {"editasset",
+     OT_Command::mainEditAsset,
+     catWallet,
+     "edit a currency contract label, as it appears in your wallet."},
+    {"editnym", OT_Command::mainEditNym,
+     catWallet, "edit the nym label, as it appears in your wallet."},
+    {"editserver",
+     OT_Command::mainEditServer,
+     catWallet,
+     "edit a server contract label, as it appears in your wallet."},
+    {"encode", OT_Command::mainEncode,
+     catAdmin, "OT-base64-encode into armor."},
+    {"encrypt", OT_Command::mainEncrypt,
+     catAdmin,  "encrypt plaintext to a nym's public key."},
+    {"exchangebasket", OT_Command::mainExchangeBasket,
+     catBaskets,       "exchange in/out of a basket currency."},
+    {"exportcash",   OT_Command::mainExportCash,
+     catInstruments, "export a cash purse."},
+    {"exportnym", OT_Command::mainExportNym,
+     catWallet,   "export an OT Nym as a single importable file."},
+    {"getcontract", OT_Command::mainGetContract,
+     catAdmin,      "download an asset or server contract by its ID."},
+    {"getmarkets", OT_Command::mainGetMarkets,
+     catMarkets,   "download the list of markets."},
+    {"getmyoffers", OT_Command::mainGetMyOffers,
+     catMarkets,    "download mynym's list of market offers."},
+    {"getoffers", OT_Command::mainGetOffers,
+     catMarkets,  "download the list of market offers."},
+    {"getreceipt", OT_Command::mainGetReceipt,
+     catAdmin,     "downloads a box receipt based on transaction ID."},
+    {"importcash",   OT_Command::mainImportCash,
+     catInstruments, "import a cash purse."},
+    {"importnym", OT_Command::mainImportNym,
+     catWallet,   "import an OT Nym that was previously exported."},
+    {"inbox",     OT_Command::mainInbox,
+     catAccounts, "show inbox of a particular account."},
+    {"inmail",      OT_Command::mainInmail,
+     catOtherUsers, "show in-mail for a particular nym."},
+    {"inpayments",  OT_Command::mainInpayments,
+     catOtherUsers, "show contents of incoming payments box."},
+    {"issueasset", OT_Command::mainIssueAsset,
+     catAdmin,     "issue a currency contract onto an OT server."},
+    {"killoffer", OT_Command::mainKillOffer,
+     catMarkets,  "kill an active recurring market offer."},
+    {"killplan",     OT_Command::mainKillPlan,
+     catInstruments, "kill an active recurring payment plan."},
+    {"newaccount", OT_Command::mainNewAccount,
+     catAccounts,  "create a new asset account."},
+    {"newasset", OT_Command::mainNewAsset,
+     catAdmin,   "create a new asset contract."},
+    {"newbasket", OT_Command::mainNewBasket,
+     catBaskets,  "create a new basket currency."},
+    {"newcredential", OT_Command::mainNewCredential,
+     catNyms,         "create a new credential for a specific nym."},
+    {"newkey", OT_Command::mainNewKey, catAdmin, "create a new symmetric key."},
+    {"newnym", OT_Command::mainNewNym, catNyms, "create a new nym."},
+    {"newoffer", OT_Command::mainNewOffer,
+     catMarkets, "create a new market offer."},
+    {"newserver", OT_Command::mainNewServer,
+     catAdmin,    "create a new server contract."},
+    {"outbox",    OT_Command::mainOutbox,
+     catAccounts, "show outbox of a particular account."},
+    {"outmail",     OT_Command::mainOutmail,
+     catOtherUsers, "show out-mail for a particular nym."},
+    {"outpayment",  OT_Command::mainOutpayment,
+     catOtherUsers, "show contents of outgoing payments box."},
+    {"passworddecrypt", OT_Command::mainPasswordDecrypt,
+     catAdmin,          "password-decrypt a ciphertext using a symmetric key."},
+    {"passwordencrypt", OT_Command::mainPasswordEncrypt,
+     catAdmin,          "password-encrypt a plaintext using a symmetric key."},
+    {"paydividend",
+     OT_Command::mainPayDividend,
+     catMarkets,
+     "dividend payout, sent to all shareholders (in voucher form.)"},
+    {"payinvoice",  OT_Command::mainPayInvoice,
+     catOtherUsers, "pay an invoice."},
+    {"proposeplan",  OT_Command::mainProposePlan,
+     catInstruments, "as merchant, propose a payment plan to a customer."},
+    {"refresh", OT_Command::mainRefresh,
+     catWallet, "performs both refreshnym and refreshaccount."},
+    {"refreshaccount", OT_Command::mainRefreshAccount,
+     catAccounts,      "download latest intermediary files for myacct."},
+    {"refreshnym", OT_Command::mainRefreshNym,
+     catNyms,      "download latest intermediary files for mynym."},
+    {"registernym", OT_Command::mainRegisterNym,
+     catAdmin,      "register a nym onto an OT server."},
+    {"revokecredential", OT_Command::mainRevokeCredential,
+     catNyms,            "revoke one of a nym's credentials."},
+    {"sendcash",
+     OT_Command::mainSendCash,
+     catOtherUsers,
+     "send cash from mypurse to recipient, withdraw if necessary."},
+    {"sendcheque",  OT_Command::mainSendCheque,
+     catOtherUsers, "write a cheque and then send it to the recipient."},
+    {"sendinvoice", OT_Command::mainSendInvoice,
+     catOtherUsers, "write an invoice and then send it to the recipient."},
+    {"sendmessage", OT_Command::mainSendMessage,
+     catOtherUsers, "send a message to another nym's in-mail."},
+    {"sendvoucher", OT_Command::mainSendVoucher,
+     catOtherUsers, "withdraw a voucher and then send it to the recipient."},
+    {"showaccount", OT_Command::mainShowAccount,
+     catAccounts,   "show account stats for a single account."},
+    {"showaccounts", OT_Command::mainShowAccounts,
+     catWallet,      "show the asset accounts in the wallet."},
+    {"showactive",
+     OT_Command::mainShowActive,
+     catInstruments,
+     "show the active cron item IDs, or the details of one by ID."},
+    {"showassets", OT_Command::mainShowAssets,
+     catWallet,    "show the currency contracts in the wallet."},
+    {"showbalance", OT_Command::mainShowBalance,
+     catAccounts,   "show balance for a specific account."},
+    {"showbasket", OT_Command::mainShowBasket,
+     catBaskets,   "show basket currencies available in the wallet."},
+    {"showcredential", OT_Command::mainShowCredential,
+     catNyms,          "show a specific credential in detail."},
+    {"showcredentials", OT_Command::mainShowCredentials,
+     catNyms,           "show the credentials for a specific nym."},
+    {"showexpired", OT_Command::mainShowExpired,
+     catMisc,       "show contents of expired record box."},
+    {"showincoming",
+     OT_Command::mainShowIncoming,
+     catWallet,
+     "show incoming payments for mynym+server and/or inbox for myacct."},
+    {"showmarkets", OT_Command::mainShowMarkets,
+     catMarkets,    "show the list of markets."},
+    {"showmint",
+     OT_Command::mainShowMint,
+     catAdmin,
+     "show mint file for specific asset ID. Download if necessary."},
+    {"showmyoffers", OT_Command::mainShowMyOffers,
+     catMarkets,     "show mynym's offers on a particular server and market."},
+    {"shownym", OT_Command::mainShowNym,
+     catNyms,   "show the statistics for a specific nym."},
+    {"shownyms", OT_Command::mainShowNyms,
+     catWallet,  "show the nyms in the wallet."},
+    {"showoffers", OT_Command::mainShowOffers,
+     catMarkets,   "show all offers on a particular server and market."},
+    {"showoutgoing",
+     OT_Command::mainShowOutgoing,
+     catWallet,
+     "show outgoing payments for mynym and/or outbox for myacct."},
+    {"showpayment",
+     OT_Command::mainShowPayment,
+     catOtherUsers,
+     "show the details of an incoming payment in the payments inbox."},
+    {"showpurse", OT_Command::mainShowPurse,
+     catWallet,   "show contents of cash purse."},
+    {"showrecords", OT_Command::mainShowRecords,
+     catMisc,       "show contents of record box."},
+    {"showservers", OT_Command::mainShowServers,
+     catWallet,     "show the server contracts in the wallet."},
+    {"showwallet", OT_Command::mainShowWallet,
+     catWallet,    "show wallet contents."},
+    {"signcontract", OT_Command::mainSignContract,
+     catAdmin,       "sign a contract, releasing all other signatures first."},
+    {"transfer",  OT_Command::mainTransfer,
+     catAccounts, "send a transfer from myacct to hisacct."},
+    {"triggerclause", OT_Command::mainTriggerClause,
+     catInstruments,  "trigger a clause on a running smart contract."},
+    {"verifyreceipt",
+     OT_Command::mainVerifyReceipt,
+     catAccounts,
+     "verify your intermediary files against last signed receipt."},
+    {"verifysignature", OT_Command::mainVerifySignature,
+     catAdmin,          "verify a signature on a contract."},
+    {"withdraw",     OT_Command::mainWithdrawCash,
+     catInstruments, "withdraw cash. (From acct on server into local purse.)"},
+    {"withdrawvoucher",
+     OT_Command::mainWithdrawVoucher,
+     catInstruments,
+     "withdraw from myacct as a voucher (cashier's cheque.)"},
+    {"writecheque",  OT_Command::mainWriteCheque,
+     catInstruments, "write a cheque and print it out to the screen."},
+    {"writeinvoice", OT_Command::mainWriteInvoice,
+     catInstruments, "write an invoice and print it out to the screen."},
+    {NULL, NULL, catError, NULL}};
+
+const string spaces18 = "                  ";
 
 static std::string str_Args;
 static std::string str_HisAcct;
@@ -221,28 +487,16 @@ void HandleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     opt.setCommandOption("hispurse");
     opt.setCommandOption("server");
 
-    // RESOURCE FILE ONLY
-    /* for options that will be checked only from the option/resource file */
-    opt.setFileOption("defaultserver"); /* an option (takes an argument),
-                                           supporting only long form */
-    opt.setFileOption("defaultmyacct"); /* an option (takes an argument),
-                                           supporting only long form */
-    opt.setFileOption("defaultmynym"); /* an option (takes an argument),
-                                          supporting only long form */
-    opt.setFileOption("defaultmypurse"); /* an option (takes an argument),
-                                            supporting only long form */
-    opt.setFileOption("defaulthisacct"); /* an option (takes an argument),
-                                            supporting only long form */
-    opt.setFileOption("defaulthisnym"); /* an option (takes an argument),
-                                           supporting only long form */
-    opt.setFileOption("defaulthispurse"); /* an option (takes an argument),
-                                             supporting only long form */
+    // for options that will be checked only from the CLI option file
+    opt.setFileOption("defaultserver");
+    opt.setFileOption("defaultmyacct");
+    opt.setFileOption("defaultmynym");
+    opt.setFileOption("defaultmypurse");
+    opt.setFileOption("defaulthisacct");
+    opt.setFileOption("defaulthisnym");
+    opt.setFileOption("defaulthispurse");
 
-    /* PROCESS THE COMMANDLINE AND RESOURCE FILE */
-
-    /* read options from a option/resource file with ':' separated options or
-     * flags, one per line */
-
+    // process the commandline option file
     OTString strOptionsFile("command-line-ot.opt"), strIniFileExact;
     bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(
         strIniFileExact, strConfigPath, strOptionsFile);
@@ -290,10 +544,78 @@ OTVariable* SetGlobalVariable(OT_ME& madeEasy, const std::string& name,
     return pVar;
 }
 
+int OpentxsCommand(const string& command)
+{
+    if ("exit" == command || "quit" == command) {
+        return -2;
+    }
+
+    if ("list" == command) {
+        OTAPI_Wrap::Output(0, "\nCommands:\n\n");
+        for (int32_t i = 0; commands[i].command != NULL; i++) {
+            CommandEntry& cmd = commands[i];
+            OTAPI_Wrap::Output(0, (cmd.command + spaces18).substr(0, 18));
+            if (i % 4 == 3) {
+                OTAPI_Wrap::Output(0, "\n");
+            }
+        }
+        OTAPI_Wrap::Output(0, "\n");
+        return 0;
+    }
+
+    if ("help" == command) {
+        // create category groups
+        string categoryGroup[catLast];
+        for (int i = 1; i < catLast; i++) {
+            categoryGroup[i] = string("\n ") + categoryName[i] + ":\n";
+        }
+
+        // add commands to their category group
+        OTAPI_Wrap::Output(0, "\nCommands:\n");
+        for (int32_t i = 0; commands[i].command != NULL; i++) {
+            CommandEntry& cmd = commands[i];
+            categoryGroup[cmd.category] +=
+                (cmd.command + spaces18).substr(0, 18) + cmd.helpText + "\n";
+        }
+
+        // print all category groups
+        for (int i = 1; i < catLast; i++) {
+            OTAPI_Wrap::Output(0, categoryGroup[i]);
+        }
+
+        return 0;
+    }
+
+    // all other commands.
+    for (int32_t i = 0; commands[i].command != NULL; i++) {
+        CommandEntry& cmd = commands[i];
+        if (cmd.command == command) {
+            int32_t returnValue = (*cmd.function)();
+            switch (returnValue) {
+            case 0: // no action performed, return success
+                return 0;
+            case 1: // success
+                return 0;
+            case -1: // failed
+                return -1;
+            default: // should not happen
+                OTAPI_Wrap::Output(0, "\nUndefined error code: \"" +
+                                          std::to_string(returnValue) +
+                                          "\".\n\n");
+                return -1;
+            }
+            break;
+        }
+    }
+
+    OTAPI_Wrap::Output(0, "\nUndefined command: \"" + command +
+                              "\" -- Try 'list'.\n\n");
+    return -1;
+}
+
 int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
 {
-    // process command line values such as account ID, Nym ID, etc.
-    // Also available as defaults in a config file in the ~/.ot folder
+    // process default/command line values such as acctid, nymid, etc.
     str_Args = GetOption(opt, "defaultargs", "args");
     str_HisAcct = GetOption(opt, "defaulthisacct", "hisacct");
     str_HisNym = GetOption(opt, "defaulthisnym", "hisnym");
@@ -450,18 +772,12 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
             OTAPI_Wrap::OTAPI()->GetTransportCallback());
     }
 
-    if (str_Args.size() > 0) {
-        str_Args += " ";
-    }
-    str_Args += "ot_cli_command ";
-
+    string command = "list";
     if (opt.getArgc() == 1) {
-        str_Args += opt.getArgv(0);
-        ;
+        command = opt.getArgv(0);
     }
     else {
         OTLog::vOutput(0, "Expecting a single opentxs command:\n\n");
-        str_Args += "list";
     }
 
     OTCleanup<OTVariable> angelArgs(
@@ -481,11 +797,11 @@ int ProcessCommand(OT_ME& madeEasy, AnyOption& opt)
     OTCleanup<OTVariable> angelServer(
         SetGlobalVariable(madeEasy, "Server", str_Server));
 
-    madeEasy.opentxs_copy_variables();
+    OTAPI_Func::CopyVariables();
 
     OTLog::Output(1, "Script output:\n\n");
 
-    int result = madeEasy.opentxs_main_loop();
+    int result = OpentxsCommand(command);
     return opt.getArgc() == 1 ? result : -2;
 }
 
@@ -507,14 +823,11 @@ public:
 int main(int argc, char* argv[])
 {
     // This makes SURE that AppCleanup() gets called before main() exits
-    // (without any
-    // twisted logic being necessary below, for that to happen.)
     __OTclient_RAII the_client_cleanup;
 
-    if (NULL == OTAPI_Wrap::OTAPI())
-        return -1; // error out if we don't have the API.
-
-    // COMMAND-LINE OPTIONS (and default values from files.)
+    if (NULL == OTAPI_Wrap::OTAPI()) {
+        return -1;
+    }
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
@@ -571,8 +884,7 @@ int main(int argc, char* argv[])
         std::string originalCmd = cmd;
 
         // lines starting with a dollar sign character denote the definition of
-        // a macro of the form:
-        // $macroName = macroValue
+        // a macro of the form: $macroName = macroValue
         // whitespace around the equal sign is optional
         // <macroName> can be any combination of A-Z, a-z, 0-9, or _
         // <macroValue> is anything after the equal sign and whitespace-trimmed
@@ -582,12 +894,10 @@ int main(int argc, char* argv[])
         // note that a macro value stays valid for the entire lifetime of the
         // command loop
         // note that macro expansion is done on the command line before
-        // processing the line
-        //      this means that a macro is allowed to contain command line
-        // escape characters
+        // processing the line this means that a macro is allowed to contain
+        // command line escape characters
         // note that macro expansion is recursive until no expansions are found
-        // any more
-        //      this means that a macro is allowed to contain other macros
+        // any more this means that a macro is allowed to contain other macros
         if (cmd[0] == '$') {
             // determine the macro name
             size_t nameLength = 1;

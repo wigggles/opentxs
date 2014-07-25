@@ -231,6 +231,7 @@ public:
                const string& price, const bool bSelling); // 10 args
     ~OTAPI_Func();
 
+    EXPORT OT_OTAPI_OT static void CopyVariables();
     OT_OTAPI_OT void InitCustom();
     OT_OTAPI_OT int32_t Run();
     OT_OTAPI_OT string

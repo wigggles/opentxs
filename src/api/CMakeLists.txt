@@ -5,13 +5,11 @@ set(cxx-sources
   ot_commands_ot.cpp
   ot_made_easy_ot.cpp
   OT_ME.cpp
-  ot_opentxs_ot.cpp
   ot_otapi_ot.cpp
   ot_utility_ot.cpp
   OTAPI.cpp
   OTAPI_Exec.cpp
   OTClient.cpp
-  OTMeChai.cpp
   OTMeCpp.cpp
   OTRecord.cpp
   OTRecordList.cpp

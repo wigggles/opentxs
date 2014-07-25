@@ -187,9 +187,6 @@ public:
     EXPORT OT_ME();
     EXPORT ~OT_ME();
 
-    EXPORT void opentxs_copy_variables();
-    EXPORT int32_t opentxs_main_loop();
-
     EXPORT int32_t VerifyMessageSuccess(const std::string& str_Message);
 
     EXPORT int32_t

@@ -16,6 +16,7 @@
 #include "ot_otapi_ot.hpp"
 
 #include "ot_utility_ot.hpp"
+#include "OTVariable.hpp"
 
 using namespace opentxs;
 
@@ -56,6 +57,24 @@ public int64_t     lData;
 public int32_t      nTransNumsNeeded;
 public int32_t      nRequestNum;
 */
+
+string GetVariable(const char* name)
+{
+    OTVariable* pVar = OT_ME::FindVariable2(name);
+    return pVar == NULL ? "" : pVar->GetValueString();
+}
+
+OT_OTAPI_OT void OTAPI_Func::CopyVariables()
+{
+    Args = GetVariable("Args");
+    HisAcct = GetVariable("HisAcct");
+    HisNym = GetVariable("HisNym");
+    HisPurse = GetVariable("HisPurse");
+    MyAcct = GetVariable("MyAcct");
+    MyNym = GetVariable("MyNym");
+    MyPurse = GetVariable("MyPurse");
+    Server = GetVariable("Server");
+}
 
 OT_OTAPI_OT void OTAPI_Func::InitCustom()
 {
