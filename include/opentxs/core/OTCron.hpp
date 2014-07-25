@@ -297,7 +297,7 @@ public:
 
     inline void SetServerNym(OTPseudonym* pServerNym)
     {
-        OT_ASSERT(NULL != pServerNym);
+        OT_ASSERT(nullptr != pServerNym);
         m_pServerNym = pServerNym;
     }
     inline OTPseudonym* GetServerNym() const

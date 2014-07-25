@@ -305,24 +305,24 @@ public:
         const OTDB::Storable* pIntermediate =
             dynamic_cast<const OTDB::Storable*>(this);
 
-        if (NULL == pPacker) {
+        if (nullptr == pPacker) {
             OT_FAIL;
         }
         PackedBuffer* pBuffer =
             pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate)));
-        if (NULL == pBuffer) {
+        if (nullptr == pBuffer) {
             OT_FAIL;
         }
         if (!pPacker->Unpack(*pBuffer, theNewStorable)) {
             OT_FAIL;
         }
-        if (NULL != pPacker) {
+        if (nullptr != pPacker) {
             delete pPacker;
-            pPacker = NULL;
+            pPacker = nullptr;
         }
-        if (NULL != pBuffer) {
+        if (nullptr != pBuffer) {
             delete pBuffer;
-            pBuffer = NULL;
+            pBuffer = nullptr;
         }
     }
 
@@ -341,7 +341,7 @@ public:
     {
         Storable* pNewStorable =
             Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
-        if (NULL == pNewStorable) OT_FAIL;
+        if (nullptr == pNewStorable) OT_FAIL;
         CopyToObject(
             *(dynamic_cast<ProtobufSubclass<theBaseType, theInternalType,
                                             theObjectType>*>(pNewStorable)));

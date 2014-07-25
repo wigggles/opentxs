@@ -407,7 +407,7 @@ EndInterface
         std::cerr                                                              \
             << "********* THIS SHOULD NEVER HAPPEN!!!!! *****************"     \
             << std::endl;                                                      \
-        return NULL;                                                           \
+        return nullptr;                                                        \
     }                                                                          \
     static CLASS_NAME_A* ot_dynamic_cast(Storable* pObject)                    \
     {                                                                          \
@@ -617,18 +617,18 @@ private:
     OTPacker* m_pPacker;
 
 protected:
-    Storage() : m_pPacker(NULL)
+    Storage() : m_pPacker(nullptr)
     {
     }
 
-    Storage(const Storage&) : m_pPacker(NULL)
+    Storage(const Storage&) : m_pPacker(nullptr)
     {
     } // We don't want to copy the pointer. Let it create its own.
 
     // This is called once, in the factory.
     void SetPacker(OTPacker& thePacker)
     {
-        OT_ASSERT(NULL == m_pPacker);
+        OT_ASSERT(nullptr == m_pPacker);
         m_pPacker = &thePacker;
     }
 
@@ -715,8 +715,8 @@ public:
 
     virtual ~Storage()
     {
-        if (NULL != m_pPacker) delete m_pPacker;
-        m_pPacker = NULL;
+        if (nullptr != m_pPacker) delete m_pPacker;
+        m_pPacker = nullptr;
     }
 
     // Store/Retrieve a string.
@@ -812,7 +812,7 @@ EXPORT Storable* CreateObject(StoredObjectType eType);
 EXPORT bool CheckStringsExistInOrder(std::string& strFolder,
                                      std::string& oneStr, std::string& twoStr,
                                      std::string& threeStr,
-                                     const char* szFuncName = NULL);
+                                     const char* szFuncName = nullptr);
 
 // See if the file is there.
 //
@@ -1882,9 +1882,10 @@ public:
     // lower level calls.
 
     bool ConfirmOrCreateFolder(const char* szFolderName,
-                               struct stat* pst = NULL); // local to data_folder
+                               struct stat* pst =
+                                   nullptr); // local to data_folder
     bool ConfirmFile(const char* szFileName,
-                     struct stat* pst = NULL); // local to data_folder
+                     struct stat* pst = nullptr); // local to data_folder
 
     /*
     IN BASE CLASS:

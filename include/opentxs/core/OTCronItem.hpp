@@ -202,21 +202,21 @@ public:
     bool DropFinalReceiptToInbox(
         const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-        const OTString& strOrigCronItem, OTString* pstrNote = NULL,
-        OTString* pstrAttachment = NULL, OTAccount* pActualAcct = NULL);
+        const OTString& strOrigCronItem, OTString* pstrNote = nullptr,
+        OTString* pstrAttachment = nullptr, OTAccount* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
     bool DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                   const int64_t& lNewTransactionNumber,
                                   const OTString& strOrigCronItem,
-                                  OTString* pstrNote = NULL,
-                                  OTString* pstrAttachment = NULL,
-                                  OTPseudonym* pActualNym = NULL);
+                                  OTString* pstrNote = nullptr,
+                                  OTString* pstrAttachment = nullptr,
+                                  OTPseudonym* pActualNym = nullptr);
     virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
     virtual void HarvestOpeningNumber(OTPseudonym& theNym);
     virtual void HarvestClosingNumbers(OTPseudonym& theNym);
-    // pActivator and pRemover are both "SOMETIMES NULL"
+    // pActivator and pRemover are both "SOMETIMES nullptr"
     // I don't default the parameter, because I want to force the programmer to
     // choose.
 

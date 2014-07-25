@@ -174,7 +174,7 @@ public:
 #if defined(_TTHREAD_WIN32_)
         InitializeCriticalSection(&mHandle);
 #else
-        pthread_mutex_init(&mHandle, NULL);
+        pthread_mutex_init(&mHandle, nullptr);
 #endif
     }
 
@@ -406,7 +406,7 @@ public:
 #else
     condition_variable()
     {
-        pthread_cond_init(&mHandle, NULL);
+        pthread_cond_init(&mHandle, nullptr);
     }
 #endif
 

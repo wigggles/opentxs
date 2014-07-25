@@ -538,7 +538,7 @@ public:
 
 protected:
     // Usually a transaction object is inside a ledger object.
-    // If this is not NULL, then you can reference that object.
+    // If this is not nullptr, then you can reference that object.
     //
     const OTLedger* m_pParent;
 
@@ -693,7 +693,7 @@ public:
         time64_t& the_DATE_SIGNED, OTTransaction::transactionType& theType,
         OTString& strHash, int64_t& lAdjustment, int64_t& lDisplayValue,
         int64_t& lClosingNum, int64_t& lRequestNum, bool& bReplyTransSuccess,
-        OTNumList* pNumList = NULL);
+        OTNumList* pNumList = nullptr);
 
     bool IsAbbreviated() const
     {
@@ -797,7 +797,7 @@ public:
                   const transactionType theType, const OTString& strHash,
                   const int64_t& lAdjustment, const int64_t& lDisplayValue,
                   const int64_t& lClosingNum, const int64_t& lRequestNum,
-                  bool bReplyTransSuccess, OTNumList* pNumList = NULL);
+                  bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
     bool GenerateTransaction(const OTIdentifier& theAccountID,

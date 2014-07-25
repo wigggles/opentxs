@@ -235,7 +235,7 @@ private:
                                    // times (such as during import.) So we use
                                    // it when it's available. And usually
                                    // whoever set it, will immediately set it
-                                   // back to NULL when he's done.
+                                   // back to nullptr when he's done.
 private:
     OTCredential();
     bool SetPublicContents(const OTString::Map& mapPublic);    // For master
@@ -258,14 +258,14 @@ private:
     bool GenerateMasterkey(int32_t nBits = 1024); // CreateMaster is able to
                                                   // create keys from scratch
                                                   // (by calling this function.)
-    bool SignNewMaster(OTPasswordData* pPWData = NULL); // SignMaster is used
-                                                        // when creating master
-                                                        // credential.
+    bool SignNewMaster(OTPasswordData* pPWData = nullptr); // SignMaster is used
+    // when creating master
+    // credential.
     bool SignNewSubcredential(OTSubcredential& theSubCred,
                               OTIdentifier& theSubCredID_out,
-                              OTPasswordData* pPWData = NULL); // Used when
-                                                               // creating a new
-                                                               // subcredential.
+                              OTPasswordData* pPWData = nullptr); // Used when
+    // creating a new
+    // subcredential.
 public:
     EXPORT OTPassword* GetImportPassword()
     {
@@ -277,43 +277,45 @@ public:
     }
     static OTCredential* CreateMaster(
         const OTString& strSourceForNymID,
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL
-        const OTString::Map* pmapPrivate = NULL,
-        const OTString::Map* pmapPublic = NULL, OTPasswordData* pPWData = NULL);
+        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
+        const OTString::Map* pmapPrivate = nullptr,
+        const OTString::Map* pmapPublic = nullptr,
+        OTPasswordData* pPWData = nullptr);
     static OTCredential* LoadMaster(
         const OTString& strNymID, // Caller is responsible to delete, in both
                                   // CreateMaster and LoadMaster.
-        const OTString& strMasterCredID, OTPasswordData* pPWData = NULL);
+        const OTString& strMasterCredID, OTPasswordData* pPWData = nullptr);
     static OTCredential* LoadMasterFromString(
         const OTString& strInput,
         const OTString& strNymID, // Caller is responsible to delete, in both
                                   // CreateMaster and LoadMaster.
-        const OTString& strMasterCredID, OTPasswordData* pPWData = NULL,
-        OTPassword* pImportPassword = NULL);
+        const OTString& strMasterCredID, OTPasswordData* pPWData = nullptr,
+        OTPassword* pImportPassword = nullptr);
     EXPORT bool Load_Master(const OTString& strNymID,
                             const OTString& strMasterCredID,
-                            OTPasswordData* pPWData = NULL);
+                            OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(const OTString& strInput,
                                       const OTString& strNymID,
                                       const OTString& strMasterCredID,
-                                      OTPasswordData* pPWData = NULL,
-                                      OTPassword* pImportPassword = NULL);
+                                      OTPasswordData* pPWData = nullptr,
+                                      OTPassword* pImportPassword = nullptr);
     // For subcredentials that are specifically *subkeys*. Meaning it will
     // contain 3 keypairs: signing, authentication, and encryption.
     //
     EXPORT bool AddNewSubkey(
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL
+        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
         const OTString::Map* pmapPrivate =
-            NULL, // Public keys are derived from the private.
-        OTPasswordData* pPWData = NULL, // The master key will sign the subkey.
-        OTSubkey* *ppSubkey = NULL);    // output
+            nullptr, // Public keys are derived from the private.
+        OTPasswordData* pPWData =
+            nullptr,                    // The master key will sign the subkey.
+        OTSubkey* *ppSubkey = nullptr); // output
     // For non-key credentials, such as for 3rd-party authentication.
     //
     EXPORT bool AddNewSubcredential(
         const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
         OTPasswordData* pPWData =
-            NULL, // The master key will sign the subcredential.
-        OTSubcredential* *ppSubcred = NULL); // output
+            nullptr, // The master key will sign the subcredential.
+        OTSubcredential* *ppSubcred = nullptr); // output
     EXPORT bool ReEncryptPrivateCredentials(OTPassword& theExportPassword,
                                             bool bImporting); // Like for when
                                                               // you are
@@ -324,14 +326,15 @@ public:
     EXPORT bool LoadSubcredential(const OTString& strSubID);
     EXPORT bool LoadSubkeyFromString(const OTString& strInput,
                                      const OTString& strSubID,
-                                     OTPassword* pImportPassword = NULL);
+                                     OTPassword* pImportPassword = nullptr);
     EXPORT bool LoadSubcredentialFromString(const OTString& strInput,
                                             const OTString& strSubID,
-                                            OTPassword* pImportPassword = NULL);
+                                            OTPassword* pImportPassword =
+                                                nullptr);
     EXPORT size_t GetSubcredentialCount() const;
     EXPORT const OTSubcredential* GetSubcredential(
         const OTString& strSubID,
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTSubcredential* GetSubcredentialByIndex(int32_t nIndex) const;
     EXPORT const std::string GetSubcredentialIDByIndex(size_t nIndex) const;
     EXPORT const OTString& GetPubCredential() const; // Returns: m_Masterkey's
@@ -355,8 +358,8 @@ public:
     //
     EXPORT void SerializeIDs(OTString& strOutput,
                              OTString::List& listRevokedIDs,
-                             OTString::Map* pmapPubInfo = NULL,
-                             OTString::Map* pmapPriInfo = NULL,
+                             OTString::Map* pmapPubInfo = nullptr,
+                             OTString::Map* pmapPriInfo = nullptr,
                              bool bShowRevoked = false,
                              bool bValid = true) const;
     EXPORT bool VerifyInternally() const;
@@ -373,23 +376,23 @@ public:
                                                          // or 'A'
                                                          // (authentication key)
     EXPORT const OTAsymmetricKey& GetPublicAuthKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPublicEncrKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPublicSignKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateSignKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateEncrKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateAuthKey(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetAuthKeypair(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetEncrKeypair(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetSignKeypair(
-        const OTString::List* plistRevokedIDs = NULL) const;
+        const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearSubcredentials();
     EXPORT ~OTCredential();
 };

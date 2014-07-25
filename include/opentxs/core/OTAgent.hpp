@@ -231,7 +231,7 @@ public:
     //
     void ClearTemporaryPointers()
     {
-        m_pNym = NULL;
+        m_pNym = nullptr;
     } /* Someday clear entity/role ptr here? And do NOT
          clear party ptr here (since it's not temporary.)  */
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
@@ -243,17 +243,19 @@ public:
                                  const OTString& strServerID);
 
     bool RemoveIssuedNumber(const int64_t& lNumber, const OTString& strServerID,
-                            bool bSave = false, OTPseudonym* pSignerNym = NULL);
+                            bool bSave = false,
+                            OTPseudonym* pSignerNym = nullptr);
     bool RemoveTransactionNumber(const int64_t& lNumber,
                                  const OTString& strServerID,
                                  OTPseudonym& SIGNER_NYM, bool bSave = true);
 
     bool HarvestTransactionNumber(
         const int64_t& lNumber, const OTString& strServerID,
-        bool bSave = false, // Each agent's nym is used if pSignerNym is NULL,
-                            // whereas the server
-        OTPseudonym* pSignerNym =
-            NULL); // uses this optional arg to substitute serverNym as signer.
+        bool bSave =
+            false, // Each agent's nym is used if pSignerNym is nullptr,
+                   // whereas the server
+        OTPseudonym* pSignerNym = nullptr); // uses this optional arg to
+                                            // substitute serverNym as signer.
 
     bool ReserveOpeningTransNum(const OTString& strServerID);
     bool ReserveClosingTransNum(const OTString& strServerID,
@@ -438,23 +440,23 @@ public:
     bool DropFinalReceiptToNymbox(OTSmartContract& theSmartContract,
                                   const int64_t& lNewTransactionNumber,
                                   const OTString& strOrigCronItem,
-                                  OTString* pstrNote = NULL,
-                                  OTString* pstrAttachment = NULL,
-                                  OTPseudonym* pActualNym = NULL);
+                                  OTString* pstrNote = nullptr,
+                                  OTString* pstrAttachment = nullptr,
+                                  OTPseudonym* pActualNym = nullptr);
 
     bool DropFinalReceiptToInbox(
         mapOfNyms* pNymMap, const OTString& strServerID,
         OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
         const OTIdentifier& theAccountID, const int64_t& lNewTransactionNumber,
         const int64_t& lClosingNumber, const OTString& strOrigCronItem,
-        OTString* pstrNote = NULL, OTString* pstrAttachment = NULL);
+        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
         OTPseudonym& theServerNym, const OTIdentifier& theServerID,
         const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-        const OTString& strReference, OTString* pstrNote = NULL,
-        OTString* pstrAttachment = NULL, OTPseudonym* pActualNym = NULL);
+        const OTString& strReference, OTString* pstrNote = nullptr,
+        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
 };
 
 } // namespace opentxs

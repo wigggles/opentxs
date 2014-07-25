@@ -185,15 +185,15 @@ public:
 
     EXPORT bool IsNym() const
     {
-        return (NULL != m_pNym);
+        return (nullptr != m_pNym);
     }
     EXPORT bool IsKey() const
     {
-        return (NULL != m_pKey);
+        return (nullptr != m_pKey);
     }
     EXPORT bool HasPassword() const
     {
-        return (NULL != m_pPassword);
+        return (nullptr != m_pPassword);
     } // for symmetric key (optional)
 
     EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const;
@@ -207,22 +207,22 @@ public:
     // OTSymmetricKey.)
     EXPORT bool Seal_or_Encrypt(OTEnvelope& outputEnvelope,
                                 const OTString strInput,
-                                const OTString* pstrDisplay = NULL);
+                                const OTString* pstrDisplay = nullptr);
     EXPORT bool Open_or_Decrypt(const OTEnvelope& inputEnvelope,
                                 OTString& strOutput,
-                                const OTString* pstrDisplay = NULL);
+                                const OTString* pstrDisplay = nullptr);
 
     EXPORT ~OTNym_or_SymmetricKey();
 
     EXPORT OTNym_or_SymmetricKey(const OTNym_or_SymmetricKey& rhs);
 
     EXPORT OTNym_or_SymmetricKey(const OTPseudonym& theNym,
-                                 const OTString* pstrDisplay = NULL);
+                                 const OTString* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
-                                 const OTString* pstrDisplay = NULL);
+                                 const OTString* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
                                  const OTPassword& thePassword,
-                                 const OTString* pstrDisplay = NULL);
+                                 const OTString* pstrDisplay = nullptr);
 
     EXPORT void swap(OTNym_or_SymmetricKey& other);
 

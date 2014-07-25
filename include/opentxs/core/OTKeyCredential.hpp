@@ -217,7 +217,8 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 //
 // When creating a new credential, I want the ability to specify the public and
 // private key information.
-// But what if I don't specify? I should be able to pass NULL, and OT should be
+// But what if I don't specify? I should be able to pass nullptr, and OT should
+// be
 // smart enough to generate
 // the three certs and the three private keys, without me having to pass
 // anything at all.
@@ -255,8 +256,9 @@ protected:
     virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
         const OTString::Map& mapPrivate,
-        OTPassword* pImportPassword = NULL); // if not NULL, it means to use
-                                             // this password by default.
+        OTPassword* pImportPassword = nullptr); // if not nullptr, it means to
+                                                // use
+                                                // this password by default.
 public:
     OTKeypair m_SigningKey; // Signing keys, for signing/verifying a "legal
                             // signature".
@@ -278,7 +280,8 @@ public:
     virtual void SetMetadata();
     OTKeyCredential();
     OTKeyCredential(OTCredential& theOwner);
-    bool SignContract(OTContract& theContract, OTPasswordData* pPWData = NULL);
+    bool SignContract(OTContract& theContract,
+                      OTPasswordData* pPWData = nullptr);
     EXPORT int32_t
     GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                              const OTSignature& theSignature,

@@ -209,7 +209,7 @@ private:
     // interchangeable.
 
 public:
-    bool ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason = NULL);
+    bool ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason = nullptr);
 
     OTOffer* GetOffer(const int64_t& lTransactionNum);
     bool AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile = true,

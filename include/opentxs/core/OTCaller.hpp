@@ -251,7 +251,7 @@ you call munlock():
 void main()
 {
     HRESULT hr = S_OK;
-    LPWSTR pSensitiveText = NULL;
+    LPWSTR pSensitiveText = nullptr;
     DWORD cbSensitiveText = 0;
     DWORD cbPlainText = SSN_STR_LEN*sizeof(WCHAR);
     DWORD dwMod = 0;
@@ -264,7 +264,7 @@ void main()
         cbSensitiveText = cbPlainText;
 
     pSensitiveText = (LPWSTR)LocalAlloc(LPTR, cbSensitiveText);
-    if (NULL == pSensitiveText)
+    if (nullptr == pSensitiveText)
     {
         wprintf(L"Memory allocation failed.\n");
         return E_OUTOFMEMORY;
@@ -278,7 +278,7 @@ void main()
         wprintf(L"CryptProtectMemory failed: %d\n", GetLastError());
         SecureZeroMemory(pSensitiveText, cbSensitiveText);
         LocalFree(pSensitiveText);
-        pSensitiveText = NULL;
+        pSensitiveText = nullptr;
         return E_FAIL;
     }
 
@@ -286,7 +286,7 @@ void main()
 
     SecureZeroMemory(pSensitiveText, cbSensitiveText);
     LocalFree(pSensitiveText);
-    pSensitiveText = NULL;
+    pSensitiveText = nullptr;
 
     return hr;
 }
@@ -326,7 +326,7 @@ void main()
     // the decrypted string or if an error occurs.
     SecureZeroMemory(pEncryptedText, cbEncryptedText);
     LocalFree(pEncryptedText);
-    pEncryptedText = NULL;
+    pEncryptedText = nullptr;
 }
 
 
@@ -354,7 +354,7 @@ protected:
     OTCallback* _callback;
 
 public:
-    OTCaller() : _callback(NULL)
+    OTCaller() : _callback(nullptr)
     {
     }
     EXPORT ~OTCaller();

@@ -298,8 +298,9 @@ public:
     // or something like that. This contrasted with Assert() which should NEVER
     // actually happen. The software
     // expects bad user input from time to time. But it never expects a loaded
-    // mint to have a NULL pointer.
-    // The bad input would log with Error(), whereas the NULL pointer would log
+    // mint to have a nullptr pointer.
+    // The bad input would log with Error(), whereas the nullptr pointer would
+    // log
     // with Assert();
     EXPORT static void Error(const char* szError);       // stderr
     EXPORT static void vError(const char* szError, ...); // stderr
@@ -308,12 +309,12 @@ public:
     // Optionally you can pass the location you are calling it from,
     // which will be prepended to the log.
     //
-    EXPORT static void Errno(const char* szLocation = NULL); // stderr
+    EXPORT static void Errno(const char* szLocation = nullptr); // stderr
 
     // String Helpers
     EXPORT static bool StringFill(OTString& out_strString, const char* szString,
                                   const int32_t iLength,
-                                  const char* szAppend = NULL);
+                                  const char* szAppend = nullptr);
 
     EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call
                                              // it in xmlrpcxx_client.cpp just

@@ -313,7 +313,7 @@ public:
     //
     // userPassword argument contains the user's password which is used to
     // derive the key. Presumably you already obtained this passphrase...
-    // Then the derived key is returned, or NULL if failure. CALLER
+    // Then the derived key is returned, or nullptr if failure. CALLER
     // IS RESPONSIBLE TO DELETE!
     // Todo: return a smart pointer here.
     //
@@ -360,7 +360,7 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = NULL) const = 0;
+                      OTPasswordData* pPWData = nullptr) const = 0;
     // SIGN / VERIFY
     //
     // Sign or verify using the Asymmetric Key itself.
@@ -369,26 +369,26 @@ public:
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
                               const OTString& strHashType,
-                              OTPasswordData* pPWData = NULL) const = 0;
+                              OTPasswordData* pPWData = nullptr) const = 0;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const OTString& strHashType,
-                                 OTPasswordData* pPWData = NULL) const = 0;
+                                 OTPasswordData* pPWData = nullptr) const = 0;
     // Sign or verify using the contents of a Certfile.
     //
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTString& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
-                              OTPasswordData* pPWData = NULL) const = 0;
+                              OTPasswordData* pPWData = nullptr) const = 0;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTString& strSigHashType,
                                  const std::string& strCertFileContents,
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData = NULL) const = 0;
+                                 OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT static OTCrypto* It();
 
     EXPORT void Init();
@@ -450,7 +450,7 @@ public:
     // KEY DERIVATION
     // userPassword argument contains the user's password which is used to
     // derive the key. Presumably you already obtained this passphrase...
-    // Then the derived key is returned, or NULL if failure. CALLER
+    // Then the derived key is returned, or nullptr if failure. CALLER
     // IS RESPONSIBLE TO DELETE!
     // Todo: return a smart pointer here.
     //
@@ -492,32 +492,32 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = NULL) const;
+                      OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
                               const OTString& strHashType,
-                              OTPasswordData* pPWData = NULL) const;
+                              OTPasswordData* pPWData = nullptr) const;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const OTString& strHashType,
-                                 OTPasswordData* pPWData = NULL) const;
+                                 OTPasswordData* pPWData = nullptr) const;
     // Sign or verify using the contents of a Certfile.
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTString& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
-                              OTPasswordData* pPWData = NULL) const;
+                              OTPasswordData* pPWData = nullptr) const;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTString& strSigHashType,
                                  const std::string& strCertFileContents,
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData = NULL) const;
+                                 OTPasswordData* pPWData = nullptr) const;
     void thread_setup();
     void thread_cleanup();
 

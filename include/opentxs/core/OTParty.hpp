@@ -209,8 +209,9 @@ public:
     EXPORT OTParty(const std::string str_PartyName,
                    OTPseudonym& theNym, // Nym is BOTH owner AND agent, when
                                         // using this constructor.
-                   const std::string str_agent_name, OTAccount* pAccount = NULL,
-                   const std::string* pstr_account_name = NULL,
+                   const std::string str_agent_name,
+                   OTAccount* pAccount = nullptr,
+                   const std::string* pstr_account_name = nullptr,
                    const int64_t lClosingTransNo = 0);
     virtual ~OTParty();
     void CleanupAgents();
@@ -240,9 +241,9 @@ public:
     void HarvestOpeningNumber(OTAgent& theAgent, const OTString& strServerID);
     void HarvestOpeningNumber(OTPseudonym& theNym, const OTString& strServerID);
     void CloseoutOpeningNumber(const OTString& strServerID, bool bSave = false,
-                               OTPseudonym* pSignerNym = NULL);
+                               OTPseudonym* pSignerNym = nullptr);
     void HarvestClosingNumbers(const OTString& strServerID, bool bSave = false,
-                               OTPseudonym* pSignerNym = NULL);
+                               OTPseudonym* pSignerNym = nullptr);
     void HarvestClosingNumbers(OTAgent& theAgent, const OTString& strServerID);
     void HarvestClosingNumbers(OTPseudonym& theNym,
                                const OTString& strServerID);
@@ -250,9 +251,9 @@ public:
     //
     bool DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
                                     const OTString& strOrigCronItem,
-                                    OTString* pstrNote = NULL,
-                                    OTString* pstrAttachment = NULL,
-                                    OTPseudonym* pActualNym = NULL);
+                                    OTString* pstrNote = nullptr,
+                                    OTString* pstrAttachment = nullptr,
+                                    OTPseudonym* pActualNym = nullptr);
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(mapOfNyms* pNymMap,
@@ -260,17 +261,17 @@ public:
                                    OTPseudonym& theServerNym,
                                    const int64_t& lNewTransactionNumber,
                                    const OTString& strOrigCronItem,
-                                   OTString* pstrNote = NULL,
-                                   OTString* pstrAttachment = NULL);
+                                   OTString* pstrNote = nullptr,
+                                   OTString* pstrAttachment = nullptr);
     bool SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
                            const OTIdentifier& theServerID,
                            const int64_t& lNewTransactionNumber,
                            //                           const int64_t &
                            // lInReferenceTo,  // We use GetOpenTransNo() now.
                            const OTString& strReference,
-                           OTString* pstrNote = NULL,
-                           OTString* pstrAttachment = NULL,
-                           OTPseudonym* pActualNym = NULL);
+                           OTString* pstrNote = nullptr,
+                           OTString* pstrAttachment = nullptr,
+                           OTPseudonym* pActualNym = nullptr);
     // This pointer isn't owned -- just stored for convenience.
     //
     OTScriptable* GetOwnerAgreement()
@@ -303,7 +304,7 @@ public:
     int64_t GetClosingTransNo(const std::string str_for_acct_name) const;
     // as used "IN THE SCRIPT."
     //
-    EXPORT std::string GetPartyName(bool* pBoolSuccess = NULL)
+    EXPORT std::string GetPartyName(bool* pBoolSuccess = nullptr)
         const; // "sales_director", "marketer", etc
     bool SetPartyName(const std::string& str_party_name_input);
     // ACTUAL PARTY OWNER (Only ONE of these can be true...)
@@ -316,16 +317,18 @@ public:
                            // carries out all wishes.)
     // ACTUAL PARTY OWNER
     //
-    std::string GetNymID(bool* pBoolSuccess =
-                             NULL) const; // If the party is a Nym, this is the
-                                          // Nym's ID. Otherwise this is false.
-    std::string GetEntityID(bool* pBoolSuccess = NULL) const; // If party is an
-                                                              // entity, this is
-                                                              // the entity's
-                                                              // ID. Otherwise
-                                                              // false.
+    std::string GetNymID(bool* pBoolSuccess = nullptr) const; // If the party is
+                                                              // a Nym, this is
+                                                              // the
+    // Nym's ID. Otherwise this is false.
+    std::string GetEntityID(bool* pBoolSuccess =
+                                nullptr) const; // If party is an
+                                                // entity, this is
+                                                // the entity's
+                                                // ID. Otherwise
+                                                // false.
     // If party is a Nym, this is the NymID. Else return EntityID().
-    EXPORT std::string GetPartyID(bool* pBoolSuccess = NULL) const;
+    EXPORT std::string GetPartyID(bool* pBoolSuccess = nullptr) const;
     // Some agents are passive (voting groups) and cannot behave actively, and
     // so cannot do
     // certain things that only Nyms can do. But they can still act as an agent
@@ -357,20 +360,21 @@ public:
     // return true.
     //
     bool HasAgent(OTPseudonym& theNym,
-                  OTAgent** ppAgent = NULL) const; // If Nym is agent for Party,
-                                                   // set agent's pointer to Nym
-                                                   // and return true.
+                  OTAgent** ppAgent =
+                      nullptr) const; // If Nym is agent for Party,
+                                      // set agent's pointer to Nym
+                                      // and return true.
     bool HasAgentByNymID(const OTIdentifier& theNymID,
-                         OTAgent** ppAgent = NULL) const;
+                         OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgent(OTPseudonym& theNym,
-                             OTAgent** ppAgent = NULL) const;
+                             OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
-                                    OTAgent** ppAgent = NULL)
+                                    OTAgent** ppAgent = nullptr)
         const; // ppAgent lets you get the agent ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
     //
     OTPseudonym* LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
-                                         OTAgent** ppAgent = NULL);
+                                         OTAgent** ppAgent = nullptr);
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level
     // function
     // will ask an OTParty for a list of all the Nym pointers that it already
@@ -396,8 +400,8 @@ public:
     //                    OTPseudonym &        theNym, // Nym is BOTH owner AND
     // agent, when using this constructor.
     //                    const std::string    str_agent_name,
-    //                    OTAccount *            pAccount=NULL,
-    //                    const std::string *    pstr_account_name=NULL,
+    //                    OTAccount *            pAccount=nullptr,
+    //                    const std::string *    pstr_account_name=nullptr,
     //                    const int64_t            lClosingTransNo=0);
 
     int32_t GetAccountCount() const
@@ -417,9 +421,9 @@ public:
     // return true.
     //
     bool HasAccount(OTAccount& theAccount,
-                    OTPartyAccount** ppPartyAccount = NULL) const;
+                    OTPartyAccount** ppPartyAccount = nullptr) const;
     bool HasAccountByID(const OTIdentifier& theAcctID,
-                        OTPartyAccount** ppPartyAccount = NULL) const;
+                        OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const OTAccount& theAccount) const;
     bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                                        const OTString& strServerID,

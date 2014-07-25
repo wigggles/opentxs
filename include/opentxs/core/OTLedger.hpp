@@ -206,7 +206,7 @@ public:
                               // more.)
 
 protected:
-    bool LoadGeneric(ledgerType theType, const OTString* pString = NULL);
+    bool LoadGeneric(ledgerType theType, const OTString* pString = nullptr);
     bool SaveGeneric(ledgerType theType);
 
 public:
@@ -221,7 +221,8 @@ public:
     }
 
     // This function assumes that this is an INBOX.
-    // If you don't use an INBOX to call this method, then it will return NULL
+    // If you don't use an INBOX to call this method, then it will return
+    // nullptr
     // immediately.
     // If you DO use an inbox, then it will create a balanceStatement item to go
     // onto your
@@ -253,13 +254,15 @@ public:
     EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
     EXPORT OTTransaction* GetPaymentReceipt(int64_t lReferenceNum,
                                             OTPayment** ppPaymentOut =
-                                                NULL); // CALLER RESPONSIBLE TO
-                                                       // DELETE.
+                                                nullptr); // CALLER RESPONSIBLE
+                                                          // TO
+                                                          // DELETE.
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
     EXPORT OTTransaction* GetChequeReceipt(const int64_t lChequeNum,
                                            OTCheque** ppChequeOut =
-                                               NULL); // CALLER RESPONSIBLE TO
-                                                      // DELETE.
+                                               nullptr); // CALLER RESPONSIBLE
+                                                         // TO
+                                                         // DELETE.
     EXPORT int32_t
     GetTransactionIndex(int64_t lTransactionNum); // if not found, returns -1
     EXPORT OTTransaction* GetReplyNotice(const int64_t& lRequestNum);
@@ -283,9 +286,9 @@ public:
     EXPORT virtual bool VerifyAccount(OTPseudonym& theNym);
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(std::set<int64_t>* psetUnloaded =
-                                    NULL); // if psetUnloaded passed in, then
-                                           // use it to return the #s that
-                                           // weren't there.
+                                    nullptr); // if psetUnloaded passed in, then
+                                              // use it to return the #s that
+                                              // weren't there.
     EXPORT bool SaveBoxReceipts(); // For all "full version" transactions, save
                                    // the actual box receipt for each.
     // Verifies the abbreviated form exists first, and then loads the
@@ -297,20 +300,23 @@ public:
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     EXPORT bool DeleteBoxReceipt(const int64_t& lTransactionNum);
     EXPORT bool LoadInbox();
-    EXPORT bool SaveInbox(OTIdentifier* pInboxHash = NULL); // If you pass the
-                                                            // identifier in,
-                                                            // the hash is
-                                                            // recorded there
+    EXPORT bool SaveInbox(OTIdentifier* pInboxHash =
+                              nullptr); // If you pass the
+                                        // identifier in,
+                                        // the hash is
+                                        // recorded there
     EXPORT bool LoadNymbox();
-    EXPORT bool SaveNymbox(OTIdentifier* pNymboxHash = NULL); // If you pass the
-                                                              // identifier in,
-                                                              // the hash is
-                                                              // recorded there.
+    EXPORT bool SaveNymbox(OTIdentifier* pNymboxHash =
+                               nullptr); // If you pass the
+                                         // identifier in,
+                                         // the hash is
+                                         // recorded there.
     EXPORT bool LoadOutbox();
-    EXPORT bool SaveOutbox(OTIdentifier* pOutboxHash = NULL); // If you pass the
-                                                              // identifier in,
-                                                              // the hash is
-                                                              // recorded there
+    EXPORT bool SaveOutbox(OTIdentifier* pOutboxHash =
+                               nullptr); // If you pass the
+                                         // identifier in,
+                                         // the hash is
+                                         // recorded there
 
     EXPORT bool CalculateHash(OTIdentifier& theOutput);
     EXPORT bool CalculateInboxHash(OTIdentifier& theOutput);

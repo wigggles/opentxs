@@ -241,11 +241,13 @@ public:
     static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
                                            OTASCIIArmor& ascOutput,
                                            const char*& szName,
-                                           OTString::Map* pmapExtraVars = NULL);
+                                           OTString::Map* pmapExtraVars =
+                                               nullptr);
     static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
                                            OTString& strOutput,
                                            const char*& szName,
-                                           OTString::Map* pmapExtraVars = NULL);
+                                           OTString::Map* pmapExtraVars =
+                                               nullptr);
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
@@ -450,26 +452,26 @@ public:
     // Save m_xmlUnsigned to a string that's passed in
     virtual bool SaveContents(OTString& strContents) const;
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData = NULL);
+                                     OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
-                                    OTPasswordData* pPWData = NULL);
+                                    OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(const OTAsymmetricKey& theKey,
-                            OTPasswordData* pPWData = NULL);
+                            OTPasswordData* pPWData = nullptr);
     bool SignContract(const OTPseudonym& theNym, OTSignature& theSignature,
-                      OTPasswordData* pPWData = NULL);
+                      OTPasswordData* pPWData = nullptr);
     bool SignContractAuthent(const OTPseudonym& theNym, // Uses authentication
                                                         // key instead of
                                                         // signing key.
                              OTSignature& theSignature,
-                             OTPasswordData* pPWData = NULL);
+                             OTPasswordData* pPWData = nullptr);
     bool SignContract(const OTAsymmetricKey& theKey, OTSignature& theSignature,
                       const OTString& strHashType,
-                      OTPasswordData* pPWData = NULL);
+                      OTPasswordData* pPWData = nullptr);
 
     bool SignContract(const char* szFoldername,
-                      const char* szFilename,          // for Cert.
-                      OTSignature& theSignature,       // output
-                      OTPasswordData* pPWData = NULL); // optional in/out
+                      const char* szFilename,             // for Cert.
+                      OTSignature& theSignature,          // output
+                      OTPasswordData* pPWData = nullptr); // optional in/out
 
     // Calculates a hash of m_strRawFile (the xml portion of the contract plus
     // the signatures)
@@ -497,32 +499,32 @@ public:
 
     // So far not overridden anywhere (used to be OTTrade.)
     EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        OTPasswordData* pPWData = NULL);
+                                        OTPasswordData* pPWData = nullptr);
     EXPORT virtual bool VerifySigAuthent(const OTPseudonym& theNym,
-                                         OTPasswordData* pPWData = NULL);
+                                         OTPasswordData* pPWData = nullptr);
 
     EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
-                              OTPasswordData* pPWData = NULL);
+                              OTPasswordData* pPWData = nullptr);
 
     bool VerifySignature(const OTPseudonym& theNym,
                          const OTSignature& theSignature,
-                         OTPasswordData* pPWData = NULL) const;
+                         OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySigAuthent(const OTPseudonym& theNym, // Uses authentication key
                                                      // instead of signing key.
                           const OTSignature& theSignature,
-                          OTPasswordData* pPWData = NULL) const;
+                          OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const OTAsymmetricKey& theKey,
                          const OTSignature& theSignature,
                          const OTString& strHashType,
-                         OTPasswordData* pPWData = NULL) const;
+                         OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const char* szFoldername,
                          const char* szFilename, // for Cert.
                          const OTSignature& theSignature,
                          OTPasswordData* pPWData =
-                             NULL) const; // optional in/out
+                             nullptr) const; // optional in/out
 
     //      bool VerifySignatures();   // This function verifies the signatures
     // on the contract.

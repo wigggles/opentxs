@@ -251,7 +251,7 @@ you call munlock():
 void main()
 {
     HRESULT hr = S_OK;
-    LPWSTR pSensitiveText = NULL;
+    LPWSTR pSensitiveText = nullptr;
     DWORD cbSensitiveText = 0;
     DWORD cbPlainText = SSN_STR_LEN*sizeof(WCHAR);
     DWORD dwMod = 0;
@@ -264,7 +264,7 @@ void main()
         cbSensitiveText = cbPlainText;
 
     pSensitiveText = (LPWSTR)LocalAlloc(LPTR, cbSensitiveText);
-    if (NULL == pSensitiveText)
+    if (nullptr == pSensitiveText)
     {
         wprintf(L"Memory allocation failed.\n");
         return E_OUTOFMEMORY;
@@ -278,7 +278,7 @@ void main()
         wprintf(L"CryptProtectMemory failed: %d\n", GetLastError());
         SecureZeroMemory(pSensitiveText, cbSensitiveText);
         LocalFree(pSensitiveText);
-        pSensitiveText = NULL;
+        pSensitiveText = nullptr;
         return E_FAIL;
     }
 
@@ -286,7 +286,7 @@ void main()
 
     SecureZeroMemory(pSensitiveText, cbSensitiveText);
     LocalFree(pSensitiveText);
-    pSensitiveText = NULL;
+    pSensitiveText = nullptr;
 
     return hr;
 }
@@ -325,7 +325,7 @@ void main()
     // the decrypted string or if an error occurs.
     SecureZeroMemory(pEncryptedText, cbEncryptedText);
     LocalFree(pEncryptedText);
-    pEncryptedText = NULL;
+    pEncryptedText = nullptr;
 }
 
 
@@ -377,15 +377,16 @@ public:
     {
         return m_pCachedKey;
     }
-    EXPORT OTPasswordData(const char* szDisplay, OTPassword* pMasterPW = NULL,
+    EXPORT OTPasswordData(const char* szDisplay,
+                          OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());
     EXPORT OTPasswordData(const std::string& str_Display,
-                          OTPassword* pMasterPW = NULL,
+                          OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());
     EXPORT OTPasswordData(const OTString& strDisplay,
-                          OTPassword* pMasterPW = NULL,
+                          OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());
     EXPORT ~OTPasswordData();
