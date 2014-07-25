@@ -162,17 +162,17 @@ bool OTAgreement::SendNoticeToAllParties(
                                  // below.
     OTPseudonym* pRecipient = NULL;
 
-    if (theServerNym.CompareID(this->GetRecipientUserID())) {
+    if (theServerNym.CompareID(GetRecipientUserID())) {
         pRecipient = &theServerNym; // Just in case the recipient Nym is also
                                     // the server Nym.
     }
     else if ((NULL != pActualNym) &&
-               pActualNym->CompareID(this->GetRecipientUserID())) {
+               pActualNym->CompareID(GetRecipientUserID())) {
         pRecipient = pActualNym;
     }
 
     if (NULL == pRecipient) {
-        const OTIdentifier NYM_ID(this->GetRecipientUserID());
+        const OTIdentifier NYM_ID(GetRecipientUserID());
         theRecipientNym.SetIdentifier(NYM_ID);
 
         if (false == theRecipientNym.LoadPublicKey()) {
@@ -203,17 +203,17 @@ bool OTAgreement::SendNoticeToAllParties(
     OTPseudonym theSenderNym; // Don't use this... use the pointer just below.
     OTPseudonym* pSender = NULL;
 
-    if (theServerNym.CompareID(this->GetSenderUserID())) {
+    if (theServerNym.CompareID(GetSenderUserID())) {
         pSender = &theServerNym; // Just in case the Sender Nym is also the
                                  // server Nym.
     }
     else if ((NULL != pActualNym) &&
-               pActualNym->CompareID(this->GetSenderUserID())) {
+               pActualNym->CompareID(GetSenderUserID())) {
         pSender = pActualNym;
     }
 
     if (NULL == pSender) {
-        const OTIdentifier NYM_ID(this->GetSenderUserID());
+        const OTIdentifier NYM_ID(GetSenderUserID());
         theSenderNym.SetIdentifier(NYM_ID);
 
         if (false == theSenderNym.LoadPublicKey()) {
@@ -248,7 +248,7 @@ bool OTAgreement::SendNoticeToAllParties(
     // Sender
     if (false == OTAgreement::DropServerNoticeToNymbox(
                      bSuccessMsg, // "success" notice? or "failure" notice?
-                     theServerNym, theServerID, this->GetSenderUserID(),
+                     theServerNym, theServerID, GetSenderUserID(),
                      lNewTransactionNumber,
                      GetTransactionNum(), // in reference to
                      strReference, pstrNote, pstrAttachment, pSender))
@@ -259,7 +259,7 @@ bool OTAgreement::SendNoticeToAllParties(
     // Recipient
     if (false == OTAgreement::DropServerNoticeToNymbox(
                      bSuccessMsg, // "success" notice? or "failure" notice?
-                     theServerNym, theServerID, this->GetRecipientUserID(),
+                     theServerNym, theServerID, GetRecipientUserID(),
                      lNewTransactionNumber,
                      GetRecipientOpeningNum(), // in reference to
                      strReference, pstrNote, pstrAttachment, pRecipient))
@@ -510,7 +510,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
                                    OTPseudonym&, // Not needed in this override.
                                    mapOfNyms*)
 {
-    return this->VerifySignature(theNym);
+    return VerifySignature(theNym);
 }
 
 // This is an override. See note above.
@@ -560,7 +560,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     //
     OTPseudonym* pRecipient = NULL;
 
-    if (pServerNym->CompareID(this->GetRecipientUserID())) {
+    if (pServerNym->CompareID(GetRecipientUserID())) {
         pRecipient = pServerNym; // Just in case the recipient Nym is also the
                                  // server Nym.
     }
@@ -569,7 +569,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     // then set the pointer accordingly.
     //
     else if ((NULL != pRemover) &&
-             (true == pRemover->CompareID(this->GetRecipientUserID()))) {
+             (true == pRemover->CompareID(GetRecipientUserID()))) {
         pRecipient = pRemover; // <======== now both pointers are set (to same
                                // Nym). DONE!
     }
@@ -580,7 +580,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // but for whatever reason, I'm checking the userID on the original
         // version. Sue me.
         //
-        const OTIdentifier NYM_ID(this->GetRecipientUserID());
+        const OTIdentifier NYM_ID(GetRecipientUserID());
 
         theRecipientNym.SetIdentifier(NYM_ID);
 
@@ -612,10 +612,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     // Second, we're verifying the CLOSING number, and using it as the closing
     // number
     // on the FINAL RECEIPT (with that receipt being "InReferenceTo"
-    // this->GetTransactionNum())
+    // GetTransactionNum())
     //
-    const int64_t lRecipientOpeningNumber = this->GetRecipientOpeningNum();
-    const int64_t lRecipientClosingNumber = this->GetRecipientClosingNum();
+    const int64_t lRecipientOpeningNumber = GetRecipientOpeningNum();
+    const int64_t lRecipientClosingNumber = GetRecipientClosingNum();
 
     const int64_t lSenderOpeningNumber = theOrigCronItem.GetTransactionNum();
 
@@ -704,7 +704,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (false == this->DropFinalReceiptToNymbox(
+        if (false == DropFinalReceiptToNymbox(
                          GetSenderUserID(), lNewTransactionNumber,
                          strOrigCronItem, NULL, pstrAttachment, pActualNym)) {
             otErr << szFunc
@@ -721,7 +721,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // (Additional information would normally be stored in the note.)
         //
         if (false ==
-            this->DropFinalReceiptToInbox(
+            DropFinalReceiptToInbox(
                 GetSenderUserID(), GetSenderAcctID(), lNewTransactionNumber,
                 lSenderClosingNumber, // The closing transaction number to put
                                       // on the receipt.
@@ -771,7 +771,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         //      pRecipient->SaveSignedNymfile(*pServerNym); // Moved lower.
 
         if (false ==
-            this->DropFinalReceiptToNymbox(
+            DropFinalReceiptToNymbox(
                 GetRecipientUserID(), lNewTransactionNumber, strOrigCronItem,
                 NULL, pstrAttachment,
                 pRecipient)) // NymboxHash is updated here in pRecipient.
@@ -795,7 +795,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     else {
         otErr << szFunc
               << ": Failed verifying "
-                 "lRecipientClosingNumber=this->"
+                 "lRecipientClosingNumber="
                  "GetRecipientClosingTransactionNoAt(1)>0 &&  "
                  "pRecipient->VerifyTransactionNum(lRecipientClosingNumber) && "
                  "VerifyIssuedNum(lRecipientOpeningNumber)\n";
@@ -804,7 +804,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     //
     if ((NULL != pRecipient) && (lRecipientClosingNumber > 0) &&
         pRecipient->VerifyIssuedNum(strServerID, lRecipientClosingNumber)) {
-        if (false == this->DropFinalReceiptToInbox(
+        if (false == DropFinalReceiptToInbox(
                          GetRecipientUserID(), GetRecipientAcctID(),
                          lNewTransactionNumber,
                          lRecipientClosingNumber, // The closing transaction
@@ -823,7 +823,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     else {
         otErr << szFunc
               << ": Failed verifying "
-                 "lRecipientClosingNumber=this->"
+                 "lRecipientClosingNumber="
                  "GetRecipientClosingTransactionNoAt(1)>0 &&  "
                  "pRecipient->VerifyTransactionNum(lRecipientClosingNumber) && "
                  "VerifyIssuedNum(lRecipientOpeningNumber)\n";
@@ -956,7 +956,7 @@ void OTAgreement::HarvestClosingNumbers(OTPseudonym& theNym)
 
 int64_t OTAgreement::GetOpeningNumber(const OTIdentifier& theNymID) const
 {
-    const OTIdentifier& theRecipientNymID = this->GetRecipientUserID();
+    const OTIdentifier& theRecipientNymID = GetRecipientUserID();
 
     if (theNymID == theRecipientNymID) return GetRecipientOpeningNum();
     // else...
@@ -965,7 +965,7 @@ int64_t OTAgreement::GetOpeningNumber(const OTIdentifier& theNymID) const
 
 int64_t OTAgreement::GetClosingNumber(const OTIdentifier& theAcctID) const
 {
-    const OTIdentifier& theRecipientAcctID = this->GetRecipientAcctID();
+    const OTIdentifier& theRecipientAcctID = GetRecipientAcctID();
 
     if (theAcctID == theRecipientAcctID) return GetRecipientClosingNum();
     // else...
@@ -1067,18 +1067,17 @@ bool OTAgreement::CanRemoveItemFromCron(OTPseudonym& theNym)
                  "though he apparently wasn't the sender OR recipient.\n";
         return false;
     }
-    else if (this->GetRecipientCountClosingNumbers() < 2) {
+    else if (GetRecipientCountClosingNumbers() < 2) {
         otOut << "OTAgreement::" << __FUNCTION__
               << ": Weird: Recipient tried to remove agreement "
                  "(or payment plan); expected 2 closing numbers to be "
                  "available--that weren't."
-                 " (Found " << this->GetRecipientCountClosingNumbers()
-              << ").\n";
+                 " (Found " << GetRecipientCountClosingNumbers() << ").\n";
         return false;
     }
 
     if (false ==
-        theNym.VerifyIssuedNum(strServerID, this->GetRecipientClosingNum())) {
+        theNym.VerifyIssuedNum(strServerID, GetRecipientClosingNum())) {
         otOut << "OTAgreement::" << __FUNCTION__ << ": Recipient Closing "
                                                     "number didn't verify (for "
                                                     "removal from cron).\n";
@@ -1094,7 +1093,7 @@ bool OTAgreement::CanRemoveItemFromCron(OTPseudonym& theNym)
     // to authorize removal, as long as the transaction num is still issued to
     // theNym (this check here.)
     //
-    return theNym.VerifyIssuedNum(strServerID, this->GetRecipientOpeningNum());
+    return theNym.VerifyIssuedNum(strServerID, GetRecipientOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -1260,8 +1259,8 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
     // Set the Transaction Number and the Closing transaction number... (for
     // merchant / recipient.)
     //
-    this->AddRecipientClosingTransactionNo(lTransactionNumber);
-    this->AddRecipientClosingTransactionNo(lClosingTransactionNo);
+    AddRecipientClosingTransactionNo(lTransactionNumber);
+    AddRecipientClosingTransactionNo(lClosingTransactionNo);
     // (They just both go onto this same list.)
 
     // Set the Consideration memo...
@@ -1287,13 +1286,13 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
         return false;
     }
     else if ((NULL != p_id_MERCHANT_NYM) &&
-               (this->GetRecipientUserID() != *p_id_MERCHANT_NYM)) {
+               (GetRecipientUserID() != *p_id_MERCHANT_NYM)) {
         otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
                                  "as RecipientUserID.)\n";
         return false;
     }
     else if ((NULL != pMERCHANT_NYM) &&
-               (this->GetRecipientUserID() != pMERCHANT_NYM->GetConstID())) {
+               (GetRecipientUserID() != pMERCHANT_NYM->GetConstID())) {
         otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
                                  "as RecipientUserID.)\n";
         return false;
@@ -1319,8 +1318,7 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     // This is the single reason why MERCHANT_NYM was even passed in here!
     // Supposedly merchant has already signed.  Let's verify this!!
     //
-    if ((NULL != pMERCHANT_NYM) &&
-        (false == this->VerifySignature(*pMERCHANT_NYM))) {
+    if ((NULL != pMERCHANT_NYM) && (false == VerifySignature(*pMERCHANT_NYM))) {
         otOut << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
         return false;
     }
@@ -1331,8 +1329,8 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     // (to add my own transaction numbers...)
     //
     OTString strTemp;
-    this->SaveContractRaw(strTemp);
-    this->SetMerchantSignedCopy(strTemp);
+    SaveContractRaw(strTemp);
+    SetMerchantSignedCopy(strTemp);
 
     // The payer has to submit TWO transaction numbers in order to activate this
     // agreement...
@@ -1361,8 +1359,8 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     // We can't return without USING THEM or PUTTING THEM BACK.
     //
 
-    this->SetTransactionNum(lTransactionNumber); // Set the Transaction Number
-    this->AddClosingTransactionNo(
+    SetTransactionNum(lTransactionNumber); // Set the Transaction Number
+    AddClosingTransactionNo(
         lClosingTransactionNo); // and the Closing Number (both for sender)...
 
     // CREATION DATE was set in the Merchant's proposal, and it's RESET here in
@@ -1626,7 +1624,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strClosingNumber.Exists()) {
             const int64_t lClosingNumber = atol(strClosingNumber.Get());
 
-            this->AddRecipientClosingTransactionNo(lClosingNumber);
+            AddRecipientClosingTransactionNo(lClosingNumber);
         }
         else {
             otErr << "Error in OTAgreement::ProcessXMLNode: "

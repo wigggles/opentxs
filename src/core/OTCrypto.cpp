@@ -671,7 +671,7 @@ void OTCrypto::Init()
         }
 #endif
 
-        this->Init_Override();
+        Init_Override();
     }
     else
         otErr << "OTCrypto::Init: ERROR: Somehow this erroneously got called "
@@ -691,7 +691,7 @@ void OTCrypto::Cleanup()
         // handled in OTCrypto_OpenSSL, a subclass) would go here.
         //
 
-        this->Cleanup_Override();
+        Cleanup_Override();
     }
     else
         otErr << "OTCrypto::Cleanup: ERROR: Somehow this erroneously got "
@@ -725,7 +725,7 @@ bool OTCrypto::Base64Encode(const OTData& theInput, OTString& strOutput,
                                 "after static casting.\n");
 
     // Caller is responsible to delete.
-    char* pChar = this->Base64Encode(pDataIn, nLength, bLineBreaks);
+    char* pChar = Base64Encode(pDataIn, nLength, bLineBreaks);
 
     if (NULL == pChar) {
         otErr << __FUNCTION__ << ": Base64Encode returned NULL. (Failure.)\n";
@@ -749,7 +749,7 @@ bool OTCrypto::Base64Decode(const OTString& strInput, OTData& theOutput,
     size_t theSize = 0;
 
     // Caller is responsible to delete.
-    uint8_t* pOutput = this->Base64Decode(szInput, &theSize, bLineBreaks);
+    uint8_t* pOutput = Base64Decode(szInput, &theSize, bLineBreaks);
 
     if (NULL == pOutput) {
         otErr << __FUNCTION__ << ": Base64Decode returned NULL. (Failure.)\n";
@@ -830,7 +830,7 @@ OTCrypto_Decrypt_Output& OTCrypto_Decrypt_Output::operator=(
     OTCrypto_Decrypt_Output other) // note: argument passed by value!
 {
     // swap this with other
-    this->swap(other);
+    swap(other);
 
     // by convention, always return *this
     return *this;
@@ -1362,7 +1362,7 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
     // If it's not base62-encoded, then it doesn't validate.
     //
     const std::string strINPUT = strInput.Get();
-    if (false == this->IsBase62(strINPUT)) return;
+    if (false == IsBase62(strINPUT)) return;
 
     // Todo there are try/catches in here, so need to handle those at some
     // point.
@@ -1535,8 +1535,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
            << ": Using a text passphrase, salt, and iteration count, "
               "to make a derived key...\n";
 
-    OTPassword* pDerivedKey(
-        this->InstantiateBinarySecret()); // already asserts.
+    OTPassword* pDerivedKey(InstantiateBinarySecret()); // already asserts.
 
     //  pDerivedKey MUST be returned or cleaned-up, below this point.
     //
@@ -2087,7 +2086,7 @@ void OTCrypto_OpenSSL::Init_Override()
     otWarn << szFunc << ": OpenSSL WAS compiled with thread support, FYI. "
                         "Setting up mutexes...\n";
 
-    this->thread_setup();
+    thread_setup();
 
 #else
     // no thread support
@@ -2141,7 +2140,7 @@ void OTCrypto_OpenSSL::Cleanup_Override()
 #if defined(OPENSSL_THREADS)
     // thread support enabled
 
-    this->thread_cleanup();
+    thread_cleanup();
 
 #else
 // no thread support
@@ -4699,8 +4698,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
         //        md = (EVP_MD
         // *)OTCrypto_OpenSSL::GetOpenSSLDigestByName(OTIdentifier::HashAlgorithm1);
 
-        return this->SignContractDefaultHash(strContractUnsigned, pkey,
-                                             theSignature, pPWData);
+        return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
+                                       pPWData);
     }
 
     //    else
@@ -4786,9 +4785,9 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(NULL != pkey);
 
-    if (false == this->dp->SignContract(strContractUnsigned, pkey, theSignature,
-                                        strHashType, pPWData)) {
-        otErr << szFunc << ": this->SignContract returned false.\n";
+    if (false == dp->SignContract(strContractUnsigned, pkey, theSignature,
+                                  strHashType, pPWData)) {
+        otErr << szFunc << ": SignContract returned false.\n";
         return false;
     }
 
@@ -4811,10 +4810,9 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(NULL != pkey);
 
-    if (false == this->dp->VerifySignature(strContractToVerify, pkey,
-                                           theSignature, strHashType,
-                                           pPWData)) {
-        otLog3 << szFunc << ": this->VerifySignature returned false.\n";
+    if (false == dp->VerifySignature(strContractToVerify, pkey, theSignature,
+                                     strHashType, pPWData)) {
+        otLog3 << szFunc << ": VerifySignature returned false.\n";
         return false;
     }
 
@@ -4856,8 +4854,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
         //        md = (EVP_MD
         // *)OTCrypto_OpenSSL::GetOpenSSLDigestByName(OTIdentifier::HashAlgorithm1);
 
-        return this->VerifyContractDefaultHash(strContractToVerify, pkey,
-                                               theSignature, pPWData);
+        return VerifyContractDefaultHash(strContractToVerify, pkey,
+                                         theSignature, pPWData);
     }
 
     //    else
@@ -4967,8 +4965,8 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
         otErr << szFunc << ": Error reading private key from BIO.\n";
     }
     else {
-        bSigned = this->dp->SignContract(strContractUnsigned, pkey,
-                                         theSignature, strSigHashType, pPWData);
+        bSigned = dp->SignContract(strContractUnsigned, pkey, theSignature,
+                                   strSigHashType, pPWData);
 
         EVP_PKEY_free(pkey);
         pkey = NULL;
@@ -5023,8 +5021,8 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
               << ": Failed reading public key from x509 from certfile...\n";
     }
     else {
-        bVerifySig = this->dp->VerifySignature(
-            strContractToVerify, pkey, theSignature, strSigHashType, pPWData);
+        bVerifySig = dp->VerifySignature(strContractToVerify, pkey,
+                                         theSignature, strSigHashType, pPWData);
 
         EVP_PKEY_free(pkey);
         pkey = NULL;

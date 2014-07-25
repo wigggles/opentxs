@@ -193,11 +193,11 @@ OTSignatureMetadata::OTSignatureMetadata()
 
 bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
 {
-    return ((this->HasMetadata() == rhs.HasMetadata()) &&
-            (this->GetKeyType() == rhs.GetKeyType()) &&
-            (this->FirstCharNymID() == rhs.FirstCharNymID()) &&
-            (this->FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
-            (this->FirstCharSubCredID() == rhs.FirstCharSubCredID()));
+    return ((HasMetadata() == rhs.HasMetadata()) &&
+            (GetKeyType() == rhs.GetKeyType()) &&
+            (FirstCharNymID() == rhs.FirstCharNymID()) &&
+            (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
+            (FirstCharSubCredID() == rhs.FirstCharSubCredID()));
 }
 
 } // namespace opentxs

@@ -197,14 +197,14 @@ void OTMasterkey::UpdateContents()
 
     m_xmlUnsigned.Concatenate(
         "<masterCredential nymID=\"%s\" >\n\n", // a hash of the nymIDSource
-        this->GetNymID().Get());
+        GetNymID().Get());
 
-    if (this->GetNymIDSource().Exists()) {
+    if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
-        ascSource.SetString(this->GetNymIDSource()); // A nym should always
-                                                     // verify through its own
-                                                     // source. (Whatever that
-                                                     // may be.)
+        ascSource.SetString(GetNymIDSource()); // A nym should always
+                                               // verify through its own
+                                               // source. (Whatever that
+                                               // may be.)
         m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
                                   ascSource.Get());
     }
@@ -214,7 +214,7 @@ void OTMasterkey::UpdateContents()
     //  if (OTSubcredential::credPublicInfo == m_StoreAs)   // PUBLIC INFO
     // (Always save this in every state.)
     {
-        this->UpdatePublicContentsToString(m_xmlUnsigned);
+        UpdatePublicContentsToString(m_xmlUnsigned);
     }
 
     // PRIVATE INFO
@@ -223,9 +223,9 @@ void OTMasterkey::UpdateContents()
     //
     if (OTSubcredential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
     {
-        this->UpdatePublicCredentialToString(m_xmlUnsigned);
+        UpdatePublicCredentialToString(m_xmlUnsigned);
 
-        this->UpdatePrivateContentsToString(m_xmlUnsigned);
+        UpdatePrivateContentsToString(m_xmlUnsigned);
     }
     // -------------------------------------------------
     m_xmlUnsigned.Concatenate("</masterCredential>\n");
@@ -255,7 +255,7 @@ bool OTMasterkey::VerifyInternally()
     // was doing, we will have to duplicate that here as well...
     //  if (false == ot_super::VerifyInternally())
     //      return false;
-    if (false == this->VerifyNymID()) return false;
+    if (false == VerifyNymID()) return false;
 
     OT_ASSERT(NULL != m_pOwner);
     // Verify that *this == m_pOwner->GetMasterkey() (the master credential.)
@@ -278,7 +278,7 @@ bool OTMasterkey::VerifyInternally()
     // Any OTKeyCredential (both master and subkeys, but no other credentials)
     // must ** sign itself.**
     //
-    if (false == this->VerifySignedBySelf()) {
+    if (false == VerifySignedBySelf()) {
         otOut << __FUNCTION__ << ": Failed verifying master credential: it's "
                                  "not signed by itself (its own signing "
                                  "key.)\n";
@@ -329,54 +329,54 @@ bool OTMasterkey::VerifyAgainstSource() const
     if (str_raw_source.compare(0, 5, "http:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 5,
                           str_raw_source.end());
-        bVerified = this->VerifySource_HTTP(str_source.c_str());
+        bVerified = VerifySource_HTTP(str_source.c_str());
     }
     else if (str_raw_source.compare(0, 6, "https:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 6,
                           str_raw_source.end());
-        bVerified = this->VerifySource_HTTPS(str_source.c_str());
+        bVerified = VerifySource_HTTPS(str_source.c_str());
     }
     // It's a Bitcoin address.
     else if (str_raw_source.compare(0, 8, "bitcoin:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 8,
                           str_raw_source.end());
-        bVerified = this->VerifySource_Bitcoin(str_source.c_str());
+        bVerified = VerifySource_Bitcoin(str_source.c_str());
     }
     // It's a Namecoin address.
     else if (str_raw_source.compare(0, 9, "namecoin:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 9,
                           str_raw_source.end());
-        bVerified = this->VerifySource_Namecoin(str_source.c_str());
+        bVerified = VerifySource_Namecoin(str_source.c_str());
     }
     // It's a Freenet URL.
     else if (str_raw_source.compare(0, 8, "freenet:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 8,
                           str_raw_source.end());
-        bVerified = this->VerifySource_Freenet(str_source.c_str());
+        bVerified = VerifySource_Freenet(str_source.c_str());
     }
     // It's a Tor URL.
     else if (str_raw_source.compare(0, 4, "tor:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 4,
                           str_raw_source.end());
-        bVerified = this->VerifySource_TOR(str_source.c_str());
+        bVerified = VerifySource_TOR(str_source.c_str());
     }
     // It's an I2P URL.
     else if (str_raw_source.compare(0, 4, "i2p:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 4,
                           str_raw_source.end());
-        bVerified = this->VerifySource_I2P(str_source.c_str());
+        bVerified = VerifySource_I2P(str_source.c_str());
     }
     // It's the Issuer/Subject DN info from a cert issued by a traditional
     // certificate authority.
     else if (str_raw_source.compare(0, 5, "cert:") == 0) {
         str_source.insert(str_source.begin(), str_raw_source.begin() + 5,
                           str_raw_source.end());
-        bVerified = this->VerifySource_CA(str_source.c_str());
+        bVerified = VerifySource_CA(str_source.c_str());
     }
     else // It's presumably a public key.
     {
         str_source = str_raw_source;
-        bVerified = this->VerifySource_Pubkey(str_source.c_str());
+        bVerified = VerifySource_Pubkey(str_source.c_str());
     }
 
     return bVerified;

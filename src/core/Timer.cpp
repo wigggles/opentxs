@@ -110,7 +110,7 @@ double Timer::getElapsedTimeInMicroSec()
 ///////////////////////////////////////////////////////////////////////////////
 double Timer::getElapsedTimeInMilliSec()
 {
-    return this->getElapsedTimeInMicroSec() * 0.001;
+    return getElapsedTimeInMicroSec() * 0.001;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ double Timer::getElapsedTimeInMilliSec()
 ///////////////////////////////////////////////////////////////////////////////
 double Timer::getElapsedTimeInSec()
 {
-    return this->getElapsedTimeInMicroSec() * 0.000001;
+    return getElapsedTimeInMicroSec() * 0.000001;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,5 +126,5 @@ double Timer::getElapsedTimeInSec()
 ///////////////////////////////////////////////////////////////////////////////
 double Timer::getElapsedTime()
 {
-    return this->getElapsedTimeInSec();
+    return getElapsedTimeInSec();
 }

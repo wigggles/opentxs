@@ -3910,7 +3910,7 @@ bool OTMessage::VerifySignature(const OTPseudonym& theNym,
     // probably be
     // the same way. (Maybe it already is, by the time you are reading this.)
     //
-    return this->VerifySigAuthent(theNym, pPWData);
+    return VerifySigAuthent(theNym, pPWData);
 }
 
 // Unlike other contracts, which do not change over time, and thus calculate

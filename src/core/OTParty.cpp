@@ -448,14 +448,14 @@ int64_t OTParty::GetClosingTransNo(const std::string str_for_acct_name) const
 
 // OTParty::OTParty(const OTParty & rhs)
 //{
-//    this->SetPartyName(rhs.GetPartyName());
+//    SetPartyName(rhs.GetPartyName());
 //    m_bPartyIsNym = rhs.m_bPartyIsNym;
 //    m_pAccount = rhs.m_pAccount;
 //}
 //
 // OTParty& OTParty::operator= (const OTParty & rhs)
 //{
-//    this->SetPartyName(rhs.GetPartyName());
+//    SetPartyName(rhs.GetPartyName());
 //    m_bPartyIsNym = rhs.m_bPartyIsNym;
 //    m_pAccount = rhs.m_pAccount;
 //
@@ -962,13 +962,13 @@ OTPseudonym* OTParty::LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
 
 bool OTParty::VerifyOwnershipOfAccount(const OTAccount& theAccount) const
 {
-    if (this->IsNym()) // For those cases where the party is actually just a
-                       // solitary Nym (not an entity.)
+    if (IsNym()) // For those cases where the party is actually just a
+                 // solitary Nym (not an entity.)
     {
         bool bNymID = false;
         std::string str_nym_id =
-            this->GetNymID(&bNymID); // If the party is a Nym, this is the Nym's
-                                     // ID. Otherwise this is false.
+            GetNymID(&bNymID); // If the party is a Nym, this is the Nym's
+                               // ID. Otherwise this is false.
 
         if (!bNymID || (str_nym_id.size() <= 0)) {
             otErr << " OTParty::VerifyOwnershipOfAccount: Although party is a "
@@ -980,7 +980,7 @@ bool OTParty::VerifyOwnershipOfAccount(const OTAccount& theAccount) const
 
         return theAccount.VerifyOwnerByID(thePartyNymID);
     }
-    else if (this->IsEntity())
+    else if (IsEntity())
         otErr << "OTParty::VerifyOwnershipOfAccount: Error: Entities have not "
                  "been implemented yet, "
                  "but somehow this party is an entity.\n";
@@ -1097,7 +1097,7 @@ bool OTParty::SendNoticeToParty(
         return false;
     }
 
-    const int64_t lOpeningTransNo = this->GetOpeningTransNo();
+    const int64_t lOpeningTransNo = GetOpeningTransNo();
 
     if (lOpeningTransNo > 0) {
         for (auto& it : m_mapAgents) {
@@ -1227,7 +1227,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
                                      mapOfNyms& map_Nyms_Already_Loaded,
                                      mapOfNyms& map_NewlyLoaded)
 {
-    const bool bIsNym = this->IsNym();
+    const bool bIsNym = IsNym();
 
     if (!bIsNym) // Owner MUST be a Nym (until I code Entities.)
     {
@@ -1253,7 +1253,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
     }
 
     bool bGotPartyNymID = false;
-    const std::string str_owner_id = this->GetNymID(
+    const std::string str_owner_id = GetNymID(
         &bGotPartyNymID); // str_owner_id  is the NymID of the party OWNER.
     OT_ASSERT(bGotPartyNymID);
 
@@ -1494,7 +1494,7 @@ void OTParty::HarvestClosingNumbers(const OTString& strServerID, bool bSave,
             continue;
         }
 
-        OTAgent* pAgent = this->GetAgent(str_agent_name);
+        OTAgent* pAgent = GetAgent(str_agent_name);
         if (NULL == pAgent)
             otErr << __FUNCTION__ << ": Couldn't find agent (" << str_agent_name
                   << ") for asset account: " << pAcct->GetName() << "\n";
@@ -1688,7 +1688,7 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
     }
     // BELOW THIS POINT, the OPENING trans# has been RESERVED and
     // must be RETRIEVED in the event of failure, using this call:
-    // this->HarvestAllTransactionNumbers(strServerID);
+    // HarvestAllTransactionNumbers(strServerID);
 
     // RESERVE THE CLOSING TRANSACTION NUMBER for each asset account, LOCATED ON
     // ITS AUTHORIZED AGENT.
@@ -1841,30 +1841,29 @@ bool OTParty::Compare(const OTParty& rhs) const
     //        return false;
     //    }
 
-    if ((this->GetOpeningTransNo() > 0) && (rhs.GetOpeningTransNo() > 0) &&
-        (this->GetOpeningTransNo() != rhs.GetOpeningTransNo())) {
+    if ((GetOpeningTransNo() > 0) && (rhs.GetOpeningTransNo() > 0) &&
+        (GetOpeningTransNo() != rhs.GetOpeningTransNo())) {
         otOut << "OTParty::Compare: Opening transaction numbers don't match "
-                 "for party " << GetPartyName() << ". ( "
-              << this->GetOpeningTransNo() << "  /  " << rhs.GetOpeningTransNo()
-              << " ) \n";
+                 "for party " << GetPartyName() << ". ( " << GetOpeningTransNo()
+              << "  /  " << rhs.GetOpeningTransNo() << " ) \n";
         return false;
     }
 
-    if ((this->GetPartyID().size() > 0) && (rhs.GetPartyID().size() > 0) &&
-        !(this->GetPartyID().compare(rhs.GetPartyID()) == 0)) {
+    if ((GetPartyID().size() > 0) && (rhs.GetPartyID().size() > 0) &&
+        !(GetPartyID().compare(rhs.GetPartyID()) == 0)) {
         otOut << "OTParty::Compare: Party IDs don't match for party "
-              << GetPartyName() << ". ( " << this->GetPartyID() << "  /  "
+              << GetPartyName() << ". ( " << GetPartyID() << "  /  "
               << rhs.GetPartyID() << " ) \n";
         return false;
     }
 
-    if ((this->GetAuthorizingAgentName().size() > 0) &&
+    if ((GetAuthorizingAgentName().size() > 0) &&
         (rhs.GetAuthorizingAgentName().size() > 0) &&
-        !(this->GetAuthorizingAgentName().compare(
-              rhs.GetAuthorizingAgentName()) == 0)) {
+        !(GetAuthorizingAgentName().compare(rhs.GetAuthorizingAgentName()) ==
+          0)) {
         otOut << "OTParty::Compare: Authorizing agent names don't match for "
                  "party " << GetPartyName() << ". ( "
-              << this->GetAuthorizingAgentName() << "  /  "
+              << GetAuthorizingAgentName() << "  /  "
               << rhs.GetAuthorizingAgentName() << " ) \n";
         return false;
     }
@@ -1873,7 +1872,7 @@ bool OTParty::Compare(const OTParty& rhs) const
     //
     //    mapOfAgents            m_mapAgents; // These are owned.
 
-    if (this->GetAccountCount() != rhs.GetAccountCount()) {
+    if (GetAccountCount() != rhs.GetAccountCount()) {
         otOut << "OTParty::Compare: Mismatched number of accounts when "
                  "comparing party " << GetPartyName() << ". \n";
         return false;

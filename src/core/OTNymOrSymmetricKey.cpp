@@ -282,7 +282,7 @@ OTNym_or_SymmetricKey& OTNym_or_SymmetricKey::operator=(
     OTNym_or_SymmetricKey other) // passed by value.
 {
     // swap this with other
-    this->swap(other);
+    swap(other);
 
     // by convention, always return *this
     return *this;
@@ -327,7 +327,7 @@ bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey& rhs) const
 {
     OTIdentifier idTHIS, idRHS;
 
-    this->GetIdentifier(idTHIS);
+    GetIdentifier(idTHIS);
     rhs.GetIdentifier(idRHS);
 
     return (idTHIS == idRHS);
@@ -335,10 +335,10 @@ bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey& rhs) const
 
 void OTNym_or_SymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
 {
-    if (this->IsNym()) {
+    if (IsNym()) {
         m_pNym->GetIdentifier(theIdentifier);
     }
-    else if (this->IsKey()) {
+    else if (IsKey()) {
         m_pKey->GetIdentifier(theIdentifier);
     }
     else {
@@ -348,10 +348,10 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
 
 void OTNym_or_SymmetricKey::GetIdentifier(OTString& strIdentifier) const
 {
-    if (this->IsNym()) {
+    if (IsNym()) {
         m_pNym->GetIdentifier(strIdentifier);
     }
-    else if (this->IsKey()) {
+    else if (IsKey()) {
         m_pKey->GetIdentifier(strIdentifier);
     }
     else {
@@ -376,18 +376,18 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
 
     // Decrypt/Open inputEnvelope into strOutput
     //
-    if (this->IsNym()) // *this is a Nym.
+    if (IsNym()) // *this is a Nym.
     {
         bSuccess = (const_cast<OTEnvelope&>(inputEnvelope))
-                       .Open(*(this->GetNym()), strOutput);
+                       .Open(*(GetNym()), strOutput);
     }
-    else if (this->IsKey()) // *this is a symmetric key, possibly with a
-                              // password already as well.
+    else if (IsKey()) // *this is a symmetric key, possibly with a
+                        // password already as well.
     {
         OTPassword* pPassword = NULL;
 
-        if (this->HasPassword()) // Password is already available. Let's use it.
-            pPassword = this->GetPassword();
+        if (HasPassword()) // Password is already available. Let's use it.
+            pPassword = GetPassword();
         else // NO PASSWORD already? let's collect it from the user...
         {
             const OTString strDisplay(
@@ -415,7 +415,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
         }
 
         bSuccess = (const_cast<OTEnvelope&>(inputEnvelope))
-                       .Decrypt(strOutput, *(this->GetKey()), *pPassword);
+                       .Decrypt(strOutput, *(GetKey()), *pPassword);
 
         // We only set this, presuming we have to at all, if it was a success.
         if (bHadToInstantiatePassword) {
@@ -450,14 +450,14 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
 
     // Encrypt/Seal strInput into outputEnvelope
     //
-    if (this->IsNym()) {
-        bSuccess = outputEnvelope.Seal(*(this->GetNym()), strInput);
+    if (IsNym()) {
+        bSuccess = outputEnvelope.Seal(*(GetNym()), strInput);
     }
-    else if (this->IsKey()) {
+    else if (IsKey()) {
         OTPassword* pPassword = NULL;
 
-        if (this->HasPassword()) // Password is already available. Let's use it.
-            pPassword = this->GetPassword();
+        if (HasPassword()) // Password is already available. Let's use it.
+            pPassword = GetPassword();
         else // no password? let's collect it from the user...
         {
             const OTString strDisplay(
@@ -484,8 +484,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
                 bHadToInstantiatePassword = true;
         }
 
-        bSuccess =
-            outputEnvelope.Encrypt(strInput, *(this->GetKey()), *pPassword);
+        bSuccess = outputEnvelope.Encrypt(strInput, *(GetKey()), *pPassword);
 
         // We only set this, presuming we have to at all, if it was a success.
         if (bHadToInstantiatePassword) {

@@ -252,8 +252,8 @@ public:
     OTWallet* m_pWallet;
     OTClient* m_pClient;
 
-    EXPORT OT_API();  // calls this->Init();
-    EXPORT ~OT_API(); // calls this->Cleanup();
+    EXPORT OT_API();  // calls Init();
+    EXPORT ~OT_API(); // calls Cleanup();
 private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)

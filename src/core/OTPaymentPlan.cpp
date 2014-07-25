@@ -467,7 +467,7 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
     }
 
     // Compare this against the merchant's copy using Compare function.
-    if (!this->Compare(theMerchantCopy)) {
+    if (!Compare(theMerchantCopy)) {
         otOut << "OTPaymentPlan::" << __FUNCTION__
               << ": Merchant's copy of payment plan isn't equal to Customer's "
                  "copy.\n";
@@ -515,7 +515,7 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
 
     // Verify sender's signature on this.
     //
-    if (!this->VerifySignature(SENDER_NYM)) {
+    if (!VerifySignature(SENDER_NYM)) {
         otOut << "OTPaymentPlan::" << __FUNCTION__
               << ": Sender's signature failed to verify.\n";
         return false;
@@ -1032,12 +1032,10 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             // might guess from its name.
 
             //            pTransSend
-            // ->SetReferenceToNum(this->GetTransactionNum());
-            //            pTransRecip->SetReferenceToNum(this->GetTransactionNum());
-            pTransSend->SetReferenceToNum(
-                this->GetOpeningNumber(SENDER_USER_ID));
-            pTransRecip->SetReferenceToNum(
-                this->GetOpeningNumber(RECIPIENT_USER_ID));
+            // ->SetReferenceToNum(GetTransactionNum());
+            //            pTransRecip->SetReferenceToNum(GetTransactionNum());
+            pTransSend->SetReferenceToNum(GetOpeningNumber(SENDER_USER_ID));
+            pTransRecip->SetReferenceToNum(GetOpeningNumber(RECIPIENT_USER_ID));
 
             // The TRANSACTION (a receipt in my inbox) will be sent with "In
             // Reference To" information
@@ -1187,9 +1185,9 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             // original
             // signatures on it. Nice, eh?)
 
-            this->ReleaseSignatures();
-            this->SignContract(*pServerNym);
-            this->SaveContract();
+            ReleaseSignatures();
+            SignContract(*pServerNym);
+            SaveContract();
 
             // No need to save Cron here, since both caller functions call
             // SaveCron() EVERY time anyway,

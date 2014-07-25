@@ -589,7 +589,7 @@ bool OTAssetContract::ForEachAccountRecord(
     //    theAction.Trigger(theAcct);
 
     OTString strAssetTypeID, strAcctRecordFile;
-    this->GetIdentifier(strAssetTypeID);
+    GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
     OTDB::Storable* pStorable =
@@ -721,7 +721,7 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
     const OTString strAcctID(theAcctID);
 
     OTString strAssetTypeID, strAcctRecordFile;
-    this->GetIdentifier(strAssetTypeID);
+    GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
     OTDB::Storable* pStorable = NULL;
@@ -821,7 +821,7 @@ bool OTAssetContract::EraseAccountRecord(
     const OTString strAcctID(theAcctID);
 
     OTString strAssetTypeID, strAcctRecordFile;
-    this->GetIdentifier(strAssetTypeID);
+    GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
     OTDB::Storable* pStorable = NULL;
@@ -908,7 +908,7 @@ bool OTAssetContract::CreateBasket(OTBasket& theBasket, OTPseudonym& theSigner)
 
     strTemplate.Concatenate("</%s>\n", "basketContract");
 
-    return this->CreateContract(strTemplate, theSigner);
+    return CreateContract(strTemplate, theSigner);
 }
 
 void OTAssetContract::CreateContents()
@@ -970,7 +970,7 @@ void OTAssetContract::CreateContents()
 
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
     // etc.
-    this->CreateInnerContents();
+    CreateInnerContents();
 
     m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists()
                                              ? "basketContract"

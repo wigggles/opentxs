@@ -230,19 +230,19 @@ OTASCIIArmor::OTASCIIArmor() : OTString()
 OTASCIIArmor::OTASCIIArmor(const OTString& strValue)
     : OTString(/*Don't pass here, since we're encoding.*/)
 {
-    this->SetString(strValue);
+    SetString(strValue);
 }
 
 // encodes
 OTASCIIArmor::OTASCIIArmor(const OTPayload& theValue) : OTString()
 {
-    this->SetData(theValue);
+    SetData(theValue);
 }
 
 // encodes
 OTASCIIArmor::OTASCIIArmor(const OTData& theValue) : OTString()
 {
-    this->SetData(theValue);
+    SetData(theValue);
 }
 
 // Copies (already encoded)
@@ -266,7 +266,7 @@ OTASCIIArmor::OTASCIIArmor(const char* szValue) : OTString(szValue)
 // copies, assumes already encoded.
 OTASCIIArmor& OTASCIIArmor::operator=(const char* szValue)
 {
-    this->Set(szValue);
+    Set(szValue);
     return *this;
 }
 
@@ -274,7 +274,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const char* szValue)
 OTASCIIArmor& OTASCIIArmor::operator=(const OTString& strValue)
 {
     if ((&strValue) != (&(dynamic_cast<const OTString&>(*this)))) {
-        this->SetString(strValue);
+        SetString(strValue);
     }
     return *this;
 }
@@ -282,7 +282,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTString& strValue)
 // encodes
 OTASCIIArmor& OTASCIIArmor::operator=(const OTData& theValue)
 {
-    this->SetData(theValue);
+    SetData(theValue);
     return *this;
 }
 
@@ -291,7 +291,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
 {
     if ((&strValue) != this) // prevent self-assignment
     {
-        this->OTString::operator=(dynamic_cast<const OTString&>(strValue));
+        OTString::operator=(dynamic_cast<const OTString&>(strValue));
     }
     return *this;
 }
@@ -405,7 +405,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
         return true;
     }
 
-    pData = OTCrypto::It()->Base64Decode(this->Get(), &outSize, bLineBreaks);
+    pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
     //    pData = OT_base64_decode(Get(), &outSize, (bLineBreaks ? 1 : 0));
 
     if (pData) {
@@ -497,7 +497,7 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
 
     if (GetLength() < 1) return true;
 
-    pData = OTCrypto::It()->Base64Decode(this->Get(), &outSize, bLineBreaks);
+    pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (pData) {
 
@@ -641,7 +641,7 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
 
     if (GetLength() < 1) return true;
 
-    pData = OTCrypto::It()->Base64Decode(this->Get(), &outSize, bLineBreaks);
+    pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
     //    pData = OT_base64_decode(Get(), &outSize, (bLineBreaks ? 1 : 0));
 
     if (pData) {
@@ -935,7 +935,7 @@ bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
     OTString strOutput;
     std::string str_type("DATA"); // -----BEGIN OT ARMORED DATA-----
 
-    if (this->WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
+    if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
         // WRITE IT TO THE FILE
         //
         fout << strOutput;
@@ -969,7 +969,7 @@ bool OTASCIIArmor::WriteArmoredFile(
 
     OTString strOutput;
 
-    if (this->WriteArmoredString(strOutput, str_type, bEscaped) &&
+    if (WriteArmoredString(strOutput, str_type, bEscaped) &&
         strOutput.Exists()) {
         // WRITE IT TO THE FILE
         // StorePlainString will attempt to create all the folders leading up to
@@ -1019,10 +1019,10 @@ bool OTASCIIArmor::WriteArmoredString(
         OTLog::Version(),                   // "Version: Open Transactions %s\n"
         /* No variable */                   // "Comment:
         // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
-        this->Get(), //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
-                     // WRITTEN...
-        bEscaped ? szEscape : "",
-        OT_END_ARMORED, str_type.c_str()); // "%s%s %s-----\n"
+        Get(), //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
+               // WRITTEN...
+        bEscaped ? szEscape : "", OT_END_ARMORED,
+        str_type.c_str()); // "%s%s %s-----\n"
 
     strOutput.Concatenate("%s", strTemp.Get());
 

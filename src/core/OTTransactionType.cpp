@@ -481,7 +481,7 @@ void OTTransactionType::CalculateNumberOfOrigin()
 // virtual
 int64_t OTTransactionType::GetNumberOfOrigin()
 {
-    if (0 == m_lNumberOfOrigin) this->CalculateNumberOfOrigin();
+    if (0 == m_lNumberOfOrigin) CalculateNumberOfOrigin();
 
     return m_lNumberOfOrigin;
 }
@@ -523,7 +523,7 @@ bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
     // Have to use the function here, NOT the internal variable.
     // (Because subclasses may override the function.)
     //
-    return (this->GetNumberOfOrigin() == compareTo.GetNumberOfOrigin());
+    return (GetNumberOfOrigin() == compareTo.GetNumberOfOrigin());
 }
 
 // Need to know the transaction number that this is in reference to? Call this.

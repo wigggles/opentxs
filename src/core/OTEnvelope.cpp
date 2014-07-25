@@ -524,7 +524,7 @@ bool OTEnvelope::Seal(const OTPseudonym& theRecipient, const OTString& theInput)
         strNymID.Get(),
         const_cast<OTAsymmetricKey*>(&(theRecipient.GetPublicEncrKey()))));
 
-    return this->Seal(theKeys, theInput);
+    return Seal(theKeys, theInput);
 }
 
 bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
@@ -559,7 +559,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
             // this case.
         const_cast<OTAsymmetricKey*>(&RecipPubKey)));
 
-    return this->Seal(theKeys, theInput);
+    return Seal(theKeys, theInput);
 }
 
 // Seal up as envelope (Asymmetric, using public key and then AES key.)

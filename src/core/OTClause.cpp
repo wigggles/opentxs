@@ -198,15 +198,15 @@ void OTClause::Serialize(OTString& strAppend)
 // Done
 bool OTClause::Compare(const OTClause& rhs) const
 {
-    if (!(this->GetName().Compare(rhs.GetName()))) {
-        otOut << "OTClause::Compare: Names don't match: " << this->GetName()
-              << " / " << rhs.GetName() << " \n";
+    if (!(GetName().Compare(rhs.GetName()))) {
+        otOut << "OTClause::Compare: Names don't match: " << GetName() << " / "
+              << rhs.GetName() << " \n";
         return false;
     }
 
-    if (!(this->m_strCode.Compare(rhs.GetCode()))) {
+    if (!(m_strCode.Compare(rhs.GetCode()))) {
         otOut << "OTClause::Compare: Source code for interpreted script fails "
-                 "to match, on clause: " << this->GetName() << " \n";
+                 "to match, on clause: " << GetName() << " \n";
         return false;
     }
 

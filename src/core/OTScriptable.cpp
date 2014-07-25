@@ -339,8 +339,8 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
     //  OTPseudonym * pServerNym = pCron->GetServerNym();
     //  OT_ASSERT(NULL != pServerNym);
 
-    OTParty* pParty = this->GetParty(str_party_name);
-    OTClause* pClause = this->GetClause(str_clause_name);
+    OTParty* pParty = GetParty(str_party_name);
+    OTClause* pClause = GetClause(str_clause_name);
 
     if (NULL == pParty) {
         otOut << "OTScriptable::CanExecuteClause: Unable to find this party: "
@@ -400,10 +400,10 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
     //    const OTString strServerID(GetServerID());
     //
     //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    this->RetrieveNymPointers(map_Nyms_Already_Loaded);
+    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
     //
     //    bool bVerifiedAuthorization =
-    //        this->VerifyPartyAuthorization(*pParty, *pServerNym, strServerID,
+    //        VerifyPartyAuthorization(*pParty, *pServerNym, strServerID,
     // &map_Nyms_Already_Loaded);
     //
     //    if (!bVerifiedAuthorization)
@@ -470,8 +470,8 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
     const std::string str_CallbackName(SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE);
 
     OTClause* pCallbackClause =
-        this->GetCallback(str_CallbackName); // See if there is a script clause
-                                             // registered for this callback.
+        GetCallback(str_CallbackName); // See if there is a script clause
+                                       // registered for this callback.
 
     if (NULL != pCallbackClause) // Found it!
     {
@@ -499,7 +499,7 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
             std::pair<std::string, OTVariable*>("param_clause_name", &param2));
 
         if (false ==
-            this->ExecuteCallback(
+            ExecuteCallback(
                 *pCallbackClause, theParameters,
                 theReturnVal)) // <============================================
         {
@@ -586,7 +586,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
         // Register the special server-side native OT calls we make available to
         // all scripts.
         //
-        this->RegisterOTNativeCallsWithScript(*pScript);
+        RegisterOTNativeCallsWithScript(*pScript);
 
         // Register all the parties with the script.
         for (auto& it : m_mapParties) {
@@ -616,7 +616,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
                                                          // execution.
         //
 
-        this->SetDisplayLabel(&str_clause_name);
+        SetDisplayLabel(&str_clause_name);
 
         pScript->SetDisplayFilename(m_strLabel.Get());
 
@@ -804,7 +804,7 @@ int32_t OTScriptable::GetCountTransNumsNeededForAgent(
 {
     int32_t nReturnVal = 0;
 
-    OTAgent* pAgent = this->GetAgent(str_agent_name);
+    OTAgent* pAgent = GetAgent(str_agent_name);
     if (NULL == pAgent)
         return nReturnVal; // (Looks like there is no agent with that name.)
 
@@ -1289,9 +1289,9 @@ bool OTScriptable::VerifyPartyAuthorization(
         // Need to analyze security aspects before doing it.
         //
         bContentsVerified =
-            this->Compare(*pPartySignedCopy); // This also compares the opening
-                                              // / closing numbers, if they are
-                                              // non-zero.
+            Compare(*pPartySignedCopy); // This also compares the opening
+                                        // / closing numbers, if they are
+                                        // non-zero.
 
         if (!bContentsVerified)
             otOut << __FUNCTION__
@@ -1330,7 +1330,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
     //
-    // this->VerifySignature(theNym)
+    // VerifySignature(theNym)
 
     // NEW VERSION:
     /*
@@ -1362,7 +1362,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
     // This step verifies that theNym is at least REGISTERED as a valid agent
     // for the party. (According to the party.)
     //
-    OTParty* pParty = this->FindPartyBasedOnNymAsAgent(theNym);
+    OTParty* pParty = FindPartyBasedOnNymAsAgent(theNym);
 
     if (NULL == pParty) {
         otOut << "OTScriptable::VerifyNymAsAgent: Unable to find party based "
@@ -1501,7 +1501,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
         // There are several places currently in smart contracts like this.
         // Need to analyze security aspects before doing it.
         //
-        bContentsVerified = this->Compare(*pPartySignedCopy);
+        bContentsVerified = Compare(*pPartySignedCopy);
 
         if (!bContentsVerified)
             otOut << "OTScriptable::VerifyNymAsAgent: Though the signature "
@@ -1513,7 +1513,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
         otOut << "OTScriptable::VerifyNymAsAgent: Signature failed to verify "
                  "for party: " << pParty->GetPartyName() << " \n";
 
-    // Todo: possibly call this->Compare(*pPartySignedCopy); to make sure
+    // Todo: possibly call Compare(*pPartySignedCopy); to make sure
     // there's no funny business.
     // Well actually that HAS to happen anyway, it's just a question of whether
     // it goes here too, or only somewhere else.
@@ -1698,7 +1698,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
     // FYI.
     // OTAgent * pAgent = NULL;
     //    const    OTParty * pNymParty =
-    // this->FindPartyBasedOnNymAsAgent(theNym, &pAgent);
+    // FindPartyBasedOnNymAsAgent(theNym, &pAgent);
     //
     //    if (NULL == pNymParty)
     //    {
@@ -1713,7 +1713,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
     // Lookup the party via the ACCOUNT.
     //
     OTPartyAccount* pPartyAcct = NULL;
-    OTParty* pParty = this->FindPartyBasedOnAccount(theAccount, &pPartyAcct);
+    OTParty* pParty = FindPartyBasedOnAccount(theAccount, &pPartyAcct);
 
     if (NULL == pParty) {
         OT_ASSERT(NULL != pPartyAcct);
@@ -2083,9 +2083,9 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
             else
                 theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
 
-            if (!this->Compare(*pPartySignedCopy)) // <==== For all signed
-                                                   // copies, we compare them to
-                                                   // *this.
+            if (!Compare(*pPartySignedCopy)) // <==== For all signed
+                                             // copies, we compare them to
+                                             // *this.
             {
                 otErr << __FUNCTION__ << ": Party's (" << current_party_name
                       << ") signed copy of agreement doesn't match *this.\n";
@@ -2180,11 +2180,11 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
 
         // Sign it and save it,
         OTString strNewSignedCopy;
-        this->ReleaseSignatures();
+        ReleaseSignatures();
         bool bSuccess = theParty.SignContract(*this);
         if (bSuccess) {
-            this->SaveContract();
-            this->SaveContractRaw(strNewSignedCopy);
+            SaveContract();
+            SaveContractRaw(strNewSignedCopy);
 
             // then save a copy of it inside theParty,
             //
@@ -2195,9 +2195,9 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
             // That way when other people verify my signature, it will be there
             // for them to verify.
             //
-            this->ReleaseSignatures();
+            ReleaseSignatures();
             theParty.SignContract(*this);
-            this->SaveContract();
+            SaveContract();
 
             return true;
         }
@@ -2295,11 +2295,11 @@ bool OTScriptable::Compare(OTScriptable& rhs)
     // elsewhere. That's about verifying the signature and authorization,
     // versus verifying the content.)
     //
-    if (this->GetPartyCount() != rhs.GetPartyCount()) {
+    if (GetPartyCount() != rhs.GetPartyCount()) {
         otOut << szFunc << ": The number of parties does not match.\n";
         return false;
     }
-    if (this->GetBylawCount() != rhs.GetBylawCount()) {
+    if (GetBylawCount() != rhs.GetBylawCount()) {
         otOut << szFunc << ": The number of bylaws does not match.\n";
         return false;
     }
@@ -2625,7 +2625,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTAgent* pExistingAgent =
-                                    this->GetAgent(strAgentName.Get());
+                                    GetAgent(strAgentName.Get());
 
                                 if (NULL != pExistingAgent) // Uh-oh, it's
                                                             // already there!
@@ -2759,7 +2759,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTPartyAccount* pAcct =
-                                    this->GetPartyAccount(strAcctName.Get());
+                                    GetPartyAccount(strAcctName.Get());
 
                                 if (NULL != pAcct) // Uh-oh, it's already there!
                                 {
@@ -2947,7 +2947,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTVariable* pVar =
-                                    this->GetVariable(strVarName.Get());
+                                    GetVariable(strVarName.Get());
 
                                 if (NULL != pVar) // Uh-oh, it's already there!
                                 {
@@ -3238,7 +3238,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     // OTScriptable with a given name.)
                                     //
                                     OTClause* pClause =
-                                        this->GetClause(str_name.c_str());
+                                        GetClause(str_name.c_str());
 
                                     if (NULL !=
                                         pClause) // Uh-oh, it's already there!
@@ -3390,7 +3390,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // given callback.)
                                 //
                                 OTClause* pClause =
-                                    this->GetCallback(strCallbackName.Get());
+                                    GetCallback(strCallbackName.Get());
 
                                 if (NULL !=
                                     pClause) // Uh-oh, it's already there!

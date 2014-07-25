@@ -546,7 +546,7 @@ bool OTPassword::isMemory() const
 
 const char* OTPassword::getPassword() const // asserts if isText_ is false.
 {
-    return reinterpret_cast<const char*>(this->getPassword_uint8());
+    return reinterpret_cast<const char*>(getPassword_uint8());
 }
 
 // getPassword returns "" if empty, otherwise returns the password.
@@ -576,7 +576,7 @@ char* OTPassword::getPasswordWritable_char()
 //
 const void* OTPassword::getMemory() const
 {
-    return reinterpret_cast<const void*>(this->getMemory_uint8());
+    return reinterpret_cast<const void*>(getMemory_uint8());
 }
 
 const uint8_t* OTPassword::getMemory_uint8() const
@@ -636,22 +636,21 @@ bool OTPassword::addChar(uint8_t theChar)
 
 bool OTPassword::Compare(OTPassword& rhs) const
 {
-    OT_ASSERT(this->isPassword() || this->isMemory());
+    OT_ASSERT(isPassword() || isMemory());
     OT_ASSERT(rhs.isPassword() || rhs.isMemory());
 
-    if (this->isPassword() && !rhs.isPassword()) return false;
-    if (this->isMemory() && !rhs.isMemory()) return false;
+    if (isPassword() && !rhs.isPassword()) return false;
+    if (isMemory() && !rhs.isMemory()) return false;
 
     const uint32_t nThisSize =
-        this->isPassword() ? this->getPasswordSize() : this->getMemorySize();
+        isPassword() ? getPasswordSize() : getMemorySize();
     const uint32_t nRhsSize =
         rhs.isPassword() ? rhs.getPasswordSize() : rhs.getMemorySize();
 
     if (nThisSize != nRhsSize) return false;
 
     if (0 ==
-        memcmp(this->isPassword() ? this->getPassword_uint8()
-                                  : this->getMemory_uint8(),
+        memcmp(isPassword() ? getPassword_uint8() : getMemory_uint8(),
                rhs.isPassword() ? rhs.getPassword_uint8()
                                 : rhs.getMemory_uint8(),
                rhs.isPassword() ? rhs.getPasswordSize() : rhs.getMemorySize()))
@@ -666,8 +665,8 @@ bool OTPassword::Compare(OTPassword& rhs) const
 int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
 {
     return static_cast<int32_t>(
-        this->setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput),
-                                static_cast<uint32_t>(nInputSize)));
+        setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput),
+                          static_cast<uint32_t>(nInputSize)));
 }
 
 // This adds a null terminator.
@@ -951,7 +950,7 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
 
     // If I'm currently at a 0 size, then call setMemory instead.
     //
-    if (size_ == 0) return this->setMemory(vAppend, nAppendSize);
+    if (size_ == 0) return setMemory(vAppend, nAppendSize);
     //
     // By this point, I know I already have some memory allocated,
     // and I'm actually appending some other memory onto the end of it.

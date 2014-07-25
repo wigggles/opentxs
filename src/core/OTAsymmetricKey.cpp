@@ -176,17 +176,16 @@ OTAsymmetricKey* OTAsymmetricKey::ClonePubKey() const // Caller IS responsible
 {
     OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory();
     OT_ASSERT(NULL != pKey);
-    OT_ASSERT(NULL != this->m_pMetadata);
+    OT_ASSERT(NULL != m_pMetadata);
     OT_ASSERT(NULL != pKey->m_pMetadata);
 
     OTASCIIArmor ascTransfer;
-    this->GetPublicKey(
-        ascTransfer); // Get this's public key in ASCII-armored format
+    GetPublicKey(ascTransfer); // Get this's public key in ASCII-armored format
     pKey->SetPublicKey(
         ascTransfer); // Decodes that public key from ASCII armor into pKey
 
-    *(pKey->m_pMetadata) = *(this->m_pMetadata); // Metadata will be attached to
-                                                 // signatures, if set.
+    *(pKey->m_pMetadata) = *(m_pMetadata); // Metadata will be attached to
+                                           // signatures, if set.
 
     return pKey;
 }
@@ -773,7 +772,7 @@ bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
     }
 
     OTString strPublicKey;
-    bool bGotPublicKey = this->GetPublicKey(strPublicKey);
+    bool bGotPublicKey = GetPublicKey(strPublicKey);
 
     if (!bGotPublicKey) {
         otErr << szFunc << ": Error getting public key.\n";
@@ -809,7 +808,7 @@ bool OTAsymmetricKey::GetPublicKey(OTString& strKey, bool bEscaped) const
     // version to be able to be flagged
     // as "dirty" when it is changed.
 
-    if (this->GetPublicKey(theArmor)) {
+    if (GetPublicKey(theArmor)) {
         if (bEscaped) {
             strKey.Concatenate(
                 "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
@@ -866,7 +865,7 @@ bool OTAsymmetricKey::SetPublicKey(const OTString& strKey, bool bEscaped)
     OTASCIIArmor theArmor;
 
     if (theArmor.LoadFromString(const_cast<OTString&>(strKey), bEscaped)) {
-        return this->SetPublicKey(theArmor);
+        return SetPublicKey(theArmor);
     }
     else
         otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
@@ -964,7 +963,7 @@ bool OTAsymmetricKey::SetPrivateKey(const OTString& strKey, bool bEscaped)
                                                      // "start loading" when it
                                                      // reaches the private key.
     {
-        return this->SetPrivateKey(theArmor);
+        return SetPrivateKey(theArmor);
     }
 
     return false;
@@ -1004,11 +1003,11 @@ OTAsymmetricKey& OTAsymmetricKey::operator=(const OTAsymmetricKey& rhs)
 
         // Decodes a public key from ASCII armor into m_keyPublic, which stores
         // it as a EVP_PKEY pointer.
-        this->SetPublicKey(ascTransfer);
+        SetPublicKey(ascTransfer);
 
         // Even if unused, both should always already be instantiated.
-        if ((NULL != this->m_pMetadata) && (NULL != rhs.m_pMetadata))
-            *(this->m_pMetadata) = *(rhs.m_pMetadata);
+        if ((NULL != m_pMetadata) && (NULL != rhs.m_pMetadata))
+            *(m_pMetadata) = *(rhs.m_pMetadata);
     }
 
     return *this;
@@ -1030,10 +1029,10 @@ OTAsymmetricKey::OTAsymmetricKey(const OTAsymmetricKey& rhs)
 
         // Decodes a public key from ASCII armor into m_keyPublic, which stores
         // it as a EVP_PKEY pointer.
-        this->SetPublicKey(ascTransfer);
+        SetPublicKey(ascTransfer);
 
-        if ((NULL != this->m_pMetadata) && (NULL != rhs.m_pMetadata))
-            *(this->m_pMetadata) = *(rhs.m_pMetadata);
+        if ((NULL != m_pMetadata) && (NULL != rhs.m_pMetadata))
+            *(m_pMetadata) = *(rhs.m_pMetadata);
     }
     else
         otErr << "OTAsymmetricKey::OTAsymmetricKey: Error: Asymmetric key "
@@ -1271,8 +1270,8 @@ bool OTAsymmetricKey::LoadPrivateKey(const OTString& strFoldername,
         strReason(NULL == pstrReason ? "OTAsymmetricKey::LoadPrivateKey"
                                      : *pstrReason);
 
-    return this->LoadPrivateKeyFromCertString(
-        strCert, false, &strReason, pImportPassword); // bEscaped=false;
+    return LoadPrivateKeyFromCertString(strCert, false, &strReason,
+                                        pImportPassword); // bEscaped=false;
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN CER....
 }
 
@@ -1291,7 +1290,7 @@ bool OTAsymmetricKey::LoadPublicKey(const OTString& strFoldername,
     OTASCIIArmor theArmor;
 
     if (theArmor.LoadFromFile(strFoldername, strFilename)) {
-        if (this->SetPublicKey(theArmor)) {
+        if (SetPublicKey(theArmor)) {
             otLog4 << "Success setting public key from OTASCIIArmor in "
                       "OTAsymmetricKey::LoadPublicKey.\n";
             return true;
@@ -1345,7 +1344,7 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(const OTString& strFoldername,
 
     const OTString strCert(strFileContents);
 
-    return this->LoadPublicKeyFromCertString(
+    return LoadPublicKeyFromCertString(
         strCert, false, pstrReason,
         pImportPassword); // bEscaped=false; "escaped" means pre-pended with "-
                           // " as in:   - -----BEGIN CER....

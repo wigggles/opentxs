@@ -1086,15 +1086,14 @@ bool OTCronItem::MoveFunds(
     // already called in LoadExistingAccount().
     //
     else if (!pSourceAcct->VerifySignature(*pServerNym) ||
-             !this->VerifyNymAsAgentForAccount(*pSenderNym, *pSourceAcct)) {
+             !VerifyNymAsAgentForAccount(*pSenderNym, *pSourceAcct)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying signature or "
                  "ownership on source account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
     else if (!pRecipientAcct->VerifySignature(*pServerNym) ||
-               !this->VerifyNymAsAgentForAccount(*pRecipientNym,
-                                                 *pRecipientAcct)) {
+               !VerifyNymAsAgentForAccount(*pRecipientNym, *pRecipientAcct)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying signature or "
                  "ownership on recipient account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1215,10 +1214,9 @@ bool OTCronItem::MoveFunds(
             // GetTransactionNum();
             //            const int64_t lTransRecipRefNo    =
             // GetTransactionNum();
-            const int64_t lTransSendRefNo =
-                this->GetOpeningNumber(SENDER_USER_ID);
+            const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_USER_ID);
             const int64_t lTransRecipRefNo =
-                this->GetOpeningNumber(RECIPIENT_USER_ID);
+                GetOpeningNumber(RECIPIENT_USER_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original
@@ -1373,9 +1371,9 @@ bool OTCronItem::MoveFunds(
             // authorizing agent for that party.
             //
 
-            this->ReleaseSignatures();
-            this->SignContract(*pServerNym);
-            this->SaveContract();
+            ReleaseSignatures();
+            SignContract(*pServerNym);
+            SaveContract();
 
             // This is now at the bottom of this function.
             //
@@ -1635,17 +1633,16 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
     }
 
     // By this point, that means theNym is DEFINITELY the originator (sender)...
-    else if (this->GetCountClosingNumbers() < 1) {
+    else if (GetCountClosingNumbers() < 1) {
         otOut << "Weird: Sender tried to remove a cron item; expected at least "
                  "1 closing number to be available"
-                 "--that wasn't. (Found " << this->GetCountClosingNumbers()
-              << ").\n";
+                 "--that wasn't. (Found " << GetCountClosingNumbers() << ").\n";
         return false;
     }
 
     const OTString strServerID(GetServerID());
 
-    if (false == theNym.VerifyIssuedNum(strServerID, this->GetClosingNum())) {
+    if (false == theNym.VerifyIssuedNum(strServerID, GetClosingNum())) {
         otOut << "OTCronItem::CanRemoveItemFromCron: Closing number didn't "
                  "verify (for removal from cron).\n";
         return false;
@@ -1660,7 +1657,7 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
     // to authorize removal, as long as the transaction num is still issued to
     // theNym (this check here.)
     //
-    return theNym.VerifyIssuedNum(strServerID, this->GetOpeningNum());
+    return theNym.VerifyIssuedNum(strServerID, GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -1947,7 +1944,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     // Second, we're verifying the CLOSING number, and using it as the closing
     // number
     // on the FINAL RECEIPT (with that receipt being "InReferenceTo"
-    // this->GetTransactionNum())
+    // GetTransactionNum())
     //
     const int64_t lOpeningNumber = theOrigCronItem.GetOpeningNum();
     const int64_t lClosingNumber = theOrigCronItem.GetClosingNum();
@@ -2033,10 +2030,10 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (false == this->DropFinalReceiptToNymbox(
-                         GetSenderUserID(), lNewTransactionNumber,
-                         strOrigCronItem, NULL, // note
-                         pstrAttachment, pActualNym)) {
+        if (false == DropFinalReceiptToNymbox(GetSenderUserID(),
+                                              lNewTransactionNumber,
+                                              strOrigCronItem, NULL, // note
+                                              pstrAttachment, pActualNym)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
         }
@@ -2051,7 +2048,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         theOriginator.VerifyIssuedNum(strServerID, lClosingNumber)) {
         // SENDER only. (CronItem has no recipient. That's in the subclass.)
         //
-        if (false == this->DropFinalReceiptToInbox(
+        if (false == DropFinalReceiptToInbox(
                          GetSenderUserID(), GetSenderAcctID(),
                          lNewTransactionNumber,
                          lClosingNumber, // The closing transaction number to
@@ -2192,7 +2189,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         //      pItem1-> SetClosingNum(lClosingNumber);
         //
         // NOTE: I COULD look up the closing number by doing a call to
-        // this->GetClosingNumber(ACCOUNT_ID);
+        // GetClosingNumber(ACCOUNT_ID);
         // But that is already taken care of where it matters, and passed in
         // here properly already, so it
         // would be superfluous.
@@ -2239,7 +2236,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
                                  // loaded, so let's load it ourselves then.
         {
             pActualAcct =
-                OTAccount::LoadExistingAccount(ACCOUNT_ID, this->GetServerID());
+                OTAccount::LoadExistingAccount(ACCOUNT_ID, GetServerID());
             theDestAcctGuardian.SetCleanupTargetPointer(
                 pActualAcct); // This is safe in cases where NULL is returned.
                               // No need to cleanup pActualAcct.
@@ -2540,7 +2537,7 @@ bool OTCronItem::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 
 int64_t OTCronItem::GetOpeningNumber(const OTIdentifier& theNymID) const
 {
-    const OTIdentifier& theSenderNymID = this->GetSenderUserID();
+    const OTIdentifier& theSenderNymID = GetSenderUserID();
 
     if (theNymID == theSenderNymID) return GetOpeningNum();
 
@@ -2549,7 +2546,7 @@ int64_t OTCronItem::GetOpeningNumber(const OTIdentifier& theNymID) const
 
 int64_t OTCronItem::GetClosingNumber(const OTIdentifier& theAcctID) const
 {
-    const OTIdentifier& theSenderAcctID = this->GetSenderAcctID();
+    const OTIdentifier& theSenderAcctID = GetSenderAcctID();
 
     if (theAcctID == theSenderAcctID) return GetClosingNum();
 
@@ -2700,9 +2697,9 @@ bool OTCronItem::CancelBeforeActivation(OTPseudonym& theCancelerNym)
     m_bCanceled = true;
     *m_pCancelerNymID = theCancelerNym.GetConstID();
 
-    this->ReleaseSignatures();
-    this->SignContract(theCancelerNym);
-    this->SaveContract();
+    ReleaseSignatures();
+    SignContract(theCancelerNym);
+    SaveContract();
 
     return true;
 }
@@ -2777,7 +2774,7 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strClosingNumber.Exists()) {
             const int64_t lClosingNumber = atol(strClosingNumber.Get());
 
-            this->AddClosingTransactionNo(lClosingNumber);
+            AddClosingTransactionNo(lClosingNumber);
         }
         else {
             otErr << "Error in OTCronItem::ProcessXMLNode: "

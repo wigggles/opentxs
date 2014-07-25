@@ -496,14 +496,14 @@ bool OTContract::VerifyContract()
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
-    if (false == this->VerifyContractID()) {
+    if (false == VerifyContractID()) {
         otWarn << __FUNCTION__ << ": Failed verifying contract ID.\n";
         return false;
     }
 
     // Make sure we are able to read the official "contract" public key out of
     // this contract.
-    const OTPseudonym* pNym = this->GetContractPublicNym();
+    const OTPseudonym* pNym = GetContractPublicNym();
 
     if (NULL == pNym) {
         otOut << __FUNCTION__
@@ -511,7 +511,7 @@ bool OTContract::VerifyContract()
         return false;
     }
 
-    if (false == this->VerifySignature(*pNym)) {
+    if (false == VerifySignature(*pNym)) {
         const OTIdentifier theNymID(*pNym);
         const OTString strNymID(theNymID);
         otOut << __FUNCTION__ << ": Failed verifying the contract's signature "
@@ -544,7 +544,7 @@ void OTContract::CalculateContractID(OTIdentifier& newID)
 bool OTContract::VerifyContractID()
 {
     OTIdentifier newID;
-    this->CalculateContractID(newID);
+    CalculateContractID(newID);
 
     // newID now contains the Hash aka Message Digest aka Fingerprint
     // aka thumbprint aka "IDENTIFIER" of the Contract.
@@ -653,13 +653,13 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
         NULL != pSig,
         "OTContract::SignContract: Error allocating memory for Signature.\n");
 
-    bool bSigned = this->SignContract(theNym, *pSig, pPWData);
+    bool bSigned = SignContract(theNym, *pSig, pPWData);
 
     if (bSigned)
         m_listSignatures.push_back(pSig);
     else {
         otErr << __FUNCTION__ << ": Failure while calling "
-                                 "this->SignContract(theNym, *pSig, pPWData)\n";
+                                 "SignContract(theNym, *pSig, pPWData)\n";
         delete pSig;
         pSig = NULL;
     }
@@ -676,13 +676,13 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
     OT_ASSERT_MSG(NULL != pSig, "OTContract::SignContractAuthent: Error "
                                 "allocating memory for Signature.\n");
 
-    bool bSigned = this->SignContractAuthent(theNym, *pSig, pPWData);
+    bool bSigned = SignContractAuthent(theNym, *pSig, pPWData);
 
     if (bSigned)
         m_listSignatures.push_back(pSig);
     else {
         otErr << __FUNCTION__ << ": Failure while calling "
-                                 "this->SignContractAuthent(theNym, *pSig, "
+                                 "SignContractAuthent(theNym, *pSig, "
                                  "pPWData)\n";
         delete pSig;
         pSig = NULL;
@@ -697,8 +697,8 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
                               OTSignature& theSignature,
                               OTPasswordData* pPWData)
 {
-    return this->SignContract(theNym.GetPrivateSignKey(), theSignature,
-                              m_strSigHashType, pPWData);
+    return SignContract(theNym.GetPrivateSignKey(), theSignature,
+                        m_strSigHashType, pPWData);
 }
 
 // Uses authentication key instead of signing key.
@@ -706,8 +706,8 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                                      OTSignature& theSignature,
                                      OTPasswordData* pPWData)
 {
-    return this->SignContract(theNym.GetPrivateAuthKey(), theSignature,
-                              m_strSigHashType, pPWData);
+    return SignContract(theNym.GetPrivateAuthKey(), theSignature,
+                        m_strSigHashType, pPWData);
 }
 
 // Normally you'd use OTContract::SignContract(const OTPseudonym & theNym)...
@@ -730,13 +730,13 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
         NULL != pSig,
         "OTContract::SignWithKey: Error allocating memory for Signature.\n");
 
-    bool bSigned = this->SignContract(theKey, *pSig, m_strSigHashType, pPWData);
+    bool bSigned = SignContract(theKey, *pSig, m_strSigHashType, pPWData);
 
     if (bSigned)
         m_listSignatures.push_back(pSig);
     else {
         otErr << __FUNCTION__
-              << ": Failure while calling this->SignContract(theNym, *pSig).\n";
+              << ": Failure while calling SignContract(theNym, *pSig).\n";
         delete pSig;
         pSig = NULL;
     }
@@ -972,7 +972,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
             if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
         }
 
-        if (this->VerifySigAuthent(theNym, *pSig, pPWData)) return true;
+        if (VerifySigAuthent(theNym, *pSig, pPWData)) return true;
     }
 
     return false;
@@ -1002,7 +1002,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
             if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
         }
 
-        if (this->VerifySignature(theNym, *pSig, pPWData)) return true;
+        if (VerifySignature(theNym, *pSig, pPWData)) return true;
     }
 
     return false;
@@ -1024,8 +1024,8 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
         }
 
         OTPasswordData thePWData("OTContract::VerifyWithKey");
-        if (this->VerifySignature(theKey, *pSig, m_strSigHashType,
-                                  (NULL != pPWData) ? pPWData : &thePWData))
+        if (VerifySignature(theKey, *pSig, m_strSigHashType,
+                            (NULL != pPWData) ? pPWData : &thePWData))
             return true;
     }
 
@@ -1055,8 +1055,8 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
             OTAsymmetricKey* pKey = it;
             OT_ASSERT(NULL != pKey);
 
-            if (this->VerifySignature(*pKey, theSignature, m_strSigHashType,
-                                      (NULL != pPWData) ? pPWData : &thePWData))
+            if (VerifySignature(*pKey, theSignature, m_strSigHashType,
+                                (NULL != pPWData) ? pPWData : &thePWData))
                 return true;
         }
     }
@@ -1072,9 +1072,9 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
     }
     // else found no keys.
 
-    return this->VerifySignature(theNym.GetPublicAuthKey(), theSignature,
-                                 m_strSigHashType,
-                                 (NULL != pPWData) ? pPWData : &thePWData);
+    return VerifySignature(theNym.GetPublicAuthKey(), theSignature,
+                           m_strSigHashType,
+                           (NULL != pPWData) ? pPWData : &thePWData);
 }
 
 // The only different between calling this with a Nym and calling it with an
@@ -1100,8 +1100,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
             OTAsymmetricKey* pKey = it;
             OT_ASSERT(NULL != pKey);
 
-            if (this->VerifySignature(*pKey, theSignature, m_strSigHashType,
-                                      (NULL != pPWData) ? pPWData : &thePWData))
+            if (VerifySignature(*pKey, theSignature, m_strSigHashType,
+                                (NULL != pPWData) ? pPWData : &thePWData))
                 return true;
         }
     }
@@ -1117,9 +1117,9 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
     }
     // else found no keys.
 
-    return this->VerifySignature(theNym.GetPublicSignKey(), theSignature,
-                                 m_strSigHashType,
-                                 (NULL != pPWData) ? pPWData : &thePWData);
+    return VerifySignature(theNym.GetPublicSignKey(), theSignature,
+                           m_strSigHashType,
+                           (NULL != pPWData) ? pPWData : &thePWData);
 }
 
 bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
@@ -1359,7 +1359,7 @@ bool OTContract::AddBookendsAroundContent(
 bool OTContract::RewriteContract(OTString& strOutput) const
 {
     OTString strContents;
-    this->SaveContents(strContents);
+    SaveContents(strContents);
 
     return OTContract::AddBookendsAroundContent(
         strOutput, strContents, m_strContractType, m_strSigHashType,
@@ -2286,13 +2286,13 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
     // This function assumes that m_xmlUnsigned is ready to be processed.
     // This function only processes that portion of the contract.
     //
-    bool bLoaded = this->LoadContractXML();
+    bool bLoaded = LoadContractXML();
 
     if (bLoaded) {
 
         // Add theSigner to the contract, if he's not already there.
         //
-        if (NULL == this->GetContractPublicNym()) {
+        if (NULL == GetContractPublicNym()) {
             const bool bHasCredentials =
                 (theSigner.GetMasterCredentialCount() > 0);
 
@@ -2301,7 +2301,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                 if (theSigner.GetPublicSignKey().GetPublicKey(
                         strPubkey) && // bEscaped=true by default.
                     strPubkey.Exists()) {
-                    this->InsertNym("contract", strPubkey);
+                    InsertNym("contract", strPubkey);
                 }
             }
             else // theSigner has Credentials, so we'll add him to the
@@ -2354,37 +2354,37 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
         // Since theSigner was just added, he will be included here now as well,
         // just prior to the actual signing below.
         //
-        this->CreateContents();
+        CreateContents();
 
         OTPasswordData thePWData("OTContract::CreateContract needs the private "
                                  "key to sign the contract...");
 
-        if (false == this->SignContract(theSigner, &thePWData)) {
-            otErr << __FUNCTION__ << ": this->SignContract failed.\n";
+        if (false == SignContract(theSigner, &thePWData)) {
+            otErr << __FUNCTION__ << ": SignContract failed.\n";
             return false;
         }
 
-        this->SaveContract();
+        SaveContract();
 
         OTString strTemp;
-        this->SaveContractRaw(strTemp);
+        SaveContractRaw(strTemp);
 
         Release();
-        this->LoadContractFromString(strTemp); // The ultimate test is, once
-                                               // we've created the serialized
-                                               // string for this contract, is
-                                               // to then load it up from that
-                                               // string.
+        LoadContractFromString(strTemp); // The ultimate test is, once
+                                         // we've created the serialized
+                                         // string for this contract, is
+                                         // to then load it up from that
+                                         // string.
 
         OTIdentifier NEW_ID;
-        this->CalculateContractID(NEW_ID);
+        CalculateContractID(NEW_ID);
         m_ID = NEW_ID;
 
         return true;
     }
     else
         otErr << __FUNCTION__
-              << ": this->LoadContractXML failed. strContract contents:\n\n"
+              << ": LoadContractXML failed. strContract contents:\n\n"
               << strContract << "\n\n";
 
     return false;

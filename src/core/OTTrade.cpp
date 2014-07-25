@@ -168,7 +168,7 @@ bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
                                              // the override.
                                mapOfNyms*)
 {
-    return this->VerifySignature(nym);
+    return VerifySignature(nym);
 }
 
 // This is an override. See note above.
@@ -793,9 +793,9 @@ void OTTrade::onRemovalFromCron()
 
 int64_t OTTrade::GetClosingNumber(const OTIdentifier& acctId) const
 {
-    if (acctId == this->GetSenderAcctID())
+    if (acctId == GetSenderAcctID())
         return GetAssetAcctClosingNum();
-    else if (acctId == this->GetCurrencyAcctID())
+    else if (acctId == GetCurrencyAcctID())
         return GetCurrencyAcctClosingNum();
     return 0;
 }
@@ -834,26 +834,24 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
     }
 
     // By this point, that means nym is DEFINITELY the originator (sender)...
-    else if (this->GetCountClosingNumbers() < 2) {
+    else if (GetCountClosingNumbers() < 2) {
         otOut
             << "OTTrade::CanRemoveItem Weird: Sender tried to remove a market "
                "trade; expected at "
                "least 2 closing numbers to be available--that weren't. (Found "
-            << this->GetCountClosingNumbers() << ").\n";
+            << GetCountClosingNumbers() << ").\n";
         return false;
     }
 
     const OTString serverID(GetServerID());
 
-    if (false ==
-        nym.VerifyIssuedNum(serverID, this->GetAssetAcctClosingNum())) {
+    if (false == nym.VerifyIssuedNum(serverID, GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for asset account.\n";
         return false;
     }
 
-    if (false ==
-        nym.VerifyIssuedNum(serverID, this->GetCurrencyAcctClosingNum())) {
+    if (false == nym.VerifyIssuedNum(serverID, GetCurrencyAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for currency account.\n";
         return false;
@@ -868,7 +866,7 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
     // to authorize removal, as long as the transaction num is still issued to
     // nym (this check here.)
     //
-    return nym.VerifyIssuedNum(serverID, this->GetOpeningNum());
+    return nym.VerifyIssuedNum(serverID, GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -914,7 +912,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // Second, we're verifying the CLOSING number, and using it as the closing
     // number
     // on the FINAL RECEIPT (with that receipt being "InReferenceTo"
-    // this->GetTransactionNum())
+    // GetTransactionNum())
     //
     const int64_t openingNumber = origCronItem.GetTransactionNum();
 
@@ -1054,7 +1052,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             }
         }
 
-        if (false == this->DropFinalReceiptToNymbox(
+        if (false == DropFinalReceiptToNymbox(
                          GetSenderUserID(), newTransactionNumber,
                          strOrigCronItem, note, attachment, actualNym)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
@@ -1069,7 +1067,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     //
     if ((closingAssetNumber > 0) &&
         originator.VerifyIssuedNum(serverID, closingAssetNumber)) {
-        this->DropFinalReceiptToInbox(
+        DropFinalReceiptToInbox(
             GetSenderUserID(), GetSenderAcctID(), newTransactionNumber,
             closingAssetNumber, // The closing transaction number to put on the
                                 // receipt.
@@ -1087,7 +1085,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     //
     if ((closingCurrencyNumber > 0) &&
         originator.VerifyIssuedNum(serverID, closingCurrencyNumber)) {
-        this->DropFinalReceiptToInbox(
+        DropFinalReceiptToInbox(
             GetSenderUserID(), GetCurrencyAcctID(), newTransactionNumber,
             closingCurrencyNumber, // closing transaction number for the
                                    // receipt.
@@ -1225,8 +1223,8 @@ bool OTTrade::ProcessCron()
            // market.
     {
         // Make sure it hasn't already been flagged by someone else...
-        if (this->IsFlaggedForRemoval()) // This is checked above in
-                                         // OTCronItem::ProcessCron().
+        if (IsFlaggedForRemoval()) // This is checked above in
+                                   // OTCronItem::ProcessCron().
             bStayOnMarket = false; // I'm leaving the check here in case the
                                    // flag was set since then.
 

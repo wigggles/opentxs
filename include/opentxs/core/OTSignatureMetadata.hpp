@@ -147,7 +147,7 @@ public:
 
     bool operator!=(const OTSignatureMetadata& rhs) const
     {
-        return !(this->operator==(rhs));
+        return !(operator==(rhs));
     }
 
     bool SetMetadata(char metaKeyType, char metaNymID, char metaMasterCredID,

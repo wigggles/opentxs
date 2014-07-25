@@ -330,7 +330,7 @@ bool OTPartyAccount::VerifyAgency()
         return false;
     } // todo maybe turn the above into OT_ASSERT()s.
 
-    OTAgent* pAgent = this->GetAuthorizedAgent();
+    OTAgent* pAgent = GetAuthorizedAgent();
 
     if (NULL == pAgent) {
         otOut
@@ -429,8 +429,8 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
 
     // This compares asset type ID, AND account ID on the actual loaded account,
     // to what is expected.
-    else if (!this->IsAccount(*pAccount)) // It also sets the internal pointer
-                                          // m_pAccount... FYI.
+    else if (!IsAccount(*pAccount)) // It also sets the internal pointer
+                                    // m_pAccount... FYI.
     {
         // IsAccount has plenty of logging already.
         delete pAccount;
@@ -476,43 +476,41 @@ void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 // Done
 bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
 {
-    if (!(this->GetName().Compare(rhs.GetName()))) {
-        otOut << "OTPartyAccount::Compare: Names don't match: "
-              << this->GetName() << " / " << rhs.GetName() << " \n";
+    if (!(GetName().Compare(rhs.GetName()))) {
+        otOut << "OTPartyAccount::Compare: Names don't match: " << GetName()
+              << " / " << rhs.GetName() << " \n";
         return false;
     }
 
-    if ((this->GetClosingTransNo() > 0) && (rhs.GetClosingTransNo() > 0) &&
-        (this->GetClosingTransNo() != rhs.GetClosingTransNo())) {
+    if ((GetClosingTransNo() > 0) && (rhs.GetClosingTransNo() > 0) &&
+        (GetClosingTransNo() != rhs.GetClosingTransNo())) {
         otOut << "OTPartyAccount::Compare: Closing transaction numbers don't "
-                 "match: " << this->GetName() << " \n";
+                 "match: " << GetName() << " \n";
         return false;
     }
 
-    if ((this->GetAcctID().Exists()) && (rhs.GetAcctID().Exists()) &&
-        (!this->GetAcctID().Compare(rhs.GetAcctID()))) {
+    if ((GetAcctID().Exists()) && (rhs.GetAcctID().Exists()) &&
+        (!GetAcctID().Compare(rhs.GetAcctID()))) {
         otOut << "OTPartyAccount::Compare: Asset account numbers don't match "
-                 "for party account " << this->GetName() << ".\n( "
-              << this->GetAcctID() << "  /  " << rhs.GetAcctID() << " ) \n";
+                 "for party account " << GetName() << ".\n( " << GetAcctID()
+              << "  /  " << rhs.GetAcctID() << " ) \n";
         return false;
     }
 
-    if ((this->GetAgentName().Exists()) && (rhs.GetAgentName().Exists()) &&
-        (!this->GetAgentName().Compare(rhs.GetAgentName()))) {
+    if ((GetAgentName().Exists()) && (rhs.GetAgentName().Exists()) &&
+        (!GetAgentName().Compare(rhs.GetAgentName()))) {
         otOut << "OTPartyAccount::Compare: Agent names don't match for party "
-                 "account " << this->GetName() << ".\n( "
-              << this->GetAgentName() << "  /  " << rhs.GetAgentName()
-              << " ) \n";
+                 "account " << GetName() << ".\n( " << GetAgentName() << "  /  "
+              << rhs.GetAgentName() << " ) \n";
         return false;
     }
 
-    if (!(this->GetAssetTypeID().Exists()) ||
-        !(rhs.GetAssetTypeID().Exists()) ||
-        !(this->GetAssetTypeID().Compare(rhs.GetAssetTypeID()))) {
+    if (!(GetAssetTypeID().Exists()) || !(rhs.GetAssetTypeID().Exists()) ||
+        !(GetAssetTypeID().Compare(rhs.GetAssetTypeID()))) {
         otOut << "OTPartyAccount::Compare: Asset Type IDs don't exist, or "
-                 "don't match ( " << this->GetAssetTypeID() << " / "
-              << rhs.GetAssetTypeID()
-              << " ) for party's account: " << this->GetName() << " \n";
+                 "don't match ( " << GetAssetTypeID() << " / "
+              << rhs.GetAssetTypeID() << " ) for party's account: " << GetName()
+              << " \n";
         return false;
     }
 

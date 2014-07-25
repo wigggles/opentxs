@@ -354,7 +354,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             const std::string& str_callback_name = it.first;
             const std::string& str_clause_name = it.second;
 
-            OTClause* pCallbackClause = this->GetCallback(str_callback_name);
+            OTClause* pCallbackClause = GetCallback(str_callback_name);
             OTClause* pCallbackClause2 = rhs.GetCallback(str_callback_name);
 
             if (NULL == pCallbackClause) {
@@ -414,7 +414,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
 
             mapOfClauses theHookClauses, theHookClauses2;
 
-            if (!this->GetHooks(str_hook_name, theHookClauses) ||
+            if (!GetHooks(str_hook_name, theHookClauses) ||
                 !rhs.GetHooks(str_hook_name, theHookClauses2)) {
                 otOut << "OTBylaw::Compare: Failed finding hook ("
                       << str_hook_name
@@ -511,7 +511,7 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
         // MATCHES the callback name passed in...
         //
         if (0 == (str_callback_name.compare(str_CallbackName))) {
-            OTClause* pClause = this->GetClause(str_clause_name);
+            OTClause* pClause = GetClause(str_clause_name);
 
             if (NULL != pClause) // found it
             {
@@ -733,7 +733,7 @@ bool OTBylaw::GetHooks(const std::string str_HookName, mapOfClauses& theResults)
         // the hook name passed in...
         //
         if (0 == (str_hook_name.compare(str_HookName))) {
-            OTClause* pClause = this->GetClause(str_clause_name);
+            OTClause* pClause = GetClause(str_clause_name);
 
             if (NULL != pClause) // found it
             {

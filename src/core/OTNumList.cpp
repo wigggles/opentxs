@@ -236,7 +236,7 @@ bool OTNumList::Add(const char* szNumbers) // if false, means the numbers were
                                             // the next.)
         {
             if ((lNum > 0) || (bStartedANumber && (0 == lNum))) {
-                if (false == this->Add(lNum)) // <=========
+                if (false == Add(lNum)) // <=========
                 {
                     bSuccess = false; // We still go ahead and try to add them
                                       // all, and then return this sort of
@@ -337,7 +337,7 @@ bool OTNumList::Verify(const std::set<int64_t>& theNumbers) const
     bool bSuccess = true;
 
     for (const auto& it : theNumbers) {
-        if (!this->Verify(it)) // It must have NOT already been there.
+        if (!Verify(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 
@@ -351,7 +351,7 @@ bool OTNumList::Verify(const OTNumList& rhs) const
 {
     // Verify they have the same number of elements.
     //
-    if (this->Count() != rhs.Count()) return false;
+    if (Count() != rhs.Count()) return false;
 
     // Verify each value on *this is also found on rhs.
     //
@@ -390,7 +390,7 @@ bool OTNumList::Add(const OTNumList& theNumList) // if false, means the numbers
     std::set<int64_t> theOutput;
     theNumList.Output(theOutput); // returns false if the numlist was empty.
 
-    return this->Add(theOutput);
+    return Add(theOutput);
 }
 
 bool OTNumList::Add(const std::set<int64_t>& theNumbers) // if false, means the
@@ -401,7 +401,7 @@ bool OTNumList::Add(const std::set<int64_t>& theNumbers) // if false, means the
     bool bSuccess = true;
 
     for (const auto& it : theNumbers) {
-        if (!this->Add(it)) // It must have already been there.
+        if (!Add(it)) // It must have already been there.
             bSuccess = false;
     }
 
@@ -417,7 +417,7 @@ bool OTNumList::Remove(const std::set<int64_t>& theNumbers) // if false, means
     bool bSuccess = true;
 
     for (const auto& it : theNumbers) {
-        if (!this->Remove(it)) // It must have NOT already been there.
+        if (!Remove(it)) // It must have NOT already been there.
             bSuccess = false;
     }
 

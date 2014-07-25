@@ -375,7 +375,7 @@ OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
     m_bPaused(false)
 {
     OT_ASSERT(ascCachedKey.Exists());
-    this->SetCachedKey(ascCachedKey);
+    SetCachedKey(ascCachedKey);
 }
 
 // We don't lock the mutex here because otherwise we'll freeze ourselves.
@@ -764,7 +764,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         // ***
         //
         const bool bFoundOnKeyring =
-            this->IsUsingSystemKeyring() &&
+            IsUsingSystemKeyring() &&
             OTKeyring::RetrieveSecret(
                 strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
                 *pDerivedKey,     // (Output) RETRIEVED PASSWORD.
@@ -836,8 +836,8 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         }
         else // NOT found on keyring.
         {
-            if (this->IsUsingSystemKeyring()) // We WERE using the keying, but
-                                              // we DIDN'T find the derived key.
+            if (IsUsingSystemKeyring()) // We WERE using the keying, but
+                                        // we DIDN'T find the derived key.
                 otWarn << szFunc
                        << ": Unable to find derived key on system keyring.\n";
             // (Otherwise if we WEREN'T using the system keyring, then of course
@@ -1052,7 +1052,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
 
                 // Store the derived key to the system keyring.
                 //
-                if (this->IsUsingSystemKeyring() && (NULL != pDerivedKey)) {
+                if (IsUsingSystemKeyring() && (NULL != pDerivedKey)) {
                     const std::string str_display(
                         NULL != szDisplay ? szDisplay
                                           : "(Display string was blank.)");
@@ -1069,9 +1069,9 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                 }
                 else
                     otWarn << szFunc << ": Strange: Problem with either: "
-                                        "this->IsUsingSystemKeyring"
+                                        "IsUsingSystemKeyring"
                                         " ("
-                           << (this->IsUsingSystemKeyring() ? "true" : "false")
+                           << (IsUsingSystemKeyring() ? "true" : "false")
                            << ") "
                               "or: (NULL != pDerivedKey) ("
                            << ((NULL != pDerivedKey) ? "true" : "false")
@@ -1270,7 +1270,7 @@ void OTCachedKey::DestroyMasterPassword()
             idCachedKey); // Same thing, in string form.
 
         const bool bDeletedSecret =
-            this->IsUsingSystemKeyring() &&
+            IsUsingSystemKeyring() &&
             OTKeyring::DeleteSecret(
                 strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
                 str_display);     // "optional" display string.
@@ -1319,7 +1319,7 @@ void OTCachedKey::ResetMasterPassword()
             idCachedKey); // Same thing, in string form.
 
         const bool bDeletedSecret =
-            this->IsUsingSystemKeyring() &&
+            IsUsingSystemKeyring() &&
             OTKeyring::DeleteSecret(
                 strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
                 str_display);     // "optional" display string.

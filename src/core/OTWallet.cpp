@@ -256,13 +256,13 @@ void OTWallet::RemovePendingWithdrawal()
 
 bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
 {
-    if (this->GetNymCount() > 0) {
+    if (GetNymCount() > 0) {
         OTIdentifier NYM_ID;
         OTString NYM_NAME;
 
-        if (this->GetNym(0, // index 0
-                         NYM_ID, NYM_NAME)) {
-            OTPseudonym* pNym = this->GetNymByID(NYM_ID);
+        if (GetNym(0, // index 0
+                   NYM_ID, NYM_NAME)) {
+            OTPseudonym* pNym = GetNymByID(NYM_ID);
 
             if (NULL != pNym) {
                 theContract.SignContract(*pNym);
@@ -831,7 +831,7 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
 
     const OTString strAcctID(ACCT_ID);
 
-    OTAccount* pAccount = this->GetAccount(ACCT_ID);
+    OTAccount* pAccount = GetAccount(ACCT_ID);
 
     if (NULL ==
         pAccount) // It wasn't there already, so we'll have to load it...
@@ -840,7 +840,7 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
               << ": There's no asset account in the wallet with that ID ("
               << strAcctID << "). "
                               "Attempting to load it from storage...\n";
-        pAccount = this->LoadAccount(theNym, ACCT_ID, SERVER_ID, szFuncName);
+        pAccount = LoadAccount(theNym, ACCT_ID, SERVER_ID, szFuncName);
     } // pAccount == NULL.
 
     // It either was already there, or it loaded successfully...
@@ -877,8 +877,8 @@ OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
     //
     if (NULL != pAccount) // pAccount EXISTS...
     {
-        bool bVerified = this->VerifyAssetAccount(theNym, *pAccount, SERVER_ID,
-                                                  strAcctID, szFunc);
+        bool bVerified =
+            VerifyAssetAccount(theNym, *pAccount, SERVER_ID, strAcctID, szFunc);
 
         if (false == bVerified) {
             delete pAccount;
@@ -893,7 +893,7 @@ OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
         // wallet,
         // and thus I shouldn't add it twice...)
         //
-        this->AddAccount(*pAccount);
+        AddAccount(*pAccount);
 
     }
     else {
@@ -916,7 +916,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 
     szFuncName = (szFuncName == NULL) ? "" : szFuncName;
 
-    OTPseudonym* pNym = this->GetNymByID(NYM_ID); // <===========
+    OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
 
     if (NULL == pNym) // Wasn't already in the wallet. Try loading it.
     {
@@ -929,7 +929,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
         {
             if (pNym->HasPrivateKey()) // We don't auto-add public Nyms -- only
                                        // private ones.
-                this->AddNym(*pNym);   // <===========
+                AddNym(*pNym);         // <===========
         }
         else
             otOut << szFunc << " " << szFuncName
@@ -974,7 +974,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
     // See if it's already there. (Could be the public version
     // though :P Still might have to reload it.)
     //
-    OTPseudonym* pNym = this->GetNymByID(NYM_ID); // <===========
+    OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
 
     if (NULL == pNym) // Wasn't already in the wallet. Let's try loading it...
     {
@@ -985,8 +985,8 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                            szFuncName, // <===========
                                            pPWData, pImportPassword);
         // It worked!
-        if (NULL != pNym) // LoadPublicNym has plenty of error logging already.
-            this->AddNym(*pNym); // <===========
+        if (NULL != pNym)  // LoadPublicNym has plenty of error logging already.
+            AddNym(*pNym); // <===========
         else {
             OTLogStream& otLog = bChecking ? otWarn : otOut;
             otLog << __FUNCTION__ << ": " << szFuncName << ": ("
@@ -1036,14 +1036,14 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
             OTString strName =
                 pNym->GetNymName().Get(); // Get returns "" if string is empty.
 
-            if (this->RemoveNym(NYM_ID)) {
+            if (RemoveNym(NYM_ID)) {
                 pNym = OTPseudonym::LoadPrivateNym(NYM_ID, false, &strName,
                                                    szFuncName, // <===========
                                                    pPWData, pImportPassword);
                 // It worked!
                 if (NULL !=
                     pNym) // LoadPrivateNym has plenty of error logging already.
-                    this->AddNym(*pNym); // <===========
+                    AddNym(*pNym); // <===========
                 else
                     otOut << __FUNCTION__ << " " << szFuncName
                           << ": Unable to load private Nym for: " << strNymID
@@ -1073,7 +1073,7 @@ OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
                                     const char* szFuncName,
                                     OTPasswordData* pPWData)
 {
-    OTPseudonym* pNym = this->GetOrLoadPublicNym(NYM_ID, szFuncName);
+    OTPseudonym* pNym = GetOrLoadPublicNym(NYM_ID, szFuncName);
 
     // It tries to load as public Nym first, so as not to force the user to
     // enter his passphrase unnecessarily.
@@ -1083,9 +1083,8 @@ OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
     OTPasswordData thePWData(OT_PW_DISPLAY);
 
     if (NULL == pNym)
-        pNym =
-            this->GetOrLoadPrivateNym(NYM_ID, bChecking, szFuncName,
-                                      NULL == pPWData ? &thePWData : pPWData);
+        pNym = GetOrLoadPrivateNym(NYM_ID, bChecking, szFuncName,
+                                   NULL == pPWData ? &thePWData : pPWData);
 
     return pNym;
 }
@@ -1375,7 +1374,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
     // Once it's decrypted, we'll use this key for encrypting/decrypting
     // the sql*lite DB data on the client side.
     //
-    std::shared_ptr<OTSymmetricKey> pExtraKey = this->getExtraKey(str_KeyID);
+    std::shared_ptr<OTSymmetricKey> pExtraKey = getExtraKey(str_KeyID);
 
     // (If it doesn't exist, let's just create it here.)
     //
@@ -1401,7 +1400,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
 
                 if (pNewExtraKey &&
                     pNewExtraKey->SerializeFrom(strNewKeyOutput) &&
-                    this->addExtraKey(str_KeyID, pNewExtraKey)) {
+                    addExtraKey(str_KeyID, pNewExtraKey)) {
 
                     pExtraKey = pNewExtraKey;
 
@@ -1574,7 +1573,7 @@ bool OTWallet::SaveWallet(const char* szFilename)
     bool bSuccess = false;
     OTString strContract;
 
-    if (this->SaveContract(strContract)) {
+    if (SaveContract(strContract)) {
 
         // Try to save the wallet to local storage.
         //
@@ -1816,7 +1815,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         else {
                             const std::string str_id(strKeyID.Get());
 
-                            if (!this->addExtraKey(str_id, pKey))
+                            if (!addExtraKey(str_id, pKey))
                                 otErr << __FUNCTION__
                                       << ": Failed adding serialized "
                                          "symmetricKey to wallet (id: "
@@ -1855,7 +1854,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // OTIdentifier & needle) const // needle and haystack.
 
                     const bool bIsOldStyleNym =
-                        (false == this->IsNymOnCachedKey(theNymID));
+                        (false == IsNymOnCachedKey(theNymID));
 
                     if (bIsOldStyleNym && !(OTCachedKey::It()->isPaused()))
                         //                  if (m_strVersion.Compare("1.0")) //
@@ -1876,8 +1875,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otOut << __FUNCTION__ << ": Failed loading Nym ("
                               << NymName << ") with ID: " << NymID << "\n";
                     else
-                        this->AddNym(*pNym); // Nym loaded. Insert to wallet's
-                                             // list of Nyms.
+                        AddNym(*pNym); // Nym loaded. Insert to wallet's
+                                       // list of Nyms.
 
                     if (bIsOldStyleNym && OTCachedKey::It()->isPaused()) {
                         OTCachedKey::It()->Unpause();
@@ -2021,7 +2020,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     if (pAccount) {
                         pAccount->SetName(AcctName);
-                        this->AddAccount(*pAccount);
+                        AddAccount(*pAccount);
                     }
                     else {
                         otErr << __FUNCTION__
@@ -2054,9 +2053,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                 "ASSERT: OTWallet::LoadWallet: NULL pseudonym pointer.");
 
             if (pNym->HasPrivateKey() &&
-                this->ConvertNymToCachedKey(*pNym)) // Internally this is smart
-                                                    // enough to only convert
-                                                    // the unconverted.
+                ConvertNymToCachedKey(*pNym)) // Internally this is smart
+                                              // enough to only convert
+                                              // the unconverted.
                 bNeedToSaveAgain = true;
         }
 
