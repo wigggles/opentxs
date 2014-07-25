@@ -158,9 +158,9 @@ This could be wrapped by OTAPI_Basic, just as OTAPI was.
 namespace opentxs
 {
 
-OT_ME* OT_ME::s_pMe = NULL;
+OT_ME* OT_ME::s_pMe = nullptr;
 
-OT_ME::OT_ME() : r_pPrev(NULL)
+OT_ME::OT_ME() : r_pPrev(nullptr)
 {
     r_pPrev = s_pMe;
     s_pMe = this;
@@ -1161,7 +1161,8 @@ void OT_ME::AddVariable(const std::string&, OTVariable& theVar)
 
 OTVariable* OT_ME::FindVariable(const std::string& str_var_name)
 {
-    return HaveWorkingScript() ? m_pScript->FindVariable(str_var_name) : NULL;
+    return HaveWorkingScript() ? m_pScript->FindVariable(str_var_name)
+                               : nullptr;
 }
 
 OTVariable* OT_ME::FindVariable2(const std::string& str_var_name)
@@ -1253,7 +1254,7 @@ bool OT_ME::Register_OTDB_With_Script()
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
 
-    if (NULL != pScript) {
+    if (nullptr != pScript) {
         return Register_OTDB_With_Script_Chai(*pScript);
     }
 #endif // OT_USE_SCRIPT_CHAI
@@ -1270,7 +1271,7 @@ bool OT_ME::Register_CLI_With_Script()
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
 
-    if (NULL != pScript) {
+    if (nullptr != pScript) {
         return Register_CLI_With_Script_Chai(*pScript);
     }
 #endif // OT_USE_SCRIPT_CHAI
@@ -1287,7 +1288,7 @@ bool OT_ME::Register_API_With_Script()
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
 
-    if (NULL != pScript) {
+    if (nullptr != pScript) {
         return Register_API_With_Script_Chai(*pScript);
     }
 #endif // OT_USE_SCRIPT_CHAI
@@ -1304,7 +1305,7 @@ bool OT_ME::Register_Headers_With_Script()
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
 
-    if (NULL != pScript) {
+    if (nullptr != pScript) {
         return Register_Headers_With_Script_Chai(*pScript);
     }
 #endif // OT_USE_SCRIPT_CHAI
@@ -1320,7 +1321,7 @@ bool OT_ME::Register_Headers_With_Script()
 
 bool OT_ME::Register_OTDB_With_Script_Chai(OTScriptChai& theScript)
 {
-    OT_ASSERT(NULL != theScript.chai)
+    OT_ASSERT(nullptr != theScript.chai)
 
     using namespace chaiscript;
     {
@@ -2739,17 +2740,17 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
             OTLog::vError(
                 "%s: Caught chaiscript::exception::bad_boxed_cast : %s.\n",
                 __FUNCTION__,
-                (e.what() != NULL) ? e.what()
-                                   : "e.what() returned null, sorry");
+                (e.what() != nullptr) ? e.what()
+                                      : "e.what() returned null, sorry");
             return false;
         }
         catch (const std::exception& e)
         {
             // Error explicitly thrown from script
             OTLog::vError("%s: Caught std::exception exception: %s\n",
-                          __FUNCTION__,
-                          (e.what() != NULL) ? e.what()
-                                             : "e.what() returned null, sorry");
+                          __FUNCTION__, (e.what() != nullptr)
+                                            ? e.what()
+                                            : "e.what() returned null, sorry");
             return false;
         }
         //          catch (chaiscript::Boxed_Value bv) {}

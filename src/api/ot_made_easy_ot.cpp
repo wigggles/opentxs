@@ -397,7 +397,7 @@ MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
         if (!VerifyStringVal(strPubkey)) {
             OTAPI_Wrap::Output(0, "\nload_public_encryption_key: Didn't find "
                                   "him as a local Nym either... returning "
-                                  "NULL.\n");
+                                  "nullptr.\n");
         }
     }
     return strPubkey; // might be null.;
@@ -614,7 +614,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
         VerifyStringVal(PRELOADED_INBOX)
             ? PRELOADED_INBOX
             : OTAPI_Wrap::LoadPaymentInbox(
-                  SERVER_ID, NYM_ID); // Returns NULL, or an inbox.
+                  SERVER_ID, NYM_ID); // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
         OTAPI_Wrap::Output(1, "\n\n get_payment_instrument:  "
@@ -1352,7 +1352,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             //
             string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
                 serverID, assetID, nymID, // server, asset, signer
-                strRecipient, // owner is either NULL (for password-protected
+                strRecipient, // owner is either nullptr (for password-protected
                               // purse) or recipientNymID
                 newPurse, exportedToken); // purse, token
 
@@ -1576,7 +1576,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
                 string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
                     serverID, assetID, nymID, // server, asset, signer;
-                    strRecipient,             // owner is either NULL (for
+                    strRecipient,             // owner is either nullptr (for
                     // password-protected purse) or recipientNymID
                     newPurseSelectedTokens, exportedToken); // purse, token
                 if (!VerifyStringVal(strPushedForRecipient)) {
@@ -1621,8 +1621,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
                 string str = OTAPI_Wrap::Purse_Push(
                     serverID, assetID, nymID, // server, asset, signer;
-                    strSender, // owner is either NULL (for password-protected
-                               // purse) or nymID
+                    strSender,                // owner is either nullptr (for
+                                              // password-protected
+                                              // purse) or nymID
                     newPurseUnSelectedTokens, token); // purse, token
                 if (!VerifyStringVal(str)) {
                     OTAPI_Wrap::Output(0, strLocation + ": OT_API_Purse_Push "

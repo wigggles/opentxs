@@ -226,18 +226,18 @@ void OTClient::ProcessMessageOut(OTMessage& theMessage)
     // fucking transaction numbers back again!
 
     OTMessage* pMsg = new OTMessage; // a copy.
-    OT_ASSERT(NULL != pMsg);
+    OT_ASSERT(nullptr != pMsg);
 
     if (pMsg->LoadContractFromString(strMessage))
         m_MessageOutbuffer.AddSentMessage(*pMsg);
     else {
         // todo, log here.
         delete pMsg;
-        pMsg = NULL;
+        pMsg = nullptr;
     }
     OT_ASSERT_MSG(
-        NULL != m_pConnection,
-        "OTClient::ProcessMessageOut: ASSERT: NULL != m_pConnection\n");
+        nullptr != m_pConnection,
+        "OTClient::ProcessMessageOut: ASSERT: nullptr != m_pConnection\n");
 
     m_pConnection->ProcessMessageOut(theMessage); // <===========
 
@@ -246,8 +246,9 @@ void OTClient::ProcessMessageOut(OTMessage& theMessage)
 
 bool OTClient::ProcessInBuffer(OTMessage& theServerReply)
 {
-    OT_ASSERT_MSG(NULL != m_pConnection,
-                  "OTClient::ProcessInBuffer: ASSERT: NULL != m_pConnection\n");
+    OT_ASSERT_MSG(
+        nullptr != m_pConnection,
+        "OTClient::ProcessInBuffer: ASSERT: nullptr != m_pConnection\n");
 
     return m_pConnection->ProcessInBuffer(theServerReply);
 }
@@ -379,7 +380,7 @@ bool OTClient::AcceptEntireNymbox(
     //
     for (auto& it : theNymbox.GetTransactionMap()) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
         // ------------------------------------------------------------
         // This is now possible (abbreviated notices in the box), since we try
         // to avoid
@@ -412,7 +413,7 @@ bool OTClient::AcceptEntireNymbox(
                 *pAcceptTransaction, OTItem::acceptMessage);
 
             // The above already has OT_ASSERT so, no need to check the pointer
-            // for NULL.
+            // for nullptr.
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -441,7 +442,7 @@ bool OTClient::AcceptEntireNymbox(
             // in my mail. So what?
             OTMessage* pMessage = new OTMessage;
 
-            OT_ASSERT(NULL != pMessage);
+            OT_ASSERT(nullptr != pMessage);
 
             // The original message that was sent to me (with an encrypted
             // envelope in the payload,
@@ -458,7 +459,7 @@ bool OTClient::AcceptEntireNymbox(
             }
             else {
                 delete pMessage; // Don't want to leak otherwise.
-                pMessage = NULL;
+                pMessage = nullptr;
             }
         } // if message
 
@@ -469,7 +470,7 @@ bool OTClient::AcceptEntireNymbox(
                 *pAcceptTransaction, OTItem::acceptNotice);
 
             // The above already has OT_ASSERT so, no need to check the pointer
-            // for NULL.
+            // for nullptr.
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -497,7 +498,7 @@ bool OTClient::AcceptEntireNymbox(
                 *pAcceptTransaction, OTItem::acceptNotice);
 
             // The above already has OT_ASSERT so, no need to check the pointer
-            // for NULL.
+            // for nullptr.
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -639,7 +640,7 @@ bool OTClient::AcceptEntireNymbox(
             {
                 OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
                     *pAcceptTransaction, OTItem::acceptNotice);
-                OT_ASSERT_MSG(NULL != pAcceptItem,
+                OT_ASSERT_MSG(nullptr != pAcceptItem,
                               "OTItem * pAcceptItem = "
                               "OTItem::CreateItemFromTransaction(*"
                               "pAcceptTransaction, OTItem::acceptNotice); for "
@@ -670,7 +671,7 @@ bool OTClient::AcceptEntireNymbox(
 
                 OTItem* pItem = pTransaction->GetItem(OTItem::replyNotice);
 
-                if ((NULL != pItem) &&
+                if ((nullptr != pItem) &&
                     OTItem::acknowledgement == pItem->GetStatus()) {
                     OTString strOriginalReply;
                     pItem->GetAttachment(strOriginalReply);
@@ -684,7 +685,7 @@ bool OTClient::AcceptEntireNymbox(
                     else // strOriginalReply.Exists() == true.
                     {
                         OTMessage* pMessage = new OTMessage;
-                        OT_ASSERT_MSG(pMessage != NULL,
+                        OT_ASSERT_MSG(pMessage != nullptr,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
 
@@ -695,7 +696,7 @@ bool OTClient::AcceptEntireNymbox(
                                           "replyNotice:\n\n%s\n\n",
                                           __FUNCTION__, strOriginalReply.Get());
                             delete pMessage;
-                            pMessage = NULL;
+                            pMessage = nullptr;
                         }
                         else // Success loading the server's original reply up
                                // into an OTMessage, from a string.
@@ -719,7 +720,7 @@ bool OTClient::AcceptEntireNymbox(
                                                         // it in so it won't get
                                                         // loaded twice.
 
-                            pMessage = NULL; // We're done with it now.
+                            pMessage = nullptr; // We're done with it now.
 
                             // By this point, I KNOW FOR A FACT that IF there
                             // was some network problem that caused a Nym to
@@ -733,10 +734,11 @@ bool OTClient::AcceptEntireNymbox(
                         } // if success loading original reply message from
                           // server.
                     }     // if strOriginalReply.Exists()
-                } // if the replyNotice item is not-NULL and status is "success"
-                else { // NULL or "rejected"
+                }      // if the replyNotice item is not-nullptr and status is
+                       // "success"
+                else { // nullptr or "rejected"
                     OTLog::vOutput(0, "%s: the replyNotice item was either "
-                                      "NULL, or rejected. (Unexpectedly on "
+                                      "nullptr, or rejected. (Unexpectedly on "
                                       "either count.)\n",
                                    __FUNCTION__);
                 }
@@ -997,7 +999,7 @@ bool OTClient::AcceptEntireNymbox(
                 //                                *(pAssetContract),
                 theServerContract,
                 //                               *(theConnection.GetServerContract()),
-                NULL) > 0) {
+                nullptr) > 0) {
             // the message is all set up and ready to go out... it's even
             // signed.
             // Except the ledger we're sending, still needs to be added, and
@@ -1060,15 +1062,16 @@ bool OTClient::AcceptEntireNymbox(
 
             if (bAddedTentative) pNym->SaveSignedNymfile(*pNym);
 
-            if (NULL != pBalanceItem) // This can't be NULL BTW, since there is
-                                      // an OT_ASSERT in Generate call. But I
-                                      // hate to use a pointer without checking
-                                      // it.
+            if (nullptr !=
+                pBalanceItem) // This can't be nullptr BTW, since there is
+                              // an OT_ASSERT in Generate call. But I
+                              // hate to use a pointer without checking
+                              // it.
                 pAcceptTransaction->AddItem(*pBalanceItem); // Better not be
-                                                            // NULL... message
-                                                            // will fail... But
-                                                            // better check
-                                                            // anyway.
+            // nullptr... message
+            // will fail... But
+            // better check
+            // anyway.
             else
                 OTLog::vError("%s: This should never happen.\n", __FUNCTION__);
 
@@ -1170,7 +1173,7 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
     OTLedger* pOutbox = pAccount->LoadOutbox(
         *pNym); // Need this for balance agreement (outbox hash)
     OTCleanup<OTLedger> theOutboxAngel(pOutbox); // auto cleanup.
-    if (NULL == pOutbox) {
+    if (nullptr == pOutbox) {
         OTLog::Output(0,
                       "OTClient::AcceptEntireInbox: Failed loading outbox!\n");
         return false;
@@ -1258,7 +1261,7 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
     //
     for (auto& it : theInbox.GetTransactionMap()) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         // If this transaction references the item that I'm trying to accept...
         if (pTransaction->GetReferenceToNum() >
@@ -1904,12 +1907,12 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
                 pNym->AddIssuedNum(strServerID, lTemp);
             }
 
-            if (NULL != pBalanceItem)
+            if (nullptr != pBalanceItem)
                 pAcceptTransaction->AddItem(*pBalanceItem); // Better not be
-                                                            // NULL... message
-                                                            // will fail... But
-                                                            // better check
-                                                            // anyway.
+            // nullptr... message
+            // will fail... But
+            // better check
+            // anyway.
             else
                 OTLog::Error("Should never happen.\n");
 
@@ -1962,20 +1965,21 @@ void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                                   const int64_t& lTransNum,
                                   OTPseudonym& the_nym, OTLedger& ledger)
 {
-    if (NULL == ledger.GetTransaction(lTransNum)) // (Only add it if it's not
-                                                  // already there.)
+    if (nullptr == ledger.GetTransaction(lTransNum)) // (Only add it if it's not
+                                                     // already there.)
     {
         OTTransactionType* pTransType =
             OTTransactionType::TransactionFactory(str_trans);
 
-        if (NULL == pTransType)
+        if (nullptr == pTransType)
             OTLog::vError("%s: Error instantiating transaction "
                           "type based on str_trans:\n%s\n",
                           __FUNCTION__, str_trans.Get());
         else {
             OTTransaction* pCopy = dynamic_cast<OTTransaction*>(pTransType);
 
-            if (NULL == pCopy) // it's a transaction type but not a transaction.
+            if (nullptr ==
+                pCopy) // it's a transaction type but not a transaction.
             {
                 const OTString strUserID(the_nym_id), strAcctID(the_nym_id);
                 OTLog::vOutput(0, "%s: it's a transaction type but not a "
@@ -1983,7 +1987,7 @@ void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                                __FUNCTION__, str_box_type.Get(),
                                str_trans.Get());
                 delete pTransType;
-                pTransType = NULL;
+                pTransType = nullptr;
             }
             else // The copy transaction is now loaded from the string. Add it
                    // to the ledger...
@@ -2002,7 +2006,7 @@ void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                         __FUNCTION__, str_box_type.Get(), strUserID.Get(),
                         strAcctID.Get(), str_trans.Get());
                     delete pCopy;
-                    pCopy = NULL;
+                    pCopy = nullptr;
                 }
                 else // We were able to add it, so now let's save the
                        // paymentInbox (or recordBox.)
@@ -2109,9 +2113,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
     for (auto& it : theLedger.GetTransactionMap()) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT_MSG(NULL != pTransaction, "NULL transaction pointer in "
-                                            "OTServer::"
-                                            "UserCmdNotarizeTransactions\n");
+        OT_ASSERT_MSG(nullptr != pTransaction, "nullptr transaction pointer in "
+                                               "OTServer::"
+                                               "UserCmdNotarizeTransactions\n");
 
         // See note above function. In this loop, it's possible that we've
         // already processed these
@@ -2160,9 +2164,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 OTItem* pItemVoucher =
                     pTransaction->GetItem(OTItem::atWithdrawVoucher);
 
-                if (NULL != pItemCash)
+                if (nullptr != pItemCash)
                     theItemType = OTItem::atWithdrawal;
-                else if (NULL != pItemVoucher)
+                else if (nullptr != pItemVoucher)
                     theItemType = OTItem::atWithdrawVoucher;
             } break;
             case OTTransaction::atPayDividend:
@@ -2218,7 +2222,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 {
                     OTItem* pItem = pTransaction->GetItem(theItemType);
 
-                    if ((NULL != pItem) &&
+                    if ((nullptr != pItem) &&
                         OTItem::rejection == pItem->GetStatus()) // REJECTION
                     {
                         OTString strOriginalItem;
@@ -2228,15 +2232,15 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             strOriginalItem.Exists()
                                 ? OTTransactionType::TransactionFactory(
                                       strOriginalItem)
-                                : NULL;
+                                : nullptr;
 
                         OTItem* pOriginalItem =
-                            (NULL == pTempTransType)
-                                ? NULL
+                            (nullptr == pTempTransType)
+                                ? nullptr
                                 : dynamic_cast<OTItem*>(pTempTransType);
                         OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
-                        if (NULL != pOriginalItem) {
+                        if (nullptr != pOriginalItem) {
                             OTString strBasket;
                             OTBasket theRequestBasket;
 
@@ -2274,7 +2278,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 {
                     OTItem* pItem = pTransaction->GetItem(theItemType);
 
-                    if ((NULL != pItem) &&
+                    if ((nullptr != pItem) &&
                         OTItem::acknowledgement ==
                             pItem->GetStatus()) { // If it was a success
                                                   // cancelling the cron item,
@@ -2292,15 +2296,15 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             strOriginalItem.Exists()
                                 ? OTTransactionType::TransactionFactory(
                                       strOriginalItem)
-                                : NULL;
+                                : nullptr;
 
                         OTItem* pOriginalItem =
-                            (NULL == pTempTransType)
-                                ? NULL
+                            (nullptr == pTempTransType)
+                                ? nullptr
                                 : dynamic_cast<OTItem*>(pTempTransType);
                         OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
-                        if (NULL != pOriginalItem) {
+                        if (nullptr != pOriginalItem) {
                             if (false == pNym->RemoveIssuedNum(
                                              *pNym, strServerID,
                                              pOriginalItem->GetReferenceToNum(),
@@ -2347,7 +2351,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 {
                     OTItem* pItem = pTransaction->GetItem(theItemType);
 
-                    if ((NULL != pItem) &&
+                    if ((nullptr != pItem) &&
                         OTItem::rejection == pItem->GetStatus()) {
                         // Why do this? Oh I see, this number either gets burned
                         // from the attempt,
@@ -2382,7 +2386,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                     const int64_t lNymOpeningNumber =
                         pTransaction->GetTransactionNum();
                     OTItem* pReplyItem = pTransaction->GetItem(theItemType);
-                    if (NULL != pReplyItem) {
+                    if (nullptr != pReplyItem) {
                         OTString strOriginalItem;
                         pReplyItem->GetReferenceString(strOriginalItem);
 
@@ -2390,15 +2394,15 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             strOriginalItem.Exists()
                                 ? OTTransactionType::TransactionFactory(
                                       strOriginalItem)
-                                : NULL;
+                                : nullptr;
 
                         OTItem* pOriginalItem =
-                            (NULL == pTempTransType)
-                                ? NULL
+                            (nullptr == pTempTransType)
+                                ? nullptr
                                 : dynamic_cast<OTItem*>(pTempTransType);
                         OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
-                        if (NULL != pOriginalItem) {
+                        if (nullptr != pOriginalItem) {
                             OTString strCronItem;
                             pOriginalItem->GetAttachment(strCronItem);
 
@@ -2424,12 +2428,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             OTCronItem* pCronItem =
                                 (strCronItem.Exists()
                                      ? OTCronItem::NewCronItem(strCronItem)
-                                     : NULL);
+                                     : nullptr);
                             OTCleanup<OTCronItem> theCronItemAngel(pCronItem);
 
-                            if (NULL != pCronItem) // the original smart
-                                                   // contract or payment plan
-                                                   // object.
+                            if (nullptr != pCronItem) // the original smart
+                                // contract or payment plan
+                                // object.
                             {
                                 if (OTItem::rejection ==
                                     pReplyItem->GetStatus()) // REJECTION (This
@@ -2520,14 +2524,14 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     const int32_t nOutpaymentIndex =
                                         pNym->GetOutpaymentsIndexByTransNum(
                                             lNymOpeningNumber);
-                                    OTMessage* pMsg = NULL;
+                                    OTMessage* pMsg = nullptr;
                                     OTCleanup<OTMessage> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
                                         pMsg = pNym->GetOutpaymentsByIndex(
                                             nOutpaymentIndex);
 
-                                        if (NULL == pMsg) {
+                                        if (nullptr == pMsg) {
                                             OTLog::vError(
                                                 "%s: Unable to find payment "
                                                 "message in outpayment box "
@@ -2799,7 +2803,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                 OTCleanup<OTPayment>
                                                 thePaymentAngel(pPayment);
 
-                                                if (NULL == pPayment) {
+                                                if (nullptr == pPayment) {
                                                     OTLog::vOutput(
                                                         0, "%s: While looping "
                                                            "payments inbox to "
@@ -2847,7 +2851,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                             .GetTransactionByIndex(
                                                                  ii);
                                                     OT_ASSERT(
-                                                        NULL !=
+                                                        nullptr !=
                                                         pTransPaymentInbox); // It DEFINITELY should be there. (Assert otherwise.)
                                                     lPaymentTransNum =
                                                         pTransPaymentInbox
@@ -3020,7 +3024,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                 theTransactionAngel(
                                                     pNewTransaction);
 
-                                                if (NULL !=
+                                                if (nullptr !=
                                                     pNewTransaction) // The
                                                                      // above
                                                                      // has an
@@ -3076,7 +3080,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     else {
                                                         theTransactionAngel
                                                             .SetCleanupTargetPointer(
-                                                                 NULL); // If
+                                                                 nullptr); // If
                                                         // successfully
                                                         // added
                                                         // to
@@ -3149,7 +3153,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                                     .Get());
                                                         }
                                                     }
-                                                }    // if (NULL !=
+                                                }    // if (nullptr !=
                                                      // pNewTransaction)
                                                 else // should never happen
                                                 {
@@ -3176,20 +3180,20 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                           // pReplyItem->GetStatus()) (loading
                                           // payment inbox and record box.)
                                 }         // if payment plan or smart contract.
-                            }             // if (NULL != pCronItem)
+                            }             // if (nullptr != pCronItem)
                             else {
                                 OTLog::vError(
                                     "%s: Error loading cronitem from original "
                                     "item, from string:\n%s\n",
                                     __FUNCTION__, strOriginalItem.Get());
                             }
-                        } // if (NULL != pOriginalItem)
+                        } // if (nullptr != pOriginalItem)
                         else {
                             OTLog::vError("%s: Error loading original item "
                                           "from string:\n%s\n\n",
                                           __FUNCTION__, strOriginalItem.Get());
                         }
-                    } // if (NULL != pReplyItem)
+                    } // if (nullptr != pReplyItem)
                 }     // Case market offer, payment plan, or smart contract.
                 break;
 
@@ -3219,10 +3223,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                          // fail, or error.
             OTItem* pItem = pTransaction->GetItem(OTItem::atBalanceStatement);
 
-            if (NULL == pItem) {
+            if (nullptr == pItem) {
                 pItem = pTransaction->GetItem(OTItem::atTransactionStatement);
 
-                if (NULL != pItem)
+                if (nullptr != pItem)
                     pNym->GetIdentifier(strReceiptID); // In this case, the
                                                        // receipt ID is the Nym
                                                        // ID
@@ -3250,7 +3254,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                               OTLog::PathSeparator(), strReceiptFilename.Get());
                 return;
             }
-            if (NULL != pItem) {
+            if (nullptr != pItem) {
                 // Filename is based on transaction success/failure.
                 //
                 if (pTransaction->GetSuccess())
@@ -3267,7 +3271,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 strReceiptFilename.Format("%s.error", strReceiptID.Get());
 
                 OTLog::vError("%s: Error saving transaction receipt, since "
-                              "pItem was NULL: %s\n",
+                              "pItem was nullptr: %s\n",
                               __FUNCTION__, strReceiptFilename.Get());
 
                 OTDB::StorePlainString(
@@ -3310,7 +3314,7 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
 
     for (auto& it : theTransaction.GetItemList()) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
 
         // if pointer not null, and it's a dividend payout, and it's an
         // acknowledgement (not a rejection or error)
@@ -3346,7 +3350,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 
     for (auto& it : theTransaction.GetItemList()) {
         OTItem* pReplyItem = it;
-        OT_ASSERT(NULL != pReplyItem);
+        OT_ASSERT(nullptr != pReplyItem);
 
         // if pointer not null, and it's a deposit, and it's an acknowledgement
         // (not a rejection or error)
@@ -3368,7 +3372,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                     OTCleanup<OTLedger> theLedgerAngel(pLedger);
                     // Beyond this point, I know that pLedger will need to be
                     // deleted or returned.
-                    if ((NULL != pLedger) && pLedger->LoadPaymentInbox() &&
+                    if ((nullptr != pLedger) && pLedger->LoadPaymentInbox() &&
                         pLedger->VerifyAccount(*pNym)) {
                         // If an incoming payment exists that matches the
                         // instrument inside the server's deposit response,
@@ -3379,7 +3383,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         // as reference string.
                         //
                         OTString strOriginalDepositItem;
-                        OTItem* pOriginalItem = NULL;
+                        OTItem* pOriginalItem = nullptr;
                         pReplyItem->GetReferenceString(strOriginalDepositItem);
 
                         OTTransactionType* pTransType =
@@ -3388,10 +3392,10 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         OTCleanup<OTTransactionType> theTransTypeAngel(
                             pTransType);
 
-                        if (NULL != pTransType) {
+                        if (nullptr != pTransType) {
                             pOriginalItem = dynamic_cast<OTItem*>(pTransType);
                         }
-                        if (NULL != pOriginalItem) {
+                        if (nullptr != pOriginalItem) {
                             OTString strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
@@ -3426,7 +3430,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 
                                     int64_t lPaymentTransNum = 0;
 
-                                    if ((NULL != pPayment) &&
+                                    if ((nullptr != pPayment) &&
                                         pPayment->SetTempValues() &&
                                         pPayment->GetTransactionNum(
                                             lPaymentTransNum) &&
@@ -3440,7 +3444,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                         OTString strPmntInboxTransaction;
                                         int64_t lRemoveTransaction = 0;
 
-                                        if (NULL != pTransaction) {
+                                        if (nullptr != pTransaction) {
                                             pTransaction->SaveContractRaw(
                                                 strPmntInboxTransaction);
                                             lRemoveTransaction =
@@ -3485,7 +3489,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                                         __FUNCTION__);
                                                 }
                                             }
-                                        } // if (NULL != pTransaction)
+                                        } // if (nullptr != pTransaction)
                                         // We're still in the loop backwards
                                         // through the paymentInbox, checking
                                         // each for
@@ -3592,7 +3596,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                 // for (payments inbox)
                                 // ----------------------------------
                             }
-                        } // if NULL != pOriginalItem
+                        } // if nullptr != pOriginalItem
                     }
                     else {
                         OTString strUserID(USER_ID), strAcctID(USER_ID);
@@ -3643,7 +3647,7 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
     // (not a rejection or error)
     for (auto& it : theTransaction.GetItemList()) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
         // VOUCHER WITHDRAWAL
         //
         // If we got a reply to a voucher withdrawal, we'll just display the
@@ -3682,13 +3686,13 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                 // data when we
                 // needed it (now).
                 OTPurse* pRequestPurse = pWallet->GetPendingWithdrawal();
-                OTToken* pToken = NULL;
-                OTToken* pOriginalToken = NULL;
+                OTToken* pToken = nullptr;
+                OTToken* pOriginalToken = nullptr;
 
                 OTString strAssetID(thePurse.GetAssetID());
                 OTMint* pMint = OTMint::MintFactory(strServerID, strAssetID);
                 OTCleanup<OTMint> theMintAngel(pMint);
-                OT_ASSERT(NULL != pMint);
+                OT_ASSERT(nullptr != pMint);
                 // Unlike the purse which we read out of a message,
                 // now we try to open a purse as a file on the client side,
                 // keyed by Asset ID.  (The client should already have one
@@ -3716,14 +3720,14 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
 
                 bool bSuccess = false;
 
-                if ((NULL != pRequestPurse) && (NULL != pServerNym) &&
+                if ((nullptr != pRequestPurse) && (nullptr != pServerNym) &&
                     pMint->LoadMint() && pMint->VerifyMint(*pServerNym))
-                    while ((pToken = thePurse.Pop(*pNym)) != NULL) {
-                        OT_ASSERT(NULL != pToken);
+                    while ((pToken = thePurse.Pop(*pNym)) != nullptr) {
+                        OT_ASSERT(nullptr != pToken);
 
                         pOriginalToken = pRequestPurse->Pop(*pNym);
 
-                        if (NULL == pOriginalToken) {
+                        if (nullptr == pOriginalToken) {
                             OTLog::vError("ERROR, processing withdrawal "
                                           "response, but couldn't find "
                                           "original token:%s\n",
@@ -3752,7 +3756,7 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                                 bSuccess = false;
                                 if (pToken) {
                                     delete pToken;
-                                    pToken = NULL;
+                                    pToken = nullptr;
                                 }
                                 // The while loop starts by allocating a
                                 // pOriginalToken, so I want to
@@ -3760,7 +3764,7 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                                 // clean.
                                 if (pOriginalToken) {
                                     delete pOriginalToken;
-                                    pOriginalToken = NULL;
+                                    pOriginalToken = nullptr;
                                 }
                                 break;
                             }
@@ -3769,16 +3773,16 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                         // The while loop starts by allocating a pToken, so I
                         // want to
                         // delete it for each iteration and keep things clean.
-                        if (NULL != pToken) {
+                        if (nullptr != pToken) {
                             delete pToken;
-                            pToken = NULL;
+                            pToken = nullptr;
                         }
                         // The while loop starts by allocating a pOriginalToken,
                         // so I want to
                         // delete it for each iteration and keep things clean.
                         if (pOriginalToken) {
                             delete pOriginalToken;
-                            pOriginalToken = NULL;
+                            pOriginalToken = nullptr;
                         }
                     } // while (pToken = thePurse.Pop(*pNym))
 
@@ -3828,7 +3832,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                      // loading it
                                                      // internally.
 {
-    OT_ASSERT(NULL != m_pConnection);
+    OT_ASSERT(nullptr != m_pConnection);
 
     OTServerConnection& theConnection = (*m_pConnection);
 
@@ -3851,7 +3855,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         OTMessage* pMessage =
             &theReply; // I'm responsible to cleanup this object.
         delete pMessage;
-        pMessage = NULL;
+        pMessage = nullptr;
         return false;
     }
     OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
@@ -3880,7 +3884,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     // thus ProcessServerReply gets called a second time, again leading us to
     // this block of code right here...
     //
-    if (NULL == pSentMsg) //
+    if (nullptr == pSentMsg) //
     {
         const OTString strReply(theReply);
         OTLog::vOutput(
@@ -3893,7 +3897,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         OTMessage* pMessage =
             &theReply; // I'm responsible to cleanup this object.
         delete pMessage;
-        pMessage = NULL;
+        pMessage = nullptr;
         return false;
     }
     // Below this point, we know we found the original sent message--still
@@ -4088,10 +4092,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                 OTCleanup<OTDB::Storable> theStorableAngel(
                     pStorable); // It will definitely be cleaned up.
                 OTDB::StringMap* pMap =
-                    (NULL == pStorable)
-                        ? NULL
+                    (nullptr == pStorable)
+                        ? nullptr
                         : dynamic_cast<OTDB::StringMap*>(pStorable);
-                if (NULL == pMap)
+                if (nullptr == pMap)
                     OTLog::vOutput(
                         0,
                         "%s: Failed decoding StringMap object in @checkUser.\n",
@@ -4282,15 +4286,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         // base64-Decode the server reply's payload into strInbox
         OTString strNymbox(theReply.m_ascPayload);
 
-        // IF pNymbox NOT NULL, THEN USE IT INSTEAD OF LOADING MY OWN.
+        // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
         // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
         // so we'll never end up here except in cases where it needs to be
-        // loaded. I can even ASSERT here, that the pointer is actually NULL!
+        // loaded. I can even ASSERT here, that the pointer is actually nullptr!
         //
-        OT_ASSERT_MSG(NULL == pNymbox, "Nymbox pointer is expected to be NULL "
-                                       "here, since @getNymbox isn't dropped "
-                                       "as a server replyNotice into the "
-                                       "nymbox.");
+        OT_ASSERT_MSG(nullptr == pNymbox,
+                      "Nymbox pointer is expected to be nullptr "
+                      "here, since @getNymbox isn't dropped "
+                      "as a server replyNotice into the "
+                      "nymbox.");
 
         // Load the ledger object from that string.
         OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
@@ -4380,15 +4385,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             0, "Received server response to getBoxReceipt request (%s)\n",
             theReply.m_bSuccess ? "success" : "failure");
 
-        // IF pNymbox NOT NULL, THEN USE IT INSTEAD OF LOADING MY OWN.
+        // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
         // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
         // so we'll never end up here except in cases where it needs to be
-        // loaded. I can even ASSERT here, that the pointer is actually NULL!
+        // loaded. I can even ASSERT here, that the pointer is actually nullptr!
         //
-        OT_ASSERT_MSG(NULL == pNymbox, "Nymbox pointer is expected to be NULL "
-                                       "here, since @getBoxReceipt isn't "
-                                       "dropped as a server replyNotice into "
-                                       "the nymbox.");
+        OT_ASSERT_MSG(nullptr == pNymbox,
+                      "Nymbox pointer is expected to be nullptr "
+                      "here, since @getBoxReceipt isn't "
+                      "dropped as a server replyNotice into "
+                      "the nymbox.");
 
         // Note: I don't HAVE to load the ledger, and what if there are 500000
         // receipts in it?
@@ -4425,15 +4431,15 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             // base64-Decode the server reply's payload into strTransaction
             //
             const OTString strTransType(theReply.m_ascPayload);
-            OTTransactionType* pTransType = NULL;
+            OTTransactionType* pTransType = nullptr;
 
             if (strTransType.Exists())
                 pTransType =
                     OTTransactionType::TransactionFactory(strTransType);
             OTCleanup<OTTransactionType> theTransTypeAngel(
-                pTransType); // Still works if NULL argument. (Does nothing.)
+                pTransType); // Still works if nullptr argument. (Does nothing.)
 
-            if (NULL == pTransType)
+            if (nullptr == pTransType)
                 OTLog::vError(
                     "%s: @getBoxReceipt: Error instantiating transaction "
                     "type based on decoded theReply.m_ascPayload:\n\n%s\n",
@@ -4442,7 +4448,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                 OTTransaction* pBoxReceipt =
                     dynamic_cast<OTTransaction*>(pTransType);
 
-                if (NULL == pBoxReceipt)
+                if (nullptr == pBoxReceipt)
                     OTLog::vError("%s: @getBoxReceipt: Error dynamic_cast from "
                                   "transaction "
                                   "type to transaction, based on decoded "
@@ -4787,8 +4793,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                 // atExchangeBasket: Whether success or fail, remove the number
                 // from my list of responsibility.
 
-                OTTransaction* pTransaction = NULL;
-                OTTransaction* pReplyTransaction = NULL;
+                OTTransaction* pTransaction = nullptr;
+                OTTransaction* pReplyTransaction = nullptr;
 
                 if (theReply.m_strCommand.Compare(
                         "@processInbox")) // We're processing the SERVER's REPLY
@@ -4799,7 +4805,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     pReplyTransaction = theReplyLedger.GetTransaction(
                         OTTransaction::atProcessInbox);
 
-                    if (NULL != pTransaction) {
+                    if (nullptr != pTransaction) {
                         // pNym->RemoveTransactionNum() happened whenever I
                         // first fired off the processInbox request.
                         // Now let's remove that number from our ISSUED list of
@@ -4825,7 +4831,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                 *pNym, strServerID,
                                 pTransaction->GetTransactionNum(),
                                 true); // bool bSave=true
-                        if (bIsSignedOut && (NULL != pReplyTransaction)) {
+                        if (bIsSignedOut && (nullptr != pReplyTransaction)) {
                             // Load the inbox.
                             OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
                             OTLedger theRecordBox(USER_ID, ACCOUNT_ID,
@@ -4862,10 +4868,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             for (auto& it_bigloop :
                                  pReplyTransaction->GetItemList()) {
                                 OTItem* pReplyItem = it_bigloop;
-                                OT_ASSERT_MSG(NULL != pReplyItem,
+                                OT_ASSERT_MSG(nullptr != pReplyItem,
                                               "OTClient::ProcessServerReply: "
                                               "Pointer should not have been "
-                                              "NULL.");
+                                              "nullptr.");
 
                                 //                              OTLog::Error("
                                 // *** TOP OF LOOP of Reply items, one
@@ -5049,13 +5055,13 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                 // receipt from my inbox.
                                 //
                                 OTItem* pItem =
-                                    (pProcessInboxItem != NULL)
+                                    (pProcessInboxItem != nullptr)
                                         ? pTransaction->GetItemInRefTo(
                                               pProcessInboxItem
                                                   ->GetReferenceToNum())
-                                        : NULL;
+                                        : nullptr;
 
-                                if (NULL == pItem) {
+                                if (nullptr == pItem) {
                                     OTLog::Error("Unable to find original item "
                                                  "in original processInbox "
                                                  "transaction request, based "
@@ -5098,7 +5104,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                 // the receipt that's in the inbox.
                                 //
 
-                                OTTransaction* pServerTransaction = NULL;
+                                OTTransaction* pServerTransaction = nullptr;
 
                                 OTLog::vOutput(
                                     1, "Checking client-side inbox for "
@@ -5141,11 +5147,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                         nReplyItemType, strTheType.Get());
                                     break; // will return just below, where it
                                            // checks pServerTransaction for
-                                           // NULL.
+                                           // nullptr.
                                 }
                                 }
 
-                                if (NULL == pServerTransaction) {
+                                if (nullptr == pServerTransaction) {
                                     OTLog::Error("Unable to find the server's "
                                                  "receipt, in my inbox, that "
                                                  "my original processInbox's "
@@ -5206,7 +5212,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         // clean it up later. No
                                                         // memory leaks.
 
-                                    if (NULL != pOriginalItem) {
+                                    if (nullptr != pOriginalItem) {
                                         // If pOriginalItem is acceptPending,
                                         // that means I am accepting the
                                         // transfer receipt from the server,
@@ -5400,7 +5406,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                 // POSSIBLE
                                                                 // here.
 
-                                    if (NULL != pServerItem) {
+                                    if (nullptr != pServerItem) {
                                         OTString strOffer, strTrade;
                                         pServerItem->GetAttachment(
                                             strOffer); // contains updated
@@ -5426,7 +5432,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 OTDB::CreateObject(
                                                     OTDB::
                                                         STORED_OBJ_TRADE_DATA_NYM));
-                                            OT_ASSERT(NULL != pData);
+                                            OT_ASSERT(nullptr != pData);
                                             OTCleanup<OTDB::TradeDataNym>
                                             theDataAngel(*pData);
 
@@ -5524,7 +5530,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                             //
                                             OTString strUserID(USER_ID);
 
-                                            OTDB::TradeListNym* pList = NULL;
+                                            OTDB::TradeListNym* pList = nullptr;
 
                                             if (OTDB::Exists(
                                                     OTFolders::Nym().Get(),
@@ -5542,7 +5548,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                   // hardcoding.
                                                         strServerID.Get(),
                                                         strUserID.Get()));
-                                            if (NULL == pList) {
+                                            if (nullptr == pList) {
                                                 OTLog::vOutput(
                                                     2, "Creating storage list "
                                                        "of trade receipts for "
@@ -5554,7 +5560,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         OTDB::
                                                             STORED_OBJ_TRADE_LIST_NYM));
                                             }
-                                            OT_ASSERT(NULL != pList);
+                                            OT_ASSERT(nullptr != pList);
                                             OTCleanup<OTDB::TradeListNym>
                                             theListAngel(*pList);
                                             // Loop through and see if we can
@@ -5579,7 +5585,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                     pList->GetTradeDataNym(
                                                         nym_count);
 
-                                                if (NULL ==
+                                                if (nullptr ==
                                                     pTradeData) // Should never
                                                                 // happen.
                                                     continue;
@@ -5828,7 +5834,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                     if (bLoadedRecordBox) {
                                         const OTString strServerTransaction(
                                             *pServerTransaction);
-                                        OTTransaction* pNewTransaction = NULL;
+                                        OTTransaction* pNewTransaction =
+                                            nullptr;
                                         OTTransactionType* pTransType =
                                             OTTransactionType::
                                                 TransactionFactory(
@@ -5836,12 +5843,12 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                         OTCleanup<OTTransactionType>
                                         theTransTypeAngel(pTransType);
 
-                                        if (NULL != pTransType) {
+                                        if (nullptr != pTransType) {
                                             pNewTransaction =
                                                 dynamic_cast<OTTransaction*>(
                                                     pTransType);
                                         }
-                                        if (NULL != pNewTransaction) {
+                                        if (nullptr != pNewTransaction) {
                                             const bool bAdded =
                                                 theRecordBox.AddTransaction(
                                                     *pNewTransaction);
@@ -5864,17 +5871,17 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                             {
                                                 theTransTypeAngel
                                                     .SetCleanupTargetPointer(
-                                                         NULL); // If
-                                                                // successfully
-                                                                // added to the
-                                                                // record box,
-                                                                // then no need
-                                                                // anymore to
-                                                                // clean it up
-                                                                // ourselves.
-                                                                // The record
-                                                                // box owns it
-                                                                // now.
+                                                         nullptr); // If
+                                                // successfully
+                                                // added to the
+                                                // record box,
+                                                // then no need
+                                                // anymore to
+                                                // clean it up
+                                                // ourselves.
+                                                // The record
+                                                // box owns it
+                                                // now.
 
                                                 theRecordBox
                                                     .ReleaseSignatures();
@@ -5913,7 +5920,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         strServerTransaction
                                                             .Get());
                                             }
-                                        } // if (NULL != pNewTransaction)
+                                        } // if (nullptr != pNewTransaction)
                                     }     // if (bLoadedRecordBox)
                                 }         // if (bAddToRecordBox)
                                 // REMOVE IT FROM THE INBOX.
@@ -5994,14 +6001,15 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     // anytime.)
                     //
                     //
-                    if ((NULL != pTransaction) && (NULL != pReplyTransaction)) {
+                    if ((nullptr != pTransaction) &&
+                        (nullptr != pReplyTransaction)) {
                         // HARVEST TRANSACTION NUMBERS (Nymbox only)
                         //
                         OTItem* pStatementItem =
                             pTransaction->GetItem(OTItem::transactionStatement);
 
                         // We found it!
-                        if (NULL == pStatementItem) {
+                        if (nullptr == pStatementItem) {
                             OTLog::vOutput(0, "Strange... found transaction in "
                                               "ledger in %s, but didn't find a "
                                               "transactionStatement item "
@@ -6072,8 +6080,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         // Load the Nymbox.
                         OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
                         bool bLoadedNymbox = false;
-                        if (NULL != pNymbox) // If a pointer was passed in, then
-                                             // we'll just use it.
+                        if (nullptr !=
+                            pNymbox) // If a pointer was passed in, then
+                                     // we'll just use it.
                         {
                             bLoadedNymbox = true;
                         }
@@ -6103,9 +6112,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         //
                         for (auto& it : pReplyTransaction->GetItemList()) {
                             OTItem* pReplyItem = it;
-                            OT_ASSERT_MSG(NULL != pReplyItem,
-                                          "OTClient::ProcessServerReply: "
-                                          "Pointer should not have been NULL.");
+                            OT_ASSERT_MSG(
+                                nullptr != pReplyItem,
+                                "OTClient::ProcessServerReply: "
+                                "Pointer should not have been nullptr.");
 
                             OTItem::itemType theItemType = OTItem::error_state;
 
@@ -6241,13 +6251,13 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             // reference number that I need, in order to look up
                             // MY copy of the item.
                             //
-                            OTItem* pItem = (pProcessNymboxItem != NULL)
+                            OTItem* pItem = (pProcessNymboxItem != nullptr)
                                                 ? pTransaction->GetItemInRefTo(
                                                       pProcessNymboxItem
                                                           ->GetReferenceToNum())
-                                                : NULL;
+                                                : nullptr;
 
-                            if (NULL == pItem) {
+                            if (nullptr == pItem) {
                                 OTLog::vError("%s: Unable to find original "
                                               "item in original processNymbox "
                                               "transaction request, based on "
@@ -6289,7 +6299,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             // FYI, pItem->GetReferenceToNum() is the ID of the
                             // receipt that's in the Nymbox.
                             //
-                            OTTransaction* pServerTransaction = NULL;
+                            OTTransaction* pServerTransaction = nullptr;
 
                             OTLog::vOutput(
                                 1, "%s: Checking client-side Nymbox for "
@@ -6316,7 +6326,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                 break;
                             }
                             }
-                            if (NULL == pServerTransaction) {
+                            if (nullptr == pServerTransaction) {
                                 OTLog::vOutput(
                                     1, "%s: The original processNymbox item "
                                        "referred to trans number %lld, but "
@@ -6512,14 +6522,15 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                             (strCronItem.Exists()
                                                  ? OTCronItem::NewCronItem(
                                                        strCronItem)
-                                                 : NULL);
+                                                 : nullptr);
                                         OTCleanup<OTCronItem> theCronItemAngel(
                                             pCronItem);
 
-                                        if (NULL != pCronItem) // the original
-                                                               // smart contract
-                                                               // or payment
-                                                               // plan object.
+                                        if (nullptr !=
+                                            pCronItem) // the original
+                                                       // smart contract
+                                                       // or payment
+                                                       // plan object.
                                         {
                                             OTIdentifier theCancelerNymID;
                                             const int64_t lNymOpeningNumber =
@@ -6703,7 +6714,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 const int32_t nOutpaymentIndex =
                                                     pNym->GetOutpaymentsIndexByTransNum(
                                                         lNymOpeningNumber);
-                                                OTMessage* pMsg = NULL;
+                                                OTMessage* pMsg = nullptr;
                                                 OTCleanup<OTMessage>
                                                 theMessageAngel;
 
@@ -6712,7 +6723,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         pNym->GetOutpaymentsByIndex(
                                                             nOutpaymentIndex);
 
-                                                    if (NULL == pMsg) {
+                                                    if (nullptr == pMsg) {
                                                         OTLog::vError(
                                                             "%s: Unable to "
                                                             "find payment "
@@ -7108,7 +7119,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                             thePaymentAngel(
                                                                 pPayment);
 
-                                                            if (NULL ==
+                                                            if (nullptr ==
                                                                 pPayment) {
                                                                 OTLog::vOutput(
                                                                     0,
@@ -7185,7 +7196,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                         .GetTransactionByIndex(
                                                                              ii);
                                                                 OT_ASSERT(
-                                                                    NULL !=
+                                                                    nullptr !=
                                                                     pTransPaymentInbox); // It DEFINITELY should be there. (Assert otherwise.)
                                                                 lPaymentTransNum =
                                                                     pTransPaymentInbox
@@ -7509,7 +7520,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                             theTransactionAngel(
                                                                 pNewTransaction);
 
-                                                            if (NULL !=
+                                                            if (nullptr !=
                                                                 pNewTransaction) // The above has an OT_ASSERT within, but I just like to check my pointers.
                                                             {
                                                                 pNewTransaction->SetReferenceToNum(
@@ -7564,7 +7575,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                 else
                                                                     theTransactionAngel
                                                                         .SetCleanupTargetPointer(
-                                                                             NULL); // If successfully added to the record box, then no need anymore to clean it up ourselves. The record box owns it now.
+                                                                             nullptr); // If successfully added to the record box, then no need anymore to clean it up ourselves. The record box owns it now.
 
                                                                 theRecordBox
                                                                     .ReleaseSignatures();
@@ -7671,7 +7682,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 }     // (OTItem::rejection ==
                                                 // pReplyItem->GetStatus())
                                             } // if (!bIsActivatingNym)
-                                        }     // if (NULL != pCronItem)
+                                        }     // if (nullptr != pCronItem)
                                         else {
                                             OTLog::vError("%s: Error loading "
                                                           "cronitem from "
@@ -7793,17 +7804,19 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         pNymbox->SaveContract();
                         pNymbox->SaveNymbox();
 
-                        pNymbox = NULL; // Since it could be pointing to a
-                                        // variable that's in this block (now
-                                        // out of scope) then we clear the
-                                        // pointer.
-                    } // pTransaction and pReplyTransaction are both NOT NULL.
+                        pNymbox = nullptr; // Since it could be pointing to a
+                                           // variable that's in this block (now
+                                           // out of scope) then we clear the
+                                           // pointer.
+                    } // pTransaction and pReplyTransaction are both NOT
+                      // nullptr.
                 }
 
                 //
                 // The below happens BOTH for Inbox AND Nymbox.
 
-                if ((NULL != pTransaction) && (NULL != pReplyTransaction)) {
+                if ((nullptr != pTransaction) &&
+                    (nullptr != pReplyTransaction)) {
                     //
                     // SAVE THE RECEIPT....
 
@@ -7814,11 +7827,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     OTItem* pReplyItem =
                         pReplyTransaction->GetItem(OTItem::atBalanceStatement);
 
-                    if (NULL == pReplyItem) {
+                    if (nullptr == pReplyItem) {
                         pReplyItem = pReplyTransaction->GetItem(
                             OTItem::atTransactionStatement);
 
-                        if (NULL != pReplyItem)
+                        if (nullptr != pReplyItem)
                             pNym->GetIdentifier(strReceiptID); // In this case,
                                                                // the receipt ID
                                                                // is the Nym ID
@@ -7858,7 +7871,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     }
                     else // success writing armored string
                     {
-                        if (NULL != pReplyItem) {
+                        if (nullptr != pReplyItem) {
                             OTDB::StorePlainString(
                                 strFinal.Get(), OTFolders::Receipt().Get(),
                                 strServerID.Get(), strReceiptFilename.Get());
@@ -7890,8 +7903,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                            "theLedger: \n\n%s\n\n"
                            "theReplyLedger:\n\n%s\n\n",
                         theReply.m_strCommand.Get(),
-                        (NULL != pTransaction) ? "NOT NULL" : "NULL",
-                        (NULL != pReplyTransaction) ? "NOT NULL" : "NULL",
+                        (nullptr != pTransaction) ? "NOT nullptr" : "nullptr",
+                        (nullptr != pReplyTransaction) ? "NOT nullptr"
+                                                       : "nullptr",
                         strTheLedger.Get(), strTheReplyLedger.Get());
                 }
             }
@@ -7923,9 +7937,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             OTCleanup<OTDB::Storable> theStorableAngel(
                 pStorable); // It will definitely be cleaned up.
             OTDB::StringMap* pMap =
-                (NULL == pStorable) ? NULL
-                                    : dynamic_cast<OTDB::StringMap*>(pStorable);
-            if (NULL == pMap)
+                (nullptr == pStorable)
+                    ? nullptr
+                    : dynamic_cast<OTDB::StringMap*>(pStorable);
+            if (nullptr == pMap)
                 OTLog::vOutput(0, "%s: Failed decoding StringMap object in "
                                   "@getAccountFiles.\n",
                                __FUNCTION__);
@@ -7972,12 +7987,13 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         // account is replaced with the new one...
                         OTWallet* pWallet = theConnection.GetWallet();
 
-                        if (NULL != pWallet) {
+                        if (nullptr != pWallet) {
                             pWallet->AddAccount(*pAccount);
                             pWallet->SaveWallet();
                             theAngel.SetCleanupTargetPointer(
-                                NULL); // Success. The wallet "owns" it now, no
-                                       // need to clean it up.
+                                nullptr); // Success. The wallet "owns" it now,
+                                          // no
+                                          // need to clean it up.
                         }
                     }
                 }
@@ -8043,7 +8059,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         //
                         for (auto& it : theInbox.GetTransactionMap()) {
                             OTTransaction* pTempTrans = it.second;
-                            OT_ASSERT(NULL != pTempTrans);
+                            OT_ASSERT(nullptr != pTempTrans);
 
                             // TODO security: Keep a client-side list of issued
                             // #s for finalReceipts. That way,
@@ -8208,12 +8224,13 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             // replaced with the new one...
             OTWallet* pWallet = theConnection.GetWallet();
 
-            if (NULL != pWallet) {
+            if (nullptr != pWallet) {
                 pWallet->AddAccount(*pAccount);
                 pWallet->SaveWallet();
-                theAngel.SetCleanupTargetPointer(NULL); // Success. The wallet
-                                                        // "owns" it now, no
-                                                        // need to clean it up.
+                theAngel.SetCleanupTargetPointer(
+                    nullptr); // Success. The wallet
+                              // "owns" it now, no
+                              // need to clean it up.
             }
         }
         return true;
@@ -8285,7 +8302,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             //
             for (auto& it : theInbox.GetTransactionMap()) {
                 OTTransaction* pTempTrans = it.second;
-                OT_ASSERT(NULL != pTempTrans);
+                OT_ASSERT(nullptr != pTempTrans);
 
                 // TODO security: Keep a client-side list of issued #s for
                 // finalReceipts. That way,
@@ -8448,7 +8465,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             new OTAssetContract(theReply.m_strAssetID, strFoldername,
                                 strFilename, theReply.m_strAssetID);
 
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         // Check the server signature on the contract here. (Perhaps the message
         // is good enough?
@@ -8460,16 +8477,17 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             // Next make sure the wallet has this contract on its list...
             OTWallet* pWallet = theConnection.GetWallet();
 
-            if (NULL != pWallet) {
+            if (nullptr != pWallet) {
                 pWallet->AddAssetContract(*pContract);
-                pContract = NULL; // Success. The wallet "owns" it now, no need
-                                  // to clean it up.
+                pContract =
+                    nullptr; // Success. The wallet "owns" it now, no need
+                             // to clean it up.
             }
         }
         // cleanup
         if (pContract) {
             delete pContract;
-            pContract = NULL;
+            pContract = nullptr;
         }
         return true;
     }
@@ -8481,7 +8499,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         OTMint* pMint =
             OTMint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID);
         OTCleanup<OTMint> theMintAngel(pMint);
-        OT_ASSERT(NULL != pMint);
+        OT_ASSERT(nullptr != pMint);
         // TODO check the server signature on the mint here...
         if (pMint->LoadContractFromString(strMint)) {
             OTLog::Output(0, "Saving mint file to disk...\n");
@@ -8495,7 +8513,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         strMarketDatafile.Format("%s", "market_data.bin");
 
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
         // Since it was a success, but the list was empty, then we need to erase
@@ -8536,7 +8554,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
@@ -8575,7 +8593,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         strOfferDatafile.Format("%s.bin", strMarketID.Get());
 
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
         // Since it was a success, but the list was empty, then we need to erase
@@ -8618,7 +8636,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
@@ -8660,7 +8678,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         strTradeDatafile.Format("%s.bin", strMarketID.Get());
 
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
         // Since it was a success, but the list was empty, then we need to erase
@@ -8703,7 +8721,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
@@ -8742,7 +8760,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
 
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
         // Since it was a success, but the list was empty, then we need to erase
@@ -8783,7 +8801,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
@@ -8884,7 +8902,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
             OTAccount* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
 
-            if (NULL != pDeletedAcct) {
+            if (nullptr != pDeletedAcct) {
                 pDeletedAcct->MarkForDeletion();
                 pDeletedAcct->ReleaseSignatures();
                 pDeletedAcct->SignContract(*pNym);
@@ -8914,7 +8932,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@issueAssetType")) {
         if (theReply.m_ascPayload.GetLength()) {
-            OTAccount* pAccount = NULL;
+            OTAccount* pAccount = nullptr;
 
             // this decodes the ascii-armor payload where the new account file
             // is stored, and returns a normal string in strAcctContents.
@@ -8948,14 +8966,14 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             }
             else {
                 delete pAccount;
-                pAccount = NULL;
+                pAccount = nullptr;
             }
         }
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@createAccount")) {
         if (theReply.m_ascPayload.GetLength()) {
-            OTAccount* pAccount = NULL;
+            OTAccount* pAccount = nullptr;
 
             // this decodes the ascii-armor payload where the new account file
             // is stored, and returns a normal string in strAcctContents.
@@ -9000,7 +9018,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             }
             else {
                 delete pAccount;
-                pAccount = NULL;
+                pAccount = nullptr;
             }
         }
     }
@@ -9044,7 +9062,7 @@ int32_t OTClient::ProcessUserCommand(
 
     const OTIdentifier SERVER_ID(strServerID);
 
-    if (NULL != pAccount) {
+    if (nullptr != pAccount) {
         pAccount->GetIdentifier(strAccountID);
 
         if (pAccount->GetPurportedServerID() != SERVER_ID) {
@@ -9110,16 +9128,17 @@ int32_t OTClient::ProcessUserCommand(
     case(OTClient::createUserAccount) : {
         // Create a new OTDB::StringMap object.
         //
-        OTDB::Storable* pStorable = NULL;
+        OTDB::Storable* pStorable = nullptr;
         OTCleanup<OTDB::Storable> theAngel;
-        OTDB::StringMap* pMap = NULL;
+        OTDB::StringMap* pMap = nullptr;
         pStorable = OTDB::CreateObject(
             OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
         theAngel.SetCleanupTargetPointer(
             pStorable); // It will definitely be cleaned up.
-        pMap = (NULL == pStorable) ? NULL
-                                   : dynamic_cast<OTDB::StringMap*>(pStorable);
-        if (NULL == pMap)
+        pMap = (nullptr == pStorable)
+                   ? nullptr
+                   : dynamic_cast<OTDB::StringMap*>(pStorable);
+        if (nullptr == pMap)
             OTLog::vError("%s: Error: failed trying to load or create a "
                           "STORED_OBJ_STRING_MAP.\n",
                           __FUNCTION__);
@@ -9368,7 +9387,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTEnvelope theEnvelope;
         OTAsymmetricKey* pPubkey = OTAsymmetricKey::KeyFactory();
-        OT_ASSERT(NULL != pPubkey);
+        OT_ASSERT(nullptr != pPubkey);
         OTCleanup<OTAsymmetricKey> theKeyAngel(pPubkey);
 
         if (theArmoredText.Exists() && !pPubkey->SetPublicKey(theArmoredText)) {
@@ -9393,7 +9412,7 @@ int32_t OTClient::ProcessUserCommand(
             //
             OTMessage* pMessage = new OTMessage;
 
-            OT_ASSERT(NULL != pMessage);
+            OT_ASSERT(nullptr != pMessage);
 
             pMessage->m_strCommand = "outmailMessage";
             pMessage->m_strNymID = strNymID;
@@ -9565,7 +9584,7 @@ int32_t OTClient::ProcessUserCommand(
             OTAssetContract* pContract =
                 new OTAssetContract(theMessage.m_strAssetID, strFoldername,
                                     strFilename, theMessage.m_strAssetID);
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
 
             // Check the server signature on the contract here. (Perhaps the
             // message is good enough?
@@ -9576,20 +9595,21 @@ int32_t OTClient::ProcessUserCommand(
             if (pContract->LoadContractFromString(strSourceContract) &&
                 pContract->VerifyContract()) {
                 // Next make sure the wallet has this contract on its list...
-                OTWallet* pWallet = NULL;
+                OTWallet* pWallet = nullptr;
 
-                if (NULL != (pWallet = m_pWallet)) {
+                if (nullptr != (pWallet = m_pWallet)) {
                     pWallet->AddAssetContract(*pContract); // this saves both
                                                            // the contract and
                                                            // the wallet.
-                    pContract = NULL; // Success. The wallet "owns" it now, no
-                                      // need to clean it up.
+                    pContract =
+                        nullptr; // Success. The wallet "owns" it now, no
+                                 // need to clean it up.
                 }
             }
             // cleanup
             if (pContract) {
                 delete pContract;
-                pContract = NULL;
+                pContract = nullptr;
             }
         }
     }
@@ -9631,7 +9651,7 @@ int32_t OTClient::ProcessUserCommand(
         OTAssetContract* pContract =
             new OTAssetContract(str_BASKET_CONTRACT_ID, strFoldername,
                                 strContractPath, str_BASKET_CONTRACT_ID);
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
         OTCleanup<OTAssetContract> theAssetContractAngel(*pContract);
 
         if (pContract->LoadContract() && pContract->VerifyContract()) {
@@ -9687,8 +9707,8 @@ int32_t OTClient::ProcessUserCommand(
 
                         OTAccount* pMainAccount =
                             m_pWallet->GetAccount(MAIN_ACCOUNT_ID);
-                        OT_ASSERT(NULL != pMainAccount); // todo. better than
-                                                         // nothing for now.
+                        OT_ASSERT(nullptr != pMainAccount); // todo. better than
+                                                            // nothing for now.
 
                         OTLedger* pInbox = pMainAccount->LoadInbox(theNym);
                         OTLedger* pOutbox = pMainAccount->LoadOutbox(theNym);
@@ -9696,7 +9716,7 @@ int32_t OTClient::ProcessUserCommand(
                         OTCleanup<OTLedger> theInboxAngel(pInbox);
                         OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-                        if (NULL == pInbox) {
+                        if (nullptr == pInbox) {
                             OTLog::Output(0, "Failed loading inbox!\n");
 
                             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
@@ -9705,7 +9725,7 @@ int32_t OTClient::ProcessUserCommand(
                                                      lStoredTransactionNumber,
                                                      true); // bSave=true
                         }
-                        else if (NULL == pOutbox) {
+                        else if (nullptr == pOutbox) {
                             OTLog::Output(0, "Failed loading outbox!\n");
 
                             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
@@ -9846,11 +9866,12 @@ int32_t OTClient::ProcessUserCommand(
                                     *pOutbox); // but basketReceipts will be
                                                // used to account for it.)
 
-                            if (NULL != pBalanceItem) // will never be NULL.
-                                                      // Will assert above
-                                                      // before it gets here.
+                            if (nullptr !=
+                                pBalanceItem) // will never be nullptr.
+                                              // Will assert above
+                                              // before it gets here.
                                 pTransaction->AddItem(
-                                    *pBalanceItem); // Better not be NULL...
+                                    *pBalanceItem); // Better not be nullptr...
                                                     // message will fail... But
                                                     // better check anyway.
 
@@ -10107,7 +10128,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0, "Please enter an asset Account ID (FROM acct): ");
             // User input.
             // I need a from account
@@ -10117,13 +10138,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -10150,7 +10171,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strRecipientAcct;
 
-        if (NULL == pHisAcctID) {
+        if (nullptr == pHisAcctID) {
             OTLog::Output(
                 0,
                 "Enter Recipient's asset account ID (no partial IDs here): ");
@@ -10222,7 +10243,7 @@ int32_t OTClient::ProcessUserCommand(
             OTCleanup<OTLedger> theInboxAngel(pInbox);
             OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-            if (NULL == pInbox) {
+            if (nullptr == pInbox) {
                 OTLog::Output(0, "Failed loading inbox!\n");
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
@@ -10231,7 +10252,7 @@ int32_t OTClient::ProcessUserCommand(
                                          lStoredTransactionNumber,
                                          true); // bSave=true
             }
-            else if (NULL == pOutbox) {
+            else if (nullptr == pOutbox) {
                 OTLog::Output(0, "Failed loading outbox!\n");
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
@@ -10258,7 +10279,7 @@ int32_t OTClient::ProcessUserCommand(
                     1 /*todo pick some number that everyone agrees doesn't matter, like 1. The referring-to is the important 
                          number in this case, and perhaps server should update this value too before signing and returning.*/); // todo use a constant instead of '1'
 
-                OT_ASSERT(NULL != pOutboxTransaction); // for now.
+                OT_ASSERT(nullptr != pOutboxTransaction); // for now.
 
                 OTString strItem(*pItem);
                 pOutboxTransaction->SetReferenceString(
@@ -10285,10 +10306,11 @@ int32_t OTClient::ProcessUserCommand(
                     atol(strAmount.Get()) * (-1), *pTransaction, theNym,
                     *pAccount, *pOutbox);
 
-                if (NULL != pBalanceItem) // will never be NULL. Will assert
-                                          // above before it gets here.
+                if (nullptr !=
+                    pBalanceItem) // will never be nullptr. Will assert
+                                  // above before it gets here.
                     pTransaction->AddItem(*pBalanceItem); // Better not be
-                                                          // NULL... message
+                                                          // nullptr... message
                                                           // will fail... But
                                                           // better check
                                                           // anyway.
@@ -10369,7 +10391,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::setAssetName: // SET ASSET CONTRACT NAME (wallet label only)
     {
-        OT_ASSERT(NULL != m_pWallet);
+        OT_ASSERT(nullptr != m_pWallet);
 
         OTLog::Output(0, "Please enter an Asset Type ID: ");
         // User input.
@@ -10382,7 +10404,7 @@ int32_t OTClient::ProcessUserCommand(
         OTAssetContract* pTargetContract =
             m_pWallet->GetAssetContract(theTargetID);
 
-        if (NULL != pTargetContract) {
+        if (nullptr != pTargetContract) {
             OTLog::Output(0, "Enter the new client-side \"name\" label for "
                              "that asset type: ");
             // User input.
@@ -10403,7 +10425,7 @@ int32_t OTClient::ProcessUserCommand(
     case OTClient::setServerName
         : // SET SERVER CONTRACT NAME (wallet label only)
     {
-        OT_ASSERT(NULL != m_pWallet);
+        OT_ASSERT(nullptr != m_pWallet);
 
         OTLog::Output(0, "Please enter a Server ID: ");
         // User input.
@@ -10416,7 +10438,7 @@ int32_t OTClient::ProcessUserCommand(
         OTServerContract* pTargetContract =
             m_pWallet->GetServerContract(theTargetID);
 
-        if (NULL != pTargetContract) {
+        if (nullptr != pTargetContract) {
             OTLog::Output(0, "Enter the new client-side \"name\" label for "
                              "that transaction server: ");
             // User input.
@@ -10436,7 +10458,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::setNymName: // SET NYM NAME (wallet label only)
     {
-        OT_ASSERT(NULL != m_pWallet);
+        OT_ASSERT(nullptr != m_pWallet);
 
         OTLog::Output(0, "Please enter a Nym ID: ");
         // User input.
@@ -10448,7 +10470,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTPseudonym* pTargetNym = m_pWallet->GetNymByID(theTargetNymID);
 
-        if (NULL != pTargetNym) {
+        if (nullptr != pTargetNym) {
             OTLog::Output(
                 0, "Enter the new client-side \"name\" label for that Nym: ");
             // User input.
@@ -10475,7 +10497,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::setAccountName: // SET ACCOUNT NAME (wallet label only)
     {
-        OT_ASSERT(NULL != m_pWallet);
+        OT_ASSERT(nullptr != m_pWallet);
 
         OTLog::Output(0, "Please enter an asset account ID: ");
         // User input.
@@ -10489,7 +10511,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTAccount* pTheAccount = m_pWallet->GetAccount(theAccountID);
 
-        if (NULL != pTheAccount) {
+        if (nullptr != pTheAccount) {
             OTLog::Output(
                 0,
                 "Enter the new client-side \"name\" label for that Account: ");
@@ -10544,7 +10566,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0, "Please enter an asset Account ID (to get its INBOX): ");
             // User input.
@@ -10555,13 +10577,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -10625,7 +10647,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0, "Please enter an asset Account ID (to get its OUTBOX): ");
             // User input.
@@ -10636,13 +10658,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -10709,11 +10731,11 @@ int32_t OTClient::ProcessUserCommand(
     OTPseudonym & theNym,
     //                                  OTAssetContract & theContract,
     OTServerContract & theServer,
-    OTAccount * pAccount=NULL,
+    OTAccount * pAccount=nullptr,
     int64_t lTransactionAmount=0,
-    OTAssetContract * pMyAssetContract=NULL,
-    OTIdentifier * pHisNymID=NULL,
-    OTIdentifier * pHisAcctID=NULL)
+    OTAssetContract * pMyAssetContract=nullptr,
+    OTIdentifier * pHisNymID=nullptr,
+    OTIdentifier * pHisAcctID=nullptr)
     {
     // This is all preparatory work to get the various pieces of data together
     -- only
@@ -10830,7 +10852,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0, "Please enter an asset Account ID (to PROCESS its INBOX): ");
             // User input.
@@ -10841,13 +10863,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -10917,7 +10939,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0, "Please enter an asset Account ID (to PROCESS its INBOX): ");
             // User input.
@@ -10928,13 +10950,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -11019,7 +11041,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0, "Please enter an asset Account ID (to download "
                              "its intermediary file): ");
             // User input.
@@ -11030,13 +11052,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -11175,7 +11197,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0,
                 "Please enter an asset Account ID to deposit your tokens to: ");
@@ -11187,13 +11209,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -11233,12 +11255,12 @@ int32_t OTClient::ProcessUserCommand(
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::Output(0, "Failed loading inbox!\n");
             break;
         }
 
-        if (NULL == pOutbox) {
+        if (nullptr == pOutbox) {
             OTLog::Output(0, "Failed loading outbox!\n");
             break;
         }
@@ -11313,9 +11335,9 @@ int32_t OTClient::ProcessUserCommand(
             // just uses it to copy some IDs, since they must match.
             OTToken* pToken = OTToken::TokenFactory(strToken, thePurse);
             OTCleanup<OTToken> theTokenAngel(pToken);
-            OT_ASSERT(NULL != pToken);
+            OT_ASSERT(nullptr != pToken);
 
-            if (NULL != pToken) // TODO verify the token contract
+            if (nullptr != pToken) // TODO verify the token contract
             {
                 // TODO need 2-recipient envelopes. My request to the server is
                 // encrypted to the server's nym,
@@ -11384,12 +11406,14 @@ int32_t OTClient::ProcessUserCommand(
             OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
                 pItem->GetAmount(), *pTransaction, theNym, *pAccount, *pOutbox);
 
-            if (NULL != pBalanceItem) // will never be NULL. Will assert above
-                                      // before it gets here.
-                pTransaction->AddItem(*pBalanceItem); // Better not be NULL...
-                                                      // message will fail...
-                                                      // But better check
-                                                      // anyway.
+            if (nullptr !=
+                pBalanceItem) // will never be nullptr. Will assert above
+                              // before it gets here.
+                pTransaction->AddItem(
+                    *pBalanceItem); // Better not be nullptr...
+                                    // message will fail...
+                                    // But better check
+                                    // anyway.
 
             // sign the transaction
             pTransaction->SignContract(theNym);
@@ -11467,16 +11491,16 @@ int32_t OTClient::ProcessUserCommand(
                                      true); // bSave=true
 
             delete pItem;
-            pItem = NULL;
+            pItem = nullptr;
             delete pTransaction;
-            pTransaction = NULL;
+            pTransaction = nullptr;
         }
     } break;
     case OTClient::notarizePurse: // NOTARIZE PURSE (deposit)
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0, "Please enter an asset Account ID: ");
             // User input.
             // I need a from account
@@ -11486,13 +11510,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -11540,7 +11564,7 @@ int32_t OTClient::ProcessUserCommand(
         // from local storage will be used, of that same type, and thus no need
         // to ask for the type.
         //
-        if (NULL == pMyAssetContract) {
+        if (nullptr == pMyAssetContract) {
             OTString strSourcePurse;
 
             OTLog::Output(
@@ -11643,12 +11667,12 @@ int32_t OTClient::ProcessUserCommand(
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::Output(0, "Failed loading inbox!\n");
             break;
         }
 
-        if (NULL == pOutbox) {
+        if (nullptr == pOutbox) {
             OTLog::Output(0, "Failed loading outbox!\n");
             break;
         }
@@ -11769,12 +11793,14 @@ int32_t OTClient::ProcessUserCommand(
             OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
                 pItem->GetAmount(), *pTransaction, theNym, *pAccount, *pOutbox);
 
-            if (NULL != pBalanceItem) // will never be NULL. Will assert above
-                                      // before it gets here.
-                pTransaction->AddItem(*pBalanceItem); // Better not be NULL...
-                                                      // message will fail...
-                                                      // But better check
-                                                      // anyway.
+            if (nullptr !=
+                pBalanceItem) // will never be nullptr. Will assert above
+                              // before it gets here.
+                pTransaction->AddItem(
+                    *pBalanceItem); // Better not be nullptr...
+                                    // message will fail...
+                                    // But better check
+                                    // anyway.
 
             // sign the transaction
             pTransaction->SignContract(theNym);
@@ -11851,9 +11877,9 @@ int32_t OTClient::ProcessUserCommand(
                                      true); // bSave=true
 
             delete pItem;
-            pItem = NULL;
+            pItem = nullptr;
             delete pTransaction;
-            pTransaction = NULL;
+            pTransaction = nullptr;
         }
     } // else if (OTClient::notarizePurse == requestedCommand) // NOTARIZE PURSE
     break;
@@ -11861,7 +11887,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0,
                           "Please enter an asset Account ID (to deposit to): ");
             // User input.
@@ -11872,13 +11898,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -11989,7 +12015,7 @@ int32_t OTClient::ProcessUserCommand(
                 OTCleanup<OTLedger> theInboxAngel(pInbox);
                 OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-                if (NULL == pInbox) {
+                if (nullptr == pInbox) {
                     OTLog::Output(0, "Failed loading inbox!\n");
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
@@ -11998,7 +12024,7 @@ int32_t OTClient::ProcessUserCommand(
                                              lStoredTransactionNumber,
                                              true); // bSave=true
                 }
-                else if (NULL == pOutbox) {
+                else if (nullptr == pOutbox) {
                     OTLog::Output(0, "Failed loading outbox!\n");
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
@@ -12016,13 +12042,14 @@ int32_t OTClient::ProcessUserCommand(
                         theCheque.GetAmount(), *pTransaction, theNym, *pAccount,
                         *pOutbox);
 
-                    if (NULL != pBalanceItem) // will never be NULL. Will assert
-                                              // above before it gets here.
+                    if (nullptr !=
+                        pBalanceItem) // will never be nullptr. Will assert
+                                      // above before it gets here.
                         pTransaction->AddItem(*pBalanceItem); // Better not be
-                                                              // NULL... message
-                                                              // will fail...
-                                                              // But better
-                                                              // check anyway.
+                    // nullptr... message
+                    // will fail...
+                    // But better
+                    // check anyway.
 
                     // sign the transaction
                     pTransaction->SignContract(theNym);
@@ -12106,10 +12133,10 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case OTClient::withdrawVoucher: // WITHDRAW VOUCHER
     {
-        OT_ASSERT(NULL != m_pWallet);
+        OT_ASSERT(nullptr != m_pWallet);
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0, "This is like a banker's cheque, aka cashier's cheque.\n"
                    "Please enter an asset Account ID (FROM acct): ");
@@ -12121,13 +12148,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -12155,7 +12182,7 @@ int32_t OTClient::ProcessUserCommand(
         }
         OTString strRecipientNym;
 
-        if (NULL == pHisNymID) {
+        if (nullptr == pHisNymID) {
             OTLog::Output(0, "Enter Recipient's Nym ID (full ID -- no partials "
                              "here.) Blank IS allowed: ");
 
@@ -12228,7 +12255,7 @@ int32_t OTClient::ProcessUserCommand(
             bool bIssueCheque = theRequestVoucher.IssueCheque(
                 lTotalAmount, lVoucherTransNum, VALID_FROM, VALID_TO,
                 ACCOUNT_ID, MY_NYM_ID, strChequeMemo,
-                (strRecipientNym.GetLength() > 2) ? &(HIS_NYM_ID) : NULL);
+                (strRecipientNym.GetLength() > 2) ? &(HIS_NYM_ID) : nullptr);
 
             OTLedger* pInbox = pAccount->LoadInbox(theNym);
             OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
@@ -12236,7 +12263,7 @@ int32_t OTClient::ProcessUserCommand(
             OTCleanup<OTLedger> theInboxAngel(pInbox);
             OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-            if (NULL == pInbox) {
+            if (nullptr == pInbox) {
                 OTLog::Output(0, "Failed loading inbox!\n");
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
@@ -12246,7 +12273,7 @@ int32_t OTClient::ProcessUserCommand(
                 theNym.AddTransactionNum(theNym, strServerID, lVoucherTransNum,
                                          true); // bSave=true
             }
-            else if (NULL == pOutbox) {
+            else if (nullptr == pOutbox) {
                 OTLog::Output(0, "Failed loading outbox!\n");
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
@@ -12296,9 +12323,9 @@ int32_t OTClient::ProcessUserCommand(
                     lTotalAmount * (-1), *pTransaction, theNym, *pAccount,
                     *pOutbox);
 
-                if (NULL != pBalanceItem)
+                if (nullptr != pBalanceItem)
                     pTransaction->AddItem(*pBalanceItem); // Better not be
-                                                          // NULL... message
+                                                          // nullptr... message
                                                           // will fail... But
                                                           // better check
                                                           // anyway.
@@ -12386,18 +12413,18 @@ int32_t OTClient::ProcessUserCommand(
     OTPseudonym & theNym,
     //                            OTAssetContract & theContract,
     OTServerContract & theServer,
-    OTAccount * pAccount=NULL,
+    OTAccount * pAccount=nullptr,
     int64_t lTransactionAmount = 0,
-    OTAssetContract * pMyAssetContract=NULL,
-    OTAccount * pHisAcct=NULL,
-    OTPseudonym * pHisNym=NULL);
+    OTAssetContract * pMyAssetContract=nullptr,
+    OTAccount * pHisAcct=nullptr,
+    OTPseudonym * pHisNym=nullptr);
     */
     break;
     case OTClient::notarizeWithdrawal: // NOTARIZE WITHDRAWAL
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0, "Please enter an Asset Account ID: ");
             // User input.
             // I need a from account
@@ -12407,13 +12434,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -12465,11 +12492,11 @@ int32_t OTClient::ProcessUserCommand(
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::Output(0, "Failed loading inbox!\n");
             break;
         }
-        else if (NULL == pOutbox) {
+        else if (nullptr == pOutbox) {
             OTLog::Output(0, "Failed loading outbox!\n");
             break;
         }
@@ -12498,7 +12525,7 @@ int32_t OTClient::ProcessUserCommand(
         const OTPseudonym* pServerNym = theServer.GetContractPublicNym();
         OTMint* pMint = OTMint::MintFactory(strServerID, strContractID);
         OTCleanup<OTMint> theMintAngel(pMint);
-        OT_ASSERT(NULL != pMint);
+        OT_ASSERT(nullptr != pMint);
         if (pServerNym && pMint->LoadMint() &&
             pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
             OTPurse* pPurse = new OTPurse(SERVER_ID, CONTRACT_ID);
@@ -12522,7 +12549,7 @@ int32_t OTClient::ProcessUserCommand(
                 OTToken* pToken = OTToken::InstantiateAndGenerateTokenRequest(
                     *pPurse, theNym, *pMint, lTokenAmount);
                 OTCleanup<OTToken> theTokenAngel(pToken);
-                OT_ASSERT(NULL != pToken);
+                OT_ASSERT(nullptr != pToken);
 
                 // GENERATE new token, sign it and save it.
                 pToken->SignContract(theNym);
@@ -12579,9 +12606,10 @@ int32_t OTClient::ProcessUserCommand(
             m_pWallet->AddPendingWithdrawal(*pPurseMyCopy);
 
             delete pPurse;
-            pPurse = NULL;       // We're done with this one.
-            pPurseMyCopy = NULL; // The wallet owns my copy now and will handle
-                                 // cleaning it up.
+            pPurse = nullptr; // We're done with this one.
+            pPurseMyCopy =
+                nullptr; // The wallet owns my copy now and will handle
+                         // cleaning it up.
 
             // sign the item
             pItem->SignContract(theNym);
@@ -12599,12 +12627,14 @@ int32_t OTClient::ProcessUserCommand(
                 lTotalAmount * (-1), *pTransaction, theNym, *pAccount,
                 *pOutbox);
 
-            if (NULL != pBalanceItem) // will never be NULL. Will assert above
-                                      // before it gets here.
-                pTransaction->AddItem(*pBalanceItem); // Better not be NULL...
-                                                      // message will fail...
-                                                      // But better check
-                                                      // anyway.
+            if (nullptr !=
+                pBalanceItem) // will never be nullptr. Will assert above
+                              // before it gets here.
+                pTransaction->AddItem(
+                    *pBalanceItem); // Better not be nullptr...
+                                    // message will fail...
+                                    // But better check
+                                    // anyway.
 
             // sign the transaction
             pTransaction->SignContract(theNym);
@@ -12921,7 +12951,7 @@ int32_t OTClient::ProcessUserCommand(
                     // Acct ID that match
                     // those on this Item. Otherwise it will reject the offer.
 
-                    OT_ASSERT(NULL != pItem);
+                    OT_ASSERT(nullptr != pItem);
 
                     OTString strTrade;
                     theTrade.SaveContractRaw(strTrade);
@@ -12951,11 +12981,12 @@ int32_t OTClient::ProcessUserCommand(
                     OTItem* pStatementItem =
                         theNym.GenerateTransactionStatement(*pTransaction);
 
-                    if (NULL != pStatementItem) // will never be NULL. Will
-                                                // assert above before it gets
-                                                // here.
+                    if (nullptr !=
+                        pStatementItem) // will never be nullptr. Will
+                                        // assert above before it gets
+                                        // here.
                         pTransaction->AddItem(*pStatementItem); // Better not be
-                                                                // NULL...
+                                                                // nullptr...
                                                                 // message will
                                                                 // fail... But
                                                                 // better check
@@ -13133,7 +13164,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strFromAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(
                 0,
                 "Please enter an Asset Account ID (to draw the cheque from): ");
@@ -13145,13 +13176,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strFromAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != NULL) {
+                            strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -13181,7 +13212,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strRecipientNym;
 
-        if (NULL == pHisNymID) {
+        if (nullptr == pHisNymID) {
             OTLog::Output(0, "Enter Recipient's Nym ID (full ID -- no partials "
                              "here.) Blank IS allowed: ");
 
@@ -13283,9 +13314,10 @@ int32_t OTClient::ProcessUserCommand(
 
         bool bIssueCheque = theCheque.IssueCheque(
             lTotalAmount, lTransactionNumber, VALID_FROM, VALID_TO, ACCOUNT_ID,
-            MY_NYM_ID, strChequeMemo, (strRecipientNym.GetLength() > 2)
-                                          ? &(HIS_NYM_ID)
-                                          : NULL); // blank cheques are allowed.
+            MY_NYM_ID, strChequeMemo,
+            (strRecipientNym.GetLength() > 2)
+                ? &(HIS_NYM_ID)
+                : nullptr); // blank cheques are allowed.
 
         if (bIssueCheque) {
             theCheque.SignContract(theNym);
@@ -13314,7 +13346,7 @@ int32_t OTClient::ProcessUserCommand(
     {
         OTString strMerchantAcct;
 
-        if (NULL == pAccount) {
+        if (nullptr == pAccount) {
             OTLog::Output(0, "You are the Merchant, proposing this payment "
                              "plan so your customer can confirm it.\n"
                              "After this command, use 'confirm' (customer) to "
@@ -13331,13 +13363,13 @@ int32_t OTClient::ProcessUserCommand(
 
             const OTIdentifier ACCOUNT_ID(strMerchantAcct);
 
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != NULL) {
+            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strMerchantAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strMerchantAcct.Get())) != NULL) {
+                            strMerchantAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strMerchantAcct);
                 CONTRACT_ID = pAccount->GetAssetTypeID();
                 CONTRACT_ID.GetString(strContractID);
@@ -13373,7 +13405,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strCustomerAcct;
 
-        if (NULL == pHisAcctID) {
+        if (nullptr == pHisAcctID) {
             OTLog::Output(0, "Enter Customer's Asset Account ID that payments "
                              "will come FROM (no partials): ");
 
@@ -13394,7 +13426,7 @@ int32_t OTClient::ProcessUserCommand(
 
         OTString strCustomerNym;
 
-        if (NULL == pHisNymID) {
+        if (nullptr == pHisNymID) {
             OTLog::Output(
                 0, "Enter Customer's Nym ID (full ID -- no partials here): ");
 
@@ -13660,7 +13692,7 @@ int32_t OTClient::ProcessUserCommand(
         OTPseudonym* pCustomerNym =
             m_pWallet->GetNymByID(thePlan.GetSenderUserID());
 
-        if (NULL == pCustomerNym) {
+        if (nullptr == pCustomerNym) {
             OTLog::Output(0, "The customer Nym on this payment plan (you, "
                              "supposedly) wasn't found in the wallet. Try "
                              "'load'.\n");
@@ -13669,7 +13701,7 @@ int32_t OTClient::ProcessUserCommand(
         OTPseudonym* pMerchantNym =
             m_pWallet->GetNymByID(thePlan.GetRecipientUserID());
 
-        //      if (NULL == pMerchantNym)
+        //      if (nullptr == pMerchantNym)
         //      {
         //          OTLog::Output(0, "Merchant Nym wasn't found in the wallet.
         // Try 'load'.\n");
@@ -13730,11 +13762,11 @@ int32_t OTClient::ProcessUserCommand(
 
             OTAccount* pSenderAccount = m_pWallet->GetAccount(ACCOUNT_ID);
 
-            if (NULL == pSenderAccount) {
+            if (nullptr == pSenderAccount) {
                 OTLog::Output(0, "There is no account loaded on this wallet "
                                  "with that sender acct ID, sorry.\n");
             }
-            if ((NULL != pAccount) && (pSenderAccount != pAccount)) {
+            if ((nullptr != pAccount) && (pSenderAccount != pAccount)) {
                 OTLog::Output(0, "This Payment Plan is already confirmed, yet "
                                  "now you try to activate it, and you \n"
                                  "have supplied a different account ID than "
@@ -13783,13 +13815,14 @@ int32_t OTClient::ProcessUserCommand(
                 OTItem* pStatementItem =
                     theNym.GenerateTransactionStatement(*pTransaction);
 
-                if (NULL != pStatementItem) // will never be NULL. Will assert
-                                            // above before it gets here.
+                if (nullptr !=
+                    pStatementItem) // will never be nullptr. Will assert
+                                    // above before it gets here.
                     pTransaction->AddItem(*pStatementItem); // Better not be
-                                                            // NULL... message
-                                                            // will fail... But
-                                                            // better check
-                                                            // anyway.
+                // nullptr... message
+                // will fail... But
+                // better check
+                // anyway.
 
                 // sign the transaction
                 pTransaction->SignContract(theNym);
@@ -13855,7 +13888,7 @@ int32_t OTClient::ProcessUserCommand(
 
                 lReturnValue = lRequestNumber;
 
-            } // pAccount not NULL
+            } // pAccount not nullptr
         }     // thePlan.LoadContractFromString()
         else {
             OTLog::Output(0,
@@ -13929,8 +13962,8 @@ bool OTClient::ConnectToTheFirstServerOnList(OTPseudonym& theNym,
     if (m_pWallet && m_pWallet->GetServer(0, SERVER_ID, SERVER_NAME)) {
         OTServerContract* pServer = m_pWallet->GetServerContract(SERVER_ID);
 
-        if (NULL != pServer) {
-            OT_ASSERT(NULL != m_pConnection);
+        if (nullptr != pServer) {
+            OT_ASSERT(nullptr != m_pConnection);
             return m_pConnection->Connect(theNym, *pServer, strCA_FILE,
                                           strKEY_FILE, strKEY_PASSWORD);
         }
@@ -13948,8 +13981,8 @@ bool OTClient::SetFocusToServerAndNym(OTServerContract& theServerContract,
                                       OTPseudonym& theNym,
                                       TransportCallback* pCallback)
 {
-    OT_ASSERT(NULL != pCallback);
-    OT_ASSERT(NULL != m_pConnection);
+    OT_ASSERT(nullptr != pCallback);
+    OT_ASSERT(nullptr != m_pConnection);
 
     return m_pConnection->SetFocus(theNym, theServerContract, pCallback);
 }
@@ -13992,18 +14025,18 @@ bool OTClient::InitClient(OTWallet& theWallet)
 }
 
 OTClient::OTClient()
-    : m_pWallet(NULL)
+    : m_pWallet(nullptr)
     , m_bRunningAsScript(false)
     , m_lMostRecentRequestNumber(0)
-    , m_pConnection(NULL)
+    , m_pConnection(nullptr)
     , m_bInitialized(false)
 {
 }
 
 OTClient::~OTClient()
 {
-    if (NULL != m_pConnection) delete m_pConnection;
-    m_pConnection = NULL;
+    if (nullptr != m_pConnection) delete m_pConnection;
+    m_pConnection = nullptr;
 
     // (FYI, Moved openssl cleanup to OT_Cleanup.)
 }

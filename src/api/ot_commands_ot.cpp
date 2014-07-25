@@ -359,7 +359,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
 
         if (!VerifyStringVal(strTempBasket)) {
             OTAPI_Wrap::Output(0, "Error: OT_API_AddBasketCreationItem "
-                                  "returned NULL. (Failure.)\n");
+                                  "returned nullptr. (Failure.)\n");
             return -1;
         }
         else {
@@ -1238,8 +1238,9 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                 }
                                 else {
                                     OTAPI_Wrap::Output(
-                                        0, "Strange, tried to cancel, but "
-                                           "received a NULL server reply.\n");
+                                        0,
+                                        "Strange, tried to cancel, but "
+                                        "received a nullptr server reply.\n");
                                 }
                             }
                         }
@@ -1286,9 +1287,10 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                 }
                             }
                             else {
-                                OTAPI_Wrap::Output(0, "Strange, tried to "
-                                                      "cancel, but received a "
-                                                      "NULL server reply.\n");
+                                OTAPI_Wrap::Output(0,
+                                                   "Strange, tried to "
+                                                   "cancel, but received a "
+                                                   "nullptr server reply.\n");
                             }
                         }
                         else if ("PURSE" == strPaymentType) {
@@ -6451,7 +6453,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                                 OTAPI_Wrap::Output(0, "\n\nFailure: "
                                                       "OT_API_Ledger_"
                                                       "CreateResponse returned "
-                                                      "NULL.\n");
+                                                      "nullptr.\n");
                                 return -1;
                             }
                         }
@@ -6469,7 +6471,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                             OTAPI_Wrap::Output(0, "\n\nFailure: "
                                                   "OT_API_Transaction_"
                                                   "CreateResponse returned "
-                                                  "NULL.\n");
+                                                  "nullptr.\n");
                             return -1;
                         }
                         strResponseLEDGER = strNEW_ResponseLEDGER;
@@ -6498,7 +6500,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
             if (!VerifyStringVal(strFinalizedResponse)) {
                 OTAPI_Wrap::Output(0, "\n\nFailure: "
                                       "OT_API_Ledger_FinalizeResponse returned "
-                                      "NULL.\n");
+                                      "nullptr.\n");
                 return -1;
             }
 
@@ -7663,7 +7665,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
 {
     if (!OTDB::Exists("markets", serverID, "market_data.bin", "")) {
         OTAPI_Wrap::Output(0, "The market list file doesn't exist.\n");
-        return NULL;
+        return nullptr;
     }
 
     OTAPI_Wrap::Output(1,
@@ -7675,7 +7677,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
     if (!VerifyStorable(storable, "OTDB::Storable")) {
         OTAPI_Wrap::Output(
             0, "Failed to verify storable object. Probably doesn't exist.\n");
-        return NULL;
+        return nullptr;
     }
 
     OTAPI_Wrap::Output(1, "QueryObject worked. Now dynamic casting from "
@@ -7685,7 +7687,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
     if (!VerifyStorable(marketList, "OTDB::MarketList")) {
         OTAPI_Wrap::Output(
             0, "Unable to dynamic cast a storable to a marketlist.\n");
-        return NULL;
+        return nullptr;
     }
 
     return marketList;
@@ -7805,8 +7807,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetMarkets()
 OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
     const string& serverID, const string& marketID)
 {
-    OTDB::OfferListMarket* offerList = NULL;
-    OTDB::Storable* storable = NULL;
+    OTDB::OfferListMarket* offerList = nullptr;
+    OTDB::Storable* storable = nullptr;
 
     if (OTDB::Exists("markets", serverID, "offers", marketID + ".bin")) {
         OTAPI_Wrap::Output(
@@ -7819,7 +7821,7 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
             OTAPI_Wrap::Output(
                 0,
                 "Unable to verify storable object. Probably doesn't exist.\n");
-            return NULL;
+            return nullptr;
         }
 
         OTAPI_Wrap::Output(1, "QueryObject worked. Now dynamic casting from "
@@ -7830,7 +7832,7 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
             OTAPI_Wrap::Output(
                 0,
                 "Unable to dynamic cast a storable to a (market) offerList.\n");
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -8474,7 +8476,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
                     if (!VerifyStringVal(strToken)) {
                         OTAPI_Wrap::Output(0, "mainShowPurse: Error: "
                                               "OT_API_Purse_Peek unexpectedly "
-                                              "returned NULL instead of "
+                                              "returned nullptr instead of "
                                               "token.\n");
                         return -1;
                     }
@@ -8485,7 +8487,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
                     if (!VerifyStringVal(strNewPurse)) {
                         OTAPI_Wrap::Output(0, "mainShowPurse: Error: "
                                               "OT_API_Purse_Pop unexpectedly "
-                                              "returned NULL instead of "
+                                              "returned nullptr instead of "
                                               "updated purse.\n");
                         return -1;
                     }
@@ -8747,10 +8749,10 @@ OT_Command::details_deposit_purse(const string& strServerID,
                         strServerID, strAssetTypeID, strFromNymID, strPurse);
 
                     if (!VerifyStringVal(strToken)) {
-                        OTAPI_Wrap::Output(0, strLocation +
-                                                  ": Error: OT_API_Purse_Peek "
-                                                  "unexpectedly returned NULL "
-                                                  "instead of token.\n");
+                        OTAPI_Wrap::Output(
+                            0, strLocation + ": Error: OT_API_Purse_Peek "
+                                             "unexpectedly returned nullptr "
+                                             "instead of token.\n");
                         return -1;
                     }
 
@@ -8760,7 +8762,7 @@ OT_Command::details_deposit_purse(const string& strServerID,
                     if (!VerifyStringVal(strNewPurse)) {
                         OTAPI_Wrap::Output(
                             0, strLocation + ": Error: OT_API_Purse_Pop "
-                                             "unexpectedly returned NULL "
+                                             "unexpectedly returned nullptr "
                                              "instead of updated purse.\n");
                         return -1;
                     }
@@ -9155,7 +9157,7 @@ OT_Command::details_import_cash(const string& strInstrument)
 
     // Whether the purse was password-protected (and thus had no Nym ID)
     // or whether it does have a Nym ID (but it wasn't listed on the purse)
-    // Then either way, in those cases strPurseOwner will still be NULL.
+    // Then either way, in those cases strPurseOwner will still be nullptr.
     //
     // (The third case is that the purse is Nym protected and the ID WAS
     // available,
@@ -9164,7 +9166,7 @@ OT_Command::details_import_cash(const string& strInstrument)
     // But even in the case where there's no Nym at all (password protected)
     // we STILL need to pass a Signer Nym ID into
     // OTAPI_Wrap::Wallet_ImportPurse.
-    // So if it's still NULL here, then we use --mynym to make the call.
+    // So if it's still nullptr here, then we use --mynym to make the call.
     // And also, even in the case where there IS a Nym but it's not listed,
     // we must assume the USER knows the appropriate NymID, even if it's not
     // listed on the purse itself. And in that case as well, the user can
@@ -9347,10 +9349,10 @@ OT_COMMANDS_OT string OT_Command::details_export_cash(
                         strServerID, strAssetTypeID, strFromNymID, strPurse);
 
                     if (!VerifyStringVal(strToken)) {
-                        OTAPI_Wrap::Output(0, strLocation +
-                                                  ": Error: OT_API_Purse_Peek "
-                                                  "unexpectedly returned NULL "
-                                                  "instead of token.\n");
+                        OTAPI_Wrap::Output(
+                            0, strLocation + ": Error: OT_API_Purse_Peek "
+                                             "unexpectedly returned nullptr "
+                                             "instead of token.\n");
                         return "";
                     }
 
@@ -9360,7 +9362,7 @@ OT_COMMANDS_OT string OT_Command::details_export_cash(
                     if (!VerifyStringVal(strNewPurse)) {
                         OTAPI_Wrap::Output(
                             0, strLocation + ": Error: OT_API_Purse_Pop "
-                                             "unexpectedly returned NULL "
+                                             "unexpectedly returned nullptr "
                                              "instead of updated purse.\n");
                         return "";
                     }
@@ -9582,7 +9584,7 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                 if (!VerifyStringVal(strToken)) {
                     OTAPI_Wrap::Output(0, strLocation +
                                               ": Error: OT_API_Purse_Peek "
-                                              "unexpectedly returned NULL "
+                                              "unexpectedly returned nullptr "
                                               "instead of token.\n");
                     return false;
                 }
@@ -9593,7 +9595,7 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                 if (!VerifyStringVal(strNewPurse)) {
                     OTAPI_Wrap::Output(0, strLocation +
                                               ": Error: OT_API_Purse_Pop "
-                                              "unexpectedly returned NULL "
+                                              "unexpectedly returned nullptr "
                                               "instead of updated purse.\n");
                     return false;
                 }
@@ -10107,7 +10109,8 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     // it's properly
     // made out to the owner of the account which I'm trying to use to pay the
     // invoice from.
-    // So let's pay it!  P.S. strRecipientUserID might be NULL, but strMyNymID
+    // So let's pay it!  P.S. strRecipientUserID might be nullptr, but
+    // strMyNymID
     // is guaranteed
     // to be good.
 

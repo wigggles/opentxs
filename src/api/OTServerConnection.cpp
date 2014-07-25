@@ -239,8 +239,8 @@ bool OTServerConnection::SetFocus(OTPseudonym& theNym,
                                   OTServerContract& theServerContract,
                                   TransportCallback* pCallback)
 {
-    if (NULL == pCallback) {
-        OTLog::vError("%s: pCallback is NULL", __FUNCTION__);
+    if (nullptr == pCallback) {
+        OTLog::vError("%s: pCallback is nullptr", __FUNCTION__);
         OT_FAIL;
     };
 
@@ -304,11 +304,11 @@ bool OTServerConnection::SetFocus(OTPseudonym& theNym,
 // //   // Alloc Socket
 //    //socket = SFSocketAlloc();
 //    //
-//    //OT_ASSERT_MSG(NULL != socket, "SFSocketAlloc Failed\n");
+//    //OT_ASSERT_MSG(nullptr != socket, "SFSocketAlloc Failed\n");
 //    //
 // //   // Initialize SSL client Socket
-// //   if (SFSocketInit(socket, strCA_FILE.Get(), NULL, strKEY_FILE.Get(),
-// strKEY_PASSWORD.Get(), NULL) < 0) {
+// //   if (SFSocketInit(socket, strCA_FILE.Get(), nullptr, strKEY_FILE.Get(),
+// strKEY_PASSWORD.Get(), nullptr) < 0) {
 //    //    OTLog::Error("Init Failed\n");
 // //       return false;
 // //   }
@@ -378,21 +378,21 @@ bool OTServerConnection::GetServerID(OTIdentifier& theID)
 // theClient, SFSocket * pSock)
 //{
 //    m_pSocket            = pSock;
-//    m_pCallback            = NULL;
+//    m_pCallback            = nullptr;
 //    m_bFocused            = false;
-//    m_pNym                = NULL;
-//    m_pServerContract    = NULL;
+//    m_pNym                = nullptr;
+//    m_pServerContract    = nullptr;
 //    m_pWallet            = &theWallet;
 //    m_pClient            = &theClient;
 //}
 
 OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
 {
-    // m_pSocket            = NULL;
-    m_pCallback = NULL;
+    // m_pSocket            = nullptr;
+    m_pCallback = nullptr;
     m_bFocused = false;
-    m_pNym = NULL;
-    m_pServerContract = NULL;
+    m_pNym = nullptr;
+    m_pServerContract = nullptr;
     m_pWallet = &theWallet;
     m_pClient = &theClient;
 }
@@ -417,7 +417,7 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
 ////    uint32_t nread;
 ////    u_header theCMD;
 ////
-////    OT_ASSERT(NULL != m_pSocket);
+////    OT_ASSERT(nullptr != m_pSocket);
 ////
 ////    // clear the header
 ////    memset((void *)theCMD.buf, 0, OT_CMD_HEADER_SIZE);
@@ -463,7 +463,7 @@ bool OTServerConnection::ProcessReply(u_header& theCMD,
 {
     bool bSuccess = false;
 
-    // OT_ASSERT(NULL != m_pSocket);
+    // OT_ASSERT(nullptr != m_pSocket);
 
     OTLog::vOutput(
         4,
@@ -534,7 +534,7 @@ bool OTServerConnection::ProcessType1Cmd(u_header& theCMD,
     int32_t err = 0;
     uint32_t nread;
 
-    //    OT_ASSERT(NULL != m_pSocket);
+    //    OT_ASSERT(nullptr != m_pSocket);
 
     // Make sure our byte-order is correct here.
     theCMD.fields.size = ntohl(
@@ -593,9 +593,9 @@ bool OTServerConnection::ProcessType1Cmd(u_header& theCMD,
                 OTLog::Output(4, "Successfully parsed payload message.\n");
 
                 const OTPseudonym* pServerNym =
-                    (NULL != m_pServerContract)
+                    (nullptr != m_pServerContract)
                         ? m_pServerContract->GetContractPublicNym()
-                        : NULL;
+                        : nullptr;
 
                 if (m_pServerContract && pServerNym) // todo casting.
                 {
@@ -654,9 +654,9 @@ bool OTServerConnection::ProcessType1Cmd(u_header& theCMD,
                                      "the envelope and parsing it.\n");
 
                     const OTPseudonym* pServerNym =
-                        (NULL != m_pServerContract)
+                        (nullptr != m_pServerContract)
                             ? m_pServerContract->GetContractPublicNym()
-                            : NULL;
+                            : nullptr;
 
                     if (m_pServerContract && pServerNym) // todo casting.
                     {
@@ -738,10 +738,10 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
                             // envelopes.
 
     // Testing encrypted envelopes...
-    const OTPseudonym* pServerNym = NULL;
+    const OTPseudonym* pServerNym = nullptr;
 
     if (m_pServerContract &&
-        (NULL != (pServerNym = m_pServerContract->GetContractPublicNym()))) {
+        (nullptr != (pServerNym = m_pServerContract->GetContractPublicNym()))) {
         OTString strEnvelopeContents;
         // Save the ready-to-go message into a string.
         theMessage.SaveContractRaw(strEnvelopeContents);
@@ -767,8 +767,8 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
 
     if (IsFocused()) // RPC / HTTP mode... ----------
     {
-        OT_ASSERT(NULL != m_pCallback);
-        OT_ASSERT(NULL != m_pServerContract);
+        OT_ASSERT(nullptr != m_pCallback);
+        OT_ASSERT(nullptr != m_pServerContract);
 
         // Call the callback here.
         OTLog::vOutput(
@@ -829,7 +829,7 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
 void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 {
 
-    OT_ASSERT(NULL != buf);
+    OT_ASSERT(nullptr != buf);
 
     bool bSendCommand = false;
     bool bSendPayload = false;
@@ -927,8 +927,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::checkServerID,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -948,8 +948,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::createUserAccount,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -971,9 +971,10 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             // if successful setting up the command payload...
 
-            if (m_pClient->ProcessUserCommand(
-                    OTClient::checkUser, theMessage, *m_pNym,
-                    *m_pServerContract, NULL)) // NULL pAccount on this command.
+            if (m_pClient->ProcessUserCommand(OTClient::checkUser, theMessage,
+                                              *m_pNym, *m_pServerContract,
+                                              nullptr)) // nullptr pAccount on
+                                                        // this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -993,7 +994,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(
                     OTClient::createAccount, theMessage, *m_pNym,
-                    *m_pServerContract, NULL)) // NULL pAccount on this command.
+                    *m_pServerContract,
+                    nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1013,8 +1015,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::issueAssetType,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1034,8 +1036,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::issueBasket, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1055,8 +1057,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::exchangeBasket,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1076,8 +1078,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::marketOffer, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1097,7 +1099,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(
                     OTClient::setAssetName, theMessage, *m_pNym,
-                    *m_pServerContract, NULL)) // NULL pAccount on this command.
+                    *m_pServerContract,
+                    nullptr)) // nullptr pAccount on this command.
             {
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
@@ -1113,8 +1116,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::setServerName,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
@@ -1131,8 +1134,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::setNymName, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
@@ -1149,8 +1152,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::setAccountName,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 //                bSendCommand = true; // No message sent.
                 //                bSendPayload = true;
@@ -1166,8 +1169,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::sendUserMessage,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1187,8 +1190,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::getNymbox, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1208,7 +1211,7 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(
                     OTClient::getInbox, theMessage, *m_pNym, *m_pServerContract,
-                    NULL) > 0) // NULL pAccount on this command.
+                    nullptr) > 0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1228,8 +1231,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::getOutbox, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1248,8 +1251,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeCheque,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1269,8 +1272,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::withdrawVoucher,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1289,8 +1292,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeWithdrawal,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1310,8 +1313,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeDeposit,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1331,8 +1334,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::paymentPlan, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1352,8 +1355,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizePurse,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1456,8 +1459,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::getAccount, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1477,8 +1480,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::getContract, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1531,7 +1534,7 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
             do {
                 decode_buffer[0] = 0; // Make it fresh.
 
-                if ((NULL !=
+                if ((nullptr !=
                      fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
                     (decode_buffer[0] != '~')) {
                     if (!bEscaped && decode_buffer[0] == '-') {
@@ -1575,7 +1578,7 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(
                     OTClient::getMint, theMessage, *m_pNym, *m_pServerContract,
-                    NULL) > 0) // NULL pAccount on this command.
+                    nullptr) > 0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1595,8 +1598,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::notarizeTransfer,
                                               theMessage, *m_pNym,
-                                              *m_pServerContract, NULL) >
-                0) // NULL pAccount on this command.
+                                              *m_pServerContract, nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1616,8 +1619,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
             if (m_pClient->ProcessUserCommand(OTClient::getRequest, theMessage,
                                               *m_pNym, *m_pServerContract,
-                                              NULL) >
-                0) // NULL pAccount on this command.
+                                              nullptr) >
+                0) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
                 bSendPayload = true;
@@ -1670,8 +1673,8 @@ void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
 
                 if (m_pClient->ProcessUserCommand(OTClient::getTransactionNum,
                                                   theMessage, *m_pNym,
-                                                  *m_pServerContract, NULL) >
-                    0) // NULL pAccount on this command.
+                                                  *m_pServerContract, nullptr) >
+                    0) // nullptr pAccount on this command.
                 {
                     bSendCommand = true;
                     bSendPayload = true;

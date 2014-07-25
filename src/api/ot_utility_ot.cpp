@@ -37,7 +37,7 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
 
     // if (0 >= objs.size()) { return false; }
 
-    if (OT_ME::FindVariable2(theObjectNameAsStr) == NULL) {
+    if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
         string strDefault = "";
 
         if ("Server" == theObjectNameAsStr) {
@@ -151,7 +151,7 @@ OT_UTILITY_OT bool VerifyNotNull(const void* theObjectRef)
     // bool bNull = theObjectRef.is_var_null();
     // bool bUndef = theObjectRef.is_var_undef();
 
-    if (theObjectRef == NULL) {
+    if (theObjectRef == nullptr) {
         OTAPI_Wrap::Output(1, "VerifyNotNull: false\n");
         return false;
     }
@@ -251,7 +251,7 @@ OT_UTILITY_OT bool VerifyStorable(OTDB::Storable* theStorableObjectRef,
 // are passing an object of the wrong type--or someone is. ASSERT!\n");
 //    }
 //
-//    // We know that the_ref is either NULL... or if it's not NULL,
+//    // We know that the_ref is either nullptr... or if it's not nullptr,
 //    // then at least rhs is of the same data type that the_ref is.
 //    // Either way, now we can copy it's reference over.
 //    //
@@ -1176,12 +1176,13 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 
                 if (!VerifyStringVal(strSentMsg)) {
                     OTAPI_Wrap::Output(
-                        2, strLocation +
-                               ": (1) OT_API_GetSentMessage returned NULL for "
-                               "clawback. (Must have already been cleared. OT "
-                               "uses deliberate redundancy, though optimizes "
-                               "this wherever possible.) Request number: " +
-                               to_string(nRequestNumber) + "\n");
+                        2,
+                        strLocation +
+                            ": (1) OT_API_GetSentMessage returned nullptr for "
+                            "clawback. (Must have already been cleared. OT "
+                            "uses deliberate redundancy, though optimizes "
+                            "this wherever possible.) Request number: " +
+                            to_string(nRequestNumber) + "\n");
                 }
                 else // OTAPI_Wrap::GetSentMessage success.
                 {
@@ -1549,7 +1550,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
                     if (!VerifyStringVal(strSentProcessNymboxMsg)) {
                         OTAPI_Wrap::Output(
                             2, strLocation + ": (2) OT_API_GetSentMessage "
-                                             "returned NULL for clawback. "
+                                             "returned nullptr for clawback. "
                                              "(Must have already been cleared. "
                                              "OT uses deliberate redundancy, "
                                              "though optimizes this wherever "
@@ -3045,15 +3046,16 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles_old(
     string strLocation = "Utility::getIntermediaryFiles_old";
 
     if (!VerifyStringVal(serverID) || serverID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid serverID.\n");
+        OTAPI_Wrap::Output(0, strLocation + ": nullptr or invalid serverID.\n");
         return false;
     }
     if (!VerifyStringVal(nymID) || nymID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid nymID.\n");
+        OTAPI_Wrap::Output(0, strLocation + ": nullptr or invalid nymID.\n");
         return false;
     }
     if (!VerifyStringVal(accountID) || accountID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid accountID.\n");
+        OTAPI_Wrap::Output(0,
+                           strLocation + ": nullptr or invalid accountID.\n");
         return false;
     }
 
@@ -3207,15 +3209,16 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     string strLocation = "Utility::getIntermediaryFiles";
 
     if (!VerifyStringVal(serverID) || serverID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid serverID.\n");
+        OTAPI_Wrap::Output(0, strLocation + ": nullptr or invalid serverID.\n");
         return false;
     }
     if (!VerifyStringVal(nymID) || nymID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid nymID.\n");
+        OTAPI_Wrap::Output(0, strLocation + ": nullptr or invalid nymID.\n");
         return false;
     }
     if (!VerifyStringVal(accountID) || accountID.size() < 10) {
-        OTAPI_Wrap::Output(0, strLocation + ": NULL or invalid accountID.\n");
+        OTAPI_Wrap::Output(0,
+                           strLocation + ": nullptr or invalid accountID.\n");
         return false;
     }
 
