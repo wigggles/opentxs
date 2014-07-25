@@ -2139,32 +2139,28 @@ OT_COMMANDS_OT int32_t OT_Command::mainProposePlan() // payment plan -- called
                                                      // generates the
                                                      // proposal.)
 {
-    string strUsage1 =
+    string strUsage =
         "Usage: opentxs propose   (For a merchant to propose a payment plan to "
         "a customer.)\nMandatory: --server SERVER_ID --mynym PAYEE_NYM_ID "
         "--hisnym PAYER_NYM_ID\nMandatory: --myacct PAYEE_ACCT_ID --hisacct "
         "PAYER_NYM_ID\nAdditional arguments:\n Date Range: --args \" "
         "date_range \\\"from,to\\\" \"\nFROM should be in seconds from Jan "
         "1970, and TO is added to that number.\nDefault FROM is the current "
-        "time, and default TO is 'no expiry.'\n";
-    string strUsage2 = concat(
-        strUsage1, "Also: --args \" consideration \\\"like a memo\\\" \" \n");
-    string strUsage3 =
-        concat(strUsage2, "Also: --args \" initial_payment "
-                          "\\\"amount,delay\\\" \" \nDefault 'amount' (0 or "
-                          "\"\") == no initial payment. Default 'delay' (0 or "
-                          "\"\") is seconds from creation date.\n");
-    string strUsage4 = concat(
-        strUsage3, "Also: --args \" payment_plan \\\"amount,delay,period\\\" "
-                   "\" \n'amount' is a recurring payment. 'delay' and 'period' "
-                   "cause 30 days if you pass 0 or \"\".\n'delay' and 'period' "
-                   "are both measured in seconds. Period is time between\neach "
-                   "payment. Delay is time until first payment.\n");
-    string strUsage =
-        concat(strUsage4, "Also: --args \" plan_expiry \\\"length,number\\\" "
-                          "\" \n'length' is maximum lifetime in seconds. "
-                          "'number' is maximum number of payments. 0 or \"\" "
-                          "is unlimited (for both.)\n\n");
+        "time, and default TO is 'no expiry.'\n"
+        "Also: --args \" consideration \\\"like a memo\\\" \" \n"
+        "Also: --args \" initial_payment "
+        "\\\"amount,delay\\\" \" \nDefault 'amount' (0 or "
+        "\"\") == no initial payment. Default 'delay' (0 or "
+        "\"\") is seconds from creation date.\n"
+        "Also: --args \" payment_plan \\\"amount,delay,period\\\" "
+        "\" \n'amount' is a recurring payment. 'delay' and 'period' "
+        "cause 30 days if you pass 0 or \"\".\n'delay' and 'period' "
+        "are both measured in seconds. Period is time between\neach "
+        "payment. Delay is time until first payment.\n"
+        "Also: --args \" plan_expiry \\\"length,number\\\" "
+        "\" \n'length' is maximum lifetime in seconds. "
+        "'number' is maximum number of payments. 0 or \"\" "
+        "is unlimited (for both.)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4085,13 +4081,12 @@ OT_Command::details_send_transfer(const string& strMyAcctID,
 //
 OT_COMMANDS_OT int32_t OT_Command::mainTransfer()
 {
-    string strUsage1 =
-        concat("\n\n  USAGE: transfer --myacct YOUR_ASSET_ACCT --hisacct "
-               "RECIPIENT_ASSET_ACCT\n\n",
-               "Also NECESSARY: --args \"amount PUT_AMOUNT_HERE\"\n");
     string strUsage =
-        concat(strUsage1, "And OPTIONALLY: --args \"memo \\\"Just a memo for "
-                          "the transfer.\\\"\"\n\n");
+        "\n\n  USAGE: transfer --myacct YOUR_ASSET_ACCT --hisacct "
+        "RECIPIENT_ASSET_ACCT\n\n"
+        "Also NECESSARY: --args \"amount PUT_AMOUNT_HERE\"\n"
+        "And OPTIONALLY: --args \"memo \\\"Just a memo for "
+        "the transfer.\\\"\"\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4161,9 +4156,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainTransfer()
 
 OT_COMMANDS_OT int32_t OT_Command::mainEditNym()
 {
-    string strUsage = concat(
-        "\n\n USAGE: editnym --mynym YOUR_NYM_ID\n",
-        "Also optionally:         --args \"label \\\"PUT LABEL HERE\\\"\"\n");
+    string strUsage =
+        "\n\n USAGE: editnym --mynym YOUR_NYM_ID\n"
+        "Also optionally:         --args \"label \\\"PUT LABEL HERE\\\"\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4218,9 +4213,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainEditNym()
 
 OT_COMMANDS_OT int32_t OT_Command::mainEditAccount()
 {
-    string strUsage = concat(
-        "\n\n USAGE: editaccount --myacct YOUR_ACCT_ID\n",
-        "Also optionally:          --args \"label \\\"PUT LABEL HERE\\\"\"\n");
+    string strUsage =
+        "\n\n USAGE: editaccount --myacct YOUR_ACCT_ID\n"
+        "Also optionally:          --args \"label \\\"PUT LABEL HERE\\\"\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4297,9 +4292,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainEditAccount()
 
 OT_COMMANDS_OT int32_t OT_Command::mainEditAsset()
 {
-    string strUsage = concat(
-        "\n\n USAGE: editasset --mypurse ASSET_TYPE_ID\n",
-        "Also optionally:           --args \"label \\\"PUT LABEL HERE\\\"\"\n");
+    string strUsage =
+        "\n\n USAGE: editasset --mypurse ASSET_TYPE_ID\n"
+        "Also optionally:           --args \"label \\\"PUT LABEL HERE\\\"\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4354,9 +4349,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainEditAsset()
 
 OT_COMMANDS_OT int32_t OT_Command::mainEditServer()
 {
-    string strUsage = concat("\n\n USAGE: editserver --server SERVER_ID\n",
-                             "Also optionally:            --args \"label "
-                             "\\\"PUT LABEL HERE\\\"\"\n");
+    string strUsage = "\n\n USAGE: editserver --server SERVER_ID\n"
+                      "Also optionally:            --args \"label "
+                      "\\\"PUT LABEL HERE\\\"\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4706,14 +4701,13 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
 
 OT_COMMANDS_OT int32_t OT_Command::mainWriteCheque()
 {
-    string strUsage1 =
-        "Usage:  writecheque  --myacct <MY_ACCT_ID> --hisnym <HIS_NYM_ID>\n";
-    string strUsage2 = "This command WRITES but DOES NOT SEND the cheque. (Use "
-                       "sendcheque for that.)\n\n";
     string strUsage =
-        concat(strUsage1 + "Optionally: --args \"memo \\\"one-line memo "
-                           "allowed here.\\\" amount AMOUNT\"\n",
-               "Additionally: --args \"validfor IN_SECONDS\" \n" + strUsage2);
+        "Usage:  writecheque  --myacct <MY_ACCT_ID> --hisnym <HIS_NYM_ID>\n"
+        "Optionally: --args \"memo \\\"one-line memo "
+        "allowed here.\\\" amount AMOUNT\"\n"
+        "Additionally: --args \"validfor IN_SECONDS\" \n"
+        "This command WRITES but DOES NOT SEND the cheque."
+        " (Use sendcheque for that.)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -4736,14 +4730,13 @@ OT_COMMANDS_OT int32_t OT_Command::mainWriteCheque()
 
 OT_COMMANDS_OT int32_t OT_Command::mainWriteInvoice()
 {
-    string strUsage1 =
-        "Usage:  writeinvoice  --myacct <MY_ACCT_ID> --hisnym <HIS_NYM_ID>\n";
-    string strUsage2 = "This command WRITES but DOES NOT SEND the invoice. "
-                       "(Use sendinvoice for that.)\n";
     string strUsage =
-        concat(strUsage1 + "Optionally: --args \"memo \\\"one-line memo "
-                           "allowed here.\\\" amount AMOUNT\"\n",
-               "Additionally: --args \"validfor IN_SECONDS\" \n" + strUsage2);
+        "Usage:  writeinvoice  --myacct <MY_ACCT_ID> --hisnym <HIS_NYM_ID>\n"
+        "Optionally: --args \"memo \\\"one-line memo "
+        "allowed here.\\\" amount AMOUNT\"\n"
+        "Additionally: --args \"validfor IN_SECONDS\" \n"
+        "This command WRITES but DOES NOT SEND the invoice. "
+        "(Use sendinvoice for that.)\n";
     OTAPI_Wrap::Output(0, strUsage);
 
     string strCheque = "";
@@ -4766,20 +4759,17 @@ OT_COMMANDS_OT int32_t OT_Command::mainWriteInvoice()
 OT_COMMANDS_OT int32_t OT_Command::mainSendCash()
 {
 
-    string strUsage1 = "Usage:  sendcash  --[myacct|mypurse] <ID> --hisnym "
-                       "<RECIPIENT_NYM_ID>\nFor mypurse, the server and nym "
-                       "are also required: --server <SERVER_ID> --mynym "
-                       "<NYM_ID> \n";
-    string strUsage2 =
-        concat(strUsage1, "Optionally: --args \"passwd true\"  (To send a "
-                          "password-protected purse.)\n");
-    string strUsage3 =
-        concat(strUsage2, "Optionally: --args \"memo \\\"one-line memo allowed "
-                          "here.\\\" amount AMOUNT\"\n");
-    string strUsage =
-        concat(strUsage3, "This command sends cash to the recipient, from your "
-                          "purse if specified, and withdrawing first from your "
-                          "account, if necessary.\n\n");
+    string strUsage = "Usage:  sendcash  --[myacct|mypurse] <ID> --hisnym "
+                      "<RECIPIENT_NYM_ID>\nFor mypurse, the server and nym "
+                      "are also required: --server <SERVER_ID> --mynym "
+                      "<NYM_ID> \n"
+                      "Optionally: --args \"passwd true\"  (To send a "
+                      "password-protected purse.)\n"
+                      "Optionally: --args \"memo \\\"one-line memo allowed "
+                      "here.\\\" amount AMOUNT\"\n"
+                      "This command sends cash to the recipient, from your "
+                      "purse if specified, and withdrawing first from your "
+                      "account, if necessary.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -5014,15 +5004,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCash()
 
 OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
 {
-    string strUsage1 = "Usage:  sendcheque  --myacct <MY_ACCT_ID> --hisnym "
-                       "<RECIPIENT_NYM_ID>\n";
-    string strUsage2 = "This command WRITES AND SENDS the cheque.\n(Use "
-                       "'writecheque', not 'sendcheque', if you don't want it "
-                       "to be immediately SENT.)\n";
-    string strUsage =
-        concat(strUsage1 + "Optionally: --args \"memo \\\"one-line memo "
-                           "allowed here.\\\" amount AMOUNT\"\n",
-               "Additionally: --args \"validfor IN_SECONDS\" \n" + strUsage2);
+    string strUsage = "Usage:  sendcheque  --myacct <MY_ACCT_ID> --hisnym "
+                      "<RECIPIENT_NYM_ID>\n"
+                      "Optionally: --args \"memo \\\"one-line memo "
+                      "allowed here.\\\" amount AMOUNT\"\n"
+                      "Additionally: --args \"validfor IN_SECONDS\" \n"
+                      "This command WRITES AND SENDS the cheque.\n(Use "
+                      "'writecheque', not 'sendcheque', if you don't want it "
+                      "to be immediately SENT.)\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -5059,10 +5048,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
         }
         if (!VerifyStringVal(strRecipientNymID)) {
             OTAPI_Wrap::Output(
-                0, concat("Unable to retrieve a Recipient Nym ID from this "
-                          "cheque! Very strange. (Failure.)\n",
-                          "(Although it's fine to WRITE a cheque with no "
-                          "recipient, still need the ID to SEND one.)\n"));
+                0, "Unable to retrieve a Recipient Nym ID from this "
+                   "cheque! Very strange. (Failure.)\n"
+                   "(Although it's fine to WRITE a cheque with no "
+                   "recipient, still need the ID to SEND one.)\n");
             return -1;
         }
 
@@ -5099,15 +5088,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
 
 OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
 {
-    string strUsage1 = "Usage:  sendinvoice  --myacct <MY_ACCT_ID> --hisnym "
-                       "<RECIPIENT_NYM_ID>\n";
-    string strUsage2 = "This command WRITES AND SENDS the invoice. (Use "
-                       "'writeinvoice', not 'sendinvoice',\nif you don't want "
-                       "it to be immediately SENT.)\n";
-    string strUsage =
-        concat(strUsage1 + "Optionally: --args \"memo \\\"one-line memo "
-                           "allowed here.\\\" amount AMOUNT\"\n",
-               "Additionally: --args \"validfor IN_SECONDS\" \n" + strUsage2);
+    string strUsage = "Usage:  sendinvoice  --myacct <MY_ACCT_ID> --hisnym "
+                      "<RECIPIENT_NYM_ID>\n"
+                      "Optionally: --args \"memo \\\"one-line memo "
+                      "allowed here.\\\" amount AMOUNT\"\n"
+                      "Additionally: --args \"validfor IN_SECONDS\" \n"
+                      "This command WRITES AND SENDS the invoice. (Use "
+                      "'writeinvoice', not 'sendinvoice',\nif you don't want "
+                      "it to be immediately SENT.)\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -5144,10 +5132,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
         }
         if (!VerifyStringVal(strRecipientNymID)) {
             OTAPI_Wrap::Output(
-                0, concat("Unable to retrieve a Recipient Nym ID (Endorsee) "
-                          "from this invoice! Very strange. (Failure.)\n",
-                          "(Although it's fine to WRITE a invoice with no "
-                          "endorsee, still need the ID to SEND it.)\n"));
+                0, "Unable to retrieve a Recipient Nym ID (Endorsee) "
+                   "from this invoice! Very strange. (Failure.)\n"
+                   "(Although it's fine to WRITE a invoice with no "
+                   "endorsee, still need the ID to SEND it.)\n");
             return -1;
         }
 
@@ -5373,12 +5361,12 @@ OT_Command::details_create_offer(const string& strScale,
 OT_COMMANDS_OT int32_t OT_Command::mainNewOffer()
 {
     string strUsage =
-        concat("\n\n USAGE: newoffer --myacct <YOUR_ASSET_ACCT> --hisacct "
-               "<YOUR_CURRENCY_ACCT>\n\n",
-               " Optional: --args \"type <bid|ask> scale 1 quantity 100 price "
-               "101\"\n Optional: --args \"lifespan 86400\"   (in seconds: "
-               "86400 is 1 day--the default.)\n\nWARNING: a price of 0 is a "
-               "market order, which means 'purchase/sell at ANY price'\n\n");
+        "\n\n USAGE: newoffer --myacct <YOUR_ASSET_ACCT> --hisacct "
+        "<YOUR_CURRENCY_ACCT>\n\n"
+        " Optional: --args \"type <bid|ask> scale 1 quantity 100 price "
+        "101\"\n Optional: --args \"lifespan 86400\"   (in seconds: "
+        "86400 is 1 day--the default.)\n\nWARNING: a price of 0 is a "
+        "market order, which means 'purchase/sell at ANY price'\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -5677,13 +5665,13 @@ OT_COMMANDS_OT int32_t OT_Command::mainSignContract()
     // But AddSignature, on the other hand, leaves all signatures in place, and
     // simply adds yours to the list.
 
-    string strUsage = concat(
-        "\n\n USAGE: signcontract \n",
+    string strUsage =
+        "\n\n USAGE: signcontract \n"
         " Optionally, you may specify a contract type:  signcontract --args "
         "\"type "
         "LEDGER\"\nIn that example, the output would start with the bookend: "
         "-----BEGIN OT SIGNED LEDGER-----\n(You don't need to specify the type "
-        "if the bookend is already present on the input string.)\n\n");
+        "if the bookend is already present on the input string.)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -6853,9 +6841,9 @@ OT_Command::details_download_contract(const string& strServerID,
 
 OT_COMMANDS_OT int32_t OT_Command::mainGetContract()
 {
-    string strUsage = concat(
-        "\n\nUsage:  getcontract --server SERVER_ID --mynym YOUR_NYM_ID \n",
-        "                    --args \"contract_id CONTRACT_ID_HERE\"\n\n");
+    string strUsage =
+        "\n\nUsage:  getcontract --server SERVER_ID --mynym YOUR_NYM_ID \n"
+        "                    --args \"contract_id CONTRACT_ID_HERE\"\n\n";
     OTAPI_Wrap::Output(0, strUsage);
 
     string strContractID = "";
@@ -6927,9 +6915,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifyReceipt()
 
 OT_COMMANDS_OT int32_t OT_Command::mainRegisterNym()
 {
-    string strUsage = concat(
-        "\n\nUsage: registernym --server SERVER_ID --mynym NYM_ID\n\n",
-        "(If you don't have a NymID, then use create_nym.ot first.)\n\n");
+    string strUsage =
+        "\n\nUsage: registernym --server SERVER_ID --mynym NYM_ID\n\n"
+        "(If you don't have a NymID, then use create_nym.ot first.)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7019,9 +7007,9 @@ OT_COMMANDS_OT bool OT_Command::details_refresh_nym(const string& strServerID,
 
 OT_COMMANDS_OT int32_t OT_Command::mainRefreshNym()
 {
-    string strUsage = concat(
-        "\n\nUsage: refreshnym --server SERVER_ID --mynym NYM_ID\n\n",
-        "(If you don't have a NymID, then use the newnym command first.)\n\n");
+    string strUsage =
+        "\n\nUsage: refreshnym --server SERVER_ID --mynym NYM_ID\n\n"
+        "(If you don't have a NymID, then use the newnym command first.)\n\n";
     OTAPI_Wrap::Output(0, strUsage);
 
     if (VerifyExists("Server") && VerifyExists("MyNym")) {
@@ -7140,10 +7128,10 @@ OT_Command::details_download_box_receipt(const string& strID,
 OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
 {
     string strUsage =
-        concat("\n\nUsage: getreceipt --server SERVER_ID --mynym NYM_ID\n\n",
-               "Also:    --args \"box_type BOX_TYPE_ID_HERE id "
-               "TRANSACTION_ID_HERE\"\nBox types are 0 (Nymbox), 1 (Inbox), 2 "
-               "(Outbox)\n\n");
+        "\n\nUsage: getreceipt --server SERVER_ID --mynym NYM_ID\n\n"
+        "Also:    --args \"box_type BOX_TYPE_ID_HERE id "
+        "TRANSACTION_ID_HERE\"\nBox types are 0 (Nymbox), 1 (Inbox), 2 "
+        "(Outbox)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7318,9 +7306,9 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
 //
 OT_COMMANDS_OT int32_t OT_Command::mainWithdrawCash()
 {
-    string strUsage = concat(
-        "\n\n  USAGE: withdraw --myacct YOUR_ASSET_ACCT \n",
-        "You can provide an amount:  --args \"amount PUT_AMOUNT_HERE\"\n\n");
+    string strUsage =
+        "\n\n  USAGE: withdraw --myacct YOUR_ASSET_ACCT \n"
+        "You can provide an amount:  --args \"amount PUT_AMOUNT_HERE\"\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7484,10 +7472,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 
         if (!VerifyStringVal(strTransReply)) {
             OTAPI_Wrap::Output(
-                0, concat("details_withdraw_voucher: Error: strTransReply is "
-                          "unexpectedly null, returned by ",
-                          "OT_API_Ledger_GetTransactionByIndex, argument "
-                          "passed, index 0 and ledger:\n\n") +
+                0, "details_withdraw_voucher: Error: strTransReply is "
+                   "unexpectedly null, returned by "
+                   "OT_API_Ledger_GetTransactionByIndex, argument "
+                   "passed, index 0 and ledger:\n\n" +
                        strLedger + "\n\n");
             return -1;
         }
@@ -7497,10 +7485,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 
         if (!VerifyStringVal(strOutput)) {
             OTAPI_Wrap::Output(
-                0, concat("details_withdraw_voucher: Error: Voucher is "
-                          "unexpectedly null, returned by ",
-                          "OT_API_Transaction_GetVoucher with strTransReply "
-                          "set to:\n\n") +
+                0, "details_withdraw_voucher: Error: Voucher is "
+                   "unexpectedly null, returned by "
+                   "OT_API_Transaction_GetVoucher with strTransReply "
+                   "set to:\n\n" +
                        strTransReply + "\n\n");
             return -1;
         }
@@ -7555,13 +7543,12 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 //
 OT_COMMANDS_OT int32_t OT_Command::mainWithdrawVoucher()
 {
-    string strUsage1 =
-        concat("\n\n  USAGE: withdrawvoucher --myacct YOUR_ASSET_ACCT --hisnym "
-               "RECIPIENT_NYM_ID\n\n",
-               "Also NECESSARY: --args \"amount PUT_AMOUNT_HERE\"\n");
     string strUsage =
-        concat(strUsage1, "And OPTIONALLY: --args \"memo \\\"Just a memo for "
-                          "the voucher cheque.\\\"\"\n\n");
+        "\n\n  USAGE: withdrawvoucher --myacct YOUR_ASSET_ACCT --hisnym "
+        "RECIPIENT_NYM_ID\n\n"
+        "Also NECESSARY: --args \"amount PUT_AMOUNT_HERE\"\n"
+        "And OPTIONALLY: --args \"memo \\\"Just a memo for "
+        "the voucher cheque.\\\"\"\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7575,16 +7562,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainWithdrawVoucher()
 
 OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
 {
-    string strUsage1 = "Usage:  sendvoucher  --myacct MY_ASSET_ACCT --hisnym "
-                       "RECIPIENT_NYM_ID\n";
-    string strUsage2 = "Server is deduced from MyAcct. This command withdraws "
-                       "AND SENDS the\nvoucher. (Use 'withdrawvoucher', not "
-                       "'sendvoucher', if you don't want it to be immediately "
-                       "SENT.)\n";
-    string strUsage =
-        concat(strUsage1 + "Optionally: --args \"memo \\\"one-line memo "
-                           "allowed here.\\\" amount AMOUNT\"\n",
-               strUsage2);
+    string strUsage = "Usage:  sendvoucher  --myacct MY_ASSET_ACCT --hisnym "
+                      "RECIPIENT_NYM_ID\n"
+                      "Optionally: --args \"memo \\\"one-line memo "
+                      "allowed here.\\\" amount AMOUNT\"\n"
+                      "Server is deduced from MyAcct. This command withdraws "
+                      "AND SENDS the\nvoucher. (Use 'withdrawvoucher', not "
+                      "'sendvoucher', if you don't want it to be immediately "
+                      "SENT.)\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7624,11 +7609,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
                 OTAPI_Wrap::Instrmnt_GetRecipientUserID(strCheque);
             if (!VerifyStringVal(strRecipientNymID)) {
                 OTAPI_Wrap::Output(
-                    0,
-                    concat("Unable to retrieve a Recipient Nym ID from this "
-                           "voucher! Very strange. (Failure.)\n(Although ",
-                           "it's fine to WITHDRAW a voucher with no recipient, "
-                           "still need the recipient ID to SEND one.)\n"));
+                    0, "Unable to retrieve a Recipient Nym ID from this "
+                       "voucher! Very strange. (Failure.)\n(Although "
+                       "it's fine to WITHDRAW a voucher with no recipient, "
+                       "still need the recipient ID to SEND one.)\n");
                 return -1;
             }
 
@@ -7906,9 +7890,9 @@ OT_Command::details_show_market_offers(const string& strServerID,
 
 OT_COMMANDS_OT int32_t OT_Command::impl_show_market_offers(string& strMarket)
 {
-    string strUsage1 =
-        "\n\n USAGE: showoffers --server SERVER_ID --mynym YOUR_NYM_ID\n";
-    string strUsage = concat(strUsage1, "Also: --args \"market MARKET_ID\"\n");
+    string strUsage =
+        "\n\n USAGE: showoffers --server SERVER_ID --mynym YOUR_NYM_ID\n"
+        "Also: --args \"market MARKET_ID\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -7954,10 +7938,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowOffers()
 
 OT_COMMANDS_OT int32_t OT_Command::mainGetOffers()
 {
-    string strUsage1 =
-        "\n\n USAGE: getoffers --server SERVER_ID --mynym YOUR_NYM_ID\n";
-    string strUsage = concat(
-        strUsage1, "Also: --args \"market MARKET_ID depth MAX_DEPTH\"\n");
+    string strUsage =
+        "\n\n USAGE: getoffers --server SERVER_ID --mynym YOUR_NYM_ID\n"
+        "Also: --args \"market MARKET_ID depth MAX_DEPTH\"\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -8033,17 +8016,15 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetOffers()
 // FIX not used?
 OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
 {
-    string strUsage1 =
-        concat("\n\n  Options: --server SERVER_ID --mynym NYM_ID\n",
-               "           --hisnym SUBJECT_NYM_ID\n\n");
-
     string strUsage =
-        concat(strUsage1 + "To adjust (change) a Nym's usage credits: --args "
-                           "\"adjust POSITIVE_OR_NEGATIVE_VALUE\" \n (Used for "
-                           "giving or taking away usage credits.)\n",
-               "For example, --args \"adjust 10000\"   or:  --args \"adjust "
-               "-100\" \n\nFYI, this command also retrieves the current usage "
-               "credits,\nand any Nym can use it on himself, read-only.\n\n");
+        "\n\n  Options: --server SERVER_ID --mynym NYM_ID\n"
+        "           --hisnym SUBJECT_NYM_ID\n\n"
+        "To adjust (change) a Nym's usage credits: --args "
+        "\"adjust POSITIVE_OR_NEGATIVE_VALUE\" \n (Used for "
+        "giving or taking away usage credits.)\n"
+        "For example, --args \"adjust 10000\"   or:  --args \"adjust "
+        "-100\" \n\nFYI, this command also retrieves the current usage "
+        "credits,\nand any Nym can use it on himself, read-only.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -8104,28 +8085,28 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
             }
             else if (int64_t(-1) == lNewUsageBalance) {
                 strNewUsageBalance =
-                    concat("Either Nym has unlimited usage credits, or server "
-                           "has its usage credit enforcement turned off.\n",
-                           "(Either way, Nym is good to go, since -1 was "
-                           "returned as his 'credits balance'.)");
+                    "Either Nym has unlimited usage credits, or server "
+                    "has its usage credit enforcement turned off.\n"
+                    "(Either way, Nym is good to go, since -1 was "
+                    "returned as his 'credits balance'.)";
             }
             else if (int64_t(0) == lNewUsageBalance) {
                 strNewUsageBalance =
-                    concat("Nym appears to have exhausted his supply of usage "
-                           "credits.\n",
-                           "(0 was returned as his 'credits balance'.)");
+                    "Nym appears to have exhausted his supply of usage "
+                    "credits.\n"
+                    "(0 was returned as his 'credits balance'.)";
             }
             else {
-                strNewUsageBalance =
-                    concat("Nym currently has " + to_string(lNewUsageBalance),
-                           " usage credits.");
+                strNewUsageBalance = "Nym currently has " +
+                                     to_string(lNewUsageBalance) +
+                                     " usage credits.";
             }
 
-            string strOutput = concat(
-                "\n\n adjust_usage_credits -- reply: " + strNewUsageBalance,
+            string strOutput =
+                "\n\n adjust_usage_credits -- reply: " + strNewUsageBalance +
                 "\n\n(FYI, this server message is the only and proper way to "
                 "query for your own current usage credits balance, or also to "
-                "set someone else's.)\n\n");
+                "set someone else's.)\n\n";
             OTAPI_Wrap::Output(0, strOutput);
 
             break;
@@ -8362,16 +8343,14 @@ OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
 //
 OT_COMMANDS_OT int32_t OT_Command::mainPayDividend()
 {
-    string strUsage1 = concat("\n\n  USAGE: paydividend --server SERVER_ID "
-                              "--mynym SHARES_ISSUER_NYM_ID\n",
-                              "             --myacct DIVIDEND_SOURCE_ACCT_ID "
-                              "--hispurse SHARES_ASSET_TYPE_ID\n\n");
-
-    string strUsage = concat(
-        strUsage1 +
-            "Also necessary: --args \"amount PAYOUT_AMOUNT_PER_SHARE\"\n",
+    string strUsage =
+        "\n\n  USAGE: paydividend --server SERVER_ID "
+        "--mynym SHARES_ISSUER_NYM_ID\n"
+        "             --myacct DIVIDEND_SOURCE_ACCT_ID "
+        "--hispurse SHARES_ASSET_TYPE_ID\n\n"
+        "Also necessary: --args \"amount PAYOUT_AMOUNT_PER_SHARE\"\n"
         "And OPTIONALLY: --args \"memo \\\"Just a memo for the dividend "
-        "payment.\\\"\"\n\n");
+        "payment.\\\"\"\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -8924,19 +8903,15 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string& strServerID,
 
 OT_COMMANDS_OT int32_t OT_Command::mainDeposit()
 {
-    string strUsage1 = "\n\n  USAGE: deposit --myacct YOUR_ACCT_ID  \n(OT will "
-                       "ask you to paste the instrument.)\n";
-    string strUsage2 =
-        concat(strUsage1, "Optionally:    --mynym YOUR_NYM_ID \n");
-    string strUsage3 =
-        concat(strUsage2, "Optionally:    --args \"indices 4,6,9\"\n");
-    string strUsage4 =
-        concat(strUsage3, "Optionally:    --args \"indices all\"  (To deposit "
-                          "ALL cash tokens in your purse.)\n");
-    string strUsage =
-        concat(strUsage4, "Server and NymID are usually determined based on "
-                          "MyAcct.\n If you supply optional indices, they must "
-                          "correspond to tokens in your cash purse.\n\n");
+    string strUsage = "\n\n  USAGE: deposit --myacct YOUR_ACCT_ID  \n(OT will "
+                      "ask you to paste the instrument.)\n"
+                      "Optionally:    --mynym YOUR_NYM_ID \n"
+                      "Optionally:    --args \"indices 4,6,9\"\n"
+                      "Optionally:    --args \"indices all\"  (To deposit "
+                      "ALL cash tokens in your purse.)\n"
+                      "Server and NymID are usually determined based on "
+                      "MyAcct.\n If you supply optional indices, they must "
+                      "correspond to tokens in your cash purse.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -9194,16 +9169,13 @@ OT_Command::details_import_cash(const string& strInstrument)
 
 OT_COMMANDS_OT int32_t OT_Command::mainImportCash()
 {
-    string strUsage1 = "\n\n  USAGE: importcash   (OT will ask you to paste "
-                       "the instrument.)\n";
-    string strUsage2 =
-        concat(strUsage1, "Optionally: importcash --mynym YOUR_NYM_ID\n\n");
-    string strUsage3 =
-        concat(strUsage2, "Asset (Purse) ID and ServerID are both deduced from "
-                          "the cash purse that you're importing.\n");
-    string strUsage =
-        concat(strUsage3, "NymID is also deduced, if necessary. (Otherwise, "
-                          "specify using --mynym.)\n\n");
+    string strUsage = "\n\n  USAGE: importcash   (OT will ask you to paste "
+                      "the instrument.)\n"
+                      "Optionally: importcash --mynym YOUR_NYM_ID\n\n"
+                      "Asset (Purse) ID and ServerID are both deduced from "
+                      "the cash purse that you're importing.\n"
+                      "NymID is also deduced, if necessary. (Otherwise, "
+                      "specify using --mynym.)\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -9408,20 +9380,16 @@ OT_COMMANDS_OT string OT_Command::details_export_cash(
 
 OT_COMMANDS_OT int32_t OT_Command::mainExportCash()
 {
-    string strUsage1 = "\n\n  USAGE: exportcash --mypurse ASSET_TYPE_ID "
-                       "--mynym YOUR_NYM_ID --hisnym RECIPIENT_NYM_ID --server "
-                       "SERVER_ID\n";
-    string strUsage2 =
-        concat(strUsage1, "Optionally:    --args \"indices 4,6,9\"\n");
-    string strUsage3 =
-        concat(strUsage2, "Optionally:    --args \"passwd true\"  (To create a "
-                          "password-protected purse.)\n\n");
-    string strUsage4 =
-        concat(strUsage3, "(If you create a password-protected purse, then "
-                          "HisNym will be ignored and can be left out.)\n");
-    string strUsage =
-        concat(strUsage4, "If you supply optional indices, they must "
-                          "correspond to tokens in your cash purse.\n\n");
+    string strUsage = "\n\n  USAGE: exportcash --mypurse ASSET_TYPE_ID "
+                      "--mynym YOUR_NYM_ID --hisnym RECIPIENT_NYM_ID --server "
+                      "SERVER_ID\n"
+                      "Optionally:    --args \"indices 4,6,9\"\n"
+                      "Optionally:    --args \"passwd true\"  (To create a "
+                      "password-protected purse.)\n\n"
+                      "(If you create a password-protected purse, then "
+                      "HisNym will be ignored and can be left out.)\n"
+                      "If you supply optional indices, they must "
+                      "correspond to tokens in your cash purse.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
@@ -12607,11 +12575,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainAddAsset()
 
 OT_COMMANDS_OT int32_t OT_Command::mainIssueAsset()
 {
-    string strUsage = concat(
-        "\n\nUsage: opentxs issueasset --server SERVER_ID --mynym NYM_ID\n\n",
+    string strUsage =
+        "\n\nUsage: opentxs issueasset --server SERVER_ID --mynym NYM_ID\n\n"
         "       (NYM_ID must already be the 'contract' key on the new "
         "contract.)\n       See 'opentxs newasset' before running this "
-        "script.\n\n");
+        "script.\n\n";
 
     OTAPI_Wrap::Output(0, strUsage);
 
