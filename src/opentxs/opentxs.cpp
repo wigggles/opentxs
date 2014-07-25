@@ -408,7 +408,7 @@ Opentxs::CommandEntry commands[] = {
      OT_Command::mainWriteInvoice,
      Opentxs::catInstruments,
      "write an invoice and print it out to the screen."},
-    {NULL, NULL, Opentxs::catError, NULL}};
+    {nullptr, nullptr, Opentxs::catError, nullptr}};
 
 Opentxs::Opentxs()
 {
@@ -541,7 +541,7 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
 
     OT_ASSERT_MSG(
         wallet != nullptr,
-        "The wallet object is still NULL, somehow. Please load it.\n");
+        "The wallet object is still nullptr, somehow. Please load it.\n");
 
     OTServerContract* serverContract = nullptr;
     if (server_.size() > 0) {
@@ -722,7 +722,7 @@ int Opentxs::opentxsCommand(const string& command)
 
     if ("list" == command) {
         OTAPI_Wrap::Output(0, "\nCommands:\n\n");
-        for (int32_t i = 0; commands[i].command != NULL; i++) {
+        for (int32_t i = 0; commands[i].command != nullptr; i++) {
             CommandEntry& cmd = commands[i];
             OTAPI_Wrap::Output(0, (cmd.command + spaces18).substr(0, 18));
             if (i % 4 == 3) {
@@ -742,7 +742,7 @@ int Opentxs::opentxsCommand(const string& command)
 
         // add commands to their category group
         OTAPI_Wrap::Output(0, "\nCommands:\n");
-        for (int32_t i = 0; commands[i].command != NULL; i++) {
+        for (int32_t i = 0; commands[i].command != nullptr; i++) {
             CommandEntry& cmd = commands[i];
             categoryGroup[cmd.category] +=
                 (cmd.command + spaces18).substr(0, 18) + cmd.helpText + "\n";
@@ -757,7 +757,7 @@ int Opentxs::opentxsCommand(const string& command)
     }
 
     // all other commands.
-    for (int32_t i = 0; commands[i].command != NULL; i++) {
+    for (int32_t i = 0; commands[i].command != nullptr; i++) {
         CommandEntry& cmd = commands[i];
         if (cmd.command == command) {
             int32_t returnValue = (*cmd.function)();
