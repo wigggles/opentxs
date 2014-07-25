@@ -135,6 +135,7 @@
 #include <stdafx.hpp>
 
 #include <algorithm>
+#include <cctype>
 
 #include <OpenTransactions.hpp>
 #include <OTClient.hpp>
@@ -153,6 +154,12 @@
 #include <ot_otapi_ot.hpp>
 
 using namespace opentxs;
+
+const char* categoryName[] = {
+    "Category Error",           "Advanced utilities",    "The user wallet",
+    "Misc",                     "Markets (bid/ask)",     "Asset accounts",
+    "Dealing with other users", "Financial instruments", "Basket currencies",
+    "Pseudonyms"};
 
 Opentxs::CommandEntry commands[] = {
     {"acceptall",

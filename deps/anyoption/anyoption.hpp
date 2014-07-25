@@ -3,6 +3,7 @@
 
 #include "ExportWrapper.h"
 
+#include <cinttypes>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
