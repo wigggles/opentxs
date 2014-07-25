@@ -171,8 +171,8 @@ namespace opentxs
 
 int32_t OTCredential::GetPublicKeysBySignature(
     listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
-    char cKeyType /*='0'*/) const // 'S' (signing key) or 'E' (encryption key)
-                                  // or 'A' (authentication key)
+    char cKeyType) const // 'S' (signing key) or 'E' (encryption key)
+                         // or 'A' (authentication key)
 {
     int32_t nCount = 0;
     for (const auto& it : m_mapSubcredentials) {
@@ -748,12 +748,12 @@ bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
     return true;
 }
 
-bool OTCredential::GenerateMasterkey(int32_t nBits /*=1024*/) // CreateMaster is
-                                                              // able to create
-                                                              // keys from
-                                                              // scratch (by
-                                                              // calling this
-                                                              // function.)
+bool OTCredential::GenerateMasterkey(int32_t nBits) // CreateMaster is
+                                                    // able to create
+                                                    // keys from
+                                                    // scratch (by
+                                                    // calling this
+                                                    // function.)
 {
     return m_Masterkey.GenerateKeys(nBits);
 }

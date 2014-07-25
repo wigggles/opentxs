@@ -191,9 +191,9 @@ OTDB::OTPacker* OTASCIIArmor::GetPacker()
 // whatever.)
 //
 // static
-bool OTASCIIArmor::LoadFromString(
-    OTASCIIArmor& ascArmor, const OTString& strInput,
-    const std::string str_bookend /*="-----BEGIN"*/)
+bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
+                                  const OTString& strInput,
+                                  const std::string str_bookend)
 {
 
     if (strInput.Contains(str_bookend)) // YES there are bookends around this.
@@ -1037,11 +1037,12 @@ bool OTASCIIArmor::WriteArmoredString(
 // the public keys
 // are escaped with a "- " before the rest of the ------- starts.)
 //
-bool OTASCIIArmor::LoadFromString(
-    OTString& theStr,    // input
-    bool bEscaped, const // This szOverride sub-string determines
-                         // where the content starts, when loading.
-    std::string str_override /*="-----BEGIN"*/) // Default is "-----BEGIN"
+bool OTASCIIArmor::LoadFromString(OTString& theStr, // input
+                                  bool bEscaped,
+                                  const // This szOverride sub-string determines
+                                  // where the content starts, when loading.
+                                  std::string str_override) // Default is
+                                                            // "-----BEGIN"
 {
     // Should never be 0 size, as default is "-----BEGIN"
     // But if you want to load a private key, try "-----BEGIN ENCRYPTED PRIVATE"

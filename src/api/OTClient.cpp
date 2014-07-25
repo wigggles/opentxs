@@ -9028,7 +9028,7 @@ int32_t OTClient::ProcessUserCommand(
     OTPseudonym& theNym,
     //                                  OTAssetContract & theContract,
     OTServerContract& theServer, OTAccount* pAccount,
-    int64_t lTransactionAmount /*=0*/, OTAssetContract* pMyAssetContract,
+    int64_t lTransactionAmount, OTAssetContract* pMyAssetContract,
     OTIdentifier* pHisNymID, OTIdentifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together

@@ -744,7 +744,7 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
 // If NOT successful adding, caller must clear up his own memory.
 //
 bool OTMarket::AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile,
-                        time64_t tDateAddedToMarket /*=0*/)
+                        time64_t tDateAddedToMarket)
 {
     const int64_t lTransactionNum = theOffer.GetTransactionNum(),
                   lPriceLimit = theOffer.GetPriceLimit();

@@ -1053,7 +1053,7 @@ const char* OTString::Get(void) const
 // That's because this function forces the null terminator at that length of the
 // string minus 1.
 
-void OTString::Set(const char* new_string, uint32_t nEnforcedMaxLength /*=0*/)
+void OTString::Set(const char* new_string, uint32_t nEnforcedMaxLength)
 {
     if (new_string == data_) // Already the same string.
         return;

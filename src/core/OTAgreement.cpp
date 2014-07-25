@@ -1151,12 +1151,12 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 // this call, from MERCHANT_NYM.)
 bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
                               const OTString& strConsideration,
-                              const time64_t VALID_FROM /*=0*/,
-                              const time64_t VALID_TO /*=0*/) // VALID_TO is a
-                                                              // length here.
-                                                              // (i.e. it's
-                                                              // ADDED to
-                                                              // valid_from)
+                              const time64_t VALID_FROM,
+                              const time64_t VALID_TO) // VALID_TO is a
+                                                       // length here.
+                                                       // (i.e. it's
+                                                       // ADDED to
+                                                       // valid_from)
 {
 
     OTIdentifier id_MERCHANT_NYM;

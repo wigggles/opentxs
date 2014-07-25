@@ -3666,8 +3666,7 @@ void OTRecordList::AddSpecialMsg(
                                      // contents, before passing here.
     const std::string& str_address, const std::string& str_other_address,
     const std::string& str_type, const std::string& str_type_display,
-    const std::string str_my_nym_id, time64_t tDate /*=OT_TIME_ZERO*/
-    )
+    const std::string str_my_nym_id, time64_t tDate)
 {
     const char* pToFrom =
         bIsOutgoing ? OTRecordList::textTo() : OTRecordList::textFrom();

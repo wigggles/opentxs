@@ -1176,8 +1176,8 @@ OTVariable* OT_ME::FindVariable2(const std::string& str_var_name)
     return s_pMe->FindVariable(str_var_name);
 }
 
-std::string OT_ME::ExecuteScript_ReturnString(
-    const std::string& str_Code, std::string str_DisplayName /*="<BLANK>"*/)
+std::string OT_ME::ExecuteScript_ReturnString(const std::string& str_Code,
+                                              std::string str_DisplayName)
 {
     std::string str_Return = "";
     if (HaveWorkingScript()) {
@@ -1194,7 +1194,7 @@ std::string OT_ME::ExecuteScript_ReturnString(
 }
 
 bool OT_ME::ExecuteScript_ReturnBool(const std::string& str_Code,
-                                     std::string str_DisplayName /*="<BLANK>"*/)
+                                     std::string str_DisplayName)
 {
     bool bReturn = false;
     if (HaveWorkingScript()) {
@@ -1210,8 +1210,8 @@ bool OT_ME::ExecuteScript_ReturnBool(const std::string& str_Code,
     return bReturn;
 }
 
-int32_t OT_ME::ExecuteScript_ReturnInt(
-    const std::string& str_Code, std::string str_DisplayName /*="<BLANK>"*/)
+int32_t OT_ME::ExecuteScript_ReturnInt(const std::string& str_Code,
+                                       std::string str_DisplayName)
 {
     int32_t nReturn = -1;
     if (HaveWorkingScript()) {
@@ -1228,7 +1228,7 @@ int32_t OT_ME::ExecuteScript_ReturnInt(
 }
 
 void OT_ME::ExecuteScript_ReturnVoid(const std::string& str_Code,
-                                     std::string str_DisplayName /*="<BLANK>"*/)
+                                     std::string str_DisplayName)
 {
     if (HaveWorkingScript()) {
         m_pScript->SetScript(str_Code);

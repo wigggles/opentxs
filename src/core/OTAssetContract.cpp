@@ -157,10 +157,9 @@ namespace opentxs
 
 bool OTAssetContract::ParseFormatted(int64_t& lResult,
                                      const std::string& str_input,
-                                     int32_t nFactor /*=100*/,
-                                     int32_t nPower /*=2*/,
-                                     const char* szThousandSeparator /*=","*/,
-                                     const char* szDecimalPoint /*="."*/)
+                                     int32_t nFactor, int32_t nPower,
+                                     const char* szThousandSeparator,
+                                     const char* szDecimalPoint)
 {
     OT_ASSERT(NULL != szThousandSeparator);
     OT_ASSERT(NULL != szDecimalPoint);
@@ -321,10 +320,11 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
 }
 
 // static
-std::string OTAssetContract::formatLongAmount(
-    int64_t lValue, int32_t nFactor /*=100*/, int32_t nPower /*=2*/,
-    const char* szCurrencySymbol, const char* szThousandSeparator /*=","*/,
-    const char* szDecimalPoint /*="."*/)
+std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
+                                              int32_t nPower,
+                                              const char* szCurrencySymbol,
+                                              const char* szThousandSeparator,
+                                              const char* szDecimalPoint)
 {
     std::stringstream sss;
 

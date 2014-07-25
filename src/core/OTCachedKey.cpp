@@ -344,7 +344,7 @@ void OTCachedKey::Cleanup()
     //    }
 }
 
-OTCachedKey::OTCachedKey(int32_t nTimeoutSeconds /*=OT_MASTER_KEY_TIMEOUT*/)
+OTCachedKey::OTCachedKey(int32_t nTimeoutSeconds)
     : m_pThread(NULL)
     , m_nTimeoutSeconds(nTimeoutSeconds)
     , m_pMasterPassword(NULL)
@@ -595,8 +595,7 @@ bool OTCachedKey::GetIdentifier(OTString& strIdentifier) const
 // Caller must delete!
 // static
 std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
-    OTPassword& theOutput, const char* szDisplay,
-    int32_t nTimeoutSeconds /*=OT_MASTER_KEY_TIMEOUT*/)
+    OTPassword& theOutput, const char* szDisplay, int32_t nTimeoutSeconds)
 {
     std::shared_ptr<OTCachedKey> pMaster(new OTCachedKey(nTimeoutSeconds));
 
