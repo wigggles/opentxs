@@ -184,13 +184,6 @@ private:
     std::string& rtrim(std::string& s);
     std::string& trim(std::string& s);
 
-    const char* categoryName[catLast] = {
-        "Category Error",           "Advanced utilities",
-        "The user wallet",          "Misc",
-        "Markets (bid/ask)",        "Asset accounts",
-        "Dealing with other users", "Financial instruments",
-        "Basket currencies",        "Pseudonyms"};
-
     const std::string spaces18 = "                  ";
 
     std::string args_;
