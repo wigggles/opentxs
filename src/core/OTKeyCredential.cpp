@@ -486,7 +486,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 // virtual
 bool OTKeyCredential::SetPrivateContents(
     const OTString::Map& mapPrivate,
-    OTPassword* pImportPassword) // if not NULL, it means to use this
+    OTPassword* pImportPassword) // if not nullptr, it means to use this
                                  // password by default.
 {
 
@@ -732,7 +732,7 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
             // those
             // re-encrypted keys, I will want to use the normal wallet master
             // key to load
-            // them. (So I pass NULL.)
+            // them. (So I pass nullptr.)
             //
             // But if I'm EXPORTING, bImporting is false, and that means the Nym
             // WAS
@@ -745,7 +745,7 @@ bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
             // used for that loading. (So I pass &theExportPassword.)
             //
             bSuccess = SetPrivateContents(
-                mapPrivate, bImporting ? NULL : &theExportPassword);
+                mapPrivate, bImporting ? nullptr : &theExportPassword);
         }
     }
 

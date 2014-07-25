@@ -155,7 +155,7 @@ namespace opentxs
 
 OTWallet::OTWallet() : m_strDataFolder(OTDataFolder::Get())
 {
-    m_pWithdrawalPurse = NULL;
+    m_pWithdrawalPurse = nullptr;
 }
 
 OTWallet::~OTWallet()
@@ -177,10 +177,10 @@ void OTWallet::Release_Wallet()
     while (!m_mapNyms.empty()) {
         OTPseudonym* pNym = m_mapNyms.begin()->second;
 
-        OT_ASSERT(NULL != pNym);
+        OT_ASSERT(nullptr != pNym);
 
         delete pNym;
-        pNym = NULL;
+        pNym = nullptr;
 
         m_mapNyms.erase(m_mapNyms.begin());
     }
@@ -190,10 +190,10 @@ void OTWallet::Release_Wallet()
     while (!m_mapContracts.empty()) {
         OTAssetContract* pContract = m_mapContracts.begin()->second;
 
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         delete pContract;
-        pContract = NULL;
+        pContract = nullptr;
 
         m_mapContracts.erase(m_mapContracts.begin());
     }
@@ -203,10 +203,10 @@ void OTWallet::Release_Wallet()
     while (!m_mapServers.empty()) {
         OTServerContract* pContract = m_mapServers.begin()->second;
 
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         delete pContract;
-        pContract = NULL;
+        pContract = nullptr;
 
         m_mapServers.erase(m_mapServers.begin());
     }
@@ -216,10 +216,10 @@ void OTWallet::Release_Wallet()
     while (!m_mapAccounts.empty()) {
         OTAccount* pAccount = m_mapAccounts.begin()->second;
 
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         delete pAccount;
-        pAccount = NULL;
+        pAccount = nullptr;
 
         m_mapAccounts.erase(m_mapAccounts.begin());
     }
@@ -251,7 +251,7 @@ void OTWallet::RemovePendingWithdrawal()
 {
     if (m_pWithdrawalPurse) delete m_pWithdrawalPurse;
 
-    m_pWithdrawalPurse = NULL;
+    m_pWithdrawalPurse = nullptr;
 }
 
 bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
@@ -264,7 +264,7 @@ bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
                    NYM_ID, NYM_NAME)) {
             OTPseudonym* pNym = GetNymByID(NYM_ID);
 
-            if (NULL != pNym) {
+            if (nullptr != pNym) {
                 theContract.SignContract(*pNym);
                 return true;
             }
@@ -281,8 +281,8 @@ OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
-        OT_ASSERT_MSG((NULL != pNym),
-                      "NULL pseudonym pointer in OTWallet::GetNymByID.");
+        OT_ASSERT_MSG((nullptr != pNym),
+                      "nullptr pseudonym pointer in OTWallet::GetNymByID.");
 
         OTIdentifier id_CurrentNym;
         pNym->GetIdentifier(id_CurrentNym);
@@ -290,7 +290,7 @@ OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
         if (id_CurrentNym == NYM_ID) return pNym;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTPseudonym* OTWallet::GetNymByIDPartialMatch(
@@ -299,8 +299,8 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
-            (NULL != pNym),
-            "NULL pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
+            (nullptr != pNym),
+            "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
 
         OTString strTemp;
         pNym->GetIdentifier(strTemp);
@@ -316,8 +316,8 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
-            (NULL != pNym),
-            "NULL pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
+            (nullptr != pNym),
+            "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
 
         OTString strNymName;
         strNymName.Set(pNym->GetNymName());
@@ -327,7 +327,7 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(
             return pNym;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // used by high-level wrapper.
@@ -361,7 +361,7 @@ bool OTWallet::GetNym(const int32_t iIndex, OTIdentifier& NYM_ID,
 
         for (auto& it : m_mapNyms) {
             OTPseudonym* pNym = it.second;
-            OT_ASSERT(NULL != pNym);
+            OT_ASSERT(nullptr != pNym);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
                              // index.) Increments thereafter.
@@ -387,7 +387,7 @@ bool OTWallet::GetServer(const int32_t iIndex, OTIdentifier& THE_ID,
 
         for (auto& it : m_mapServers) {
             OTServerContract* pServer = it.second;
-            OT_ASSERT(NULL != pServer);
+            OT_ASSERT(nullptr != pServer);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
                              // index.) Increments thereafter.
@@ -414,7 +414,7 @@ bool OTWallet::GetAssetType(const int32_t iIndex, OTIdentifier& THE_ID,
 
         for (auto& it : m_mapContracts) {
             OTAssetContract* pAssetType = it.second;
-            OT_ASSERT(NULL != pAssetType);
+            OT_ASSERT(nullptr != pAssetType);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
                              // index.) Increments thereafter.
@@ -441,7 +441,7 @@ bool OTWallet::GetAccount(const int32_t iIndex, OTIdentifier& THE_ID,
 
         for (auto& it : m_mapAccounts) {
             OTAccount* pAccount = it.second;
-            OT_ASSERT(NULL != pAccount);
+            OT_ASSERT(nullptr != pAccount);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
                              // index.) Increments thereafter.
@@ -468,9 +468,9 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
 
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
-        OT_ASSERT_MSG((NULL != pNym), "NULL pseudonym pointer in "
-                                      "OTWallet::m_mapNyms, "
-                                      "OTWallet::DisplayStatistics.");
+        OT_ASSERT_MSG((nullptr != pNym), "nullptr pseudonym pointer in "
+                                         "OTWallet::m_mapNyms, "
+                                         "OTWallet::DisplayStatistics.");
 
         pNym->DisplayStatistics(strOutput);
     }
@@ -481,9 +481,9 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
 
     for (auto& it : m_mapContracts) {
         OTContract* pContract = it.second;
-        OT_ASSERT_MSG(NULL != pContract, "NULL contract pointer in "
-                                         "OTWallet::m_mapContracts, "
-                                         "OTWallet::DisplayStatistics");
+        OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
+                                            "OTWallet::m_mapContracts, "
+                                            "OTWallet::DisplayStatistics");
 
         pContract->DisplayStatistics(strOutput);
     }
@@ -494,9 +494,9 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
 
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
-        OT_ASSERT_MSG(NULL != pServer, "NULL server pointer in "
-                                       "OTWallet::m_mapServers, "
-                                       "OTWallet::DisplayStatistics");
+        OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
+                                          "OTWallet::m_mapServers, "
+                                          "OTWallet::DisplayStatistics");
 
         pServer->DisplayStatistics(strOutput);
     }
@@ -507,9 +507,9 @@ void OTWallet::DisplayStatistics(OTString& strOutput)
 
     for (auto& it : m_mapAccounts) {
         OTAccount* pAccount = it.second;
-        OT_ASSERT_MSG(NULL != pAccount, "NULL account pointer in "
-                                        "OTWallet::m_mapAccounts, "
-                                        "OTWallet::DisplayStatistics");
+        OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
+                                           "OTWallet::m_mapAccounts, "
+                                           "OTWallet::DisplayStatistics");
 
         pAccount->DisplayStatistics(strOutput);
 
@@ -533,7 +533,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
 
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
         OTPseudonym* pNym = it->second;
-        OT_ASSERT(NULL != pNym);
+        OT_ASSERT(nullptr != pNym);
 
         pNym->GetIdentifier(aNymID);
 
@@ -548,7 +548,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
             // (Versus each being separate copies of the same object.)
             //
             if (&theNym != pNym) delete pNym;
-            pNym = NULL;
+            pNym = nullptr;
 
             break;
         }
@@ -573,7 +573,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
         OTAccount* pAccount = it->second;
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
 
@@ -585,7 +585,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
 
             m_mapAccounts.erase(it);
             delete pAccount;
-            pAccount = NULL;
+            pAccount = nullptr;
 
             break;
         }
@@ -596,14 +596,14 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
 }
 
 // Look up an account by ID and see if it is in the wallet.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
 {
     // loop through the accounts and find one with a specific ID.
     //
     for (auto& it : m_mapAccounts) {
         OTAccount* pAccount = it.second;
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         OTIdentifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
@@ -611,7 +611,7 @@ OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
         if (anAccountID == theAccountID) return pAccount;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTAccount* OTWallet::GetAccountPartialMatch(
@@ -620,7 +620,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
         OTAccount* pAccount = it.second;
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         OTIdentifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
@@ -635,7 +635,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(
     //
     for (auto& it : m_mapAccounts) {
         OTAccount* pAccount = it.second;
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         OTString strName;
         pAccount->GetName(strName);
@@ -645,7 +645,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(
             return pAccount;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTAccount* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
@@ -655,14 +655,14 @@ OTAccount* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
     //
     for (auto& it : m_mapAccounts) {
         OTAccount* pIssuerAccount = it.second;
-        OT_ASSERT(NULL != pIssuerAccount);
+        OT_ASSERT(nullptr != pIssuerAccount);
 
         if ((pIssuerAccount->GetAssetTypeID() == theAssetTypeID) &&
             (pIssuerAccount->IsIssuer()))
             return pIssuerAccount;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // Pass in the Server ID and get the pointer back.
@@ -670,9 +670,9 @@ OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
 {
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
-        OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
-                                         "OTWallet::m_mapServers, "
-                                         "OTWallet::GetServerContract");
+        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
+                                            "OTWallet::m_mapServers, "
+                                            "OTWallet::GetServerContract");
 
         OTIdentifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
@@ -681,7 +681,7 @@ OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
             return dynamic_cast<OTServerContract*>(pServer);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTServerContract* OTWallet::GetServerContractPartialMatch(
@@ -689,9 +689,9 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
 {
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
-        OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
-                                         "OTWallet::m_mapServers, "
-                                         "OTWallet::GetServerContract");
+        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
+                                            "OTWallet::m_mapServers, "
+                                            "OTWallet::GetServerContract");
 
         OTIdentifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
@@ -707,9 +707,9 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
     //
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
-        OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
-                                         "OTWallet::m_mapServers, "
-                                         "OTWallet::GetServerContract");
+        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
+                                            "OTWallet::m_mapServers, "
+                                            "OTWallet::GetServerContract");
 
         OTString strName;
         pServer->GetName(strName);
@@ -719,7 +719,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
             return dynamic_cast<OTServerContract*>(pServer);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // The wallet "owns" theContract and will handle cleaning it up.
@@ -782,7 +782,7 @@ bool OTWallet::VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
                                   const char* szFuncName)
 {
     const char* szFunc =
-        (NULL != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
+        (nullptr != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
 
     if (SERVER_ID != theAcct.GetRealServerID()) {
         const OTString s1(SERVER_ID), s2(theAcct.GetRealServerID());
@@ -827,13 +827,13 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
                                       const char* szFuncName)
 {
     const char* szFunc =
-        (NULL != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
+        (nullptr != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
 
     const OTString strAcctID(ACCT_ID);
 
     OTAccount* pAccount = GetAccount(ACCT_ID);
 
-    if (NULL ==
+    if (nullptr ==
         pAccount) // It wasn't there already, so we'll have to load it...
     {
         otOut << "OTWallet::GetOrLoadAccount " << szFunc
@@ -841,15 +841,15 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
               << strAcctID << "). "
                               "Attempting to load it from storage...\n";
         pAccount = LoadAccount(theNym, ACCT_ID, SERVER_ID, szFuncName);
-    } // pAccount == NULL.
+    } // pAccount == nullptr.
 
     // It either was already there, or it loaded successfully...
     //
-    if (NULL == pAccount) // pAccount EXISTS...
+    if (nullptr == pAccount) // pAccount EXISTS...
     {
         otErr << "OTWallet::GetOrLoadAccount " << szFunc
               << ": Error loading Asset Account: " << strAcctID << "\n";
-        return NULL;
+        return nullptr;
     }
 
     return pAccount;
@@ -868,23 +868,24 @@ OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
                                  const char* szFuncName)
 {
     const char* szFunc =
-        (NULL != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
+        (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
 
     const OTString strAcctID(ACCT_ID);
     OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCT_ID, SERVER_ID);
 
     // It loaded successfully...
     //
-    if (NULL != pAccount) // pAccount EXISTS...
+    if (nullptr != pAccount) // pAccount EXISTS...
     {
         bool bVerified =
             VerifyAssetAccount(theNym, *pAccount, SERVER_ID, strAcctID, szFunc);
 
         if (false == bVerified) {
             delete pAccount;
-            pAccount = NULL;
-            return NULL; // No need to log, since VerifyAssetAccount() already
-                         // logs.
+            pAccount = nullptr;
+            return nullptr; // No need to log, since VerifyAssetAccount()
+                            // already
+                            // logs.
         }
 
         // If I had to load it myself, that means I need to add it to the
@@ -899,7 +900,7 @@ OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
     else {
         otErr << "OTWallet::LoadAccount " << szFunc
               << ": Failed loading Asset Account: " << strAcctID << "\n";
-        return NULL;
+        return nullptr;
     }
 
     return pAccount;
@@ -914,18 +915,19 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
     const OTString strNymID(NYM_ID);
     const char* szFunc = "OTWallet::GetOrLoadPublicNym";
 
-    szFuncName = (szFuncName == NULL) ? "" : szFuncName;
+    szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
 
     OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
 
-    if (NULL == pNym) // Wasn't already in the wallet. Try loading it.
+    if (nullptr == pNym) // Wasn't already in the wallet. Try loading it.
     {
         otWarn << szFunc << " " << szFuncName
                << ": There's no Nym already loaded with that ID. "
                   "Attempting to load public key...\n";
         pNym = OTPseudonym::LoadPublicNym(NYM_ID); // <===========
         // It worked!
-        if (NULL != pNym) // LoadPublicNym has plenty of error logging already.
+        if (nullptr !=
+            pNym) // LoadPublicNym has plenty of error logging already.
         {
             if (pNym->HasPrivateKey()) // We don't auto-add public Nyms -- only
                                        // private ones.
@@ -939,7 +941,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
     // If pNym exists, yet he doesn't have a public key (weird!)
     // Though we log the error, we still return pNym, since it exists.
     //
-    if ((NULL != pNym) && (false == pNym->HasPublicKey()))
+    if ((nullptr != pNym) && (false == pNym->HasPublicKey()))
         otErr << szFunc << " " << szFuncName << ": Found nym (" << strNymID
               << "), but he has no public key. "
                  "(Still returning the Nym, since it exists.)\n";
@@ -962,30 +964,32 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ":" << szFuncName
               << ": Error: NYM_ID passed in empty, returning null";
-        return NULL;
+        return nullptr;
     }
 
     const OTString strNymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    if (NULL == pPWData) pPWData = &thePWData;
+    if (nullptr == pPWData) pPWData = &thePWData;
 
-    szFuncName = (szFuncName == NULL) ? "" : szFuncName;
+    szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
 
     // See if it's already there. (Could be the public version
     // though :P Still might have to reload it.)
     //
     OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
 
-    if (NULL == pNym) // Wasn't already in the wallet. Let's try loading it...
+    if (nullptr ==
+        pNym) // Wasn't already in the wallet. Let's try loading it...
     {
         otWarn << __FUNCTION__ << " " << szFuncName
                << ": There's no Nym already loaded with that ID. "
                   "Attempting to load private key...\n";
-        pNym = OTPseudonym::LoadPrivateNym(NYM_ID, bChecking, NULL,
+        pNym = OTPseudonym::LoadPrivateNym(NYM_ID, bChecking, nullptr,
                                            szFuncName, // <===========
                                            pPWData, pImportPassword);
         // It worked!
-        if (NULL != pNym)  // LoadPublicNym has plenty of error logging already.
+        if (nullptr !=
+            pNym)          // LoadPublicNym has plenty of error logging already.
             AddNym(*pNym); // <===========
         else {
             OTLogStream& otLog = bChecking ? otWarn : otOut;
@@ -1000,7 +1004,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
     // private key, as he should. (He might be already loaded on the
     // wallet, without his private key, necessitating a reload.)
     //
-    if (NULL != pNym) // pNym definitely NOT NULL (it exists)...
+    if (nullptr != pNym) // pNym definitely NOT nullptr (it exists)...
     {
 
         // ...yet he doesn't have a public key (Weird!)
@@ -1041,7 +1045,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                                    szFuncName, // <===========
                                                    pPWData, pImportPassword);
                 // It worked!
-                if (NULL !=
+                if (nullptr !=
                     pNym) // LoadPrivateNym has plenty of error logging already.
                     AddNym(*pNym); // <===========
                 else
@@ -1082,9 +1086,9 @@ OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
     //
     OTPasswordData thePWData(OT_PW_DISPLAY);
 
-    if (NULL == pNym)
+    if (nullptr == pNym)
         pNym = GetOrLoadPrivateNym(NYM_ID, bChecking, szFuncName,
-                                   NULL == pPWData ? &thePWData : pPWData);
+                                   nullptr == pPWData ? &thePWData : pPWData);
 
     return pNym;
 }
@@ -1101,8 +1105,8 @@ bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
 {
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
         OTPseudonym* pNym = it->second;
-        OT_ASSERT_MSG((NULL != pNym),
-                      "NULL pseudonym pointer in OTWallet::RemoveNym.");
+        OT_ASSERT_MSG((nullptr != pNym),
+                      "nullptr pseudonym pointer in OTWallet::RemoveNym.");
 
         if (pNym->CompareID(theTargetID)) {
 
@@ -1135,7 +1139,7 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
 
     for (auto it(m_mapContracts.begin()); it != m_mapContracts.end(); ++it) {
         OTAssetContract* pContract = it->second;
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         pContract->GetIdentifier(aContractID);
 
@@ -1155,9 +1159,9 @@ bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
 {
     for (auto it(m_mapServers.begin()); it != m_mapServers.end(); ++it) {
         OTContract* pServer = it->second;
-        OT_ASSERT_MSG((NULL != pServer), "NULL server pointer in "
-                                         "OTWallet::m_mapServers, "
-                                         "OTWallet::RemoveServerContract");
+        OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
+                                            "OTWallet::m_mapServers, "
+                                            "OTWallet::RemoveServerContract");
 
         OTIdentifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
@@ -1185,7 +1189,7 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
         OTAccount* pAccount = it->second;
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
 
@@ -1203,7 +1207,7 @@ OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
 {
     for (auto& it : m_mapContracts) {
         OTAssetContract* pContract = it.second;
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         OTIdentifier aContractID;
         pContract->GetIdentifier(aContractID);
@@ -1211,7 +1215,7 @@ OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
         if (aContractID == theContractID) return pContract;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTAssetContract* OTWallet::GetAssetContractPartialMatch(
@@ -1219,7 +1223,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
 {
     for (auto& it : m_mapContracts) {
         OTAssetContract* pContract = it.second;
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         OTIdentifier aContractID;
         pContract->GetIdentifier(aContractID);
@@ -1235,7 +1239,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
     //
     for (auto& it : m_mapContracts) {
         OTAssetContract* pContract = it.second;
-        OT_ASSERT(NULL != pContract);
+        OT_ASSERT(nullptr != pContract);
 
         OTString strName;
         pContract->GetName(strName);
@@ -1245,7 +1249,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
             return pContract;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool OTWallet::SaveContract(OTString& strContract)
@@ -1317,36 +1321,36 @@ bool OTWallet::SaveContract(OTString& strContract)
 
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
-        OT_ASSERT_MSG(NULL != pNym, "NULL pseudonym pointer in "
-                                    "OTWallet::m_mapNyms, "
-                                    "OTWallet::SaveContract");
+        OT_ASSERT_MSG(nullptr != pNym, "nullptr pseudonym pointer in "
+                                       "OTWallet::m_mapNyms, "
+                                       "OTWallet::SaveContract");
 
         pNym->SavePseudonymWallet(strContract);
     }
 
     for (auto& it : m_mapContracts) {
         OTContract* pContract = it.second;
-        OT_ASSERT_MSG(NULL != pContract, "NULL contract pointer in "
-                                         "OTWallet::m_mapContracts, "
-                                         "OTWallet::SaveContract");
+        OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
+                                            "OTWallet::m_mapContracts, "
+                                            "OTWallet::SaveContract");
 
         pContract->SaveContractWallet(strContract);
     }
 
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
-        OT_ASSERT_MSG(NULL != pServer, "NULL server pointer in "
-                                       "OTWallet::m_mapServers, "
-                                       "OTWallet::SaveContract");
+        OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
+                                          "OTWallet::m_mapServers, "
+                                          "OTWallet::SaveContract");
 
         pServer->SaveContractWallet(strContract);
     }
 
     for (auto& it : m_mapAccounts) {
         OTContract* pAccount = it.second;
-        OT_ASSERT_MSG(NULL != pAccount, "NULL account pointer in "
-                                        "OTWallet::m_mapAccounts, "
-                                        "OTWallet::SaveContract");
+        OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
+                                           "OTWallet::m_mapAccounts, "
+                                           "OTWallet::SaveContract");
 
         pAccount->SaveContractWallet(strContract);
     }
@@ -1390,11 +1394,12 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
             OTPassword master_password;
             const bool bGotMasterPW = pMasterKey->GetMasterPassword(
                 pMasterKey, master_password,
-                (NULL == pReason) ? "" : pReason->c_str());
+                (nullptr == pReason) ? "" : pReason->c_str());
             OTString strNewKeyOutput;
 
-            if (bGotMasterPW && OTSymmetricKey::CreateNewKey(
-                                    strNewKeyOutput, NULL, &master_password)) {
+            if (bGotMasterPW &&
+                OTSymmetricKey::CreateNewKey(strNewKeyOutput, nullptr,
+                                             &master_password)) {
                 std::shared_ptr<OTSymmetricKey> pNewExtraKey(
                     new OTSymmetricKey);
 
@@ -1484,7 +1489,7 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
 {
     if (key_id.empty() || !strPlaintext.Exists()) return false;
 
-    std::string str_Reason((NULL != pstrDisplay) ? pstrDisplay->Get() : "");
+    std::string str_Reason((nullptr != pstrDisplay) ? pstrDisplay->Get() : "");
 
     std::shared_ptr<OTSymmetricKey> pKey =
         OTWallet::getOrCreateExtraKey(key_id, &str_Reason);
@@ -1558,12 +1563,12 @@ bool OTWallet::addExtraKey(const std::string& str_id,
 }
 
 // Pass in the name only, NOT the full path.
-// If you pass NULL, it remembers full path from last time.
+// If you pass nullptr, it remembers full path from last time.
 // (Better to do that.)
 //
 bool OTWallet::SaveWallet(const char* szFilename)
 {
-    if (NULL != szFilename) m_strFilename.Set(szFilename);
+    if (nullptr != szFilename) m_strFilename.Set(szFilename);
 
     if (!m_strFilename.Exists()) {
         otErr << __FUNCTION__ << ": Filename Dosn't Exist!\n";
@@ -1614,8 +1619,8 @@ HXTM/x449Al2z8zBHBTRF77jhHkYLj8MIgqrJ2Ep
  */
 bool OTWallet::LoadWallet(const char* szFilename)
 {
-    OT_ASSERT_MSG(m_strFilename.Exists() || (NULL != szFilename),
-                  "OTWallet::LoadWallet: NULL filename.\n");
+    OT_ASSERT_MSG(m_strFilename.Exists() || (nullptr != szFilename),
+                  "OTWallet::LoadWallet: nullptr filename.\n");
 
     Release();
 
@@ -1629,10 +1634,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
     //
     if (!m_strFilename.Exists()) // If it's not already set, then set it.
         m_strFilename.Set(
-            szFilename); // (We know NULL wasn't passed in, in this case.)
+            szFilename); // (We know nullptr wasn't passed in, in this case.)
 
-    if (NULL == szFilename) // If NULL was passed in, then set the pointer to
-                            // existing string.
+    if (nullptr ==
+        szFilename) // If nullptr was passed in, then set the pointer to
+                    // existing string.
         szFilename = m_strFilename.Get(); // (We know existing string is there,
                                           // in this case.)
 
@@ -1868,10 +1874,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         OTPseudonym::LoadPrivateNym(theNymID, false, &NymName);
                     // If it fails loading as a private Nym, then maybe it's a
                     // public one...
-                    if (NULL == pNym)
+                    if (nullptr == pNym)
                         pNym = OTPseudonym::LoadPublicNym(theNymID, &NymName);
 
-                    if (NULL == pNym) // STILL null ??
+                    if (nullptr == pNym) // STILL null ??
                         otOut << __FUNCTION__ << ": Failed loading Nym ("
                               << NymName << ") with ID: " << NymID << "\n";
                     else
@@ -1911,9 +1917,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     OTAssetContract* pContract = new OTAssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 
-                    OT_ASSERT_MSG(NULL != pContract, "Error allocating memory "
-                                                     "for Asset Contract in "
-                                                     "OTWallet::LoadWallet\n");
+                    OT_ASSERT_MSG(nullptr != pContract,
+                                  "Error allocating memory "
+                                  "for Asset Contract in "
+                                  "OTWallet::LoadWallet\n");
 
                     if (pContract->LoadContract()) {
                         if (pContract->VerifyContract()) {
@@ -1928,13 +1935,13 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         }
                         else {
                             delete pContract;
-                            pContract = NULL;
+                            pContract = nullptr;
                             otOut << "Contract FAILED to verify.\n";
                         }
                     }
                     else {
                         delete pContract;
-                        pContract = NULL;
+                        pContract = nullptr;
                         otErr << __FUNCTION__
                               << ": Error reading file for Asset Contract.\n";
                     }
@@ -1961,9 +1968,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     OTServerContract* pContract = new OTServerContract(
                         ServerName, strContractPath, ServerID, ServerID);
 
-                    OT_ASSERT_MSG(NULL != pContract, "Error allocating memory "
-                                                     "for Server Contract in "
-                                                     "OTWallet::LoadWallet\n");
+                    OT_ASSERT_MSG(nullptr != pContract,
+                                  "Error allocating memory "
+                                  "for Server Contract in "
+                                  "OTWallet::LoadWallet\n");
 
                     if (pContract->LoadContract()) {
                         if (pContract->VerifyContract()) {
@@ -1983,14 +1991,14 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         }
                         else {
                             delete pContract;
-                            pContract = NULL;
+                            pContract = nullptr;
                             otOut << __FUNCTION__
                                   << ": Server contract failed to verify.\n";
                         }
                     }
                     else {
                         delete pContract;
-                        pContract = NULL;
+                        pContract = nullptr;
                         otErr
                             << __FUNCTION__
                             << ": Error reading file for Transaction Server.\n";
@@ -2049,8 +2057,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
         for (auto& it : m_mapNyms) {
             OTPseudonym* pNym = it.second;
             OT_ASSERT_MSG(
-                (NULL != pNym),
-                "ASSERT: OTWallet::LoadWallet: NULL pseudonym pointer.");
+                (nullptr != pNym),
+                "ASSERT: OTWallet::LoadWallet: nullptr pseudonym pointer.");
 
             if (pNym->HasPrivateKey() &&
                 ConvertNymToCachedKey(*pNym)) // Internally this is smart

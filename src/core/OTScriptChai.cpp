@@ -152,7 +152,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 {
     using namespace chaiscript;
 
-    OT_ASSERT(NULL != chai);
+    OT_ASSERT(nullptr != chai);
 
     if (m_str_script.size() > 0) {
 
@@ -177,7 +177,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
-            OT_ASSERT(NULL != pParty);
+            OT_ASSERT(nullptr != pParty);
 
             std::string party_name = pParty->GetPartyName();
 
@@ -214,7 +214,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
         for (auto& it : m_mapAccounts) {
             OTPartyAccount* pAcct = it.second;
-            OT_ASSERT(NULL != pAcct);
+            OT_ASSERT(nullptr != pAcct);
 
             std::string acct_name = pAcct->GetName().Get();
 
@@ -252,7 +252,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
         for (auto& it : m_mapVariables) {
             const std::string var_name = it.first;
             OTVariable* pVar = it.second;
-            OT_ASSERT((NULL != pVar) && (var_name.size() > 0));
+            OT_ASSERT((nullptr != pVar) && (var_name.size() > 0));
 
             switch (pVar->GetType()) {
             case OTVariable::Var_Integer: {
@@ -324,7 +324,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
         try
         {
-            if (NULL == pReturnVar) // Nothing to return.
+            if (nullptr == pReturnVar) // Nothing to return.
                 chai->eval(m_str_script.c_str(),
                            exception_specification<const std::exception&>(),
                            m_str_display_filename);
@@ -419,8 +419,8 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             // Error unboxing return value
             otErr << "OTScriptChai::ExecuteScript: Caught "
                      "chaiscript::exception::bad_boxed_cast : "
-                  << ((e.what() != NULL) ? e.what()
-                                         : "e.what() returned null, sorry")
+                  << ((e.what() != nullptr) ? e.what()
+                                            : "e.what() returned null, sorry")
                   << ".\n";
             return false;
         }
@@ -428,7 +428,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
         {
             // Error explicitly thrown from script
             otErr << "OTScriptChai::ExecuteScript: Caught std::exception "
-                     "exception: " << ((e.what() != NULL)
+                     "exception: " << ((e.what() != nullptr)
                                            ? e.what()
                                            : "e.what() returned null, sorry")
                   << "\n";
@@ -514,7 +514,7 @@ OTScriptChai::OTScriptChai(const std::string& new_string)
 
 OTScriptChai::~OTScriptChai()
 {
-    if (NULL != chai) delete chai;
+    if (nullptr != chai) delete chai;
 }
 
 } // namespace opentxs

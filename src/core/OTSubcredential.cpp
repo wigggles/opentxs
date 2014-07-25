@@ -171,7 +171,7 @@ void OTSubcredential::SetOwner(OTCredential& theOwner)
 OTSubcredential::OTSubcredential()
     : ot_super()
     , m_StoreAs(OTSubcredential::credPrivateInfo)
-    , m_pOwner(NULL)
+    , m_pOwner(nullptr)
 {
     m_strContractType = "CREDENTIAL";
 }
@@ -213,7 +213,7 @@ bool OTSubcredential::SetPublicContents(const OTString::Map& mapPublic)
 
 // virtual
 bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
-                                         OTPassword*) // if not NULL,
+                                         OTPassword*) // if not nullptr,
                                                       // it means to
                                                       // use this
                                                       // password by
@@ -238,7 +238,7 @@ void OTSubcredential::SetNymIDandSource(const OTString& strNymID,
 void OTSubcredential::UpdateMasterPublicToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
-    OT_ASSERT(NULL != m_pOwner);
+    OT_ASSERT(nullptr != m_pOwner);
     OTASCIIArmor ascMaster(m_pOwner->GetPubCredential());
     strAppendTo.Concatenate("<masterPublic>\n%s</masterPublic>\n\n",
                             ascMaster.Get());
@@ -394,7 +394,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // expected to get, according
         // to the OTCredential that is m_pOwner.
         //
-        else if ((NULL != m_pOwner) &&
+        else if ((nullptr != m_pOwner) &&
                  false == (m_pOwner->GetPubCredential().Compare(
                               strMasterPublicCredential))) {
             otErr << "Failure in " << __FILE__ << " line " << __LINE__
@@ -578,7 +578,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 return (-1); // error condition
             }
 
-            OT_ASSERT(NULL != m_pOwner);
+            OT_ASSERT(nullptr != m_pOwner);
 
             // Sometimes we are supposed to use a specific, pre-specified
             // password (versus just
@@ -601,10 +601,10 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // That's what brings us here now... when that happens,
             // m_pOwner->GetImportPassword() will be set
             // with the appropriate pointer to the passphrase. Otherwise it will
-            // be NULL. Meanwhile SetPrivateContents
-            // below accepts an import passphrase, which it defaults to NULL.
+            // be nullptr. Meanwhile SetPrivateContents
+            // below accepts an import passphrase, which it defaults to nullptr.
             //
-            // So we just pass it in either way (sometimes it's NULL and the
+            // So we just pass it in either way (sometimes it's nullptr and the
             // wallet cached master key is used, and
             // sometimes an actual passphrase is passed in, so we use it.)
 
@@ -660,7 +660,7 @@ bool OTSubcredential::VerifyNymID()
 //
 bool OTSubcredential::VerifyInternally()
 {
-    OT_ASSERT(NULL != m_pOwner);
+    OT_ASSERT(nullptr != m_pOwner);
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
@@ -732,7 +732,7 @@ bool OTSubcredential::VerifyInternally()
 
 bool OTSubcredential::VerifySignedByMaster()
 {
-    OT_ASSERT(NULL != m_pOwner);
+    OT_ASSERT(nullptr != m_pOwner);
     return VerifyWithKey(m_pOwner->GetMasterkey().m_SigningKey.GetPublicKey());
 }
 

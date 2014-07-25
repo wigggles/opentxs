@@ -161,8 +161,8 @@ bool OTAssetContract::ParseFormatted(int64_t& lResult,
                                      const char* szThousandSeparator,
                                      const char* szDecimalPoint)
 {
-    OT_ASSERT(NULL != szThousandSeparator);
-    OT_ASSERT(NULL != szDecimalPoint);
+    OT_ASSERT(nullptr != szThousandSeparator);
+    OT_ASSERT(nullptr != szDecimalPoint);
 
     lResult = 0;
 
@@ -597,18 +597,20 @@ bool OTAssetContract::ForEachAccountRecord(
                           OTFolders::Contract().Get(), strAcctRecordFile.Get());
     OTCleanup<OTDB::Storable> theAngel(
         pStorable); // It will definitely be cleaned up.
-    OTDB::StringMap* pMap =
-        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
+    OTDB::StringMap* pMap = (nullptr == pStorable)
+                                ? nullptr
+                                : dynamic_cast<OTDB::StringMap*>(pStorable);
 
     // There was definitely a StringMap loaded from local storage.
     // (Even an empty one, possibly.) This is the only block that matters in
     // this function.
     //
-    if (NULL != pMap) {
+    if (nullptr != pMap) {
         OTIdentifier* pServerID = theAction.GetServerID();
-        OT_ASSERT_MSG(NULL != pServerID, "Assert: NULL Server ID on functor. "
-                                         "(How did you even construct the "
-                                         "thing?)");
+        OT_ASSERT_MSG(nullptr != pServerID,
+                      "Assert: nullptr Server ID on functor. "
+                      "(How did you even construct the "
+                      "thing?)");
 
         auto& theMap = pMap->the_map;
 
@@ -630,7 +632,7 @@ bool OTAssetContract::ForEachAccountRecord(
                       << ") when expecting: " << strAssetTypeID << "\n";
             }
             else {
-                OTAccount* pAccount = NULL;
+                OTAccount* pAccount = nullptr;
                 OTCleanup<OTAccount> theAcctAngel;
 
                 const OTIdentifier theAccountID(str_acct_id.c_str());
@@ -642,7 +644,7 @@ bool OTAssetContract::ForEachAccountRecord(
                 //
                 mapOfAccounts* pLoadedAccounts = theAction.GetLoadedAccts();
 
-                if (NULL !=
+                if (nullptr !=
                     pLoadedAccounts) // there are some accounts already loaded,
                 { // let's see if the one we're looking for is there...
                     mapOfAccounts::iterator found_it =
@@ -651,13 +653,13 @@ bool OTAssetContract::ForEachAccountRecord(
                     if (pLoadedAccounts->end() != found_it) // FOUND IT.
                     {
                         pAccount = found_it->second;
-                        OT_ASSERT(NULL != pAccount);
+                        OT_ASSERT(nullptr != pAccount);
 
                         if (theAccountID != pAccount->GetPurportedAccountID()) {
                             otErr << "Error: the actual account didn't have "
                                      "the ID that the std::map SAID it had! "
                                      "(Should never happen.)\n";
-                            pAccount = NULL;
+                            pAccount = nullptr;
                         }
                     }
                 }
@@ -665,14 +667,14 @@ bool OTAssetContract::ForEachAccountRecord(
                 // I guess it wasn't already loaded...
                 // Let's try to load it.
                 //
-                if (NULL == pAccount) {
+                if (nullptr == pAccount) {
                     pAccount = OTAccount::LoadExistingAccount(theAccountID,
                                                               *pServerID);
                     theAcctAngel.SetCleanupTargetPointer(pAccount);
                 }
 
                 const bool bSuccessLoadingAccount =
-                    ((pAccount != NULL) ? true : false);
+                    ((pAccount != nullptr) ? true : false);
                 if (bSuccessLoadingAccount) {
                     const bool bTriggerSuccess = theAction.Trigger(*pAccount);
                     if (!bTriggerSuccess)
@@ -684,9 +686,9 @@ bool OTAssetContract::ForEachAccountRecord(
             }
         }
         return true;
-    }    // if pMap != NULL
+    }    // if pMap != nullptr
     else // nothing was loaded up from local storage. No String Map. It was
-         // NULL.
+         // nullptr.
     {
         // Therefore I couldn't possibly loop through "EachAccountRecord",
         // if there ARE NO account records... right?
@@ -724,9 +726,9 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable* pStorable = NULL;
+    OTDB::Storable* pStorable = nullptr;
     OTCleanup<OTDB::Storable> theAngel;
-    OTDB::StringMap* pMap = NULL;
+    OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(OTFolders::Contract().Get(),
                      strAcctRecordFile.Get())) // the file already exists; let's
@@ -740,12 +742,12 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
 
     theAngel.SetCleanupTargetPointer(
         pStorable); // It will definitely be cleaned up.
-    pMap =
-        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
+    pMap = (nullptr == pStorable) ? nullptr
+                                  : dynamic_cast<OTDB::StringMap*>(pStorable);
 
     // It exists.
     //
-    if (NULL == pMap) {
+    if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
                  "file for asset type: " << strAssetTypeID << "\n";
@@ -824,9 +826,9 @@ bool OTAssetContract::EraseAccountRecord(
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable* pStorable = NULL;
+    OTDB::Storable* pStorable = nullptr;
     OTCleanup<OTDB::Storable> theAngel;
-    OTDB::StringMap* pMap = NULL;
+    OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(OTFolders::Contract().Get(),
                      strAcctRecordFile.Get())) // the file already exists; let's
@@ -840,12 +842,12 @@ bool OTAssetContract::EraseAccountRecord(
 
     theAngel.SetCleanupTargetPointer(
         pStorable); // It will definitely be cleaned up.
-    pMap =
-        (NULL == pStorable) ? NULL : dynamic_cast<OTDB::StringMap*>(pStorable);
+    pMap = (nullptr == pStorable) ? nullptr
+                                  : dynamic_cast<OTDB::StringMap*>(pStorable);
 
     // It exists.
     //
-    if (NULL == pMap) {
+    if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
                  "file for asset type: " << strAssetTypeID << "\n";

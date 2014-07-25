@@ -163,7 +163,7 @@ namespace opentxs
 OTLowLevelKeyData::~OTLowLevelKeyData()
 {
     if (m_bCleanup) Cleanup();
-    if (NULL != dp) delete (dp);
+    if (nullptr != dp) delete (dp);
 }
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
@@ -171,8 +171,8 @@ OTLowLevelKeyData::~OTLowLevelKeyData()
 OTLowLevelKeyData::OTLowLevelKeyData() : m_bCleanup(true)
 {
     dp = new OTLowLevelKeyDataOpenSSLdp();
-    dp->m_pX509 = NULL;
-    dp->m_pKey = NULL;
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
 }
 
 // Don't force things by explicitly calling this function, unless you are SURE
@@ -181,18 +181,18 @@ OTLowLevelKeyData::OTLowLevelKeyData() : m_bCleanup(true)
 //
 void OTLowLevelKeyData::Cleanup()
 {
-    if (NULL != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
-    dp->m_pKey = NULL;
-    if (NULL != dp->m_pX509) X509_free(dp->m_pX509);
-    dp->m_pX509 = NULL;
+    if (nullptr != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
+    dp->m_pKey = nullptr;
+    if (nullptr != dp->m_pX509) X509_free(dp->m_pX509);
+    dp->m_pX509 = nullptr;
 }
 
 bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
 {
 
-    //    OpenSSL_BIO        bio_err    =    NULL;
-    X509* x509 = NULL;
-    EVP_PKEY* pNewKey = NULL;
+    //    OpenSSL_BIO        bio_err    =    nullptr;
+    X509* x509 = nullptr;
+    EVP_PKEY* pNewKey = nullptr;
 
     //    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); // memory leak detection.
     // Leaving this for now.
@@ -204,22 +204,22 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
     // 1024 is apparently a minimum requirement, if not an only requirement.
     // Will need to go over just what sorts of keys are involved here... todo.
 
-    if (NULL == x509) {
+    if (nullptr == x509) {
         otErr << __FUNCTION__
               << ": Failed attempting to generate new x509 cert.\n";
 
-        if (NULL != pNewKey) EVP_PKEY_free(pNewKey);
-        pNewKey = NULL;
+        if (nullptr != pNewKey) EVP_PKEY_free(pNewKey);
+        pNewKey = nullptr;
 
         return false;
     }
 
-    if (NULL == pNewKey) {
+    if (nullptr == pNewKey) {
         otErr << __FUNCTION__
               << ": Failed attempting to generate new private key.\n";
 
-        if (NULL != x509) X509_free(x509);
-        x509 = NULL;
+        if (nullptr != x509) X509_free(x509);
+        x509 = nullptr;
 
         return false;
     }
@@ -244,7 +244,7 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
     //    OTPasswordData thePWData2("OTPseudonym::GenerateNym is calling
     // PEM_write_PrivateKey...");
     //
-    //    PEM_write_PrivateKey(stdout, pNewKey, EVP_des_ede3_cbc(), NULL, 0,
+    //    PEM_write_PrivateKey(stdout, pNewKey, EVP_des_ede3_cbc(), nullptr, 0,
     // OTAsymmetricKey::GetPasswordCallback(), &thePWData2);
     //    PEM_write_X509(stdout, x509);
 
@@ -253,11 +253,11 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
 
 bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
 {
-    OT_ASSERT(NULL != dp->m_pKey);
-    OT_ASSERT(NULL != dp->m_pX509);
+    OT_ASSERT(nullptr != dp->m_pKey);
+    OT_ASSERT(nullptr != dp->m_pX509);
 
-    OT_ASSERT(NULL != theKeypair.m_pkeyPublic);
-    OT_ASSERT(NULL != theKeypair.m_pkeyPrivate);
+    OT_ASSERT(nullptr != theKeypair.m_pkeyPublic);
+    OT_ASSERT(nullptr != theKeypair.m_pkeyPrivate);
 
     // Since we are in OpenSSL-specific code, we have to make sure these are
     // OpenSSL-specific keys.
@@ -267,12 +267,12 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
     OTAsymmetricKey_OpenSSL* pPrivateKey =
         dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPrivate);
 
-    if (NULL == pPublicKey) {
+    if (nullptr == pPublicKey) {
         otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                  "failed. (theKeypair.m_pkeyPublic)\n";
         return false;
     }
-    if (NULL == pPrivateKey) {
+    if (nullptr == pPrivateKey) {
         otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                  "failed. (theKeypair.m_pkeyPrivate)\n";
         return false;
@@ -282,19 +282,20 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
     //
     pPublicKey->SetAsPublic();
     //  EVP_PKEY * pEVP_PubKey = X509_get_pubkey(m_pX509);
-    //  OT_ASSERT(NULL != pEVP_PubKey);
+    //  OT_ASSERT(nullptr != pEVP_PubKey);
     //  pPublicKey-> SetKeyAsCopyOf(*pEVP_PubKey); // bool bIsPrivateKey=false
     // by default.
     pPublicKey->dp->SetKeyAsCopyOf(
         *dp->m_pKey); // bool bIsPrivateKey=false by default.
                       //  EVP_PKEY_free(pEVP_PubKey);
-                      //  pEVP_PubKey = NULL;
+                      //  pEVP_PubKey = nullptr;
 
     pPublicKey->dp->SetX509(dp->m_pX509); // m_pX509 is now owned by pPublicKey.
                                           // (No need to free it in our own
                                           // destructor anymore.)
-    dp->m_pX509 = NULL; // pPublicKey took ownership, so we don't want to ALSO
-                        // clean it up, since pPublicKey already will do so.
+    dp->m_pX509 =
+        nullptr; // pPublicKey took ownership, so we don't want to ALSO
+                 // clean it up, since pPublicKey already will do so.
 
     pPrivateKey->SetAsPrivate();
     pPrivateKey->dp->SetKeyAsCopyOf(
@@ -302,11 +303,11 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
     // Since pPrivateKey only takes a COPY of m_pKey, we are still responsible
     // to clean up m_pKey in our own destructor.
     // (Assuming m_bCleanup is set to true, which is the default.) That's why
-    // I'm NOT setting it to NULL, as I did above
+    // I'm NOT setting it to nullptr, as I did above
     // with m_pX509.
 
     EVP_PKEY_free(dp->m_pKey);
-    dp->m_pKey = NULL;
+    dp->m_pKey = nullptr;
 
     // Success! At this point, theKeypair's public and private keys have been
     // set.

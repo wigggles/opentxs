@@ -155,7 +155,7 @@ namespace opentxs
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory() // Caller IS responsible to
                                                // delete!
 {
-    OTAsymmetricKey* pKey = NULL;
+    OTAsymmetricKey* pKey = nullptr;
 #if defined(OT_CRYPTO_USING_OPENSSL)
     pKey = new OTAsymmetricKey_OpenSSL;
 #elif defined(OT_CRYPTO_USING_GPG)
@@ -175,9 +175,9 @@ OTAsymmetricKey* OTAsymmetricKey::ClonePubKey() const // Caller IS responsible
                                                       // to delete!
 {
     OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory();
-    OT_ASSERT(NULL != pKey);
-    OT_ASSERT(NULL != m_pMetadata);
-    OT_ASSERT(NULL != pKey->m_pMetadata);
+    OT_ASSERT(nullptr != pKey);
+    OT_ASSERT(nullptr != m_pMetadata);
+    OT_ASSERT(nullptr != pKey->m_pMetadata);
 
     OTASCIIArmor ascTransfer;
     GetPublicKey(ascTransfer); // Get this's public key in ASCII-armored format
@@ -191,30 +191,32 @@ OTAsymmetricKey* OTAsymmetricKey::ClonePubKey() const // Caller IS responsible
 }
 
 // static
-OT_OPENSSL_CALLBACK* OTAsymmetricKey::s_pwCallback = NULL;
+OT_OPENSSL_CALLBACK* OTAsymmetricKey::s_pwCallback = nullptr;
 
 // static void SetPasswordCallback(p_OT_OPENSSL_CALLBACK pCallback);
 // static p_OT_OPENSSL_CALLBACK GetPasswordCallback();
-// static bool IsPasswordCallbackSet() { (NULL == s_pwCallback) ? false : true;
+// static bool IsPasswordCallbackSet() { (nullptr == s_pwCallback) ? false :
+// true;
 // }
 
 void OTAsymmetricKey::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
 {
     const char* szFunc = "OTAsymmetricKey::SetPasswordCallback";
 
-    if (NULL != s_pwCallback)
+    if (nullptr != s_pwCallback)
         otOut << szFunc << ": WARNING: re-setting the password callback (one "
                            "was already there)...\n";
     else
         otWarn << szFunc << ": FYI, setting the password callback to a "
-                            "non-NULL pointer (which is what we want.)\n";
+                            "non-nullptr pointer (which is what we want.)\n";
 
-    if (NULL == pCallback)
-        otErr << szFunc << ": WARNING, setting the password callback to NULL! "
-                           "(OpenSSL will thus "
-                           "be forced to ask for the passphase on the console, "
-                           "until this is called "
-                           "again and set properly.)\n";
+    if (nullptr == pCallback)
+        otErr << szFunc
+              << ": WARNING, setting the password callback to nullptr! "
+                 "(OpenSSL will thus "
+                 "be forced to ask for the passphase on the console, "
+                 "until this is called "
+                 "again and set properly.)\n";
 
     s_pwCallback = pCallback; // no need to delete function pointer that came
                               // before this function pointer.
@@ -250,12 +252,13 @@ OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
         // internal 'C'-based password callback was requested by OT (to pass to
         // OpenSSL), "
         //                      "but the callback hasn't been set yet.
-        // (Returning NULL CALLBACK to OpenSSL!! Thus causing it to instead ask
+        // (Returning nullptr CALLBACK to OpenSSL!! Thus causing it to instead
+        // ask
         // for the passphrase on the CONSOLE, "
         //                      "since no Java password dialog was apparently
         // available.)\n");
 
-        //        return static_cast<OT_OPENSSL_CALLBACK *>(NULL);
+        //        return static_cast<OT_OPENSSL_CALLBACK *>(nullptr);
 
         // We have our own "console" password-gathering function, which allows
         // us to use our master key.
@@ -268,7 +271,7 @@ OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
 }
 
 // static
-OTCaller* OTAsymmetricKey::s_pCaller = NULL;
+OTCaller* OTAsymmetricKey::s_pCaller = nullptr;
 
 // Takes ownership. UPDATE: doesn't, since he assumes the Java side
 // created it and will therefore delete it when the time comes.
@@ -293,7 +296,7 @@ bool OTAsymmetricKey::SetPasswordCaller(OTCaller& theCaller)
         return false;
     }
 
-    if (NULL != s_pCaller) {
+    if (nullptr != s_pCaller) {
         otErr << szFunc
               << ": WARNING: Setting the password caller again, even though "
                  "it was apparently ALREADY set... (Meaning Java has probably "
@@ -322,8 +325,8 @@ OTCaller* OTAsymmetricKey::GetPasswordCaller()
     otLog4 << szFunc << ": FYI, this was just called by souped_up_pass_cb "
                         "(which must have just been called by OpenSSL.) "
                         "Returning s_pCaller == "
-           << ((NULL == s_pCaller) ? "NULL" : "VALID POINTER")
-           << " (Hopefully NOT NULL, so the "
+           << ((nullptr == s_pCaller) ? "nullptr" : "VALID POINTER")
+           << " (Hopefully NOT nullptr, so the "
               "custom password dialog can be triggered.)\n";
 
     return s_pCaller;
@@ -352,7 +355,7 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
               "This is also where OT either sets its internal 'C'-based "
               "password callback to the souped_up "
               "version which uses that Java caller object, "
-              "OR where OT sets its internal callback to NULL--which causes "
+              "OR where OT sets its internal callback to nullptr--which causes "
               "OpenSSL to ask for the passphrase "
               "on the CONSOLE instead.)\n";
 
@@ -384,13 +387,13 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
 
     // We'd probably do something else if 'rwflag' is 1
 
-    OTPasswordData* pPWData = NULL;
+    OTPasswordData* pPWData = nullptr;
     std::string str_userdata;
 
-    if (NULL != userdata) {
+    if (nullptr != userdata) {
         pPWData = static_cast<OTPasswordData*>(userdata);
 
-        if (NULL != pPWData) {
+        if (nullptr != pPWData) {
             str_userdata = pPWData->GetDisplayString();
         }
     }
@@ -457,8 +460,8 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
 extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                      void* userdata)
 {
-    //  OT_ASSERT(NULL != buf); // apparently it CAN be NULL sometimes.
-    OT_ASSERT(NULL != userdata);
+    //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
+    OT_ASSERT(nullptr != userdata);
     OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
@@ -556,7 +559,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         // generating.
 
         //      bool   GetMasterPassword(      OTPassword & theOutput,
-        //                               const char       * szDisplay=NULL,
+        //                               const char       * szDisplay=nullptr,
         //                                     bool         bVerifyTwice=false);
 
         //      otOut << "OPENSSL_CALLBACK (souped_up_pass_cb): Finished calling
@@ -571,16 +574,16 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                                   // registered one via the OT
                                                   // API.
 
-        //      if (NULL == pCaller)
+        //      if (nullptr == pCaller)
         //      {
         //          otErr << "OPENSSL_CALLBACK (souped_up_pass_cb): OTCaller is
-        // NULL. Try calling OT_API_Set_PasswordCallback() first.\n";
+        // nullptr. Try calling OT_API_Set_PasswordCallback() first.\n";
         //          OT_ASSERT(0); // This will never actually happen, since
         // SetPasswordCaller() and souped_up_pass_cb are activated in same
         // place.
         //      }
 
-        if (NULL == pCaller) // We'll just grab it from the console then.
+        if (nullptr == pCaller) // We'll just grab it from the console then.
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
@@ -706,11 +709,11 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 
     OTPassword* pMasterPW = pPWData->GetMasterPW();
 
-    if (pPWData->isForCachedKey() && (NULL != pMasterPW)) {
+    if (pPWData->isForCachedKey() && (nullptr != pMasterPW)) {
         *pMasterPW = thePassword;
     }
     // --------------------------------------
-    else if (NULL != buf) {
+    else if (nullptr != buf) {
         // if too int64_t, truncate
         if (len > size) len = size;
 
@@ -841,7 +844,7 @@ bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
 
     ascKey.Release();
 
-    if (NULL == m_p_ascKey) return false;
+    if (nullptr == m_p_ascKey) return false;
 
     ascKey.Set(*m_p_ascKey);
 
@@ -887,9 +890,9 @@ bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
 
-    if (NULL == m_p_ascKey) {
+    if (nullptr == m_p_ascKey) {
         m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(NULL != m_p_ascKey);
+        OT_ASSERT(nullptr != m_p_ascKey);
     }
 
     m_p_ascKey->Set(ascKey);
@@ -936,7 +939,7 @@ bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
 
     ascKey.Release();
 
-    if (NULL == m_p_ascKey) return false;
+    if (nullptr == m_p_ascKey) return false;
 
     ascKey.Set(*m_p_ascKey);
 
@@ -978,9 +981,9 @@ bool OTAsymmetricKey::SetPrivateKey(const OTASCIIArmor& ascKey)
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true; // PRIVATE KEY
 
-    if (NULL == m_p_ascKey) {
+    if (nullptr == m_p_ascKey) {
         m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(NULL != m_p_ascKey);
+        OT_ASSERT(nullptr != m_p_ascKey);
     }
 
     m_p_ascKey->Set(ascKey);
@@ -1006,7 +1009,7 @@ OTAsymmetricKey& OTAsymmetricKey::operator=(const OTAsymmetricKey& rhs)
         SetPublicKey(ascTransfer);
 
         // Even if unused, both should always already be instantiated.
-        if ((NULL != m_pMetadata) && (NULL != rhs.m_pMetadata))
+        if ((nullptr != m_pMetadata) && (nullptr != rhs.m_pMetadata))
             *(m_pMetadata) = *(rhs.m_pMetadata);
     }
 
@@ -1015,7 +1018,7 @@ OTAsymmetricKey& OTAsymmetricKey::operator=(const OTAsymmetricKey& rhs)
 
 // Does public key only.
 OTAsymmetricKey::OTAsymmetricKey(const OTAsymmetricKey& rhs)
-    : m_p_ascKey(NULL)
+    : m_p_ascKey(nullptr)
     , m_bIsPublicKey(true)
     , // PUBLIC KEY
     m_bIsPrivateKey(false)
@@ -1031,7 +1034,7 @@ OTAsymmetricKey::OTAsymmetricKey(const OTAsymmetricKey& rhs)
         // it as a EVP_PKEY pointer.
         SetPublicKey(ascTransfer);
 
-        if ((NULL != m_pMetadata) && (NULL != rhs.m_pMetadata))
+        if ((nullptr != m_pMetadata) && (nullptr != rhs.m_pMetadata))
             *(m_pMetadata) = *(rhs.m_pMetadata);
     }
     else
@@ -1039,23 +1042,23 @@ OTAsymmetricKey::OTAsymmetricKey(const OTAsymmetricKey& rhs)
                  "construction attempt either with itself, "
                  "or with a private key (when expecting public.)\n";
 
-    //    if (NULL == m_p_ascKey)
+    //    if (nullptr == m_p_ascKey)
     //    {
     //        m_p_ascKey = new OTASCIIArmor;
-    //        OT_ASSERT(NULL != m_p_ascKey);
+    //        OT_ASSERT(nullptr != m_p_ascKey);
     //    }
 }
 
 OTAsymmetricKey::OTAsymmetricKey()
-    : m_p_ascKey(NULL)
+    : m_p_ascKey(nullptr)
     , m_bIsPublicKey(false)
     , m_bIsPrivateKey(false)
     , m_pMetadata(new OTSignatureMetadata)
 {
-    //    if (NULL == m_p_ascKey)
+    //    if (nullptr == m_p_ascKey)
     //    {
     //        m_p_ascKey = new OTASCIIArmor;
-    //        OT_ASSERT(NULL != m_p_ascKey);
+    //        OT_ASSERT(nullptr != m_p_ascKey);
     //    }
 }
 
@@ -1116,11 +1119,11 @@ OTAsymmetricKey::~OTAsymmetricKey()
     // Release the ascii-armored version of the key (safe to store in this
     // form.)
     //
-    if (NULL != m_p_ascKey) delete m_p_ascKey;
-    m_p_ascKey = NULL;
+    if (nullptr != m_p_ascKey) delete m_p_ascKey;
+    m_p_ascKey = nullptr;
 
-    if (NULL != m_pMetadata) delete m_pMetadata;
-    m_pMetadata = NULL;
+    if (nullptr != m_pMetadata) delete m_pMetadata;
+    m_pMetadata = nullptr;
 }
 
 void OTAsymmetricKey::Release_AsymmetricKey()
@@ -1129,10 +1132,10 @@ void OTAsymmetricKey::Release_AsymmetricKey()
     // Release the ascii-armored version of the key (safe to store in this
     // form.)
     //
-    // Moving this to the destructor. Shouldn't be going NULL here IMO.
-    //    if (NULL != m_p_ascKey)
+    // Moving this to the destructor. Shouldn't be going nullptr here IMO.
+    //    if (nullptr != m_p_ascKey)
     //        delete m_p_ascKey;
-    //    m_p_ascKey = NULL;
+    //    m_p_ascKey = nullptr;
 
     // Release the instantiated OpenSSL key (unsafe to store in this form.)
     //
@@ -1267,8 +1270,8 @@ bool OTAsymmetricKey::LoadPrivateKey(const OTString& strFoldername,
     }
 
     const OTString strCert(strFileContents),
-        strReason(NULL == pstrReason ? "OTAsymmetricKey::LoadPrivateKey"
-                                     : *pstrReason);
+        strReason(nullptr == pstrReason ? "OTAsymmetricKey::LoadPrivateKey"
+                                        : *pstrReason);
 
     return LoadPrivateKeyFromCertString(strCert, false, &strReason,
                                         pImportPassword); // bEscaped=false;

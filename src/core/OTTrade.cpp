@@ -731,8 +731,9 @@ void OTTrade::onRemovalFromCron()
 
     if (offer_ != nullptr) {
         if (!marketOffer_.Exists()) {
-            otErr << "OTTrade::onRemovalFromCron called with NULL offer_ and "
-                     "empty marketOffer_.\n";
+            otErr
+                << "OTTrade::onRemovalFromCron called with nullptr offer_ and "
+                   "empty marketOffer_.\n";
             return;
         }
 
@@ -1190,7 +1191,7 @@ bool OTTrade::ProcessCron()
 
     // If the Offer is already active on a market, then I already have a pointer
     // to
-    // it. This function returns that pointer. If NULL, it tries to find the
+    // it. This function returns that pointer. If nullptr, it tries to find the
     // offer on
     // the market and then sets the pointer and returns. If it can't find it, IT
     // TRIES
@@ -1216,7 +1217,7 @@ bool OTTrade::ProcessCron()
     }
     else if (market == nullptr) {
         // todo. (This will already leave a log above in GetOffer somewhere.)
-        //        otErr << "OTTrade::ProcessCron: Market was NULL.\n"; //
+        //        otErr << "OTTrade::ProcessCron: Market was nullptr.\n"; //
         // comment this out
     }
     else // If a valid pointer was returned, that means the offer is on the
@@ -1326,7 +1327,7 @@ OTTrade::OTTrade()
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
 {
-    //    offer_            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = nullptr;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.
@@ -1345,7 +1346,7 @@ OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId)
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
 {
-    //    offer_            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = nullptr;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.
@@ -1367,7 +1368,7 @@ OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
 {
-    //    offer_            = NULL;    // NOT responsible to clean this up.
+    //    offer_            = nullptr;    // NOT responsible to clean this up.
     // Just keeping the pointer for convenience.
     // You might ask, "but what if it goes bad?" Actually only THIS object
     // should ever decide that.

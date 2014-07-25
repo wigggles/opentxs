@@ -164,12 +164,12 @@ namespace opentxs
 OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 {
     static char buf[45] = "";
-    OTCronItem* pItem = NULL;
+    OTCronItem* pItem = nullptr;
 
     if (!strCronItem.Exists()) {
         otErr << __FUNCTION__
-              << ": Empty string was passed in (returning NULL.)\n";
-        return NULL;
+              << ": Empty string was passed in (returning nullptr.)\n";
+        return nullptr;
     }
 
     OTString strContract(strCronItem);
@@ -180,14 +180,14 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
               << strCronItem << "\n";
-        return NULL;
+        return nullptr;
     }
 
     strContract.reset(); // for sgets
     buf[0] = 0;          // probably unnecessary.
     bool bGotLine = strContract.sgets(buf, 40);
 
-    if (!bGotLine) return NULL;
+    if (!bGotLine) return nullptr;
 
     OTString strFirstLine(buf);
     strContract.reset(); // set the "file" pointer within this string back to
@@ -197,14 +197,14 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
     // the first 45 characters of the beginning of the contract, and
     // it will NOT contain the escape "- " sequence. From there, if
     // it contains the proper sequence, I will instantiate that type.
-    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return NULL;
+    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return nullptr;
 
     // By this point we know already that it's not escaped.
     // BUT it might still be ARMORED!
 
     //    if (strFirstLine.Contains("-----BEGIN SIGNED AGREEMENT-----"))  //
     // this string is 32 chars long.
-    //    {    pItem = new OTAgreement();        OT_ASSERT(NULL != pItem); }
+    //    {    pItem = new OTAgreement();        OT_ASSERT(nullptr != pItem); }
 
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) // this
                                                                       // string
@@ -213,7 +213,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
                                                                       // long.
     {
         pItem = new OTPaymentPlan();
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
     }
     else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) // this
                                                                       // string
@@ -222,18 +222,18 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
                                                                       // long.
     {
         pItem = new OTTrade();
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
     }
     else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED SMARTCONTRACT-----")) // this string is 36
                                                             // chars long.
     {
         pItem = new OTSmartContract();
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
     }
 
     // The string didn't match any of the options in the factory.
-    if (NULL == pItem) return NULL;
+    if (nullptr == pItem) return nullptr;
 
     // Does the contract successfully load from the string passed in?
     if (pItem->LoadContractFromString(strContract))
@@ -241,7 +241,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
     else
         delete pItem;
 
-    return NULL;
+    return nullptr;
 }
 
 OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
@@ -256,7 +256,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
-        return NULL;
+        return nullptr;
     }
 
     OTString strFileContents(OTDB::QueryPlainString(
@@ -266,7 +266,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error reading file: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
-        return NULL;
+        return nullptr;
     }
     else
         // NOTE: NewCronItem can handle the normal cron item contracts, as well
@@ -294,7 +294,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
               << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
               << szFilename << "\n";
-        return NULL;
+        return nullptr;
     }
 
     OTString strFileContents(
@@ -306,7 +306,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
               << ": Error reading file: " << szFoldername
               << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
               << szFilename << "\n";
-        return NULL;
+        return nullptr;
     }
     else
         // NOTE: NewCronItem can handle the normal cron item contracts, as well
@@ -647,10 +647,10 @@ bool OTCronItem::MoveFunds(
     const OTIdentifier& RECIPIENT_USER_ID) // GetRecipientUserID();
 {
     const OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     if (lAmount <= 0) {
         otOut << " OTCronItem::MoveFunds: Error: lAmount cannot be 0 or <0. "
@@ -689,16 +689,16 @@ bool OTCronItem::MoveFunds(
     // Will need to verify the parties' signatures, as well as attach a copy of
     // it to the receipt.
 
-    OTCronItem* pOrigCronItem = NULL;
+    OTCronItem* pOrigCronItem = nullptr;
 
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     pOrigCronItem = OTCronItem::LoadCronReceipt(GetTransactionNum());
 
-    OT_ASSERT(NULL != pOrigCronItem); // How am I processing it now if the
-                                      // receipt wasn't saved in the first
-                                      // place??
+    OT_ASSERT(nullptr != pOrigCronItem); // How am I processing it now if the
+                                         // receipt wasn't saved in the first
+                                         // place??
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
 
@@ -714,7 +714,7 @@ bool OTCronItem::MoveFunds(
     // Make sure to clean these up.
     //    delete pOrigCronItem;        // theOrigPlanGuardian will handle this
     // now, whenever it goes out of scope.
-    //    pOrigCronItem = NULL;        // So I don't need to worry about
+    //    pOrigCronItem = nullptr;        // So I don't need to worry about
     // deleting this anymore. I can keep it around and
     // use it all I want, and return anytime, and it won't leak.
 
@@ -744,8 +744,8 @@ bool OTCronItem::MoveFunds(
     bool bUsersAreSameNym =
         ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
 
-    OTPseudonym* pSenderNym = NULL;
-    OTPseudonym* pRecipientNym = NULL;
+    OTPseudonym* pSenderNym = nullptr;
+    OTPseudonym* pRecipientNym = nullptr;
 
     mapOfNyms::const_iterator it_sender =
         map_NymsAlreadyLoaded.find(strSenderUserID.Get());
@@ -756,7 +756,7 @@ bool OTCronItem::MoveFunds(
         it_sender) // found the sender in list of Nyms that are already loaded.
     {
         pSenderNym = it_sender->second;
-        OT_ASSERT((NULL != pSenderNym) &&
+        OT_ASSERT((nullptr != pSenderNym) &&
                   (pSenderNym->CompareID(SENDER_USER_ID)));
     }
     if (map_NymsAlreadyLoaded.end() != it_recipient) // found the recipient in
@@ -764,7 +764,7 @@ bool OTCronItem::MoveFunds(
                                                      // already loaded.
     {
         pRecipientNym = it_recipient->second;
-        OT_ASSERT((NULL != pRecipientNym) &&
+        OT_ASSERT((nullptr != pRecipientNym) &&
                   (pRecipientNym->CompareID(RECIPIENT_USER_ID)));
     }
 
@@ -773,8 +773,9 @@ bool OTCronItem::MoveFunds(
         // If the First Nym is the server, then just point to that.
         pSenderNym = pServerNym;
     }
-    else if (NULL == pSenderNym) // Else load the First Nym from storage, if
-                                   // still not found.
+    else if (nullptr ==
+               pSenderNym) // Else load the First Nym from storage, if
+                           // still not found.
     {
         theSenderNym.SetIdentifier(
             SENDER_USER_ID); // theSenderNym is pSenderNym
@@ -818,10 +819,11 @@ bool OTCronItem::MoveFunds(
     else if (bUsersAreSameNym) // Else if the participants are the same Nym,
                                  // point to the one we already loaded.
     {
-        pRecipientNym = pSenderNym;   // theSenderNym is pSenderNym
+        pRecipientNym = pSenderNym; // theSenderNym is pSenderNym
     }
-    else if (NULL == pRecipientNym) // Otherwise load the Other Nym from Disk
-                                      // and point to that, if still not found.
+    else if (nullptr ==
+               pRecipientNym) // Otherwise load the Other Nym from Disk
+                              // and point to that, if still not found.
     {
         theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
 
@@ -1040,7 +1042,7 @@ bool OTCronItem::MoveFunds(
     OTAccount* pSourceAcct =
         OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
 
-    if (NULL == pSourceAcct) {
+    if (nullptr == pSourceAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
                  "account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1052,7 +1054,7 @@ bool OTCronItem::MoveFunds(
     OTAccount* pRecipientAcct =
         OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
 
-    if (NULL == pRecipientAcct) {
+    if (nullptr == pRecipientAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
                  "recipient account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1190,8 +1192,8 @@ bool OTCronItem::MoveFunds(
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(NULL != pItemSend);
-            OT_ASSERT(NULL != pItemRecip);
+            OT_ASSERT(nullptr != pItemSend);
+            OT_ASSERT(nullptr != pItemRecip);
 
             pItemSend->SetStatus(OTItem::rejection);  // the default.
             pItemRecip->SetStatus(OTItem::rejection); // the default.
@@ -1415,7 +1417,7 @@ bool OTCronItem::MoveFunds(
             // I also already loaded the original plan. Remember this from
             // above,
             // near the top of the function:
-            //  OTCronItem * pOrigCronItem    = NULL;
+            //  OTCronItem * pOrigCronItem    = nullptr;
             //     OTString strOrigPlan(*pOrigCronItem); // <====== Farther down
             // in the code, I attach this string to the receipts.
             //  ... then lower down...
@@ -1688,7 +1690,7 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
 //
 bool OTCronItem::ProcessCron()
 {
-    OT_ASSERT(NULL != m_pCron);
+    OT_ASSERT(nullptr != m_pCron);
 
     if (IsFlaggedForRemoval()) {
         otLog3 << "Cron: Flagged for removal: " << m_strContractType << ".\n";
@@ -1714,14 +1716,14 @@ bool OTCronItem::ProcessCron()
 // activated for the very first time. (Versus being re-added
 // to cron after a server reboot.)
 //
-void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes NULL.
+void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
                                       bool bForTheFirstTime)
 {
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     // Put anything else in here, that needs to be done in the
     // cron item base class, upon activation. (This executes
@@ -1738,13 +1740,14 @@ void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes NULL.
 // This gives each item a chance to drop a final receipt,
 // and clean up any memory, before being destroyed.
 //
-void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes NULL.
+void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes
+                                                            // nullptr.
 {
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
     //
@@ -1794,7 +1797,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes NULL.
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
-        OT_ASSERT(NULL != pOrigCronItem);
+        OT_ASSERT(nullptr != pOrigCronItem);
         OTCleanup<OTCronItem> theCronItemAngel(*pOrigCronItem);
 
         // Note: elsewhere, we verify the Nym's signature. But in this place, we
@@ -1821,12 +1824,12 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes NULL.
         // The Nym who is actively requesting to remove a cron item will be
         // passed in as pRemover.
         // However, sometimes there is no Nym... perhaps it just expired and
-        // pRemover is NULL.
+        // pRemover is nullptr.
         // The originating Nym (if different than remover) is loaded up.
         // Otherwise the originator
         // pointer just pointers to *pRemover.
         //
-        OTPseudonym* pOriginator = NULL;
+        OTPseudonym* pOriginator = nullptr;
 
         if (pServerNym->CompareID(pOrigCronItem->GetSenderUserID())) {
             pOriginator = pServerNym; // Just in case the originator Nym is also
@@ -1836,27 +1839,28 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes NULL.
         // ******************************************************* to pServer
         // earlier, if they share the same ID.
         //
-        // If pRemover is NOT NULL, and he has the Originator's ID...
+        // If pRemover is NOT nullptr, and he has the Originator's ID...
         // then set the pointer accordingly.
         //
-        else if ((NULL != pRemover) &&
+        else if ((nullptr != pRemover) &&
                  (true ==
                   pRemover->CompareID(pOrigCronItem->GetSenderUserID()))) {
             pOriginator = pRemover; // <======== now both pointers are set (to
                                     // same Nym). DONE!
         }
 
-        // At this point, pRemover MIGHT be set, or NULL. (And that's that --
-        // pRemover may always be NULL.)
+        // At this point, pRemover MIGHT be set, or nullptr. (And that's that --
+        // pRemover may always be nullptr.)
         //
         // if pRemover IS set, then pOriginator MIGHT point to it as well. (If
         // the IDs match. Done above.)
-        // pOriginator might also still be NULL. (If pRemover is NULL, then
+        // pOriginator might also still be nullptr. (If pRemover is nullptr,
+        // then
         // pOriginator DEFINITELY is.)
         // pRemover is loaded (or not). Next let's make SURE pOriginator is
         // loaded, if it wasn't already...
         //
-        if (NULL == pOriginator) {
+        if (nullptr == pOriginator) {
             // GetSenderUserID() should be the same on THIS (updated version of
             // the same cron item)
             // but for whatever reason, I'm checking the userID on the original
@@ -1887,11 +1891,12 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes NULL.
             }
         }
 
-        // pOriginator should NEVER be NULL by this point, unless there was an
+        // pOriginator should NEVER be nullptr by this point, unless there was
+        // an
         // ERROR in the above block.
         // We even loaded the guy from storage, if we had to.
         //
-        if (NULL != pOriginator) {
+        if (nullptr != pOriginator) {
             // Drop the FINAL RECEIPT(s) into the user's inbox(es)!!
             // Pass in strOrigCronItem and lNewTransactionNumber which were
             // obtained above.
@@ -1924,10 +1929,10 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                                                        // someone else...
 {
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -1951,7 +1956,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const OTString strServerID(GetServerID());
 
-    OTPseudonym* pActualNym = NULL; // use this. DON'T use theActualNym.
+    OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
 
@@ -1986,11 +1991,11 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         //
         const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
 
-        if ((NULL != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
+        if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;
         else if (theOriginator.CompareID(ACTUAL_NYM_ID))
             pActualNym = &theOriginator;
-        else if ((NULL != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
+        else if ((nullptr != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
             pActualNym = pRemover;
 
         else // We couldn't find the Nym among those already loaded--so we have
@@ -2032,7 +2037,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         if (false == DropFinalReceiptToNymbox(GetSenderUserID(),
                                               lNewTransactionNumber,
-                                              strOrigCronItem, NULL, // note
+                                              strOrigCronItem, nullptr, // note
                                               pstrAttachment, pActualNym)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
@@ -2053,13 +2058,14 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                          lNewTransactionNumber,
                          lClosingNumber, // The closing transaction number to
                                          // put on the receipt.
-                         strOrigCronItem, NULL, // note
-                         pstrAttachment)) // pActualAcct = NULL by default.
+                         strOrigCronItem, nullptr, // note
+                         pstrAttachment)) // pActualAcct = nullptr by default.
                                           // (This call will load it up in order
                                           // to update the inbox hash.)
             otErr << __FUNCTION__ << ": Failure dropping receipt into inbox.\n";
 
-        // In this case, I'm passing NULL for pstrNote, since there is no note.
+        // In this case, I'm passing nullptr for pstrNote, since there is no
+        // note.
         // (Additional information would normally be stored in the note.)
 
         // This part below doesn't happen until you ACCEPT the final receipt
@@ -2094,8 +2100,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
             const int64_t & lNewTransactionNumber,
             const int64_t & lClosingNumber,
             OTString & strOrigCronItem,
-            OTString * pstrNote=NULL,
-            OTString * pstrAttachment=NULL);
+            OTString * pstrNote=nullptr,
+            OTString * pstrAttachment=nullptr);
  */
 bool OTCronItem::DropFinalReceiptToInbox(
     const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
@@ -2104,10 +2110,10 @@ bool OTCronItem::DropFinalReceiptToInbox(
     OTString* pstrAttachment, OTAccount* pActualAcct)
 {
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
@@ -2155,7 +2161,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
-        OT_ASSERT(NULL != pItem1);
+        OT_ASSERT(nullptr != pItem1);
 
         pItem1->SetStatus(OTItem::acknowledgement);
 
@@ -2196,7 +2202,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (NULL != pstrNote) {
+        if (nullptr != pstrNote) {
             pItem1->SetNote(*pstrNote); // in markets, this is updated trade.
         }
 
@@ -2204,7 +2210,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (NULL != pstrAttachment) {
+        if (nullptr != pstrAttachment) {
             pItem1->SetAttachment(*pstrAttachment);
         }
 
@@ -2232,19 +2238,20 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // TODO: Better rollback capabilities in case of failures here:
 
-        if (NULL == pActualAcct) // no asset account was passed in as already
-                                 // loaded, so let's load it ourselves then.
+        if (nullptr == pActualAcct) // no asset account was passed in as already
+                                    // loaded, so let's load it ourselves then.
         {
             pActualAcct =
                 OTAccount::LoadExistingAccount(ACCOUNT_ID, GetServerID());
             theDestAcctGuardian.SetCleanupTargetPointer(
-                pActualAcct); // This is safe in cases where NULL is returned.
+                pActualAcct); // This is safe in cases where nullptr is
+                              // returned.
                               // No need to cleanup pActualAcct.
         }
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         //
-        if (NULL != pActualAcct) {
+        if (nullptr != pActualAcct) {
             OT_ASSERT(ACCOUNT_ID == pActualAcct->GetPurportedAccountID());
 
             if (pActualAcct->VerifyAccount(*pServerNym)) {
@@ -2297,10 +2304,10 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                           OTPseudonym* pActualNym)
 {
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox"; // RESUME!!!!!!!
@@ -2329,8 +2336,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
         theLedger, OTTransaction::finalReceipt, lNewTransactionNumber);
 
-    if (NULL != pTransaction) // The above has an OT_ASSERT within, but I just
-                              // like to check my pointers.
+    if (nullptr !=
+        pTransaction) // The above has an OT_ASSERT within, but I just
+                      // like to check my pointers.
     {
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
@@ -2343,7 +2351,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
-        OT_ASSERT(NULL != pItem1);
+        OT_ASSERT(nullptr != pItem1);
 
         pItem1->SetStatus(OTItem::acknowledgement);
 
@@ -2398,7 +2406,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (NULL != pstrNote) {
+        if (nullptr != pstrNote) {
             pItem1->SetNote(*pstrNote); // in markets, this is updated trade.
         }
 
@@ -2406,7 +2414,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (NULL != pstrAttachment) {
+        if (nullptr != pstrAttachment) {
             pItem1->SetAttachment(*pstrAttachment);
         }
 
@@ -2455,8 +2463,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // load
         // it ourselves (so we can update its NymboxHash value.)
 
-        if (NULL == pActualNym) {
-            if ((NULL != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
+        if (nullptr == pActualNym) {
+            if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
                 pActualNym = pServerNym;
 
             else {
@@ -2500,7 +2508,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // loaded,
         // so that we can update his NymboxHash appropriately.
         //
-        if (NULL != pActualNym) {
+        if (nullptr != pActualNym) {
             pActualNym->SetNymboxHashServerSide(theNymboxHash);
             pActualNym->SaveSignedNymfile(*pServerNym);
         }
@@ -2631,7 +2639,7 @@ void OTCronItem::HarvestClosingNumbers(OTPseudonym& theNym)
 
 OTCronItem::OTCronItem()
     : ot_super()
-    , m_pCron(NULL)
+    , m_pCron(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -2646,7 +2654,7 @@ OTCronItem::OTCronItem()
 OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
-    , m_pCron(NULL)
+    , m_pCron(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -2662,7 +2670,7 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ASSET_ID,
                        const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID)
     : ot_super(SERVER_ID, ASSET_ID, ACCT_ID, USER_ID)
-    , m_pCron(NULL)
+    , m_pCron(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -2690,7 +2698,7 @@ bool OTCronItem::GetCancelerID(OTIdentifier& theOutput) const
 //
 bool OTCronItem::CancelBeforeActivation(OTPseudonym& theCancelerNym)
 {
-    OT_ASSERT(NULL != m_pCancelerNymID);
+    OT_ASSERT(nullptr != m_pCancelerNymID);
 
     if (IsCanceled()) return false;
 
@@ -2721,8 +2729,8 @@ OTCronItem::~OTCronItem()
 
     // If there were any dynamically allocated objects, clean them up here.
     //
-    if (NULL != m_pCancelerNymID) delete m_pCancelerNymID;
-    m_pCancelerNymID = NULL;
+    if (nullptr != m_pCancelerNymID) delete m_pCancelerNymID;
+    m_pCancelerNymID = nullptr;
 }
 
 void OTCronItem::Release_CronItem()

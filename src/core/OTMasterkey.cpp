@@ -257,7 +257,7 @@ bool OTMasterkey::VerifyInternally()
     //      return false;
     if (false == VerifyNymID()) return false;
 
-    OT_ASSERT(NULL != m_pOwner);
+    OT_ASSERT(nullptr != m_pOwner);
     // Verify that *this == m_pOwner->GetMasterkey() (the master credential.)
     //
     if (this != &(m_pOwner->GetMasterkey())) {

@@ -190,7 +190,7 @@ void SetMonitor(const char* filepathexact)
 bool OTMint_Lucre::AddDenomination(OTPseudonym& theNotary,
                                    int64_t lDenomination, int32_t nPrimeLength)
 {
-    OT_ASSERT(NULL != m_pKeyPublic);
+    OT_ASSERT(nullptr != m_pKeyPublic);
 
     bool bReturnValue = false;
 
@@ -261,8 +261,8 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym& theNotary,
         OTASCIIArmor* pPublic = new OTASCIIArmor();
         OTASCIIArmor* pPrivate = new OTASCIIArmor();
 
-        OT_ASSERT(NULL != pPublic);
-        OT_ASSERT(NULL != pPrivate);
+        OT_ASSERT(nullptr != pPublic);
+        OT_ASSERT(nullptr != pPrivate);
 
         // Set the public bank info onto pPublic
         pPublic->SetString(strPublicBank, true); // linebreaks = true
@@ -401,7 +401,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym& theNotary, OTToken& theToken,
         // results will be in bnSignature (BIGNUM)
         BIGNUM* bnSignature = bank.SignRequest(req);
 
-        if (NULL == bnSignature) {
+        if (nullptr == bnSignature) {
             otErr << "MAJOR ERROR!: Bank.SignRequest failed in "
                      "OTMint_Lucre::SignToken\n";
         }

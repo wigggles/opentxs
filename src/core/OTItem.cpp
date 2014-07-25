@@ -393,7 +393,7 @@ bool OTItem::VerifyBalanceStatement(
     const char* szInbox = "Inbox";
     const char* szOutbox = "Outbox";
 
-    const char* pszLedgerType = NULL;
+    const char* pszLedgerType = nullptr;
 
     //    otWarn << "OTItem::VerifyBalanceStatement: (ENTERING LOOP)... INBOX
     // COUNT: %d\n"
@@ -403,13 +403,13 @@ bool OTItem::VerifyBalanceStatement(
 
     for (int32_t i = 0; i < GetItemCount(); i++) {
         OTItem* pSubItem = GetItem(i);
-        OT_ASSERT(NULL != pSubItem);
+        OT_ASSERT(nullptr != pSubItem);
         //      otWarn << "OTItem::VerifyBalanceStatement: TOP OF LOOP (through
         // sub-items).......\n");
 
         int64_t lReceiptAmountMultiplier = 1; // needed for outbox items.
 
-        OTLedger* pLedger = NULL;
+        OTLedger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
         case OTItem::voucherReceipt:
@@ -494,7 +494,7 @@ bool OTItem::VerifyBalanceStatement(
                       // in the first switch.
         }
 
-        OTTransaction* pTransaction = NULL;
+        OTTransaction* pTransaction = nullptr;
 
         // In the special case of account transfer, the user has put an outbox
         // transaction
@@ -548,7 +548,7 @@ bool OTItem::VerifyBalanceStatement(
 
         // Make sure that the transaction number of each sub-item is found
         // on the appropriate ledger (inbox or outbox).
-        if (NULL == pTransaction) {
+        if (nullptr == pTransaction) {
             otOut << "OTItem::" << __FUNCTION__ << ": Expected "
                   << pszLedgerType << " transaction (serv " << lOutboxTrnsNum
                   << ", client " << pSubItem->GetTransactionNum()
@@ -845,7 +845,7 @@ bool OTItem::VerifyBalanceStatement(
     for (auto& it : THE_NYM.GetMapIssuedNum()) {
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         const OTIdentifier theServerID(strServerID.c_str());
 
@@ -868,7 +868,7 @@ bool OTItem::VerifyBalanceStatement(
         for (auto& it : theMessageNym.GetMapIssuedNum()) {
             std::string strServerID = it.first;
             dequeOfTransNums* pDeque = it.second;
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             const OTIdentifier theServerID(strServerID.c_str());
             const OTString OTstrServerID(theServerID);
@@ -1061,14 +1061,14 @@ OTItem* OTItem::GetItem(int32_t nIndex)
 
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
 
         nTempIndex++; // first iteration this becomes 0 here.
 
         if (nTempIndex == nIndex) return pItem;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // While processing an item, you may wish to query it for sub-items
@@ -1076,12 +1076,12 @@ OTItem* OTItem::GetItemByTransactionNum(const int64_t lTransactionNumber)
 {
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
 
         if (pItem->GetTransactionNum() == lTransactionNumber) return pItem;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // Count the number of items that are IN REFERENCE TO some transaction#.
@@ -1094,7 +1094,7 @@ int32_t OTItem::GetItemCountInRefTo(const int64_t lReference)
 
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
 
         if (pItem->GetReferenceToNum() == lReference) nCount++;
     }
@@ -1111,13 +1111,13 @@ OTItem* OTItem::GetFinalReceiptItemByReferenceNum(
 {
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
-        OT_ASSERT(NULL != pItem);
+        OT_ASSERT(nullptr != pItem);
 
         if (OTItem::finalReceipt != pItem->GetType()) continue;
         if (pItem->GetReferenceToNum() == lReferenceNumber) return pItem;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // For "OTItem::acceptTransaction"
@@ -1289,7 +1289,7 @@ void OTItem::CalculateNumberOfOrigin()
         //
         OTItem* pOriginalItem = OTItem::CreateItemFromString(
             strReference, GetPurportedServerID(), GetReferenceToNum());
-        OT_ASSERT(NULL != pOriginalItem);
+        OT_ASSERT(nullptr != pOriginalItem);
         OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
         if (((m_Type == atDepositCheque) &&
@@ -1461,7 +1461,7 @@ OTItem* OTItem::CreateItemFromTransaction(const OTTransaction& theOwner,
         pItem->SetPurportedServerID(theOwner.GetPurportedServerID());
         return pItem;
     }
-    return NULL;
+    return nullptr;
 }
 
 // Sometimes I don't know user ID of the originator, or the account ID of the
@@ -1478,7 +1478,7 @@ OTItem* OTItem::CreateItemFromString(const OTString& strItem,
     if (!strItem.Exists()) {
         otErr << "OTItem::CreateItemFromString: strItem is empty. (Expected an "
                  "item.)\n";
-        return NULL;
+        return nullptr;
     }
 
     OTItem* pItem = new OTItem();
@@ -1507,11 +1507,11 @@ OTItem* OTItem::CreateItemFromString(const OTString& strItem,
         }
         else {
             delete pItem;
-            pItem = NULL;
+            pItem = nullptr;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void OTItem::InitItem()
@@ -1600,7 +1600,7 @@ OTItem::OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner,
     // (If you deposit, or withdraw, you don't need a "to" account.)
     // But for the ones that do, you can pass the "to" account's ID in
     // as a pointer, and we'll set that too....
-    if (NULL != pDestinationAcctID) {
+    if (nullptr != pDestinationAcctID) {
         m_AcctToID = *pDestinationAcctID;
     }
 }
@@ -1629,13 +1629,13 @@ void OTItem::Release_Item()
 
 void OTItem::ReleaseItems()
 {
-    OTItem* pItem = NULL;
+    OTItem* pItem = nullptr;
 
     while (!m_listItems.empty()) {
         pItem = m_listItems.front();
         m_listItems.pop_front();
         delete pItem;
-        pItem = NULL;
+        pItem = nullptr;
     }
 }
 
@@ -1930,8 +1930,8 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                             // the same names...
             // That way, it will translate the string and set the type
             // correctly.
-            OT_ASSERT(NULL != pItem); // That way I can use each item to
-                                      // REPRESENT an inbox transaction
+            OT_ASSERT(nullptr != pItem); // That way I can use each item to
+                                         // REPRESENT an inbox transaction
 
             // Type
             OTString strType;
@@ -2367,7 +2367,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
         //
         for (auto& it : m_listItems) {
             OTItem* pItem = it;
-            OT_ASSERT(NULL != pItem);
+            OT_ASSERT(nullptr != pItem);
 
             OTString strAcctID(pItem->GetPurportedAccountID()),
                 strServerID(pItem->GetPurportedServerID()),

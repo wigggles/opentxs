@@ -221,17 +221,17 @@ void OTCaller::ZeroOutPassword() // Then ZERO IT OUT so copies aren't floating
 
 void OTCaller::delCallback()
 {
-    //    if (NULL != _callback)  // TODO this may be a memory leak.
+    //    if (nullptr != _callback)  // TODO this may be a memory leak.
     //        delete _callback;    // But I know we're currently crashing from
     // deleting same object twice.
     // And since the object comes from Java, who am I to delete it? Let Java
     // clean it up.
     if (isCallbackSet())
         otOut << "OTCaller::delCallback: WARNING: setting existing callback "
-                 "object pointer to NULL. "
-                 "(This message doesn't trigger if it was already NULL.)\n";
+                 "object pointer to nullptr. "
+                 "(This message doesn't trigger if it was already nullptr.)\n";
 
-    _callback = NULL;
+    _callback = nullptr;
 }
 
 void OTCaller::setCallback(OTCallback* cb)
@@ -239,13 +239,14 @@ void OTCaller::setCallback(OTCallback* cb)
     otOut << "OTCaller::setCallback: Attempting to set the password OTCallback "
              "pointer...\n";
 
-    if (NULL == cb) {
-        otOut << "OTCaller::setCallback: ERROR: NULL password OTCallback "
+    if (nullptr == cb) {
+        otOut << "OTCaller::setCallback: ERROR: nullptr password OTCallback "
                  "object passed in. (Returning.)\n";
         return;
     }
 
-    delCallback(); // Sets _callback to NULL, but LOGS first, if it was already
+    delCallback(); // Sets _callback to nullptr, but LOGS first, if it was
+                   // already
                    // set.
 
     _callback = cb;
@@ -255,7 +256,7 @@ void OTCaller::setCallback(OTCallback* cb)
 
 bool OTCaller::isCallbackSet() const
 {
-    return (NULL == _callback) ? false : true;
+    return (nullptr == _callback) ? false : true;
 }
 
 void OTCaller::callOne()

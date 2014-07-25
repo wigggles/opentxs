@@ -151,15 +151,15 @@
 namespace opentxs
 {
 
-OTClause::OTClause() : m_pBylaw(NULL)
+OTClause::OTClause() : m_pBylaw(nullptr)
 {
 }
 
-OTClause::OTClause(const char* szName, const char* szCode) : m_pBylaw(NULL)
+OTClause::OTClause(const char* szName, const char* szCode) : m_pBylaw(nullptr)
 {
-    if (NULL != szName) m_strName.Set(szName);
+    if (nullptr != szName) m_strName.Set(szName);
 
-    if (NULL != szCode) m_strCode = szCode;
+    if (nullptr != szCode) m_strCode = szCode;
 
     // Todo security:  validation on the above fields.
 }
@@ -169,7 +169,7 @@ OTClause::~OTClause()
     // nothing to delete.
 
     m_pBylaw =
-        NULL; // I wasn't the owner, it was a pointer for convenience only.
+        nullptr; // I wasn't the owner, it was a pointer for convenience only.
 }
 
 const char* OTClause::GetCode() const
@@ -190,7 +190,7 @@ void OTClause::Serialize(OTString& strAppend)
     }
     else {
         strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-                              m_strName.Get(), "ERROR_CLAUSE_CODE_NULL");
+                              m_strName.Get(), "ERROR_CLAUSE_CODE_nullptr");
         otErr << "Empty script code in OTClause::Serialize()\n";
     }
 }

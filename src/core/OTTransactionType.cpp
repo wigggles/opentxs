@@ -153,14 +153,14 @@ OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        OTTransactionType* pContract = NULL;
+        OTTransactionType* pContract = nullptr;
 
         if (strFirstLine.Contains(
                 "-----BEGIN SIGNED TRANSACTION-----")) // this string is 34
                                                        // chars long.
         {
             pContract = new OTTransaction();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRANSACTION ITEM-----")) // this
@@ -169,31 +169,31 @@ OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
                                                                    // long.
         {
             pContract = new OTItem();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LEDGER-----")) // this string is 29
                                                          // chars long.
         {
             pContract = new OTLedger();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED ACCOUNT-----")) // this string is 30
                                                           // chars long.
         {
             pContract = new OTAccount();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
 
         // The string didn't match any of the options in the factory.
         //
         // The string didn't match any of the options in the factory.
-        if (NULL == pContract) {
+        if (nullptr == pContract) {
             otOut << szFunc
                   << ": Object type not yet supported by class factory: "
                   << strFirstLine << "\n";
-            return NULL;
+            return nullptr;
         }
 
         // This causes pItem to load ASSUMING that the PurportedAcctID and
@@ -223,11 +223,11 @@ OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
                   << ": Failed loading contract from string (first line): "
                   << strFirstLine << "\n";
             delete pContract;
-            pContract = NULL;
+            pContract = nullptr;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void OTTransactionType::GetNumList(OTNumList& theOutput)

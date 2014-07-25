@@ -190,7 +190,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
         }
 
         OTMessage* pMsg = it->second;
-        OT_ASSERT(NULL != pMsg);
+        OT_ASSERT(nullptr != pMsg);
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
@@ -203,7 +203,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
         }
         else {
             delete pMsg;
-            pMsg = NULL;
+            pMsg = nullptr;
             messagesMap_.erase(it);
             break;
         }
@@ -268,7 +268,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
             const int64_t& lTempReqNum = it->first;
 
             OTMessage* pMsg = it->second;
-            OT_ASSERT(NULL != pMsg);
+            OT_ASSERT(nullptr != pMsg);
 
             //
             // If a server ID was passed in, but doesn't match the server ID on
@@ -323,7 +323,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
         }
 
         OTMessage* pMsg = it->second;
-        OT_ASSERT(NULL != pMsg);
+        OT_ASSERT(nullptr != pMsg);
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
@@ -366,7 +366,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
             // by that list.
 
             OTMessage* pMsg = new OTMessage;
-            OT_ASSERT(NULL != pMsg);
+            OT_ASSERT(nullptr != pMsg);
             OTCleanup<OTMessage> theMsgAngel(pMsg);
 
             if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
@@ -376,7 +376,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
                 //
                 messagesMap_.insert(
                     std::pair<int64_t, OTMessage*>(lRequestNum, pMsg));
-                theMsgAngel.SetCleanupTargetPointer(NULL);
+                theMsgAngel.SetCleanupTargetPointer(nullptr);
                 return pMsg;
             }
         }
@@ -384,7 +384,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 
     // STILL didn't find it? (Failure.)
     //
-    return NULL;
+    return nullptr;
 }
 
 // WARNING: ONLY call this (with arguments) directly after a successful
@@ -403,15 +403,15 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
 
         const int64_t& lRequestNum = it->first;
         OTMessage* pThisMsg = it->second;
-        OT_ASSERT(NULL != pThisMsg);
+        OT_ASSERT(nullptr != pThisMsg);
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
         // message,
         // Then skip this one. (Same with the NymID.)
-        if (((NULL != pstrServerID) &&
+        if (((nullptr != pstrServerID) &&
              !pstrServerID->Compare(pThisMsg->m_strServerID)) ||
-            ((NULL != pstrNymID) &&
+            ((nullptr != pstrNymID) &&
              !pstrNymID->Compare(pThisMsg->m_strNymID))) {
             ++it;
             continue;
@@ -478,14 +478,14 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
              chance to run.
 
              */
-            if (NULL != pNym) {
-                OT_ASSERT(NULL != pstrNymID && pstrNymID->Exists());
+            if (nullptr != pNym) {
+                OT_ASSERT(nullptr != pstrNymID && pstrNymID->Exists());
                 const OTIdentifier MSG_NYM_ID(*pstrNymID);
                 OT_ASSERT(pNym->CompareID(MSG_NYM_ID));
 
-                OT_ASSERT(NULL != pstrServerID && pstrServerID->Exists());
+                OT_ASSERT(nullptr != pstrServerID && pstrServerID->Exists());
 
-                OT_ASSERT(NULL != pbHarvestingForRetry);
+                OT_ASSERT(nullptr != pbHarvestingForRetry);
 
                 /*
                  getNymbox            -- client is NOT sending hash, server is
@@ -580,7 +580,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                         bTransactionWasFailure);
                 } // if there's a transaction to be harvested inside this
                   // message.
-            }     // if pNym !NULL
+            }     // if pNym !nullptr
 
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
@@ -589,9 +589,9 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                           // the erase, basically.)
 
             delete pThisMsg; // <============ DELETE
-            pThisMsg = NULL;
+            pThisMsg = nullptr;
 
-            if (NULL != pstrNymID && NULL != pstrServerID) {
+            if (nullptr != pstrNymID && nullptr != pstrServerID) {
                 OTString strFolder, strFile;
                 strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
                                  OTLog::PathSeparator(), pstrServerID->Get(),
@@ -629,7 +629,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                         const int64_t& lTempReqNum = it->first;
 
                         OTMessage* pMsg = it->second;
-                        OT_ASSERT(NULL != pMsg);
+                        OT_ASSERT(nullptr != pMsg);
 
                         //
                         // If a server ID was passed in, but doesn't match the
@@ -674,7 +674,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                 // erase the sent message itself...
                 //
                 OTMessage* pMsg = new OTMessage;
-                OT_ASSERT(NULL != pMsg);
+                OT_ASSERT(nullptr != pMsg);
                 OTCleanup<OTMessage> theMsgAngel(pMsg);
 
                 if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
@@ -713,7 +713,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         }
 
         OTMessage* pMsg = it->second;
-        OT_ASSERT(NULL != pMsg);
+        OT_ASSERT(nullptr != pMsg);
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
@@ -726,7 +726,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         }
         else {
             delete pMsg;
-            pMsg = NULL;
+            pMsg = nullptr;
 
             mapOfMessages::iterator temp_it = it;
             ++temp_it;
@@ -764,7 +764,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
             const int64_t& lTempReqNum = it->first;
 
             OTMessage* pMsg = it->second;
-            OT_ASSERT(NULL != pMsg);
+            OT_ASSERT(nullptr != pMsg);
 
             //
             // If a server ID was passed in, but doesn't match the server ID on
@@ -805,7 +805,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     // erase the sent message itself...
     //
     OTMessage* pMsg = new OTMessage;
-    OT_ASSERT(NULL != pMsg);
+    OT_ASSERT(nullptr != pMsg);
     OTCleanup<OTMessage> theMsgAngel(pMsg);
 
     if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&

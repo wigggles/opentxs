@@ -219,7 +219,8 @@ OTDataFolder* OTDataFolder::pDataFolder;
 // static
 bool OTDataFolder::Init(const OTString& strThreadContext)
 {
-    if (NULL != pDataFolder) return true; // we already have a data dir setup.
+    if (nullptr != pDataFolder)
+        return true; // we already have a data dir setup.
 
     if (!strThreadContext.Exists()) {
         otErr << __FUNCTION__ << ": Null: "
@@ -328,8 +329,8 @@ bool OTDataFolder::Init(const OTString& strThreadContext)
     if (!pSettings->Save()) return false;
     pSettings->Reset();
 
-    if (NULL != pSettings) delete pSettings;
-    pSettings = NULL;
+    if (nullptr != pSettings) delete pSettings;
+    pSettings = nullptr;
 
     // have set the default dir, now returning true;
 
@@ -340,7 +341,8 @@ bool OTDataFolder::Init(const OTString& strThreadContext)
 // static
 bool OTDataFolder::IsInitialized()
 {
-    if (NULL == pDataFolder) return false; // we already have a data dir setup.
+    if (nullptr == pDataFolder)
+        return false; // we already have a data dir setup.
 
     return pDataFolder->m_bInitialized;
 }
@@ -348,13 +350,13 @@ bool OTDataFolder::IsInitialized()
 // static
 bool OTDataFolder::Cleanup()
 {
-    if (NULL != pDataFolder) {
+    if (nullptr != pDataFolder) {
         delete pDataFolder;
-        pDataFolder = NULL;
+        pDataFolder = nullptr;
         return true;
     }
     else {
-        pDataFolder = NULL;
+        pDataFolder = nullptr;
         return false;
     }
 }
@@ -379,7 +381,7 @@ const OTString OTDataFolder::Get()
 // static
 bool OTDataFolder::Get(OTString& strDataFolder)
 {
-    if (NULL != pDataFolder) {
+    if (nullptr != pDataFolder) {
         if (true == pDataFolder->m_bInitialized) {
             if (pDataFolder->m_strDataFolderPath.Exists()) {
                 strDataFolder = pDataFolder->m_strDataFolderPath;
@@ -394,7 +396,7 @@ bool OTDataFolder::Get(OTString& strDataFolder)
 // static
 bool OTDataFolder::GetConfigFilePath(OTString& strConfigFilePath)
 {
-    if (NULL != pDataFolder) {
+    if (nullptr != pDataFolder) {
         if (true == pDataFolder->m_bInitialized) {
             if (pDataFolder->m_strDataConifgFilePath.Exists()) {
                 strConfigFilePath = pDataFolder->m_strDataConifgFilePath;

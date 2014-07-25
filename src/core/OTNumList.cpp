@@ -202,7 +202,7 @@ bool OTNumList::Add(const char* szNumbers) // if false, means the numbers were
                                            // already there. (At least one of
                                            // them.)
 {
-    OT_ASSERT(NULL != szNumbers); // Should never happen.
+    OT_ASSERT(nullptr != szNumbers); // Should never happen.
 
     bool bSuccess = true;
     int64_t lNum = 0;

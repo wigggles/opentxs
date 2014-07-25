@@ -190,12 +190,12 @@ std::ostream& operator<<(std::ostream& os, const OTString& obj)
 // static
 bool OTString::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
 {
-    OT_ASSERT(NULL != fmt);
-    OT_ASSERT(NULL != pvl);
+    OT_ASSERT(nullptr != fmt);
+    OT_ASSERT(nullptr != pvl);
 
     int32_t size = 0;
     int32_t nsize = 0;
-    char* buffer = NULL;
+    char* buffer = nullptr;
     va_list args;
 
 #ifdef _WIN32
@@ -209,7 +209,7 @@ bool OTString::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
 #endif
 
     buffer = new char[size + 100];
-    OT_ASSERT(NULL != buffer);
+    OT_ASSERT(nullptr != buffer);
     OTPassword::zeroMemory(buffer, size + 100);
 
 #ifdef _WIN32
@@ -240,7 +240,7 @@ bool OTString::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
         size = nsize + 1;
         delete[] buffer;
         buffer = new char[size + 100];
-        OT_ASSERT(NULL != buffer);
+        OT_ASSERT(nullptr != buffer);
         OTPassword::zeroMemory(buffer, size + 100);
 
 #ifdef _WIN32
@@ -257,7 +257,7 @@ bool OTString::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
 
     str_Output = buffer;
     delete[] buffer;
-    buffer = NULL;
+    buffer = nullptr;
     return true;
 }
 
@@ -559,7 +559,7 @@ bool OTString::TokenizeIntoKeyValuePairs(
     wordexp_t exp_result;
 
     exp_result.we_wordc = 0;
-    exp_result.we_wordv = NULL;
+    exp_result.we_wordv = nullptr;
     exp_result.we_offs = 0;
 
     if (wordexp(Get(), &exp_result, 0)) // non-zero == failure.
@@ -571,7 +571,7 @@ bool OTString::TokenizeIntoKeyValuePairs(
         return false;
     }
 
-    if ((exp_result.we_wordc > 0) && (NULL != exp_result.we_wordv)) {
+    if ((exp_result.we_wordc > 0) && (nullptr != exp_result.we_wordv)) {
         // wordexp tokenizes by space (as well as expands, which is why I'm
         // using it.)
         // Therefore we need to iterate through the tokens, and create a single
@@ -580,9 +580,9 @@ bool OTString::TokenizeIntoKeyValuePairs(
         //
         for (uint32_t i = 0;
              (i < (exp_result.we_wordc - 1)) &&
-                 (exp_result.we_wordv[i] != NULL) &&
+                 (exp_result.we_wordv[i] != nullptr) &&
                  (exp_result.we_wordv[i + 1] !=
-                  NULL); // odd man out. Only PAIRS of strings are processed!
+                  nullptr); // odd man out. Only PAIRS of strings are processed!
              i += 2) {
             const std::string str_key = exp_result.we_wordv[i];
             const std::string str_val = exp_result.we_wordv[i + 1];
@@ -744,21 +744,21 @@ int64_t OTString::ToLong() const
 
 void OTString::zeroMemory()
 {
-    if (NULL != data_) {
+    if (nullptr != data_) {
         OTPassword::zeroMemory(data_, length_);
     }
 }
 
 void OTString::Release_String(void)
 {
-    if (NULL != data_) {
+    if (nullptr != data_) {
         // for security purposes.
         //
         OTPassword::zeroMemory(data_, length_);
         //        memset(data_, 0, length_);
         delete[] data_;
     }
-    data_ = NULL;
+    data_ = nullptr;
     position_ = 0;
     length_ = 0;
 }
@@ -781,13 +781,13 @@ void OTString::Initialize()
 {
     length_ = 0;
     position_ = 0;
-    data_ = NULL;
+    data_ = nullptr;
 }
 
 OTString::OTString()
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 }
@@ -798,7 +798,7 @@ OTString::OTString()
 OTString::OTString(const OTIdentifier& theValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 
@@ -808,7 +808,7 @@ OTString::OTString(const OTIdentifier& theValue)
 OTString::OTString(const OTContract& theValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 
@@ -820,7 +820,7 @@ OTString::OTString(const OTContract& theValue)
 OTString::OTString(const OTASCIIArmor& strValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 
@@ -838,7 +838,7 @@ OTString::OTString(const OTASCIIArmor& strValue)
 OTString::OTString(const OTSignature& strValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 
@@ -848,7 +848,7 @@ OTString::OTString(const OTSignature& strValue)
 OTString::OTString(OTPseudonym& theValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
 
@@ -858,7 +858,7 @@ OTString::OTString(OTPseudonym& theValue)
 OTString::OTString(const OTString& strValue)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
     LowLevelSetStr(strValue);
@@ -867,7 +867,7 @@ OTString::OTString(const OTString& strValue)
 OTString::OTString(const char* new_string)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
     LowLevelSet(new_string, 0);
@@ -876,7 +876,7 @@ OTString::OTString(const char* new_string)
 OTString::OTString(const char* new_string, size_t sizeLength)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
     LowLevelSet(new_string, static_cast<uint32_t>(sizeLength));
@@ -885,7 +885,7 @@ OTString::OTString(const char* new_string, size_t sizeLength)
 OTString::OTString(const std::string& new_string)
     : length_(0)
     , position_(0)
-    , data_(NULL)
+    , data_(nullptr)
 {
     //    Initialize();
     LowLevelSet(new_string.c_str(), static_cast<uint32_t>(new_string.length()));
@@ -893,7 +893,7 @@ OTString::OTString(const std::string& new_string)
 
 void OTString::LowLevelSetStr(const OTString& strBuf)
 {
-    OT_ASSERT(NULL == data_); // otherwise memory leak.
+    OT_ASSERT(nullptr == data_); // otherwise memory leak.
 
     if (strBuf.Exists()) {
         length_ = (MAX_STRING_LENGTH > strBuf.length_)
@@ -924,9 +924,9 @@ void OTString::LowLevelSetStr(const OTString& strBuf)
 //
 void OTString::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 {
-    OT_ASSERT(NULL == data_); // otherwise memory leak.
+    OT_ASSERT(nullptr == data_); // otherwise memory leak.
 
-    if (NULL != new_string) {
+    if (nullptr != new_string) {
         uint32_t nLength =
             (nEnforcedMaxLength > 0)
                 ? static_cast<uint32_t>(OTString::safe_strlen(
@@ -955,7 +955,7 @@ void OTString::LowLevelSet(const char* new_string, uint32_t nEnforcedMaxLength)
 
         data_ = str_dup2(new_string, nLength);
 
-        if (NULL != data_)
+        if (nullptr != data_)
             length_ = nLength;
         else
             length_ = 0;
@@ -969,10 +969,10 @@ bool OTString::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
 {
     Release();
     // -------------------
-    if ((NULL == pMem) || (theSize < 1)) return true;
+    if ((nullptr == pMem) || (theSize < 1)) return true;
 
     char* str_new = new char[theSize + 1]; // then we allocate 11
-    OT_ASSERT(NULL != str_new);
+    OT_ASSERT(nullptr != str_new);
     // -------------------
     OTPassword::zeroMemory(str_new, theSize + 1);
 
@@ -1035,7 +1035,7 @@ bool OTString::At(uint32_t lIndex, char& c) const
 
 bool OTString::Exists(void) const
 {
-    return (NULL != data_) ? true : false;
+    return (nullptr != data_) ? true : false;
 }
 
 uint32_t OTString::GetLength(void) const
@@ -1045,7 +1045,7 @@ uint32_t OTString::GetLength(void) const
 
 const char* OTString::Get(void) const
 {
-    return (NULL != data_) ? const_cast<const char*>(data_) : "";
+    return (nullptr != data_) ? const_cast<const char*>(data_) : "";
 }
 
 // new_string MUST be at least nEnforcedMaxLength in size if nEnforcedMaxLength
@@ -1060,7 +1060,7 @@ void OTString::Set(const char* new_string, uint32_t nEnforcedMaxLength)
 
     Release();
 
-    if (NULL == new_string) return;
+    if (nullptr == new_string) return;
 
     LowLevelSet(new_string, nEnforcedMaxLength);
 }
@@ -1102,7 +1102,7 @@ bool OTString::operator==(const OTString& s2) const
 // Compare is simple.  True if they match, False if they don't match.
 bool OTString::Compare(const char* strCompare) const
 {
-    if (NULL == data_ || NULL == strCompare) {
+    if (nullptr == data_ || nullptr == strCompare) {
         return false;
     }
 
@@ -1119,7 +1119,7 @@ bool OTString::Compare(const char* strCompare) const
 
 bool OTString::Compare(const OTString& strCompare) const
 {
-    if (NULL == data_ || !strCompare.Exists()) {
+    if (nullptr == data_ || !strCompare.Exists()) {
         return false;
     }
 
@@ -1137,7 +1137,7 @@ bool OTString::Compare(const OTString& strCompare) const
 // Should be easy to modify if the need arises.
 bool OTString::Contains(const char* strCompare) const
 {
-    if (NULL == data_ || NULL == strCompare) {
+    if (nullptr == data_ || nullptr == strCompare) {
         return false;
     }
 
@@ -1148,7 +1148,7 @@ bool OTString::Contains(const char* strCompare) const
 
 bool OTString::Contains(const OTString& strCompare) const
 {
-    if (NULL == data_ || !strCompare.Exists()) {
+    if (nullptr == data_ || !strCompare.Exists()) {
         return false;
     }
 
@@ -1171,7 +1171,7 @@ void OTString::OTfgets(std::istream& ifs)
 
 void OTString::ConvertToLowerCase()
 {
-    if (data_ == NULL) {
+    if (data_ == nullptr) {
         return;
     }
 
@@ -1182,7 +1182,7 @@ void OTString::ConvertToLowerCase()
 
 void OTString::ConvertToUpperCase()
 {
-    if (data_ == NULL) {
+    if (data_ == nullptr) {
         return;
     }
 
@@ -1307,7 +1307,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
 //    //fail -- delete buffer and try again
 //    if(size <= nsize)
 //    {
-//        delete buffer; buffer = NULL;
+//        delete buffer; buffer = nullptr;
 //        buffer = new char[nsize+1]; //+1 for /0
 //        nsize = vsnprintf(buffer,nsize,fmt,vl);
 //    }
@@ -1355,7 +1355,7 @@ void OTString::Concatenate(const OTString& strBuf)
 {
     std::string str_output;
 
-    if ((length_ > 0) && (NULL != data_)) str_output += data_;
+    if ((length_ > 0) && (nullptr != data_)) str_output += data_;
 
     if (strBuf.Exists() && (strBuf.GetLength() > 0)) str_output += strBuf.Get();
 
@@ -1370,7 +1370,7 @@ void OTString::WriteToFile(std::ostream& ofs) const
 /*
 void OTString::WriteToFile(FILE * fl) const
 {
-    if (fl != NULL)
+    if (fl != nullptr)
         fwrite_string(fl, data_);
 }
 */
@@ -1380,7 +1380,7 @@ void OTString::WriteToFile(FILE * fl) const
 //
 bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
 {
-    if (NULL == szBuffer) {
+    if (nullptr == szBuffer) {
         return false;
     }
 
@@ -1427,7 +1427,7 @@ bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
         }
     }
 
-    // Need to add the NULL terminator.
+    // Need to add the nullptr terminator.
     szBuffer[lIndex] = 0;
 
     // We reached the end of the string.

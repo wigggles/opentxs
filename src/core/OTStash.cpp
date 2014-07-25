@@ -152,7 +152,7 @@ void OTStash::Serialize(OTString& strAppend)
     for (auto& it : m_mapStashItems) {
         const std::string str_asset_type_id = it.first;
         OTStashItem* pStashItem = it.second;
-        OT_ASSERT((str_asset_type_id.size() > 0) && (NULL != pStashItem));
+        OT_ASSERT((str_asset_type_id.size() > 0) && (nullptr != pStashItem));
 
         strAppend.Concatenate(
             "<stashItem assetTypeID=\"%s\" balance=\"%lld\" />\n\n",
@@ -241,7 +241,7 @@ OTStash::OTStash()
 OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(strAssetTypeID, lAmount);
-    OT_ASSERT(NULL != pItem);
+    OT_ASSERT(nullptr != pItem);
 
     m_mapStashItems.insert(
         std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
@@ -250,7 +250,7 @@ OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount)
 OTStash::OTStash(const OTIdentifier& theAssetTypeID, const int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
-    OT_ASSERT(NULL != pItem);
+    OT_ASSERT(nullptr != pItem);
 
     OTString strAssetTypeID(theAssetTypeID);
 
@@ -262,9 +262,9 @@ OTStash::~OTStash()
 {
     while (!m_mapStashItems.empty()) {
         OTStashItem* pTemp = m_mapStashItems.begin()->second;
-        OT_ASSERT(NULL != pTemp);
+        OT_ASSERT(nullptr != pTemp);
         delete pTemp;
-        pTemp = NULL;
+        pTemp = nullptr;
         m_mapStashItems.erase(m_mapStashItems.begin());
     }
 }
@@ -281,7 +281,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     {
         const OTString strAssetTypeID(str_asset_type_id.c_str());
         OTStashItem* pStashItem = new OTStashItem(strAssetTypeID);
-        OT_ASSERT(NULL != pStashItem);
+        OT_ASSERT(nullptr != pStashItem);
 
         m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
             strAssetTypeID.Get(), pStashItem));
@@ -289,7 +289,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     }
 
     OTStashItem* pStashItem = it->second;
-    OT_ASSERT(NULL != pStashItem);
+    OT_ASSERT(nullptr != pStashItem);
 
     return pStashItem;
 }

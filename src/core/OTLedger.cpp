@@ -253,7 +253,7 @@ bool OTLedger::SaveBoxReceipts() // For ALL full transactions, save the actual
     bool bRetVal = true;
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         // We only save full versions of transactions as box receipts, not
         // abbreviated versions.
@@ -281,7 +281,7 @@ bool OTLedger::SaveBoxReceipt(const int64_t& lTransactionNum)
     // Get a pointer to it.
     OTTransaction* pTransaction = GetTransaction(lTransactionNum);
 
-    if (NULL == pTransaction) {
+    if (nullptr == pTransaction) {
         otOut << "OTLedger::SaveBoxReceipt: Unable to save box receipt "
               << lTransactionNum
               << ": "
@@ -299,7 +299,7 @@ bool OTLedger::DeleteBoxReceipt(const int64_t& lTransactionNum)
     // Get a pointer to it.
     OTTransaction* pTransaction = GetTransaction(lTransactionNum);
 
-    if (NULL == pTransaction) {
+    if (nullptr == pTransaction) {
         otOut << "OTLedger::DeleteBoxReceipt: Unable to delete (overwrite) box "
                  "receipt " << lTransactionNum
               << ": couldn't find the transaction on this ledger.\n";
@@ -326,7 +326,7 @@ bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
         the_set.insert(pTransaction->GetTransactionNum());
     }
 
@@ -338,7 +338,7 @@ bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
         int64_t lSetNum = it;
 
         OTTransaction* pTransaction = GetTransaction(lSetNum);
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         // Failed loading the boxReceipt
         //
@@ -348,11 +348,11 @@ bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
             // needed, since pointer
             // is bad if success on LoadBoxReceipt() call.
             //
-            pTransaction = NULL;
+            pTransaction = nullptr;
             bRetVal = false;
             OTLogStream* pLog = &otOut;
 
-            if (NULL != psetUnloaded) {
+            if (nullptr != psetUnloaded) {
                 psetUnloaded->insert(lSetNum);
                 pLog = &otLog3;
             }
@@ -363,12 +363,12 @@ bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
             // because we want to
             // populate it with the conmplete list of IDs that wouldn't load as
             // a Box Receipt.
-            // Thus, we only break if psetUnloaded is NULL, which is better
+            // Thus, we only break if psetUnloaded is nullptr, which is better
             // optimization in that case.
             // (If not building a list of all failures, then we can return at
             // first sign of failure.)
             //
-            if (NULL == psetUnloaded) break;
+            if (nullptr == psetUnloaded) break;
         }
         // else (success), no need for a block in that case.
     }
@@ -404,7 +404,7 @@ bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
     //
     OTTransaction* pTransaction = GetTransaction(lTransactionNum);
 
-    if (NULL == pTransaction) {
+    if (nullptr == pTransaction) {
         otOut
             << __FUNCTION__ << ": Unable to load box receipt "
             << lTransactionNum
@@ -436,7 +436,7 @@ bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
         OTTransaction::LoadBoxReceipt(*pTransaction, *this);
 
     // success
-    if (NULL != pBoxReceipt) {
+    if (nullptr != pBoxReceipt) {
         //  Remove the existing, abbreviated receipt, and replace it with the
         // actual receipt.
         //  (If this inbox/outbox/whatever is saved, it will later save in
@@ -444,7 +444,7 @@ bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
         //    again.)
         //
         RemoveTransaction(lTransactionNum); // this deletes pTransaction
-        pTransaction = NULL;
+        pTransaction = nullptr;
         AddTransaction(*pBoxReceipt); // takes ownership.
 
         return true;
@@ -541,7 +541,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
     m_Type = theType;
 
     const char* pszType = GetTypeString();
-    const char* pszFolder = NULL;
+    const char* pszFolder = nullptr;
 
     switch (theType) {
     case OTLedger::nymbox:
@@ -592,7 +592,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
 
     OTString strRawFile;
 
-    if (NULL != pString) // Loading FROM A STRING.
+    if (nullptr != pString) // Loading FROM A STRING.
         strRawFile.Set(*pString);
     else // Loading FROM A FILE.
     {
@@ -634,7 +634,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
 
     if (false == bSuccess) {
         otErr << "Failed loading " << pszType << " "
-              << ((NULL != pString) ? "from string" : "from file")
+              << ((nullptr != pString) ? "from string" : "from file")
               << " in OTLedger::Load" << pszType << ": " << szFolder1name
               << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename << "\n";
@@ -642,7 +642,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
     }
     else {
         otInfo << "Successfully loaded " << pszType << " "
-               << ((NULL != pString) ? "from string" : "from file")
+               << ((nullptr != pString) ? "from string" : "from file")
                << " in OTLedger::Load" << pszType << ": " << szFolder1name
                << OTLog::PathSeparator() << szFolder2name
                << OTLog::PathSeparator() << szFilename << "\n";
@@ -655,7 +655,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 {
     m_Type = theType;
 
-    const char* pszFolder = NULL;
+    const char* pszFolder = nullptr;
     const char* pszType = GetTypeString();
 
     switch (theType) {
@@ -812,10 +812,11 @@ bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash) // If you pass
 
     // Sometimes the caller, when saving the Nymbox, wants to know what the
     // latest Nymbox hash is. FYI, the NymboxHash is calculated on the UNSIGNED
-    // contents of the Nymbox. So if pNymboxHash is not NULL, then that is where
+    // contents of the Nymbox. So if pNymboxHash is not nullptr, then that is
+    // where
     // I will put the new hash, as output for the caller of this function.
     //
-    if (bSaved && (NULL != pNymboxHash)) {
+    if (bSaved && (nullptr != pNymboxHash)) {
         pNymboxHash->Release();
 
         if (!CalculateNymboxHash(*pNymboxHash))
@@ -859,10 +860,11 @@ bool OTLedger::SaveInbox(OTIdentifier* pInboxHash) // If you pass the
 
     // Sometimes the caller, when saving the Inbox, wants to know what the
     // latest Inbox hash is. FYI, the InboxHash is calculated on the UNSIGNED
-    // contents of the Inbox. So if pInboxHash is not NULL, then that is where
+    // contents of the Inbox. So if pInboxHash is not nullptr, then that is
+    // where
     // I will put the new hash, as output for the caller of this function.
     //
-    if (bSaved && (NULL != pInboxHash)) {
+    if (bSaved && (nullptr != pInboxHash)) {
         pInboxHash->Release();
 
         if (!CalculateInboxHash(*pInboxHash))
@@ -890,10 +892,11 @@ bool OTLedger::SaveOutbox(OTIdentifier* pOutboxHash) // If you pass
 
     // Sometimes the caller, when saving the Outbox, wants to know what the
     // latest Outbox hash is. FYI, the OutboxHash is calculated on the UNSIGNED
-    // contents of the Outbox. So if pOutboxHash is not NULL, then that is where
+    // contents of the Outbox. So if pOutboxHash is not nullptr, then that is
+    // where
     // I will put the new hash, as output for the caller of this function.
     //
-    if (bSaved && (NULL != pOutboxHash)) {
+    if (bSaved && (nullptr != pOutboxHash)) {
         pOutboxHash->Release();
 
         if (!CalculateOutboxHash(*pOutboxHash))
@@ -946,7 +949,7 @@ OTLedger* OTLedger::GenerateLedger(
     const OTIdentifier& theServerID, const ledgerType theType, bool bCreateFile)
 {
     OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theServerID);
-    OT_ASSERT(NULL != pLedger);
+    OT_ASSERT(nullptr != pLedger);
 
     pLedger->GenerateLedger(theAcctID, theServerID, theType, bCreateFile);
     pLedger->SetUserID(theUserID);
@@ -1052,7 +1055,7 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         OTCleanup<OTAccount> theAccountGuardian(
             pAccount); // No worries about having to clean it up.
 
-        if (NULL != pAccount)
+        if (nullptr != pAccount)
             SetUserID(pAccount->GetUserID());
         else {
             otErr << "OTLedger::GenerateLedger: Failed in "
@@ -1069,7 +1072,7 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         OTCleanup<OTAccount> theAccountGuardian(
             pAccount); // No worries about having to clean it up.
 
-        if (NULL != pAccount) // Found it!
+        if (nullptr != pAccount) // Found it!
             SetUserID(pAccount->GetUserID());
         else // Must be based on NymID, not AcctID (like Nymbox. But RecordBox
              // can go either way.)
@@ -1181,12 +1184,12 @@ bool OTLedger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
     // Otherwise, if it WAS already there, remove it properly.
     else {
         OTTransaction* pTransaction = it->second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
         m_mapTransactions.erase(it);
 
         if (bDeleteIt) {
             delete pTransaction;
-            pTransaction = NULL;
+            pTransaction = nullptr;
         }
         return true;
     }
@@ -1221,12 +1224,12 @@ OTTransaction* OTLedger::GetTransaction(
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (theType == pTransaction->GetType()) return pTransaction;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // if not found, returns -1
@@ -1239,7 +1242,7 @@ int32_t OTLedger::GetTransactionIndex(int64_t lTransactionNum)
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         ++nIndex; // 0 on first iteration.
 
@@ -1251,20 +1254,20 @@ int32_t OTLedger::GetTransactionIndex(int64_t lTransactionNum)
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum)
 {
     // loop through the transactions inside this ledger
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (pTransaction->GetTransactionNum() == lTransactionNum) {
             return pTransaction;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 // Return a count of all the transactions in this ledger that are IN REFERENCE
@@ -1278,7 +1281,7 @@ int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum)
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) nCount++;
     }
@@ -1287,25 +1290,26 @@ int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum)
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTTransaction* OTLedger::GetTransactionByIndex(int32_t nIndex)
 {
     // Out of bounds.
-    if ((nIndex < 0) || (nIndex >= GetTransactionCount())) return NULL;
+    if ((nIndex < 0) || (nIndex >= GetTransactionCount())) return nullptr;
 
     int32_t nIndexCount = -1;
 
     for (auto& it : m_mapTransactions) {
         nIndexCount++; // On first iteration, this is now 0, same as nIndex.
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT((NULL != pTransaction)); // Should always be good.
+        OT_ASSERT((nullptr != pTransaction)); // Should always be good.
 
         // If this transaction is the one at the requested index
         if (nIndexCount == nIndex) return pTransaction;
     }
 
-    return NULL; // Should never reach this point, since bounds are checked at
-                 // the top.
+    return nullptr; // Should never reach this point, since bounds are checked
+                    // at
+                    // the top.
 }
 
 // Nymbox-only.
@@ -1316,7 +1320,7 @@ OTTransaction* OTLedger::GetReplyNotice(const int64_t& lRequestNum)
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::replyNotice != pTransaction->GetType()) // <=======
             continue;
@@ -1324,7 +1328,7 @@ OTTransaction* OTLedger::GetReplyNotice(const int64_t& lRequestNum)
         if (pTransaction->GetRequestNum() == lRequestNum) return pTransaction;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
@@ -1332,7 +1336,7 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::transferReceipt == pTransaction->GetType()) {
             OTString strReference;
@@ -1341,13 +1345,13 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
             OTItem* pOriginalItem = OTItem::CreateItemFromString(
                 strReference, pTransaction->GetPurportedServerID(),
                 pTransaction->GetReferenceToNum());
-            OT_ASSERT(NULL != pOriginalItem);
+            OT_ASSERT(nullptr != pOriginalItem);
             OTCleanup<OTItem> theItemAngel(*pOriginalItem);
 
             if (pOriginalItem->GetType() != OTItem::acceptPending) {
                 otErr << "OTLedger::" << __FUNCTION__
                       << ": Wrong item type attached to transferReceipt!\n";
-                return NULL;
+                return nullptr;
             }
             else {
                 // Note: the acceptPending USED to be "in reference to" whatever
@@ -1381,7 +1385,7 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // This method loops through all the receipts in the ledger (inbox usually),
@@ -1409,7 +1413,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
 {
     for (auto& it : m_mapTransactions) {
         OTTransaction* pCurrentReceipt = it.second;
-        OT_ASSERT(NULL != pCurrentReceipt);
+        OT_ASSERT(nullptr != pCurrentReceipt);
 
         if ((pCurrentReceipt->GetType() != OTTransaction::chequeReceipt) &&
             (pCurrentReceipt->GetType() != OTTransaction::voucherReceipt))
@@ -1423,7 +1427,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
             pCurrentReceipt->GetReferenceToNum());
         OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
-        if (NULL == pOriginalItem) {
+        if (nullptr == pOriginalItem) {
             otErr << __FUNCTION__
                   << ": Expected original depositCheque request item to be "
                      "inside the chequeReceipt "
@@ -1445,7 +1449,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
             pOriginalItem->GetAttachment(strCheque);
 
             OTCheque* pCheque = new OTCheque;
-            OT_ASSERT(NULL != pCheque);
+            OT_ASSERT(nullptr != pCheque);
             OTCleanup<OTCheque> theChequeAngel(pCheque);
 
             if (false == ((strCheque.GetLength() > 2) &&
@@ -1476,13 +1480,13 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
                     // Also return pCheque, if the caller wants it (otherwise
                     // delete it.)
                     //
-                    if (NULL != ppChequeOut) // caller wants us to return the
-                                             // cheque pointer as well.
+                    if (nullptr != ppChequeOut) // caller wants us to return the
+                                                // cheque pointer as well.
                     {
                         (*ppChequeOut) =
                             pCheque; // now caller is responsible to delete.
                         theChequeAngel.SetCleanupTargetPointer(
-                            NULL); // we will no longer clean it up.
+                            nullptr); // we will no longer clean it up.
                     }
 
                     return pCurrentReceipt;
@@ -1491,7 +1495,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // Find the finalReceipt in this Inbox, that has lTransactionNum as its "in
@@ -1513,7 +1517,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::finalReceipt != pTransaction->GetType()) // <=======
             continue;
@@ -1522,7 +1526,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
             return pTransaction;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // There may be multiple matching receipts... this just returns the first one.
@@ -1537,21 +1541,22 @@ OTTransaction* OTLedger::GetPaymentReceipt(
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::paymentReceipt !=
             pTransaction->GetType()) // <=======
             continue;
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) {
-            if (NULL != ppPaymentOut) // The caller might want a copy of this.
+            if (nullptr !=
+                ppPaymentOut) // The caller might want a copy of this.
             {
                 OTString strPayment;
                 pTransaction->GetReferenceString(strPayment);
 
                 if (!strPayment.Exists()) {
                     OTPayment* pPayment = new OTPayment(strPayment);
-                    OT_ASSERT(NULL != pPayment);
+                    OT_ASSERT(nullptr != pPayment);
 
                     if (pPayment->IsValid() && pPayment->SetTempValues())
                         *ppPaymentOut =
@@ -1561,8 +1566,8 @@ OTTransaction* OTLedger::GetPaymentReceipt(
                                                  "payment instrument from "
                                                  "paymentReceipt.\n";
                         delete pPayment;
-                        pPayment = NULL;
-                        *ppPaymentOut = NULL;
+                        pPayment = nullptr;
+                        *ppPaymentOut = nullptr;
                     }
                 }
                 else
@@ -1575,7 +1580,7 @@ OTTransaction* OTLedger::GetPaymentReceipt(
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /// Only if it is an inbox, a ledger will loop through the transactions
@@ -1595,7 +1600,7 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
 {
     if (OTLedger::inbox != GetType()) {
         otErr << "OTLedger::GenerateBalanceStatement: Wrong ledger type.\n";
-        return NULL;
+        return nullptr;
     }
 
     const OTIdentifier theNymID(theNym);
@@ -1605,18 +1610,18 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
         (theAccount.GetUserID() != GetUserID())) {
         otErr << "Wrong Account passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
-        return NULL;
+        return nullptr;
     }
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theOutbox.GetPurportedServerID() != GetPurportedServerID()) ||
         (theOutbox.GetUserID() != GetUserID())) {
         otErr << "Wrong Outbox passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
-        return NULL;
+        return nullptr;
     }
     if ((theNymID != GetUserID())) {
         otErr << "Wrong Nym passed in to OTLedger::GenerateBalanceStatement.\n";
-        return NULL;
+        return nullptr;
     }
 
     // theOwner is the withdrawal, or deposit, or whatever, that wants to change
@@ -1628,7 +1633,7 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
                                              // transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (NULL == pBalanceItem) return NULL;
+    if (nullptr == pBalanceItem) return nullptr;
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
 
@@ -1719,7 +1724,7 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         otInfo << "Producing a report...\n";
 
@@ -1762,7 +1767,7 @@ int64_t OTLedger::GetTotalPendingValue()
 
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         if (pTransaction->GetType() == OTTransaction::pending)
             lTotalPendingValue +=
@@ -1793,7 +1798,7 @@ void OTLedger::ProduceOutboxReport(OTItem& theBalanceItem)
     // in this outbox.)
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         // it only reports receipts where we don't yet have balance agreement.
         pTransaction->ProduceOutboxReportItem(
@@ -1821,7 +1826,8 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
     //    if (nIndex >= GetTransactionCount())
     //    {
     //        otErr << "%s: out of bounds: %d\n", __FUNCTION__, nIndex);
-    //        return NULL; // out of bounds. I'm saving from an OT_ASSERT_MSG()
+    //        return nullptr; // out of bounds. I'm saving from an
+    // OT_ASSERT_MSG()
     // happening here. (Maybe I shouldn't.)
     //                   // ^^^ That's right you shouldn't! That's the client
     // developer's problem, not yours.
@@ -1831,10 +1837,11 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
     //    OTCleanup<OTTransaction> theAngel(pTransaction); // THE LEDGER CLEANS
     // THIS ALREADY.
 
-    if (NULL == pTransaction) {
+    if (nullptr == pTransaction) {
         otErr << __FUNCTION__
-              << ": good index but uncovered NULL pointer: " << nIndex << "\n";
-        return NULL; // Weird.
+              << ": good index but uncovered nullptr pointer: " << nIndex
+              << "\n";
+        return nullptr; // Weird.
     }
 
     const int64_t lTransactionNum = pTransaction->GetTransactionNum();
@@ -1859,13 +1866,14 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                                // fails.
         pTransaction = GetTransaction(static_cast<int64_t>(lTransactionNum));
 
-        if (NULL == pTransaction) {
+        if (nullptr == pTransaction) {
             otErr << __FUNCTION__
-                  << ": good index but uncovered NULL "
+                  << ": good index but uncovered nullptr "
                      "pointer after trying to load full version of receipt "
                      "(from abbreviated) at index: " << nIndex << "\n";
-            return NULL; // Weird. Clearly I need the full box receipt, if I'm
-                         // to get the instrument out of it.
+            return nullptr; // Weird. Clearly I need the full box receipt, if
+                            // I'm
+                            // to get the instrument out of it.
         }
     }
 
@@ -1893,7 +1901,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                  "::payDividend or ::notice, "
                  "but found: OTTransaction::" << pTransaction->GetTypeString()
               << "\n";
-        return NULL;
+        return nullptr;
     }
 
     if ((OTTransaction::instrumentNotice ==
@@ -1907,11 +1915,11 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                   << ": Failure: Expected OTTransaction::instrumentNotice to "
                      "contain an 'in reference to' string, but it was empty. "
                      "(Returning \"\".)\n";
-            return NULL;
+            return nullptr;
         }
 
         OTMessage* pMsg = new OTMessage;
-        if (NULL == pMsg) {
+        if (nullptr == pMsg) {
             otErr << __FUNCTION__ << ": Null:  Assert while allocating memory "
                                      "for an OTMessage!\n";
             OT_FAIL;
@@ -1922,7 +1930,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
             otOut << __FUNCTION__
                   << ": Failed trying to load OTMessage from string:\n\n"
                   << strMsg << "\n\n";
-            return NULL;
+            return nullptr;
         }
 
         // By this point, the original OTMessage has been loaded from string
@@ -1961,7 +1969,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                                                     // contains a PURSE or
                                                     // CHEQUE (etc) and not
                                                     // specifically a PAYMENT.
-            OT_ASSERT(NULL != pPayment);
+            OT_ASSERT(nullptr != pPayment);
             OTCleanup<OTPayment> thePaymentAngel(pPayment);
 
             if (!pPayment->IsValid())
@@ -1970,7 +1978,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                          "Contents:\n\n" << strEnvelopeContents << "\n\n";
             else // success.
             {
-                thePaymentAngel.SetCleanupTargetPointer(NULL);
+                thePaymentAngel.SetCleanupTargetPointer(nullptr);
                 return pPayment; // Caller responsible to delete.
             }
         }
@@ -1980,7 +1988,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                                  "instrumentNotice or payDividend). "
                                  "!!! Not yet supported !!!\n";
 
-    return NULL;
+    return nullptr;
 }
 
 // Auto-detects ledger type. (message/nymbox/inbox/outbox)
@@ -2080,7 +2088,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     // loop through the transactions and print them out here.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
 
         OTString strTransaction;
 
@@ -2248,7 +2256,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strExpected; // The record type has a different name for each
                               // box.
         OTNumList theNumList;
-        OTNumList* pNumList = NULL;
+        OTNumList* pNumList = nullptr;
         switch (m_Type) {
         case OTLedger::nymbox:
             strExpected.Set("nymboxRecord");
@@ -2346,7 +2354,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             lRequestNum, bReplyTransSuccess,
                             pNumList); // This is for "OTTransaction::blank" and
                                        // "OTTransaction::successNotice",
-                                       // otherwise NULL.
+                                       // otherwise nullptr.
                     if ((-1) == nAbbrevRetVal)
                         return (-1); // The function already logs appropriately.
 
@@ -2357,7 +2365,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     //
                     OTTransaction* pExistingTrans =
                         GetTransaction(lTransactionNum);
-                    if (NULL != pExistingTrans) // Uh-oh, it's already there!
+                    if (nullptr != pExistingTrans) // Uh-oh, it's already there!
                     {
                         otOut << szFunc << ": Error loading transaction "
                               << lTransactionNum << " (" << strExpected
@@ -2382,8 +2390,8 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         bReplyTransSuccess,
                         pNumList); // This is for "OTTransaction::blank" and
                                    // "OTTransaction::successNotice", otherwise
-                                   // NULL.
-                    OT_ASSERT(NULL != pTransaction);
+                                   // nullptr.
+                    OT_ASSERT(nullptr != pTransaction);
                     //
                     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported
                     // AcctID and purported ServerID.
@@ -2442,7 +2450,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                            "abbreviated transaction "
                               << pTransaction->GetTransactionNum() << "\n";
                         delete pTransaction;
-                        pTransaction = NULL;
+                        pTransaction = nullptr;
                         return (-1);
                     }
                     //                    xml->read(); // <==================
@@ -2562,7 +2570,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // GetRealServerID());
             OTTransaction* pTransaction = new OTTransaction(
                 GetUserID(), GetPurportedAccountID(), GetPurportedServerID());
-            OT_ASSERT(NULL != pTransaction);
+            OT_ASSERT(nullptr != pTransaction);
 
             // Need this set before the LoadContractFromString().
             //
@@ -2582,7 +2590,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                 OTTransaction* pExistingTrans =
                     GetTransaction(pTransaction->GetTransactionNum());
-                if (NULL != pExistingTrans) // Uh-oh, it's already there!
+                if (nullptr != pExistingTrans) // Uh-oh, it's already there!
                 {
                     const OTString strPurportedAcctID(GetPurportedAccountID());
                     otOut
@@ -2591,7 +2599,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         << ", since one was already there, in box for account: "
                         << strPurportedAcctID << ".\n";
                     delete pTransaction;
-                    pTransaction = NULL;
+                    pTransaction = nullptr;
                     return (-1);
                 }
 
@@ -2665,9 +2673,9 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             else {
                 otErr << "ERROR: loading or verifying transaction in "
                          "OTLedger::ProcessXMLNode\n";
-                if (NULL != pTransaction) {
+                if (nullptr != pTransaction) {
                     delete pTransaction;
-                    pTransaction = NULL;
+                    pTransaction = nullptr;
                 }
                 return (-1);
             }
@@ -2696,7 +2704,7 @@ void OTLedger::ReleaseTransactions()
         OTTransaction* pTransaction = m_mapTransactions.begin()->second;
         m_mapTransactions.erase(m_mapTransactions.begin());
         delete pTransaction;
-        pTransaction = NULL;
+        pTransaction = nullptr;
     }
 }
 

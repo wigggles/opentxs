@@ -198,7 +198,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         //
         OTPurse* pPurse = InstantiatePurse();
 
-        if (NULL == pPurse) {
+        if (nullptr == pPurse) {
             otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
                      "OTPayment (purported purse) contents:\n\n" << m_strPayment
                   << "\n\n";
@@ -212,7 +212,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
     else {
         OTTrackable* pTrackable = Instantiate();
 
-        if (NULL == pTrackable) {
+        if (nullptr == pTrackable) {
             otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
                      "OTPayment contents:\n\n" << m_strPayment << "\n\n";
             return false;
@@ -221,16 +221,16 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         OTCleanup<OTTrackable> theTrackableAngel(
             *pTrackable); // (This automates the deletion.)
 
-        OTCheque* pCheque = NULL;
-        OTPaymentPlan* pPaymentPlan = NULL;
-        OTSmartContract* pSmartContract = NULL;
+        OTCheque* pCheque = nullptr;
+        OTPaymentPlan* pPaymentPlan = nullptr;
+        OTSmartContract* pSmartContract = nullptr;
 
         switch (m_Type) {
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
             pCheque = dynamic_cast<OTCheque*>(pTrackable);
-            if (NULL == pCheque)
+            if (nullptr == pCheque)
                 otErr << "OTPayment::SetTempValues: Failure: "
                          "dynamic_cast<OTCheque *>(pTrackable). Contents:\n\n"
                       << m_strPayment << "\n\n";
@@ -242,7 +242,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
 
         case PAYMENT_PLAN:
             pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-            if (NULL == pPaymentPlan)
+            if (nullptr == pPaymentPlan)
                 otErr << "OTPayment::SetTempValues: Failure: "
                          "dynamic_cast<OTPaymentPlan *>(pTrackable). "
                          "Contents:\n\n" << m_strPayment << "\n\n";
@@ -254,7 +254,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
 
         case SMART_CONTRACT:
             pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
-            if (NULL == pSmartContract)
+            if (nullptr == pSmartContract)
                 otErr << "OTPayment::SetTempValues: Failure: "
                          "dynamic_cast<OTSmartContract *>(pTrackable). "
                          "Contents:\n\n" << m_strPayment << "\n\n";
@@ -543,7 +543,7 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
                                              // type...This comment is wrong!!
     {
         OTTrackable* pTrackable = Instantiate();
-        if (NULL == pTrackable) {
+        if (nullptr == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
                   << m_strPayment << "\n";
@@ -552,17 +552,17 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
         OTCleanup<OTTrackable> theTrackableAngel(
             *pTrackable); // (This automates the DELETION.)
 
-        OTPaymentPlan* pPlan = NULL;
-        OTSmartContract* pSmartContract = NULL;
+        OTPaymentPlan* pPlan = nullptr;
+        OTSmartContract* pSmartContract = nullptr;
 
         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
-        if (NULL != pPlan) {
+        if (nullptr != pPlan) {
             pPlan->GetAllTransactionNumbers(numlistOutput);
             return true;
         }
-        else if (NULL != pSmartContract) {
+        else if (nullptr != pSmartContract) {
             pSmartContract->GetAllTransactionNumbers(numlistOutput);
             return true;
         }
@@ -619,7 +619,7 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
                                              // type...This comment is wrong!!
     {
         OTTrackable* pTrackable = Instantiate();
-        if (NULL == pTrackable) {
+        if (nullptr == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
                   << m_strPayment << "\n";
@@ -628,17 +628,17 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
         OTCleanup<OTTrackable> theTrackableAngel(
             *pTrackable); // (This automates the DELETION.)
 
-        OTPaymentPlan* pPlan = NULL;
-        OTSmartContract* pSmartContract = NULL;
+        OTPaymentPlan* pPlan = nullptr;
+        OTSmartContract* pSmartContract = nullptr;
 
         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
-        if (NULL != pPlan) {
+        if (nullptr != pPlan) {
             if (pPlan->HasTransactionNum(lInput)) return true;
             return false;
         }
-        else if (NULL != pSmartContract) {
+        else if (nullptr != pSmartContract) {
             if (pSmartContract->HasTransactionNum(lInput)) return true;
             return false;
         }
@@ -689,7 +689,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
         OTTrackable* pTrackable = Instantiate();
-        if (NULL == pTrackable) {
+        if (nullptr == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
                   << m_strPayment << "\n";
@@ -698,18 +698,18 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
         OTCleanup<OTTrackable> theTrackableAngel(
             *pTrackable); // (This automates the DELETION.)
 
-        OTSmartContract* pSmartContract = NULL;
+        OTSmartContract* pSmartContract = nullptr;
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
-        OTPaymentPlan* pPlan = NULL;
+        OTPaymentPlan* pPlan = nullptr;
         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
 
-        if (NULL != pSmartContract) {
+        if (nullptr != pSmartContract) {
             lOutput = pSmartContract->GetClosingNumber(theAcctID);
             if (lOutput > 0) return true;
             return false;
         }
-        else if (NULL != pPlan) {
+        else if (nullptr != pPlan) {
             lOutput = pPlan->GetClosingNumber(theAcctID);
             if (lOutput > 0) return true;
             return false;
@@ -755,7 +755,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
         OTTrackable* pTrackable = Instantiate();
-        if (NULL == pTrackable) {
+        if (nullptr == pTrackable) {
             otErr << __FUNCTION__
                   << ": Failed instantiating OTPayment containing:\n"
                   << m_strPayment << "\n";
@@ -764,18 +764,18 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
         OTCleanup<OTTrackable> theTrackableAngel(
             *pTrackable); // (This automates the DELETION.)
 
-        OTSmartContract* pSmartContract = NULL;
+        OTSmartContract* pSmartContract = nullptr;
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
-        OTPaymentPlan* pPlan = NULL;
+        OTPaymentPlan* pPlan = nullptr;
         pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
 
-        if (NULL != pSmartContract) {
+        if (nullptr != pSmartContract) {
             lOutput = pSmartContract->GetOpeningNumber(theNymID);
             if (lOutput > 0) return true;
             return false;
         }
-        else if (NULL != pPlan) {
+        else if (nullptr != pPlan) {
             lOutput = pPlan->GetOpeningNumber(theNymID);
             if (lOutput > 0) return true;
             return false;
@@ -1258,11 +1258,11 @@ OTPayment::OTPayment(const OTString& strPayment)
 //
 OTTrackable* OTPayment::Instantiate() const
 {
-    OTContract* pContract = NULL;
-    OTTrackable* pTrackable = NULL;
-    OTCheque* pCheque = NULL;
-    OTPaymentPlan* pPaymentPlan = NULL;
-    OTSmartContract* pSmartContract = NULL;
+    OTContract* pContract = nullptr;
+    OTTrackable* pTrackable = nullptr;
+    OTCheque* pCheque = nullptr;
+    OTPaymentPlan* pPaymentPlan = nullptr;
+    OTSmartContract* pSmartContract = nullptr;
 
     switch (m_Type) {
     case CHEQUE:
@@ -1270,77 +1270,77 @@ OTTrackable* OTPayment::Instantiate() const
     case INVOICE:
         pContract = OTContract::InstantiateContract(m_strPayment);
 
-        if (NULL != pContract) {
+        if (nullptr != pContract) {
             pCheque = dynamic_cast<OTCheque*>(pContract);
 
-            if (NULL == pCheque) {
+            if (nullptr == pCheque) {
                 otErr << "OTPayment::Instantiate: Tried to instantiate cheque, "
                          "but factory returned non-cheque:\n\n" << m_strPayment
                       << "\n\n";
                 delete pContract;
-                pContract = NULL;
+                pContract = nullptr;
             }
             else
                 pTrackable = pCheque;
         }
         else
             otErr << "OTPayment::Instantiate: Tried to instantiate cheque, but "
-                     "factory returned NULL:\n\n" << m_strPayment << "\n\n";
+                     "factory returned nullptr:\n\n" << m_strPayment << "\n\n";
         break;
 
     case PAYMENT_PLAN:
         pContract = OTContract::InstantiateContract(m_strPayment);
 
-        if (NULL != pContract) {
+        if (nullptr != pContract) {
             pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pContract);
 
-            if (NULL == pPaymentPlan) {
+            if (nullptr == pPaymentPlan) {
                 otErr << "OTPayment::Instantiate: Tried to instantiate payment "
                          "plan, but factory returned non-payment-plan:\n\n"
                       << m_strPayment << "\n\n";
                 delete pContract;
-                pContract = NULL;
+                pContract = nullptr;
             }
             else
                 pTrackable = pPaymentPlan;
         }
         else
             otErr << "OTPayment::Instantiate: Tried to instantiate payment "
-                     "plan, but factory returned NULL:\n\n" << m_strPayment
+                     "plan, but factory returned nullptr:\n\n" << m_strPayment
                   << "\n\n";
         break;
 
     case SMART_CONTRACT:
         pContract = OTContract::InstantiateContract(m_strPayment);
 
-        if (NULL != pContract) {
+        if (nullptr != pContract) {
             pSmartContract = dynamic_cast<OTSmartContract*>(pContract);
 
-            if (NULL == pSmartContract) {
+            if (nullptr == pSmartContract) {
                 otErr << __FUNCTION__
                       << ": Tried to instantiate smart contract, but factory "
                          "returned non-smart-contract:\n\n" << m_strPayment
                       << "\n\n";
                 delete pContract;
-                pContract = NULL;
+                pContract = nullptr;
             }
             else
                 pTrackable = pSmartContract;
         }
         else
             otErr << "OTPayment::Instantiate: Tried to instantiate smart "
-                     "contract, but factory returned NULL:\n\n" << m_strPayment
-                  << "\n\n";
+                     "contract, but factory returned nullptr:\n\n"
+                  << m_strPayment << "\n\n";
         break;
     case PURSE:
         otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate purse, "
                  "but should have called OTPayment::InstantiatePurse.\n";
-        return NULL;
+        return nullptr;
     default:
         otErr << "OTPayment::Instantiate: ERROR: Tried to instantiate payment "
                  "object, but had a bad type. Contents:\n\n" << m_strPayment
               << "\n\n";
-        return NULL;
+        return nullptr;
     }
 
     return pTrackable;
@@ -1350,7 +1350,7 @@ OTTrackable* OTPayment::Instantiate(const OTString& strPayment)
 {
     if (SetPayment(strPayment)) return Instantiate();
 
-    return NULL;
+    return nullptr;
 }
 
 // You need the server ID to instantiate a purse, unlike all the
@@ -1368,7 +1368,7 @@ OTPurse* OTPayment::InstantiatePurse() const
                  "does NOT contain a purse. "
                  "Contents:\n\n" << m_strPayment << "\n\n";
 
-    return NULL;
+    return nullptr;
 }
 
 /*
@@ -1383,7 +1383,7 @@ OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID) const
 NOT contain a purse. "
                       "Contents:\n\n%s\n\n", m_strPayment.Get());
 
-    return NULL;
+    return nullptr;
 }
 
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
@@ -1398,7 +1398,7 @@ OTIdentifier & ASSET_ID) const
 NOT contain a purse. "
                       "Contents:\n\n%s\n\n", m_strPayment.Get());
 
-    return NULL;
+    return nullptr;
 }
 */
 
@@ -1415,7 +1415,7 @@ OTPurse* OTPayment::InstantiatePurse(const OTString& strPayment)
     else
         return InstantiatePurse();
 
-    return NULL;
+    return nullptr;
 }
 
 /*
@@ -1433,7 +1433,7 @@ the "
     else
         return InstantiatePurse(SERVER_ID);
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -1451,7 +1451,7 @@ the "
     else
         return InstantiatePurse(SERVER_ID, ASSET_ID);
 
-    return NULL;
+    return nullptr;
 }
 */
 

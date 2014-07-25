@@ -161,7 +161,7 @@ void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID)
 
     for (auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         pVar->Serialize(strAppend, bCalculatingID); // Variables save in a
                                                     // specific state during ID
@@ -172,7 +172,7 @@ void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID)
 
     for (auto& it : m_mapClauses) {
         OTClause* pClause = it.second;
-        OT_ASSERT(NULL != pClause);
+        OT_ASSERT(nullptr != pClause);
 
         pClause->Serialize(strAppend);
     }
@@ -208,7 +208,7 @@ bool OTBylaw::IsDirty() const
 
     for (const auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         // "Persistent" *AND* "Important" Variables are both considered
         // "persistent".
@@ -239,7 +239,7 @@ bool OTBylaw::IsDirtyImportant() const
 
     for (const auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         // "Persistent" *AND* "Important" Variables are both considered
         // "persistent".
@@ -264,7 +264,7 @@ void OTBylaw::SetAsClean()
 {
     for (auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         pVar->SetAsClean(); // so we can check for dirtiness later, if it's
                             // changed.
@@ -279,7 +279,7 @@ void OTBylaw::RegisterVariablesForExecution(OTScript& theScript)
     for (auto& it : m_mapVariables) {
         const std::string str_var_name = it.first;
         OTVariable* pVar = it.second;
-        OT_ASSERT((NULL != pVar) && (str_var_name.size() > 0));
+        OT_ASSERT((nullptr != pVar) && (str_var_name.size() > 0));
 
         pVar->RegisterForExecution(theScript);
     }
@@ -316,11 +316,11 @@ bool OTBylaw::Compare(OTBylaw& rhs)
 
         for (const auto& it : m_mapVariables) {
             OTVariable* pVar = it.second;
-            OT_ASSERT(NULL != pVar);
+            OT_ASSERT(nullptr != pVar);
 
             OTVariable* pVar2 = rhs.GetVariable(pVar->GetName().Get());
 
-            if (NULL == pVar2) {
+            if (nullptr == pVar2) {
                 otOut << "OTBylaw::Compare: Failed: Variable not found: "
                       << pVar->GetName() << ".\n";
                 return false;
@@ -334,11 +334,11 @@ bool OTBylaw::Compare(OTBylaw& rhs)
 
         for (const auto& it : m_mapClauses) {
             OTClause* pClause = it.second;
-            OT_ASSERT(NULL != pClause);
+            OT_ASSERT(nullptr != pClause);
 
             OTClause* pClause2 = rhs.GetClause(pClause->GetName().Get());
 
-            if (NULL == pClause2) {
+            if (nullptr == pClause2) {
                 otOut << "OTBylaw::Compare: Failed: Clause not found: "
                       << pClause->GetName() << ".\n";
                 return false;
@@ -357,13 +357,13 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             OTClause* pCallbackClause = GetCallback(str_callback_name);
             OTClause* pCallbackClause2 = rhs.GetCallback(str_callback_name);
 
-            if (NULL == pCallbackClause) {
+            if (nullptr == pCallbackClause) {
                 otOut << "OTBylaw::Compare: Failed: Callback ("
                       << str_callback_name << ") clause (" << str_clause_name
                       << ") not found on this bylaw: " << m_strName << ".\n";
                 return false;
             }
-            else if (NULL == pCallbackClause2) {
+            else if (nullptr == pCallbackClause2) {
                 otOut << "OTBylaw::Compare: Failed: Callback ("
                       << str_callback_name << ") clause (" << str_clause_name
                       << ") not found on rhs bylaw: " << rhs.GetName() << ".\n";
@@ -433,7 +433,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             for (auto& it : theHookClauses) {
                 const std::string str_clause_name = it.first;
                 OTClause* pClause = it.second;
-                OT_ASSERT(NULL != pClause);
+                OT_ASSERT(nullptr != pClause);
 
                 mapOfClauses::iterator it_rhs =
                     theHookClauses2.find(str_clause_name);
@@ -453,7 +453,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 // name, and that the counts are the same (as already verified
                 // above) and that should actually be good enough.
                 //                OTClause * pClause2 = it_rhs->second;
-                //                OT_ASSERT(NULL != pClause2);
+                //                OT_ASSERT(nullptr != pClause2);
                 //
                 //                if (!pClause->Compare(*pClause2))
                 //                {
@@ -500,7 +500,7 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
         otErr << "OTBylaw::GetCallback: Callback name MUST begin with "
                  "callback_ but value passed in was: " << str_CallbackName
               << "\n";
-        return NULL;
+        return nullptr;
     }
 
     for (auto& it : m_mapCallbacks) {
@@ -513,7 +513,7 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
         if (0 == (str_callback_name.compare(str_CallbackName))) {
             OTClause* pClause = GetClause(str_clause_name);
 
-            if (NULL != pClause) // found it
+            if (nullptr != pClause) // found it
             {
                 return pClause;
             }
@@ -527,7 +527,7 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
         // else no error, since it's normal for nothing to match.
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // You are NOT allowed to add multiple callbacks for any given callback trigger.
@@ -609,20 +609,20 @@ OTVariable* OTBylaw::GetVariable(const std::string str_var_name) // not a
 {
     if (!OTScriptable::ValidateName(str_var_name)) {
         otErr << "OTBylaw::GetVariable:  Error: invalid str_var_name.\n";
-        return NULL;
+        return nullptr;
     }
 
     mapOfVariables::iterator it = m_mapVariables.find(str_var_name);
 
-    if (m_mapVariables.end() == it) return NULL;
+    if (m_mapVariables.end() == it) return nullptr;
 
     OTVariable* pVar = it->second;
-    OT_ASSERT(NULL != pVar);
+    OT_ASSERT(nullptr != pVar);
 
     return pVar;
 }
 
-/// Get Variable pointer by Index. Returns NULL on failure.
+/// Get Variable pointer by Index. Returns nullptr on failure.
 ///
 OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
 {
@@ -635,34 +635,34 @@ OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
 
         for (auto& it : m_mapVariables) {
             OTVariable* pVar = it.second;
-            OT_ASSERT(NULL != pVar);
+            OT_ASSERT(nullptr != pVar);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pVar;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 OTClause* OTBylaw::GetClause(const std::string str_clause_name)
 {
     if (!OTScriptable::ValidateName(str_clause_name)) {
         otErr << "OTBylaw::GetClause:  Error: empty str_clause_name.\n";
-        return NULL;
+        return nullptr;
     }
 
     mapOfClauses::iterator it = m_mapClauses.find(str_clause_name);
 
-    if (m_mapClauses.end() == it) return NULL;
+    if (m_mapClauses.end() == it) return nullptr;
 
     OTClause* pClause = it->second;
-    OT_ASSERT(NULL != pClause);
+    OT_ASSERT(nullptr != pClause);
 
     return pClause;
 }
 
-/// Get Clause pointer by Index. Returns NULL on failure.
+/// Get Clause pointer by Index. Returns nullptr on failure.
 ///
 OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
 {
@@ -675,14 +675,14 @@ OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
 
         for (auto& it : m_mapClauses) {
             OTClause* pClause = it.second;
-            OT_ASSERT(NULL != pClause);
+            OT_ASSERT(nullptr != pClause);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pClause;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 const std::string OTBylaw::GetHookNameByIndex(int32_t nIndex)
@@ -735,7 +735,7 @@ bool OTBylaw::GetHooks(const std::string str_HookName, mapOfClauses& theResults)
         if (0 == (str_hook_name.compare(str_HookName))) {
             OTClause* pClause = GetClause(str_clause_name);
 
-            if (NULL != pClause) // found it
+            if (nullptr != pClause) // found it
             {
                 // mapOfClauses is a map, meaning it will only allow one entry
                 // per unique clause name.
@@ -819,7 +819,7 @@ bool OTBylaw::AddVariable(const std::string str_Name, const bool bValue,
                           const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, bValue, theAccess);
-    OT_ASSERT(NULL != pVar);
+    OT_ASSERT(nullptr != pVar);
 
     if (false == AddVariable(*pVar)) {
         delete pVar;
@@ -834,7 +834,7 @@ bool OTBylaw::AddVariable(const std::string str_Name,
                           const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, str_Value, theAccess);
-    OT_ASSERT(NULL != pVar);
+    OT_ASSERT(nullptr != pVar);
 
     if (false == AddVariable(*pVar)) {
         delete pVar;
@@ -848,7 +848,7 @@ bool OTBylaw::AddVariable(const std::string str_Name, const int32_t nValue,
                           const OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);
-    OT_ASSERT(NULL != pVar);
+    OT_ASSERT(nullptr != pVar);
 
     if (false == AddVariable(*pVar)) {
         delete pVar;
@@ -863,11 +863,11 @@ bool OTBylaw::AddClause(const char* szName, const char* szCode)
     // todo security: validate the input, especially name.
     //
 
-    OT_ASSERT(NULL != szName);
-    OT_ASSERT(NULL != szCode);
+    OT_ASSERT(nullptr != szName);
+    OT_ASSERT(nullptr != szCode);
 
     OTClause* pClause = new OTClause(szName, szCode);
-    OT_ASSERT(NULL != pClause);
+    OT_ASSERT(nullptr != pClause);
 
     if (false == AddClause(*pClause)) {
         delete pClause;
@@ -946,22 +946,22 @@ const char* OTBylaw::GetLanguage() const
                                             // files. no hardcoding.
 }
 
-OTBylaw::OTBylaw() : m_pOwnerAgreement(NULL)
+OTBylaw::OTBylaw() : m_pOwnerAgreement(nullptr)
 {
 }
 
 OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
-    : m_pOwnerAgreement(NULL)
+    : m_pOwnerAgreement(nullptr)
 {
-    if (NULL != szName)
+    if (nullptr != szName)
         m_strName.Set(szName);
     else
-        otErr << "NULL szName passed in to OTBylaw::OTBylaw \n";
+        otErr << "nullptr szName passed in to OTBylaw::OTBylaw \n";
 
-    if (NULL != szLanguage)
+    if (nullptr != szLanguage)
         m_strLanguage = szLanguage; // "chai", "angelscript" etc.
     else
-        otErr << "NULL szLanguage passed in to OTBylaw::OTBylaw \n";
+        otErr << "nullptr szLanguage passed in to OTBylaw::OTBylaw \n";
 
     const std::string str_bylaw_name = m_strName.Get();
     const std::string str_language = m_strLanguage.Get();
@@ -981,26 +981,26 @@ OTBylaw::~OTBylaw()
     //
     while (!m_mapClauses.empty()) {
         OTClause* pClause = m_mapClauses.begin()->second;
-        OT_ASSERT(NULL != pClause);
+        OT_ASSERT(nullptr != pClause);
 
         m_mapClauses.erase(m_mapClauses.begin());
 
         delete pClause;
-        pClause = NULL;
+        pClause = nullptr;
     }
 
     while (!m_mapVariables.empty()) {
         OTVariable* pVar = m_mapVariables.begin()->second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         m_mapVariables.erase(m_mapVariables.begin());
 
         delete pVar;
-        pVar = NULL;
+        pVar = nullptr;
     }
 
     m_pOwnerAgreement =
-        NULL; // This Bylaw is owned by an agreement (OTScriptable-derived.)
+        nullptr; // This Bylaw is owned by an agreement (OTScriptable-derived.)
 
     // Hooks and Callbacks are maps of std::string to std::string.
     //
