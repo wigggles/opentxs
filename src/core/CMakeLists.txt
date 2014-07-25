@@ -5,7 +5,6 @@ add_subdirectory(otprotob)
 set(cxx-sources
   Timer.cpp
   tinythread.cpp
-  anyoption.cpp
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp

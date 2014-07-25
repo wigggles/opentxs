@@ -1,11 +1,13 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/anyoption/anyoption.cpp
   main.cpp
 )
 
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/anyoption/
 )
 
 include_directories(SYSTEM
