@@ -535,8 +535,8 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
     // of keys.
     for (auto& it : theRecipients) {
         OTPseudonym* pNym = it;
-        OT_ASSERT_MSG(NULL != pNym,
-                      "OTEnvelope::Seal: Assert: NULL pseudonym pointer.");
+        OT_ASSERT_MSG(nullptr != pNym,
+                      "OTEnvelope::Seal: Assert: nullptr pseudonym pointer.");
 
         OTString strNymID;
         pNym->GetIdentifier(strNymID);

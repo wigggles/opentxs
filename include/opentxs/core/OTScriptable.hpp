@@ -245,7 +245,7 @@ protected:
                          // smart contract would normally want to log its
                          // transaction #, not just the clause name.)
 public:
-    virtual void SetDisplayLabel(const std::string* pstrLabel = NULL);
+    virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     int32_t GetPartyCount() const
     {
         return static_cast<int32_t>(m_mapParties.size());
@@ -263,17 +263,18 @@ public:
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex);
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex);
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
-                                               OTAgent** ppAgent = NULL);
+                                               OTAgent** ppAgent = nullptr);
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
-                                                   OTAgent** ppAgent = NULL);
+                                                   OTAgent** ppAgent = nullptr);
     OTParty* FindPartyBasedOnAccount(OTAccount& theAccount,
-                                     OTPartyAccount** ppPartyAccount = NULL);
+                                     OTPartyAccount** ppPartyAccount = nullptr);
     OTParty* FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID,
-                                          OTAgent** ppAgent = NULL) const;
+                                          OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier& theNymID,
-                                              OTAgent** ppAgent = NULL);
+                                              OTAgent** ppAgent = nullptr);
     OTParty* FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
-                                       OTPartyAccount** ppPartyAccount = NULL);
+                                       OTPartyAccount** ppPartyAccount =
+                                           nullptr);
     OTAgent* GetAgent(const std::string str_agent_name);
     OTPartyAccount* GetPartyAccount(const std::string str_acct_name);
     OTPartyAccount* GetPartyAccountByID(const OTIdentifier& theAcctID) const;
@@ -296,7 +297,7 @@ public:
     //
     virtual bool VerifyNymAsAgent(OTPseudonym& theNym,
                                   OTPseudonym& theSignerNym,
-                                  mapOfNyms* pmap_ALREADY_LOADED = NULL);
+                                  mapOfNyms* pmap_ALREADY_LOADED = nullptr);
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -314,14 +315,16 @@ public:
                                    // Nym, when loading it
         const OTString& strServerID, // For verifying issued num, need the
                                      // serverID the # goes with.
-        mapOfNyms* pmap_ALREADY_LOADED =
-            NULL, // If some nyms are already loaded, pass them here so we don't
-                  // load them twice on accident.
-        mapOfNyms* pmap_NEWLY_LOADED =
-            NULL, // If some nyms had to be loaded, then they will be deleted,
-                  // too. UNLESS you pass a map here, in which case they will
-                  // instead be added to this map. (But if you do that, then you
-                  // must delete them yourself after calling this function.)
+        mapOfNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
+                                                  // loaded, pass them here so
+                                                  // we don't
+        // load them twice on accident.
+        mapOfNyms* pmap_NEWLY_LOADED = nullptr, // If some nyms had to be
+                                                // loaded, then they will be
+                                                // deleted,
+        // too. UNLESS you pass a map here, in which case they will
+        // instead be added to this map. (But if you do that, then you
+        // must delete them yourself after calling this function.)
         const bool bBurnTransNo =
             false); // In OTServer::VerifySmartContract(), it not only wants to
                     // verify the # is properly issued, but it additionally
@@ -391,8 +394,8 @@ public:
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
         //                                  const int64_t & lInReferenceTo, //
         // each party has its own opening trans #.
-        const OTString& strReference, OTString* pstrNote = NULL,
-        OTString* pstrAttachment = NULL, OTPseudonym* pActualNym = NULL);
+        const OTString& strReference, OTString* pstrNote = nullptr,
+        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.

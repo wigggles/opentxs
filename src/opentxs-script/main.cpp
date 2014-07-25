@@ -206,9 +206,10 @@ bool SetupPointersForWalletMyNymAndServerContract(
     //
     pWallet = OTAPI_Wrap::OTAPI()->GetWallet();
 
-    if (NULL == pWallet) {
+    if (nullptr == pWallet) {
         OTLog::Output(
-            0, "The wallet object is still NULL, somehow. Please load it.\n");
+            0,
+            "The wallet object is still nullptr, somehow. Please load it.\n");
         return false;
     }
 
@@ -220,11 +221,11 @@ bool SetupPointersForWalletMyNymAndServerContract(
 
         pServerContract = pWallet->GetServerContract(SERVER_ID);
         // If failure, then we try PARTIAL match.
-        if (NULL == pServerContract)
+        if (nullptr == pServerContract)
             pServerContract =
                 pWallet->GetServerContractPartialMatch(str_ServerID);
 
-        if (NULL != pServerContract) {
+        if (nullptr != pServerContract) {
             OTString strTemp;
             pServerContract->GetIdentifier(strTemp);
 
@@ -243,7 +244,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
             //          return false;
         }
     }
-    // Below this point, pServerContract MAY be available, but also may be NULL.
+    // Below this point, pServerContract MAY be available, but also may be
+    // nullptr.
     //
     // ------------------------------------------------------------------------------
 
@@ -253,9 +255,10 @@ bool SetupPointersForWalletMyNymAndServerContract(
         pMyNym = pWallet->GetNymByID(MY_NYM_ID);
 
         // If failure, then we try PARTIAL match.
-        if (NULL == pMyNym) pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
+        if (nullptr == pMyNym)
+            pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
 
-        if (NULL != pMyNym) {
+        if (nullptr != pMyNym) {
             OTString strTemp;
             pMyNym->GetIdentifier(strTemp);
 
@@ -274,7 +277,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
                 "\n");
             //          return false;
         }
-    } // Below this point, pMyNym MIGHT be a valid pointer, or MIGHT be NULL.
+    } // Below this point, pMyNym MIGHT be a valid pointer, or MIGHT be nullptr.
 
     // Below THIS point, there's no guarantee of pWallet, though it MIGHT be
     // there.
@@ -285,7 +288,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
 {
-    if (NULL == opt) return;
+    if (nullptr == opt) return;
 
     OTString strConfigPath(OTPaths::AppDataFolder());
     {
@@ -298,7 +301,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
 
     /* 1. CREATE AN OBJECT */
     //    AnyOption *opt = new AnyOption();
-    //    OT_ASSERT(NULL != opt);
+    //    OT_ASSERT(nullptr != opt);
     //    OTCleanup<AnyOption> theOptionAngel(opt);
 
     // -----------------------------------------------------
@@ -512,52 +515,52 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
                               std::string& str_HisAcct, std::string& str_HisNym,
                               std::string& str_HisPurse)
 {
-    OT_ASSERT(NULL != opt);
+    OT_ASSERT(nullptr != opt);
 
     OTAPI_Wrap::Output(1, "\n");
 
     // First we pre-set all the values based on the defaults from the options
     // file.
     //
-    if (opt->getValue("defaultserver") != NULL) {
+    if (opt->getValue("defaultserver") != nullptr) {
         //      cerr << "Server default: " << (str_ServerID = opt->getValue(
         // "defaultserver" )) << endl;
         str_ServerID = opt->getValue("defaultserver");
         OTLog::vOutput(1, "Server default: %s \n", str_ServerID.c_str());
     }
 
-    if (opt->getValue("defaultmyacct") != NULL) {
+    if (opt->getValue("defaultmyacct") != nullptr) {
         //      cerr << "MyAcct default: " << (str_MyAcct = opt->getValue(
         // "defaultmyacct" )) << endl;
         str_MyAcct = opt->getValue("defaultmyacct");
         OTLog::vOutput(1, "MyAcct default: %s \n", str_MyAcct.c_str());
     }
-    if (opt->getValue("defaultmynym") != NULL) {
+    if (opt->getValue("defaultmynym") != nullptr) {
         //      cerr << "MyNym default: " << (str_MyNym = opt->getValue(
         // "defaultmynym" )) << endl;
         str_MyNym = opt->getValue("defaultmynym");
         OTLog::vOutput(1, "MyNym default: %s \n", str_MyNym.c_str());
     }
-    if (opt->getValue("defaultmypurse") != NULL) {
+    if (opt->getValue("defaultmypurse") != nullptr) {
         //      cerr << "MyPurse default: " << (str_MyPurse = opt->getValue(
         // "defaultmypurse" )) << endl;
         str_MyPurse = opt->getValue("defaultmypurse");
         OTLog::vOutput(1, "MyPurse default: %s \n", str_MyPurse.c_str());
     }
 
-    if (opt->getValue("defaulthisacct") != NULL) {
+    if (opt->getValue("defaulthisacct") != nullptr) {
         //      cerr << "HisAcct default: " << (str_HisAcct = opt->getValue(
         // "defaulthisacct" )) << endl;
         str_HisAcct = opt->getValue("defaulthisacct");
         OTLog::vOutput(1, "HisAcct default: %s \n", str_HisAcct.c_str());
     }
-    if (opt->getValue("defaulthisnym") != NULL) {
+    if (opt->getValue("defaulthisnym") != nullptr) {
         //      cerr << "HisNym default: " << (str_HisNym = opt->getValue(
         // "defaulthisnym" )) << endl;
         str_HisNym = opt->getValue("defaulthisnym");
         OTLog::vOutput(1, "HisNym default: %s \n", str_HisNym.c_str());
     }
-    if (opt->getValue("defaulthispurse") != NULL) {
+    if (opt->getValue("defaulthispurse") != nullptr) {
         //      cerr << "HisPurse default: " << (str_HisPurse = opt->getValue(
         // "defaulthispurse" )) << endl;
         str_HisPurse = opt->getValue("defaulthispurse");
@@ -568,7 +571,7 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
     // Next, we overwrite those with any that were passed in on the command
     // line.
 
-    if (opt->getValue("server") != NULL) {
+    if (opt->getValue("server") != nullptr) {
         //      cerr << "Server from command-line: " << (str_ServerID =
         // opt->getValue( "server" )) << endl;
         str_ServerID = opt->getValue("server");
@@ -576,7 +579,7 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
                        str_ServerID.c_str());
     }
 
-    if (opt->getValue("myacct") != NULL) {
+    if (opt->getValue("myacct") != nullptr) {
         //      cerr << "MyAcct from command-line: " << (str_MyAcct =
         // opt->getValue(
         // "myacct" )) << endl;
@@ -584,14 +587,14 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
         OTLog::vOutput(1, "MyAcct from command-line: %s \n",
                        str_MyAcct.c_str());
     }
-    if (opt->getValue("mynym") != NULL) {
+    if (opt->getValue("mynym") != nullptr) {
         //      cerr << "MyNym from command-line: " << (str_MyNym =
         // opt->getValue(
         // "mynym" )) << endl;
         str_MyNym = opt->getValue("mynym");
         OTLog::vOutput(1, "MyNym from command-line: %s \n", str_MyNym.c_str());
     }
-    if (opt->getValue("mypurse") != NULL) {
+    if (opt->getValue("mypurse") != nullptr) {
         //      cerr << "MyPurse from command-line: " << (str_MyPurse =
         // opt->getValue( "mypurse" )) << endl;
         str_MyPurse = opt->getValue("mypurse");
@@ -599,14 +602,14 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
                        str_MyPurse.c_str());
     }
 
-    if (opt->getValue("hisacct") != NULL) {
+    if (opt->getValue("hisacct") != nullptr) {
         //      cerr << "HisAcct from command-line: " << (str_HisAcct =
         // opt->getValue( "hisacct" )) << endl;
         str_HisAcct = opt->getValue("hisacct");
         OTLog::vOutput(1, "HisAcct from command-line: %s \n",
                        str_HisAcct.c_str());
     }
-    if (opt->getValue("hisnym") != NULL) {
+    if (opt->getValue("hisnym") != nullptr) {
         //      cerr << "HisNym from command-line: " << (str_HisNym =
         // opt->getValue(
         // "hisnym" )) << endl;
@@ -614,7 +617,7 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
         OTLog::vOutput(1, "HisNym from command-line: %s \n",
                        str_HisNym.c_str());
     }
-    if (opt->getValue("hispurse") != NULL) {
+    if (opt->getValue("hispurse") != nullptr) {
         //      cerr << "HisPurse from command-line: " << (str_HisPurse =
         // opt->getValue( "hispurse" )) << endl;
         str_HisPurse = opt->getValue("hispurse");
@@ -659,7 +662,7 @@ int32_t main(int32_t argc, char* argv[])
     // -------------------------------------------------------------------
     //
 
-    if (NULL == OTAPI_Wrap::OTAPI())
+    if (nullptr == OTAPI_Wrap::OTAPI())
         return -1; // error out if we don't have the API.
 
     OTString strConfigPath(OTPaths::AppDataFolder());
@@ -684,7 +687,7 @@ int32_t main(int32_t argc, char* argv[])
     // COMMAND-LINE OPTIONS (and default values from files.)
     //
     AnyOption* opt = new AnyOption();
-    OT_ASSERT(NULL != opt);
+    OT_ASSERT(nullptr != opt);
     OTCleanup<AnyOption> theOptionAngel(opt);
 
     // Process the command line args
@@ -713,7 +716,7 @@ int32_t main(int32_t argc, char* argv[])
 
     std::string str_Args;
 
-    if (opt->getValue("args") != NULL)
+    if (opt->getValue("args") != nullptr)
         cerr << "User-defined arguments aka:  --args "
              << (str_Args = opt->getValue("args")) << endl;
 
@@ -735,17 +738,18 @@ int32_t main(int32_t argc, char* argv[])
         // Below are COMMANDS (only one of them can be true...)
         //
 
-        if (opt->getValue('w') != NULL || opt->getValue("withdraw") != NULL) {
+        if (opt->getValue('w') != nullptr ||
+            opt->getValue("withdraw") != nullptr) {
             bIsCommandProvided = true;
             cerr << "withdraw amount = " << opt->getValue('w') << endl;
         }
-        else if (opt->getValue('t') != NULL ||
-                   opt->getValue("transfer") != NULL) {
+        else if (opt->getValue('t') != nullptr ||
+                   opt->getValue("transfer") != nullptr) {
             bIsCommandProvided = true;
             cerr << "transfer amount = " << opt->getValue('t') << endl;
         }
-        else if (opt->getValue('c') != NULL ||
-                   opt->getValue("cheque") != NULL) {
+        else if (opt->getValue('c') != nullptr ||
+                   opt->getValue("cheque") != nullptr) {
             bIsCommandProvided = true;
             cerr << "cheque amount = " << opt->getValue('c') << endl;
         }
@@ -753,8 +757,8 @@ int32_t main(int32_t argc, char* argv[])
             bIsCommandProvided = true;
             cerr << "marketoffer flag set " << endl;
         }
-        else if (opt->getValue('v') != NULL ||
-                   opt->getValue("voucher") != NULL) {
+        else if (opt->getValue('v') != nullptr ||
+                   opt->getValue("voucher") != nullptr) {
             bIsCommandProvided = true;
             cerr << "voucher amount = " << opt->getValue('v') << endl;
         }
@@ -810,7 +814,7 @@ int32_t main(int32_t argc, char* argv[])
             bIsCommandProvided = true;
             cerr << "prompt flag set " << endl;
         }
-        else if (opt->getValue("script") != NULL) {
+        else if (opt->getValue("script") != nullptr) {
             bIsCommandProvided = true;
             cerr << "script filename: " << opt->getValue("script") << endl;
         }
@@ -863,14 +867,14 @@ int32_t main(int32_t argc, char* argv[])
     // Otherwise a command WAS provided at the command line, so we execute a
     // single time, once just for that command.
     {
-        OTWallet* pWallet = NULL;
-        OTServerContract* pServerContract = NULL;
-        OTPseudonym* pMyNym = NULL;
+        OTWallet* pWallet = nullptr;
+        OTServerContract* pServerContract = nullptr;
+        OTPseudonym* pMyNym = nullptr;
 
         // This does LoadWallet, andif Nym or Server IDs were provided, loads
         // those
         // up as well.
-        // (They may still be NULL after this call, however.)
+        // (They may still be nullptr after this call, however.)
         //
         bool bMainPointersSetupSuccessful =
             SetupPointersForWalletMyNymAndServerContract(
@@ -893,7 +897,7 @@ int32_t main(int32_t argc, char* argv[])
         // by just
         // making it a blanket requirement.
         //
-        if (NULL == pServerContract) {
+        if (nullptr == pServerContract) {
             OTLog::Output(
                 0, "Unable to find a server contract to use. Please use "
                    "the option: --server SERVER_ID\n"
@@ -905,7 +909,7 @@ int32_t main(int32_t argc, char* argv[])
         OTIdentifier theServerID;
         OTString strServerID;
 
-        if (NULL != pServerContract) {
+        if (nullptr != pServerContract) {
             pServerContract->GetIdentifier(theServerID);
             theServerID.GetString(strServerID);
         }
@@ -931,12 +935,12 @@ int32_t main(int32_t argc, char* argv[])
         //      }
 
         // Below this point, pWallet and pServerContract are both available.
-        // UPDATE: Not necessarily... (pServerContract may be NULL...)
+        // UPDATE: Not necessarily... (pServerContract may be nullptr...)
         //
         // ***********************************************************
 
-        OTAccount* pMyAccount = NULL;
-        OTAccount* pHisAccount = NULL;
+        OTAccount* pMyAccount = nullptr;
+        OTAccount* pHisAccount = nullptr;
 
         if (str_MyAcct.size() > 0) {
             const OTIdentifier MY_ACCOUNT_ID(str_MyAcct.c_str());
@@ -944,10 +948,10 @@ int32_t main(int32_t argc, char* argv[])
             pMyAccount = pWallet->GetAccount(MY_ACCOUNT_ID);
 
             // If failure, then we try PARTIAL match.
-            if (NULL == pMyAccount)
+            if (nullptr == pMyAccount)
                 pMyAccount = pWallet->GetAccountPartialMatch(str_MyAcct);
 
-            if (NULL != pMyAccount) {
+            if (nullptr != pMyAccount) {
                 OTString strTemp;
                 pMyAccount->GetPurportedAccountID().GetString(strTemp);
 
@@ -977,10 +981,10 @@ int32_t main(int32_t argc, char* argv[])
             pHisAccount = pWallet->GetAccount(HIS_ACCOUNT_ID);
 
             // If failure, then we try PARTIAL match.
-            if (NULL == pHisAccount)
+            if (nullptr == pHisAccount)
                 pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
             // ------------------------------------------
-            if (NULL != pHisAccount) {
+            if (nullptr != pHisAccount) {
                 OTString strTemp;
                 pHisAccount->GetPurportedAccountID().GetString(strTemp);
 
@@ -1019,8 +1023,9 @@ int32_t main(int32_t argc, char* argv[])
         // I put this here too since I think it's required in all cases.
         // Update: commented out the return in order to allow for empty wallets.
         //
-        if (NULL == pMyNym) // Todo maybe move this check to the commands below
-                            // (ONLY the ones that use a nym.)
+        if (nullptr ==
+            pMyNym) // Todo maybe move this check to the commands below
+                    // (ONLY the ones that use a nym.)
         {
             OTLog::Output(
                 0,
@@ -1033,19 +1038,19 @@ int32_t main(int32_t argc, char* argv[])
 
         OTIdentifier MY_NYM_ID;
 
-        if (NULL != pMyNym) pMyNym->GetIdentifier(MY_NYM_ID);
+        if (nullptr != pMyNym) pMyNym->GetIdentifier(MY_NYM_ID);
         // -----------------------------------------------
-        OTPseudonym* pHisNym = NULL;
+        OTPseudonym* pHisNym = nullptr;
 
         if (str_HisNym.size() > 0) {
             const OTIdentifier HIS_NYM_ID(str_HisNym.c_str());
 
             pHisNym = pWallet->GetNymByID(HIS_NYM_ID);
             // If failure, then we try PARTIAL match.
-            if (NULL == pHisNym)
+            if (nullptr == pHisNym)
                 pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
             // ----------------------------
-            if (NULL != pHisNym) {
+            if (nullptr != pHisNym) {
                 OTString strTemp;
                 pHisNym->GetIdentifier(strTemp);
 
@@ -1067,19 +1072,19 @@ int32_t main(int32_t argc, char* argv[])
         // ***********************************************************
 
         OTIdentifier thePurseAssetTypeID;
-        OTAssetContract* pMyAssetContract = NULL;
+        OTAssetContract* pMyAssetContract = nullptr;
 
         if (str_MyPurse.size() > 0) {
             const OTIdentifier MY_ASSET_TYPE_ID(str_MyPurse.c_str());
             pMyAssetContract = pWallet->GetAssetContract(MY_ASSET_TYPE_ID);
 
             // If failure, then we try PARTIAL match.
-            if (NULL == pMyAssetContract)
+            if (nullptr == pMyAssetContract)
                 pMyAssetContract =
                     pWallet->GetAssetContractPartialMatch(str_MyPurse);
 
             // ------------------------------------------
-            if (NULL != pMyAssetContract) {
+            if (nullptr != pMyAssetContract) {
                 OTString strTemp;
                 pMyAssetContract->GetIdentifier(strTemp);
 
@@ -1096,14 +1101,14 @@ int32_t main(int32_t argc, char* argv[])
         // if no purse (asset type) ID was provided, but MyAccount WAS provided,
         // then
         // use the asset type for the account instead.
-        else if (NULL != pMyAccount)
+        else if (nullptr != pMyAccount)
             thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
         // ------------------
         if (!thePurseAssetTypeID.IsEmpty()) {
             OTString strTempAssetType(thePurseAssetTypeID);
             str_MyPurse = strTempAssetType.Get();
         }
-        // BELOW THIS POINT, pMyAssetContract MIGHT be NULL, or MIGHT be an
+        // BELOW THIS POINT, pMyAssetContract MIGHT be nullptr, or MIGHT be an
         // asset
         // type specified by the user.
         // There's no guarantee that it's available, but if it IS, then it WILL
@@ -1112,19 +1117,19 @@ int32_t main(int32_t argc, char* argv[])
         // ---------------------------------------------------------------------------
         OTIdentifier hisPurseAssetTypeID;
 
-        OTAssetContract* pHisAssetContract = NULL;
+        OTAssetContract* pHisAssetContract = nullptr;
 
         if (str_HisPurse.size() > 0) {
             const OTIdentifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
             pHisAssetContract = pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
 
             // If failure, then we try PARTIAL match.
-            if (NULL == pHisAssetContract)
+            if (nullptr == pHisAssetContract)
                 pHisAssetContract =
                     pWallet->GetAssetContractPartialMatch(str_HisPurse);
 
             // ------------------------------------------
-            if (NULL != pHisAssetContract) {
+            if (nullptr != pHisAssetContract) {
                 OTString strTemp;
                 pHisAssetContract->GetIdentifier(strTemp);
 
@@ -1137,7 +1142,7 @@ int32_t main(int32_t argc, char* argv[])
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the
         // asset type of HisAcct as HisPurse.
-        else if (NULL != pHisAccount)
+        else if (nullptr != pHisAccount)
             hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
         // ------------------
         if (!hisPurseAssetTypeID.IsEmpty()) {
@@ -1182,7 +1187,7 @@ int32_t main(int32_t argc, char* argv[])
         // nym
         // and to a different server.)
         //
-        if ((NULL != pServerContract) && (NULL != pMyNym))
+        if ((nullptr != pServerContract) && (nullptr != pMyNym))
             OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
                 *pServerContract, *pMyNym,
                 OTAPI_Wrap::OTAPI()->GetTransportCallback());
@@ -1205,7 +1210,7 @@ int32_t main(int32_t argc, char* argv[])
 
         // COMMANDS
 
-        if ((opt->getValue("script") != NULL) || (opt->getArgc() > 0)) {
+        if ((opt->getValue("script") != nullptr) || (opt->getArgc() > 0)) {
             OTAPI_Wrap::OTAPI()->GetClient()->SetRunningAsScript(); // This way
                                                                     // it won't
                                                                     // go firing
@@ -1240,7 +1245,7 @@ int32_t main(int32_t argc, char* argv[])
             // it got
             // overridden by the --script actual_filename.
 
-            if (NULL != opt->getValue("script")) {
+            if (nullptr != opt->getValue("script")) {
                 strFilename = opt->getValue("script");
             }
 
@@ -1256,8 +1261,8 @@ int32_t main(int32_t argc, char* argv[])
                                              // may
                                              // have been passed in.
 
-            //			OTParty		* pPartyMyNym	= NULL;
-            //			OTParty		* pPartyHisNym	= NULL;
+            //			OTParty		* pPartyMyNym	= nullptr;
+            //			OTParty		* pPartyHisNym	= nullptr;
             //
             //			OTCleanup<OTParty> angelMyNym;
             //			OTCleanup<OTParty> angelHisNym;
@@ -1297,7 +1302,7 @@ int32_t main(int32_t argc, char* argv[])
                                                               // persistent, or
                                                               // important.
                 angelArgs.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1321,7 +1326,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelServer.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1330,7 +1335,7 @@ int32_t main(int32_t argc, char* argv[])
             }
             // -------------------------
 
-            if (NULL != pMyNym) {
+            if (nullptr != pMyNym) {
                 const std::string str_party_name("MyNym");
 
                 OTLog::vOutput(
@@ -1343,7 +1348,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelMyNymVar.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
@@ -1352,10 +1357,10 @@ int32_t main(int32_t argc, char* argv[])
             }
             // -------------------------
 
-            if ((NULL != pHisNym) || (str_HisNym.size() > 0)) // Even if we
-                                                              // didn't find
-                                                              // him, we still
-                                                              // let
+            if ((nullptr != pHisNym) || (str_HisNym.size() > 0)) // Even if we
+                                                                 // didn't find
+                // him, we still
+                // let
                 // the ID through, if there is one.
             {
                 const std::string str_party_name("HisNym");
@@ -1370,7 +1375,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelHisNymVar.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
@@ -1386,7 +1391,7 @@ int32_t main(int32_t argc, char* argv[])
             //  even though it ends up to contain a perfectly legitimate Nym
             // ID.)
             /*
-                  if (NULL != pMyNym)
+                  if (nullptr != pMyNym)
                   {
                       const std::string str_party_name("MyNym"),
             str_agent_name("mynym"), str_acct_name("myacct");
@@ -1394,7 +1399,7 @@ int32_t main(int32_t argc, char* argv[])
                       pPartyMyNym = new OTParty (str_party_name, *pMyNym,
             str_agent_name, pMyAccount, &str_acct_name);
                       angelMyNym.SetCleanupTargetPointer(pPartyMyNym);
-                      OT_ASSERT(NULL != pPartyMyNym);
+                      OT_ASSERT(nullptr != pPartyMyNym);
                       // ------------------------------------------
                       pScript-> AddParty("MyNym", *pPartyMyNym);
                   }
@@ -1403,7 +1408,7 @@ int32_t main(int32_t argc, char* argv[])
                       OTLog::Error("MyNym variable isn't set...\n");
                   }
                   // -------------------------
-                  if (NULL != pHisNym)
+                  if (nullptr != pHisNym)
                   {
                       const std::string str_party_name("HisNym"),
             str_agent_name("hisnym"), str_acct_name("hisacct");
@@ -1411,7 +1416,7 @@ int32_t main(int32_t argc, char* argv[])
                       pPartyHisNym = new OTParty (str_party_name, *pHisNym,
             str_agent_name, pHisAccount, &str_acct_name);
                       angelHisNym.SetCleanupTargetPointer(pPartyHisNym);
-                      OT_ASSERT(NULL != pPartyHisNym);
+                      OT_ASSERT(nullptr != pPartyHisNym);
                       // ------------------------------------------
                       pScript-> AddParty("HisNym", *pPartyHisNym);
                   }
@@ -1436,7 +1441,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelMyAcct.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1459,7 +1464,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelMyPurse.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1482,7 +1487,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelHisAcct.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1505,7 +1510,7 @@ int32_t main(int32_t argc, char* argv[])
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
                 angelHisPurse.SetCleanupTargetPointer(pVar);
-                OT_ASSERT(NULL != pVar);
+                OT_ASSERT(nullptr != pVar);
                 // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1526,13 +1531,13 @@ int32_t main(int32_t argc, char* argv[])
 
         // *******************************************************************
 
-        if ((NULL == pServerContract) || (NULL == pMyNym)) {
-            OTLog::vError("Unexpected NULL: %s %s\n",
-                          (NULL == pServerContract) ? "pServerContract" : "",
-                          (NULL == pMyNym) ? "pMyNym" : "");
+        if ((nullptr == pServerContract) || (nullptr == pMyNym)) {
+            OTLog::vError("Unexpected nullptr: %s %s\n",
+                          (nullptr == pServerContract) ? "pServerContract" : "",
+                          (nullptr == pMyNym) ? "pMyNym" : "");
         }
-        else if (opt->getValue('w') != NULL ||
-                   opt->getValue("withdraw") != NULL) {
+        else if (opt->getValue('w') != nullptr ||
+                   opt->getValue("withdraw") != nullptr) {
             const int64_t lAmount = atol(opt->getValue('w'));
 
             OTLog::Output(0, "(User has instructed to withdraw cash...)\n");
@@ -1550,8 +1555,8 @@ int32_t main(int32_t argc, char* argv[])
                     "Error processing withdraw command in ProcessMessage.\n");
             // ------------------------------------------------------------------------
         }
-        else if (opt->getValue('t') != NULL ||
-                   opt->getValue("transfer") != NULL) {
+        else if (opt->getValue('t') != nullptr ||
+                   opt->getValue("transfer") != nullptr) {
             const int64_t lAmount = atol(opt->getValue('t'));
 
             OTIdentifier HIS_ACCT_ID(
@@ -1563,13 +1568,13 @@ int32_t main(int32_t argc, char* argv[])
             // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
-            if (0 <
-                OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                    OTClient::notarizeTransfer, theMessage, *pMyNym,
-                    *pServerContract, pMyAccount, lAmount,
-                    NULL, // asset contract
-                    NULL, // his Nym
-                    (str_HisAcct.size() > 0) ? &HIS_ACCT_ID : NULL)) // his acct
+            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
+                        OTClient::notarizeTransfer, theMessage, *pMyNym,
+                        *pServerContract, pMyAccount, lAmount,
+                        nullptr, // asset contract
+                        nullptr, // his Nym
+                        (str_HisAcct.size() > 0) ? &HIS_ACCT_ID
+                                                 : nullptr)) // his acct
             {
                 bSendCommand = true;
             }
@@ -1578,8 +1583,8 @@ int32_t main(int32_t argc, char* argv[])
                     "Error processing notarizeTransactions (transfer) command "
                     "in ProcessMessage.\n");
         }
-        else if (opt->getValue('c') != NULL ||
-                   opt->getValue("cheque") != NULL) {
+        else if (opt->getValue('c') != nullptr ||
+                   opt->getValue("cheque") != nullptr) {
             OTLog::Output(0, "(User has instructed to write a cheque...)\n");
 
             const int64_t lAmount = atol(opt->getValue('c'));
@@ -1590,11 +1595,11 @@ int32_t main(int32_t argc, char* argv[])
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::writeCheque, theMessage, *pMyNym, *pServerContract,
-                pMyAccount, lAmount, NULL, // asset contract
-                (str_HisNym.size() > 0) ? &HIS_NYM_ID : NULL);
+                pMyAccount, lAmount, nullptr, // asset contract
+                (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
         }
-        else if (opt->getValue('v') != NULL ||
-                   opt->getValue("voucher") != NULL) {
+        else if (opt->getValue('v') != nullptr ||
+                   opt->getValue("voucher") != nullptr) {
             OTLog::Output(0,
                           "(User has instructed to withdraw a voucher...)\n");
 
@@ -1606,8 +1611,8 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::withdrawVoucher, theMessage, *pMyNym,
                         *pServerContract, pMyAccount, lAmount,
-                        NULL, // asset contract
-                        (str_HisNym.size() > 0) ? &HIS_NYM_ID : NULL)) {
+                        nullptr, // asset contract
+                        (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -1617,7 +1622,7 @@ int32_t main(int32_t argc, char* argv[])
         }
 
         // make an offer and put it onto a market.
-        else if (opt->getValue("marketoffer") != NULL) {
+        else if (opt->getValue("marketoffer") != nullptr) {
             OTLog::Output(
                 0, "(User has instructed to send a marketOffer command to "
                    "the server...)\n");
@@ -1627,8 +1632,9 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::marketOffer, theMessage, *pMyNym,
-                        *pServerContract, NULL)) // for now, keeping it simple.
-                                                 // Can add options later.
+                        *pServerContract,
+                        nullptr)) // for now, keeping it simple.
+                                  // Can add options later.
             {
                 bSendCommand = true;
             }
@@ -1645,11 +1651,11 @@ int32_t main(int32_t argc, char* argv[])
                   OTPseudonym & theNym,
       //          OTAssetContract & theContract,
                   OTServerContract & theServer,
-                  OTAccount * pAccount=NULL,
+                  OTAccount * pAccount=nullptr,
                   int64_t lTransactionAmount = 0,
-                  OTAssetContract * pMyAssetType=NULL,
-                  OTIdentifier * pHisAcctID=NULL,
-                  OTIdentifier * pHisNymID=NULL);
+                  OTAssetContract * pMyAssetType=nullptr,
+                  OTIdentifier * pHisAcctID=nullptr,
+                  OTIdentifier * pHisNymID=nullptr);
                 */
         else if (opt->getFlag("proposepaymentplan")) {
             OTLog::Output(
@@ -1663,8 +1669,8 @@ int32_t main(int32_t argc, char* argv[])
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::proposePaymentPlan, theMessage, *pMyNym,
                 *pServerContract, pMyAccount, 0, pMyAssetContract,
-                (str_HisNym.size() > 0) ? &HIS_NYM_ID : NULL,
-                (str_HisAcct.size() > 0) ? &HIS_ACCT_ID : NULL);
+                (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr,
+                (str_HisAcct.size() > 0) ? &HIS_ACCT_ID : nullptr);
         }
         // ------------------------------------------------------------------------
         else if (opt->getFlag("confirmpaymentplan")) {
@@ -1674,7 +1680,7 @@ int32_t main(int32_t argc, char* argv[])
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::confirmPaymentPlan, theMessage, *pMyNym,
                 *pServerContract,
-                NULL); // the account info is already on the plan, right?
+                nullptr); // the account info is already on the plan, right?
         }
         // ------------------------------------------------------------------------
         else if (opt->getFlag("activatepaymentplan")) {
@@ -1757,7 +1763,7 @@ int32_t main(int32_t argc, char* argv[])
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::signContract, theMessage, *pMyNym, *pServerContract,
-                NULL);
+                nullptr);
         }
         else if (opt->getFlag('p') || opt->getFlag("purse")) {
             cerr << "User wants to display purse contents (not coded yet here.)"
@@ -1786,7 +1792,7 @@ int32_t main(int32_t argc, char* argv[])
             OTPurse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
                 theServerID, thePurseAssetTypeID, MY_NYM_ID);
             OTCleanup<OTPurse> thePurseAngel(pPurse);
-            if (NULL != pPurse)
+            if (nullptr != pPurse)
                 OTLog::vOutput(0, " CASH PURSE (client-side): %lld\n",
                                pPurse->GetTotalValue());
         }
@@ -1818,7 +1824,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getNymbox, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -1830,9 +1836,10 @@ int32_t main(int32_t argc, char* argv[])
         //
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
 
-        if ((NULL == pServerNym) || (false == pServerNym->VerifyPseudonym())) {
+        if ((nullptr == pServerNym) ||
+            (false == pServerNym->VerifyPseudonym())) {
             OTLog::vOutput(
-                0, "The server Nym was NULL or failed to verify on server "
+                0, "The server Nym was nullptr or failed to verify on server "
                    "contract: %s\n",
                 strServerID.Get());
             return 0;
@@ -1891,9 +1898,9 @@ int32_t main(int32_t argc, char* argv[])
     //	   them all.
     //	   Then continue back up to the prompt at step (1).
 
-    OTPseudonym* pMyNym = NULL;
-    OTWallet* pWallet = NULL;
-    OTServerContract* pServerContract = NULL;
+    OTPseudonym* pMyNym = nullptr;
+    OTWallet* pWallet = nullptr;
+    OTServerContract* pServerContract = nullptr;
 
     // If we got down here, that means there were no commands on the command
     // line
@@ -1922,7 +1929,7 @@ int32_t main(int32_t argc, char* argv[])
     // Otherwise, pWallet is NOT loaded, and we're waiting for the Load command.
 
     // Below this point, pMyNym MIGHT be a valid pointer (if it was specified),
-    // or MIGHT be NULL. Same with pServerContract. (MIGHT be there.)
+    // or MIGHT be nullptr. Same with pServerContract. (MIGHT be there.)
     //
     // ***********************************************************
 
@@ -1946,7 +1953,7 @@ int32_t main(int32_t argc, char* argv[])
             "\nOT -- WARNING: This prompt is too low-level for you.\nType "
             "'quit', and then try 'opentxs help' and 'opentxs list'.\n\nOT> ");
 
-        if (NULL ==
+        if (nullptr ==
             fgets(buf, 190, stdin)) // Leaving myself 10 extra bytes at the
                                     // end for safety's sake.
             break;
@@ -2020,7 +2027,7 @@ int32_t main(int32_t argc, char* argv[])
         else if (strLine.compare(0, 8, "clearreq") ==
                  0) // clear request numbers
         {
-            if (NULL == pMyNym) {
+            if (nullptr == pMyNym) {
                 OTLog::Output(0, "No Nym yet available. Try 'load'.\n");
                 continue;
             }
@@ -2053,7 +2060,7 @@ int32_t main(int32_t argc, char* argv[])
         }
         // --------------------------------
         else if (strLine.compare(0, 5, "clear") == 0) {
-            if (NULL == pMyNym) {
+            if (nullptr == pMyNym) {
                 OTLog::Output(0, "No Nym yet available. Try 'load'.\n");
                 continue;
             }
@@ -2086,7 +2093,7 @@ int32_t main(int32_t argc, char* argv[])
         }
         // --------------------------------
         else if (strLine.compare(0, 7, "decrypt") == 0) {
-            if (NULL == pMyNym) {
+            if (nullptr == pMyNym) {
                 OTLog::Output(0, "No Nym yet available to decrypt with.\n");
                 continue;
             }
@@ -2098,7 +2105,7 @@ int32_t main(int32_t argc, char* argv[])
 
             do {
                 decode_buffer[0] = 0;
-                if (NULL !=
+                if (nullptr !=
                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
                     theArmoredText.Concatenate("%s\n", decode_buffer);
                     OTLog::Output(0, "> ");
@@ -2127,7 +2134,7 @@ int32_t main(int32_t argc, char* argv[])
 
             do {
                 decode_buffer[0] = 0;
-                if (NULL !=
+                if (nullptr !=
                     fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) {
                     theArmoredText.Concatenate("%s\n", decode_buffer);
                     OTLog::Output(0, "> ");
@@ -2156,7 +2163,7 @@ int32_t main(int32_t argc, char* argv[])
             do {
                 decode_buffer[0] = 0;
 
-                if ((NULL !=
+                if ((nullptr !=
                      fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
                     (decode_buffer[0] != '~')) {
                     strDecodedText.Concatenate("%s", decode_buffer);
@@ -2185,7 +2192,7 @@ int32_t main(int32_t argc, char* argv[])
             do {
                 decode_buffer[0] = 0;
 
-                if ((NULL !=
+                if ((nullptr !=
                      fgets(decode_buffer, sizeof(decode_buffer) - 1, stdin)) &&
                     (decode_buffer[0] != '~')) {
                     strDecodedText.Concatenate("%s\n", decode_buffer);
@@ -2260,7 +2267,7 @@ int32_t main(int32_t argc, char* argv[])
       PARTIAL_ID);
                     */
 
-        if (NULL == pServerContract) {
+        if (nullptr == pServerContract) {
             OTLog::Output(
                 0, "Unable to find a server contract. Please restart using "
                    "the option:  --server SERVER_ID\n"
@@ -2294,8 +2301,9 @@ int32_t main(int32_t argc, char* argv[])
 
         // I put this here too since I think it's required in all cases below.
         //
-        if (NULL == pMyNym) // Todo maybe move this check to the commands below
-                            // (ONLY the ones that use a nym.)
+        if (nullptr ==
+            pMyNym) // Todo maybe move this check to the commands below
+                    // (ONLY the ones that use a nym.)
         {
             OTLog::Output(
                 0, "Unable to find My Nym. Please restart and use the option:\n"
@@ -2353,7 +2361,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::checkServerID, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command (so far).
+                        nullptr)) // nullptr pAccount on this command (so far).
             {
                 bSendCommand = true;
             }
@@ -2375,7 +2383,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::createUserAccount, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2402,7 +2410,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::checkUser, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2425,7 +2433,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::createAccount, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2448,7 +2456,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::issueAssetType, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2471,7 +2479,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::issueBasket, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2494,7 +2502,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::exchangeBasket, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2517,7 +2525,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::marketOffer, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2539,7 +2547,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::setServerName, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 //					bSendCommand = true; //
                 // No
@@ -2559,7 +2567,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::setAssetName, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 //					bSendCommand = true; //
                 // No
@@ -2579,7 +2587,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::setNymName, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 //					bSendCommand = true; //
                 // No
@@ -2600,7 +2608,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::setAccountName, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 //					bSendCommand = true; //
                 // No
@@ -2618,7 +2626,7 @@ int32_t main(int32_t argc, char* argv[])
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::signContract, theMessage, *pMyNym, *pServerContract,
-                NULL);
+                nullptr);
             continue;
         }
 
@@ -2634,7 +2642,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::sendUserMessage, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2657,7 +2665,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::processEntireNymbox, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2680,7 +2688,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getNymbox, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2704,8 +2712,8 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::processEntireInbox, theMessage, *pMyNym,
-                        *pServerContract, NULL)) // have to allow this to be
-                                                 // defaulted at some point...
+                        *pServerContract, nullptr)) // have to allow this to be
+                // defaulted at some point...
             {
                 bSendCommand = true;
             }
@@ -2727,7 +2735,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getInbox, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -2748,7 +2756,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getOutbox, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -2767,7 +2775,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizeCheque, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -2787,7 +2795,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizePurse, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -2807,7 +2815,7 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizeDeposit, theMessage, *pMyNym,
-                        *pServerContract, NULL)) {
+                        *pServerContract, nullptr)) {
                 bSendCommand = true;
             }
             else
@@ -2829,7 +2837,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::withdrawVoucher, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2850,7 +2858,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizeWithdrawal, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2872,7 +2880,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::paymentPlan, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2895,7 +2903,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getAccount, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2918,7 +2926,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getContract, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2937,7 +2945,7 @@ int32_t main(int32_t argc, char* argv[])
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::proposePaymentPlan, theMessage, *pMyNym,
                 *pServerContract,
-                NULL); // User owns Merchant (recipient) account
+                nullptr); // User owns Merchant (recipient) account
             continue;
         }
         else if (!strcmp(buf, "confirm\n")) {
@@ -2947,7 +2955,7 @@ int32_t main(int32_t argc, char* argv[])
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::confirmPaymentPlan, theMessage, *pMyNym,
                 *pServerContract,
-                NULL); // the account info is already on the plan, right?
+                nullptr); // the account info is already on the plan, right?
             continue;
         }
 
@@ -2957,7 +2965,7 @@ int32_t main(int32_t argc, char* argv[])
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::writeCheque, theMessage, *pMyNym, *pServerContract,
-                NULL); // It will ascertain the account inside the call.
+                nullptr); // It will ascertain the account inside the call.
             continue;
         }
 
@@ -2972,7 +2980,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getMint, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -2994,7 +3002,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizeTransfer, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -3018,7 +3026,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::getRequest, theMessage, *pMyNym,
                         *pServerContract,
-                        NULL)) // NULL pAccount on this command.
+                        nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
@@ -3091,7 +3099,7 @@ int32_t main(int32_t argc, char* argv[])
                 if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                             OTClient::getTransactionNum, theMessage, *pMyNym,
                             *pServerContract,
-                            NULL)) // NULL pAccount on this command.
+                            nullptr)) // nullptr pAccount on this command.
                 {
                     bSendCommand = true;
                 }
@@ -3121,7 +3129,7 @@ int32_t main(int32_t argc, char* argv[])
 
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
 
-        if (bSendCommand && (NULL != pServerNym) &&
+        if (bSendCommand && (nullptr != pServerNym) &&
             pServerNym->VerifyPseudonym()) {
             OTString strEnvelopeContents(theMessage);
             OTEnvelope theEnvelope;

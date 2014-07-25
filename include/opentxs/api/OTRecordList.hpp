@@ -162,15 +162,15 @@ public:
     }
     EXPORT virtual ~OTNameLookup();
 
-    EXPORT virtual std::string GetNymName(const std::string& str_id, // NymID
-                                          const std::string* p_server_id = NULL)
-        const;
+    EXPORT virtual std::string GetNymName(
+        const std::string& str_id, // NymID
+        const std::string* p_server_id = nullptr) const;
 
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id, // AcctID
-        const std::string* p_nym_id = NULL,
-        const std::string* p_server_id = NULL,
-        const std::string* p_asset_id = NULL) const;
+        const std::string* p_nym_id = nullptr,
+        const std::string* p_server_id = nullptr,
+        const std::string* p_asset_id = nullptr) const;
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
         const; // Used for Bitmessage and other special addresses.
@@ -202,7 +202,7 @@ protected:
     OTNameLookup* _callback;
 
 public:
-    EXPORT OTLookupCaller() : _callback(NULL)
+    EXPORT OTLookupCaller() : _callback(nullptr)
     {
     }
     EXPORT ~OTLookupCaller();
@@ -216,12 +216,14 @@ public:
     EXPORT bool isCallbackSet() const;
 
     EXPORT std::string GetNymName(const std::string& str_id, // NymID
-                                  const std::string* p_server_id = NULL) const;
+                                  const std::string* p_server_id =
+                                      nullptr) const;
 
     EXPORT std::string GetAcctName(const std::string& str_id, // AcctID
-                                   const std::string* p_nym_id = NULL,
-                                   const std::string* p_server_id = NULL,
-                                   const std::string* p_asset_id = NULL) const;
+                                   const std::string* p_nym_id = nullptr,
+                                   const std::string* p_server_id = nullptr,
+                                   const std::string* p_asset_id =
+                                       nullptr) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
 };
@@ -265,7 +267,7 @@ protected: // ADDRESS BOOK CALLER
     static OTLookupCaller* s_pCaller;
 
 public:
-    EXPORT OTRecordList(); // This one expects that s_pCaller is not NULL.
+    EXPORT OTRecordList(); // This one expects that s_pCaller is not nullptr.
     EXPORT OTRecordList(OTNameLookup& theLookup);
     EXPORT ~OTRecordList();
     EXPORT static const char* textTo()
@@ -379,7 +381,7 @@ public:
 
  if (!sp)
  {
- // It's NULL -- this means OTRecordList got re-populated.
+ // It's nullptr -- this means OTRecordList got re-populated.
  // (Which means the list control on the UI needs to get
  // re-populated with fresh pointers.)
  }

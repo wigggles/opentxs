@@ -176,7 +176,7 @@ extern "C" void* ot_secure_memset(void* v, uint8_t c, uint32_t n);
 //
 void* ot_secure_memset(void* v, uint8_t c, uint32_t n)
 {
-    OT_ASSERT((NULL != v) && (n > 0));
+    OT_ASSERT((nullptr != v) && (n > 0));
 
     volatile uint8_t* p = static_cast<volatile uint8_t*>(v);
     while (n--) *p++ = c;
@@ -305,10 +305,11 @@ void OTPassword::zeroMemory()
 // static
 void OTPassword::zeroMemory(void* vMemory, uint32_t theSize)
 {
-    //  OT_ASSERT_MSG((NULL != vMemory) && (theSize >
-    // 0),"OTPassword::zeroMemory: ASSERT: vMemory is NULL or theSize is 0.");
+    //  OT_ASSERT_MSG((nullptr != vMemory) && (theSize >
+    // 0),"OTPassword::zeroMemory: ASSERT: vMemory is nullptr or theSize is
+    // 0.");
 
-    if ((NULL != vMemory) && (theSize > 0)) {
+    if ((nullptr != vMemory) && (theSize > 0)) {
         uint8_t* szMemory = static_cast<uint8_t*>(vMemory);
         OTPassword::zeroMemory(szMemory, theSize);
     }
@@ -347,7 +348,7 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
  FT: Apparently numberOfElements is similar to strcpy_s (where it's the maximum
  size of destination buffer.)
  "numberOfElements is the Maximum number of characters destination string can
- accomodate including the NULL character"
+ accomodate including the nullptr character"
  (Then count is the actual size being copied.)
  */
 // UNIX:
@@ -362,8 +363,8 @@ void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,
                                                 // is done.
 {
     // Make sure they aren't null.
-    OT_ASSERT(NULL != dest);
-    OT_ASSERT(NULL != src);
+    OT_ASSERT(nullptr != dest);
+    OT_ASSERT(nullptr != src);
 
     // Make sure they aren't the same pointer.
     OT_ASSERT(src != dest);
@@ -414,7 +415,7 @@ void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,
         return dest;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // OTPassword thePass; will create a text password.
@@ -442,7 +443,7 @@ OTPassword* OTPassword::CreateTextBuffer() // asserts already.
     //
     OTPassword* pPassUserInput = new OTPassword(
         &(throwaway_text[0]), OT_DEFAULT_BLOCKSIZE - 1); // text mode.
-    OT_ASSERT_MSG(NULL != pPassUserInput,
+    OT_ASSERT_MSG(nullptr != pPassUserInput,
                   "OTPassword::CreateTextBuffer: ASSERT: OTPassword * "
                   "pPassUserInput = new OTPassword(&(throwaway_text[0]), "
                   "OT_DEFAULT_BLOCKSIZE-1);");
@@ -561,18 +562,18 @@ uint8_t* OTPassword::getPasswordWritable()
 {
     OT_ASSERT(isText_);
     return (size_ <= 0)
-               ? NULL
+               ? nullptr
                : static_cast<uint8_t*>(static_cast<void*>(&(data_[0])));
 }
 
 char* OTPassword::getPasswordWritable_char()
 {
     OT_ASSERT(isText_);
-    return (size_ <= 0) ? NULL
+    return (size_ <= 0) ? nullptr
                         : static_cast<char*>(static_cast<void*>(&(data_[0])));
 }
 
-// getMemory returns NULL if empty, otherwise returns the password.
+// getMemory returns nullptr if empty, otherwise returns the password.
 //
 const void* OTPassword::getMemory() const
 {
@@ -582,14 +583,14 @@ const void* OTPassword::getMemory() const
 const uint8_t* OTPassword::getMemory_uint8() const
 {
     OT_ASSERT(isBinary_);
-    return (size_ <= 0) ? NULL : static_cast<const uint8_t*>(&(data_[0]));
+    return (size_ <= 0) ? nullptr : static_cast<const uint8_t*>(&(data_[0]));
 }
 
-// getMemoryWritable returns NULL if empty, otherwise returns the password.
+// getMemoryWritable returns nullptr if empty, otherwise returns the password.
 void* OTPassword::getMemoryWritable()
 {
     OT_ASSERT(isBinary_);
-    return (size_ <= 0) ? NULL : static_cast<void*>(&(data_[0]));
+    return (size_ <= 0) ? nullptr : static_cast<void*>(&(data_[0]));
 }
 
 uint32_t OTPassword::getBlockSize() const
@@ -674,7 +675,7 @@ int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
 int32_t OTPassword::setPassword_uint8(const uint8_t* szInput,
                                       uint32_t nInputSize)
 {
-    OT_ASSERT(NULL != szInput);
+    OT_ASSERT(nullptr != szInput);
 
     const char* szFunc = "OTPassword::setPassword";
 
@@ -791,7 +792,7 @@ bool OTPassword::randomizePassword(char* szDestination, uint32_t nNewSize)
 bool OTPassword::randomizePassword_uint8(uint8_t* szDestination,
                                          uint32_t nNewSize)
 {
-    OT_ASSERT(NULL != szDestination);
+    OT_ASSERT(nullptr != szDestination);
     OT_ASSERT(nNewSize > 0);
 
     //  const char * szFunc = "OTPassword::randomizePassword(static)";
@@ -807,7 +808,7 @@ bool OTPassword::randomizePassword_uint8(uint8_t* szDestination,
             szDestination[i] = temp;
         }
 
-        // Add the NULL terminator...
+        // Add the nullptr terminator...
         //
         szDestination[nNewSize - 1] = '\0';
 
@@ -942,7 +943,7 @@ int32_t OTPassword::randomizeMemory(uint32_t nNewSize)
 //
 int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
 {
-    OT_ASSERT(NULL != vAppend);
+    OT_ASSERT(nullptr != vAppend);
 
     //  const char * szFunc = "OTPassword::addMemory";
 
@@ -1003,7 +1004,7 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
 //
 int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
 {
-    OT_ASSERT(NULL != vInput);
+    OT_ASSERT(nullptr != vInput);
 
     // Wipe whatever was in there before.
     //

@@ -190,19 +190,19 @@ OTKeypair::OTKeypair()
 OTKeypair::~OTKeypair()
 {
 
-    if (NULL != m_pkeyPublic) delete m_pkeyPublic; // todo: else error
-    m_pkeyPublic = NULL;
+    if (nullptr != m_pkeyPublic) delete m_pkeyPublic; // todo: else error
+    m_pkeyPublic = nullptr;
 
-    if (NULL != m_pkeyPrivate) delete m_pkeyPrivate; // todo: else error
-    m_pkeyPrivate = NULL;
+    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate; // todo: else error
+    m_pkeyPrivate = nullptr;
 }
 
 void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
-    OT_ASSERT(NULL != m_pkeyPrivate);
-    OT_ASSERT(NULL != m_pkeyPublic->m_pMetadata);
-    OT_ASSERT(NULL != m_pkeyPrivate->m_pMetadata);
+    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
+    OT_ASSERT(nullptr != m_pkeyPrivate->m_pMetadata);
 
     // Set it for both keys.
     //
@@ -212,7 +212,7 @@ void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
 
 bool OTKeypair::HasPublicKey()
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->IsPublic(); // This means it actually has a public key
                                      // in it, or tried to.
@@ -220,7 +220,7 @@ bool OTKeypair::HasPublicKey()
 
 bool OTKeypair::HasPrivateKey()
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->IsPrivate(); // This means it actually has a private
                                        // key in it, or tried to.
@@ -228,14 +228,14 @@ bool OTKeypair::HasPrivateKey()
 
 const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return (*m_pkeyPublic);
 }
 
 const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return (*m_pkeyPrivate);
 }
@@ -244,11 +244,11 @@ bool OTKeypair::SaveCertToString(OTString& strOutput,
                                  const OTString* pstrReason,
                                  OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     OTString strCert,
-        strReason(NULL == pstrReason ? "OTKeypair::SaveCertToString"
-                                     : pstrReason->Get());
+        strReason(nullptr == pstrReason ? "OTKeypair::SaveCertToString"
+                                        : pstrReason->Get());
 
     const bool bSaved =
         m_pkeyPublic->SaveCertToString(strCert, &strReason, pImportPassword);
@@ -262,7 +262,7 @@ bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
                                        const OTString* pstrReason,
                                        OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     OTString strPrivateKey;
 
@@ -334,8 +334,8 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
                                                   const OTString* pstrReason,
                                                   OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     OTString strOutput;
     const bool bSuccess =
@@ -364,7 +364,8 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
             return false; // LoadBothKeysFromCertFile already has error logs, no
                           // need to log twice at this point.
 
-        if (NULL != pstrOutputCert) pstrOutputCert->Set(strOutput); // Success!
+        if (nullptr != pstrOutputCert)
+            pstrOutputCert->Set(strOutput); // Success!
     }
 
     return bSuccess;
@@ -376,7 +377,7 @@ bool OTKeypair::LoadPrivateKey(const OTString& strFoldername,
                                const OTString* pstrReason,
                                OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->LoadPrivateKey(strFoldername, strFilename, pstrReason,
                                          pImportPassword);
@@ -385,7 +386,7 @@ bool OTKeypair::LoadPrivateKey(const OTString& strFoldername,
 bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
                               const OTString& strFilename)
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->LoadPublicKey(strFoldername, strFilename);
 }
@@ -399,7 +400,7 @@ bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
                                              const OTString* pstrReason,
                                              OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->LoadPrivateKeyFromCertString(
         strCert, bEscaped, pstrReason, pImportPassword);
@@ -411,7 +412,7 @@ bool OTKeypair::LoadPublicKeyFromCertString(
     const OTString& strCert, bool bEscaped, const OTString* pstrReason,
     OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->LoadPublicKeyFromCertString(
         strCert, bEscaped, pstrReason, pImportPassword);
@@ -422,7 +423,7 @@ bool OTKeypair::LoadPublicKeyFromCertFile(
     const OTString* pstrReason,
     OTPassword* pImportPassword) // DOES handle bookends.
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->LoadPublicKeyFromCertFile(strFoldername, strFilename,
                                                    pstrReason, pImportPassword);
@@ -432,8 +433,8 @@ bool OTKeypair::MakeNewKeypair(int32_t nBits)
 {
     const char* szFunc = "OTKeypair::MakeNewKeypair";
 
-    OT_ASSERT(NULL != m_pkeyPrivate);
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     OTLowLevelKeyData lowLevelData;
 
@@ -463,8 +464,8 @@ bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
 {
     const char* szFunc = "OTKeypair::LoadBothKeysFromCertFile";
 
-    OT_ASSERT(NULL != m_pkeyPublic);
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     bool bPublic = m_pkeyPublic->LoadPublicKeyFromCertFile(
         strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
@@ -496,7 +497,7 @@ bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
 
 bool OTKeypair::SignContract(OTContract& theContract, OTPasswordData* pPWData)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return theContract.SignWithKey(*m_pkeyPrivate, pPWData);
 }
@@ -510,14 +511,14 @@ bool OTKeypair::SignContract(OTContract& theContract, OTPasswordData* pPWData)
 //
 bool OTKeypair::GetPublicKey(OTASCIIArmor& strKey) const
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
 bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped) const
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey, bEscaped);
 }
@@ -527,7 +528,7 @@ bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped) const
 //
 bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->SetPublicKey(strKey);
 }
@@ -539,7 +540,7 @@ bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
 //
 bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     if (strKey.Contains("PGP PUBLIC KEY")) {
         OTASCIIArmor theArmor;
@@ -569,7 +570,7 @@ bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
 //
 bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped) const
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->GetPrivateKey(strKey, bEscaped);
 }
@@ -578,7 +579,7 @@ bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
                                                           // in ASCII-armored
                                                           // format
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->GetPrivateKey(strKey);
 }
@@ -589,7 +590,7 @@ bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
 // PRIVATE KEY-----)
 bool OTKeypair::SetPrivateKey(const OTString& strKey, bool bEscaped)
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     const char* szOverride = "PGP PRIVATE KEY";
 
@@ -637,14 +638,14 @@ bool OTKeypair::SetPrivateKey(const OTASCIIArmor& strKey) // Decodes a private
                                                           // the m_pKey on this
                                                           // object.
 {
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->SetPrivateKey(strKey);
 }
 
 bool OTKeypair::CalculateID(OTIdentifier& theOutput) const
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->CalculateID(theOutput); // Only works for public keys.
 }
@@ -654,8 +655,8 @@ int32_t OTKeypair::GetPublicKeyBySignature(
                                       // when theSignature has no metadata.
     const OTSignature& theSignature, bool bInclusive) const
 {
-    OT_ASSERT(NULL != m_pkeyPublic);
-    OT_ASSERT(NULL != m_pkeyPublic->m_pMetadata);
+    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
 
     // We know that EITHER exact metadata matches must occur, and the signature
     // MUST have metadata, (bInclusive=false)
@@ -695,8 +696,8 @@ bool OTKeypair::ReEncrypt(OTPassword& theExportPassword, bool bImporting,
                           OTString& strOutput)
 {
 
-    OT_ASSERT(NULL != m_pkeyPublic);
-    OT_ASSERT(NULL != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(nullptr != m_pkeyPrivate);
 
     OT_ASSERT(HasPublicKey());
     OT_ASSERT(HasPrivateKey());
@@ -755,7 +756,7 @@ bool OTKeypair::ReEncrypt(OTPassword& theExportPassword, bool bImporting,
         // Keys won't be right until this happens. Todo: eliminate this need.
         bGotCert = SaveAndReloadBothKeysFromTempFile(
             &strOutput, &strReasonBelow,
-            bImporting ? NULL : &theExportPassword);
+            bImporting ? nullptr : &theExportPassword);
     }
 
     const bool bSuccess = (bReEncrypted && bGotCert);

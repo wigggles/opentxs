@@ -258,12 +258,12 @@ public:
     EXPORT std::shared_ptr<OTCachedKey> GetInternalMaster();
     EXPORT bool GetPassphrase(OTPassword& theOutput,
                               const char* szDisplay =
-                                  NULL); // Retrieves the passphrase for this
-                                         // purse (which is cached by the master
-                                         // key.) Prompts the user to enter his
-                                         // actual passphrase, if necessary to
-                                         // unlock it. (May not need unlocking
-                                         // yet -- there is a timeout.)
+                                  nullptr); // Retrieves the passphrase for this
+    // purse (which is cached by the master
+    // key.) Prompts the user to enter his
+    // actual passphrase, if necessary to
+    // unlock it. (May not need unlocking
+    // yet -- there is a timeout.)
     EXPORT bool IsNymIDIncluded() const
     {
         return m_bIsNymIDIncluded;
@@ -318,12 +318,12 @@ public:
     EXPORT OTPurse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
                    const OTIdentifier& USER_ID); // UserID optional
     EXPORT virtual ~OTPurse();
-    EXPORT bool LoadPurse(const char* szServerID = NULL,
-                          const char* szUserID = NULL,
-                          const char* szAssetTypeID = NULL);
-    EXPORT bool SavePurse(const char* szServerID = NULL,
-                          const char* szUserID = NULL,
-                          const char* szAssetTypeID = NULL);
+    EXPORT bool LoadPurse(const char* szServerID = nullptr,
+                          const char* szUserID = nullptr,
+                          const char* szAssetTypeID = nullptr);
+    EXPORT bool SavePurse(const char* szServerID = nullptr,
+                          const char* szUserID = nullptr,
+                          const char* szAssetTypeID = nullptr);
 
     virtual bool LoadContract();
 

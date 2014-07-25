@@ -236,10 +236,10 @@ OTVariable::OTVariable()
     , m_bValue(false)
     , m_nValueBackup(0)
     , m_bValueBackup(false)
-    , m_pBylaw(NULL)
+    , m_pBylaw(nullptr)
     , m_Type(OTVariable::Var_Error_Type)
     , m_Access(Var_Error_Access)
-    , m_pScript(NULL)
+    , m_pScript(nullptr)
 {
 }
 
@@ -253,10 +253,10 @@ OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,
     , m_str_ValueBackup(str_Value)
     , m_nValueBackup(0)
     , m_bValueBackup(false)
-    , m_pBylaw(NULL)
+    , m_pBylaw(nullptr)
     , m_Type(OTVariable::Var_String)
     , m_Access(theAccess)
-    , m_pScript(NULL)
+    , m_pScript(nullptr)
 {
     if (m_str_Value.empty()) m_str_Value = "";
     if (m_str_ValueBackup.empty()) m_str_ValueBackup = "";
@@ -270,10 +270,10 @@ OTVariable::OTVariable(const std::string str_Name, const int32_t nValue,
     , m_bValue(false)
     , m_nValueBackup(nValue)
     , m_bValueBackup(false)
-    , m_pBylaw(NULL)
+    , m_pBylaw(nullptr)
     , m_Type(OTVariable::Var_Integer)
     , m_Access(theAccess)
-    , m_pScript(NULL)
+    , m_pScript(nullptr)
 {
 }
 
@@ -285,23 +285,23 @@ OTVariable::OTVariable(const std::string str_Name, const bool bValue,
     , m_bValue(bValue)
     , m_nValueBackup(0)
     , m_bValueBackup(bValue)
-    , m_pBylaw(NULL)
+    , m_pBylaw(nullptr)
     , m_Type(OTVariable::Var_Bool)
     , m_Access(theAccess)
-    , m_pScript(NULL)
+    , m_pScript(nullptr)
 {
 }
 
 OTVariable::~OTVariable()
 {
-    if (NULL != m_pScript) {
+    if (nullptr != m_pScript) {
         m_pScript->RemoveVariable(*this);
     }
 
     m_pScript =
-        NULL; // I wasn't the owner, it was a pointer for convenience only.
+        nullptr; // I wasn't the owner, it was a pointer for convenience only.
     m_pBylaw =
-        NULL; // I wasn't the owner, it was a pointer for convenience only.
+        nullptr; // I wasn't the owner, it was a pointer for convenience only.
 }
 
 bool OTVariable::SetValue(const int32_t& nValue)
@@ -415,7 +415,7 @@ void OTVariable::SetAsClean()
 //
 void OTVariable::UnregisterScript()
 {
-    m_pScript = NULL;
+    m_pScript = nullptr;
 }
 
 // We keep an internal script pointer here, so if we destruct,

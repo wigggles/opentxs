@@ -223,25 +223,26 @@ public:
 
     EXPORT OTPseudonym* GetOrLoadNym(const OTIdentifier& NYM_ID,
                                      const bool bChecking = false,
-                                     const char* szFuncName = NULL,
-                                     OTPasswordData* pPWData = NULL);
+                                     const char* szFuncName = nullptr,
+                                     OTPasswordData* pPWData = nullptr);
     EXPORT OTPseudonym* GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
-                                           const char* szFuncName = NULL);
+                                           const char* szFuncName = nullptr);
     EXPORT OTPseudonym* GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                             const bool bChecking = false,
-                                            const char* szFuncName = NULL,
-                                            OTPasswordData* pPWData = NULL,
-                                            OTPassword* pImportPassword = NULL);
+                                            const char* szFuncName = nullptr,
+                                            OTPasswordData* pPWData = nullptr,
+                                            OTPassword* pImportPassword =
+                                                nullptr);
 
     EXPORT OTAccount* LoadAccount(OTPseudonym& theNym,
                                   const OTIdentifier& ACCT_ID,
                                   const OTIdentifier& SERVER_ID,
-                                  const char* szFuncName = NULL);
+                                  const char* szFuncName = nullptr);
 
     EXPORT OTAccount* GetOrLoadAccount(OTPseudonym& theNym,
                                        const OTIdentifier& ACCT_ID,
                                        const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = NULL);
+                                       const char* szFuncName = nullptr);
     // Used by high-level wrapper.
 
     EXPORT int32_t GetNymCount();
@@ -279,7 +280,7 @@ public:
     bool VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
                             const OTIdentifier& SERVER_ID,
                             const OTString& strAcctID,
-                            const char* szFuncName = NULL);
+                            const char* szFuncName = nullptr);
     EXPORT OTAccount* GetAccount(const OTIdentifier& theAccountID);
     EXPORT OTAccount* GetAccountPartialMatch(
         const std::string PARTIAL_ID); // wallet name for account also accepted.
@@ -296,8 +297,8 @@ public:
     {
         return m_pWithdrawalPurse;
     }
-    EXPORT bool LoadWallet(const char* szFilename = NULL);
-    EXPORT bool SaveWallet(const char* szFilename = NULL);
+    EXPORT bool LoadWallet(const char* szFilename = nullptr);
+    EXPORT bool SaveWallet(const char* szFilename = nullptr);
     bool SaveContract(OTString& strContract); // For saving the wallet to a
                                               // string.
 
@@ -325,15 +326,15 @@ public:
     EXPORT bool Encrypt_ByKeyID(const std::string& key_id,
                                 const OTString& strPlaintext,
                                 OTString& strOutput,
-                                const OTString* pstrDisplay = NULL,
+                                const OTString* pstrDisplay = nullptr,
                                 const bool bBookends = true);
 
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
                                 OTString& strCiphertext, OTString& strOutput,
-                                const OTString* pstrDisplay = NULL);
+                                const OTString* pstrDisplay = nullptr);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
-        const std::string* pReason = NULL); // Use this one.
+        const std::string* pReason = nullptr); // Use this one.
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
         const std::string& str_id); // Low level.
     EXPORT bool addExtraKey(const std::string& str_id,

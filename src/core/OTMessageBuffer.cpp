@@ -176,7 +176,7 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
                                 const OTString& strServerID,
                                 const OTString& strNymID)
 {
-    OTMessage* pReturnValue = NULL;
+    OTMessage* pReturnValue = nullptr;
 
     Messages temp_list;
 
@@ -186,15 +186,15 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
 
         messages_.pop_front();
 
-        if (NULL == pMsg) {
+        if (nullptr == pMsg) {
             otErr << "OTMessageBuffer::Pop: Error: List of incoming server "
                      "replies "
-                     "is NOT empty, yet when Pop was called, pMsg was NULL! "
+                     "is NOT empty, yet when Pop was called, pMsg was nullptr! "
                      "(Skipping.)\n";
             continue;
         }
 
-        // Below this point, pMsg has been popped, and it's NOT NULL, and it
+        // Below this point, pMsg has been popped, and it's NOT nullptr, and it
         // will be lost if not tracked or returned.
         //
         if (!strServerID.Compare(pMsg->m_strServerID) ||
@@ -232,7 +232,7 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
                      "and then assumed to have been dropped. It's okay--the "
                      "protocol is designed to handle these occurrences.)\n";
             delete pMsg;
-            pMsg = NULL;
+            pMsg = nullptr;
             continue;
         }
 
@@ -260,8 +260,8 @@ void OTMessageBuffer::Clear()
         OTMessage* pMsg = messages_.front();
         messages_.pop_front();
 
-        if (NULL != pMsg) delete pMsg;
-        pMsg = NULL;
+        if (nullptr != pMsg) delete pMsg;
+        pMsg = nullptr;
     }
 }
 

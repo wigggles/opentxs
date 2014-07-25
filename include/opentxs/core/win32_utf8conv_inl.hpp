@@ -79,7 +79,7 @@ inline std::wstring UTF16FromUTF8(const std::string& utf8)
         utf8.data(),     // source UTF-8 string
         static_cast<int>(
             utf8.length()), // length (in chars) of source UTF-8 string
-        NULL,               // unused - no conversion done in this step
+        nullptr,            // unused - no conversion done in this step
         static_cast<int>(0) // request size of destination buffer, in wchar_t's
         );
     if (utf16Length == 0) {
@@ -133,7 +133,7 @@ inline std::wstring UTF16FromUTF8(const char* utf8)
     //
     // Special case of empty input string
     //
-    if (utf8 == NULL || *utf8 == '\0') return std::wstring();
+    if (utf8 == nullptr || *utf8 == '\0') return std::wstring();
 
     // Prefetch the length of the input UTF-8 string
     const int utf8Length = static_cast<int>(strlen(utf8));
@@ -149,7 +149,7 @@ inline std::wstring UTF16FromUTF8(const char* utf8)
         conversionFlags, // flags
         utf8,            // source UTF-8 string
         utf8Length,      // length (in chars) of source UTF-8 string
-        NULL,            // unused - no conversion done in this step
+        nullptr,         // unused - no conversion done in this step
         0                // request size of destination buffer, in wchar_t's
         );
     if (utf16Length == 0) {
@@ -212,9 +212,9 @@ inline std::string UTF8FromUTF16(const std::wstring& utf16)
         0,                                // default flags
         utf16.data(),                     // source UTF-16 string
         static_cast<int>(utf16.length()), // source string length, in wchar_t's,
-        NULL,                // unused - no conversion required in this step
+        nullptr,             // unused - no conversion required in this step
         static_cast<int>(0), // request buffer size
-        NULL, NULL           // unused
+        nullptr, nullptr     // unused
         );
     if (utf8Length == 0) {
         // Error
@@ -242,7 +242,7 @@ inline std::string UTF8FromUTF16(const std::wstring& utf16)
              &utf8[0],                         // destination buffer
              static_cast<int>(utf8.length()),  // destination buffer size, in
                                                // chars
-             NULL, NULL                        // unused
+             nullptr, nullptr                  // unused
              )) {
         // Error
         DWORD error = ::GetLastError();
@@ -263,7 +263,7 @@ inline std::string UTF8FromUTF16(const wchar_t* utf16)
     //
     // Special case of empty input string
     //
-    if (utf16 == NULL || *utf16 == L'\0') return std::string();
+    if (utf16 == nullptr || *utf16 == L'\0') return std::string();
 
     // Prefetch the length of the input UTF-16 string
     const int utf16Length = static_cast<int>(wcslen(utf16));
@@ -272,13 +272,13 @@ inline std::string UTF8FromUTF16(const wchar_t* utf16)
     // Get length (in chars) of resulting UTF-8 string
     //
     const int utf8Length = ::WideCharToMultiByte(
-        CP_UTF8,     // convert to UTF-8
-        0,           // default flags
-        utf16,       // source UTF-16 string
-        utf16Length, // source string length, in wchar_t's,
-        NULL,        // unused - no conversion required in this step
-        0,           // request buffer size
-        NULL, NULL   // unused
+        CP_UTF8,         // convert to UTF-8
+        0,               // default flags
+        utf16,           // source UTF-16 string
+        utf16Length,     // source string length, in wchar_t's,
+        nullptr,         // unused - no conversion required in this step
+        0,               // request buffer size
+        nullptr, nullptr // unused
         );
     if (utf8Length == 0) {
         // Error
@@ -306,7 +306,7 @@ inline std::string UTF8FromUTF16(const wchar_t* utf16)
              &utf8[0],                        // destination buffer
              static_cast<int>(utf8.length()), // destination buffer size, in
                                               // chars
-             NULL, NULL                       // unused
+             nullptr, nullptr                 // unused
              )) {
         // Error
         DWORD error = ::GetLastError();

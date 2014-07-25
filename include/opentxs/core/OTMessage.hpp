@@ -161,9 +161,9 @@ public:
     virtual bool VerifyContractID();
 
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData = NULL);
+                                     OTPasswordData* pPWData = nullptr);
     EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        OTPasswordData* pPWData = NULL);
+                                        OTPasswordData* pPWData = nullptr);
 
     EXPORT bool HarvestTransactionNumbers(
         OTPseudonym& theNym,

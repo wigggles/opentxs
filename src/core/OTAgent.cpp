@@ -198,7 +198,7 @@ bool OTAgent::VerifySignature(OTContract& theContract)
     //        //
     //    }
     //    else
-    if (NULL == m_pNym) {
+    if (nullptr == m_pNym) {
         OTString strTemp(theContract);
         otErr << "OTAgent::VerifySignature: Attempted to verify signature on "
                  "contract, "
@@ -227,7 +227,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
 
     if (bNymID) {
         OTPseudonym* pNym = new OTPseudonym;
-        OT_ASSERT(NULL != pNym);
+        OT_ASSERT(nullptr != pNym);
 
         pNym->SetIdentifier(theAgentNymID);
 
@@ -236,7 +236,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
             otErr << "OTAgent::LoadNym: Failure loading "
                      "agent's public key:\n" << strNymID << "\n";
             delete pNym;
-            pNym = NULL;
+            pNym = nullptr;
         }
         else if (pNym->VerifyPseudonym() &&
                    pNym->LoadSignedNymfile(theServerNym)) {
@@ -252,21 +252,21 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
             otErr << "OTAgent::LoadNym: Failure verifying agent's public key "
                      "or loading signed nymfile: " << strNymID << "\n";
             delete pNym;
-            pNym = NULL;
+            pNym = nullptr;
         }
     }
     else
         otErr << "OTAgent::LoadNym: Failure. Are you sure this agent IS a Nym "
                  "at all? \n";
 
-    return NULL;
+    return nullptr;
 }
 
 OTAgent::OTAgent()
     : m_bNymRepresentsSelf(false)
     , m_bIsAnIndividual(false)
-    , m_pNym(NULL)
-    , m_pForParty(NULL)
+    , m_pNym(nullptr)
+    , m_pForParty(nullptr)
 {
 }
 
@@ -275,8 +275,8 @@ OTAgent::OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
                  const OTString& strRoleID, const OTString& strGroupName)
     : m_bNymRepresentsSelf(bNymRepresentsSelf)
     , m_bIsAnIndividual(bIsAnIndividual)
-    , m_pNym(NULL)
-    , m_pForParty(NULL)
+    , m_pNym(nullptr)
+    , m_pForParty(nullptr)
     , m_strName(strName)
     , m_strNymID(strNymID)
     , m_strRoleID(strRoleID)
@@ -290,7 +290,7 @@ OTAgent::OTAgent(const std::string str_agent_name, OTPseudonym& theNym,
     : m_bNymRepresentsSelf(bNymRepresentsSelf),
       m_bIsAnIndividual(true),
       m_pNym(&theNym),
-      m_pForParty(NULL),
+      m_pForParty(nullptr),
       m_strName(str_agent_name.c_str())
 {
     // Grab m_strNymID
@@ -349,10 +349,12 @@ void OTAgent::SetParty(OTParty& theOwnerParty) // This happens when the agent is
 
 OTAgent::~OTAgent()
 {
-    m_pNym = NULL; // this pointer is not owned by this object, and is here for
-                   // convenience only.
-    m_pForParty = NULL; // The agent probably has a pointer to the party it acts
-                        // on behalf of.
+    m_pNym =
+        nullptr; // this pointer is not owned by this object, and is here for
+                 // convenience only.
+    m_pForParty =
+        nullptr; // The agent probably has a pointer to the party it acts
+                 // on behalf of.
 }
 
 // If the agent is a Nym acting for himself, this will be true. Otherwise, if
@@ -599,7 +601,7 @@ bool OTAgent::GetEntityID(OTIdentifier& theOutput) const
 {
     // IF represents an entity, then this is its ID. Else fail.
     //
-    if (DoesRepresentAnEntity() && (NULL != m_pForParty) &&
+    if (DoesRepresentAnEntity() && (nullptr != m_pForParty) &&
         m_pForParty->IsEntity()) {
         bool bSuccessEntityID = false;
         std::string str_entity_id = m_pForParty->GetEntityID(&bSuccessEntityID);
@@ -619,7 +621,7 @@ bool OTAgent::GetEntityID(OTIdentifier& theOutput) const
 //
 bool OTAgent::IsAuthorizingAgentForParty()
 {
-    if (NULL == m_pForParty) return false;
+    if (nullptr == m_pForParty) return false;
 
     if (m_strName.Compare(m_pForParty->GetAuthorizingAgentName().c_str()))
         return true;
@@ -632,9 +634,9 @@ bool OTAgent::IsAuthorizingAgentForParty()
 //
 int32_t OTAgent::GetCountAuthorizedAccts()
 {
-    if (NULL == m_pForParty) {
-        otErr
-            << "OTAgent::CountAuthorizedAccts: Error: m_pForParty was NULL.\n";
+    if (nullptr == m_pForParty) {
+        otErr << "OTAgent::CountAuthorizedAccts: Error: m_pForParty was "
+                 "nullptr.\n";
         return 0; // Maybe should log here...
     }
 
@@ -681,7 +683,7 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
     //  We actually have a Nym pointer on this agent somehow (so let's add it to
     // the list.)
     //
-    if (NULL != m_pNym) {
+    if (nullptr != m_pNym) {
         if (!m_strName.Exists()) // Whoaa!! Can't add it without the agent's
                                  // name for the map!
         {
@@ -698,7 +700,8 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
                      "there with the same agent name! (" << m_strName << ")\n";
         // (else it was inserted successfully.)
     }
-    // else nothing, since it's normal that most of them are NULL, even when one
+    // else nothing, since it's normal that most of them are nullptr, even when
+    // one
     // is goood.
 }
 
@@ -741,13 +744,13 @@ bool OTAgent::DropFinalReceiptToInbox(
 
     if (true == bNymID) // therefore IsAnIndividual() is definitely true.
     {
-        OTPseudonym* pNym = NULL;
+        OTPseudonym* pNym = nullptr;
         OTCleanup<OTPseudonym> theNymAngel;
 
         // If a list of pre-loaded Nyms was passed in, see if one of them is
         // ours.
         //
-        if (NULL != pNymMap) {
+        if (nullptr != pNymMap) {
             const OTString strNymID(theAgentNymID);
             OT_ASSERT(strNymID.Exists());
 
@@ -756,12 +759,13 @@ bool OTAgent::DropFinalReceiptToInbox(
             if (pNymMap->end() != ittt) // found it!
             {
                 pNym = ittt->second;
-                OT_ASSERT(NULL != pNym);
+                OT_ASSERT(nullptr != pNym);
             }
         }
 
-        if (NULL == pNym) // It wasn't on the list of already-loaded nyms that
-                          // was passed in, so we have to load it.
+        if (nullptr ==
+            pNym) // It wasn't on the list of already-loaded nyms that
+                  // was passed in, so we have to load it.
         {
             // By this point we also know that pNym is NOT the server Nym, nor
             // is it the
@@ -774,7 +778,7 @@ bool OTAgent::DropFinalReceiptToInbox(
             // against those Nyms again,
             // before loading it. Let's load it up!)
             //
-            if (NULL == (pNym = LoadNym(theServerNym)))
+            if (nullptr == (pNym = LoadNym(theServerNym)))
                 otErr << szFunc << ": Failed loading Nym.\n";
             else
                 theNymAngel.SetCleanupTarget(*pNym); // CLEANUP  :-)
@@ -789,20 +793,22 @@ bool OTAgent::DropFinalReceiptToInbox(
         //
         ClearTemporaryPointers();
 
-        if ((NULL != pNym) && (lClosingNumber > 0) &&
+        if ((nullptr != pNym) && (lClosingNumber > 0) &&
             pNym->VerifyIssuedNum(strServerID,
                                   lClosingNumber)) // <====================
         {
             return theSmartContract.DropFinalReceiptToInbox(
                 theAgentNymID, theAccountID, lNewTransactionNumber,
                 lClosingNumber, strOrigCronItem, pstrNote,
-                pstrAttachment); // pActualAcct=NULL here. (This call will load
+                pstrAttachment); // pActualAcct=nullptr here. (This call will
+                                 // load
                                  // the acct up and update its inbox hash.)
         }
         else
-            otErr << szFunc << ": Error: pNym is NULL, or lClosingNumber <=0, "
-                               "or pNym->VerifyIssuedNum(strServerID, "
-                               "lClosingNumber)) failed to verify.\n";
+            otErr << szFunc
+                  << ": Error: pNym is nullptr, or lClosingNumber <=0, "
+                     "or pNym->VerifyIssuedNum(strServerID, "
+                     "lClosingNumber)) failed to verify.\n";
     }
     else
         otErr << szFunc << ": No NymID available for this agent...\n";
@@ -826,9 +832,9 @@ bool OTAgent::DropFinalReceiptToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        OTPseudonym* pToActualNym = NULL;
+        OTPseudonym* pToActualNym = nullptr;
 
-        if ((NULL != pActualNym) && pActualNym->CompareID(theAgentNymID))
+        if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
             pToActualNym = pActualNym;
 
         return theSmartContract.DropFinalReceiptToNymbox(
@@ -856,11 +862,11 @@ bool OTAgent::DropServerNoticeToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        OTPseudonym* pToActualNym = NULL;
+        OTPseudonym* pToActualNym = nullptr;
 
-        if ((NULL != pActualNym) && pActualNym->CompareID(theAgentNymID))
+        if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
             pToActualNym = pActualNym;
-        else if ((NULL != m_pNym) && m_pNym->CompareID(theAgentNymID))
+        else if ((nullptr != m_pNym) && m_pNym->CompareID(theAgentNymID))
             pToActualNym = m_pNym;
 
         return OTAgreement::DropServerNoticeToNymbox(
@@ -883,8 +889,8 @@ bool OTAgent::SignContract(OTContract& theInput)
         return false;
     } // todo: when adding entities, this will change.
 
-    if (NULL == m_pNym) {
-        otErr << "OTAgent::SignContract: Nym was NULL while trying to sign "
+    if (nullptr == m_pNym) {
+        otErr << "OTAgent::SignContract: Nym was nullptr while trying to sign "
                  "contract. Agent: " << m_strName << ".\n";
         return false;
     } // todo: when adding entities, this will change.
@@ -902,10 +908,10 @@ bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
         return false;
     }
 
-    if (NULL != m_pNym)
+    if (nullptr != m_pNym)
         return m_pNym->VerifyIssuedNum(strServerID, lNumber);
     else
-        otErr << "OTAgent::VerifyIssuedNumber: Error: m_pNym was NULL. For "
+        otErr << "OTAgent::VerifyIssuedNumber: Error: m_pNym was nullptr. For "
                  "agent: " << m_strName << "\n";
 
     return false;
@@ -921,10 +927,10 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
         return false;
     }
 
-    if (NULL != m_pNym)
+    if (nullptr != m_pNym)
         return m_pNym->VerifyTransactionNum(strServerID, lNumber);
     else
-        otErr << "OTAgent::VerifyTransactionNumber: Error: m_pNym was NULL. "
+        otErr << "OTAgent::VerifyTransactionNumber: Error: m_pNym was nullptr. "
                  "For agent: " << m_strName << "\n";
 
     return false;
@@ -935,8 +941,8 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::HarvestTransactionNumber(
     const int64_t& lNumber, const OTString& strServerID,
-    bool bSave,              // Each agent's nym is used if pSignerNym is NULL,
-                             // whereas the server
+    bool bSave, // Each agent's nym is used if pSignerNym is nullptr,
+                // whereas the server
     OTPseudonym* pSignerNym) // uses this optional arg to substitute
                              // serverNym as signer.
 {
@@ -950,13 +956,13 @@ bool OTAgent::HarvestTransactionNumber(
         return false;
     }
 
-    if (NULL != m_pNym) {
+    if (nullptr != m_pNym) {
         // If a signer wasn't passed in (the server-side uses server nym to
         // sign)
         // then we use the Nym himself as his own signer (common to
         // client-side.)
         //
-        if (NULL == pSignerNym) pSignerNym = m_pNym;
+        if (nullptr == pSignerNym) pSignerNym = m_pNym;
 
         const OTIdentifier theServerID(strServerID);
 
@@ -995,7 +1001,8 @@ bool OTAgent::HarvestTransactionNumber(
     }
     else
         otErr << __FUNCTION__
-              << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
+              << ": Error: m_pNym was nullptr. For agent: " << m_strName
+              << "\n";
 
     return false;
 }
@@ -1017,7 +1024,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
         return false;
     }
 
-    if (NULL != m_pNym) {
+    if (nullptr != m_pNym) {
         std::set<int64_t>& theIDSet =
             m_pNym->GetSetOpenCronItems(); // The transaction is now in play, so
                                            // we are going to add it to this
@@ -1040,7 +1047,8 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
     }
     else
         otErr << "OTAgent::" << __FUNCTION__
-              << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
+              << ": Error: m_pNym was nullptr. For agent: " << m_strName
+              << "\n";
 
     return false;
 }
@@ -1061,7 +1069,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
         return false;
     }
 
-    if (NULL != m_pNym) {
+    if (nullptr != m_pNym) {
         std::set<int64_t>& theIDSet =
             m_pNym->GetSetOpenCronItems(); // The transaction is being removed
                                            // from play, so we will remove it
@@ -1070,7 +1078,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
             m_pNym->RemoveIssuedNum(strServerID, lNumber); // Doesn't save.
 
         if (bSuccess) {
-            if (NULL == pSignerNym) pSignerNym = m_pNym;
+            if (nullptr == pSignerNym) pSignerNym = m_pNym;
 
             // Since the Trans# is now out of play, the server removes it as an
             // open cron item.
@@ -1093,7 +1101,8 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
     }
     else
         otErr << "OTAgent::" << __FUNCTION__
-              << ": Error: m_pNym was NULL. For agent: " << m_strName << "\n";
+              << ": Error: m_pNym was nullptr. For agent: " << m_strName
+              << "\n";
 
     return false;
 }
@@ -1104,7 +1113,7 @@ bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
 {
     int64_t lTransactionNumber = 0;
 
-    if (IsAnIndividual() && DoesRepresentHimself() && (NULL != m_pNym)) {
+    if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         if (thePartyAcct.GetClosingTransNo() > 0) {
             otOut << "OTAgent::ReserveClosingTransNum: Failure: The account "
                      "ALREADY has a closing transaction number "
@@ -1156,10 +1165,10 @@ bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
 {
     int64_t lTransactionNumber = 0;
 
-    if (IsAnIndividual() && DoesRepresentHimself() && (NULL != m_pNym)) {
-        if (NULL == m_pForParty) {
+    if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
+        if (nullptr == m_pForParty) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Party pointer "
-                     "was NULL.  SHOULD NEVER HAPPEN!!\n";
+                     "was nullptr.  SHOULD NEVER HAPPEN!!\n";
             return false;
         }
         if (m_pForParty->GetOpeningTransNo() > 0) {

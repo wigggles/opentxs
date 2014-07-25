@@ -513,7 +513,7 @@ void OTOffer::SetDateAddedToMarket(time64_t tDate) // Used in OTCron when
 OTOffer::OTOffer()
     : ot_super()
     , m_tDateAddedToMarket(OT_TIME_ZERO)
-    , m_pTrade(NULL)
+    , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.
     m_bSelling(false)
     , m_lPriceLimit(0)
@@ -532,7 +532,7 @@ OTOffer::OTOffer(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
                  const OTIdentifier& CURRENCY_ID, const int64_t& lScale)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
-    , m_pTrade(NULL)
+    , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.
     m_bSelling(false)
     , m_lPriceLimit(0)
@@ -582,13 +582,13 @@ void OTOffer::InitOffer()
     // This pointer will get wiped anytime Release() is called... which means
     // anytime LoadContractFromString()
     // is called. For some objects, that screws them up because suddenly the
-    // pointer went NULL when they needed it.
+    // pointer went nullptr when they needed it.
     // In the case of this object, the pointer is reset whenever Cron processes,
     // so this is safe. But in
     // the case of other objects, it's better not to initialize the pointer
     // here, but in the constructor instead.
     // FYI. For example, OTCron has a pointer to m_pServerNym. LoadCron() and
-    // the pointer is NULL. Can't have that!
+    // the pointer is nullptr. Can't have that!
     // So I moved it to the constructor in that case.
 
     m_bSelling = false;

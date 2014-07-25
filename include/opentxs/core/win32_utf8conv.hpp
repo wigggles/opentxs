@@ -100,7 +100,7 @@ EXPORT std::wstring UTF16FromUTF8(const std::string& utf8);
 
 // Converts a raw C string from UTF-8 to UTF-16.
 // On error, can throw an utf8_conversion_error exception.
-// If the input pointer is NULL, an empty string is returned.
+// If the input pointer is nullptr, an empty string is returned.
 EXPORT std::wstring UTF16FromUTF8(const char* utf8);
 
 // Converts a string from UTF-16 to UTF-8.
@@ -109,7 +109,7 @@ EXPORT std::string UTF8FromUTF16(const std::wstring& utf16);
 
 // Converts a raw C string from UTF-16 to UTF-8.
 // On error, can throw an utf8_conversion_error exception.
-// If the input pointer is NULL, an empty string is returned.
+// If the input pointer is nullptr, an empty string is returned.
 EXPORT std::string UTF8FromUTF16(const wchar_t* utf16);
 
 } // namespace utf8util

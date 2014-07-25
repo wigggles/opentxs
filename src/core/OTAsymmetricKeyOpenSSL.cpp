@@ -156,8 +156,8 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 {
     dp->backlink = this;
 
-    dp->m_pX509 = NULL;
-    dp->m_pKey = NULL;
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
 }
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
@@ -166,13 +166,14 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
 
     ReleaseKeyLowLevel_Hook();
 
-    if (NULL != dp->m_pX509) // Todo: figure out if I should put a copy of this
-                             // into ReleaseKeyLowLevel_Hook as we are with
-                             // m_pKey.
+    if (nullptr !=
+        dp->m_pX509) // Todo: figure out if I should put a copy of this
+                     // into ReleaseKeyLowLevel_Hook as we are with
+                     // m_pKey.
         X509_free(dp->m_pX509); // FYI: the reason it's not there already is
                                 // because the original need was for wiping
                                 // m_pKey when a private key timed out.
-    dp->m_pX509 = NULL;         // ReleaseKeyLowLevel is used all over
+    dp->m_pX509 = nullptr;      // ReleaseKeyLowLevel is used all over
     // OTAsymmetricKey.cpp for the purpose of wiping that
     // private key. The same need didn't exist with the x509
     // so it was never coded that way. As long as it's
@@ -212,8 +213,8 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook()
 {
     // Release the instantiated OpenSSL key (unsafe to store in this form.)
     //
-    if (NULL != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
-    dp->m_pKey = NULL;
+    if (nullptr != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
+    dp->m_pKey = nullptr;
 }
 
 // Load the private key from a .pem formatted cert string
@@ -282,9 +283,10 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     // strWithBookends.GetLength() /*+1*/);
     OpenSSL_BIO bio = BIO_new_mem_buf(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
-    OT_ASSERT_MSG(NULL != bio, "OTAsymmetricKey_OpenSSL::"
-                               "LoadPrivateKeyFromCertString: Assert: NULL != "
-                               "bio \n");
+    OT_ASSERT_MSG(nullptr != bio,
+                  "OTAsymmetricKey_OpenSSL::"
+                  "LoadPrivateKeyFromCertString: Assert: nullptr != "
+                  "bio \n");
 
     {
         // TODO security: Need to replace PEM_read_bio_PrivateKey().
@@ -300,22 +302,23 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
          because they handle all formats transparently.
          */
         OTPasswordData thePWData(
-            (NULL == pstrReason)
-                ? (NULL == pImportPassword
+            (nullptr == pstrReason)
+                ? (nullptr == pImportPassword
                        ? "Enter the master passphrase. "
                          "(LoadPrivateKeyFromCertString)"
                        : "Enter the passphrase for this exported nym.")
                 : pstrReason->Get());
 
-        EVP_PKEY* pkey = NULL;
+        EVP_PKEY* pkey = nullptr;
 
-        if (NULL ==
-            pImportPassword) // pImportPassword is NULL? Do it normally then.
+        if (nullptr ==
+            pImportPassword) // pImportPassword is nullptr? Do it normally then.
         {
             //          otOut << "%s: READING using WALLET password.\n",
             // __FUNCTION__);
             pkey = PEM_read_bio_PrivateKey(
-                bio, NULL, OTAsymmetricKey::GetPasswordCallback(), &thePWData);
+                bio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
+                &thePWData);
         }
         else // Otherwise, use pImportPassword instead of the normal
                // OTCachedKey system.
@@ -323,24 +326,26 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
             //          otOut << "%s: READING using EXPORT password.\n",
             // __FUNCTION__);
             pkey = PEM_read_bio_PrivateKey(
-                bio, NULL, 0, const_cast<void*>(reinterpret_cast<const void*>(
-                                  pImportPassword->getPassword())));
+                bio, nullptr, 0,
+                const_cast<void*>(reinterpret_cast<const void*>(
+                    pImportPassword->getPassword())));
         }
 
         //      if (strWithBookends.GetLength() > 0)
         //          OPENSSL_cleanse(bio, strWithBookends.GetLength());
 
-        if (NULL == pkey) {
+        if (nullptr == pkey) {
             otErr << __FUNCTION__ << ": (pImportPassword size: "
-                  << (NULL == pImportPassword
+                  << (nullptr == pImportPassword
                           ? 0
                           : pImportPassword->getPasswordSize())
                   << ") Error reading private key from string.\n\n";
             //            otErr << "%s: (pImportPassword is %s, size: %d) Error
             // reading private key from string:\n%s\n\n",
-            //                          __FUNCTION__, NULL == pImportPassword ?
-            // "NULL" : pImportPassword->getPassword(),
-            //                          NULL == pImportPassword ? 0 :
+            //                          __FUNCTION__, nullptr == pImportPassword
+            // ?
+            // "nullptr" : pImportPassword->getPassword(),
+            //                          nullptr == pImportPassword ? 0 :
             // pImportPassword->getPasswordSize(),
             //                          strWithBookends.Get()
             //                          );
@@ -355,7 +360,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
                                                  // default, but true
                                                  // here.
             EVP_PKEY_free(pkey);
-            pkey = NULL;
+            pkey = nullptr;
             otLog3 << __FUNCTION__
                    << ": Successfully loaded private key, FYI.\n";
             return true;
@@ -427,26 +432,28 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
     // strWithBookends.GetLength() /*+1*/);
     //    OpenSSL_BIO keyBio = BIO_new_mem_buf((void*)strCert.Get(),
     // strCert.GetLength() /*+1*/);
-    OT_ASSERT(NULL != keyBio);
+    OT_ASSERT(nullptr != keyBio);
 
     OTPasswordData thePWData(
-        NULL == pImportPassword ? "Enter your wallet master passphrase. "
-                                  "(LoadPublicKeyFromCertString)"
-                                :
-                                // pImportPassword exists:
-            (NULL == pstrReason ? "Enter the passphrase for your exported Nym. "
-                                  "(LoadPublicKeyFromCertString)"
-                                : pstrReason->Get()));
+        nullptr == pImportPassword ? "Enter your wallet master passphrase. "
+                                     "(LoadPublicKeyFromCertString)"
+                                   :
+                                   // pImportPassword exists:
+            (nullptr == pstrReason
+                 ? "Enter the passphrase for your exported Nym. "
+                   "(LoadPublicKeyFromCertString)"
+                 : pstrReason->Get()));
 
-    X509* x509 = NULL;
+    X509* x509 = nullptr;
 
-    if (NULL == pImportPassword)
-        x509 = PEM_read_bio_X509(
-            keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(), &thePWData);
+    if (nullptr == pImportPassword)
+        x509 = PEM_read_bio_X509(keyBio, nullptr,
+                                 OTAsymmetricKey::GetPasswordCallback(),
+                                 &thePWData);
     else
         x509 = PEM_read_bio_X509(
-            keyBio, NULL, 0, const_cast<void*>(reinterpret_cast<const void*>(
-                                 pImportPassword->getPassword())));
+            keyBio, nullptr, 0, const_cast<void*>(reinterpret_cast<const void*>(
+                                    pImportPassword->getPassword())));
 
     // TODO security: At some point need to switch to using X509_AUX functions.
     // The current x509 functions will read a trust certificate but discard the
@@ -455,20 +462,20 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
     // UPDATE: Possibly the trust structure sucks. Need to consult experts. (CA
     // system is a farce.)
     //
-    if (NULL != x509) {
+    if (nullptr != x509) {
         EVP_PKEY* pkey = X509_get_pubkey(x509);
 
-        if (pkey == NULL) {
+        if (pkey == nullptr) {
             otErr << __FUNCTION__ << ": Error reading public key from x509.\n";
         }
         else {
             dp->SetKeyAsCopyOf(*pkey, false, // bIsPrivateKey=false. PUBLIC KEY.
                                &thePWData, pImportPassword); // pImportPassword
                                                              // is sometimes
-                                                             // NULL here.
+                                                             // nullptr here.
 
             EVP_PKEY_free(pkey);
-            pkey = NULL;
+            pkey = nullptr;
             otLog3 << __FUNCTION__ << ": Successfully extracted a public key "
                                       "from an x509 certificate.\n";
             bReturnValue = true;
@@ -487,9 +494,9 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
         dp->SetX509(x509);
     }
     else {
-        if (NULL != x509) X509_free(x509);
-        x509 = NULL;
-        dp->SetX509(NULL);
+        if (nullptr != x509) X509_free(x509);
+        x509 = nullptr;
+        dp->SetX509(nullptr);
     }
 
     return bReturnValue;
@@ -500,7 +507,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                                                   bool bImporting)
 {
-    OT_ASSERT(m_p_ascKey != NULL);
+    OT_ASSERT(m_p_ascKey != nullptr);
     OT_ASSERT(IsPrivate());
 
     bool bReturnVal = false;
@@ -508,7 +515,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
 
-    EVP_PKEY* pClearKey = NULL;
+    EVP_PKEY* pClearKey = nullptr;
     OTPayload theData; // after base64-decoding the ascii-armored string, the
                        // (encrypted) binary will be stored here.
 
@@ -527,9 +534,10 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
             static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
             theData.GetSize()); // theData will zeroMemory upon destruction.
-        OT_ASSERT_MSG(NULL != keyBio, "OTAsymmetricKey_OpenSSL::"
-                                      "ReEncryptPrivateKey: Assert: NULL != "
-                                      "keyBio \n");
+        OT_ASSERT_MSG(nullptr != keyBio,
+                      "OTAsymmetricKey_OpenSSL::"
+                      "ReEncryptPrivateKey: Assert: nullptr != "
+                      "keyBio \n");
 
         // Here's thePWData we use if we didn't have anything else:
         //
@@ -545,7 +553,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
             //          otOut << "RE-ENCRYPT PRIVATE KEY -- READING using
             // special EXPORT password: %s\n", theExportPassword.getPassword());
             pClearKey = PEM_read_bio_PrivateKey(
-                keyBio, NULL, 0,
+                keyBio, nullptr, 0,
                 const_cast<void*>(reinterpret_cast<const void*>(
                     theExportPassword.getPassword())));
         }
@@ -558,11 +566,11 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
             //          otOut << "RE-ENCRYPT PRIVATE KEY -- READING using WALLET
             // password.\n";
             pClearKey = PEM_read_bio_PrivateKey(
-                keyBio, NULL, OTAsymmetricKey::GetPasswordCallback(),
+                keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
                 &thePWData);
         }
 
-        if (NULL != pClearKey) {
+        if (nullptr != pClearKey) {
             //          otLog4 << "%s: Success reading private key from
             // ASCII-armored data:\n\n%s\n\n",
             //                         __FUNCTION__, m_p_ascKey->Get());
@@ -575,7 +583,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
             // using the new passphrase.
             //
             OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
-            OT_ASSERT(NULL != bmem);
+            OT_ASSERT(nullptr != bmem);
 
             int64_t lSize = 0;
 
@@ -593,7 +601,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                 //              otOut << "RE-ENCRYPT PRIVATE KEY -- WRITING
                 // using WALLET password.\n";
                 nWriteBio = PEM_write_bio_PrivateKey(
-                    bmem, pClearKey, pCipher, NULL, 0,
+                    bmem, pClearKey, pCipher, nullptr, 0,
                     OTAsymmetricKey::GetPasswordCallback(), &thePWData);
             }
 
@@ -609,7 +617,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                 // theExportPassword.getPassword(),
                 //                             theExportPassword.getPasswordSize());
                 nWriteBio = PEM_write_bio_PrivateKey(
-                    bmem, pClearKey, pCipher, NULL, 0, 0,
+                    bmem, pClearKey, pCipher, nullptr, 0, 0,
                     const_cast<void*>(reinterpret_cast<const void*>(
                         theExportPassword.getPassword())));
             }
@@ -625,7 +633,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                        << ": Success writing EVP_PKEY to memory buffer.\n";
 
                 OTPayload theNewData;
-                char* pChar = NULL;
+                char* pChar = nullptr;
 
                 // After the below call, pChar will point to the memory buffer
                 // where the private key supposedly is,
@@ -682,9 +690,9 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(OTString& strOutput,
 {
     X509* x509 = dp->GetX509();
 
-    if (NULL == x509) {
+    if (nullptr == x509) {
         otErr << __FUNCTION__
-              << ": Error: Unexpected NULL x509. (Returning false.)\n";
+              << ": Error: Unexpected nullptr x509. (Returning false.)\n";
         return false;
     }
 
@@ -709,15 +717,16 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(OTString& strOutput,
         strx509.Set((const char*)buffer_x509); // todo cast
 
         EVP_PKEY* pPublicKey = X509_get_pubkey(x509);
-        if (NULL != pPublicKey) {
+        if (nullptr != pPublicKey) {
             OTPasswordData thePWData(
-                NULL == pstrReason ? "OTAsymmetricKey_OpenSSL::SaveCertToString"
-                                   : pstrReason->Get());
+                nullptr == pstrReason
+                    ? "OTAsymmetricKey_OpenSSL::SaveCertToString"
+                    : pstrReason->Get());
 
             dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData,
                                pImportPassword); // bool bIsPrivateKey=false;
             EVP_PKEY_free(pPublicKey);
-            pPublicKey = NULL;
+            pPublicKey = nullptr;
         }
         // else?
 
@@ -745,28 +754,29 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
     }
 
     EVP_PKEY* pPrivateKey = dp->GetKeyLowLevel();
-    if (NULL == pPrivateKey) {
-        otErr << __FUNCTION__
-              << ": Error: Unexpected NULL pPrivateKey. (Returning false.)\n";
+    if (nullptr == pPrivateKey) {
+        otErr
+            << __FUNCTION__
+            << ": Error: Unexpected nullptr pPrivateKey. (Returning false.)\n";
         return false;
     }
 
     OpenSSL_BIO bio_out_pri = BIO_new(BIO_s_mem());
     bio_out_pri.setFreeOnly(); // only BIO_free(), not BIO_free_all();
 
-    OTPasswordData thePWData((NULL != pstrReason)
+    OTPasswordData thePWData((nullptr != pstrReason)
                                  ? pstrReason->Get()
                                  : "OTAsymmetricKey_OpenSSL::"
                                    "SavePrivateKeyToString is calling "
                                    "PEM_write_bio_PrivateKey...");
 
-    if (NULL == pImportPassword)
-        PEM_write_bio_PrivateKey(bio_out_pri, pPrivateKey, pCipher, NULL, 0,
+    if (nullptr == pImportPassword)
+        PEM_write_bio_PrivateKey(bio_out_pri, pPrivateKey, pCipher, nullptr, 0,
                                  OTAsymmetricKey::GetPasswordCallback(),
                                  &thePWData);
     else
         PEM_write_bio_PrivateKey(
-            bio_out_pri, pPrivateKey, pCipher, NULL, 0, 0,
+            bio_out_pri, pPrivateKey, pCipher, nullptr, 0, 0,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
 
@@ -827,7 +837,7 @@ PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
     PgpKeys pgpKeys;
     int32_t i;
 
-    OT_ASSERT(NULL != pbData);
+    OT_ASSERT(nullptr != pbData);
 
     memset(&pgpKeys, 0, sizeof(pgpKeys));
     for (i = 0; i < dataLength;) {
@@ -888,12 +898,12 @@ PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
 
                 // Get the modulus
                 modulusLength = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->n = BN_bin2bn(pbData + i + 2, modulusLength, NULL);
+                pKey->n = BN_bin2bn(pbData + i + 2, modulusLength, nullptr);
                 i += modulusLength + 2;
 
                 // Get the exponent
                 exponentLength = (pbData[i] * 256 + pbData[i + 1] + 7) / 8;
-                pKey->e = BN_bin2bn(pbData + i + 2, exponentLength, NULL);
+                pKey->e = BN_bin2bn(pbData + i + 2, exponentLength, nullptr);
                 i += exponentLength + 2;
 
                 pgpKeys.pRsa = pKey;
@@ -907,22 +917,22 @@ PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
 
                 // Get Prime P
                 pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, NULL);
+                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
                 i += pLen + 2;
 
                 // Get Prime Q
                 qLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->q = BN_bin2bn(pbData + i + 2, qLen, NULL);
+                pKey->q = BN_bin2bn(pbData + i + 2, qLen, nullptr);
                 i += qLen + 2;
 
                 // Get Prime G
                 gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, NULL);
+                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
                 i += gLen + 2;
 
                 // Get Prime Y
                 yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, NULL);
+                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
                 i += yLen + 2;
 
                 pgpKeys.pDsa = pKey;
@@ -935,26 +945,26 @@ PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
             {
                 int32_t pLen, gLen, yLen;
                 ELGAMAL* pKey = (ELGAMAL*)malloc(sizeof(ELGAMAL));
-                if (NULL == pKey) {
-                    otErr << __FUNCTION__ << ": Error: pKey is NULL!";
+                if (nullptr == pKey) {
+                    otErr << __FUNCTION__ << ": Error: pKey is nullptr!";
                     OT_FAIL;
                 }
 
                 // Get Prime P
                 pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
 
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, NULL);
+                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
 
                 i += pLen + 2;
 
                 // Get Prime G
                 gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, NULL);
+                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
                 i += gLen + 2;
 
                 // Get Prime Y
                 yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, NULL);
+                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
                 i += yLen + 2;
 
                 pgpKeys.pElgamal = pKey;
@@ -1099,7 +1109,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
 
     bool bReturnValue = false;
     EVP_PKEY* pkey = EVP_PKEY_new();
-    OT_ASSERT(NULL != pkey);
+    OT_ASSERT(nullptr != pkey);
 
     if (pgpKeys.pRsa) {
         if (EVP_PKEY_assign_RSA(pkey, pgpKeys.pRsa)) {
@@ -1114,7 +1124,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
                      "unable to convert to EVP_PKEY.\n";
         }
 
-        pgpKeys.pRsa = NULL;
+        pgpKeys.pRsa = nullptr;
     }
     else if (pgpKeys.pDsa) {
         if (EVP_PKEY_assign_DSA(pkey, pgpKeys.pDsa)) {
@@ -1129,7 +1139,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
                      "unable to convert to EVP_PKEY.\n";
         }
 
-        pgpKeys.pDsa = NULL;
+        pgpKeys.pDsa = nullptr;
     }
     else if (pgpKeys.pElgamal) {
         otOut << "Extracted ElGamal Key from PGP public key block, but "
@@ -1141,24 +1151,24 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
         // tell with the OpenSSL docs...)
         //
         free(pgpKeys.pElgamal);
-        pgpKeys.pElgamal = NULL;
+        pgpKeys.pElgamal = nullptr;
     }
 
     // FT: Adding some fixes here...
     //
     if (bReturnValue) {
         dp->SetKeyAsCopyOf(*pkey, false); // bIsPrivateKey=false. PUBLIC KEY.
-        EVP_PKEY_free(
-            pkey); // We have our own copy already. It's set NULL just below...
+        EVP_PKEY_free(pkey); // We have our own copy already. It's set nullptr
+                             // just below...
     }
-    else if (NULL !=
+    else if (nullptr !=
                pkey) // we failed, but pkey is NOT null (need to free it.)
     {
-        EVP_PKEY_free(pkey); // Set NULL just below...
+        EVP_PKEY_free(pkey); // Set nullptr just below...
     }
 
-    pkey = NULL; // This is either stored on m_pKey, or deleted. I'm setting
-                 // pointer to NULL here just for completeness.
+    pkey = nullptr; // This is either stored on m_pKey, or deleted. I'm setting
+                    // pointer to nullptr here just for completeness.
 
     return bReturnValue;
 

@@ -226,10 +226,10 @@ public:
                             const time64_t VALID_TO = OT_TIME_ZERO);
 
     EXPORT bool Confirm(OTPseudonym& PAYER_NYM,
-                        OTPseudonym* pMERCHANT_NYM = NULL,
+                        OTPseudonym* pMERCHANT_NYM = nullptr,
                         const OTIdentifier* p_id_MERCHANT_NYM =
-                            NULL); // Merchant Nym is passed here so we can
-                                   // verify the signature before confirming.
+                            nullptr); // Merchant Nym is passed here so we can
+                                      // verify the signature before confirming.
 
     // What should be the process here?
 
@@ -301,9 +301,10 @@ public:
      THE RECIPIENT:
 
      3) bool bConfirmation =  pPlan->Confirm(OTPseudonym & PAYER_NYM,
-                                             OTPseudonym * pMERCHANT_NYM=NULL,
+                                             OTPseudonym *
+    pMERCHANT_NYM=nullptr,
                                              OTIdentifier *
-    p_id_MERCHANT_NYM=NULL);
+    p_id_MERCHANT_NYM=nullptr);
 
      (Transaction number and closing number are retrieved from Nym at this
     time.)
@@ -458,7 +459,7 @@ public:
     //
     virtual bool VerifyNymAsAgent(OTPseudonym& theNym,
                                   OTPseudonym& theSignerNym,
-                                  mapOfNyms* pmap_ALREADY_LOADED = NULL);
+                                  mapOfNyms* pmap_ALREADY_LOADED = nullptr);
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
                                             OTAccount& theAccount);
@@ -474,8 +475,8 @@ public:
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
         //                                  const int64_t & lInReferenceTo, //
         // each party has its own opening trans #.
-        const OTString& strReference, OTString* pstrNote = NULL,
-        OTString* pstrAttachment = NULL, OTPseudonym* pActualNym = NULL);
+        const OTString& strReference, OTString* pstrNote = nullptr,
+        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
 
     EXPORT static bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
@@ -483,8 +484,8 @@ public:
         OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
         const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
         const int64_t& lInReferenceTo, const OTString& strReference,
-        OTString* pstrNote = NULL, OTString* pstrAttachment = NULL,
-        OTPseudonym* pActualNym = NULL);
+        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr,
+        OTPseudonym* pActualNym = nullptr);
     OTAgreement();
     OTAgreement(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
     OTAgreement(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,

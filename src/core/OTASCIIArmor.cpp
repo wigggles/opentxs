@@ -158,17 +158,18 @@ const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 OTCleanup<OTDB::OTPacker> g_thePackerAngel; // Make sure the pointer below gets
                                             // cleaned up properly at shutdown.
 
-OTDB::OTPacker* OTASCIIArmor::s_pPacker = NULL;
+OTDB::OTPacker* OTASCIIArmor::s_pPacker = nullptr;
 
 OTDB::OTPacker* OTASCIIArmor::GetPacker()
 {
-    if (NULL == s_pPacker) { // WARNING: Do not change OTDB_DEFAULT_PACKER below
-                             // unless you also change SetAndPackData() since it
-                             // ASSUMES this.
+    if (nullptr ==
+        s_pPacker) { // WARNING: Do not change OTDB_DEFAULT_PACKER below
+                     // unless you also change SetAndPackData() since it
+                     // ASSUMES this.
         s_pPacker = OTDB::OTPacker::Create(
             OTDB_DEFAULT_PACKER); // Protobuf is the only one that works on all
                                   // platforms right now.
-        OT_ASSERT(NULL != s_pPacker);
+        OT_ASSERT(nullptr != s_pPacker);
 
         g_thePackerAngel.SetCleanupTargetPointer(s_pPacker);
     }
@@ -397,7 +398,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
     const // bLineBreaks=true
 {
     size_t outSize = 0;
-    uint8_t* pData = NULL;
+    uint8_t* pData = nullptr;
 
     strData.Release();
 
@@ -413,7 +414,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
         std::string str_decoded(pData, pData + outSize);
 
         delete[] pData;
-        pData = NULL;
+        pData = nullptr;
 
         std::string str_uncompressed = decompress_string(str_decoded);
 
@@ -426,7 +427,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // This will make sure buffer is deleted later.
 
@@ -436,7 +437,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
 
         OTDB::OTDBString* pOTDBString = dynamic_cast<OTDB::OTDBString*>(
             OTDB::CreateObject(OTDB::STORED_OBJ_STRING));
-        OT_ASSERT(NULL != pOTDBString);
+        OT_ASSERT(nullptr != pOTDBString);
         OTCleanup<OTDB::OTDBString> theStringAngel(
             *pOTDBString); // clean up this string.
 
@@ -457,7 +458,7 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
         return true;
     }
     else {
-        otErr << "OTASCIIArmor::GetAndUnpackString: NULL pData while "
+        otErr << "OTASCIIArmor::GetAndUnpackString: nullptr pData while "
                  "base64-decoding pData.\n";
         return false;
     }
@@ -491,7 +492,7 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
     std::map<std::string, std::string>& the_map, bool bLineBreaks) const
 {
     size_t outSize = 0;
-    uint8_t* pData = NULL;
+    uint8_t* pData = nullptr;
 
     the_map.clear();
 
@@ -508,17 +509,17 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(static_cast<const uint8_t*>(pData), outSize);
         delete[] pData;
-        pData = NULL;
+        pData = nullptr;
 
         OTDB::StringMap* pStringMap = dynamic_cast<OTDB::StringMap*>(
             OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-        OT_ASSERT(NULL != pStringMap);
+        OT_ASSERT(nullptr != pStringMap);
         OTCleanup<OTDB::StringMap> theMapAngel(
             *pStringMap); // clean up this map.
 
@@ -528,14 +529,14 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
             otErr << "Failed unpacking data in "
                      "OTASCIIArmor::GetAndUnpackStringMap.\n";
             delete[] pData;
-            pData = NULL;
+            pData = nullptr;
             return false;
         }
 
         the_map = pStringMap->the_map;
 
         delete[] pData;
-        pData = NULL;
+        pData = nullptr;
         return true;
     }
     else {
@@ -554,7 +555,7 @@ bool OTASCIIArmor::SetStringMap(
 bool OTASCIIArmor::SetAndPackStringMap(
     const std::map<std::string, std::string>& the_map, bool bLineBreaks)
 {
-    char* pString = NULL;
+    char* pString = nullptr;
 
     Release();
 
@@ -574,8 +575,9 @@ bool OTASCIIArmor::SetAndPackStringMap(
     OTDB::StringMap* pStringMap = dynamic_cast<OTDB::StringMap*>(
         OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
 
-    OT_ASSERT(NULL != pStringMap); // Beyond this point, responsible to delete
-                                   // pStringMap.
+    OT_ASSERT(nullptr !=
+              pStringMap); // Beyond this point, responsible to delete
+                           // pStringMap.
     OTCleanup<OTDB::StringMap> theMapAngel(
         *pStringMap); // make sure memory is cleaned up.
 
@@ -584,7 +586,7 @@ bool OTASCIIArmor::SetAndPackStringMap(
     OTDB::PackedBuffer* pBuffer = pPacker->Pack(
         *pStringMap); // Now we PACK our data before compressing/encoding it.
 
-    if (NULL == pBuffer) {
+    if (nullptr == pBuffer) {
         otErr << "Failed packing data in OTASCIIArmor::SetAndPackStringMap. \n";
         return false;
     }
@@ -595,7 +597,7 @@ bool OTASCIIArmor::SetAndPackStringMap(
     const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
     const size_t theSize = pBuffer->GetSize();
 
-    if (NULL != pUint)
+    if (nullptr != pUint)
         pString = OTCrypto::It()->Base64Encode(
             pUint, static_cast<int32_t>(theSize), bLineBreaks);
     //        pString = OT_base64_encode(pUint, static_cast<int32_t> (theSize),
@@ -606,10 +608,10 @@ bool OTASCIIArmor::SetAndPackStringMap(
         return false;
     }
 
-    if (NULL != pString) {
+    if (nullptr != pString) {
         Set(pString);
         delete[] pString;
-        pString = NULL;
+        pString = nullptr;
         return true;
     }
     else {
@@ -635,7 +637,7 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
                                     bool bLineBreaks) const // linebreaks=true
 {
     size_t outSize = 0;
-    uint8_t* pData = NULL;
+    uint8_t* pData = nullptr;
 
     theData.Release();
 
@@ -653,17 +655,17 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
 
         OTDB::PackedBuffer* pBuffer =
             pPacker->CreateBuffer(); // Need to clean this up.
-        OT_ASSERT(NULL != pBuffer);
+        OT_ASSERT(nullptr != pBuffer);
         OTCleanup<OTDB::PackedBuffer> theBufferAngel(
             *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(static_cast<const uint8_t*>(pData), outSize);
         delete[] pData;
-        pData = NULL;
+        pData = nullptr;
 
         OTDB::Blob* pBlob = dynamic_cast<OTDB::Blob*>(
             OTDB::CreateObject(OTDB::STORED_OBJ_BLOB));
-        OT_ASSERT(NULL != pBlob);
+        OT_ASSERT(nullptr != pBlob);
         OTCleanup<OTDB::Blob> theBlobAngel(*pBlob); // clean up this blob.
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pBlob);
@@ -672,14 +674,14 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
             otErr
                 << "Failed unpacking data in OTASCIIArmor::GetAndUnpackData.\n";
             delete[] pData;
-            pData = NULL;
+            pData = nullptr;
             return false;
         }
 
         theData.Assign(pBlob->m_memBuffer.data(),
                        static_cast<uint32_t>(pBlob->m_memBuffer.size()));
         delete[] pData;
-        pData = NULL;
+        pData = nullptr;
         return true;
     }
     else {
@@ -702,7 +704,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 //
 bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
 {
-    char* pString = NULL;
+    char* pString = nullptr;
 
     Release();
 
@@ -721,7 +723,8 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
     OTDB::Blob* pBlob =
         dynamic_cast<OTDB::Blob*>(OTDB::CreateObject(OTDB::STORED_OBJ_BLOB));
 
-    OT_ASSERT(NULL != pBlob); // Beyond this point, responsible to delete pBlob.
+    OT_ASSERT(nullptr !=
+              pBlob); // Beyond this point, responsible to delete pBlob.
     OTCleanup<OTDB::Blob> theBlobAngel(
         *pBlob); // make sure memory is cleaned up.
 
@@ -732,7 +735,7 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
     OTDB::PackedBuffer* pBuffer = pPacker->Pack(
         *pBlob); // Now we PACK our data before compressing/encoding it.
 
-    if (NULL == pBuffer) {
+    if (nullptr == pBuffer) {
         otErr << "Failed packing data in OTASCIIArmor::SetAndPackData. \n";
         return false;
     }
@@ -743,7 +746,7 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
     const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
     const size_t theSize = pBuffer->GetSize();
 
-    if (NULL != pUint)
+    if (nullptr != pUint)
         pString = OTCrypto::It()->Base64Encode(
             pUint, static_cast<int32_t>(theSize), bLineBreaks);
     //        pString = OT_base64_encode(pUint, static_cast<int32_t> (theSize),
@@ -754,10 +757,10 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
         return false;
     }
 
-    if (NULL != pString) {
+    if (nullptr != pString) {
         Set(pString);
         delete[] pString;
-        pString = NULL;
+        pString = nullptr;
         return true;
     }
     else {
@@ -798,7 +801,7 @@ bool OTASCIIArmor::SetAndPackString(const OTString& strData,
     OTDB::OTDBString* pOTDBString = dynamic_cast<OTDB::OTDBString*>(
         OTDB::CreateObject(OTDB::STORED_OBJ_STRING));
 
-    OT_ASSERT(NULL !=
+    OT_ASSERT(nullptr !=
               pOTDBString); // Beyond this point, responsible to delete pString.
     OTCleanup<OTDB::OTDBString> theStringAngel(
         *pOTDBString); // make sure memory is cleaned up.
@@ -814,7 +817,7 @@ bool OTASCIIArmor::SetAndPackString(const OTString& strData,
     OTDB::PackedBuffer* pBuffer = pPacker->Pack(
         *pOTDBString); // Now we PACK our string before compressing/encoding it.
 
-    if (NULL == pBuffer) {
+    if (nullptr == pBuffer) {
         otErr << "Failed packing string in OTASCIIArmor::SetAndPackString. \n";
         return false;
     }
@@ -839,11 +842,11 @@ bool OTASCIIArmor::SetAndPackString(const OTString& strData,
         if (pString) {
             Set(pString);
             delete[] pString;
-            pString = NULL;
+            pString = nullptr;
             return true;
         }
         else {
-            otErr << "OTASCIIArmor::" << __FUNCTION__ << ": pString NULL.\n";
+            otErr << "OTASCIIArmor::" << __FUNCTION__ << ": pString nullptr.\n";
         }
     }
     else {

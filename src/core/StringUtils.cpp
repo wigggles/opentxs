@@ -146,7 +146,7 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
 {
     char* str_new = new char[length + 1]; // CREATE EXTRA BYTE OF SPACE FOR \0
                                           // (NOT PART OF LENGTH)
-    OT_ASSERT(NULL != str_new);
+    OT_ASSERT(nullptr != str_new);
 
 #ifdef _WIN32
     strncpy_s(str_new, length + 1, str, length);
@@ -179,8 +179,8 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
 // used for USER INPUT ONLY.  And it's sloppy.
 bool len_cmp(const char* s1, const char* s2)
 {
-    OT_ASSERT(NULL != s1);
-    OT_ASSERT(NULL != s2);
+    OT_ASSERT(nullptr != s1);
+    OT_ASSERT(nullptr != s2);
 
     for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
         if (toupper(*s1) != toupper(*s2)) return false;
@@ -199,7 +199,7 @@ char* str_dup1(const char* str)
 {
     char* str_new = new char[strlen(str) + 1];
 
-    OT_ASSERT(NULL != str_new);
+    OT_ASSERT(nullptr != str_new);
 
 #ifdef _WIN32
     strcpy_s(str_new, strlen(str), str);

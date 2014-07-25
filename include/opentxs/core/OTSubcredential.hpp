@@ -264,8 +264,9 @@ protected:
     virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
         const OTString::Map& mapPrivate,
-        OTPassword* pImportPassword = NULL); // if not NULL, it means to use
-                                             // this password by default.
+        OTPassword* pImportPassword = nullptr); // if not nullptr, it means to
+                                                // use
+                                                // this password by default.
 public:
     const OTString::Map& GetPublicMap() const
     {

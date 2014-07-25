@@ -155,11 +155,11 @@ namespace opentxs
 //
 /// (This constructor is private.)
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey()
-    : m_pNym(NULL)
-    , m_pKey(NULL)
-    , m_pPassword(NULL)
+    : m_pNym(nullptr)
+    , m_pKey(nullptr)
+    , m_pPassword(nullptr)
     , m_bCleanupPassword(false)
-    , m_pstrDisplay(NULL)
+    , m_pstrDisplay(nullptr)
 {
 }
 
@@ -169,14 +169,14 @@ OTNym_or_SymmetricKey::~OTNym_or_SymmetricKey()
     // Rather, we own a pointer to ONE of them, since we are a wrapper
     // for this one or that.
     //
-    m_pNym = NULL;
+    m_pNym = nullptr;
 
-    m_pKey = NULL;
+    m_pKey = nullptr;
 
-    if (m_bCleanupPassword && (NULL != m_pPassword)) delete m_pPassword;
-    m_pPassword = NULL; // optional
+    if (m_bCleanupPassword && (nullptr != m_pPassword)) delete m_pPassword;
+    m_pPassword = nullptr; // optional
 
-    m_pstrDisplay = NULL;
+    m_pstrDisplay = nullptr;
 
     // Since this is merely a wrapper class, we don't even Release() these
     // things.
@@ -191,9 +191,9 @@ OTNym_or_SymmetricKey::~OTNym_or_SymmetricKey()
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTNym_or_SymmetricKey& rhs) // same type
-    : m_pNym(NULL),
-      m_pKey(NULL),
-      m_pPassword(NULL),
+    : m_pNym(nullptr),
+      m_pKey(nullptr),
+      m_pPassword(nullptr),
       m_bCleanupPassword(false),
       m_pstrDisplay(rhs.m_pstrDisplay)
 {
@@ -237,8 +237,8 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTPseudonym& theNym,
     const OTString* pstrDisplay) // construct with nym
     : m_pNym(const_cast<OTPseudonym*>(&theNym)),
-      m_pKey(NULL),
-      m_pPassword(NULL),
+      m_pKey(nullptr),
+      m_pPassword(nullptr),
       m_bCleanupPassword(false),
       m_pstrDisplay(pstrDisplay)
 {
@@ -247,9 +247,9 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
     const OTString* pstrDisplay) // construct with key
-    : m_pNym(NULL),
+    : m_pNym(nullptr),
       m_pKey(const_cast<OTSymmetricKey*>(&theKey)),
-      m_pPassword(NULL),
+      m_pPassword(nullptr),
       m_bCleanupPassword(false),
       m_pstrDisplay(pstrDisplay)
 {
@@ -259,7 +259,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
     const OTPassword& thePassword, // construct with key and password.
     const OTString* pstrDisplay)
-    : m_pNym(NULL)
+    : m_pNym(nullptr)
     , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
     , m_pPassword(const_cast<OTPassword*>(&thePassword))
     , m_bCleanupPassword(false)
@@ -292,7 +292,8 @@ OTNym_or_SymmetricKey& OTNym_or_SymmetricKey::operator=(
 void OTNym_or_SymmetricKey::Release() // Someday make this virtual, if we ever
                                       // subclass it.
 {
-    OT_ASSERT((m_pNym != NULL) || (m_pKey != NULL)); // m_pPassword is optional
+    OT_ASSERT((m_pNym != nullptr) ||
+              (m_pKey != nullptr)); // m_pPassword is optional
 
     Release_Nym_or_SymmetricKey();
 
@@ -304,21 +305,21 @@ void OTNym_or_SymmetricKey::Release() // Someday make this virtual, if we ever
 // the owner.)
 void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
 {
-    if (NULL != m_pNym) {
+    if (nullptr != m_pNym) {
         //      m_pNym->Release(); // no such call on OTPseudonym. (Otherwise it
         // wouldn't be commented out.)
     }
 
-    if (NULL != m_pKey) m_pKey->Release();
+    if (nullptr != m_pKey) m_pKey->Release();
 
-    if (NULL != m_pPassword) {
+    if (nullptr != m_pPassword) {
         m_pPassword->zeroMemory();
 
         if (m_bCleanupPassword) // Only in cases where *this is the actual owner
                                 // of m_pPassword.
         {
             delete m_pPassword;
-            m_pPassword = NULL;
+            m_pPassword = nullptr;
         }
     }
 }
@@ -384,24 +385,25 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
     else if (IsKey()) // *this is a symmetric key, possibly with a
                         // password already as well.
     {
-        OTPassword* pPassword = NULL;
+        OTPassword* pPassword = nullptr;
 
         if (HasPassword()) // Password is already available. Let's use it.
             pPassword = GetPassword();
         else // NO PASSWORD already? let's collect it from the user...
         {
             const OTString strDisplay(
-                (NULL == pstrDisplay) ? szFunc : pstrDisplay->Get());
+                (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
 
-            // returns a text OTPassword, or NULL.
+            // returns a text OTPassword, or nullptr.
             //
             pPassword = OTSymmetricKey::GetPassphraseFromUser(
-                (NULL == m_pstrDisplay)
+                (nullptr == m_pstrDisplay)
                     ? &strDisplay
                     : m_pstrDisplay); // bool bAskTwice=false
 
-            if (NULL == pPassword) // Unable to retrieve passphrase from user.
+            if (nullptr ==
+                pPassword) // Unable to retrieve passphrase from user.
             {
                 otOut << szFunc
                       << ": Failed trying to retrieve passphrase for key. "
@@ -424,13 +426,13 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
                 m_pPassword = pPassword; // Not bothering to cleanup whatever
                                          // was here before, since we only end
                                          // up here if m_pPassword was set to
-                                         // NULL (according to above logic...)
+                // nullptr (according to above logic...)
             }
             else // We instantiated the password, but the decrypt failed.
                    // (Need to cleanup the password then.)
             {
                 delete pPassword;
-                pPassword = NULL;
+                pPassword = nullptr;
             }
         }
     }
@@ -454,24 +456,25 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
         bSuccess = outputEnvelope.Seal(*(GetNym()), strInput);
     }
     else if (IsKey()) {
-        OTPassword* pPassword = NULL;
+        OTPassword* pPassword = nullptr;
 
         if (HasPassword()) // Password is already available. Let's use it.
             pPassword = GetPassword();
         else // no password? let's collect it from the user...
         {
             const OTString strDisplay(
-                (NULL == pstrDisplay) ? szFunc : pstrDisplay->Get());
+                (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
 
-            // returns a text OTPassword, or NULL.
+            // returns a text OTPassword, or nullptr.
             //
             pPassword = OTSymmetricKey::GetPassphraseFromUser(
-                (NULL == m_pstrDisplay)
+                (nullptr == m_pstrDisplay)
                     ? &strDisplay
                     : m_pstrDisplay); // bool bAskTwice=false
 
-            if (NULL == pPassword) // Unable to retrieve passphrase from user.
+            if (nullptr ==
+                pPassword) // Unable to retrieve passphrase from user.
             {
                 otOut << szFunc
                       << ": Failed trying to retrieve passphrase for key. "
@@ -493,13 +496,13 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
                 m_pPassword = pPassword; // Not bothering to cleanup whatever
                                          // was here before, since we only end
                                          // up here if m_pPassword was set to
-                                         // NULL (according to above logic...)
+                // nullptr (according to above logic...)
             }
             else // We instantiated the password, but the encrypt failed.
                    // (Need to cleanup the password then.)
             {
                 delete pPassword;
-                pPassword = NULL;
+                pPassword = nullptr;
             }
         }
     }

@@ -197,7 +197,7 @@ void OTBasket::HarvestClosingNumbers(OTPseudonym& theNym,
 
     for (uint32_t i = 0; i < nCount; i++) {
         BasketItem* pRequestItem = At(i);
-        OT_ASSERT(NULL != pRequestItem);
+        OT_ASSERT(nullptr != pRequestItem);
 
         const int64_t lClosingTransNo = pRequestItem->lClosingTransactionNo;
 
@@ -247,7 +247,7 @@ void OTBasket::AddRequestSubContract(const OTIdentifier& SUB_CONTRACT_ID,
     BasketItem* pItem = new BasketItem;
 
     OT_ASSERT_MSG(
-        NULL != pItem,
+        nullptr != pItem,
         "Error allocating memory in OTBasket::AddRequestSubContract\n");
 
     // Minimum transfer amount is not set on a request. The server already knows
@@ -274,7 +274,7 @@ void OTBasket::AddSubContract(const OTIdentifier& SUB_CONTRACT_ID,
 {
     BasketItem* pItem = new BasketItem;
 
-    OT_ASSERT_MSG(NULL != pItem,
+    OT_ASSERT_MSG(nullptr != pItem,
                   "Error allocating memory in OTBasket::AddSubContract\n");
 
     pItem->SUB_CONTRACT_ID = SUB_CONTRACT_ID;
@@ -298,8 +298,9 @@ int64_t OTBasket::GetClosingTransactionNoAt(uint32_t nIndex)
 
     BasketItem* pItem = m_dequeItems.at(nIndex);
 
-    OT_ASSERT_MSG(NULL != pItem, "OTBasket::GetClosingTransactionNoAt: basket "
-                                 "item was NULL at that index.");
+    OT_ASSERT_MSG(nullptr != pItem,
+                  "OTBasket::GetClosingTransactionNoAt: basket "
+                  "item was nullptr at that index.");
 
     return pItem->lClosingTransactionNo;
 }
@@ -308,7 +309,7 @@ BasketItem* OTBasket::At(uint32_t nIndex)
 {
     if (nIndex < m_dequeItems.size()) return m_dequeItems.at(nIndex);
 
-    return NULL;
+    return nullptr;
 }
 
 int32_t OTBasket::Count() const
@@ -372,7 +373,7 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("basketItem")) {
         BasketItem* pItem = new BasketItem;
 
-        OT_ASSERT_MSG(NULL != pItem,
+        OT_ASSERT_MSG(nullptr != pItem,
                       "Error allocating memory in OTBasket::ProcessXMLNode\n");
 
         OTString strTemp;
@@ -429,7 +430,7 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
     for (int32_t i = 0; i < Count(); i++) {
         BasketItem* pItem = m_dequeItems[i];
 
-        OT_ASSERT_MSG(NULL != pItem,
+        OT_ASSERT_MSG(nullptr != pItem,
                       "Error allocating memory in OTBasket::UpdateContents\n");
 
         OTString strAcctID(pItem->SUB_ACCOUNT_ID),
@@ -510,7 +511,7 @@ OTBasket::~OTBasket()
 
 void OTBasket::Release_Basket()
 {
-    BasketItem* pItem = NULL;
+    BasketItem* pItem = nullptr;
 
     m_RequestAccountID.Release();
 

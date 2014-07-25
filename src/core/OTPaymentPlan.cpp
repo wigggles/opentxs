@@ -267,7 +267,7 @@ void OTPaymentPlan::UpdateContents()
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
         RECIPIENT_USER_ID(GetRecipientUserID());
 
-    OT_ASSERT(NULL != m_pCancelerNymID);
+    OT_ASSERT(nullptr != m_pCancelerNymID);
 
     OTString strCanceler;
 
@@ -433,7 +433,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
     // Compare OTPaymentPlan specific info here.
     const OTPaymentPlan* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
 
-    if ((NULL != pPlan) &&
+    if ((nullptr != pPlan) &&
         (HasInitialPayment() == pPlan->HasInitialPayment()) &&
         (GetInitialPaymentDate() == pPlan->GetInitialPaymentDate()) &&
         (GetInitialPaymentAmount() == pPlan->GetInitialPaymentAmount()) &&
@@ -661,10 +661,10 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 {
     const OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     bool bSuccess = false; // The return value.
 
@@ -700,16 +700,16 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // Will need to verify those signatures as well as attach a copy of it to
     // the receipt.
 
-    OTCronItem* pOrigCronItem = NULL;
+    OTCronItem* pOrigCronItem = nullptr;
 
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     pOrigCronItem = OTCronItem::LoadCronReceipt(GetTransactionNum());
 
-    OT_ASSERT(NULL != pOrigCronItem); // How am I processing it now if the
-                                      // receipt wasn't saved in the first
-                                      // place??
+    OT_ASSERT(nullptr != pOrigCronItem); // How am I processing it now if the
+                                         // receipt wasn't saved in the first
+                                         // place??
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
 
@@ -725,7 +725,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // Make sure to clean these up.
     //    delete pOrigCronItem;        // theOrigPlanGuardian will handle this
     // now, whenever it goes out of scope.
-    //    pOrigCronItem = NULL;        // So I don't need to worry about
+    //    pOrigCronItem = nullptr;        // So I don't need to worry about
     // deleting this anymore. I can keep it around and
     // use it all I want, and return anytime, and it won't leak.
 
@@ -755,8 +755,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     bool bUsersAreSameNym =
         ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
 
-    OTPseudonym* pSenderNym = NULL;
-    OTPseudonym* pRecipientNym = NULL;
+    OTPseudonym* pSenderNym = nullptr;
+    OTPseudonym* pRecipientNym = nullptr;
 
     // Figure out if Sender Nym is also Server Nym.
     if (bSenderNymIsServerNym) {
@@ -867,7 +867,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     OTAccount* pSourceAcct =
         OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
 
-    if (NULL == pSourceAcct) {
+    if (nullptr == pSourceAcct) {
         otOut << "ERROR verifying existence of source account during attempted "
                  "payment plan processing.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -879,7 +879,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     OTAccount* pRecipientAcct =
         OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
 
-    if (NULL == pRecipientAcct) {
+    if (nullptr == pRecipientAcct) {
         otOut << "ERROR verifying existence of recipient account during "
                  "attempted payment plan processing.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1012,8 +1012,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(NULL != pItemSend);
-            OT_ASSERT(NULL != pItemRecip);
+            OT_ASSERT(nullptr != pItemSend);
+            OT_ASSERT(nullptr != pItemRecip);
 
             pItemSend->SetStatus(OTItem::rejection);  // the default.
             pItemRecip->SetStatus(OTItem::rejection); // the default.
@@ -1230,7 +1230,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             // I also already loaded the original plan. Remember this from
             // above,
             // near the top of the function:
-            //  OTCronItem * pOrigCronItem    = NULL;
+            //  OTCronItem * pOrigCronItem    = nullptr;
             //     OTString strOrigPlan(*pOrigCronItem); // <====== Farther down
             // in the code, I attach this string to the receipts.
             //  ... then lower down...
@@ -1346,7 +1346,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 // sera sera.
 void OTPaymentPlan::ProcessInitialPayment()
 {
-    OT_ASSERT(NULL != GetCron());
+    OT_ASSERT(nullptr != GetCron());
 
     m_bProcessingInitialPayment = true;
     ProcessPayment(GetInitialPaymentAmount());
@@ -1437,7 +1437,7 @@ void OTPaymentPlan::onRemovalFromCron()
 // sera sera.
 void OTPaymentPlan::ProcessPaymentPlan()
 {
-    OT_ASSERT(NULL != GetCron());
+    OT_ASSERT(nullptr != GetCron());
 
     // This way the ProcessPayment() function knows what kind of payment we're
     // processing.
@@ -1465,7 +1465,7 @@ void OTPaymentPlan::ProcessPaymentPlan()
 // Return False if I should be removed and deleted.
 bool OTPaymentPlan::ProcessCron()
 {
-    OT_ASSERT(NULL != GetCron());
+    OT_ASSERT(nullptr != GetCron());
 
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every

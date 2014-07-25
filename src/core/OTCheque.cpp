@@ -345,7 +345,7 @@ bool OTCheque::IssueCheque(
     SetSenderAcctID(SENDER_ACCT_ID);
     SetSenderUserID(SENDER_USER_ID);
 
-    if (NULL == pRECIPIENT_USER_ID) {
+    if (nullptr == pRECIPIENT_USER_ID) {
         m_bHasRecipient = false;
         m_RECIPIENT_USER_ID.Release();
     }

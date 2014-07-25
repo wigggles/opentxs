@@ -280,7 +280,7 @@ public:
     /** TIME (in seconds)
 
     This will return the current time in seconds, as a string.
-    Returns NULL if failure.
+    Returns nullptr if failure.
 
     Todo: consider making this available on the server side as well,
     so the smart contracts can see what time it is.
@@ -320,7 +320,7 @@ public:
     /** OT-encode a plainext string.
 
     This will pack, compress, and base64-encode a plain string.
-    Returns the base64-encoded string, or NULL.
+    Returns the base64-encoded string, or nullptr.
 
     internally:
     OTString    strPlain(strPlaintext);
@@ -337,7 +337,7 @@ public:
     EXPORT static std::string Decode(const std::string & strEncoded);
 
     This will base64-decode, uncompress, and unpack an OT-encoded string.
-    Returns the plainext string, or NULL.
+    Returns the plainext string, or nullptr.
 
     internally:
     OTASCIIArmor    ascEncoded(strEncoded);
@@ -355,7 +355,7 @@ public:
     const std::string & strPlaintext);
 
     This will encode, ENCRYPT, and encode a plain string.
-    Returns the base64-encoded ciphertext, or NULL.
+    Returns the base64-encoded ciphertext, or nullptr.
 
     internally the C++ code is:
     OTString    strPlain(strPlaintext);
@@ -377,7 +377,7 @@ public:
     const std::string & strCiphertext);
 
     Decrypts the base64-encoded ciphertext back into a normal string plainext.
-    Returns the plainext string, or NULL.
+    Returns the plainext string, or nullptr.
 
     internally the C++ code is:
     OTEnvelope    theEnvelope;    // Here is the envelope object. (The
@@ -400,7 +400,7 @@ public:
                                       const std::string& strCiphertext);
 
     // Generates a new symmetric key, based on a passphrase,
-    // and returns it (or NULL.)
+    // and returns it (or nullptr.)
     //
     EXPORT static std::string CreateSymmetricKey();
 
@@ -417,7 +417,7 @@ public:
 
     Tries to instantiate the contract object, based on the string passed in.
     Releases all signatures, and then signs the contract.
-    Returns the signed contract, or NULL if failure.
+    Returns the signed contract, or nullptr if failure.
 
     NOTE: The actual OT functionality (Use Cases) NEVER requires you to sign via
     this function. Why not? because, anytime a signature is needed on something,
@@ -439,7 +439,7 @@ public:
     // CONTRACT_TYPE
     // and the resulting output will start like this: -----BEGIN OT SIGNED
     // LEDGER----- ...
-    // Returns the signed output, or NULL.
+    // Returns the signed output, or nullptr.
     //
     EXPORT static std::string FlatSign(const std::string& SIGNER_NYM_ID,
                                        const std::string& THE_INPUT,
@@ -452,7 +452,7 @@ public:
 
     Tries to instantiate the contract object, based on the string passed in.
     Signs the contract, without releasing any signatures that are already there.
-    Returns the signed contract, or NULL if failure.
+    Returns the signed contract, or nullptr if failure.
 
     NOTE: The actual OT functionality (Use Cases) NEVER requires you to sign via
     this function. Why not? because, anytime a signature is needed on something,
@@ -504,7 +504,7 @@ public:
     // (Including PUBLIC and PRIVATE KEYS.)
     //
     // Returns a new User ID (with files already created)
-    // or NULL upon failure.
+    // or nullptr upon failure.
     //
     // Once it exists, use createUserAccount() to
     // register your new Nym at any given Server. (Nearly all
@@ -566,7 +566,7 @@ public:
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.
     // This function will also ADD the contract to the wallet.
-    // Returns: the new contract ID, or NULL if failure.
+    // Returns: the new contract ID, or nullptr if failure.
     */
     EXPORT static std::string CreateServerContract(
         const std::string& NYM_ID, const std::string& strXMLcontents);
@@ -1039,23 +1039,23 @@ public:
     EXPORT static bool Wallet_ChangePassphrase(); //  (true for success and
                                                   // false for error.)
 
-    //! Returns the exported Nym, if success. (Else NULL.)
+    //! Returns the exported Nym, if success. (Else nullptr.)
     EXPORT static std::string Wallet_ExportNym(const std::string& NYM_ID);
 
-    //! returns NymID if success, else NULL.
+    //! returns NymID if success, else nullptr.
     EXPORT static std::string Wallet_ImportNym(
         const std::string& FILE_CONTENTS);
 
-    //! Returns the imported cert's NymID, if successful. Else NULL.
+    //! Returns the imported cert's NymID, if successful. Else nullptr.
     EXPORT static std::string Wallet_ImportCert(
         const std::string& DISPLAY_NAME, const std::string& FILE_CONTENTS);
 
-    //! Returns the exported cert, if successful. Else NULL.
+    //! Returns the exported cert, if successful. Else nullptr.
     EXPORT static std::string Wallet_ExportCert(const std::string& NYM_ID);
 
     //! Attempts to find a full ID in the wallet, based on a partial of the same
     // ID.
-    //! Returns NULL on failure, otherwise returns the full ID.
+    //! Returns nullptr on failure, otherwise returns the full ID.
     //
     EXPORT static std::string Wallet_GetNymIDFromPartial(
         const std::string& PARTIAL_ID);
@@ -1152,10 +1152,10 @@ public:
 
     ACCOUNT_ID, USER_ID, // User ID and Acct ID for SENDER.
 
-    CHEQUE_MEMO, // The memo for the cheque. (Can be empty or be NULL.)
+    CHEQUE_MEMO, // The memo for the cheque. (Can be empty or be nullptr.)
 
     RECIPIENT_USER_ID); // Recipient User ID is optional. (You can use an
-    // empty string here, to write a blank cheque, or pass NULL.)
+    // empty string here, to write a blank cheque, or pass nullptr.)
     */
     EXPORT static std::string WriteCheque(
         const std::string& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
@@ -1261,9 +1261,10 @@ public:
     */
     EXPORT static std::string ProposePaymentPlan(
         const std::string& SERVER_ID,
-        const time64_t& VALID_FROM, // Default (0 or NULL) == current time
+        const time64_t& VALID_FROM, // Default (0 or nullptr) == current time
                                     // measured in seconds since Jan 1970.
-        const time64_t& VALID_TO,   // Default (0 or NULL) == no expiry / cancel
+        const time64_t& VALID_TO,   // Default (0 or nullptr) == no expiry /
+                                    // cancel
                                     // anytime. Otherwise this is ADDED to
                                     // VALID_FROM (it's a length.)
         const std::string& SENDER_ACCT_ID,     // Mandatory parameters.
@@ -1273,22 +1274,22 @@ public:
         const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
         const std::string& RECIPIENT_USER_ID,  // Both sender and recipient must
                                                // sign before submitting.
-        const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or NULL == no initial
+        const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or nullptr == no initial
                                                // payment.
         const time64_t& INITIAL_PAYMENT_DELAY, // seconds from creation date.
-                                               // Default is zero or NULL.
-        const int64_t& PAYMENT_PLAN_AMOUNT,    // Zero or NULL == no regular
+                                               // Default is zero or nullptr.
+        const int64_t& PAYMENT_PLAN_AMOUNT,    // Zero or nullptr == no regular
                                                // payments.
         const time64_t& PAYMENT_PLAN_DELAY,    // No. of seconds from creation
-                                               // date. Default is zero or NULL.
-                                               // (Causing 30 days.)
+        // date. Default is zero or nullptr.
+        // (Causing 30 days.)
         const time64_t& PAYMENT_PLAN_PERIOD, // No. of seconds between payments.
-                                             // Default is zero or NULL.
+                                             // Default is zero or nullptr.
                                              // (Causing 30 days.)
         const time64_t& PAYMENT_PLAN_LENGTH, // In seconds. Defaults to 0 or
-                                             // NULL (no maximum length.)
+                                             // nullptr (no maximum length.)
         const int32_t& PAYMENT_PLAN_MAX_PAYMENTS // integer. Defaults to 0 or
-                                                 // NULL (no maximum payments.)
+        // nullptr (no maximum payments.)
         );
 
     // The above version has too many arguments for boost::function apparently
@@ -1315,7 +1316,7 @@ public:
                                                // sign before submitting.
         const std::string& INITIAL_PAYMENT, // "amount,delay"  Default 'amount'
                                             // (0 or "") == no initial payment.
-                                            // Default 'delay' (0 or NULL) is
+                                            // Default 'delay' (0 or nullptr) is
                                             // seconds from creation date.
         const std::string& PAYMENT_PLAN, // "amount,delay,period" 'amount' is a
                                          // recurring payment. 'delay' and
@@ -1336,14 +1337,14 @@ public:
 
     // SMART CONTRACTS
 
-    // RETURNS: the Smart Contract itself. (Or NULL.)
+    // RETURNS: the Smart Contract itself. (Or nullptr.)
     //
     EXPORT static std::string Create_SmartContract(
         const std::string& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                           // signing at this point is only to
                                           // cause a save.)
-        const time64_t& VALID_FROM,       // Default (0 or NULL) == NOW
-        const time64_t& VALID_TO // Default (0 or NULL) == no expiry / cancel
+        const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
+        const time64_t& VALID_TO // Default (0 or nullptr) == no expiry / cancel
                                  // anytime
         );
 
@@ -1353,7 +1354,7 @@ public:
     // I'll just make that the default. (There's only one language right now
     // anyway.)
     //
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddBylaw(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // bylaw added to it.
@@ -1364,7 +1365,7 @@ public:
                                       // smart contract. (And the scripts...)
         );
 
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddClause(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // clause added to it.
@@ -1379,7 +1380,7 @@ public:
         const std::string& SOURCE_CODE // The actual source code for the clause.
         );
 
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddVariable(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // variabnle added to it.
@@ -1400,7 +1401,7 @@ public:
         // order to convert to a bool.
         );
 
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddCallback(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // callback added to it.
@@ -1417,7 +1418,7 @@ public:
                                           // exist.)
         );
 
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddHook(
         const std::string& THE_CONTRACT, // The contract, about to have the hook
                                          // added to it.
@@ -1434,7 +1435,7 @@ public:
                                        // clauses trigger on the same hook.)
         );
 
-    // RETURNS: Updated version of THE_CONTRACT. (Or NULL.)
+    // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT static std::string SmartContract_AddParty(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // party added to it.
@@ -1455,7 +1456,7 @@ public:
     // Used when creating a theoretical smart contract (that could be used over
     // and over again with different parties.)
     //
-    // returns: the updated smart contract (or NULL)
+    // returns: the updated smart contract (or nullptr)
     EXPORT static std::string SmartContract_AddAccount(
         const std::string& THE_CONTRACT,  // The contract, about to have the
                                           // account added to it.
@@ -1486,7 +1487,7 @@ public:
     // Used when taking a theoretical smart contract, and setting it up to use
     specific Nyms and accounts. This function sets the ACCT ID for the acct
     specified by party name and acct name.
-    // Returns the updated smart contract (or NULL.)
+    // Returns the updated smart contract (or nullptr.)
     */
     EXPORT static std::string SmartContract_ConfirmAccount(
         const std::string& THE_CONTRACT,  // The smart contract, about to be
@@ -1507,7 +1508,7 @@ public:
     // Called by each Party. Pass in the smart contract obtained in the above
     call.
     // Call SmartContract_ConfirmAccount() first, as much as you need to.
-    // Returns the updated smart contract (or NULL.)
+    // Returns the updated smart contract (or nullptr.)
      */
     EXPORT static std::string SmartContract_ConfirmParty(
         const std::string& THE_CONTRACT, // The smart contract, about to be
@@ -1731,10 +1732,10 @@ public:
     // MEANT TO BE USED in cases where a private key is also available.
     */
     EXPORT static std::string LoadUserPubkey_Encryption(
-        const std::string& USER_ID); // returns NULL, or a public key.
+        const std::string& USER_ID); // returns nullptr, or a public key.
 
     EXPORT static std::string LoadUserPubkey_Signing(
-        const std::string& USER_ID); // returns NULL, or a public key.
+        const std::string& USER_ID); // returns nullptr, or a public key.
 
     /** -----------------------------------------------------------------
     // LOAD PUBLIC KEY -- from local storage
@@ -1744,10 +1745,10 @@ public:
     // MEANT TO BE USED in cases where a private key is NOT available.
     */
     EXPORT static std::string LoadPubkey_Encryption(
-        const std::string& USER_ID); // returns NULL, or a public key.
+        const std::string& USER_ID); // returns nullptr, or a public key.
 
     EXPORT static std::string LoadPubkey_Signing(
-        const std::string& USER_ID); // returns NULL, or a public key.
+        const std::string& USER_ID); // returns nullptr, or a public key.
 
     /** ------------------------------------------------------------------------
     //
@@ -1765,24 +1766,24 @@ public:
     //
     // Based on Asset Type ID: load a purse, a public mint, or an asset/server
     contract
-    // and return it as a string -- or return NULL if it wasn't found.
+    // and return it as a string -- or return nullptr if it wasn't found.
     */
     EXPORT static std::string LoadPurse(const std::string& SERVER_ID,
                                         const std::string& ASSET_TYPE_ID,
                                         const std::string& USER_ID); // returns
-                                                                     // NULL, or
-                                                                     // a purse.
+    // nullptr, or
+    // a purse.
 
     EXPORT static std::string LoadMint(
         const std::string& SERVER_ID,
-        const std::string& ASSET_TYPE_ID); // returns NULL, or a mint
+        const std::string& ASSET_TYPE_ID); // returns nullptr, or a mint
 
     EXPORT static std::string LoadAssetContract(
-        const std::string& ASSET_TYPE_ID); // returns NULL, or an asset
+        const std::string& ASSET_TYPE_ID); // returns nullptr, or an asset
                                            // contract.
 
     EXPORT static std::string LoadServerContract(
-        const std::string& SERVER_ID); // returns NULL, or a server contract.
+        const std::string& SERVER_ID); // returns nullptr, or a server contract.
 
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
@@ -1812,7 +1813,7 @@ public:
     /** --------------------------------------------------------------------
     // Get Asset Type of a basket's member currency, by index.
     //
-    // (Returns a string containing Asset Type ID, or NULL).
+    // (Returns a string containing Asset Type ID, or nullptr).
     */
     EXPORT static std::string Basket_GetMemberType(
         const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex);
@@ -1852,38 +1853,38 @@ public:
     //
     // Loads an acct, or inbox or outbox, based on account ID, (from local
     storage)
-    // and returns it as string (or returns NULL if it couldn't load it.)
+    // and returns it as string (or returns nullptr if it couldn't load it.)
     */
     EXPORT static std::string LoadAssetAccount(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns NULL, or an account.
+        const std::string& ACCOUNT_ID); // Returns nullptr, or an account.
 
     EXPORT static std::string LoadInbox(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns NULL, or an inbox.
+        const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
 
     EXPORT static std::string LoadOutbox(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // returns NULL, or an outbox.
+        const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
 
     //! These versions don't verify the ledger, they just load it up.
     //
     EXPORT static std::string LoadInboxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns NULL, or an inbox.
+        const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
 
     EXPORT static std::string LoadOutboxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // returns NULL, or an outbox.
+        const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
 
     // from local storage.
     EXPORT static std::string LoadPaymentInbox(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns NULL, or a payment inbox.
+        const std::string& USER_ID); // Returns nullptr, or a payment inbox.
 
     EXPORT static std::string LoadPaymentInboxNoVerify(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns NULL, or a payment inbox.
+        const std::string& USER_ID); // Returns nullptr, or a payment inbox.
 
     //! NOTE: Sometimes the user ID is also passed in the "account ID" field,
     // depending
@@ -1891,11 +1892,11 @@ public:
     // from local storage.
     EXPORT static std::string LoadRecordBox(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns NULL, or a RecordBox.
+        const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
 
     EXPORT static std::string LoadRecordBoxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns NULL, or a RecordBox.
+        const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
 
     EXPORT static bool ClearRecord(
         const std::string& SERVER_ID, const std::string& USER_ID,
@@ -1927,11 +1928,11 @@ public:
     //
     EXPORT static std::string LoadExpiredBox(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns NULL, or an ExpiredBox
+        const std::string& USER_ID); // Returns nullptr, or an ExpiredBox
 
     EXPORT static std::string LoadExpiredBoxNoVerify(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns NULL, or a ExpiredBox.
+        const std::string& USER_ID); // Returns nullptr, or a ExpiredBox.
 
     EXPORT static bool ClearExpired(
         const std::string& SERVER_ID, const std::string& USER_ID,
@@ -2236,7 +2237,7 @@ public:
     (above a bit.)
     EXPORT static std::string LoadPurse(const std::string & SERVER_ID,
     const std::string & ASSET_TYPE_ID,
-    const std::string & USER_ID); // returns NULL, or a purse.
+    const std::string & USER_ID); // returns nullptr, or a purse.
     */
 
     /** Warning! This will overwrite whatever purse is there.
@@ -2264,7 +2265,7 @@ public:
     EXPORT static std::string CreatePurse(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
         const std::string& OWNER_ID,
-        const std::string& SIGNER_ID); // returns NULL, or a purse.
+        const std::string& SIGNER_ID); // returns nullptr, or a purse.
 
     // Creates a password-protected purse, instead of nym-protected.
     //
@@ -2307,7 +2308,7 @@ public:
     //! and RETURNS THE UPDATED PURSE (with the token now missing from it.)
     //! WARNING: Do not call this function unless you have PEEK()d FIRST!!
     //! Otherwise you will lose the token and get left "holding the bag".
-    // returns NULL if failure.
+    // returns nullptr if failure.
     EXPORT static std::string Purse_Pop(const std::string& SERVER_ID,
                                         const std::string& ASSET_TYPE_ID,
                                         const std::string& OWNER_OR_SIGNER_ID,
@@ -2315,7 +2316,7 @@ public:
 
     //! Pushes a token onto the stack (of the purse.)
     //! Returns the updated purse (now including the token.)
-    // Returns NULL if failure.
+    // Returns nullptr if failure.
     EXPORT static std::string Purse_Push(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
         const std::string& SIGNER_ID, // The purse, in order to be changed, must
@@ -2328,7 +2329,7 @@ public:
                                       // key for signing.)
         const std::string& OWNER_ID, // If the purse is password-protected, then
                                      // there's no owner, and this owner
-                                     // parameter should be NULL. However, if
+                                     // parameter should be nullptr. However, if
                                      // the purse DOES have a Nym owner, then
                                      // you MUST pass the owner's Nym ID here,
                                      // in order for this action to be
@@ -2386,7 +2387,7 @@ public:
     //
     // This function is effectively the same thing as calling Pop until the
     purse is empty.
-    // Returns: the empty purse, or NULL if failure.
+    // Returns: the empty purse, or nullptr if failure.
     */
     EXPORT static std::string Purse_Empty(const std::string& SERVER_ID,
                                           const std::string& ASSET_TYPE_ID,
@@ -2658,7 +2659,7 @@ public:
     USER_ID -- You must include your own userID so the server can reply.
     USER_CHECK_ID -- This is a SECOND user's ID. (Whose usage credits we are
     checking)
-    ADJUSTMENT -- This can be NULL (resolves as "0"). Otherwise, positive or
+    ADJUSTMENT -- This can be nullptr (resolves as "0"). Otherwise, positive or
     negative, and passed
     as a string. This gives the option to adjust the usage credits balance, up
     or down.
@@ -3083,7 +3084,7 @@ public:
     // ADD BASKET EXCHANGE ITEM
     //
     // Returns the updated basket exchange request in string form.
-    // (Or NULL.)
+    // (Or nullptr.)
     //
     // Call the above function first. Then call this one multiple
     // times, and then finally call exchangeBasket to send
@@ -3341,13 +3342,13 @@ public:
     // from local storage.
     EXPORT static std::string LoadNymbox(const std::string& SERVER_ID,
                                          const std::string& USER_ID); // Returns
-                                                                      // NULL,
-                                                                      // or a
-                                                                      // Nymbox.
+    // nullptr,
+    // or a
+    // Nymbox.
 
     EXPORT static std::string LoadNymboxNoVerify(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns NULL, or a Nymbox.
+        const std::string& USER_ID); // Returns nullptr, or a Nymbox.
 
     /** Some server replies (to your messages) are so important that a notice is
     dropped

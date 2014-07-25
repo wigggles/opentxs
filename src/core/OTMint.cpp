@@ -154,7 +154,7 @@ namespace opentxs
 // static
 OTMint* OTMint::MintFactory()
 {
-    OTMint* pMint = NULL;
+    OTMint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
     pMint = new OTMint_Lucre;
@@ -176,7 +176,7 @@ OTMint* OTMint::MintFactory()
 OTMint* OTMint::MintFactory(const OTString& strServerID,
                             const OTString& strAssetTypeID)
 {
-    OTMint* pMint = NULL;
+    OTMint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
     pMint = new OTMint_Lucre(strServerID, strAssetTypeID);
@@ -199,7 +199,7 @@ OTMint* OTMint::MintFactory(const OTString& strServerID,
                             const OTString& strServerNymID,
                             const OTString& strAssetTypeID)
 {
-    OTMint* pMint = NULL;
+    OTMint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
     pMint = new OTMint_Lucre(strServerID, strServerNymID, strAssetTypeID);
@@ -241,13 +241,13 @@ void OTMint::ReleaseDenominations()
         OTASCIIArmor* pArmor = m_mapPublic.begin()->second;
         m_mapPublic.erase(m_mapPublic.begin());
         delete pArmor;
-        pArmor = NULL;
+        pArmor = nullptr;
     }
     while (!m_mapPrivate.empty()) {
         OTASCIIArmor* pArmor = m_mapPrivate.begin()->second;
         m_mapPrivate.erase(m_mapPrivate.begin());
         delete pArmor;
-        pArmor = NULL;
+        pArmor = nullptr;
     }
 }
 
@@ -266,7 +266,7 @@ void OTMint::Release_Mint()
 
     if (m_pReserveAcct) {
         delete m_pReserveAcct;
-        m_pReserveAcct = NULL;
+        m_pReserveAcct = nullptr;
     }
 }
 
@@ -284,14 +284,14 @@ OTMint::~OTMint()
 {
     Release_Mint();
 
-    if (NULL != m_pKeyPublic) {
+    if (nullptr != m_pKeyPublic) {
         delete m_pKeyPublic;
-        m_pKeyPublic = NULL;
+        m_pKeyPublic = nullptr;
     }
     else
-        otErr << __FUNCTION__ << ": the logic: if (NULL != m_pKeyPublic) "
+        otErr << __FUNCTION__ << ": the logic: if (nullptr != m_pKeyPublic) "
                                  "failed, though it NEVER should. "
-                                 "(That pointer should never be NULL.)\n";
+                                 "(That pointer should never be nullptr.)\n";
 }
 
 void OTMint::InitMint()
@@ -311,7 +311,7 @@ void OTMint::InitMint()
     m_VALID_TO = OT_TIME_ZERO;
     m_EXPIRATION = OT_TIME_ZERO;
 
-    m_pReserveAcct = NULL;
+    m_pReserveAcct = nullptr;
 }
 
 OTMint::OTMint(const OTString& strServerID, const OTString& strServerNymID,
@@ -327,7 +327,7 @@ OTMint::OTMint(const OTString& strServerID, const OTString& strServerNymID,
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_pReserveAcct(NULL)
+    , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
     m_strFilename.Format("%s%s%s", strServerID.Get(), OTLog::PathSeparator(),
@@ -347,7 +347,7 @@ OTMint::OTMint(const OTString& strServerID, const OTString& strAssetTypeID)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_pReserveAcct(NULL)
+    , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
     m_strFilename.Format("%s%s%s", strServerID.Get(), OTLog::PathSeparator(),
@@ -365,7 +365,7 @@ OTMint::OTMint()
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_pReserveAcct(NULL)
+    , m_pReserveAcct(nullptr)
 {
     InitMint();
 }
@@ -386,7 +386,7 @@ bool OTMint::LoadMint(const char* szAppend) // todo: server should
     const OTString strServerID(m_ServerID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
-        if (NULL != szAppend)
+        if (nullptr != szAppend)
             m_strFilename.Format("%s%s%s%s", strServerID.Get(),
                                  OTLog::PathSeparator(), // server appends ".1"
                                                          // or ".PUBLIC" here.
@@ -398,7 +398,7 @@ bool OTMint::LoadMint(const char* szAppend) // todo: server should
     }
 
     OTString strFilename;
-    if (NULL != szAppend)
+    if (nullptr != szAppend)
         strFilename.Format("%s%s", strAssetTypeID.Get(),
                            szAppend); // server side
     else
@@ -445,7 +445,7 @@ bool OTMint::SaveMint(const char* szAppend)
     const OTString strServerID(m_ServerID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
-        if (NULL != szAppend)
+        if (nullptr != szAppend)
             m_strFilename.Format("%s%s%s%s", strServerID.Get(),
                                  OTLog::PathSeparator(), // server side
                                  strAssetTypeID.Get(), szAppend);
@@ -456,7 +456,7 @@ bool OTMint::SaveMint(const char* szAppend)
     }
 
     OTString strFilename;
-    if (NULL != szAppend)
+    if (nullptr != szAppend)
         strFilename.Format("%s%s", strAssetTypeID.Get(), szAppend);
     else
         strFilename = strAssetTypeID.Get();
@@ -489,7 +489,7 @@ bool OTMint::SaveMint(const char* szAppend)
         OTDB::StorePlainString(strFinal.Get(), szFolder1name, szFolder2name,
                                szFilename); // <=== SAVING TO LOCAL DATA STORE.
     if (!bSaved) {
-        if (NULL != szAppend)
+        if (nullptr != szAppend)
             otErr << "OTMint::SaveMint: Error writing to file: "
                   << szFolder1name << OTLog::PathSeparator() << szFolder2name
                   << OTLog::PathSeparator() << szFilename << szAppend << "\n";
@@ -559,8 +559,8 @@ bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPrivate) {
         OTASCIIArmor* pArmor = it.second;
-        OT_ASSERT_MSG(NULL != pArmor,
-                      "NULL mint pointer in OTMint::GetPrivate.\n");
+        OT_ASSERT_MSG(nullptr != pArmor,
+                      "nullptr mint pointer in OTMint::GetPrivate.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -576,8 +576,8 @@ bool OTMint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPublic) {
         OTASCIIArmor* pArmor = it.second;
-        OT_ASSERT_MSG(NULL != pArmor,
-                      "NULL mint pointer in OTMint::GetPublic.\n");
+        OT_ASSERT_MSG(nullptr != pArmor,
+                      "nullptr mint pointer in OTMint::GetPublic.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -620,8 +620,8 @@ int64_t OTMint::GetDenomination(int32_t nIndex)
     for (mapOfArmor::iterator ii = m_mapPublic.begin(); ii != m_mapPublic.end();
          ++ii, nIterateIndex++) {
         OTASCIIArmor* pArmor = ii->second;
-        OT_ASSERT_MSG(NULL != pArmor,
-                      "NULL mint pointer in OTMint::GetDenomination.\n");
+        OT_ASSERT_MSG(nullptr != pArmor,
+                      "nullptr mint pointer in OTMint::GetDenomination.\n");
 
         if (nIndex == nIterateIndex) return ii->first;
     }
@@ -635,7 +635,7 @@ int64_t OTMint::GetDenomination(int32_t nIndex)
 // first.
 void OTMint::UpdateContents()
 {
-    OT_ASSERT(NULL != m_pKeyPublic);
+    OT_ASSERT(nullptr != m_pKeyPublic);
 
     OTString SERVER_ID(m_ServerID), SERVER_NYM_ID(m_ServerNymID),
         ASSET_ID(m_AssetID), CASH_ACCOUNT_ID(m_CashAccountID);
@@ -676,9 +676,9 @@ void OTMint::UpdateContents()
 
             for (auto& it : m_mapPrivate) {
                 OTASCIIArmor* pArmor = it.second;
-                OT_ASSERT_MSG(
-                    NULL != pArmor,
-                    "NULL private mint pointer in OTMint::UpdateContents.\n");
+                OT_ASSERT_MSG(nullptr != pArmor, "nullptr private mint pointer "
+                                                 "in "
+                                                 "OTMint::UpdateContents.\n");
 
                 m_xmlUnsigned.Concatenate(
                     "<mintPrivateInfo denomination=\"%lld\">\n"
@@ -689,8 +689,8 @@ void OTMint::UpdateContents()
         for (auto& it : m_mapPublic) {
             OTASCIIArmor* pArmor = it.second;
             OT_ASSERT_MSG(
-                NULL != pArmor,
-                "NULL public mint pointer in OTMint::UpdateContents.\n");
+                nullptr != pArmor,
+                "nullptr public mint pointer in OTMint::UpdateContents.\n");
 
             m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%lld\">\n"
                                       "%s</mintPublicInfo>\n\n",
@@ -704,7 +704,7 @@ void OTMint::UpdateContents()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    OT_ASSERT(NULL != m_pKeyPublic);
+    OT_ASSERT(nullptr != m_pKeyPublic);
 
     int32_t nReturnVal = 0;
 
@@ -747,7 +747,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (m_pReserveAcct) {
             delete m_pReserveAcct;
-            m_pReserveAcct = NULL;
+            m_pReserveAcct = nullptr;
         }
 
         // Every Mint has its own cash account. Here we load ours so it's ready
@@ -767,7 +767,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n Asset Type ID: " << strAssetID
                << "\n Cash Acct ID: " << strCashAcctID << "\n"
                                                           ""
-               << ((m_pReserveAcct != NULL) ? "SUCCESS" : "FAILURE")
+               << ((m_pReserveAcct != nullptr) ? "SUCCESS" : "FAILURE")
                << " loading Cash Account into memory for pointer: "
                   "OTMint::m_pReserveAcct\n"
                   " Series: " << m_nSeries << "\n Expiration: " << nExpiration
@@ -797,7 +797,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 
-        OT_ASSERT(NULL != pArmor);
+        OT_ASSERT(nullptr != pArmor);
 
         if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
@@ -805,7 +805,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "without value.\n";
 
             delete pArmor;
-            pArmor = NULL;
+            pArmor = nullptr;
 
             return (-1); // error condition
         }
@@ -820,7 +820,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 
-        OT_ASSERT(NULL != pArmor);
+        OT_ASSERT(nullptr != pArmor);
 
         if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
@@ -828,7 +828,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "without value.\n";
 
             delete pArmor;
-            pArmor = NULL;
+            pArmor = nullptr;
 
             return (-1); // error condition
         }
@@ -869,7 +869,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
  eAcctType=OTAccount::simple)
 
 
- OTAccount * pAcct = NULL;
+ OTAccount * pAcct = nullptr;
  pAcct = OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
  */
 

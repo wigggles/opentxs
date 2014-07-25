@@ -298,36 +298,39 @@ private:
                                      // subkeys.)
 public:
     EXPORT void GetPrivateCredentials(OTString& strCredList,
-                                      OTString::Map* pmapCredFiles = NULL);
+                                      OTString::Map* pmapCredFiles = nullptr);
     EXPORT void GetPublicCredentials(OTString& strCredList,
                                      OTString::Map* pmapCredFiles =
-                                         NULL); // If the Nym's source is a URL,
-                                                // he needs to post his valid
-                                                // master credential IDs there,
-                                                // so they can be verified
-                                                // against their source. This
-                                                // method is what creates the
-                                                // file which you can post at
-                                                // that URL. (Containing only
-                                                // the valid IDs, not the
-                                                // revoked ones.)
+                                         nullptr); // If the Nym's source is a
+                                                   // URL,
+                                                   // he needs to post his valid
+    // master credential IDs there,
+    // so they can be verified
+    // against their source. This
+    // method is what creates the
+    // file which you can post at
+    // that URL. (Containing only
+    // the valid IDs, not the
+    // revoked ones.)
     EXPORT bool AddNewMasterCredential(
         OTString& strOutputMasterCredID, // The new ID, upon success, is
                                          // returned here.
-        const OTString* pstrSourceForNymID = NULL, // If NULL, it uses the Nym's
-                                                   // (presumed) existing pubkey
-                                                   // as the source.
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL.
+        const OTString* pstrSourceForNymID =
+            nullptr,                // If nullptr, it uses the Nym's
+                                    // (presumed) existing pubkey
+                                    // as the source.
+        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const OTString::Map* pmapPrivate =
-            NULL, // If NULL, then the keys are generated in here.
-        const OTString::Map* pmapPublic =
-            NULL, // In the case of key credentials, public is optional since it
-                  // can already be derived from private. For now we pass it
-                  // through... May eliminate this parameter later if not
-                  // needed.
-        OTPasswordData* pPWData = NULL, // Pass in the string to show users
-                                        // here, if/when asking for the
-                                        // passphrase.
+            nullptr, // If nullptr, then the keys are generated in here.
+        const OTString::Map* pmapPublic = nullptr, // In the case of key
+                                                   // credentials, public is
+                                                   // optional since it
+        // can already be derived from private. For now we pass it
+        // through... May eliminate this parameter later if not
+        // needed.
+        OTPasswordData* pPWData = nullptr, // Pass in the string to show users
+                                           // here, if/when asking for the
+                                           // passphrase.
         bool bChangeNymID =
             false); // Must be explicitly set to true, to change the Nym's ID.
                     // Other restrictions also apply... must be your first
@@ -340,28 +343,30 @@ public:
 
     EXPORT bool AddNewSubkey(
         const OTIdentifier& idMasterCredential,
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is NULL.
+        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const OTString::Map* pmapPrivate =
-            NULL, // If NULL, then the keys are generated in here.
-        OTPasswordData* pPWData = NULL, // Pass in the string to show users
-                                        // here, if/when asking for the
-                                        // passphrase.
-        OTString* pstrNewID = NULL); // Optional -- if success, allows to return
-                                     // the ID for the new subkey that was
-                                     // created.
+            nullptr, // If nullptr, then the keys are generated in here.
+        OTPasswordData* pPWData = nullptr, // Pass in the string to show users
+                                           // here, if/when asking for the
+                                           // passphrase.
+        OTString* pstrNewID =
+            nullptr); // Optional -- if success, allows to return
+                      // the ID for the new subkey that was
+                      // created.
 
     EXPORT bool AddNewSubcredential(
         const OTIdentifier& idMasterCredential,
         const OTString::Map* pmapPrivate =
-            NULL, // If NULL, then the keys are generated in here.
-        const OTString::Map* pmapPublic =
-            NULL, // In the case of key credentials, public is optional since it
-                  // can already be derived from private. For now we pass it
-                  // through... May eliminate this parameter later if not
-                  // needed.
-        OTPasswordData* pPWData = NULL); // Pass in the string to show users
-                                         // here, if/when asking for the
-                                         // passphrase.
+            nullptr, // If nullptr, then the keys are generated in here.
+        const OTString::Map* pmapPublic = nullptr, // In the case of key
+                                                   // credentials, public is
+                                                   // optional since it
+        // can already be derived from private. For now we pass it
+        // through... May eliminate this parameter later if not
+        // needed.
+        OTPasswordData* pPWData = nullptr); // Pass in the string to show users
+                                            // here, if/when asking for the
+                                            // passphrase.
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT OTCredential* GetMasterCredential(const OTString& strID);
@@ -534,13 +539,16 @@ public:
     // in these functions!
     //
     EXPORT static OTPseudonym* LoadPublicNym(const OTIdentifier& NYM_ID,
-                                             OTString* pstrName = NULL,
-                                             const char* szFuncName = NULL);
+                                             OTString* pstrName = nullptr,
+                                             const char* szFuncName = nullptr);
 
-    EXPORT static OTPseudonym* LoadPrivateNym(
-        const OTIdentifier& NYM_ID, const bool bChecking = false,
-        OTString* pstrName = NULL, const char* szFuncName = NULL,
-        OTPasswordData* pPWData = NULL, OTPassword* pImportPassword = NULL);
+    EXPORT static OTPseudonym* LoadPrivateNym(const OTIdentifier& NYM_ID,
+                                              const bool bChecking = false,
+                                              OTString* pstrName = nullptr,
+                                              const char* szFuncName = nullptr,
+                                              OTPasswordData* pPWData = nullptr,
+                                              OTPassword* pImportPassword =
+                                                  nullptr);
     EXPORT bool HasPublicKey();
     EXPORT bool HasPrivateKey();
     EXPORT const OTAsymmetricKey& GetPublicAuthKey() const; // Authentication
@@ -561,39 +569,40 @@ public:
     EXPORT bool SaveCredentialList();
     EXPORT void SaveCredentialListToString(OTString& strOutput);
     EXPORT void SaveCredentialsToString(OTString& strOutput,
-                                        OTString::Map* pmapPubInfo = NULL,
-                                        OTString::Map* pmapPriInfo = NULL);
+                                        OTString::Map* pmapPubInfo = nullptr,
+                                        OTString::Map* pmapPriInfo = nullptr);
     EXPORT bool LoadCredentials(bool bLoadPrivate =
                                     false, // Loads public credentials by
                                            // default. For private, pass true.
-                                OTPasswordData* pPWData = NULL,
-                                OTPassword* pImportPassword = NULL);
+                                OTPasswordData* pPWData = nullptr,
+                                OTPassword* pImportPassword = nullptr);
     // Like for when you are exporting a Nym from the wallet.
     EXPORT bool ReEncryptPrivateCredentials(bool bImporting,
                                             OTPasswordData* pPWData =
-                                                NULL, // bImporting=true, or
-                                                      // false if exporting.
-                                            OTPassword* pImportPassword = NULL);
+                                                nullptr, // bImporting=true, or
+                                                         // false if exporting.
+                                            OTPassword* pImportPassword =
+                                                nullptr);
     // The signer is whoever wanted to make sure these nym files haven't
     // changed.
     // Usually that means the server nym.  Most of the time, m_nymServer will be
     // used as signer.
     EXPORT bool LoadSignedNymfile(OTPseudonym& SIGNER_NYM);
     EXPORT bool SaveSignedNymfile(OTPseudonym& SIGNER_NYM);
-    EXPORT bool LoadNymfile(const char* szFilename = NULL);
+    EXPORT bool LoadNymfile(const char* szFilename = nullptr);
     EXPORT bool LoadFromString(const OTString& strNym,
                                OTString::Map* pMapCredentials =
-                                   NULL, // pMapCredentials can be passed, if
-                                         // you prefer to use a specific set,
-                                         // instead of just loading the actual
-                                         // set from storage (such as during
-                                         // registration, when the credentials
-                                         // have been sent inside a message.)
-                               OTString* pstrReason = NULL,
-                               OTPassword* pImportPassword = NULL);
+                                   nullptr, // pMapCredentials can be passed, if
+                                            // you prefer to use a specific set,
+                               // instead of just loading the actual
+                               // set from storage (such as during
+                               // registration, when the credentials
+                               // have been sent inside a message.)
+                               OTString* pstrReason = nullptr,
+                               OTPassword* pImportPassword = nullptr);
     // pstrID is an output parameter.
     EXPORT bool Server_PubKeyExists(OTString* pstrID =
-                                        NULL); // Only used on server side.
+                                        nullptr); // Only used on server side.
     EXPORT bool LoadPublicKey();
     EXPORT static bool DoesCertfileExist(const OTString& strNymID); // static
                                                                     // version
@@ -603,16 +612,17 @@ public:
     EXPORT bool CertfileExists(); // on the client side, this means it's a
                                   // private Nym.
     EXPORT bool Loadx509CertAndPrivateKey(const bool bChecking = false,
-                                          OTPasswordData* pPWData = NULL,
-                                          OTPassword* pImportPassword = NULL);
+                                          OTPasswordData* pPWData = nullptr,
+                                          OTPassword* pImportPassword =
+                                              nullptr);
     EXPORT bool Loadx509CertAndPrivateKeyFromString(
-        const OTString& strInput, OTPasswordData* pPWData = NULL,
-        OTPassword* pImportPassword = NULL);
+        const OTString& strInput, OTPasswordData* pPWData = nullptr,
+        OTPassword* pImportPassword = nullptr);
     EXPORT bool Savex509CertAndPrivateKey(bool bCreateFile = true,
-                                          const OTString* pstrReason = NULL);
+                                          const OTString* pstrReason = nullptr);
     EXPORT bool Savex509CertAndPrivateKeyToString(OTString& strOutput,
                                                   const OTString* pstrReason =
-                                                      NULL);
+                                                      nullptr);
     EXPORT bool SavePseudonymWallet(OTString& strOutput) const;
     EXPORT bool SavePseudonymWallet(std::ofstream& ofs) const;
     EXPORT bool SavePublicKey(const OTString& strPath) const;
@@ -675,7 +685,7 @@ public:
     EXPORT bool ClawbackTransactionNumber(
         const OTIdentifier& theServerID,
         const int64_t& lTransClawback, // the number being clawed back.
-        bool bSave = false, OTPseudonym* pSIGNER_NYM = NULL);
+        bool bSave = false, OTPseudonym* pSIGNER_NYM = nullptr);
     EXPORT void IncrementRequestNum(OTPseudonym& SIGNER_NYM,
                                     const OTString& strServerID); // Increment
                                                                   // the counter
@@ -724,12 +734,12 @@ public:
         return m_mapAcknowledgedNum;
     } // This one actually stores request numbers.
 
-    EXPORT void RemoveAllNumbers(const OTString* pstrServerID = NULL,
+    EXPORT void RemoveAllNumbers(const OTString* pstrServerID = nullptr,
                                  const bool bRemoveHighestNum =
                                      true); // for transaction numbers
     EXPORT void RemoveReqNumbers(const OTString* pstrServerID =
-                                     NULL); // for request numbers (entirely
-                                            // different animal)
+                                     nullptr); // for request numbers (entirely
+                                               // different animal)
     EXPORT bool UnRegisterAtServer(const OTString& strServerID); // Removes the
                                                                  // request num
                                                                  // for a

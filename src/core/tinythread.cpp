@@ -53,8 +53,8 @@ namespace tthread
 #if defined(_TTHREAD_WIN32_)
 condition_variable::condition_variable() : mWaitersCount(0)
 {
-    mEvents[_CONDITION_EVENT_ONE] = CreateEvent(NULL, FALSE, FALSE, NULL);
-    mEvents[_CONDITION_EVENT_ALL] = CreateEvent(NULL, TRUE, FALSE, NULL);
+    mEvents[_CONDITION_EVENT_ONE] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    mEvents[_CONDITION_EVENT_ALL] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
     InitializeCriticalSection(&mWaitersCountLock);
 }
 #endif
@@ -193,7 +193,7 @@ thread::thread(void (*aFunction)(void*), void* aArg)
     mHandle = (HANDLE)_beginthreadex(0, 0, wrapper_function, (void*)ti, 0,
                                      &mWin32ThreadID);
 #elif defined(_TTHREAD_POSIX_)
-    if (pthread_create(&mHandle, NULL, wrapper_function, (void*)ti) != 0)
+    if (pthread_create(&mHandle, nullptr, wrapper_function, (void*)ti) != 0)
         mHandle = 0;
 #endif
 
@@ -217,7 +217,7 @@ void thread::join()
         WaitForSingleObject(mHandle, INFINITE);
         CloseHandle(mHandle);
 #elif defined(_TTHREAD_POSIX_)
-        pthread_join(mHandle, NULL);
+        pthread_join(mHandle, nullptr);
 #endif
     }
 }

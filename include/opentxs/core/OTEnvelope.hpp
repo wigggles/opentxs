@@ -194,7 +194,7 @@ public:
     // (Opposite of Seal.)
     //
     EXPORT bool Open(const OTPseudonym& theRecipient, OTString& theOutput,
-                     OTPasswordData* pPWData = NULL);
+                     OTPasswordData* pPWData = nullptr);
 
     // Should be called "Get Envelope's binary Ciphertext data into an
     // Ascii-Armored output String."

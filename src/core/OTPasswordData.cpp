@@ -190,11 +190,11 @@ public:
     const char *    GetDisplayString() const;
 
     OTPasswordData(const char        *   szDisplay, OTPassword *
-pMasterPW=NULL);
+pMasterPW=nullptr);
     OTPasswordData(const std::string & str_Display, OTPassword *
-pMasterPW=NULL);
+pMasterPW=nullptr);
     OTPasswordData(const OTString    &  strDisplay, OTPassword *
-pMasterPW=NULL);
+pMasterPW=nullptr);
     ~OTPasswordData();
 };
  */
@@ -214,12 +214,12 @@ void OTPasswordData::setUsingOldSystem(bool bUsing)
 
 bool OTPasswordData::isForNormalNym() const
 {
-    return (NULL == m_pMasterPW);
+    return (nullptr == m_pMasterPW);
 }
 
 bool OTPasswordData::isForCachedKey() const
 {
-    return (NULL != m_pMasterPW);
+    return (nullptr != m_pMasterPW);
 }
 
 const char* OTPasswordData::GetDisplayString() const
@@ -230,15 +230,15 @@ const char* OTPasswordData::GetDisplayString() const
 OTPasswordData::OTPasswordData(const char* szDisplay, OTPassword* pMasterPW,
                                std::shared_ptr<OTCachedKey> pCachedKey)
     : m_pMasterPW(pMasterPW)
-    , m_strDisplay(NULL == szDisplay ? "(Sorry, no user data provided.)"
-                                     : szDisplay)
+    , m_strDisplay(nullptr == szDisplay ? "(Sorry, no user data provided.)"
+                                        : szDisplay)
     , m_bUsingOldSystem(false)
     , m_pCachedKey(pCachedKey)
 {
-    // They can both be NULL, or they can both be not NULL.
-    // But you can't have one NULL, and the other not.
-    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
-              ((NULL != pMasterPW) && (pCachedKey)));
+    // They can both be nullptr, or they can both be not nullptr.
+    // But you can't have one nullptr, and the other not.
+    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
+              ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
 OTPasswordData::OTPasswordData(const std::string& str_Display,
@@ -249,10 +249,10 @@ OTPasswordData::OTPasswordData(const std::string& str_Display,
     , m_bUsingOldSystem(false)
     , m_pCachedKey(pCachedKey)
 {
-    // They can both be NULL, or they can both be not NULL.
-    // But you can't have one NULL, and the other not.
-    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
-              ((NULL != pMasterPW) && (pCachedKey)));
+    // They can both be nullptr, or they can both be not nullptr.
+    // But you can't have one nullptr, and the other not.
+    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
+              ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
 OTPasswordData::OTPasswordData(const OTString& strDisplay,
@@ -263,16 +263,16 @@ OTPasswordData::OTPasswordData(const OTString& strDisplay,
     , m_bUsingOldSystem(false)
     , m_pCachedKey(pCachedKey)
 {
-    // They can both be NULL, or they can both be  not NULL.
-    // But you can't have one NULL, and the other not.
-    OT_ASSERT(((NULL == pMasterPW) && (!pCachedKey)) ||
-              ((NULL != pMasterPW) && (pCachedKey)));
+    // They can both be nullptr, or they can both be  not nullptr.
+    // But you can't have one nullptr, and the other not.
+    OT_ASSERT(((nullptr == pMasterPW) && (!pCachedKey)) ||
+              ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
 OTPasswordData::~OTPasswordData()
 {
-    m_pMasterPW = NULL; // not owned
-                        //    m_pCachedKey = NULL; // not owned
+    m_pMasterPW = nullptr; // not owned
+                           //    m_pCachedKey = nullptr; // not owned
 }
 
 } // namespace opentxs

@@ -202,21 +202,22 @@ public:
     //
     virtual bool LoadPrivateKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = NULL, OTPassword* pImportPassword = NULL);
+        const OTString* pstrReason = nullptr,
+        OTPassword* pImportPassword = nullptr);
     // Load Public Key from Cert String
     //
     virtual bool LoadPublicKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = NULL,
-        OTPassword* pImportPassword = NULL); // DOES handle bookends, AND
-                                             // escapes.
+        const OTString* pstrReason = nullptr,
+        OTPassword* pImportPassword = nullptr); // DOES handle bookends, AND
+                                                // escapes.
 
     virtual bool SaveCertToString(OTString& strOutput,
-                                  const OTString* pstrReason = NULL,
-                                  OTPassword* pImportPassword = NULL);
+                                  const OTString* pstrReason = nullptr,
+                                  OTPassword* pImportPassword = nullptr);
     virtual bool SavePrivateKeyToString(OTString& strOutput,
-                                        const OTString* pstrReason = NULL,
-                                        OTPassword* pImportPassword = NULL);
+                                        const OTString* pstrReason = nullptr,
+                                        OTPassword* pImportPassword = nullptr);
 
     virtual bool LoadPublicKeyFromPGPKey(
         const OTASCIIArmor& strKey); // does NOT handle bookends.

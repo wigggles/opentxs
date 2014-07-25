@@ -301,7 +301,7 @@ OTScript::~OTScript()
 
     while (!m_mapVariables.empty()) {
         OTVariable* pVar = m_mapVariables.begin()->second;
-        OT_ASSERT(NULL != pVar);
+        OT_ASSERT(nullptr != pVar);
 
         // NOTE: We're NOT going to delete pVar, since we don't own it.
         // But we ARE going to remove pVar's pointer to this script, so
@@ -319,12 +319,12 @@ void OTScript::SetScript(const OTString& strValue)
 
 void OTScript::SetScript(const char* new_string)
 {
-    if (NULL != new_string) m_str_script = new_string;
+    if (nullptr != new_string) m_str_script = new_string;
 }
 
 void OTScript::SetScript(const char* new_string, size_t sizeLength)
 {
-    if (NULL != new_string) m_str_script.assign(new_string, sizeLength);
+    if (nullptr != new_string) m_str_script.assign(new_string, sizeLength);
 }
 
 void OTScript::SetScript(const std::string& new_string)
@@ -390,7 +390,7 @@ void OTScript::AddVariable(const std::string str_var_name, OTVariable& theVar)
 OTVariable* OTScript::FindVariable(const std::string str_var_name)
 {
     mapOfVariables::iterator it_var = m_mapVariables.find(str_var_name);
-    return it_var != m_mapVariables.end() ? it_var->second : NULL;
+    return it_var != m_mapVariables.end() ? it_var->second : nullptr;
 }
 
 // If a variable is set onto a script, it sets an internal pointer to that

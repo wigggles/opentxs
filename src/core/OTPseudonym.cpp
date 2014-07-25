@@ -162,17 +162,17 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
                                         const char* szFuncName)
 {
     const char* szFunc =
-        (NULL != szFuncName) ? szFuncName : "OTPseudonym::LoadPublicNym";
+        (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPublicNym";
 
     const OTString strNymID(NYM_ID);
 
     // If name is empty, construct one way,
     // else construct a different way.
     //
-    OTPseudonym* pNym = ((NULL == pstrName) || !pstrName->Exists())
+    OTPseudonym* pNym = ((nullptr == pstrName) || !pstrName->Exists())
                             ? (new OTPseudonym(NYM_ID))
                             : (new OTPseudonym(*pstrName, strNymID, strNymID));
-    OT_ASSERT_MSG(NULL != pNym,
+    OT_ASSERT_MSG(nullptr != pNym,
                   "OTPseudonym::LoadPublicNym: Error allocating memory.\n");
 
     bool bLoadedKey =
@@ -202,9 +202,9 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
         return pNym;
 
     delete pNym;
-    pNym = NULL;
+    pNym = nullptr;
 
-    return NULL;
+    return nullptr;
 }
 
 /*
@@ -292,23 +292,23 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
                                          OTPassword* pImportPassword)
 {
     const char* szFunc =
-        (NULL != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
+        (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
 
-    if (NYM_ID.IsEmpty()) return NULL;
+    if (NYM_ID.IsEmpty()) return nullptr;
 
     const OTString strNymID(NYM_ID);
 
     // If name is empty, construct one way,
     // else construct a different way.
     //
-    OTPseudonym* pNym = ((NULL == pstrName) || !pstrName->Exists())
+    OTPseudonym* pNym = ((nullptr == pstrName) || !pstrName->Exists())
                             ? (new OTPseudonym(NYM_ID))
                             : (new OTPseudonym(*pstrName, strNymID, strNymID));
-    OT_ASSERT_MSG(NULL != pNym,
+    OT_ASSERT_MSG(nullptr != pNym,
                   "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    if (NULL == pPWData) pPWData = &thePWData;
+    if (nullptr == pPWData) pPWData = &thePWData;
 
     bool bLoadedKey = pNym->Loadx509CertAndPrivateKey(
         bChecking, pPWData,
@@ -343,12 +343,13 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
         return pNym;
 
     delete pNym;
-    pNym = NULL;
+    pNym = nullptr;
 
-    return NULL;
+    return nullptr;
 }
 
-// pstrSourceForNymID if left NULL, will use the Nym's public key (OT's original
+// pstrSourceForNymID if left nullptr, will use the Nym's public key (OT's
+// original
 // method.)
 // Since that is already the Nym's ID (hash of public key) then providing the
 // Nym's public
@@ -400,37 +401,37 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
 //
 bool OTPseudonym::AddNewMasterCredential(
     OTString& strOutputMasterCredID,
-    const OTString* pstrSourceForNymID, // If NULL, it uses the Nym's
+    const OTString* pstrSourceForNymID, // If nullptr, it uses the Nym's
                                         // (presumed) existing source
                                         // as the source.
-    const int32_t nBits,                // Ignored unless pmapPrivate is NULL.
-    const OTString::Map* pmapPrivate,   // If NULL, then the keys are
-                                        // generated in here.
-    const OTString::Map* pmapPublic,    // In the case of key credentials,
-                                        // public is optional since it can
-                                        // already be derived from
-                                        // private. For now we pass it
-                                        // through... May eliminate this
-                                        // parameter later if not needed.
-    OTPasswordData* pPWData, // Pass in the string to show users here,
-                             // if/when asking for the passphrase.
-    bool bChangeNymID)       // Must be explicitly set to true, to change
-                             // the Nym's ID. Other restrictions also
-                             // apply... must be your first master
-                             // credential. Must have no accounts.
-                             // Basically can only be used for brand-new
-                             // Nyms in circumstances where it's assumed
-                             // the Nym's ID is in the process of being
-                             // generated anyway. Should never be used on
-                             // some existing Nym who is already in the
-                             // wallet and who may even have accounts
-                             // somewhere already.
+    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
+    const OTString::Map* pmapPrivate, // If nullptr, then the keys are
+                                      // generated in here.
+    const OTString::Map* pmapPublic,  // In the case of key credentials,
+                                      // public is optional since it can
+                                      // already be derived from
+                                      // private. For now we pass it
+                                      // through... May eliminate this
+                                      // parameter later if not needed.
+    OTPasswordData* pPWData,          // Pass in the string to show users here,
+                                      // if/when asking for the passphrase.
+    bool bChangeNymID) // Must be explicitly set to true, to change
+                       // the Nym's ID. Other restrictions also
+                       // apply... must be your first master
+                       // credential. Must have no accounts.
+                       // Basically can only be used for brand-new
+                       // Nyms in circumstances where it's assumed
+                       // the Nym's ID is in the process of being
+                       // generated anyway. Should never be used on
+                       // some existing Nym who is already in the
+                       // wallet and who may even have accounts
+                       // somewhere already.
 {
-    const OTString* pstrSourceToUse = NULL;
+    const OTString* pstrSourceToUse = nullptr;
     OTString strTempSource; // Used sometimes.
 
-    const OTString::Map* pmapActualPrivate = NULL;
-    const OTString::Map* pmapActualPublic = NULL;
+    const OTString::Map* pmapActualPrivate = nullptr;
+    const OTString::Map* pmapActualPublic = nullptr;
 
     OTString::Map mapPrivate, mapPublic; // Used sometimes.
 
@@ -454,9 +455,9 @@ bool OTPseudonym::AddNewMasterCredential(
     // passed--and otherwise
     // we generate the keys.
     //
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
-    if (NULL == pmapPrivate) // If no keys were passed in...
+    if (nullptr == pmapPrivate) // If no keys were passed in...
     {
         // That means to use (or generate) my existing keypair as the signing
         // key,
@@ -662,7 +663,7 @@ bool OTPseudonym::AddNewMasterCredential(
     // A source was passed in. We know it's not a public key, since its hash
     // will not match the existing
     // Nym ID. (Only the existing public key will match that when hashed, and
-    // you can use that by passing NULL
+    // you can use that by passing nullptr
     // already, which is the following block.) Therefore it must be one of the
     // other choices: a Freenet/I2P/Tor URL,
     // or indeed any URL at all, a Bitcoin address, a Namecoin address (which is
@@ -671,9 +672,9 @@ bool OTPseudonym::AddNewMasterCredential(
     // cert. In which case we are low-level
     // enough that we will potentially change the NymID here based on that
     // option. But we won't do that for a public
-    // key, unless you pass NULL.
+    // key, unless you pass nullptr.
     //
-    if ((NULL != pstrSourceForNymID) &&
+    if ((nullptr != pstrSourceForNymID) &&
         pstrSourceForNymID->Exists()) // A source was passed in.
     {
         // -- Perhaps he already has a source, in which case he one he already
@@ -763,7 +764,7 @@ bool OTPseudonym::AddNewMasterCredential(
     // Also by this point, pmapActualPrivate and pmapActualPublic are each set
     // with their 3 keys.
 
-    OT_ASSERT(NULL != pstrSourceToUse);
+    OT_ASSERT(nullptr != pstrSourceToUse);
 
     // See if there are any other master credentials already. If there are, make
     // sure they have the same source string calculated above.
@@ -771,7 +772,7 @@ bool OTPseudonym::AddNewMasterCredential(
     if (m_mapCredentials.size() > 0) {
         for (auto& it : m_mapCredentials) {
             OTCredential* pCredential = it.second;
-            OT_ASSERT(NULL != pCredential);
+            OT_ASSERT(nullptr != pCredential);
 
             if (false ==
                 pstrSourceToUse->Compare(pCredential->GetSourceForNymID())) {
@@ -806,8 +807,8 @@ bool OTPseudonym::AddNewMasterCredential(
         return false;
     }
 
-    OT_ASSERT(NULL != pmapActualPrivate);
-    OT_ASSERT(NULL != pmapActualPublic);
+    OT_ASSERT(nullptr != pmapActualPrivate);
+    OT_ASSERT(nullptr != pmapActualPublic);
 
     // Create a new master credential, and set its source string (which also
     // sets
@@ -816,7 +817,7 @@ bool OTPseudonym::AddNewMasterCredential(
     OTCredential* pMaster = OTCredential::CreateMaster(
         *pstrSourceToUse, nBits, pmapActualPrivate, pmapActualPublic, pPWData);
 
-    if (NULL == pMaster) // Below this block, pMaster must be cleaned up.
+    if (nullptr == pMaster) // Below this block, pMaster must be cleaned up.
     {
         otErr << __FUNCTION__ << ": Failed trying to create a new master "
                                  "credential, while calling "
@@ -851,7 +852,7 @@ bool OTPseudonym::AddNewMasterCredential(
                  "Nym ID: " << strNymID << "\nHash of Source: " << strTempID
               << "\n Source: " << pstrSourceToUse->Get() << "\n";
         delete pMaster;
-        pMaster = NULL;
+        pMaster = nullptr;
         return false;
     }
 
@@ -866,7 +867,7 @@ bool OTPseudonym::AddNewMasterCredential(
                  "for this ID (even though this is a new master credential, "
                  "just generated.)\n";
         delete pMaster;
-        pMaster = NULL;
+        pMaster = nullptr;
         return false;
     }
 
@@ -886,7 +887,7 @@ bool OTPseudonym::AddNewMasterCredential(
         otErr << __FUNCTION__ << ": Failed trying to save new master "
                                  "credential to local storage.\n";
         delete pMaster;
-        pMaster = NULL;
+        pMaster = nullptr;
         return false;
     }
 
@@ -914,8 +915,8 @@ bool OTPseudonym::AddNewMasterCredential(
 
 bool OTPseudonym::AddNewSubkey(
     const OTIdentifier& idMasterCredential,
-    const int32_t nBits,              // Ignored unless pmapPrivate is NULL.
-    const OTString::Map* pmapPrivate, // If NULL, then the keys are
+    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
+    const OTString::Map* pmapPrivate, // If nullptr, then the keys are
                                       // generated in here.
     OTPasswordData* pPWData, OTString* pstrNewID)
 {
@@ -932,9 +933,9 @@ bool OTPseudonym::AddNewSubkey(
     }
 
     OTCredential* pMaster = it->second;
-    OT_ASSERT(NULL != pMaster);
+    OT_ASSERT(nullptr != pMaster);
 
-    OTSubkey* pSubkey = NULL;
+    OTSubkey* pSubkey = nullptr;
     const bool bAdded =
         pMaster->AddNewSubkey(nBits, pmapPrivate, pPWData, &pSubkey);
 
@@ -944,7 +945,7 @@ bool OTPseudonym::AddNewSubkey(
             << ": Failed trying to add key credential to master credential.\n";
         return false;
     }
-    OT_ASSERT(NULL != pSubkey);
+    OT_ASSERT(nullptr != pSubkey);
 
     if (false == pSubkey->VerifyInternally()) {
 
@@ -991,14 +992,14 @@ bool OTPseudonym::AddNewSubkey(
 
     SaveCredentialList();
 
-    if (NULL != pstrNewID) *pstrNewID = strSubkeyID;
+    if (nullptr != pstrNewID) *pstrNewID = strSubkeyID;
 
     return true;
 }
 
 bool OTPseudonym::AddNewSubcredential(
     const OTIdentifier& idMasterCredential,
-    const OTString::Map* pmapPrivate, // If NULL, then the keys are
+    const OTString::Map* pmapPrivate, // If nullptr, then the keys are
                                       // generated in here.
     const OTString::Map* pmapPublic,  // In the case of key credentials,
                                       // public is optional since it can
@@ -1021,9 +1022,9 @@ bool OTPseudonym::AddNewSubcredential(
     }
 
     OTCredential* pMaster = it->second;
-    OT_ASSERT(NULL != pMaster);
+    OT_ASSERT(nullptr != pMaster);
 
-    OTSubcredential* pSubcredential = NULL;
+    OTSubcredential* pSubcredential = nullptr;
     const bool bAdded = pMaster->AddNewSubcredential(*pmapPrivate, *pmapPublic,
                                                      pPWData, &pSubcredential);
 
@@ -1032,7 +1033,7 @@ bool OTPseudonym::AddNewSubcredential(
               << ": Failed trying to add subcredential to master credential.\n";
         return false;
     }
-    OT_ASSERT(NULL != pSubcredential);
+    OT_ASSERT(nullptr != pSubcredential);
 
     if (false == pSubcredential->VerifyInternally()) {
         otErr << __FUNCTION__
@@ -1094,14 +1095,14 @@ int32_t OTPseudonym::GetMailCount()
 }
 
 // Look up a piece of mail by index.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTMessage* OTPseudonym::GetMailByIndex(const int32_t nIndex)
 {
     const uint32_t uIndex = nIndex;
 
     // Out of bounds.
     if (m_dequeMail.empty() || (nIndex < 0) || (uIndex >= m_dequeMail.size()))
-        return NULL;
+        return nullptr;
 
     return m_dequeMail.at(nIndex);
 }
@@ -1117,7 +1118,7 @@ bool OTPseudonym::RemoveMailByIndex(const int32_t nIndex) // if false, mail
 
     OTMessage* pMessage = m_dequeMail.at(nIndex);
 
-    OT_ASSERT(NULL != pMessage);
+    OT_ASSERT(nullptr != pMessage);
 
     m_dequeMail.erase(m_dequeMail.begin() + nIndex);
 
@@ -1149,7 +1150,7 @@ int32_t OTPseudonym::GetOutmailCount()
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex)
 {
     const uint32_t uIndex = nIndex;
@@ -1157,7 +1158,7 @@ OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex)
     // Out of bounds.
     if (m_dequeOutmail.empty() || (nIndex < 0) ||
         (uIndex >= m_dequeOutmail.size()))
-        return NULL;
+        return nullptr;
 
     return m_dequeOutmail.at(nIndex);
 }
@@ -1175,7 +1176,7 @@ bool OTPseudonym::RemoveOutmailByIndex(const int32_t nIndex) // if false,
 
     OTMessage* pMessage = m_dequeOutmail.at(nIndex);
 
-    OT_ASSERT(NULL != pMessage);
+    OT_ASSERT(nullptr != pMessage);
 
     m_dequeOutmail.erase(m_dequeOutmail.begin() + nIndex);
 
@@ -1209,7 +1210,7 @@ int32_t OTPseudonym::GetOutpaymentsCount()
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return NULL.
+// If it is, return a pointer to it, otherwise return nullptr.
 OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex)
 {
     const uint32_t uIndex = nIndex;
@@ -1217,7 +1218,7 @@ OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex)
     // Out of bounds.
     if (m_dequeOutpayments.empty() || (nIndex < 0) ||
         (uIndex >= m_dequeOutpayments.size()))
-        return NULL;
+        return nullptr;
 
     return m_dequeOutpayments.at(nIndex);
 }
@@ -1229,7 +1230,7 @@ int32_t OTPseudonym::GetOutpaymentsIndexByTransNum(const int64_t lTransNum)
     for (int32_t lOutpaymentsIndex = 0; lOutpaymentsIndex < lOutpaymentsCount;
          ++lOutpaymentsIndex) {
         OTMessage* pOutpaymentMsg = GetOutpaymentsByIndex(lOutpaymentsIndex);
-        if (NULL != pOutpaymentMsg) {
+        if (nullptr != pOutpaymentMsg) {
             OTString strPayment;
 
             // There isn't any encrypted envelope this time, since it's my
@@ -1272,7 +1273,7 @@ bool OTPseudonym::RemoveOutpaymentsByIndex(const int32_t nIndex, bool bDeleteIt)
     }
 
     OTMessage* pMessage = m_dequeOutpayments.at(nIndex);
-    OT_ASSERT(NULL != pMessage);
+    OT_ASSERT(nullptr != pMessage);
 
     m_dequeOutpayments.erase(m_dequeOutpayments.begin() + uIndex);
 
@@ -1310,7 +1311,7 @@ OTItem* OTPseudonym::GenerateTransactionStatement(const OTTransaction& theOwner)
     if ((theOwner.GetUserID() != m_nymID)) {
         otErr << "OTPseudonym::" << __FUNCTION__
               << ": Transaction has wrong owner (expected to match nym).\n";
-        return NULL;
+        return nullptr;
     }
 
     // theOwner is the depositPaymentPlan, activateSmartContract, or marketOffer
@@ -1323,7 +1324,7 @@ OTItem* OTPseudonym::GenerateTransactionStatement(const OTTransaction& theOwner)
                                                  // ID, transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
-    if (NULL == pBalanceItem) return NULL;
+    if (nullptr == pBalanceItem) return nullptr;
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM
 
@@ -1460,7 +1461,7 @@ bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
                               const std::string str_alt_location)
 {
 
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     if (m_pkeypair->MakeNewKeypair(nBits)) {
         OTString strSource(str_id_source), strAltLocation(str_alt_location);
@@ -1518,8 +1519,8 @@ bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
             OTString strMasterCredID;
 
             const bool bAddedMaster = AddNewMasterCredential(
-                strMasterCredID, (str_id_source.size() > 0) ? &strSource : NULL,
-                nBits);
+                strMasterCredID,
+                (str_id_source.size() > 0) ? &strSource : nullptr, nBits);
 
             if (bAddedMaster && strMasterCredID.Exists() &&
                 (GetMasterCredentialCount() > 0)) {
@@ -1551,7 +1552,7 @@ bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
 
 bool OTPseudonym::SetIdentifierByPubkey()
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     const bool bCalculated = m_pkeypair->CalculateID(
         m_nymID); // OTAsymmetricKey::CalculateID only works with public keys.
@@ -1571,9 +1572,9 @@ bool OTPseudonym::SetIdentifierByPubkey()
 #ifndef CLEAR_MAP_AND_DEQUE
 #define CLEAR_MAP_AND_DEQUE(the_map)                                           \
     for (auto& it : the_map) {                                                 \
-        if ((NULL != pstrServerID) && (str_ServerID != it.first)) continue;    \
+        if ((nullptr != pstrServerID) && (str_ServerID != it.first)) continue; \
         dequeOfTransNums* pDeque = (it.second);                                \
-        OT_ASSERT(NULL != pDeque);                                             \
+        OT_ASSERT(nullptr != pDeque);                                          \
         if (!(pDeque->empty())) pDeque->clear();                               \
     }
 #endif // CLEAR_MAP_AND_DEQUE
@@ -1606,7 +1607,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString* pstrServerID,
     if (bRemoveHighestNum) {
         for (auto it(m_mapHighTransNo.begin()); it != m_mapHighTransNo.end();
              ++it) {
-            if ((NULL != pstrServerID) &&
+            if ((nullptr != pstrServerID) &&
                 (str_ServerID != it->first)) // If passed in, and current it
                                              // doesn't match, then skip it
                                              // (continue).
@@ -1617,7 +1618,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString* pstrServerID,
     }
 
     for (auto it(m_mapNymboxHash.begin()); it != m_mapNymboxHash.end(); ++it) {
-        if ((NULL != pstrServerID) &&
+        if ((nullptr != pstrServerID) &&
             (str_ServerID != it->first)) // If passed in, and current it doesn't
                                          // match, then skip it (continue).
             continue;
@@ -1638,7 +1639,7 @@ void OTPseudonym::RemoveAllNumbers(const OTString* pstrServerID,
     }
 
     for (auto it(m_mapRecentHash.begin()); it != m_mapRecentHash.end(); ++it) {
-        if ((NULL != pstrServerID) &&
+        if ((nullptr != pstrServerID) &&
             (str_ServerID != it->first)) // If passed in, and current it doesn't
                                          // match, then skip it (continue).
             continue;
@@ -1807,7 +1808,7 @@ void OTPseudonym::RemoveReqNumbers(const OTString* pstrServerID)
     const std::string str_ServerID(pstrServerID ? pstrServerID->Get() : "");
 
     for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
-        if ((NULL != pstrServerID) &&
+        if ((nullptr != pstrServerID) &&
             (str_ServerID != it->first)) // If passed in, and current it doesn't
                                          // match, then skip it (continue).
             continue;
@@ -1882,10 +1883,10 @@ bool OTPseudonym::UnRegisterAtServer(const OTString& strServerID)
 #define WIPE_MAP_AND_DEQUE(the_map)                                            \
     while (!the_map.empty()) {                                                 \
         dequeOfTransNums* pDeque = the_map.begin()->second;                    \
-        OT_ASSERT(NULL != pDeque);                                             \
+        OT_ASSERT(nullptr != pDeque);                                          \
         the_map.erase(the_map.begin());                                        \
         delete pDeque;                                                         \
-        pDeque = NULL;                                                         \
+        pDeque = nullptr;                                                      \
     }
 #endif // WIPE_MAP_AND_DEQUE
 
@@ -2117,7 +2118,7 @@ bool OTPseudonym::ResyncWithServer(OTLedger& theNymbox,
     //
     for (auto& it : theNymbox.GetTransactionMap()) {
         OTTransaction* pTransaction = it.second;
-        OT_ASSERT(NULL != pTransaction);
+        OT_ASSERT(nullptr != pTransaction);
         //        OTString strTransaction(*pTransaction);
         //        otErr << "TRANSACTION CONTENTS:\n%s\n", strTransaction.Get());
 
@@ -2220,7 +2221,7 @@ bool OTPseudonym::VerifyGenericNum(mapOfTransNums& THE_MAP,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             if (!(pDeque->empty())) // there are some numbers for that server ID
             {
@@ -2281,7 +2282,7 @@ bool OTPseudonym::RemoveGenericNum(mapOfTransNums& THE_MAP,
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
 
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             if (!(pDeque->empty())) // there are some numbers for that server ID
             {
@@ -2323,7 +2324,7 @@ bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             dequeOfTransNums::iterator iiii =
                 std::find(pDeque->begin(), pDeque->end(), lTransNum);
@@ -2345,7 +2346,7 @@ bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
     if (!bSuccessFindingServerID) {
         dequeOfTransNums* pDeque = new dequeOfTransNums;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         THE_MAP[strID] = pDeque;
         pDeque->push_front(lTransNum);
@@ -2365,7 +2366,7 @@ int32_t OTPseudonym::GetGenericNumCount(mapOfTransNums& THE_MAP,
     const OTString strServerID(theServerID);
     std::string strID = strServerID.Get();
 
-    dequeOfTransNums* pDeque = NULL;
+    dequeOfTransNums* pDeque = nullptr;
 
     // The Pseudonym has a deque of transaction numbers for each server.
     // These deques are mapped by Server ID.
@@ -2377,7 +2378,7 @@ int32_t OTPseudonym::GetGenericNumCount(mapOfTransNums& THE_MAP,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             break;
         }
@@ -2385,7 +2386,7 @@ int32_t OTPseudonym::GetGenericNumCount(mapOfTransNums& THE_MAP,
 
     // We found the right server, so let's count the transaction numbers
     // that this nym has already stored for it.
-    if (NULL != pDeque) {
+    if (nullptr != pDeque) {
         nReturnValue = static_cast<int32_t>(pDeque->size());
     }
 
@@ -2413,7 +2414,7 @@ int64_t OTPseudonym::GetGenericNum(mapOfTransNums& THE_MAP,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             if (!(pDeque->empty())) // there are some numbers for that server ID
             {
@@ -2664,7 +2665,7 @@ bool OTPseudonym::AddAcknowledgedNum(const OTString& strServerID,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             while (pDeque->size() > OT_MAX_ACK_NUMS) {
                 pDeque->pop_back(); // This fixes knotwork's issue where he had
@@ -2813,7 +2814,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         OTString OTstrServerID = strServerID.c_str();
         const OTIdentifier theTempID(OTstrServerID);
@@ -2946,7 +2947,7 @@ void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         OTString OTstrServerID =
             ((strServerID.size()) > 0 ? strServerID.c_str() : "");
@@ -2994,7 +2995,7 @@ bool OTPseudonym::ClawbackTransactionNumber(
                 // iteration.
     OTPseudonym* pSIGNER_NYM)
 {
-    if (NULL == pSIGNER_NYM) pSIGNER_NYM = this;
+    if (nullptr == pSIGNER_NYM) pSIGNER_NYM = this;
     // Below this point, pSIGNER_NYM is definitely a good pointer.
 
     const OTString strServerID(theServerID);
@@ -3034,7 +3035,7 @@ bool OTPseudonym::GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
         // if the ServerID passed in matches the serverID for the current deque
         if (strID == it.first) {
             dequeOfTransNums* pDeque = (it.second);
-            OT_ASSERT(NULL != pDeque);
+            OT_ASSERT(nullptr != pDeque);
 
             if (!(pDeque->empty())) {
                 lTransNum = pDeque->front();
@@ -3570,7 +3571,7 @@ bool OTPseudonym::VerifyPseudonym() const
         // Verify Nym by his own credentials.
         for (const auto& it : m_mapCredentials) {
             const OTCredential* pCredential = it.second;
-            OT_ASSERT(NULL != pCredential);
+            OT_ASSERT(nullptr != pCredential);
 
             const OTIdentifier theCredentialNymID(pCredential->GetNymID());
             if (false == CompareID(theCredentialNymID)) {
@@ -3631,7 +3632,7 @@ bool OTPseudonym::VerifyPseudonym() const
             mapOfCredentials::const_iterator it = m_mapCredentials.begin();
             OT_ASSERT(m_mapCredentials.end() != it);
             OTCredential* pCredential = it->second;
-            OT_ASSERT(NULL != pCredential);
+            OT_ASSERT(nullptr != pCredential);
 
             OTString strSigningKey;
 
@@ -3656,7 +3657,7 @@ bool OTPseudonym::VerifyPseudonym() const
         // credential having a master key and a set of subcredentials including
         // subkeys.
         //
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         OTString strPublicKey;
         bool bGotPublicKey = m_pkeypair->GetPublicKey(strPublicKey);
@@ -3745,10 +3746,10 @@ bool OTPseudonym::SavePublicKey(const OTString& strPath) const
     const char* szFoldername = OTFolders::Pubkey().Get();
     const char* szFilename = strPath.Get();
 
-    OT_ASSERT(NULL != szFoldername);
-    OT_ASSERT(NULL != szFilename);
+    OT_ASSERT(nullptr != szFoldername);
+    OT_ASSERT(nullptr != szFilename);
 
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     // By passing in an OTString instead of OTASCIIArmor, it knows to add the
     // bookends
@@ -3782,7 +3783,7 @@ bool OTPseudonym::SavePublicKey(const OTString& strPath) const
 
 bool OTPseudonym::SavePublicKey(std::ofstream& ofs) const
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     // By passing in an OTString instead of OTASCIIArmor, it knows to add the
     // bookends
@@ -3813,7 +3814,7 @@ bool OTPseudonym::Server_PubKeyExists(OTString* pstrID) // Only used
 {
 
     OTString strID;
-    if (NULL == pstrID) {
+    if (nullptr == pstrID) {
         pstrID = &strID;
     }
     GetIdentifier(*pstrID);
@@ -3829,7 +3830,7 @@ bool OTPseudonym::Server_PubKeyExists(OTString* pstrID) // Only used
 // gibberish itself.
 bool OTPseudonym::LoadPublicKey()
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     // Here we try to load credentials first (the new system) and if it's
     // successful, we
@@ -3842,7 +3843,7 @@ bool OTPseudonym::LoadPublicKey()
         //        mapOfCredentials::iterator it = m_mapCredentials.begin();
         //        OT_ASSERT(m_mapCredentials.end() != it);
         //        OTCredential * pCredential = it->second;
-        //        OT_ASSERT(NULL != pCredential);
+        //        OT_ASSERT(nullptr != pCredential);
 
         //        OTString strSigningKey;
         //
@@ -3978,7 +3979,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
             strOutput.Concatenate(
@@ -3999,7 +4000,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
             strOutput.Concatenate(
@@ -4019,7 +4020,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
             strOutput.Concatenate("---- Request numbers for which Nym has "
@@ -4043,7 +4044,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         for (int32_t iii = 0; iii < static_cast<int64_t>(nMasterCredCount);
              ++iii) {
             const OTCredential* pCredential = GetMasterCredentialByIndex(iii);
-            if (NULL != pCredential) {
+            if (nullptr != pCredential) {
                 strOutput.Concatenate("Credential ID: %s \n",
                                       pCredential->GetMasterCredID().Get());
                 const size_t nSubcredentialCount =
@@ -4099,8 +4100,8 @@ bool OTPseudonym::SavePseudonym()
 bool OTPseudonym::SavePseudonym(const char* szFoldername,
                                 const char* szFilename)
 {
-    OT_ASSERT(NULL != szFoldername);
-    OT_ASSERT(NULL != szFilename);
+    OT_ASSERT(nullptr != szFoldername);
+    OT_ASSERT(nullptr != szFilename);
 
     OTString strNym;
     SavePseudonym(strNym);
@@ -4131,17 +4132,17 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
     bool bImporting, // bImporting=true, or false if exporting.
     OTPasswordData* pPWData, OTPassword* pImportPassword)
 {
-    OTPassword* pExportPassphrase = NULL;
+    OTPassword* pExportPassphrase = nullptr;
     OTCleanup<OTPassword> thePasswordAngel;
 
-    if (NULL == pImportPassword) {
+    if (nullptr == pImportPassword) {
 
         // whether import/export, this display string is for the OUTSIDE OF
         // WALLET
         // portion of that process.
         //
         OTString strDisplay(
-            NULL != pPWData
+            nullptr != pPWData
                 ? pPWData->GetDisplayString()
                 : (bImporting ? "Enter passphrase for the Nym being imported."
                               : "Enter passphrase for exported Nym."));
@@ -4152,7 +4153,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
                                        // created at that time.)
         thePasswordAngel.SetCleanupTargetPointer(pExportPassphrase);
 
-        if (NULL == pExportPassphrase) {
+        if (nullptr == pExportPassphrase) {
             otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
             return false;
         }
@@ -4174,7 +4175,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
 
     for (auto& it : m_mapCredentials) {
         OTCredential* pCredential = it.second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         if (false == pCredential->ReEncryptPrivateCredentials(
                          *pExportPassphrase, bImporting))
@@ -4212,7 +4213,7 @@ void OTPseudonym::GetPublicCredentials(OTString& strCredList,
 
     for (auto& it : m_mapCredentials) {
         OTCredential* pCredential = it.second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(strCredList, m_listRevokedIDs,
                                   pmapCredFiles); // bShowRevoked=false by
@@ -4242,7 +4243,7 @@ void OTPseudonym::GetPrivateCredentials(OTString& strCredList,
 
     SerializeNymIDSource(strCredList);
 
-    SaveCredentialsToString(strCredList, NULL, pmapCredFiles);
+    SaveCredentialsToString(strCredList, nullptr, pmapCredFiles);
 
     strCredList.Concatenate("</OTuser>\n");
 }
@@ -4335,8 +4336,8 @@ bool OTPseudonym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
                                   OTPasswordData* pPWData,
                                   OTPassword* pImportPassword)
 {
-    OTString strReason(NULL == pPWData ? OT_PW_DISPLAY
-                                       : pPWData->GetDisplayString());
+    OTString strReason(nullptr == pPWData ? OT_PW_DISPLAY
+                                          : pPWData->GetDisplayString());
 
     ClearCredentials();
 
@@ -4380,8 +4381,9 @@ bool OTPseudonym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
         //
         if (strFileContents.Exists() && strFileContents.DecodeIfArmored()) {
             const bool bLoaded = LoadFromString(
-                strFileContents, NULL, // map of credentials--if NULL, it loads
-                                       // them from local storage.
+                strFileContents,
+                nullptr, // map of credentials--if nullptr, it loads
+                         // them from local storage.
                 &strReason, pImportPassword); // optional to provide a
                                               // passphrase (otherwise one is
                                               // prompted for.)
@@ -4423,7 +4425,7 @@ void OTPseudonym::SaveCredentialsToString(OTString& strOutput,
     // Serialize master and sub-credentials here.
     for (auto& it : m_mapCredentials) {
         OTCredential* pCredential = it.second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
             strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo,
@@ -4433,7 +4435,7 @@ void OTPseudonym::SaveCredentialsToString(OTString& strOutput,
     // Serialize Revoked master credentials here, including their subkeys.
     for (auto& it : m_mapRevoked) {
         OTCredential* pCredential = it.second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
             strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true,
@@ -4517,7 +4519,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         //        if (!(pDeque->empty()) && (strServerID.size() > 0) )
         //        {
@@ -4562,7 +4564,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         //        if (!(pDeque->empty()) && (strServerID.size() > 0) )
         //        {
@@ -4606,7 +4608,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         //        if (!(pDeque->empty()) && (strServerID.size() > 0) )
         //        {
@@ -4656,7 +4658,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         //        if (!(pDeque->empty()) && (strServerID.size() > 0) )
         //        {
@@ -4698,7 +4700,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
     if (!(m_dequeMail.empty())) {
         for (uint32_t i = 0; i < m_dequeMail.size(); i++) {
             OTMessage* pMessage = m_dequeMail.at(i);
-            OT_ASSERT(NULL != pMessage);
+            OT_ASSERT(nullptr != pMessage);
 
             OTString strMail(*pMessage);
 
@@ -4716,7 +4718,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
     if (!(m_dequeOutmail.empty())) {
         for (uint32_t i = 0; i < m_dequeOutmail.size(); i++) {
             OTMessage* pMessage = m_dequeOutmail.at(i);
-            OT_ASSERT(NULL != pMessage);
+            OT_ASSERT(nullptr != pMessage);
 
             OTString strOutmail(*pMessage);
 
@@ -4734,7 +4736,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
     if (!(m_dequeOutpayments.empty())) {
         for (uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
             OTMessage* pMessage = m_dequeOutpayments.at(i);
-            OT_ASSERT(NULL != pMessage);
+            OT_ASSERT(nullptr != pMessage);
 
             OTString strOutpayments(*pMessage);
 
@@ -4845,7 +4847,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
 OTCredential* OTPseudonym::GetMasterCredential(const OTString& strID)
 {
     mapOfCredentials::iterator iter = m_mapCredentials.find(strID.Get());
-    OTCredential* pCredential = NULL;
+    OTCredential* pCredential = nullptr;
 
     if (iter != m_mapCredentials.end()) // found it
         pCredential = iter->second;
@@ -4856,7 +4858,7 @@ OTCredential* OTPseudonym::GetMasterCredential(const OTString& strID)
 OTCredential* OTPseudonym::GetRevokedCredential(const OTString& strID)
 {
     mapOfCredentials::iterator iter = m_mapRevoked.find(strID.Get());
-    OTCredential* pCredential = NULL;
+    OTCredential* pCredential = nullptr;
 
     if (iter != m_mapRevoked.end()) // found it
         pCredential = iter->second;
@@ -4876,14 +4878,14 @@ const OTCredential* OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex)
 
         for (const auto& it : m_mapCredentials) {
             const OTCredential* pCredential = it.second;
-            OT_ASSERT(NULL != pCredential);
+            OT_ASSERT(nullptr != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pCredential;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex)
@@ -4897,14 +4899,14 @@ const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex)
 
         for (const auto& it : m_mapRevoked) {
             const OTCredential* pCredential = it.second;
-            OT_ASSERT(NULL != pCredential);
+            OT_ASSERT(nullptr != pCredential);
 
             ++nLoopIndex; // 0 on first iteration.
 
             if (nLoopIndex == nIndex) return pCredential;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 const OTSubcredential* OTPseudonym::GetSubcredential(
@@ -4912,19 +4914,19 @@ const OTSubcredential* OTPseudonym::GetSubcredential(
 {
     mapOfCredentials::const_iterator iter =
         m_mapCredentials.find(strMasterID.Get());
-    const OTCredential* pMaster = NULL;
+    const OTCredential* pMaster = nullptr;
 
     if (iter != m_mapCredentials.end()) // found it
         pMaster = iter->second;
 
-    if (NULL != pMaster) {
+    if (nullptr != pMaster) {
         const OTSubcredential* pSub =
             pMaster->GetSubcredential(strSubCredID, &m_listRevokedIDs);
 
-        if (NULL != pSub) return pSub;
+        if (nullptr != pSub) return pSub;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // Todo: if it's possible to have a revoked subcredential on a still-good
@@ -4936,18 +4938,18 @@ const OTSubcredential* OTPseudonym::GetRevokedSubcred(
 {
     mapOfCredentials::const_iterator iter =
         m_mapRevoked.find(strRevokedID.Get());
-    const OTCredential* pMaster = NULL;
+    const OTCredential* pMaster = nullptr;
 
     if (iter != m_mapRevoked.end()) // found it
         pMaster = iter->second;
 
-    if (NULL != pMaster) {
+    if (nullptr != pMaster) {
         const OTSubcredential* pSub = pMaster->GetSubcredential(strSubCredID);
 
-        if (NULL != pSub) return pSub;
+        if (nullptr != pSub) return pSub;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
@@ -4995,7 +4997,7 @@ bool OTPseudonym::LoadFromString(
 
     OTStringXML strNymXML(strNym); // todo optimize
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
-    OT_ASSERT(NULL != xml);
+    OT_ASSERT(nullptr != xml);
     OTCleanup<irr::io::IrrXMLReader> theCleanup(*xml);
 
     // parse the file until end reached
@@ -5143,15 +5145,15 @@ bool OTPseudonym::LoadFromString(
                        << " masterCredential ID: " << strID << "\n";
                 OTString strNymID;
                 GetIdentifier(strNymID);
-                OTCredential* pCredential = NULL;
+                OTCredential* pCredential = nullptr;
 
-                if (NULL == pMapCredentials) // pMapCredentials is an option
-                                             // that allows you to read
-                                             // credentials from the map instead
-                                             // of from local storage. (While
-                                             // loading the Nym...) In this
-                                             // case, the option isn't being
-                                             // employed...
+                if (nullptr == pMapCredentials) // pMapCredentials is an option
+                                                // that allows you to read
+                    // credentials from the map instead
+                    // of from local storage. (While
+                    // loading the Nym...) In this
+                    // case, the option isn't being
+                    // employed...
                     pCredential = OTCredential::LoadMaster(strNymID, strID);
                 else // In this case, it potentially is on the map...
                 {
@@ -5176,7 +5178,7 @@ bool OTPseudonym::LoadFromString(
                             it_cred->second.c_str());
                         if (strMasterCredential.Exists()) {
                             OTPasswordData thePWData(
-                                NULL == pstrReason
+                                nullptr == pstrReason
                                     ? "OTPseudonym::LoadFromString"
                                     : pstrReason->Get());
                             pCredential = OTCredential::LoadMasterFromString(
@@ -5186,7 +5188,7 @@ bool OTPseudonym::LoadFromString(
                     }
                 }
 
-                if (NULL == pCredential) {
+                if (nullptr == pCredential) {
                     otErr << __FUNCTION__
                           << ": Failed trying to load Master Credential ID: "
                           << strID << "\n";
@@ -5209,7 +5211,7 @@ bool OTPseudonym::LoadFromString(
                                           "same ID! Therefore, failed "
                                           "adding this newer one.\n";
                         delete pCredential;
-                        pCredential = NULL;
+                        pCredential = nullptr;
                         return false;
                     }
                 }
@@ -5228,9 +5230,9 @@ bool OTPseudonym::LoadFromString(
                        << "\n";
                 OTCredential* pCredential =
                     GetMasterCredential(strMasterCredID); // no need to cleanup.
-                if (NULL == pCredential)
+                if (nullptr == pCredential)
                     pCredential = GetRevokedCredential(strMasterCredID);
-                if (NULL == pCredential) {
+                if (nullptr == pCredential) {
                     otErr << __FUNCTION__
                           << ": While loading keyCredential, failed trying to "
                              "find expected Master Credential ID: "
@@ -5242,14 +5244,15 @@ bool OTPseudonym::LoadFromString(
                 {
                     bool bLoaded = false;
 
-                    if (NULL == pMapCredentials) // pMapCredentials is an option
-                                                 // that allows you to read
-                                                 // credentials from the map
-                                                 // instead of from local
-                                                 // storage. (While loading the
-                                                 // Nym...) In this case, the
-                                                 // option isn't being
-                                                 // employed...
+                    if (nullptr ==
+                        pMapCredentials) // pMapCredentials is an option
+                                         // that allows you to read
+                                         // credentials from the map
+                                         // instead of from local
+                                         // storage. (While loading the
+                                         // Nym...) In this case, the
+                                         // option isn't being
+                                         // employed...
                         bLoaded = pCredential->LoadSubkey(strID);
                     else // In this case, it potentially is on the map...
                     {
@@ -5305,9 +5308,9 @@ bool OTPseudonym::LoadFromString(
                        << "\n";
                 OTCredential* pCredential =
                     GetMasterCredential(strMasterCredID); // no need to cleanup.
-                if (NULL == pCredential)
+                if (nullptr == pCredential)
                     pCredential = GetRevokedCredential(strMasterCredID);
-                if (NULL == pCredential) {
+                if (nullptr == pCredential) {
                     otErr << __FUNCTION__
                           << ": While loading subCredential, failed trying to "
                              "find expected Master Credential ID: "
@@ -5319,14 +5322,15 @@ bool OTPseudonym::LoadFromString(
                 {
                     bool bLoaded = false;
 
-                    if (NULL == pMapCredentials) // pMapCredentials is an option
-                                                 // that allows you to read
-                                                 // credentials from the map
-                                                 // instead of from local
-                                                 // storage. (While loading the
-                                                 // Nym...) In this case, the
-                                                 // option isn't being
-                                                 // employed...
+                    if (nullptr ==
+                        pMapCredentials) // pMapCredentials is an option
+                                         // that allows you to read
+                                         // credentials from the map
+                                         // instead of from local
+                                         // storage. (While loading the
+                                         // Nym...) In this case, the
+                                         // option isn't being
+                                         // employed...
                         bLoaded = pCredential->LoadSubcredential(strID);
                     else // In this case, it potentially is on the map...
                     {
@@ -5741,7 +5745,7 @@ bool OTPseudonym::LoadFromString(
                             if (strMessage.GetLength() > 2) {
                                 OTMessage* pMessage = new OTMessage;
 
-                                OT_ASSERT(NULL != pMessage);
+                                OT_ASSERT(nullptr != pMessage);
 
                                 if (pMessage->LoadContractFromString(
                                         strMessage))
@@ -5783,7 +5787,7 @@ bool OTPseudonym::LoadFromString(
 
                             if (strMessage.GetLength() > 2) {
                                 OTMessage* pMessage = new OTMessage;
-                                OT_ASSERT(NULL != pMessage);
+                                OT_ASSERT(nullptr != pMessage);
 
                                 if (pMessage->LoadContractFromString(
                                         strMessage))
@@ -5825,7 +5829,7 @@ bool OTPseudonym::LoadFromString(
 
                             if (strMessage.GetLength() > 2) {
                                 OTMessage* pMessage = new OTMessage;
-                                OT_ASSERT(NULL != pMessage);
+                                OT_ASSERT(nullptr != pMessage);
 
                                 if (pMessage->LoadContractFromString(
                                         strMessage))
@@ -5972,7 +5976,7 @@ bool OTPseudonym::VerifyIssuedNumbersOnNym(OTPseudonym& THE_NYM)
     //
     for (auto& it : GetMapIssuedNum()) {
         dequeOfTransNums* pDeque = (it.second);
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
             nNumberOfTransactionNumbers1 +=
@@ -5987,7 +5991,7 @@ bool OTPseudonym::VerifyIssuedNumbersOnNym(OTPseudonym& THE_NYM)
     for (auto& it : THE_NYM.GetMapIssuedNum()) {
         strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         OTString OTstrServerID = strServerID.c_str();
 
@@ -6060,7 +6064,7 @@ bool OTPseudonym::VerifyTransactionStatementNumbersOnNym(
 
         OTString OTstrServerID = strServerID.c_str();
 
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         if (!(pDeque->empty())) {
             for (uint32_t i = 0; i < pDeque->size(); i++) {
@@ -6113,7 +6117,7 @@ bool OTPseudonym::LoadNymfile(const char* szFilename)
     // If no filename was passed in (user might have designated one) then we
     // create
     // the filename by appending the Nym's ID to the path.
-    if (NULL == szFilename) {
+    if (nullptr == szFilename) {
         m_strNymfile = szTheFilename;
     }
     else {
@@ -6146,7 +6150,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
     const OTString& strInput, OTPasswordData* pPWData,
     OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     if (!strInput.Exists()) {
         const OTString strID(m_nymID);
@@ -6156,8 +6160,8 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
         return false;
     }
 
-    OTString strReason(NULL == pPWData ? OT_PW_DISPLAY
-                                       : pPWData->GetDisplayString());
+    OTString strReason(nullptr == pPWData ? OT_PW_DISPLAY
+                                          : pPWData->GetDisplayString());
 
     return m_pkeypair->LoadCertAndPrivateKeyFromString(strInput, &strReason,
                                                        pImportPassword);
@@ -6170,10 +6174,10 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
                                             OTPasswordData* pPWData,
                                             OTPassword* pImportPassword)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    if (NULL == pPWData) pPWData = &thePWData;
+    if (nullptr == pPWData) pPWData = &thePWData;
     OTString strReason(pPWData->GetDisplayString());
 
     // Here we try to load credentials first (the new system) and if it's
@@ -6189,7 +6193,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
         mapOfCredentials::iterator it = m_mapCredentials.begin();
         OT_ASSERT(m_mapCredentials.end() != it);
         OTCredential* pCredential = it->second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         OTString strPubAndPrivCert;
 
@@ -6268,14 +6272,14 @@ bool OTPseudonym::CertfileExists()
 
 bool OTPseudonym::HasPublicKey()
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->HasPublicKey();
 }
 
 bool OTPseudonym::HasPrivateKey()
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->HasPrivateKey();
 }
@@ -6284,7 +6288,7 @@ bool OTPseudonym::HasPrivateKey()
 // It will also handle the escaped version: - -----BEGIN CERTIFICATE-----
 bool OTPseudonym::SetCertificate(const OTString& strCert, bool bEscaped)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->LoadPublicKeyFromCertString(strCert, bEscaped);
 }
@@ -6293,7 +6297,7 @@ bool OTPseudonym::SetCertificate(const OTString& strCert, bool bEscaped)
 // It will also handle the escaped version: - -----BEGIN PUBLIC KEY------
 bool OTPseudonym::SetPublicKey(const OTString& strKey, bool bEscaped)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->SetPublicKey(strKey, bEscaped);
 }
@@ -6301,7 +6305,7 @@ bool OTPseudonym::SetPublicKey(const OTString& strKey, bool bEscaped)
 // This version handles the ascii-armored text WITHOUT the bookends
 bool OTPseudonym::SetPublicKey(const OTASCIIArmor& strKey)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->SetPublicKey(strKey);
 }
@@ -6312,7 +6316,7 @@ bool OTPseudonym::SetPublicKey(const OTASCIIArmor& strKey)
 //
 bool OTPseudonym::SetPrivateKey(const OTString& strKey, bool bEscaped)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->SetPrivateKey(strKey, bEscaped);
 }
@@ -6321,7 +6325,7 @@ bool OTPseudonym::SetPrivateKey(const OTString& strKey, bool bEscaped)
 //
 bool OTPseudonym::SetPrivateKey(const OTASCIIArmor& strKey)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->SetPrivateKey(strKey);
 }
@@ -6329,7 +6333,7 @@ bool OTPseudonym::SetPrivateKey(const OTASCIIArmor& strKey)
 const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6341,9 +6345,9 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPrivateAuthKey(&m_listRevokedIDs); // success
     }
@@ -6361,7 +6365,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPrivateKey();
     }
@@ -6370,7 +6374,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
 const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6382,9 +6386,9 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);
         ; // success
@@ -6403,7 +6407,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPrivateKey();
     }
@@ -6412,7 +6416,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
 const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6424,9 +6428,9 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPrivateSignKey(&m_listRevokedIDs); // success
     }
@@ -6445,7 +6449,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPrivateKey();
     }
@@ -6454,7 +6458,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
 const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6466,9 +6470,9 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPublicAuthKey(&m_listRevokedIDs); // success
     }
@@ -6487,7 +6491,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPublicKey();
     }
@@ -6496,7 +6500,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
 const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
             // subcredential
@@ -6507,9 +6511,9 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPublicEncrKey(&m_listRevokedIDs); // success
     }
@@ -6528,7 +6532,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPublicKey();
     }
@@ -6537,7 +6541,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 {
     if (m_mapCredentials.size() > 0) {
-        const OTCredential* pCredential = NULL;
+        const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6549,9 +6553,9 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
             // going to return the first one that's valid (not null).
 
             pCredential = it.second;
-            if (NULL != pCredential) break;
+            if (nullptr != pCredential) break;
         }
-        if (NULL == pCredential) OT_FAIL;
+        if (nullptr == pCredential) OT_FAIL;
 
         return pCredential->GetPublicSignKey(&m_listRevokedIDs); // success
     }
@@ -6570,7 +6574,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 
     //  else // Deprecated.
     {
-        OT_ASSERT(NULL != m_pkeypair);
+        OT_ASSERT(nullptr != m_pkeypair);
 
         return m_pkeypair->GetPublicKey();
     }
@@ -6578,7 +6582,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 
 // This is being called by:
 // OTContract::VerifySignature(const OTPseudonym & theNym, const OTSignature &
-// theSignature, OTPasswordData * pPWData=NULL)
+// theSignature, OTPasswordData * pPWData=nullptr)
 //
 // Note: Need to change OTContract::VerifySignature so that it checks all of
 // these keys when verifying.
@@ -6592,7 +6596,7 @@ int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                                               const OTSignature& theSignature,
                                               char cKeyType) const
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     // Unfortunately, theSignature can only narrow the search down (there may be
     // multiple results.)
@@ -6600,7 +6604,7 @@ int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
 
     for (const auto& it : m_mapCredentials) {
         const OTCredential* pCredential = it.second;
-        OT_ASSERT(NULL != pCredential);
+        OT_ASSERT(nullptr != pCredential);
 
         const int32_t nTempCount = pCredential->GetPublicKeysBySignature(
             listOutput, theSignature, cKeyType);
@@ -6639,7 +6643,7 @@ OTPseudonym::OTPseudonym()
     , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     Initialize();
 }
@@ -6655,7 +6659,7 @@ OTPseudonym::OTPseudonym(const OTString& name, const OTString& filename,
     , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     Initialize();
 
@@ -6670,7 +6674,7 @@ OTPseudonym::OTPseudonym(const OTIdentifier& nymID)
     , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     Initialize();
 
@@ -6682,7 +6686,7 @@ OTPseudonym::OTPseudonym(const OTString& strNymID)
     , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)
 {
-    OT_ASSERT(NULL != m_pkeypair);
+    OT_ASSERT(nullptr != m_pkeypair);
 
     Initialize();
 
@@ -6697,14 +6701,14 @@ void OTPseudonym::ClearCredentials()
         OTCredential* pCredential = m_mapCredentials.begin()->second;
         m_mapCredentials.erase(m_mapCredentials.begin());
         delete pCredential;
-        pCredential = NULL;
+        pCredential = nullptr;
     }
 
     while (!m_mapRevoked.empty()) {
         OTCredential* pCredential = m_mapRevoked.begin()->second;
         m_mapRevoked.erase(m_mapRevoked.begin());
         delete pCredential;
-        pCredential = NULL;
+        pCredential = nullptr;
     }
 }
 
@@ -6749,9 +6753,9 @@ OTPseudonym::~OTPseudonym()
     ClearAll();
     ClearCredentials();
 
-    if (NULL != m_pkeypair) delete m_pkeypair; // todo: else error
+    if (nullptr != m_pkeypair) delete m_pkeypair; // todo: else error
 
-    m_pkeypair = NULL;
+    m_pkeypair = nullptr;
 }
 
 } // namespace opentxs

@@ -254,8 +254,8 @@ public:
     virtual void Release();
     void Release_Mint();
     void ReleaseDenominations();
-    EXPORT bool LoadMint(const char* szAppend = NULL);
-    EXPORT bool SaveMint(const char* szAppend = NULL);
+    EXPORT bool LoadMint(const char* szAppend = nullptr);
+    EXPORT bool SaveMint(const char* szAppend = nullptr);
 
     virtual bool LoadContract();
 

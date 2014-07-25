@@ -162,7 +162,7 @@ class OTPseudonym;
  X 2) Creation date.
  X 3) INTEGER: Number of trades that have processed through this order.
 
- X 8) STOP ORDER — SIGN (NULL if not a stop order — otherwise GREATER THAN or
+ X 8) STOP ORDER — SIGN (nullptr if not a stop order — otherwise GREATER THAN or
  LESS THAN…)
  X 9) STOP ORDER — PRICE (…AT X PRICE, POST THE OFFER TO THE MARKET.)
 

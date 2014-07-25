@@ -161,15 +161,15 @@ public:
         m_pCharge = &theTarget;
     }
 
-    // Use this when you want it to work even if pTarget is NULL.
-    // (Like, it will accept the NULL pointer, and just be smart
-    // enough NOT to delete it, since it's already NULL.)
+    // Use this when you want it to work even if pTarget is nullptr.
+    // (Like, it will accept the nullptr pointer, and just be smart
+    // enough NOT to delete it, since it's already nullptr.)
     inline void SetCleanupTargetPointer(const T* pTarget)
     {
         m_pCharge = pTarget;
     }
 
-    OTCleanup() : m_pCharge(NULL)
+    OTCleanup() : m_pCharge(nullptr)
     {
     }
     OTCleanup(const T& theTarget) : m_pCharge(&theTarget)
@@ -182,7 +182,7 @@ public:
     ~OTCleanup()
     {
         if (m_pCharge) delete const_cast<T*>(m_pCharge);
-        m_pCharge = NULL;
+        m_pCharge = nullptr;
     }
 };
 

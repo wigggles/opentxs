@@ -160,18 +160,18 @@ bool OTAgreement::SendNoticeToAllParties(
 
     OTPseudonym theRecipientNym; // Don't use this... use the pointer just
                                  // below.
-    OTPseudonym* pRecipient = NULL;
+    OTPseudonym* pRecipient = nullptr;
 
     if (theServerNym.CompareID(GetRecipientUserID())) {
         pRecipient = &theServerNym; // Just in case the recipient Nym is also
                                     // the server Nym.
     }
-    else if ((NULL != pActualNym) &&
+    else if ((nullptr != pActualNym) &&
                pActualNym->CompareID(GetRecipientUserID())) {
         pRecipient = pActualNym;
     }
 
-    if (NULL == pRecipient) {
+    if (nullptr == pRecipient) {
         const OTIdentifier NYM_ID(GetRecipientUserID());
         theRecipientNym.SetIdentifier(NYM_ID);
 
@@ -201,18 +201,18 @@ bool OTAgreement::SendNoticeToAllParties(
     // a pointer to him (pRecipient.)
 
     OTPseudonym theSenderNym; // Don't use this... use the pointer just below.
-    OTPseudonym* pSender = NULL;
+    OTPseudonym* pSender = nullptr;
 
     if (theServerNym.CompareID(GetSenderUserID())) {
         pSender = &theServerNym; // Just in case the Sender Nym is also the
                                  // server Nym.
     }
-    else if ((NULL != pActualNym) &&
+    else if ((nullptr != pActualNym) &&
                pActualNym->CompareID(GetSenderUserID())) {
         pSender = pActualNym;
     }
 
-    if (NULL == pSender) {
+    if (nullptr == pSender) {
         const OTIdentifier NYM_ID(GetSenderUserID());
         theSenderNym.SetIdentifier(NYM_ID);
 
@@ -298,8 +298,9 @@ bool OTAgreement::DropServerNoticeToNymbox(
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
         theLedger, OTTransaction::notice, lNewTransactionNumber);
 
-    if (NULL != pTransaction) // The above has an OT_ASSERT within, but I just
-                              // like to check my pointers.
+    if (nullptr !=
+        pTransaction) // The above has an OT_ASSERT within, but I just
+                      // like to check my pointers.
     {
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
@@ -310,9 +311,9 @@ bool OTAgreement::DropServerNoticeToNymbox(
         //
         OTItem* pItem1 =
             OTItem::CreateItemFromTransaction(*pTransaction, OTItem::notice);
-        OT_ASSERT(NULL != pItem1); // This may be unnecessary, I'll have to
-                                   // check CreateItemFromTransaction. I'll
-                                   // leave it for now.
+        OT_ASSERT(nullptr != pItem1); // This may be unnecessary, I'll have to
+                                      // check CreateItemFromTransaction. I'll
+                                      // leave it for now.
 
         pItem1->SetStatus(
             bSuccessMsg ? OTItem::acknowledgement
@@ -339,14 +340,14 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // The notice ITEM's NOTE probably contains the UPDATED SCRIPTABLE
         // (usually a CRON ITEM. But maybe soon: Entity.)
-        if (NULL != pstrNote) {
+        if (nullptr != pstrNote) {
             pItem1->SetNote(*pstrNote); // in markets, this is updated trade.
         }
 
         // Nothing is special stored here so far for OTTransaction::notice, but
         // the option is always there.
         //
-        if (NULL != pstrAttachment) {
+        if (nullptr != pstrAttachment) {
             pItem1->SetAttachment(*pstrAttachment);
         }
 
@@ -394,7 +395,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // load
         // it ourselves (so we can update its NymboxHash value.)
 
-        if (NULL == pActualNym) {
+        if (nullptr == pActualNym) {
             if (theServerNym.CompareID(ACTUAL_NYM_ID))
                 pActualNym = &theServerNym;
 
@@ -441,7 +442,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // loaded,
         // so that we can update his NymboxHash appropriately.
         //
-        if (NULL != pActualNym) {
+        if (nullptr != pActualNym) {
             pActualNym->SetNymboxHashServerSide(theNymboxHash);
             pActualNym->SaveSignedNymfile(theServerNym);
         }
@@ -532,10 +533,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 {
 
     OTCron* pCron = GetCron();
-    OT_ASSERT(NULL != pCron);
+    OT_ASSERT(nullptr != pCron);
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(NULL != pServerNym);
+    OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTAgreement::onFinalReceipt";
 
@@ -553,28 +554,28 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     // The Nym who is actively requesting to remove a cron item will be passed
     // in as pRemover.
     // However, sometimes there is no Nym... perhaps it just expired and
-    // pRemover is NULL.
+    // pRemover is nullptr.
     // The originating Nym (if different than remover) is loaded up. Otherwise
     // the originator
     // pointer just pointers to *pRemover.
     //
-    OTPseudonym* pRecipient = NULL;
+    OTPseudonym* pRecipient = nullptr;
 
     if (pServerNym->CompareID(GetRecipientUserID())) {
         pRecipient = pServerNym; // Just in case the recipient Nym is also the
                                  // server Nym.
     }
     //
-    // If pRemover is NOT NULL, and he has the Recipient's ID...
+    // If pRemover is NOT nullptr, and he has the Recipient's ID...
     // then set the pointer accordingly.
     //
-    else if ((NULL != pRemover) &&
+    else if ((nullptr != pRemover) &&
              (true == pRemover->CompareID(GetRecipientUserID()))) {
         pRecipient = pRemover; // <======== now both pointers are set (to same
                                // Nym). DONE!
     }
 
-    if (NULL == pRecipient) {
+    if (nullptr == pRecipient) {
         // GetSenderUserID() should be the same on THIS (updated version of the
         // same cron item)
         // but for whatever reason, I'm checking the userID on the original
@@ -627,7 +628,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const OTString strServerID(GetServerID());
 
-    OTPseudonym* pActualNym = NULL; // use this. DON'T use theActualNym.
+    OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
 
@@ -658,11 +659,11 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
 
-        if ((NULL != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
+        if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;
         else if (theOriginator.CompareID(ACTUAL_NYM_ID))
             pActualNym = &theOriginator;
-        else if ((NULL != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
+        else if ((nullptr != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID))
             pActualNym = pRemover;
 
         else // We couldn't find the Nym among those already loaded--so we have
@@ -704,9 +705,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (false == DropFinalReceiptToNymbox(
-                         GetSenderUserID(), lNewTransactionNumber,
-                         strOrigCronItem, NULL, pstrAttachment, pActualNym)) {
+        if (false == DropFinalReceiptToNymbox(GetSenderUserID(),
+                                              lNewTransactionNumber,
+                                              strOrigCronItem, nullptr,
+                                              pstrAttachment, pActualNym)) {
             otErr << szFunc
                   << ": Failure dropping sender final receipt into nymbox.\n";
         }
@@ -717,7 +719,8 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     if ((lSenderClosingNumber > 0) &&
         theOriginator.VerifyIssuedNum(strServerID, lSenderClosingNumber)) {
-        // In this case, I'm passing NULL for pstrNote, since there is no note.
+        // In this case, I'm passing nullptr for pstrNote, since there is no
+        // note.
         // (Additional information would normally be stored in the note.)
         //
         if (false ==
@@ -725,8 +728,9 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                 GetSenderUserID(), GetSenderAcctID(), lNewTransactionNumber,
                 lSenderClosingNumber, // The closing transaction number to put
                                       // on the receipt.
-                strOrigCronItem, NULL,
-                pstrAttachment)) // pActualAcct=NULL by default. (This call will
+                strOrigCronItem, nullptr,
+                pstrAttachment)) // pActualAcct=nullptr by default. (This call
+                                 // will
                                  // load it up and update its inbox hash.)
             otErr << szFunc
                   << ": Failure dropping receipt into sender's inbox.\n";
@@ -746,7 +750,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     }
 
     //
-    if ((NULL != pRecipient) && (lRecipientOpeningNumber > 0) &&
+    if ((nullptr != pRecipient) && (lRecipientOpeningNumber > 0) &&
         pRecipient->VerifyIssuedNum(strServerID, lRecipientOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
@@ -773,7 +777,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         if (false ==
             DropFinalReceiptToNymbox(
                 GetRecipientUserID(), lNewTransactionNumber, strOrigCronItem,
-                NULL, pstrAttachment,
+                nullptr, pstrAttachment,
                 pRecipient)) // NymboxHash is updated here in pRecipient.
         {
             otErr
@@ -802,7 +806,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     }
 
     //
-    if ((NULL != pRecipient) && (lRecipientClosingNumber > 0) &&
+    if ((nullptr != pRecipient) && (lRecipientClosingNumber > 0) &&
         pRecipient->VerifyIssuedNum(strServerID, lRecipientClosingNumber)) {
         if (false == DropFinalReceiptToInbox(
                          GetRecipientUserID(), GetRecipientAcctID(),
@@ -810,7 +814,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                          lRecipientClosingNumber, // The closing transaction
                                                   // number to put on the
                                                   // receipt.
-                         strOrigCronItem, NULL, pstrAttachment))
+                         strOrigCronItem, nullptr, pstrAttachment))
             otErr << szFunc
                   << ": Failure dropping receipt into recipient's inbox.\n";
 
@@ -1285,13 +1289,13 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
                                  "Nym ID (not allowed.)\n";
         return false;
     }
-    else if ((NULL != p_id_MERCHANT_NYM) &&
+    else if ((nullptr != p_id_MERCHANT_NYM) &&
                (GetRecipientUserID() != *p_id_MERCHANT_NYM)) {
         otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
                                  "as RecipientUserID.)\n";
         return false;
     }
-    else if ((NULL != pMERCHANT_NYM) &&
+    else if ((nullptr != pMERCHANT_NYM) &&
                (GetRecipientUserID() != pMERCHANT_NYM->GetConstID())) {
         otOut << __FUNCTION__ << ": Merchant has wrong NymID (should be same "
                                  "as RecipientUserID.)\n";
@@ -1318,7 +1322,8 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     // This is the single reason why MERCHANT_NYM was even passed in here!
     // Supposedly merchant has already signed.  Let's verify this!!
     //
-    if ((NULL != pMERCHANT_NYM) && (false == VerifySignature(*pMERCHANT_NYM))) {
+    if ((nullptr != pMERCHANT_NYM) &&
+        (false == VerifySignature(*pMERCHANT_NYM))) {
         otOut << __FUNCTION__ << ": Merchant's signature failed to verify.\n";
         return false;
     }

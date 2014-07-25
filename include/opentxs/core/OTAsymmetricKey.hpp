@@ -213,7 +213,7 @@ public:                                           // PASSWORD CALLBACK
     EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
     static bool IsPasswordCallbackSet()
     {
-        return (NULL == s_pwCallback) ? false : true;
+        return (nullptr == s_pwCallback) ? false : true;
     }
     static bool SetPasswordCaller(OTCaller& theCaller);
     static OTCaller* GetPasswordCaller();
@@ -232,7 +232,7 @@ protected:                    // PROTECTED MEMBER DATA
                    // passphrase...
 public:
     OTSignatureMetadata* m_pMetadata; // Just access this directly, like a
-                                      // struct. (Check for NULL.)
+                                      // struct. (Check for nullptr.)
 
     // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
     // can see
@@ -277,7 +277,7 @@ public: // DESTRUCTION
     // PUBLIC METHODS
     inline bool IsEmpty() const
     {
-        return (NULL == m_p_ascKey);
+        return (nullptr == m_p_ascKey);
     } // m_p_ascKey is the most basic value. m_pKey is derived from it, for
       // example.
     inline bool IsPublic() const
@@ -369,8 +369,8 @@ public: // DESTRUCTION
     //
     bool LoadPrivateKey(const OTString& strFoldername,
                         const OTString& strFilename,
-                        const OTString* pstrReason = NULL,
-                        OTPassword* pImportPassword = NULL);
+                        const OTString* pstrReason = nullptr,
+                        OTPassword* pImportPassword = nullptr);
     bool LoadPublicKey(const OTString& strFoldername,
                        const OTString& strFilename);
 
@@ -383,27 +383,27 @@ public: // DESTRUCTION
     //
     virtual bool LoadPrivateKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = NULL,
-        OTPassword* pImportPassword = NULL) = 0; // Used when importing an
-                                                 // exported Nym into a wallet.
+        const OTString* pstrReason = nullptr,
+        OTPassword* pImportPassword = nullptr) = 0; // Used when importing an
+    // exported Nym into a wallet.
     // Load Public Key from Cert (file or string)
     //
     virtual bool LoadPublicKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = NULL,
-        OTPassword* pImportPassword = NULL) = 0; // DOES handle bookends, AND
-                                                 // escapes.
+        const OTString* pstrReason = nullptr,
+        OTPassword* pImportPassword = nullptr) = 0; // DOES handle bookends, AND
+                                                    // escapes.
     bool LoadPublicKeyFromCertFile(const OTString& strFoldername,
                                    const OTString& strFilename,
-                                   const OTString* pstrReason = NULL,
+                                   const OTString* pstrReason = nullptr,
                                    OTPassword* pImportPassword =
-                                       NULL); // DOES handle bookends.
+                                       nullptr); // DOES handle bookends.
     virtual bool SaveCertToString(OTString& strOutput,
-                                  const OTString* pstrReason = NULL,
-                                  OTPassword* pImportPassword = NULL) = 0;
-    virtual bool SavePrivateKeyToString(OTString& strOutput,
-                                        const OTString* pstrReason = NULL,
-                                        OTPassword* pImportPassword = NULL) = 0;
+                                  const OTString* pstrReason = nullptr,
+                                  OTPassword* pImportPassword = nullptr) = 0;
+    virtual bool SavePrivateKeyToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        OTPassword* pImportPassword = nullptr) = 0;
     virtual bool ReEncryptPrivateKey(OTPassword& theExportPassword,
                                      bool bImporting) = 0;
     // PUBLIC KEY

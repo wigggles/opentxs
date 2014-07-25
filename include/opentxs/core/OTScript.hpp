@@ -238,7 +238,7 @@ public:
     // a script, since the necessary ones are already present inside their
     // respective parties.
 
-    virtual bool ExecuteScript(OTVariable* pReturnVar = NULL);
+    virtual bool ExecuteScript(OTVariable* pReturnVar = nullptr);
 };
 
 EXPORT std::shared_ptr<OTScript> OTScriptFactory(

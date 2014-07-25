@@ -187,8 +187,8 @@ OTSocket::Mutex::Mutex() : m_pMutex(new tthread::mutex)
 
 OTSocket::Mutex::~Mutex()
 {
-    if (NULL != m_pMutex) delete m_pMutex;
-    m_pMutex = NULL;
+    if (nullptr != m_pMutex) delete m_pMutex;
+    m_pMutex = nullptr;
 }
 
 tthread::mutex* OTSocket::Mutex::Get()
@@ -226,7 +226,7 @@ bool OTSocket::Init(const Defaults& defaults, OTSettings* pSettings)
     if (m_bConnected) return false;
     if (m_bListening) return false;
 
-    if (NULL == pSettings) {
+    if (nullptr == pSettings) {
         OT_FAIL;
     }
 

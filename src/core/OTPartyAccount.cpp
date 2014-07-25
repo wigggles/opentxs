@@ -151,8 +151,8 @@ namespace opentxs
 {
 
 OTPartyAccount::OTPartyAccount()
-    : m_pForParty(NULL)
-    , m_pAccount(NULL)
+    : m_pForParty(nullptr)
+    , m_pAccount(nullptr)
     , m_lClosingTransNo(0)
 {
 }
@@ -164,7 +164,7 @@ OTPartyAccount::OTPartyAccount()
 OTPartyAccount::OTPartyAccount(const std::string str_account_name,
                                const OTString& strAgentName,
                                OTAccount& theAccount, int64_t lClosingTransNo)
-    : m_pForParty(NULL)
+    : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
     m_pAccount(&theAccount)
     , m_lClosingTransNo(lClosingTransNo)
@@ -180,9 +180,9 @@ OTPartyAccount::OTPartyAccount(const OTString& strName,
                                const OTString& strAcctID,
                                const OTString& strAssetTypeID,
                                int64_t lClosingTransNo)
-    : m_pForParty(NULL)
+    : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
-    m_pAccount(NULL)
+    m_pAccount(nullptr)
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(strName)
     , m_strAcctID(strAcctID)
@@ -197,12 +197,12 @@ OTPartyAccount::OTPartyAccount(const OTString& strName,
 //
 OTAgent* OTPartyAccount::GetAuthorizedAgent()
 {
-    OT_ASSERT(NULL != m_pForParty);
+    OT_ASSERT(nullptr != m_pForParty);
 
     if (!m_strAgentName.Exists()) {
         otErr << "OTPartyAccount::GetAuthorizedAgent: Error: Authorized agent "
                  "name (for this account) is blank!\n";
-        return NULL;
+        return nullptr;
     }
 
     const std::string str_agent_name = m_strAgentName.Get();
@@ -223,8 +223,8 @@ OTPartyAccount::~OTPartyAccount()
 {
     // m_pForParty and m_pAccount NOT cleaned up here. pointer is only for
     // convenience.
-    m_pForParty = NULL;
-    m_pAccount = NULL;
+    m_pForParty = nullptr;
+    m_pAccount = nullptr;
 }
 
 bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
@@ -298,13 +298,13 @@ bool OTPartyAccount::VerifyOwnership() const
     //    OTParty        * m_pForParty;
     //    OTAccount    * m_pAccount;
 
-    if (NULL == m_pForParty) {
-        otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to "
+    if (nullptr == m_pForParty) {
+        otErr << "OTPartyAccount::VerifyOwnership: Error: nullptr pointer to "
                  "owner party. \n";
         return false;
     }
-    if (NULL == m_pAccount) {
-        otErr << "OTPartyAccount::VerifyOwnership: Error: NULL pointer to "
+    if (nullptr == m_pAccount) {
+        otErr << "OTPartyAccount::VerifyOwnership: Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
@@ -323,8 +323,8 @@ bool OTPartyAccount::VerifyOwnership() const
 // I will ask him to verify whether he actually has agency over it.
 bool OTPartyAccount::VerifyAgency()
 {
-    if (NULL == m_pAccount) {
-        otErr << "OTPartyAccount::VerifyAgency: Error: NULL pointer to "
+    if (nullptr == m_pAccount) {
+        otErr << "OTPartyAccount::VerifyAgency: Error: nullptr pointer to "
                  "account. (This function expects account to already be "
                  "loaded.) \n";
         return false;
@@ -332,7 +332,7 @@ bool OTPartyAccount::VerifyAgency()
 
     OTAgent* pAgent = GetAuthorizedAgent();
 
-    if (NULL == pAgent) {
+    if (nullptr == pAgent) {
         otOut
             << "OTPartyAccount::VerifyAgency: Unable to find authorized agent ("
             << GetAgentName() << ") for this account: " << GetName() << " \n";
@@ -357,8 +357,8 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 {
     const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 
-    if (NULL == m_pForParty) {
-        otErr << szFunc << ": NULL m_pForParty.\n";
+    if (nullptr == m_pForParty) {
+        otErr << szFunc << ": nullptr m_pForParty.\n";
         return false;
     }
     else if (!m_strAcctID.Exists()) {
@@ -377,7 +377,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 
     OTAgent* pAgent = m_pForParty->GetAgent(str_agent_name);
 
-    if (NULL == pAgent)
+    if (nullptr == pAgent)
         otErr << szFunc << ": named agent wasn't found on party.\n";
     else {
         const OTIdentifier theAccountID(m_strAcctID);
@@ -404,7 +404,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
     if (!m_strAcctID.Exists()) {
         otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
                  "account: " << m_strName << " \n";
-        return NULL;
+        return nullptr;
     }
 
     const OTIdentifier theAcctID(m_strAcctID), theServerID(strServerID);
@@ -412,10 +412,10 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
     OTAccount* pAccount =
         OTAccount::LoadExistingAccount(theAcctID, theServerID);
 
-    if (NULL == pAccount) {
+    if (nullptr == pAccount) {
         otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: "
               << m_strName << ", with AcctID: " << m_strAcctID << " \n";
-        return NULL;
+        return nullptr;
     }
     // BELOW THIS POINT, You must delete pAccount if you don't return it!!
     //
@@ -424,7 +424,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
             << "OTPartyAccount::LoadAccount: Failed trying to verify account: "
             << m_strName << ", with AcctID: " << m_strAcctID << " \n";
         delete pAccount;
-        return NULL;
+        return nullptr;
     }
 
     // This compares asset type ID, AND account ID on the actual loaded account,
@@ -434,7 +434,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
     {
         // IsAccount has plenty of logging already.
         delete pAccount;
-        return NULL;
+        return nullptr;
     }
     // BELOW THIS POINT, pAccount is loaded and validated, in-and-of-itself, and
     // against the PartyAcct.

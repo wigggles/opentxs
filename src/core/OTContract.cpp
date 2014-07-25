@@ -229,11 +229,11 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
 
     if (bProcessed) {
 
-        OTContract* pContract = NULL;
+        OTContract* pContract = nullptr;
 
         //      if (strFirstLine.Contains("-----BEGIN SIGNED AGREEMENT-----"))
         // // this string is 32 chars long.
-        //      {    pContract = new OTAgreement();        OT_ASSERT(NULL !=
+        //      {    pContract = new OTAgreement();        OT_ASSERT(nullptr !=
         // pContract); }
 
         if (strFirstLine.Contains(
@@ -241,7 +241,7 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
                                                          // chars long.
         {
             pContract = new OTSmartContract();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
 
         if (strFirstLine.Contains(
@@ -249,55 +249,55 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
                                                         // chars long.
         {
             pContract = new OTPaymentPlan();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRADE-----")) // this string is 28
                                                         // chars long.
         {
             pContract = new OTTrade();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
             pContract = new OTOffer();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
             pContract = new OTCheque();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
             pContract = new OTCheque();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
             pContract = new OTCheque();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
             pContract = new OTMessage();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
             pContract = OTMint::MintFactory();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
             pContract = new OTSignedFile();
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
             pContract = OTToken::LowLevelInstantiate(strFirstLine);
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
             pContract = OTToken::LowLevelInstantiate(strFirstLine);
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
             pContract = OTToken::LowLevelInstantiate(strFirstLine);
-            OT_ASSERT(NULL != pContract);
+            OT_ASSERT(nullptr != pContract);
         }
 
         // The Purse object requires the asset type ID in order to be
@@ -305,7 +305,7 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
         // I may remove this requirement (if possible) or not.
         //
         //      else if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))
-        //      {    pContract = new OTPurse();            OT_ASSERT(NULL !=
+        //      {    pContract = new OTPurse();            OT_ASSERT(nullptr !=
         // pContract); }
 
         // THESE OBJECTS REQUIRE YOU TO KNOW THE SERVER ID, USER ID, AND ACCT
@@ -317,20 +317,20 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
         //
         //      else if (strFirstLine.Contains("-----BEGIN SIGNED
         // ACCOUNT-----"))
-        //      {    pContract = new OTAccount();        OT_ASSERT(NULL !=
+        //      {    pContract = new OTAccount();        OT_ASSERT(nullptr !=
         // pContract); }
         //      else if (strFirstLine.Contains("-----BEGIN SIGNED LEDGER-----"))
-        //      {    pContract = new OTLedger();            OT_ASSERT(NULL !=
+        //      {    pContract = new OTLedger();            OT_ASSERT(nullptr !=
         // pContract); }
         //
         //      else if (strFirstLine.Contains("-----BEGIN SIGNED
         // TRANSACTION-----"))
-        //      {    pContract = new OTTransaction();    OT_ASSERT(NULL !=
+        //      {    pContract = new OTTransaction();    OT_ASSERT(nullptr !=
         // pContract); }
         //
         //      else if (strFirstLine.Contains("-----BEGIN SIGNED TRANSACTION
         // ITEM-----"))
-        //      {    pContract = new OTItem();            OT_ASSERT(NULL !=
+        //      {    pContract = new OTItem();            OT_ASSERT(nullptr !=
         // pContract); }
         //
 
@@ -341,18 +341,18 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
             if (strContract.Contains(
                     "<notaryProviderContract version=\"1.0\">")) {
                 pContract = new OTServerContract();
-                OT_ASSERT(NULL != pContract);
+                OT_ASSERT(nullptr != pContract);
             }
             else if (strContract.Contains(
                            "<digitalAssetContract version=\"1.0\">")) {
                 pContract = new OTAssetContract();
-                OT_ASSERT(NULL != pContract);
+                OT_ASSERT(nullptr != pContract);
             }
         }
 
         // The string didn't match any of the options in the factory.
         //
-        if (NULL == pContract)
+        if (nullptr == pContract)
             otOut << __FUNCTION__
                   << ": Object type not yet supported by class factory: "
                   << strFirstLine << "\n";
@@ -362,12 +362,12 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
                   << ": Failed loading contract from string (first line): "
                   << strFirstLine << "\n";
             delete pContract;
-            pContract = NULL;
+            pContract = nullptr;
         }
         else
             return pContract;
     }
-    return NULL;
+    return nullptr;
 }
 
 OTContract::OTContract()
@@ -437,9 +437,9 @@ void OTContract::Release_Contract()
     // Go through the existing list of nyms at this point, and delete them all.
     while (!m_mapNyms.empty()) {
         OTPseudonym* pNym = m_mapNyms.begin()->second;
-        OT_ASSERT(NULL != pNym);
+        OT_ASSERT(nullptr != pNym);
         delete pNym;
-        pNym = NULL;
+        pNym = nullptr;
         m_mapNyms.erase(m_mapNyms.begin());
     }
 }
@@ -505,7 +505,7 @@ bool OTContract::VerifyContract()
     // this contract.
     const OTPseudonym* pNym = GetContractPublicNym();
 
-    if (NULL == pNym) {
+    if (nullptr == pNym) {
         otOut << __FUNCTION__
               << ": Failed retrieving public nym from contract.\n";
         return false;
@@ -579,8 +579,8 @@ const OTPseudonym* OTContract::GetContractPublicNym()
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
-            NULL != pNym,
-            "NULL pseudonym pointer in OTContract::GetContractPublicNym.\n");
+            nullptr != pNym,
+            "nullptr pseudonym pointer in OTContract::GetContractPublicNym.\n");
 
         // We favor the new "credential" system over the old "public key"
         // system.
@@ -600,18 +600,18 @@ const OTPseudonym* OTContract::GetContractPublicNym()
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // If there is a public key I can find for this contract, then
-// I will return it here -- or NULL.
+// I will return it here -- or nullptr.
 const OTAsymmetricKey* OTContract::GetContractPublicKey()
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG(
-            NULL != pNym,
-            "NULL pseudonym pointer in OTContract::GetContractPublicKey.\n");
+            nullptr != pNym,
+            "nullptr pseudonym pointer in OTContract::GetContractPublicKey.\n");
 
         // We favor the new "credential" system over the old "public key"
         // system.
@@ -637,7 +637,7 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey()
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // This is the one that you will most likely want to call.
@@ -650,7 +650,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
-        NULL != pSig,
+        nullptr != pSig,
         "OTContract::SignContract: Error allocating memory for Signature.\n");
 
     bool bSigned = SignContract(theNym, *pSig, pPWData);
@@ -661,7 +661,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
         otErr << __FUNCTION__ << ": Failure while calling "
                                  "SignContract(theNym, *pSig, pPWData)\n";
         delete pSig;
-        pSig = NULL;
+        pSig = nullptr;
     }
 
     return bSigned;
@@ -673,8 +673,8 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                                      OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
-    OT_ASSERT_MSG(NULL != pSig, "OTContract::SignContractAuthent: Error "
-                                "allocating memory for Signature.\n");
+    OT_ASSERT_MSG(nullptr != pSig, "OTContract::SignContractAuthent: Error "
+                                   "allocating memory for Signature.\n");
 
     bool bSigned = SignContractAuthent(theNym, *pSig, pPWData);
 
@@ -685,7 +685,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                                  "SignContractAuthent(theNym, *pSig, "
                                  "pPWData)\n";
         delete pSig;
-        pSig = NULL;
+        pSig = nullptr;
     }
 
     return bSigned;
@@ -727,7 +727,7 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
-        NULL != pSig,
+        nullptr != pSig,
         "OTContract::SignWithKey: Error allocating memory for Signature.\n");
 
     bool bSigned = SignContract(theKey, *pSig, m_strSigHashType, pPWData);
@@ -738,7 +738,7 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
         otErr << __FUNCTION__
               << ": Failure while calling SignContract(theNym, *pSig).\n";
         delete pSig;
-        pSig = NULL;
+        pSig = nullptr;
     }
 
     return bSigned;
@@ -813,7 +813,7 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
     //
-    if (NULL != theKey.m_pMetadata) {
+    if (nullptr != theKey.m_pMetadata) {
         theSignature.getMetaData() = *(theKey.m_pMetadata);
     }
 
@@ -849,8 +849,8 @@ bool OTContract::SignContract(const char* szFoldername,
                               OTSignature& theSignature, // output
                               OTPasswordData* pPWData)
 {
-    OT_ASSERT(NULL != szFoldername);
-    OT_ASSERT(NULL != szFilename);
+    OT_ASSERT(nullptr != szFoldername);
+    OT_ASSERT(nullptr != szFilename);
 
     const char* szFunc = "OTContract::SignContract";
 
@@ -871,7 +871,7 @@ bool OTContract::SignContract(const char* szFoldername,
 
     OTPasswordData thePWData(
         "(OTContract::SignContract is trying to read the private key...)");
-    if (NULL == pPWData) pPWData = &thePWData;
+    if (nullptr == pPWData) pPWData = &thePWData;
 
     // Update the contents, (not always necessary, many contracts are read-only)
     // This is where we provide an overridable function for the child classes
@@ -906,10 +906,10 @@ bool OTContract::VerifySignature(const char* szFoldername,
                                                                 // in/out
 {
     OT_ASSERT_MSG(
-        NULL != szFoldername,
+        nullptr != szFoldername,
         "Null foldername pointer passed to OTContract::VerifySignature");
     OT_ASSERT_MSG(
-        NULL != szFilename,
+        nullptr != szFilename,
         "Null filename pointer passed to OTContract::VerifySignature");
 
     const char* szFunc = __FUNCTION__;
@@ -934,7 +934,7 @@ bool OTContract::VerifySignature(const char* szFoldername,
     }
 
     OTPasswordData thePWData("Reading the public key...");
-    if (NULL == pPWData) pPWData = &thePWData;
+    if (nullptr == pPWData) pPWData = &thePWData;
 
     if (false == OTCrypto::It()->VerifySignature(
                      m_xmlUnsigned, m_strSigHashType, strCertFileContents,
@@ -959,7 +959,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
-        OT_ASSERT(NULL != pSig);
+        OT_ASSERT(nullptr != pSig);
 
         if (bNymID && pSig->getMetaData().HasMetadata()) {
             // If the signature has metadata, then it knows the first character
@@ -989,7 +989,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
-        OT_ASSERT(NULL != pSig);
+        OT_ASSERT(nullptr != pSig);
 
         if (bNymID && pSig->getMetaData().HasMetadata()) {
             // If the signature has metadata, then it knows the first character
@@ -1013,7 +1013,7 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
-        OT_ASSERT(NULL != pSig);
+        OT_ASSERT(nullptr != pSig);
 
         if (theKey.m_pMetadata && theKey.m_pMetadata->HasMetadata() &&
             pSig->getMetaData().HasMetadata()) {
@@ -1025,7 +1025,7 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
 
         OTPasswordData thePWData("OTContract::VerifyWithKey");
         if (VerifySignature(theKey, *pSig, m_strSigHashType,
-                            (NULL != pPWData) ? pPWData : &thePWData))
+                            (nullptr != pPWData) ? pPWData : &thePWData))
             return true;
     }
 
@@ -1053,10 +1053,10 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
     {
         for (auto& it : listOutput) {
             OTAsymmetricKey* pKey = it;
-            OT_ASSERT(NULL != pKey);
+            OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(*pKey, theSignature, m_strSigHashType,
-                                (NULL != pPWData) ? pPWData : &thePWData))
+                                (nullptr != pPWData) ? pPWData : &thePWData))
                 return true;
         }
     }
@@ -1074,7 +1074,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 
     return VerifySignature(theNym.GetPublicAuthKey(), theSignature,
                            m_strSigHashType,
-                           (NULL != pPWData) ? pPWData : &thePWData);
+                           (nullptr != pPWData) ? pPWData : &thePWData);
 }
 
 // The only different between calling this with a Nym and calling it with an
@@ -1098,10 +1098,10 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
     {
         for (auto& it : listOutput) {
             OTAsymmetricKey* pKey = it;
-            OT_ASSERT(NULL != pKey);
+            OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(*pKey, theSignature, m_strSigHashType,
-                                (NULL != pPWData) ? pPWData : &thePWData))
+                                (nullptr != pPWData) ? pPWData : &thePWData))
                 return true;
         }
     }
@@ -1119,7 +1119,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 
     return VerifySignature(theNym.GetPublicSignKey(), theSignature,
                            m_strSigHashType,
-                           (NULL != pPWData) ? pPWData : &thePWData);
+                           (nullptr != pPWData) ? pPWData : &thePWData);
 }
 
 bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
@@ -1130,7 +1130,7 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)
     //
-    if ((NULL != theKey.m_pMetadata) && theKey.m_pMetadata->HasMetadata() &&
+    if ((nullptr != theKey.m_pMetadata) && theKey.m_pMetadata->HasMetadata() &&
         theSignature.getMetaData().HasMetadata()) {
         if (theSignature.getMetaData() != *(theKey.m_pMetadata)) return false;
     }
@@ -1139,7 +1139,7 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
 
     if (false == OTCrypto::It()->VerifySignature(
                      m_xmlUnsigned, theKey, theSignature, strHashType,
-                     (NULL != pPWData) ? pPWData : &thePWData)) {
+                     (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
                << ": OTCrypto::It()->VerifySignature returned false.\n";
         return false;
@@ -1150,13 +1150,13 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
 
 void OTContract::ReleaseSignatures()
 {
-    OTSignature* pSig = NULL;
+    OTSignature* pSig = nullptr;
 
     while (!m_listSignatures.empty()) {
         pSig = m_listSignatures.front();
         m_listSignatures.pop_front();
         delete pSig;
-        pSig = NULL;
+        pSig = nullptr;
     }
 }
 
@@ -1322,7 +1322,7 @@ bool OTContract::AddBookendsAroundContent(
 
     for (const auto& it : listSignatures) {
         OTSignature* pSig = it;
-        OT_ASSERT(NULL != pSig);
+        OT_ASSERT(nullptr != pSig);
 
         strTemp.Concatenate("-----BEGIN %s SIGNATURE-----\n"
                             "Version: Open Transactions %s\n"
@@ -1368,9 +1368,9 @@ bool OTContract::RewriteContract(OTString& strOutput) const
 
 bool OTContract::SaveContract(const char* szFoldername, const char* szFilename)
 {
-    OT_ASSERT_MSG(NULL != szFilename,
+    OT_ASSERT_MSG(nullptr != szFilename,
                   "Null filename sent to OTContract::SaveContract\n");
-    OT_ASSERT_MSG(NULL != szFoldername,
+    OT_ASSERT_MSG(nullptr != szFoldername,
                   "Null foldername sent to OTContract::SaveContract\n");
 
     m_strFoldername.Set(szFoldername);
@@ -1537,7 +1537,7 @@ bool OTContract::LoadContractFromString(const OTString& theStr)
 bool OTContract::ParseRawFile()
 {
     char buffer1[2100]; // a bit bigger than 2048, just for safety reasons.
-    OTSignature* pSig = NULL;
+    OTSignature* pSig = nullptr;
 
     std::string line;
 
@@ -1584,7 +1584,7 @@ bool OTContract::ParseRawFile()
             if (bSignatureMode) {
                 // we just reached the end of a signature
                 //    otErr << "%s\n", pSig->Get());
-                pSig = NULL;
+                pSig = nullptr;
                 bSignatureMode = false;
                 continue;
             }
@@ -1628,9 +1628,9 @@ bool OTContract::ParseRawFile()
 
                 pSig = new OTSignature();
 
-                OT_ASSERT_MSG(NULL != pSig, "Error allocating memory for "
-                                            "Signature in "
-                                            "OTContract::ParseRawFile\n");
+                OT_ASSERT_MSG(nullptr != pSig, "Error allocating memory for "
+                                               "Signature in "
+                                               "OTContract::ParseRawFile\n");
 
                 m_listSignatures.push_back(pSig);
 
@@ -1711,7 +1711,7 @@ bool OTContract::ParseRawFile()
                             return false;
                         }
 
-                        OT_ASSERT(NULL != pSig);
+                        OT_ASSERT(nullptr != pSig);
                         if (false ==
                             pSig->getMetaData().SetMetadata(
                                 line.at(9), line.at(10), line.at(11),
@@ -1755,9 +1755,10 @@ bool OTContract::ParseRawFile()
         }
 
         if (bSignatureMode) {
-            OT_ASSERT_MSG(NULL != pSig, "Error: Null Signature pointer WHILE "
-                                        "processing signature, in "
-                                        "OTContract::ParseRawFile");
+            OT_ASSERT_MSG(nullptr != pSig,
+                          "Error: Null Signature pointer WHILE "
+                          "processing signature, in "
+                          "OTContract::ParseRawFile");
 
             pSig->Concatenate("%s\n", pBuf);
         }
@@ -1812,8 +1813,8 @@ bool OTContract::LoadContractXML()
     m_xmlUnsigned.reset();
 
     IrrXMLReader* xml = irr::io::createIrrXMLReader(m_xmlUnsigned);
-    OT_ASSERT_MSG(NULL != xml, "Memory allocation issue with xml reader in "
-                               "OTContract::LoadContractXML()\n");
+    OT_ASSERT_MSG(nullptr != xml, "Memory allocation issue with xml reader in "
+                                  "OTContract::LoadContractXML()\n");
     OTCleanup<IrrXMLReader> xmlAngel(*xml);
 
     // parse the file until end reached
@@ -1884,8 +1885,8 @@ bool OTContract::LoadContractXML()
 // static
 bool OTContract::SkipToElement(IrrXMLReader*& xml)
 {
-    OT_ASSERT_MSG(NULL != xml,
-                  "OTContract::SkipToElement -- assert: NULL != xml");
+    OT_ASSERT_MSG(nullptr != xml,
+                  "OTContract::SkipToElement -- assert: nullptr != xml");
 
     const char* szFunc = "OTContract::SkipToElement";
 
@@ -1936,8 +1937,8 @@ bool OTContract::SkipToElement(IrrXMLReader*& xml)
 // static
 bool OTContract::SkipToTextField(IrrXMLReader*& xml)
 {
-    OT_ASSERT_MSG(NULL != xml,
-                  "OTContract::SkipToTextField -- assert: NULL != xml");
+    OT_ASSERT_MSG(nullptr != xml,
+                  "OTContract::SkipToTextField -- assert: nullptr != xml");
 
     const char* szFunc = "OTContract::SkipToTextField";
 
@@ -1990,8 +1991,9 @@ bool OTContract::SkipToTextField(IrrXMLReader*& xml)
 // static
 bool OTContract::SkipAfterLoadingField(IrrXMLReader*& xml)
 {
-    OT_ASSERT_MSG(NULL != xml,
-                  "OTContract::SkipAfterLoadingField -- assert: NULL != xml");
+    OT_ASSERT_MSG(
+        nullptr != xml,
+        "OTContract::SkipAfterLoadingField -- assert: nullptr != xml");
 
     const char* szFunc = "OTContract::SkipAfterLoadingField";
 
@@ -2058,8 +2060,8 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml, OTString& strOutput)
 bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
                                       OTASCIIArmor& ascOutput)
 {
-    OT_ASSERT_MSG(NULL != xml,
-                  "OTContract::LoadEncodedTextField -- assert: NULL != xml");
+    OT_ASSERT_MSG(nullptr != xml,
+                  "OTContract::LoadEncodedTextField -- assert: nullptr != xml");
 
     const char* szFunc = "OTContract::LoadEncodedTextField";
 
@@ -2130,7 +2132,7 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
                                             const char*& szName,
                                             OTString::Map* pmapExtraVars)
 {
-    OT_ASSERT(NULL != szName);
+    OT_ASSERT(nullptr != szName);
 
     OTASCIIArmor ascOutput;
 
@@ -2150,7 +2152,7 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
                                             const char*& szName,
                                             OTString::Map* pmapExtraVars)
 {
-    OT_ASSERT(NULL != szName);
+    OT_ASSERT(nullptr != szName);
 
     const char* pElementExpected = szName;
 
@@ -2176,8 +2178,9 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
     {
         if (!strcmp(pElementExpected, xml->getNodeName())) {
 
-            if (NULL != pmapExtraVars) // If the caller wants values for certain
-                                       // names expected to be on this node.
+            if (nullptr !=
+                pmapExtraVars) // If the caller wants values for certain
+                               // names expected to be on this node.
             {
                 OTString::Map& mapExtraVars = (*pmapExtraVars);
 
@@ -2292,7 +2295,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
 
         // Add theSigner to the contract, if he's not already there.
         //
-        if (NULL == GetContractPublicNym()) {
+        if (nullptr == GetContractPublicNym()) {
             const bool bHasCredentials =
                 (theSigner.GetMasterCredentialCount() > 0);
 
@@ -2313,7 +2316,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                 theSigner.GetPublicCredentials(strCredList, &mapCredFiles);
 
                 OTPseudonym* pNym = new OTPseudonym;
-                OT_ASSERT(NULL != pNym);
+                OT_ASSERT(nullptr != pNym);
                 OTCleanup<OTPseudonym> theNymAngel(
                     pNym); // pNym will be automatically cleaned up.
 
@@ -2342,7 +2345,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                     // So let's add it to the contract...
                     //
                     theNymAngel.SetCleanupTargetPointer(
-                        NULL);                  // so pNym won't be cleaned up.
+                        nullptr);               // so pNym won't be cleaned up.
                     m_mapNyms["signer"] = pNym; // Add pNym to the contract's
                                                 // internal list of nyms.
                 }
@@ -2418,8 +2421,9 @@ void OTContract::CreateInnerContents()
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
             OTPseudonym* pNym = it.second;
-            OT_ASSERT_MSG(NULL != pNym, "1: NULL pseudonym pointer in "
-                                        "OTContract::CreateInnerContents.\n");
+            OT_ASSERT_MSG(nullptr != pNym,
+                          "1: nullptr pseudonym pointer in "
+                          "OTContract::CreateInnerContents.\n");
 
             if (("contract" == str_name) || ("certification" == str_name) ||
                 ("serverCertification" == str_name)) {
@@ -2442,8 +2446,9 @@ void OTContract::CreateInnerContents()
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
             OTPseudonym* pNym = it.second;
-            OT_ASSERT_MSG(NULL != pNym, "2: NULL pseudonym pointer in "
-                                        "OTContract::CreateInnerContents.\n");
+            OT_ASSERT_MSG(nullptr != pNym,
+                          "2: nullptr pseudonym pointer in "
+                          "OTContract::CreateInnerContents.\n");
 
             if ("signer" == str_name) {
                 const bool bHasCredentials =
@@ -2480,20 +2485,20 @@ void OTContract::CreateInnerContents()
 
                     // Create a new OTDB::StringMap object.
                     //
-                    OTDB::Storable* pStorable = NULL;
+                    OTDB::Storable* pStorable = nullptr;
                     OTCleanup<OTDB::Storable> theAngel;
-                    OTDB::StringMap* pMap = NULL;
+                    OTDB::StringMap* pMap = nullptr;
 
                     pStorable = OTDB::CreateObject(
                         OTDB::STORED_OBJ_STRING_MAP); // this asserts already,
                                                       // on failure.
                     theAngel.SetCleanupTargetPointer(
                         pStorable); // It will definitely be cleaned up.
-                    pMap = (NULL == pStorable)
-                               ? NULL
+                    pMap = (nullptr == pStorable)
+                               ? nullptr
                                : dynamic_cast<OTDB::StringMap*>(pStorable);
 
-                    if (NULL == pMap)
+                    if (nullptr == pMap)
                         otErr << __FUNCTION__ << ": Error: failed trying to "
                                                  "load or create a "
                                                  "STORED_OBJ_STRING_MAP.\n";
@@ -2749,11 +2754,11 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                 OTCleanup<OTDB::Storable> theStorableAngel(
                     pStorable); // It will definitely be cleaned up.
                 OTDB::StringMap* pMap =
-                    (NULL == pStorable)
-                        ? NULL
+                    (nullptr == pStorable)
+                        ? nullptr
                         : dynamic_cast<OTDB::StringMap*>(pStorable);
 
-                if (NULL == pMap)
+                if (nullptr == pMap)
                     otOut << __FUNCTION__
                           << ": Failed decoding StringMap object.\n";
                 else // IF the list saved, then we save the credentials
@@ -2762,7 +2767,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                     OTString::Map& theMap = pMap->the_map;
 
                     OTPseudonym* pNym = new OTPseudonym;
-                    OT_ASSERT(NULL != pNym);
+                    OT_ASSERT(nullptr != pNym);
                     OTCleanup<OTPseudonym> theNymAngel(
                         pNym); // pNym will be automatically cleaned up.
                     pNym->SetIdentifier(strSignerNymID);
@@ -2792,7 +2797,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                         //
 
                         theNymAngel.SetCleanupTargetPointer(
-                            NULL); // so pNym won't be cleaned up.
+                            nullptr); // so pNym won't be cleaned up.
                         m_mapNyms[strNodeName.Get() /*"signer"*/] =
                             pNym; // Add pNym to the contract's internal list of
                                   // nyms.
@@ -2866,7 +2871,7 @@ bool OTContract::InsertNym(const OTString& strKeyName,
     OTPseudonym* pNym = new OTPseudonym;
 
     OT_ASSERT_MSG(
-        NULL != pNym,
+        nullptr != pNym,
         "Error allocating memory for new Nym in OTContract::InsertNym\n");
 
     // This is the version of SetCertificate that handles escaped bookends. ( -
@@ -2891,7 +2896,7 @@ bool OTContract::InsertNym(const OTString& strKeyName,
     }
     else {
         delete pNym;
-        pNym = NULL;
+        pNym = nullptr;
         otOut << "\nLoaded key \"" << strKeyName
               << "\" but FAILED adding the"
                  " Nym to the Contract:\n--->" << strKeyValue << "<---\n";

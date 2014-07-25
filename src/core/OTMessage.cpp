@@ -189,7 +189,7 @@ bool OTMessage::HarvestTransactionNumbers(
         //
         for (auto& it : theLedger.GetTransactionMap()) {
             OTTransaction* pTransaction = it.second;
-            OT_ASSERT(NULL != pTransaction);
+            OT_ASSERT(nullptr != pTransaction);
 
             // NOTE: You would ONLY harvest the transaction numbers if your
             // request failed.
@@ -268,7 +268,7 @@ void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
     for (auto& it : theNym.GetMapAcknowledgedNum()) {
         std::string strServerID = it.first;
         dequeOfTransNums* pDeque = it.second;
-        OT_ASSERT(NULL != pDeque);
+        OT_ASSERT(nullptr != pDeque);
 
         OTString OTstrServerID = strServerID.c_str();
         const OTIdentifier theTempID(OTstrServerID);
@@ -1767,13 +1767,13 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
-        const char* pElementExpected = NULL;
+        const char* pElementExpected = nullptr;
         if (m_bSuccess && (m_lDepth > 0))
             pElementExpected = "messagePayload";
         else if (!m_bSuccess)
             pElementExpected = "inReferenceTo";
 
-        if (NULL != pElementExpected) {
+        if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
             if (false == OTContract::LoadEncodedTextFieldByName(
@@ -1841,13 +1841,13 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
-        const char* pElementExpected = NULL;
+        const char* pElementExpected = nullptr;
         if (m_bSuccess && (m_lDepth > 0))
             pElementExpected = "messagePayload";
         else if (!m_bSuccess)
             pElementExpected = "inReferenceTo";
 
-        if (NULL != pElementExpected) {
+        if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
             if (false == OTContract::LoadEncodedTextFieldByName(
@@ -1913,13 +1913,13 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
-        const char* pElementExpected = NULL;
+        const char* pElementExpected = nullptr;
         if (m_bSuccess && (m_lDepth > 0))
             pElementExpected = "messagePayload";
         else if (!m_bSuccess)
             pElementExpected = "inReferenceTo";
 
-        if (NULL != pElementExpected) {
+        if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
             if (false == OTContract::LoadEncodedTextFieldByName(
@@ -1982,13 +1982,13 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
-        const char* pElementExpected = NULL;
+        const char* pElementExpected = nullptr;
         if (m_bSuccess && (m_lDepth > 0))
             pElementExpected = "messagePayload";
         else if (!m_bSuccess)
             pElementExpected = "inReferenceTo";
 
-        if (NULL != pElementExpected) {
+        if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
             if (false == OTContract::LoadEncodedTextFieldByName(
@@ -2431,7 +2431,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("hasCredentials"));
         const bool bHasCredentials = strHasCredentials.Compare("true");
 
-        const char* pElementExpected = NULL;
+        const char* pElementExpected = nullptr;
         if (m_bSuccess)
             pElementExpected = "nymPublicKey";
         else

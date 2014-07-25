@@ -171,8 +171,8 @@ public:
 
     // Caller must delete.
     EXPORT static OTPassword* GetPassphraseFromUser(
-        const OTString* pstrDisplay = NULL,
-        const bool bAskTwice = false); // returns a text OTPassword, or NULL.
+        const OTString* pstrDisplay = nullptr,
+        const bool bAskTwice = false); // returns a text OTPassword, or nullptr.
 
     // If you already have the passphrase, you can pass it in as an optional
     // arg.
@@ -181,31 +181,31 @@ public:
     // to TYPE it 100 times in a row.
     //
     EXPORT static bool CreateNewKey(OTString& strOutput,
-                                    const OTString* pstrDisplay = NULL,
-                                    const OTPassword* pAlreadyHavePW = NULL);
+                                    const OTString* pstrDisplay = nullptr,
+                                    const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Encrypt(const OTString& strKey,
                                const OTString& strPlaintext,
                                OTString& strOutput,
-                               const OTString* pstrDisplay = NULL,
+                               const OTString* pstrDisplay = nullptr,
                                const bool bBookends = true,
-                               const OTPassword* pAlreadyHavePW = NULL);
+                               const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTString& strKey, OTString& strCiphertext,
                                OTString& strOutput,
-                               const OTString* pstrDisplay = NULL,
-                               const OTPassword* pAlreadyHavePW = NULL);
+                               const OTString* pstrDisplay = nullptr,
+                               const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Encrypt(const OTSymmetricKey& theKey,
                                const OTString& strPlaintext,
                                OTString& strOutput,
-                               const OTString* pstrDisplay = NULL,
+                               const OTString* pstrDisplay = nullptr,
                                const bool bBookends = true,
-                               const OTPassword* pAlreadyHavePW = NULL);
+                               const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTSymmetricKey& theKey,
                                OTString& strCiphertext, OTString& strOutput,
-                               const OTString* pstrDisplay = NULL,
-                               const OTPassword* pAlreadyHavePW = NULL);
+                               const OTString* pstrDisplay = nullptr,
+                               const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT bool SerializeTo(OTPayload& theOutput) const;
     EXPORT bool SerializeFrom(OTPayload& theInput);
@@ -244,7 +244,8 @@ public:
     //
     EXPORT bool GetRawKeyFromPassphrase(const OTPassword& thePassphrase,
                                         OTPassword& theRawKeyOutput,
-                                        OTPassword* pDerivedKey = NULL) const;
+                                        OTPassword* pDerivedKey =
+                                            nullptr) const;
 
     // Assumes key is already generated. Tries to get the raw clear key
     // from its encrypted form, via a derived key.
@@ -256,9 +257,10 @@ public:
     // stored in encrypted form, based on a derived key from that password.
     //
     EXPORT bool GenerateKey(const OTPassword& thePassphrase,
-                            OTPassword** ppDerivedKey = NULL); // If you want, I
-                                                               // can pass this
-                                                               // back to you.
+                            OTPassword** ppDerivedKey =
+                                nullptr); // If you want, I
+                                          // can pass this
+                                          // back to you.
     // Changes the passphrase on an existing symmetric key.
     //
     EXPORT bool ChangePassphrase(const OTPassword& oldPassphrase,

@@ -162,7 +162,7 @@ OTIdentifier::OTIdentifier(const OTIdentifier& theID) : OTData(theID)
 
 OTIdentifier::OTIdentifier(const char* szStr) : OTData()
 {
-    OT_ASSERT(NULL != szStr);
+    OT_ASSERT(nullptr != szStr);
     SetString(szStr);
 }
 
@@ -226,7 +226,7 @@ OTIdentifier::OTIdentifier(const OTCachedKey& theKey)
 
 void OTIdentifier::SetString(const char* szString)
 {
-    OT_ASSERT(NULL != szString);
+    OT_ASSERT(nullptr != szString);
     const OTString theStr(szString);
     SetString(theStr);
 }

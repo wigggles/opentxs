@@ -61,7 +61,7 @@ public int32_t      nRequestNum;
 string GetVariable(const char* name)
 {
     OTVariable* pVar = OT_ME::FindVariable2(name);
-    return pVar == NULL ? "" : pVar->GetValueString();
+    return pVar == nullptr ? "" : pVar->GetValueString();
 }
 
 OT_OTAPI_OT void OTAPI_Func::CopyVariables()
@@ -1338,7 +1338,7 @@ the_lambda_struct::the_lambda_struct()
 OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
                                               const string& nymID)
 {
-    OTDB::OfferListNym* offerList = NULL;
+    OTDB::OfferListNym* offerList = nullptr;
 
     if (OTDB::Exists("nyms", serverID, "offers", nymID + ".bin")) {
         OTAPI_Wrap::Output(1, "Offers file exists... Querying nyms...\n");
@@ -1350,7 +1350,7 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
             OTAPI_Wrap::Output(
                 0,
                 "Unable to verify storable object. Probably doesn't exist.\n");
-            return NULL; // containing null or undef;
+            return nullptr; // containing null or undef;
         }
 
         OTAPI_Wrap::Output(1, "QueryObject worked. Now dynamic casting from "
@@ -1360,7 +1360,7 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
         if (!VerifyStorable(offerList, "OTDB::OfferListNym")) {
             OTAPI_Wrap::Output(
                 0, "Unable to dynamic cast a storable to a (nym) offerList.\n");
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -1372,9 +1372,10 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 {
     string strLocation = "convert_offerlist_to_maps";
 
-    MapOfMaps* map_of_maps = NULL; // return value. (currently undefined or null
-                                   // or whatever. VerifyType("Map") will return
-                                   // false at this point.;
+    MapOfMaps* map_of_maps =
+        nullptr; // return value. (currently undefined or null
+                 // or whatever. VerifyType("Map") will return
+                 // false at this point.;
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
     // scale-assetID-currencyID
@@ -1406,7 +1407,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             string strMapKey =
                 strScale + "-" + strAssetTypeID + "-" + strCurrencyTypeID;
 
-            SubMap* sub_map = NULL;
+            SubMap* sub_map = nullptr;
             if (VerifyType(map_of_maps, "Map") && !map_of_maps->empty() &&
                 (map_of_maps->count(strMapKey) > 0)) {
                 sub_map = (*map_of_maps)[strMapKey];

@@ -353,9 +353,9 @@ private:
                                             // every symmetric key we use. Just
                                             // pass an ID into It() and if it's
                                             // on the map, a pointer will be
-                                            // returned. Pass NULL into It() (no
-                                            // arguments) to get a pointer to
-                                            // the global Master Key (for Nyms.)
+    // returned. Pass nullptr into It() (no
+    // arguments) to get a pointer to
+    // the global Master Key (for Nyms.)
 public:
     tthread::mutex* GetMutex()
     {
@@ -368,7 +368,7 @@ public:
     // map of master keys. Otherwise it will use "the" global Master Key
     // (the one used for the Nyms.)
     EXPORT static std::shared_ptr<OTCachedKey> It(OTIdentifier* pIdentifier =
-                                                      NULL);
+                                                      nullptr);
 
     // if you pass in a master key, it will look it up on an existing cached map
     // of master keys, based on the ID of the master key passed in. If not
@@ -435,11 +435,11 @@ public:
     // necessary.)
     EXPORT bool GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                                   OTPassword& theOutput,
-                                  const char* szDisplay = NULL,
+                                  const char* szDisplay = nullptr,
                                   bool bVerifyTwice = false);
     // Caller must delete!
     EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
-        OTPassword& theOutput, const char* szDisplay = NULL,
+        OTPassword& theOutput, const char* szDisplay = nullptr,
         int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
     EXPORT void DestroyMasterPassword(); // The thread, when the time comes,
@@ -464,7 +464,8 @@ public:
 
     EXPORT void LowLevelReleaseThread();
 
-    // The cleartext version (m_pMasterPassword) is deleted and set NULL after a
+    // The cleartext version (m_pMasterPassword) is deleted and set nullptr
+    // after a
     // Timer of X seconds. (Timer thread calls this.)
     // The INSTANCE that owns the thread also passes a pointer to ITSELF.
     // (So we can access password, mutex, timeout value, etc.) This function

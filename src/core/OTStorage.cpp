@@ -166,7 +166,7 @@
  // itself, instead of asking the API to use it for me:
 
  OTDB::Storage * pStorage = OTDB::GetDefaultStorage();
- OT_ASSERT(NULL!=pStorage);
+ OT_ASSERT(nullptr!=pStorage);
 
  bool bSuccessStore = pStorage->StoreString(strContents, strFolder,
  strFilename);
@@ -179,7 +179,7 @@
 
  OTDB::Storage * pStorage = OTDB::CreateStorageContext(STORE_FILESYSTEM,
  PACK_MESSAGE_PACK);
- OT_ASSERT(NULL!=pStorage);
+ OT_ASSERT(nullptr!=pStorage);
 
  bool bSuccessInit  = pStorage->Init("/path/to/data_folder", "wallet.xml");
 
@@ -210,7 +210,7 @@
 
  Storage * pStorage =
  CreateStorageContext(STORE_COUCHDB, PACK_PROTOCOL_BUFFERS);
- OT_ASSERT(NULL!=pStorage);
+ OT_ASSERT(nullptr!=pStorage);
 
  // This time, Init receives database connect info instead of filesystem info...
  bool bSuccessInit  = pStorage->Init("IP ADDRESS", "PORT", "USERNAME",
@@ -231,7 +231,7 @@
     // Then do this as normal:
 
     Storage * pStorage = GetDefaultStorage();
-    OT_ASSERT(NULL!=pStorage);
+    OT_ASSERT(nullptr!=pStorage);
 
     bool bSuccessStore = pStorage->StoreString(strContents, strFolder,
  strFilename);
@@ -244,7 +244,7 @@
  // The object must be instantiated by the Storage Context...
 
  BitcoinAcct * pAcct = pStorage->CreateObject(STORED_OBJ_BITCOIN_ACCT);
- OT_ASSERT(NULL != pAcct);
+ OT_ASSERT(nullptr != pAcct);
 
  pAcct->acct_id                = "jkhsdf987345kjhf8lkjhwef987345";
  pAcct->bitcoin_acct_name    = "Read-Only Label (Bitcoin Internal acct)";
@@ -256,7 +256,7 @@
  WalletData * pWalletData =
  pStorage->QueryObject(STORED_OBJ_WALLET_DATA, "moneychanger", "wallet.pak");
 
- if (NULL != pWalletData) // It loaded.
+ if (nullptr != pWalletData) // It loaded.
  {
     if (pWalletData->AddBitcoinAcct(*pAcct))
         bool bSuccessStore = pStorage->StoreObject(*pWalletData, "moneychanger",
@@ -290,11 +290,12 @@
  type.
  */
 
-opentxs::OTDB::Storage* opentxs::OTDB::details::s_pStorage = NULL;
+opentxs::OTDB::Storage* opentxs::OTDB::details::s_pStorage = nullptr;
 
 opentxs::OTDB::mapOfFunctions* opentxs::OTDB::details::pFunctionMap =
-    NULL; // This is a pointer so I can control what order it is created in, on
-          // startup.
+    nullptr; // This is a pointer so I can control what order it is created in,
+             // on
+             // startup.
 
 const char* opentxs::OTDB::StoredObjectTypeStrings[] = {
     "OTDBString", // Just a string.
@@ -338,7 +339,7 @@ namespace OTDB
 // Use GetDefaultStorage() to access this variable.
 // Use InitDefaultStorage() to set up this variable.
 //
-// Storage * ::details::s_pStorage = NULL;
+// Storage * ::details::s_pStorage = nullptr;
 // These are actually defined in the namespace (.h file).
 
 // mapOfFunctions * details::pFunctionMap;
@@ -349,10 +350,10 @@ InitOTDBDetails theOTDBConstructor; // Constructor for this instance (define all
 InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
 {
 #if defined(OTDB_MESSAGE_PACK) || defined(OTDB_PROTOCOL_BUFFERS)
-    OT_ASSERT(NULL == details::pFunctionMap);
+    OT_ASSERT(nullptr == details::pFunctionMap);
     details::pFunctionMap = new mapOfFunctions;
 
-    OT_ASSERT(NULL != details::pFunctionMap);
+    OT_ASSERT(nullptr != details::pFunctionMap);
     mapOfFunctions& theMap = *(details::pFunctionMap);
 #endif
 
@@ -465,9 +466,9 @@ InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
 
 InitOTDBDetails::~InitOTDBDetails() // Destructor for namespace
 {
-    OT_ASSERT(NULL != details::pFunctionMap);
+    OT_ASSERT(nullptr != details::pFunctionMap);
     delete details::pFunctionMap;
-    details::pFunctionMap = NULL;
+    details::pFunctionMap = nullptr;
 
 #if defined(OTDB_PROTOCOL_BUFFERS)
     google::protobuf::ShutdownProtobufLibrary();
@@ -492,23 +493,23 @@ bool InitDefaultStorage(StorageType eStoreType, PackType ePackType)
     // This allows you to call multiple times if you want to change the default
     // storage.
     //
-    //        if (NULL != details::s_pStorage)
+    //        if (nullptr != details::s_pStorage)
     //        {
     //            otErr << "OTDB::InitDefaultStorage: Existing storage context
     // already exists. (Erasing / replacing it.)\n";
     //
     //            delete details::s_pStorage;
-    //            details::s_pStorage = NULL;
+    //            details::s_pStorage = nullptr;
     //        }
 
-    if (NULL == details::s_pStorage) {
+    if (nullptr == details::s_pStorage) {
         otInfo << "OTDB::InitDefaultStorage: Existing storage context doesn't "
                   "already exist. (Creating it.)\n";
 
         details::s_pStorage = Storage::Create(eStoreType, ePackType);
     }
 
-    if (NULL == details::s_pStorage) {
+    if (nullptr == details::s_pStorage) {
         otErr << "OTDB::InitDefaultStorage: Failed while calling "
                  "OTDB::Storage::Create()\n";
         return false;
@@ -530,8 +531,8 @@ Storable* CreateObject(StoredObjectType eType)
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
-        return NULL;
+    if (nullptr == pStorage) {
+        return nullptr;
     }
 
     return pStorage->CreateObject(eType);
@@ -549,7 +550,7 @@ bool CheckStringsExistInOrder(std::string& strFolder, std::string& oneStr,
                               std::string& twoStr, std::string& threeStr,
                               const char* szFuncName)
 {
-    if (NULL == szFuncName) szFuncName = __FUNCTION__;
+    if (nullptr == szFuncName) szFuncName = __FUNCTION__;
 
     OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
@@ -599,7 +600,7 @@ bool Exists(std::string strFolder, std::string oneStr, std::string twoStr,
 
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         otOut << "OTDB::" << __FUNCTION__
               << ": details::s_pStorage is null. (Returning false.)\n";
         return false;
@@ -628,7 +629,7 @@ int64_t FormPathString(std::string& strOutput, std::string strFolder,
 
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         otOut << "OTDB::" << __FUNCTION__
               << ": details::s_pStorage is null. (Returning -1.)\n";
         return -1;
@@ -659,7 +660,7 @@ bool StoreString(std::string strContents, std::string strFolder,
 
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         return false;
     }
 
@@ -687,7 +688,7 @@ std::string QueryString(std::string strFolder, std::string oneStr,
     }
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) return std::string("");
+    if (nullptr == pStorage) return std::string("");
 
     return pStorage->QueryString(strFolder, oneStr, twoStr, threeStr);
 }
@@ -716,7 +717,7 @@ bool StorePlainString(std::string strContents, std::string strFolder,
     OT_ASSERT((strFolder.length() > 3) || (0 == strFolder.compare(0, 1, ".")));
     OT_ASSERT((oneStr.length() < 1) || (oneStr.length() > 3));
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         return false;
     }
 
@@ -746,7 +747,7 @@ std::string QueryPlainString(std::string strFolder, std::string oneStr,
     OT_ASSERT((strFolder.length() > 3) || (0 == strFolder.compare(0, 1, ".")));
     OT_ASSERT((oneStr.length() < 1) || (oneStr.length() > 3));
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         return std::string("");
     }
 
@@ -774,7 +775,7 @@ bool StoreObject(Storable& theContents, std::string strFolder,
 
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         otErr << "OTDB::StoreObject: No default storage object allocated.\n";
         return false;
     }
@@ -804,8 +805,8 @@ Storable* QueryObject(StoredObjectType theObjectType, std::string strFolder,
 
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
-        return NULL;
+    if (nullptr == pStorage) {
+        return nullptr;
     }
 
     return pStorage->QueryObject(theObjectType, strFolder, oneStr, twoStr,
@@ -818,7 +819,7 @@ std::string EncodeObject(Storable& theContents)
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         otErr << "OTDB::EncodeObject: No Default Storage object allocated.\n";
         return "";
     }
@@ -830,8 +831,8 @@ Storable* DecodeObject(StoredObjectType theObjectType, std::string strInput)
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
-        return NULL;
+    if (nullptr == pStorage) {
+        return nullptr;
     }
 
     return pStorage->DecodeObject(theObjectType, strInput);
@@ -844,7 +845,7 @@ bool EraseValueByKey(std::string strFolder, std::string oneStr,
 {
     Storage* pStorage = details::s_pStorage;
 
-    if (NULL == pStorage) {
+    if (nullptr == pStorage) {
         otErr
             << "OTDB::EraseValueByKey: No Default Storage object allocated.\n";
         return false;
@@ -858,9 +859,9 @@ bool EraseValueByKey(std::string strFolder, std::string oneStr,
 
 Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
 {
-    if (NULL == details::pFunctionMap) return NULL;
+    if (nullptr == details::pFunctionMap) return nullptr;
 
-    Storable* pStorable = NULL;
+    Storable* pStorable = nullptr;
 
     // The Pack type, plus the Stored Object type, is the Key to the map of
     // function pointers.
@@ -872,34 +873,34 @@ Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
 
     mapOfFunctions::iterator ii = details::pFunctionMap->find(theKey);
 
-    if (details::pFunctionMap->end() == ii) return NULL;
+    if (details::pFunctionMap->end() == ii) return nullptr;
 
     InstantiateFunc* pFunc = ii->second;
 
-    if (NULL != pFunc) {
+    if (nullptr != pFunc) {
         pStorable = (*pFunc)(); // Now we instantiate the object...
     }
 
-    return pStorable; // May return NULL...
+    return pStorable; // May return nullptr...
 }
 
 // static. OTPacker Factory.
 //
 OTPacker* OTPacker::Create(PackType ePackType)
 {
-    OTPacker* pPacker = NULL;
+    OTPacker* pPacker = nullptr;
 
     switch (ePackType) {
 #if defined(OTDB_MESSAGE_PACK)
     case PACK_MESSAGE_PACK:
         pPacker = new PackerMsgpack;
-        OT_ASSERT(NULL != pPacker);
+        OT_ASSERT(nullptr != pPacker);
         break;
 #endif
 #if defined(OTDB_PROTOCOL_BUFFERS)
     case PACK_PROTOCOL_BUFFERS:
         pPacker = new PackerPB;
-        OT_ASSERT(NULL != pPacker);
+        OT_ASSERT(nullptr != pPacker);
         break;
 #endif
     case PACK_TYPE_ERROR:
@@ -907,7 +908,7 @@ OTPacker* OTPacker::Create(PackType ePackType)
         break;
     }
 
-    return pPacker; // May return NULL...
+    return pPacker; // May return nullptr...
 }
 
 PackType OTPacker::GetType() const
@@ -930,17 +931,18 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
 {
     IStorable* pStorable = dynamic_cast<IStorable*>(&inObj);
 
-    if (NULL == pStorable) // ALL Storables should implement SOME subinterface
-                           // of IStorable
+    if (nullptr ==
+        pStorable) // ALL Storables should implement SOME subinterface
+                   // of IStorable
     {
         otErr << "OTPacker::Pack: Error: IStorable dynamic_cast failed.\n";
-        return NULL;
+        return nullptr;
     }
 
     // This is polymorphic, so we get the right kind of buffer for the packer.
     //
     PackedBuffer* pBuffer = CreateBuffer();
-    OT_ASSERT(NULL != pBuffer);
+    OT_ASSERT(nullptr != pBuffer);
 
     // Must delete pBuffer, or return it, below this point.
 
@@ -954,7 +956,7 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
 
     if (false == pStorable->onPack(*pBuffer, inObj)) {
         delete pBuffer;
-        return NULL;
+        return nullptr;
     }
 
     return pBuffer;
@@ -971,7 +973,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
 {
     IStorable* pStorable = dynamic_cast<IStorable*>(&outObj);
 
-    if (NULL == pStorable) return false;
+    if (nullptr == pStorable) return false;
 
     // outObj is the OUTPUT OBJECT.
     // If we're unable to unpack the contents of inBuf
@@ -992,13 +994,13 @@ PackedBuffer* OTPacker::Pack(std::string& inObj)
     // This is polymorphic, so we get the right kind of buffer for the packer.
     //
     PackedBuffer* pBuffer = CreateBuffer();
-    OT_ASSERT(NULL != pBuffer);
+    OT_ASSERT(nullptr != pBuffer);
 
     // Must delete pBuffer, or return it, below this point.
 
     if (false == pBuffer->PackString(inObj)) {
         delete pBuffer;
-        return NULL;
+        return nullptr;
     }
 
     return pBuffer;
@@ -1037,7 +1039,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
             PointerTo##name theP = list_##name##s.at(nIndex);                  \
             return theP.pointer();                                             \
         }                                                                      \
-        return NULL;                                                           \
+        return nullptr;                                                        \
     }                                                                          \
                                                                                \
     bool scope Remove##name(size_t nIndex##name)                               \
@@ -1350,7 +1352,7 @@ AddressBook::~AddressBook()
                                                              // IStorablePB will
                                                              // actually exist.
 {
-    return NULL;
+    return nullptr;
 }
 
 template <class theBaseType, class theInternalType,
@@ -1373,12 +1375,12 @@ bool IStorablePB::onPack(PackedBuffer& theBuffer,
     // check here to make sure theBuffer is the right TYPE.
     BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
-    if (NULL == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer) // Buffer is wrong type!!
         return false;
 
     ::google::protobuf::MessageLite* pMessage = getPBMessage();
 
-    if (NULL == pMessage) return false;
+    if (nullptr == pMessage) return false;
 
     if (false == pMessage->SerializeToString(&(pBuffer->m_buffer)))
         return false;
@@ -1392,12 +1394,12 @@ bool IStorablePB::onUnpack(PackedBuffer& theBuffer,
     // check here to make sure theBuffer is the right TYPE.
     BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
-    if (NULL == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer) // Buffer is wrong type!!
         return false;
 
     ::google::protobuf::MessageLite* pMessage = getPBMessage();
 
-    if (NULL == pMessage) return false;
+    if (nullptr == pMessage) return false;
 
     if (false == pMessage->ParseFromString(pBuffer->m_buffer)) return false;
 
@@ -1419,11 +1421,11 @@ bool BufferPB::PackString(std::string& theString)
 
     ::google::protobuf::MessageLite* pMessage = theWrapper.getPBMessage();
 
-    if (NULL == pMessage) return false;
+    if (nullptr == pMessage) return false;
 
     String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
-    if (NULL == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer) // Buffer is wrong type!!
         return false;
 
     pBuffer->set_value(theString);
@@ -1439,11 +1441,11 @@ bool BufferPB::UnpackString(std::string& theString)
 
     ::google::protobuf::MessageLite* pMessage = theWrapper.getPBMessage();
 
-    if (NULL == pMessage) return false;
+    if (nullptr == pMessage) return false;
 
     String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
-    if (NULL == pBuffer) // Buffer is wrong type!!
+    if (nullptr == pBuffer) // Buffer is wrong type!!
         return false;
 
     if (false == pBuffer->ParseFromString(m_buffer)) return false;
@@ -1458,7 +1460,7 @@ bool BufferPB::ReadFromIStream(std::istream& inStream, int64_t lFilesize)
     unsigned long size = static_cast<unsigned long>(lFilesize);
 
     char* buf = new char[size];
-    OT_ASSERT(NULL != buf);
+    OT_ASSERT(nullptr != buf);
 
     inStream.read(buf, size);
 
@@ -1469,7 +1471,7 @@ bool BufferPB::ReadFromIStream(std::istream& inStream, int64_t lFilesize)
     }
 
     delete[] buf;
-    buf = NULL;
+    buf = nullptr;
 
     return false;
 
@@ -1529,14 +1531,14 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
         PointerTo##element_type thePtr = (*ii);                                \
         element_type##PB* pObject =                                            \
             dynamic_cast<element_type##PB*>(thePtr.pointer());                 \
-        OT_ASSERT(NULL != pObject);                                            \
+        OT_ASSERT(nullptr != pObject);                                         \
         ::google::protobuf::MessageLite* pMessage = pObject->getPBMessage();   \
-        OT_ASSERT(NULL != pMessage);                                           \
+        OT_ASSERT(nullptr != pMessage);                                        \
         element_type##_InternalPB* pInternal =                                 \
             dynamic_cast<element_type##_InternalPB*>(pMessage);                \
-        OT_ASSERT(NULL != pInternal);                                          \
+        OT_ASSERT(nullptr != pInternal);                                       \
         element_type##_InternalPB* pNewInternal = __pb_obj.add_##pb_name();    \
-        OT_ASSERT(NULL != pNewInternal);                                       \
+        OT_ASSERT(nullptr != pNewInternal);                                    \
         pObject->hookBeforePack();                                             \
         pNewInternal->CopyFrom(*pInternal);                                    \
     }
@@ -1547,13 +1549,13 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
         const element_type##_InternalPB& theInternal = __pb_obj.pb_name(i);    \
         element_type##PB* pNewWrapper = dynamic_cast<element_type##PB*>(       \
             Storable::Create(ELEMENT_ENUM, PACK_PROTOCOL_BUFFERS));            \
-        OT_ASSERT(NULL != pNewWrapper);                                        \
+        OT_ASSERT(nullptr != pNewWrapper);                                     \
         ::google::protobuf::MessageLite* pMessage =                            \
             pNewWrapper->getPBMessage();                                       \
-        OT_ASSERT(NULL != pMessage);                                           \
+        OT_ASSERT(nullptr != pMessage);                                        \
         element_type##_InternalPB* pInternal =                                 \
             dynamic_cast<element_type##_InternalPB*>(pMessage);                \
-        OT_ASSERT(NULL != pInternal);                                          \
+        OT_ASSERT(nullptr != pInternal);                                       \
         pInternal->CopyFrom(theInternal);                                      \
         pNewWrapper->hookAfterUnpack();                                        \
         PointerTo##element_type thePtr(                                        \
@@ -2062,16 +2064,17 @@ OTPacker* Storage::GetPacker(PackType ePackType)
     // Get() call), and the coder using the API still has the ability to choose
     // what type of packer will be used.
     //
-    if (NULL == m_pPacker) {
+    if (nullptr == m_pPacker) {
         m_pPacker = OTPacker::Create(ePackType);
     }
 
-    return m_pPacker; // May return NULL. (If Create call above fails.)
+    return m_pPacker; // May return nullptr. (If Create call above fails.)
 }
 
 // (SetPacker(), from .h file)
 // This is called once, in the factory.
-// void Storage::SetPacker(OTPacker & thePacker) { OT_ASSERT(NULL == m_pPacker);
+// void Storage::SetPacker(OTPacker & thePacker) { OT_ASSERT(nullptr ==
+// m_pPacker);
 // m_pPacker =  &thePacker; }
 
 //
@@ -2081,30 +2084,30 @@ Storable* Storage::CreateObject(StoredObjectType eType)
 {
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) {
+    if (nullptr == pPacker) {
         otErr << "OTDB::Storage::CreateObject: Failed, since GetPacker() "
-                 "returned NULL.\n";
-        return NULL;
+                 "returned nullptr.\n";
+        return nullptr;
     }
 
     Storable* pStorable = Storable::Create(eType, pPacker->GetType());
 
-    return pStorable; // May return NULL.
+    return pStorable; // May return nullptr.
 }
 
 // Factory for the Storage context itself.
 //
 Storage* Storage::Create(StorageType eStorageType, PackType ePackType)
 {
-    Storage* pStore = NULL;
+    Storage* pStore = nullptr;
 
     switch (eStorageType) {
     case STORE_FILESYSTEM:
         pStore = StorageFS::Instantiate();
-        OT_ASSERT(NULL != pStore);
+        OT_ASSERT(nullptr != pStore);
         break;
     //            case STORE_COUCH_DB:
-    //                pStore = new StorageCouchDB; OT_ASSERT(NULL != pStore);
+    //                pStore = new StorageCouchDB; OT_ASSERT(nullptr != pStore);
     // break;
     default:
         otErr << "OTDB::Storage::Create: Failed: Unknown storage type.\n";
@@ -2115,25 +2118,25 @@ Storage* Storage::Create(StorageType eStorageType, PackType ePackType)
     // try to create the packer that goes with it.
     // (They are created together and linked until death.)
 
-    if (NULL != pStore) {
+    if (nullptr != pStore) {
         OTPacker* pPacker = OTPacker::Create(ePackType);
 
-        if (NULL == pPacker) {
+        if (nullptr == pPacker) {
             otErr << "OTDB::Storage::Create: Failed while creating packer.\n";
 
             // For whatever reason, we failed. Memory issues or whatever.
             delete pStore;
-            pStore = NULL;
-            return NULL;
+            pStore = nullptr;
+            return nullptr;
         }
 
         // Now they're married.
         pStore->SetPacker(*pPacker);
     }
     else
-        otErr << "OTDB::Storage::Create: Failed, since pStore is NULL.\n";
+        otErr << "OTDB::Storage::Create: Failed, since pStore is nullptr.\n";
 
-    return pStore; // Possible to return NULL.
+    return pStore; // Possible to return nullptr.
 }
 
 StorageType Storage::GetType() const
@@ -2170,18 +2173,18 @@ bool Storage::StoreString(std::string strContents, std::string strFolder,
 
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) return false;
+    if (nullptr == pPacker) return false;
 
     PackedBuffer* pBuffer = pPacker->Pack(strContents);
 
-    if (NULL == pBuffer) return false;
+    if (nullptr == pBuffer) return false;
 
     bool bSuccess =
         onStorePackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
     // Don't want any leaks here, do we?
     delete pBuffer;
-    pBuffer = NULL;
+    pBuffer = nullptr;
 
     return bSuccess;
 }
@@ -2193,11 +2196,11 @@ std::string Storage::QueryString(std::string strFolder, std::string oneStr,
 
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) return theString;
+    if (nullptr == pPacker) return theString;
 
     PackedBuffer* pBuffer = pPacker->CreateBuffer();
 
-    if (NULL == pBuffer) return theString;
+    if (nullptr == pBuffer) return theString;
 
     // Below this point, responsible for pBuffer.
 
@@ -2206,7 +2209,7 @@ std::string Storage::QueryString(std::string strFolder, std::string oneStr,
 
     if (!bSuccess) {
         delete pBuffer;
-        pBuffer = NULL;
+        pBuffer = nullptr;
         return theString;
     }
 
@@ -2225,7 +2228,7 @@ std::string Storage::QueryString(std::string strFolder, std::string oneStr,
 
     // Don't want any leaks here, do we?
     delete pBuffer;
-    pBuffer = NULL;
+    pBuffer = nullptr;
 
     return theString;
 }
@@ -2256,14 +2259,14 @@ bool Storage::StoreObject(Storable& theContents, std::string strFolder,
 {
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) {
+    if (nullptr == pPacker) {
         otErr << "No packer allocated in Storage::StoreObject\n";
         return false;
     }
 
     PackedBuffer* pBuffer = pPacker->Pack(theContents);
 
-    if (NULL == pBuffer) {
+    if (nullptr == pBuffer) {
         otErr << "Packing failed in Storage::StoreObject\n";
         return false;
     }
@@ -2291,19 +2294,19 @@ Storable* Storage::QueryObject(StoredObjectType theObjectType,
 {
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) return NULL;
+    if (nullptr == pPacker) return nullptr;
 
     PackedBuffer* pBuffer = pPacker->CreateBuffer();
 
-    if (NULL == pBuffer) return NULL;
+    if (nullptr == pBuffer) return nullptr;
 
     // Below this point, responsible for pBuffer.
 
     Storable* pStorable = CreateObject(theObjectType);
 
-    if (NULL == pStorable) {
+    if (nullptr == pStorable) {
         delete pBuffer;
-        return NULL;
+        return nullptr;
     }
 
     // Below this point, responsible for pBuffer AND pStorable.
@@ -2315,7 +2318,7 @@ Storable* Storage::QueryObject(StoredObjectType theObjectType,
         delete pBuffer;
         delete pStorable;
 
-        return NULL;
+        return nullptr;
     }
 
     // We got the packed buffer back from the query!
@@ -2327,7 +2330,7 @@ Storable* Storage::QueryObject(StoredObjectType theObjectType,
         delete pBuffer;
         delete pStorable;
 
-        return NULL;
+        return nullptr;
     }
 
     // Success :-)
@@ -2344,14 +2347,14 @@ std::string Storage::EncodeObject(Storable& theContents)
 
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) {
+    if (nullptr == pPacker) {
         otErr << "Storage::EncodeObject: No packer allocated.\n";
         return strReturnValue;
     }
 
     PackedBuffer* pBuffer = pPacker->Pack(theContents);
 
-    if (NULL == pBuffer) {
+    if (nullptr == pBuffer) {
         otErr << "Storage::EncodeObject: Packing failed.\n";
         return strReturnValue;
     }
@@ -2363,9 +2366,9 @@ std::string Storage::EncodeObject(Storable& theContents)
     const uint32_t nNewSize = static_cast<const uint32_t>(pBuffer->GetSize());
     const void* pNewData = static_cast<const void*>(pBuffer->GetData());
 
-    if ((nNewSize < 1) || (NULL == pNewData)) {
+    if ((nNewSize < 1) || (nullptr == pNewData)) {
         delete pBuffer;
-        pBuffer = NULL;
+        pBuffer = nullptr;
 
         otErr << "Storage::EncodeObject: Packing failed (2).\n";
         return strReturnValue;
@@ -2387,23 +2390,23 @@ std::string Storage::EncodeObject(Storable& theContents)
 Storable* Storage::DecodeObject(StoredObjectType theObjectType,
                                 std::string strInput)
 {
-    if (strInput.size() < 1) return NULL;
+    if (strInput.size() < 1) return nullptr;
 
     OTPacker* pPacker = GetPacker();
 
-    if (NULL == pPacker) return NULL;
+    if (nullptr == pPacker) return nullptr;
 
     PackedBuffer* pBuffer = pPacker->CreateBuffer();
 
-    if (NULL == pBuffer) return NULL;
+    if (nullptr == pBuffer) return nullptr;
 
     // Below this point, responsible for pBuffer.
 
     Storable* pStorable = CreateObject(theObjectType);
 
-    if (NULL == pStorable) {
+    if (nullptr == pStorable) {
         delete pBuffer;
-        return NULL;
+        return nullptr;
     }
 
     // Below this point, responsible for pBuffer AND pStorable.
@@ -2426,7 +2429,7 @@ Storable* Storage::DecodeObject(StoredObjectType theObjectType,
         delete pBuffer;
         delete pStorable;
 
-        return NULL;
+        return nullptr;
     }
 
     // Success :-)

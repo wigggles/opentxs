@@ -769,7 +769,7 @@ bool OTRecord::DeleteRecord()
     OTLedger* pRecordbox =
         OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID, theAcctID);
     OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
-    if (NULL == pRecordbox) {
+    if (nullptr == pRecordbox) {
         OTLog::vError("%s: Failed loading record box for server ID (%s) nymID "
                       "(%s) accountID (%s)\n",
                       __FUNCTION__, m_str_server_id.c_str(),
@@ -832,7 +832,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID, theAcctID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::vError("%s: Error: Unable to load asset account inbox for "
                           "server id (%s), nym id (%s)\n",
                           __FUNCTION__, m_str_server_id.c_str(),
@@ -898,7 +898,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::vError("%s: Error: Unable to load payment inbox for server "
                           "id (%s), nym id (%s)\n",
                           __FUNCTION__, m_str_server_id.c_str(),
@@ -977,7 +977,7 @@ bool OTRecord::DiscardIncoming()
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
-        if (NULL == pInbox) {
+        if (nullptr == pInbox) {
             OTLog::vError("%s: Error: Unable to load payment inbox for server "
                           "id (%s), nym id (%s)\n",
                           __FUNCTION__, m_str_server_id.c_str(),

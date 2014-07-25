@@ -280,7 +280,7 @@ public:
     // That's because this function forces the null terminator at
     // that length, minus 1. For example, if the max is set to 10, then
     // the valid range is 0..9. Therefore 9 (10 minus 1) is where the
-    // NULL terminator goes.
+    // nullptr terminator goes.
     //
     EXPORT void Set(const char* data, uint32_t enforcedMaxLength = 0);
     EXPORT void Set(const OTString& data);

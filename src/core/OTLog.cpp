@@ -253,7 +253,7 @@ typedef struct ucontext
 namespace opentxs
 {
 
-OTLog* OTLog::pLogger = NULL;
+OTLog* OTLog::pLogger = nullptr;
 
 const OTString OTLog::m_strVersion = OT_VERSION;
 const OTString OTLog::m_strPathSeparator = "/";
@@ -277,7 +277,7 @@ OTLogStream::OTLogStream(int _logLevel)
 OTLogStream::~OTLogStream()
 {
     delete[] pBuffer;
-    pBuffer = NULL;
+    pBuffer = nullptr;
 }
 
 int OTLogStream::overflow(int c)
@@ -307,7 +307,7 @@ int OTLogStream::overflow(int c)
 // static
 bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
 {
-    if (NULL == pLogger) {
+    if (nullptr == pLogger) {
         pLogger = new OTLog();
         pLogger->m_bInitialized = false;
     }
@@ -366,7 +366,7 @@ bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
         OTAssert* pLogAssert = new OTAssert(OTLog::logAssert);
         std::swap(pLogAssert, OTAssert::s_pOTAssert);
         delete pLogAssert;
-        pLogAssert = NULL;
+        pLogAssert = nullptr;
 
         return true;
     }
@@ -378,15 +378,15 @@ bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
 // static
 bool OTLog::IsInitialized()
 {
-    return NULL != pLogger && pLogger->m_bInitialized;
+    return nullptr != pLogger && pLogger->m_bInitialized;
 }
 
 // static
 bool OTLog::Cleanup()
 {
-    if (NULL != pLogger) {
+    if (nullptr != pLogger) {
         delete pLogger;
-        pLogger = NULL;
+        pLogger = nullptr;
         return true;
     }
     return false;
@@ -395,7 +395,7 @@ bool OTLog::Cleanup()
 // static
 bool OTLog::CheckLogger(OTLog* pLogger)
 {
-    if (NULL != pLogger && pLogger->m_bInitialized) return true;
+    if (nullptr != pLogger && pLogger->m_bInitialized) return true;
 
     OT_FAIL;
 }
@@ -441,7 +441,7 @@ const OTString& OTLog::GetLogFilePath()
 // static
 int32_t OTLog::LogLevel()
 {
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         return pLogger->m_nLogLevel;
     else
         return 0;
@@ -450,7 +450,7 @@ int32_t OTLog::LogLevel()
 // static
 bool OTLog::SetLogLevel(const int32_t& nLogLevel)
 {
-    if (NULL == pLogger) {
+    if (nullptr == pLogger) {
         OT_FAIL;
     }
     else {
@@ -478,7 +478,7 @@ bool OTLog::LogToFile(const OTString& strOutput)
     // now log to file, if we can.
 
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
@@ -516,7 +516,7 @@ const OTString OTLog::GetMemlogAtIndex(const int32_t nIndex)
         return "";
     }
 
-    if (NULL != OTLog::pLogger->logDeque.at(uIndex))
+    if (nullptr != OTLog::pLogger->logDeque.at(uIndex))
         ; // check for null
     else
         OT_FAIL;
@@ -544,9 +544,9 @@ const OTString OTLog::PeekMemlogFront()
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return NULL;
+    if (OTLog::pLogger->logDeque.size() <= 0) return nullptr;
 
-    if (NULL != OTLog::pLogger->logDeque.front())
+    if (nullptr != OTLog::pLogger->logDeque.front())
         ; // check for null
     else
         OT_FAIL;
@@ -564,9 +564,9 @@ const OTString OTLog::PeekMemlogBack()
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return NULL;
+    if (OTLog::pLogger->logDeque.size() <= 0) return nullptr;
 
-    if (NULL != OTLog::pLogger->logDeque.back())
+    if (nullptr != OTLog::pLogger->logDeque.back())
         ; // check for null
     else
         OT_FAIL;
@@ -588,8 +588,8 @@ bool OTLog::PopMemlogFront()
     if (OTLog::pLogger->logDeque.size() <= 0) return false;
 
     OTString* strLogFront = OTLog::pLogger->logDeque.front();
-    if (NULL != strLogFront) delete strLogFront;
-    strLogFront = NULL;
+    if (nullptr != strLogFront) delete strLogFront;
+    strLogFront = nullptr;
 
     OTLog::pLogger->logDeque.pop_front();
 
@@ -605,8 +605,8 @@ bool OTLog::PopMemlogBack()
     if (OTLog::pLogger->logDeque.size() <= 0) return false;
 
     OTString* strLogBack = OTLog::pLogger->logDeque.back();
-    if (NULL != strLogBack) delete strLogBack;
-    strLogBack = NULL;
+    if (nullptr != strLogBack) delete strLogBack;
+    strLogBack = nullptr;
 
     OTLog::pLogger->logDeque.pop_back();
 
@@ -673,7 +673,7 @@ bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
 size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
                         const char* szMessage)
 {
-    if (NULL != szMessage) {
+    if (nullptr != szMessage) {
 #ifndef ANDROID // if NOT android
         std::cerr << szMessage << "\n";
 
@@ -688,7 +688,7 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
         print_stacktrace();
     }
 
-    if ((NULL != szFilename)) {
+    if ((nullptr != szFilename)) {
 #ifndef ANDROID // if NOT android
 
         // Pass it to LogToFile, as this always logs.
@@ -718,7 +718,7 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
 void OTLog::Output(int32_t nVerbosity, const char* szOutput)
 {
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
@@ -726,8 +726,9 @@ void OTLog::Output(int32_t nVerbosity, const char* szOutput)
 
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
-    //    if (nVerbosity > OTLog::__CurrentLogLevel || (NULL == szOutput))
-    if ((nVerbosity > LogLevel()) || (NULL == szOutput) || (LogLevel() == (-1)))
+    //    if (nVerbosity > OTLog::__CurrentLogLevel || (nullptr == szOutput))
+    if ((nVerbosity > LogLevel()) || (nullptr == szOutput) ||
+        (LogLevel() == (-1)))
         return;
 
     // We store the last 1024 logs so programmers can access them via the API.
@@ -775,7 +776,7 @@ void OTLog::Output(int32_t nVerbosity, const char* szOutput)
 void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
 {
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
@@ -783,7 +784,8 @@ void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
 
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
-    if (((0 != LogLevel()) && (nVerbosity > LogLevel())) || (NULL == szOutput))
+    if (((0 != LogLevel()) && (nVerbosity > LogLevel())) ||
+        (nullptr == szOutput))
         return;
 
     va_list args;
@@ -806,13 +808,13 @@ void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
 void OTLog::vError(const char* szError, ...)
 {
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-    if ((NULL == szError)) return;
+    if ((nullptr == szError)) return;
 
     va_list args;
     va_start(args, szError);
@@ -837,13 +839,13 @@ void OTLog::vError(const char* szError, ...)
 void OTLog::Error(const char* szError)
 {
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
     if (bHaveLogger) CheckLogger(OTLog::pLogger);
 
-    if ((NULL == szError)) return;
+    if ((nullptr == szError)) return;
 
     // We store the last 1024 logs so programmers can access them via the API.
     if (bHaveLogger) OTLog::PushMemlogFront(szError);
@@ -865,7 +867,7 @@ void OTLog::Error(const char* szError)
 void OTLog::Errno(const char* szLocation) // stderr
 {
     bool bHaveLogger(false);
-    if (NULL != pLogger)
+    if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
@@ -876,7 +878,7 @@ void OTLog::Errno(const char* szLocation) // stderr
     buf[0] = '\0';
 
     int32_t nstrerr = 0;
-    char* szErrString = NULL;
+    char* szErrString = nullptr;
 
 //#if((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) &&
 //!defined(_GNU_SOURCE))
@@ -889,9 +891,9 @@ void OTLog::Errno(const char* szLocation) // stderr
 #endif
 
     const char* szFunc = "OTLog::Errno";
-    const char* sz_location = (NULL == szLocation) ? "" : szLocation;
+    const char* sz_location = (nullptr == szLocation) ? "" : szLocation;
 
-    if (NULL == szErrString) szErrString = buf;
+    if (nullptr == szErrString) szErrString = buf;
 
     if (0 == nstrerr)
         otErr << szFunc << " " << sz_location << ": errno " << errnum << ": "
@@ -908,7 +910,7 @@ bool OTLog::StringFill(OTString& out_strString, const char* szString,
 {
     std::string strString(szString);
 
-    if (NULL != szAppend) strString.append(szAppend);
+    if (nullptr != szAppend) strString.append(szAppend);
 
     for (; (static_cast<int32_t>(strString.length()) < iLength);
          strString.append(" "))
@@ -989,7 +991,7 @@ void ot_terminate()
     char** messages = backtrace_symbols(array, size);
 
     // skip first stack frame (points here)
-    for (int32_t i = 1; i < size && messages != NULL; ++i) {
+    for (int32_t i = 1; i < size && messages != nullptr; ++i) {
         char* mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // find parantheses and +address offset surrounding mangled name
@@ -1029,7 +1031,7 @@ void ot_terminate()
                           << mangled_name << "+" << offset_begin << offset_end
                           << std::endl;
             }
-            if (NULL != real_name) free(real_name);
+            if (nullptr != real_name) free(real_name);
         }
         // otherwise, print the whole line
         else {
@@ -1123,7 +1125,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 
     // skip first stack frame (points here)
     //
-    for (i = 1; i < size && messages != NULL; ++i) {
+    for (i = 1; i < size && messages != nullptr; ++i) {
         fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
     }
 
@@ -1156,7 +1158,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
     char ** messages = backtrace_symbols(array, size);
 
     // skip first stack frame (points here)
-    for (int32_t i = 1; i < size && messages != NULL; ++i)
+    for (int32_t i = 1; i < size && messages != nullptr; ++i)
     {
         char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
@@ -1227,7 +1229,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
 
     tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
-    OT_ASSERT(NULL != v);
+    OT_ASSERT(nullptr != v);
 
 #ifdef _LP64
     typedef uint64_t ot_ulong;
@@ -1316,7 +1318,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
     char** messages = backtrace_symbols(array, size);
 
     // skip first stack frame (points here)
-    for (int32_t i = 1; i < size && messages != NULL; ++i) {
+    for (int32_t i = 1; i < size && messages != nullptr; ++i) {
         char* mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // find parantheses and +address offset surrounding mangled name
@@ -1380,10 +1382,10 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
         sigemptyset(&new_action.sa_mask);                                      \
         new_action.sa_flags = SA_RESTART | SA_SIGINFO;                         \
                                                                                \
-        sigaction(OT_SIGNAL_TYPE, NULL, &old_action);                          \
+        sigaction(OT_SIGNAL_TYPE, nullptr, &old_action);                       \
                                                                                \
         if (old_action.sa_handler != SIG_IGN) {                                \
-            if (sigaction(OT_SIGNAL_TYPE, &new_action, NULL) != 0) {           \
+            if (sigaction(OT_SIGNAL_TYPE, &new_action, nullptr) != 0) {        \
                 otErr << "OTLog::SetupSignalHandler: Failed setting signal "   \
                          "handler for error " << OT_SIGNAL_TYPE << " ("        \
                       << strsignal(OT_SIGNAL_TYPE) << ")\n";                   \
@@ -1519,7 +1521,7 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS* ExInfo)
     // (using stderr.)
     //  sgLogFile = fopen("Win32Fault.log", "w");
 
-    if (stderr != NULL) {
+    if (stderr != nullptr) {
         fprintf(stderr,
                 "****************************************************\n");
         fprintf(stderr, "*** A Programm Fault occured:\n");
@@ -1582,11 +1584,11 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         __in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
 
     HMODULE lLoadedLib = LoadLibrary(L"kernel32.dll");
-    if (NULL == lLoadedLib) OT_FAIL;
+    if (nullptr == lLoadedLib) OT_FAIL;
     CaptureStackBackTraceType func = (CaptureStackBackTraceType)(
         GetProcAddress(lLoadedLib, "RtlCaptureStackBackTrace"));
 
-    if (func == NULL) return;
+    if (func == nullptr) return;
 
     // Quote from Microsoft Documentation:
     // ## Windows Server 2003 and Windows XP:
@@ -1595,13 +1597,13 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
     const int32_t kMaxCallers = 62;
 
     void* callers[kMaxCallers];
-    int32_t count = (func)(0, kMaxCallers, callers, NULL);
+    int32_t count = (func)(0, kMaxCallers, callers, nullptr);
     for (int32_t i = 0; i < count; i++)
         fprintf(stderr, "*** %d called from %p\n", i, callers[i]);
 
 #elif defined(_WIN32) // not _WIN64 ? Must be _WIN32
 
-    char* p = NULL, *pBP = NULL;
+    char* p = nullptr, *pBP = nullptr;
     uint32_t i = 0, x = 0, BpPassed = 0;
     static int32_t CurrentlyInTheStackDump = 0;
 
@@ -1630,7 +1632,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
     /* ====================================================================== */
     CurrentlyInTheStackDump = 1;
 
-    BpPassed = (eNextBP != NULL);
+    BpPassed = (eNextBP != nullptr);
 
     if (!eNextBP) {
         _asm mov eNextBP, eBp
@@ -1662,7 +1664,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         fprintf(stderr, "*** %2d called from $ADDRESS:%08X\n", i,
                 *(char**)(pBP + 4));
 
-        if (*(char**)(pBP + 4) == NULL) break;
+        if (*(char**)(pBP + 4) == nullptr) break;
     }
 
     fprintf(stderr,

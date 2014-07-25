@@ -144,7 +144,7 @@ LONG WindowsRegistryTools::GetDWORDRegKey(HKEY hKey,
     DWORD dwBufferSize(sizeof(DWORD));
     DWORD nResult(0);
     LONG nError =
-        ::RegQueryValueExW(hKey, strValueName.c_str(), 0, NULL,
+        ::RegQueryValueExW(hKey, strValueName.c_str(), 0, nullptr,
                            reinterpret_cast<LPBYTE>(&nResult), &dwBufferSize);
     if (ERROR_SUCCESS == nError) {
         nValue = nResult;
@@ -175,7 +175,7 @@ LONG WindowsRegistryTools::GetStringRegKey(HKEY hKey,
     WCHAR szBuffer[512];
     DWORD dwBufferSize = sizeof(szBuffer);
     ULONG nError;
-    nError = RegQueryValueExW(hKey, strValueName.c_str(), 0, NULL,
+    nError = RegQueryValueExW(hKey, strValueName.c_str(), 0, nullptr,
                               (LPBYTE)szBuffer, &dwBufferSize);
     if (ERROR_SUCCESS == nError) {
         strValue = szBuffer;

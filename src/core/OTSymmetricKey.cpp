@@ -327,8 +327,9 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     OTPassword* pDerivedKey =
         CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
 
-    if (NULL != ppDerivedKey) // A pointerpointer was passed in... (caller will
-                              // be responsible then, to delete.)
+    if (nullptr !=
+        ppDerivedKey) // A pointerpointer was passed in... (caller will
+                      // be responsible then, to delete.)
     {
         *ppDerivedKey = pDerivedKey;
     }
@@ -394,8 +395,9 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
     OTPassword* pDerivedKey =
         CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
 
-    if (NULL == pDerivedKey) // A pointerpointer was passed in... (caller will
-                             // be responsible then, to delete.)
+    if (nullptr ==
+        pDerivedKey) // A pointerpointer was passed in... (caller will
+                     // be responsible then, to delete.)
     {
         otErr << __FUNCTION__ << ": failed to calculate derived key";
         return false;
@@ -473,7 +475,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
 {
     //  OT_ASSERT(m_bIsGenerated);
     //  OT_ASSERT(thePassphrase.isPassword());
-    OTPassword* pDerivedKey = NULL;
+    OTPassword* pDerivedKey = nullptr;
 
     OTPayload tmpDataHashCheck = m_dataHashCheck;
 
@@ -505,7 +507,7 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
 {
     //  OT_ASSERT(m_bIsGenerated);
     //  OT_ASSERT(thePassphrase.isPassword());
-    OTPassword* pDerivedKey = NULL;
+    OTPassword* pDerivedKey = nullptr;
 
     if (!HasHashCheck()) {
         m_dataHashCheck.zeroMemory();
@@ -518,7 +520,7 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
               << ": Calling Wrong function!! Hash check already exists!";
     }
 
-    OT_ASSERT(NULL != pDerivedKey);
+    OT_ASSERT(nullptr != pDerivedKey);
     OT_ASSERT(!m_dataHashCheck.IsEmpty());
 
     m_bHasHashCheck = true;
@@ -539,7 +541,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
 
     OTCleanup<OTPassword> theDerivedAngel;
 
-    if (NULL == pDerivedKey) {
+    if (nullptr == pDerivedKey) {
         // todo, security: Do we have to create all these OTPassword objects on
         // the stack, just
         // as a general practice? In which case I can't use this factory how I'm
@@ -620,7 +622,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 // static  NOTE: this version circumvents the master key.
 OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     const OTString* pstrDisplay,
-    const bool bAskTwice) // returns a text OTPassword, or NULL.
+    const bool bAskTwice) // returns a text OTPassword, or nullptr.
 {
     // Caller MUST delete!
 
@@ -633,8 +635,8 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     // will leak.)
 
     const char* szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
-    OTPasswordData thePWData((NULL == pstrDisplay) ? szDisplay
-                                                   : pstrDisplay->Get());
+    OTPasswordData thePWData((nullptr == pstrDisplay) ? szDisplay
+                                                      : pstrDisplay->Get());
     thePWData.setUsingOldSystem(); // So the cached key doesn't interfere, since
                                    // this is for a plain symmetric key.
 
@@ -653,13 +655,13 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     }
     else {
         delete pPassUserInput;
-        pPassUserInput = NULL;
+        pPassUserInput = nullptr;
         otOut
             << __FUNCTION__
             << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // static
@@ -667,25 +669,25 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
                                   const OTString* pstrDisplay,
                                   const OTPassword* pAlreadyHavePW)
 {
-    OTPassword* pPassUserInput = NULL;
+    OTPassword* pPassUserInput = nullptr;
     OTCleanup<OTPassword> thePWAngel;
 
-    if (NULL == pAlreadyHavePW) {
+    if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Creating new symmetric key.";
-        const OTString strDisplay((NULL == pstrDisplay) ? szDisplay
-                                                        : pstrDisplay->Get());
+        const OTString strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay, true); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
+        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
     }
     else
         pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
 
     bool bSuccess = false;
 
-    if (NULL != pPassUserInput) // Success retrieving the passphrase from the
-                                // user. (Now let's generate the key...)
+    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
+                                   // user. (Now let's generate the key...)
     {
         otLog3 << __FUNCTION__
                << ": Calling OTSymmetricKey theKey.GenerateKey()...\n";
@@ -755,17 +757,17 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 
     // By this point, we know we have a plaintext and a symmetric Key.
     //
-    OTPassword* pPassUserInput = NULL;
+    OTPassword* pPassUserInput = nullptr;
     OTCleanup<OTPassword> thePWAngel;
 
-    if (NULL == pAlreadyHavePW) {
+    if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Password-protecting a plaintext.";
-        const OTString strDisplay((NULL == pstrDisplay) ? szDisplay
-                                                        : pstrDisplay->Get());
+        const OTString strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
+        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
     }
     else
         pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
@@ -773,8 +775,8 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
     OTASCIIArmor ascOutput;
     bool bSuccess = false;
 
-    if (NULL != pPassUserInput) // Success retrieving the passphrase from the
-                                // user. (Now let's encrypt...)
+    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
+                                   // user. (Now let's encrypt...)
     {
         OTEnvelope theEnvelope;
 
@@ -857,25 +859,25 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
 
     // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
-    OTPassword* pPassUserInput = NULL;
+    OTPassword* pPassUserInput = nullptr;
     OTCleanup<OTPassword> thePWAngel;
 
-    if (NULL == pAlreadyHavePW) {
+    if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Decrypting a password-protected ciphertext.";
-        const OTString strDisplay((NULL == pstrDisplay) ? szDisplay
-                                                        : pstrDisplay->Get());
+        const OTString strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
         pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be NULL.
+        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
     }
     else
         pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
 
     bool bSuccess = false;
 
-    if (NULL != pPassUserInput) // Success retrieving the passphrase from the
-                                // user. (Now let's decrypt...)
+    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
+                                   // user. (Now let's decrypt...)
     {
         OTEnvelope theEnvelope(ascArmor);
 
@@ -986,26 +988,26 @@ bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
     theOutput.Concatenate(reinterpret_cast<void*>(&n_salt_size),
                           static_cast<uint32_t>(sizeof(n_salt_size)));
 
-    OT_ASSERT(NULL != m_dataSalt.GetPayloadPointer());
+    OT_ASSERT(nullptr != m_dataSalt.GetPayloadPointer());
     theOutput.Concatenate(m_dataSalt.GetPayloadPointer(), m_dataSalt.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_iv_size),
                           static_cast<uint32_t>(sizeof(n_iv_size)));
 
-    OT_ASSERT(NULL != m_dataIV.GetPayloadPointer());
+    OT_ASSERT(nullptr != m_dataIV.GetPayloadPointer());
     theOutput.Concatenate(m_dataIV.GetPayloadPointer(), m_dataIV.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_enc_key_size),
                           static_cast<uint32_t>(sizeof(n_enc_key_size)));
 
-    OT_ASSERT(NULL != m_dataEncryptedKey.GetPayloadPointer());
+    OT_ASSERT(nullptr != m_dataEncryptedKey.GetPayloadPointer());
     theOutput.Concatenate(m_dataEncryptedKey.GetPayloadPointer(),
                           m_dataEncryptedKey.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_hash_check_size),
                           static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
-    OT_ASSERT(NULL != m_dataHashCheck.GetPayloadPointer());
+    OT_ASSERT(nullptr != m_dataHashCheck.GetPayloadPointer());
     theOutput.Concatenate(m_dataHashCheck.GetPayloadPointer(),
                           m_dataHashCheck.GetSize());
 

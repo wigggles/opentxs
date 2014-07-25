@@ -277,7 +277,7 @@ public:
         mapOfNyms* pNymMap, const OTString& strServerID,
         OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
         const int64_t& lNewTransactionNumber, const OTString& strOrigCronItem,
-        OTString* pstrNote = NULL, OTString* pstrAttachment = NULL);
+        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr);
     OTPartyAccount();
     OTPartyAccount(const std::string str_account_name,
                    const OTString& strAgentName, OTAccount& theAccount,
@@ -297,7 +297,7 @@ public:
     //
     void ClearTemporaryPointers()
     {
-        m_pAccount = NULL;
+        m_pAccount = nullptr;
     }
 };
 

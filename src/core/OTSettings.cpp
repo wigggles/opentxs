@@ -227,8 +227,9 @@ bool OTSettings::LogChange_str(const OTString& strSection,
         OT_FAIL;
     }
 
-    const char* const szValue =
-        (strValue.Exists() && !strValue.Compare("")) ? strValue.Get() : "NULL";
+    const char* const szValue = (strValue.Exists() && !strValue.Compare(""))
+                                    ? strValue.Get()
+                                    : "nullptr";
 
     OTString strCategory, strOption;
     if (!OTLog::StringFill(strCategory, strSection.Get(), 12)) return false;
@@ -315,9 +316,9 @@ OTSettings::OTSettings()
 
 OTSettings::~OTSettings()
 {
-    if (NULL != pvt->iniSimple) {
+    if (nullptr != pvt->iniSimple) {
         delete pvt->iniSimple;
-        pvt->iniSimple = NULL;
+        pvt->iniSimple = nullptr;
     }
 }
 
@@ -385,7 +386,7 @@ bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), NULL);
+        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
@@ -430,7 +431,7 @@ bool OTSettings::Check_long(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), NULL);
+        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
@@ -476,7 +477,7 @@ bool OTSettings::Check_bool(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), NULL);
+        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() &&
@@ -525,14 +526,14 @@ bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
         OT_FAIL;
     }
 
-    // if (NULL == m_strConfigurationFileExactPath){ otErr << "%s: Error:
-    // %s is a NULL!\n", __FUNCTION__, "p_iniSimple"); OT_FAIL; }
+    // if (nullptr == m_strConfigurationFileExactPath){ otErr << "%s: Error:
+    // %s is a nullptr!\n", __FUNCTION__, "p_iniSimple"); OT_FAIL; }
 
     const char* const szValue =
-        (strValue.Exists() && !strValue.Compare("")) ? strValue.Get() : NULL;
+        (strValue.Exists() && !strValue.Compare("")) ? strValue.Get() : nullptr;
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
-                                                         : NULL;
+                                                         : nullptr;
 
     OTString strOldValue, strNewValue;
     bool bOldKeyExist, bNewKeyExist;
@@ -555,7 +556,7 @@ bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
                                            szValue, szComment, true);
     if (0 > rc) return false;
 
-    if (NULL == szValue) // We set the key's value to null, thus removing it.
+    if (nullptr == szValue) // We set the key's value to null, thus removing it.
     {
         if (bOldKeyExist)
             out_bNewOrUpdate = true;
@@ -615,7 +616,7 @@ bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
 
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
-                                                         : NULL;
+                                                         : nullptr;
 
     OTString strOldValue, strNewValue;
     bool bOldKeyExist, bNewKeyExist;
@@ -693,15 +694,15 @@ bool OTSettings::CheckSetSection(const OTString& strSection,
 
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
-                                                         : NULL;
+                                                         : nullptr;
 
     const int64_t lSectionSize =
         pvt->iniSimple->GetSectionSize(strSection.Get());
 
     if (1 > lSectionSize) {
         out_bIsNewSection = true;
-        SI_Error rc = pvt->iniSimple->SetValue(strSection.Get(), NULL, NULL,
-                                               szComment, false);
+        SI_Error rc = pvt->iniSimple->SetValue(strSection.Get(), nullptr,
+                                               nullptr, szComment, false);
         if (0 > rc) return false;
     }
     else {
@@ -731,7 +732,7 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
 
     const char* const szDefault =
         (strDefault.Exists() && !strDefault.Compare("")) ? strDefault.Get()
-                                                         : NULL;
+                                                         : nullptr;
 
     OTString strTempResult;
     bool bKeyExist, bNewKeyCheck;
@@ -747,7 +748,7 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
         if (!Set_str(strSection, strKey, strDefault, bNewKeyCheck, strComment))
             return false;
 
-        if (NULL == szDefault) // The Default is to have no key.
+        if (nullptr == szDefault) // The Default is to have no key.
         {
             // Success
             out_bIsNew = false;

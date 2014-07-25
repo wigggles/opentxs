@@ -293,7 +293,7 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
             OTASCIIArmor* pArmoredPrivate = new OTASCIIArmor();
 
             OT_ASSERT_MSG(
-                ((NULL != pArmoredPublic) && (NULL != pArmoredPrivate)),
+                ((nullptr != pArmoredPublic) && (nullptr != pArmoredPrivate)),
                 "ERROR: Unable to allocate memory in "
                 "OTToken_Lucre::GenerateTokenRequest\n");
 

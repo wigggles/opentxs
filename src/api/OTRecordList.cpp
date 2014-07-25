@@ -250,7 +250,7 @@ OTLookupCaller::~OTLookupCaller()
 
 void OTLookupCaller::delCallback()
 {
-    //    if (NULL != _callback)  // TODO this may be a memory leak.
+    //    if (nullptr != _callback)  // TODO this may be a memory leak.
     //        delete _callback;    // But I know we're currently crashing from
     // deleting same object twice.
     // And since the object comes from Java, who am I to delete it? Let Java
@@ -258,9 +258,9 @@ void OTLookupCaller::delCallback()
     if (isCallbackSet())
         OTLog::Output(
             0, "OTLookupCaller::delCallback: WARNING: setting existing "
-               "callback object pointer to NULL. "
-               "(This message doesn't trigger if it was already NULL.)\n");
-    _callback = NULL;
+               "callback object pointer to nullptr. "
+               "(This message doesn't trigger if it was already nullptr.)\n");
+    _callback = nullptr;
 }
 
 void OTLookupCaller::setCallback(OTNameLookup* cb)
@@ -268,13 +268,14 @@ void OTLookupCaller::setCallback(OTNameLookup* cb)
     OTLog::Output(0, "OTLookupCaller::setCallback: Attempting to set the "
                      "OTNameLookup pointer...\n");
 
-    if (NULL == cb) {
-        OTLog::Output(0, "OTLookupCaller::setCallback: ERROR: NULL "
+    if (nullptr == cb) {
+        OTLog::Output(0, "OTLookupCaller::setCallback: ERROR: nullptr "
                          "OTNameLookup object passed in. (Returning.)\n");
         return;
     }
 
-    delCallback(); // Sets _callback to NULL, but LOGS first, if it was already
+    delCallback(); // Sets _callback to nullptr, but LOGS first, if it was
+                   // already
                    // set.
     _callback = cb;
     OTLog::Output(0, "OTLookupCaller::setCallback: FYI, the OTNameLookup "
@@ -283,7 +284,7 @@ void OTLookupCaller::setCallback(OTNameLookup* cb)
 
 bool OTLookupCaller::isCallbackSet() const
 {
-    return (NULL == _callback) ? false : true;
+    return (nullptr == _callback) ? false : true;
 }
 
 std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
@@ -344,7 +345,7 @@ const std::string OTRecordList::s_message_type("message");
 std::string OTRecordList::s_strTextTo(MC_UI_TEXT_TO);     // "To: %s"
 std::string OTRecordList::s_strTextFrom(MC_UI_TEXT_FROM); // "From: %s"
 
-OTLookupCaller* OTRecordList::s_pCaller = NULL;
+OTLookupCaller* OTRecordList::s_pCaller = nullptr;
 
 // Takes ownership. UPDATE: doesn't, since he assumes the Java side
 // created it and will therefore delete it when the time comes.
@@ -366,7 +367,7 @@ bool OTRecordList::setAddrBookCaller(OTLookupCaller& theCaller)
         return false;
     }
 
-    if (NULL != s_pCaller) {
+    if (nullptr != s_pCaller) {
         OTLog::vError(
             "%s: WARNING: Setting the address book caller again, even though "
             "it was apparently ALREADY set... (Meaning Java has probably "
@@ -425,7 +426,8 @@ void OTRecordList::AddAssetID(const std::string str_id)
 {
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
-    OT_ASSERT_MSG(NULL != pWallet, "Wallet was NULL. Should never happen.");
+    OT_ASSERT_MSG(nullptr != pWallet,
+                  "Wallet was nullptr. Should never happen.");
     const OTString strAssetTypeID(str_id);
     const OTIdentifier theAssetTypeID(strAssetTypeID);
     std::string str_asset_name;
@@ -433,7 +435,7 @@ void OTRecordList::AddAssetID(const std::string str_id)
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
     OTAssetContract* pAssetContract = pWallet->GetAssetContract(theAssetTypeID);
-    if (NULL != pAssetContract) {
+    if (nullptr != pAssetContract) {
         str_asset_name =
             pAssetContract->GetCurrencyTLA().Get(); // This might be "USD" --
                                                     // preferable that this
@@ -534,8 +536,8 @@ bool OTRecordList::PerformAutoAccept()
 {
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
-    if (NULL == pWallet) {
-        OTLog::vError("OTRecordList::%s: Error: Wallet is NULL.\n",
+    if (nullptr == pWallet) {
+        OTLog::vError("OTRecordList::%s: Error: Wallet is nullptr.\n",
                       __FUNCTION__);
         return false;
     }
@@ -554,7 +556,7 @@ bool OTRecordList::PerformAutoAccept()
             const OTIdentifier theNymID(str_nym_id);
             const OTString strNymID(theNymID);
             OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
-            if (NULL == pNym) continue;
+            if (nullptr == pNym) continue;
             // LOOP SERVERS
             //
             // For each nym, for each server, loop through its payments inbox
@@ -566,7 +568,7 @@ bool OTRecordList::PerformAutoAccept()
                 const OTIdentifier theServerID(str_server_id);
                 OTServerContract* pServer =
                     pWallet->GetServerContract(theServerID);
-                OT_ASSERT(NULL != pServer);
+                OT_ASSERT(nullptr != pServer);
                 const OTString strServerID(theServerID);
                 OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__,
                                nServerIndex, strServerID.Get());
@@ -587,10 +589,10 @@ bool OTRecordList::PerformAutoAccept()
 
                 int32_t nIndex = (-1);
                 // It loaded up, so let's loop through it.
-                if (NULL != pInbox) {
+                if (nullptr != pInbox) {
                     for (auto& it : pInbox->GetTransactionMap()) {
                         OTTransaction* pBoxTrans = it.second;
-                        OT_ASSERT(NULL != pBoxTrans);
+                        OT_ASSERT(nullptr != pBoxTrans);
                         ++nIndex; // 0 on first iteration.
                         OTLog::vOutput(0, "%s: Incoming payment: %d\n",
                                        __FUNCTION__, nIndex);
@@ -603,13 +605,14 @@ bool OTRecordList::PerformAutoAccept()
                             *pNym, nIndex); // ===> Returns financial instrument
                                             // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                        if (NULL ==
+                        if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
-                            OTLog::vError("%s: Payment retrieved from payments "
-                                          "inbox was NULL. (It's abbreviated?) "
-                                          "Skipping.\n",
-                                          __FUNCTION__);
+                            OTLog::vError(
+                                "%s: Payment retrieved from payments "
+                                "inbox was nullptr. (It's abbreviated?) "
+                                "Skipping.\n",
+                                __FUNCTION__);
                         }
                         // We have pPayment, the instrument accompanying the
                         // receipt in the payments inbox.
@@ -656,20 +659,20 @@ bool OTRecordList::PerformAutoAccept()
                             }
                             // By this point, p_str_asset_type and
                             // p_str_asset_name are definitely set.
-                            OT_ASSERT(NULL != p_str_asset_type); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
-                            OT_ASSERT(NULL != p_str_asset_name); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
+                            OT_ASSERT(nullptr != p_str_asset_type); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
+                            OT_ASSERT(nullptr != p_str_asset_name); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
                             // Instrument type (cheque, voucher, etc)
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
@@ -691,8 +694,9 @@ bool OTRecordList::PerformAutoAccept()
                                     std::pair<int32_t, OTPayment*>(nIndex,
                                                                    pPayment));
                                 thePaymentAngel.SetCleanupTargetPointer(
-                                    NULL); // Now we HAVE to cleanup, below...
-                                           // Otherwise pPayment will leak.
+                                    nullptr); // Now we HAVE to cleanup,
+                                              // below...
+                                              // Otherwise pPayment will leak.
                             }
                             else
                                 OTLog::vOutput(
@@ -722,9 +726,9 @@ bool OTRecordList::PerformAutoAccept()
                     {
                         int32_t lIndex = it->first;
                         OTPayment* pPayment = it->second;
-                        if (NULL == pPayment) {
+                        if (nullptr == pPayment) {
                             OTLog::vError("%s: Error: payment pointer was "
-                                          "NULL! (Should never happen.) "
+                                          "nullptr! (Should never happen.) "
                                           "Skipping.\n",
                                           __FUNCTION__);
                             continue;
@@ -760,7 +764,7 @@ bool OTRecordList::PerformAutoAccept()
                             const OTIdentifier theAccountID(str_account_id);
                             OTAccount* pAccount =
                                 pWallet->GetAccount(theAccountID);
-                            OT_ASSERT(NULL != pAccount);
+                            OT_ASSERT(nullptr != pAccount);
                             const OTIdentifier& theAcctNymID =
                                 pAccount->GetUserID();
                             const OTIdentifier& theAcctServerID =
@@ -827,8 +831,8 @@ bool OTRecordList::PerformAutoAccept()
                     //
                     for (auto& it : thePaymentMap) {
                         OTPayment* pPayment = it.second;
-                        if (NULL != pPayment) delete pPayment;
-                        pPayment = NULL;
+                        if (nullptr != pPayment) delete pPayment;
+                        pPayment = nullptr;
                     }
                     thePaymentMap.clear();
                 } // if (!thePaymentMap.empty())
@@ -853,7 +857,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_account_id(it_acct);
             const OTIdentifier theAccountID(str_account_id);
             OTAccount* pAccount = pWallet->GetAccount(theAccountID);
-            OT_ASSERT(NULL != pAccount);
+            OT_ASSERT(nullptr != pAccount);
             const OTIdentifier& theNymID = pAccount->GetUserID();
             const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
             const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
@@ -907,7 +911,7 @@ bool OTRecordList::PerformAutoAccept()
                                    : OTAPI_Wrap::OTAPI()->LoadInbox(
                                          theServerID, theNymID, theAccountID);
             OTCleanup<OTLedger> theInboxAngel(pInbox);
-            if (NULL == pInbox) {
+            if (nullptr == pInbox) {
                 OTLog::vOutput(0, "%s: Skipping an account (%s) since its "
                                   "inbox failed to load (have you downloaded "
                                   "the latest one?)\n",
@@ -928,7 +932,7 @@ bool OTRecordList::PerformAutoAccept()
                         "%s: Beginning loop through asset account INBOX...\n",
                         __FUNCTION__);
                 OTTransaction* pBoxTrans = it.second;
-                OT_ASSERT(NULL != pBoxTrans);
+                OT_ASSERT(nullptr != pBoxTrans);
                 OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
                                nInboxIndex);
                 const std::string str_type(
@@ -969,10 +973,11 @@ bool OTRecordList::PerformAutoAccept()
                                 str_inbox);
 
                         if (strResponseLedger.empty()) {
-                            OTLog::vOutput(0, "\n\nFailure: "
-                                              "OT_API_Ledger_CreateResponse "
-                                              "returned NULL. (Skipping inbox "
-                                              "for account %s)\n",
+                            OTLog::vOutput(0,
+                                           "\n\nFailure: "
+                                           "OT_API_Ledger_CreateResponse "
+                                           "returned nullptr. (Skipping inbox "
+                                           "for account %s)\n",
                                            str_account_id.c_str());
                             continue;
                         }
@@ -987,10 +992,11 @@ bool OTRecordList::PerformAutoAccept()
                                    // transfer, for example.)
 
                     if (strNEW_ResponseLEDGER.empty()) {
-                        OTLog::vOutput(0, "\n\nFailure: "
-                                          "OT_API_Transaction_CreateResponse "
-                                          "returned NULL. (Skipping inbox for "
-                                          "account %s)\n",
+                        OTLog::vOutput(0,
+                                       "\n\nFailure: "
+                                       "OT_API_Transaction_CreateResponse "
+                                       "returned nullptr. (Skipping inbox for "
+                                       "account %s)\n",
                                        str_account_id.c_str());
                         continue;
                     }
@@ -1007,9 +1013,10 @@ bool OTRecordList::PerformAutoAccept()
                         strResponseLedger);
 
                 if (strFinalizedResponse.empty()) {
-                    OTLog::vOutput(0, "\n\nFailure: "
-                                      "OT_API_Ledger_FinalizeResponse returned "
-                                      "NULL. (Skipping inbox for account %s)\n",
+                    OTLog::vOutput(0,
+                                   "\n\nFailure: "
+                                   "OT_API_Ledger_FinalizeResponse returned "
+                                   "nullptr. (Skipping inbox for account %s)\n",
                                    str_account_id.c_str());
                     continue;
                 }
@@ -1061,7 +1068,7 @@ bool compare_records(shared_ptr_OTRecord i, shared_ptr_OTRecord j)
 
 bool OTRecordList::Populate()
 {
-    OT_ASSERT(NULL != m_pLookup);
+    OT_ASSERT(nullptr != m_pLookup);
     ClearContents();
     // Loop through all the accounts.
     //
@@ -1073,8 +1080,8 @@ bool OTRecordList::Populate()
     //
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
-    if (NULL == pWallet) {
-        OTLog::vError("OTRecordList::%s: Error: Wallet is NULL.\n",
+    if (nullptr == pWallet) {
+        OTLog::vError("OTRecordList::%s: Error: Wallet is nullptr.\n",
                       __FUNCTION__);
         return false;
     }
@@ -1096,7 +1103,7 @@ bool OTRecordList::Populate()
         const OTIdentifier theNymID(str_nym_id);
         const OTString strNymID(theNymID);
         OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
-        if (NULL == pNym) continue;
+        if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
         //
         const int32_t nOutpaymentsCount =
@@ -1175,12 +1182,12 @@ bool OTRecordList::Populate()
             }
             // By this point, p_str_asset_type and p_str_asset_name are
             // definitely set.
-            OT_ASSERT(NULL != p_str_asset_type); // and it's either blank, or
-                                                 // it's one of the asset types
-                                                 // we care about.
-            OT_ASSERT(NULL != p_str_asset_name); // and it's either blank, or
-                                                 // it's one of the asset types
-                                                 // we care about.
+            OT_ASSERT(nullptr != p_str_asset_type); // and it's either blank, or
+            // it's one of the asset types
+            // we care about.
+            OT_ASSERT(nullptr != p_str_asset_name); // and it's either blank, or
+            // it's one of the asset types
+            // we care about.
             OTIdentifier theAccountID;
             const std::string* p_str_account =
                 &OTRecordList::s_blank;     // <========== ACCOUNT
@@ -1221,9 +1228,10 @@ bool OTRecordList::Populate()
                 }
             }
             // By this point, p_str_account is definitely set.
-            OT_ASSERT(NULL != p_str_account); // and it's either blank, or it's
-                                              // one of the accounts we care
-                                              // about.
+            OT_ASSERT(nullptr !=
+                      p_str_account); // and it's either blank, or it's
+                                      // one of the accounts we care
+                                      // about.
             // strOutpayment contains the actual outgoing payment instrument.
             //
             const std::string str_outpmt_server =
@@ -1342,7 +1350,7 @@ bool OTRecordList::Populate()
             OTLog::vOutput(0, "%s: Mail index: %d\n", __FUNCTION__,
                            nCurrentMail);
             OTMessage* pMsg = pNym->GetMailByIndex(nCurrentMail);
-            OT_ASSERT(NULL != pMsg);
+            OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_MailServerIDByIndex(str_nym_id,
                                                        nCurrentMail);
@@ -1439,7 +1447,7 @@ bool OTRecordList::Populate()
             OTLog::vOutput(0, "%s: Outmail index: %d\n", __FUNCTION__,
                            nCurrentOutmail);
             OTMessage* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
-            OT_ASSERT(NULL != pMsg);
+            OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_OutmailServerIDByIndex(str_nym_id,
                                                           nCurrentOutmail);
@@ -1535,7 +1543,7 @@ bool OTRecordList::Populate()
             ++nServerIndex;
             const OTIdentifier theServerID(it_server);
             OTServerContract* pServer = pWallet->GetServerContract(theServerID);
-            OT_ASSERT(NULL != pServer);
+            OT_ASSERT(nullptr != pServer);
             const OTString strServerID(theServerID);
             OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__,
                            nServerIndex, strServerID.Get());
@@ -1555,10 +1563,10 @@ bool OTRecordList::Populate()
 
             int32_t nIndex = (-1);
             // It loaded up, so let's loop through it.
-            if (NULL != pInbox) {
+            if (nullptr != pInbox) {
                 for (auto& it : pInbox->GetTransactionMap()) {
                     OTTransaction* pBoxTrans = it.second;
-                    OT_ASSERT(NULL != pBoxTrans);
+                    OT_ASSERT(nullptr != pBoxTrans);
                     ++nIndex; // 0 on first iteration.
                     OTLog::vOutput(0, "%s: Incoming payment: %d\n",
                                    __FUNCTION__, nIndex);
@@ -1636,7 +1644,7 @@ bool OTRecordList::Populate()
                             *pNym, nIndex); // ===> Returns financial instrument
                                             // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                        if (NULL ==
+                        if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
                             str_type =
@@ -1718,20 +1726,20 @@ bool OTRecordList::Populate()
                             }
                             // By this point, p_str_asset_type and
                             // p_str_asset_name are definitely set.
-                            OT_ASSERT(NULL != p_str_asset_type); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
-                            OT_ASSERT(NULL != p_str_asset_name); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
+                            OT_ASSERT(nullptr != p_str_asset_type); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
+                            OT_ASSERT(nullptr != p_str_asset_name); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
                             // Instrument type (cheque, voucher, etc)
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
@@ -1809,10 +1817,10 @@ bool OTRecordList::Populate()
             OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
 
             // It loaded up, so let's loop through it.
-            if (NULL != pRecordbox) {
+            if (nullptr != pRecordbox) {
                 for (auto& it : pRecordbox->GetTransactionMap()) {
                     OTTransaction* pBoxTrans = it.second;
-                    OT_ASSERT(NULL != pBoxTrans);
+                    OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
                     OTLog::vOutput(0, "%s: Payment RECORD index: %d\n",
@@ -1994,7 +2002,7 @@ bool OTRecordList::Populate()
                             *pNym, nIndex); // ===> Returns financial instrument
                                             // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                        if (NULL ==
+                        if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
                             str_type =
@@ -2099,11 +2107,12 @@ bool OTRecordList::Populate()
                                 }
                             }
                             // By this point, p_str_account is definitely set.
-                            OT_ASSERT(NULL != p_str_account); // and it's either
-                                                              // blank, or it's
-                                                              // one of the
-                                                              // accounts we
-                                                              // care about.
+                            OT_ASSERT(nullptr !=
+                                      p_str_account); // and it's either
+                                                      // blank, or it's
+                                                      // one of the
+                                                      // accounts we
+                                                      // care about.
                             OTIdentifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
@@ -2144,20 +2153,20 @@ bool OTRecordList::Populate()
                             }
                             // By this point, p_str_asset_type and
                             // p_str_asset_name are definitely set.
-                            OT_ASSERT(NULL != p_str_asset_type); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
-                            OT_ASSERT(NULL != p_str_asset_name); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
+                            OT_ASSERT(nullptr != p_str_asset_type); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
+                            OT_ASSERT(nullptr != p_str_asset_name); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
                             OTString strMemo;
                             if (pPayment->GetMemo(strMemo)) {
                                 str_memo = strMemo.Get();
@@ -2238,10 +2247,10 @@ bool OTRecordList::Populate()
             OTCleanup<OTLedger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
-            if (NULL != pExpiredbox) {
+            if (nullptr != pExpiredbox) {
                 for (auto& it : pExpiredbox->GetTransactionMap()) {
                     OTTransaction* pBoxTrans = it.second;
-                    OT_ASSERT(NULL != pBoxTrans);
+                    OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
                     OTLog::vOutput(0, "%s: Expired payment RECORD index: %d\n",
@@ -2423,7 +2432,7 @@ bool OTRecordList::Populate()
                             *pNym, nIndex); // ===> Returns financial instrument
                                             // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
-                        if (NULL ==
+                        if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
                             str_type =
@@ -2528,11 +2537,12 @@ bool OTRecordList::Populate()
                                 }
                             }
                             // By this point, p_str_account is definitely set.
-                            OT_ASSERT(NULL != p_str_account); // and it's either
-                                                              // blank, or it's
-                                                              // one of the
-                                                              // accounts we
-                                                              // care about.
+                            OT_ASSERT(nullptr !=
+                                      p_str_account); // and it's either
+                                                      // blank, or it's
+                                                      // one of the
+                                                      // accounts we
+                                                      // care about.
                             OTIdentifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
@@ -2573,20 +2583,20 @@ bool OTRecordList::Populate()
                             }
                             // By this point, p_str_asset_type and
                             // p_str_asset_name are definitely set.
-                            OT_ASSERT(NULL != p_str_asset_type); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
-                            OT_ASSERT(NULL != p_str_asset_name); // and it's
-                                                                 // either
-                                                                 // blank, or
-                                                                 // it's one of
-                                                                 // the asset
-                                                                 // types we
-                                                                 // care about.
+                            OT_ASSERT(nullptr != p_str_asset_type); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
+                            OT_ASSERT(nullptr != p_str_asset_name); // and it's
+                                                                    // either
+                                                                    // blank, or
+                            // it's one of
+                            // the asset
+                            // types we
+                            // care about.
                             OTString strMemo;
                             if (pPayment->GetMemo(strMemo)) {
                                 str_memo = strMemo.Get();
@@ -2673,7 +2683,7 @@ bool OTRecordList::Populate()
         const std::string& str_account_id(it_acct);
         const OTIdentifier theAccountID(str_account_id);
         OTAccount* pAccount = pWallet->GetAccount(theAccountID);
-        OT_ASSERT(NULL != pAccount);
+        OT_ASSERT(nullptr != pAccount);
         const OTIdentifier& theNymID = pAccount->GetUserID();
         const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
         const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
@@ -2739,7 +2749,7 @@ bool OTRecordList::Populate()
 
         int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
-        if (NULL != pInbox) {
+        if (nullptr != pInbox) {
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
@@ -2748,7 +2758,7 @@ bool OTRecordList::Populate()
                         "%s: Beginning loop through asset account INBOX...\n",
                         __FUNCTION__);
                 OTTransaction* pBoxTrans = it.second;
-                OT_ASSERT(NULL != pBoxTrans);
+                OT_ASSERT(nullptr != pBoxTrans);
                 OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
                                nInboxIndex);
                 bool bCanceled = false;
@@ -2791,7 +2801,7 @@ bool OTRecordList::Populate()
                             OTString strName(m_pLookup->GetAcctName(
                                 str_other_acct_id,
                                 str_other_nym_id.empty()
-                                    ? NULL
+                                    ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_server_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
@@ -2892,7 +2902,8 @@ bool OTRecordList::Populate()
                                 strRecipientAcctID.Get());
 
                             OTString strName(m_pLookup->GetAcctName(
-                                str_recipient_acct_id, NULL, // nym ID if known
+                                str_recipient_acct_id,
+                                nullptr,         // nym ID if known
                                 pstr_server_id,  // server ID if known.
                                 pstr_asset_id)), // asset ID if known.
                                 strNameTemp;
@@ -3002,7 +3013,7 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         int32_t nOutboxIndex = -1;
-        if (NULL != pOutbox) {
+        if (nullptr != pOutbox) {
             for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex; // (0 on first iteration.)
                 if (0 == nOutboxIndex)
@@ -3011,7 +3022,7 @@ bool OTRecordList::Populate()
                         "%s: Beginning loop through asset account OUTBOX...\n",
                         __FUNCTION__);
                 OTTransaction* pBoxTrans = it.second;
-                OT_ASSERT(NULL != pBoxTrans);
+                OT_ASSERT(nullptr != pBoxTrans);
                 OTLog::vOutput(0, "%s: Outbox index: %d\n", __FUNCTION__,
                                nOutboxIndex);
                 std::string str_name; // name of recipient (since its in the
@@ -3056,9 +3067,9 @@ bool OTRecordList::Populate()
                             strRecipientAcctID.Get());
 
                         OTString strName(m_pLookup->GetAcctName(
-                            str_recipient_acct_id, NULL, // nym ID if known
-                            pstr_server_id,              // server ID if known.
-                            pstr_asset_id)),             // asset ID if known.
+                            str_recipient_acct_id, nullptr, // nym ID if known
+                            pstr_server_id,  // server ID if known.
+                            pstr_asset_id)), // asset ID if known.
                             strNameTemp;
 
                         if (strName.Exists())
@@ -3175,11 +3186,11 @@ bool OTRecordList::Populate()
 
         // It loaded up, so let's loop through it.
         int32_t nRecordIndex = -1;
-        if (NULL != pRecordbox) {
+        if (nullptr != pRecordbox) {
             for (auto& it : pRecordbox->GetTransactionMap()) {
                 ++nRecordIndex;
                 OTTransaction* pBoxTrans = it.second;
-                OT_ASSERT(NULL != pBoxTrans);
+                OT_ASSERT(nullptr != pBoxTrans);
                 OTLog::vOutput(0, "%s: Account RECORD index: %d\n",
                                __FUNCTION__, nRecordIndex);
                 bool bOutgoing = false;
@@ -3266,7 +3277,7 @@ bool OTRecordList::Populate()
                                         // sender acct.)
                                         bGotRecipientUserIDForDisplay
                                             ? &str_recip_user_id
-                                            : NULL,      // nym ID if known
+                                            : nullptr,   // nym ID if known
                                         pstr_server_id,  // server ID if known.
                                         pstr_asset_id)), // asset ID if known.
                                         strNameTemp;
@@ -3328,7 +3339,7 @@ bool OTRecordList::Populate()
                             OTString strName(m_pLookup->GetAcctName(
                                 str_sender_acct_id,
                                 str_other_nym_id.empty()
-                                    ? NULL
+                                    ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_server_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
@@ -3377,7 +3388,7 @@ bool OTRecordList::Populate()
                             OTString strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
                                 str_other_nym_id.empty()
-                                    ? NULL
+                                    ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_server_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
@@ -3760,21 +3771,22 @@ void OTRecordList::AddSpecialMsg(
     m_contents.push_back(sp_Record);
 }
 
-// This one expects that s_pCaller is not NULL.
+// This one expects that s_pCaller is not nullptr.
 //
 OTRecordList::OTRecordList()
-    : m_pLookup(NULL)
+    : m_pLookup(nullptr)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)
     , m_bAutoAcceptTransfers(false)
     , m_bAutoAcceptCash(false)
 {
-    OT_ASSERT_MSG((NULL != s_pCaller), "Address Book Caller was NULL! "
-                                       "On app startup, did you forget to call "
-                                       "OT_API_Set_AddrBookCallback ?\n");
+    OT_ASSERT_MSG((nullptr != s_pCaller),
+                  "Address Book Caller was nullptr! "
+                  "On app startup, did you forget to call "
+                  "OT_API_Set_AddrBookCallback ?\n");
     OT_ASSERT_MSG((s_pCaller->isCallbackSet()),
-                  "Address Book Callback was NULL! "
+                  "Address Book Callback was nullptr! "
                   "On app startup, did you forget to call "
                   "OT_API_Set_AddrBookCallback ?\n");
     m_pLookup = s_pCaller->getCallback(); // <==========
@@ -3792,12 +3804,12 @@ OTRecordList::OTRecordList(OTNameLookup& theLookup)
 
 OTRecordList::~OTRecordList()
 {
-    //  if (NULL != m_pLookup) // NO DELETE! We assume whatever client app is
+    //  if (nullptr != m_pLookup) // NO DELETE! We assume whatever client app is
     // using OTRecordList, will
     //      delete m_pLookup;  // delete its own address book lookup class when
     // it is good and ready.
 
-    m_pLookup = NULL;
+    m_pLookup = nullptr;
 }
 
 // Clears m_contents (NOT nyms, accounts, servers, or asset types.)

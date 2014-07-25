@@ -230,8 +230,8 @@ bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
 {
     // validate checksum
     uint32_t lSize = GetSize();
-    uint32_t lIndex =
-        lSize - 2; // the index to where the NULL terminator SHOULD be if they
+    uint32_t lIndex = lSize - 2; // the index to where the nullptr terminator
+                                 // SHOULD be if they
     // sent us a base64-encoded string, containing an encrypted message. (which
     // we expect...)
 
@@ -251,7 +251,7 @@ bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
         // Why is this safe, where I cast the Payload data pointer as
         // a char * and tell the data object to set itself from that?
         // Because (1) I just validated the checksum, and
-        // (2) There place where the NULL should be, I set to 0, by hand,
+        // (2) There place where the nullptr should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
         theArmor.Set((const char*)GetPointer());
@@ -278,9 +278,9 @@ bool OTPayload::GetMessagePayload(OTMessage& theMessage) const
 {
     // validate checksum
     uint32_t lSize = GetSize();
-    uint32_t lIndex =
-        lSize - 2; // the index to where the NULL terminator SHOULD be if they
-                   // sent us a string like they were supposed to. (A contract.)
+    uint32_t lIndex = lSize - 2; // the index to where the nullptr terminator
+                                 // SHOULD be if they
+    // sent us a string like they were supposed to. (A contract.)
     // (nSize-1 would be the location of the checksum at the end.)
     if (0 == lSize) return false;
 
@@ -295,7 +295,7 @@ bool OTPayload::GetMessagePayload(OTMessage& theMessage) const
         // Why is this safe, where I cast the Payload data pointer as
         // a char * and tell the string to set itself from that?
         // Because (1) I just validated the checksum, and
-        // (2) There place where the NULL should be, I set to 0, by hand,
+        // (2) There place where the nullptr should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
         theMessage.m_strRawFile.Set((const char*)GetPointer());

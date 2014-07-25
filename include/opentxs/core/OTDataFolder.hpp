@@ -159,7 +159,7 @@ private:
 
     static inline bool CheckDataFolder(OTDataFolder* pDataFolder)
     {
-        if (NULL != pDataFolder)
+        if (nullptr != pDataFolder)
             if (pDataFolder->m_bInitialized) return true;
 
         OT_FAIL;

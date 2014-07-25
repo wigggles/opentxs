@@ -206,20 +206,20 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             OTOffer* pOffer = new OTOffer(m_SERVER_ID, m_ASSET_TYPE_ID,
                                           m_CURRENCY_TYPE_ID, m_lScale);
 
-            OT_ASSERT(NULL != pOffer);
+            OT_ASSERT(nullptr != pOffer);
 
             if (pOffer->LoadContractFromString(strData) &&
-                AddOffer(NULL, *pOffer, false, tDateAdded)) // bSaveMarket =
-                                                            // false (Don't SAVE
-                                                            // -- we're loading
-                                                            // right now!)
+                AddOffer(nullptr, *pOffer, false, tDateAdded)) // bSaveMarket =
+                // false (Don't SAVE
+                // -- we're loading
+                // right now!)
             {
                 otWarn << "Successfully loaded offer and added to market.\n";
             }
             else {
                 otErr << "Error adding offer to market while loading market.\n";
                 delete pOffer;
-                pOffer = NULL;
+                pOffer = nullptr;
                 return (-1);
             }
         }
@@ -256,7 +256,7 @@ void OTMarket::UpdateContents()
     // Save the offers for sale.
     for (auto& it : m_mapAsks) {
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         OTString strOffer(
             *pOffer); // Extract the offer contract into string form.
@@ -273,7 +273,7 @@ void OTMarket::UpdateContents()
     // Save the bids.
     for (auto& it : m_mapBids) {
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         OTString strOffer(
             *pOffer); // Extract the offer contract into string form.
@@ -296,7 +296,7 @@ int64_t OTMarket::GetTotalAvailableAssets()
 
     for (auto& it : m_mapAsks) {
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         lTotal += pOffer->GetAmountAvailable();
     }
@@ -318,14 +318,15 @@ bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
     //
     for (auto& it : m_mapOffers) {
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         OTTrade* pTrade = pOffer->GetTrade();
 
         // We only return offers for a specific Nym ID, since this is private
         // info only for that Nym.
         //
-        if ((NULL == pTrade) || (pTrade->GetSenderUserID() != NYM_ID)) continue;
+        if ((nullptr == pTrade) || (pTrade->GetSenderUserID() != NYM_ID))
+            continue;
 
         // Below this point, I KNOW pTrade and pOffer are both good pointers.
         // with no need to cleanup. I also know they are for the right Nym.
@@ -408,11 +409,12 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
     nTradeCount = 0; // Output the count of trades in the list being returned.
                      // (If success..)
 
-    if (NULL == m_pTradeList) {
-        //      otErr << "OTMarket::GetRecentTradeList: m_pTradeList is NULL.
+    if (nullptr == m_pTradeList) {
+        //      otErr << "OTMarket::GetRecentTradeList: m_pTradeList is nullptr.
         // \n";
         return true;
-        // Returning true, since it's normal for this to be NULL when the list
+        // Returning true, since it's normal for this to be nullptr when the
+        // list
         // is empty.
     }
 
@@ -429,7 +431,7 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
     // So now, let's pack the list into strOutput...
     else if (nTradeCount > 0) {
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         OTDB::OTPacker* pPacker =
             pStorage->GetPacker(); // No need to check for failure, since this
@@ -439,7 +441,7 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
         OTDB::PackedBuffer* pBuffer = pPacker->Pack(
             *m_pTradeList); // Now we PACK our market's recent trades list.
 
-        if (NULL == pBuffer) {
+        if (nullptr == pBuffer) {
             otErr << "Failed packing pTradeList in OTCron::GetRecentTradeList. "
                      "\n";
             return false;
@@ -455,7 +457,7 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
         const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
         const size_t theSize = pBuffer->GetSize();
 
-        if ((NULL != pUint) || (theSize < 2)) {
+        if ((nullptr != pUint) || (theSize < 2)) {
             OTData theData(pUint, static_cast<uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
@@ -502,7 +504,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
         if (nTempDepth++ > lDepth) break;
 
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         const int64_t& lPriceLimit = pOffer->GetPriceLimit();
 
@@ -539,7 +541,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
         if (nTempDepth++ > lDepth) break;
 
         OTOffer* pOffer = it.second;
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         // OfferDataMarket
         OTDB::AskData* pOfferData = dynamic_cast<OTDB::AskData*>(
@@ -573,7 +575,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
 
     if (nOfferCount > 0) {
         OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(NULL != pStorage);
+        OT_ASSERT(nullptr != pStorage);
 
         OTDB::OTPacker* pPacker =
             pStorage->GetPacker(); // No need to check for failure, since this
@@ -583,7 +585,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
         OTDB::PackedBuffer* pBuffer =
             pPacker->Pack(*pOfferList); // Now we PACK our market's offer list.
 
-        if (NULL == pBuffer) {
+        if (nullptr == pBuffer) {
             otErr << "Failed packing pOfferList in OTCron::GetOfferList. \n";
             return false;
         }
@@ -596,7 +598,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
         const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
         const size_t theSize = pBuffer->GetSize();
 
-        if (NULL != pUint) {
+        if (nullptr != pUint) {
             OTData theData(pUint, static_cast<uint32_t>(theSize));
 
             // This function will base64 ENCODE theData,
@@ -634,13 +636,13 @@ OTOffer* OTMarket::GetOffer(const int64_t& lTransactionNum)
 
     if (ii == m_mapOffers.end()) {
         // nothing found.
-        return NULL;
+        return nullptr;
     }
     // Found it!
     else {
         OTOffer* pOffer = ii->second;
 
-        OT_ASSERT((NULL != pOffer));
+        OT_ASSERT((nullptr != pOffer));
 
         if (pOffer->GetTransactionNum() == lTransactionNum)
             return pOffer;
@@ -650,7 +652,7 @@ OTOffer* OTMarket::GetOffer(const int64_t& lTransactionNum)
                   << pOffer->GetTransactionNum() << " inside. Bad data?\n";
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
@@ -671,7 +673,7 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
     else {
         OTOffer* pOffer = ii->second;
 
-        OT_ASSERT(NULL != pOffer);
+        OT_ASSERT(nullptr != pOffer);
 
         // This removes it from one list (the one indexed by transaction
         // number.)
@@ -687,14 +689,14 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
         // returned when
         // it's first inserted. Later I just erase that iterator from the right
         // list to remove. Todo.
-        OTOffer* pSameOffer = NULL;
+        OTOffer* pSameOffer = nullptr;
 
         for (mapOfOffers::iterator iii = pMap->begin(); iii != pMap->end();
              ++iii) {
             pSameOffer = iii->second;
 
-            OT_ASSERT_MSG(NULL != pSameOffer,
-                          "NULL offer pointer in OTMarket::RemoveOffer.\n");
+            OT_ASSERT_MSG(nullptr != pSameOffer,
+                          "nullptr offer pointer in OTMarket::RemoveOffer.\n");
 
             // found it!
             if (lTransactionNum == pSameOffer->GetTransactionNum()) {
@@ -702,12 +704,13 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
                 break;
             }
 
-            // Later on, below this loop, this pointer will be NULL or not, and
+            // Later on, below this loop, this pointer will be nullptr or not,
+            // and
             // I will know if it was removed.
-            pSameOffer = NULL;
+            pSameOffer = nullptr;
         }
 
-        if (NULL == pSameOffer) {
+        if (nullptr == pSameOffer) {
             otErr << "Removed Offer from offers list, but not found on bid/ask "
                      "list.\n";
         }
@@ -726,8 +729,8 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
         OT_ASSERT(pOffer == pSameOffer);
 
         delete pOffer;
-        pOffer = NULL;
-        pSameOffer = NULL;
+        pOffer = nullptr;
+        pSameOffer = nullptr;
     }
 
     if (bReturnValue)
@@ -753,7 +756,7 @@ bool OTMarket::AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile,
     if (!ValidateOfferForMarket(theOffer)) {
         otErr << "Failed attempt to add invalid offer to market.\n";
 
-        if (NULL != pTrade) pTrade->FlagForRemoval();
+        if (nullptr != pTrade) pTrade->FlagForRemoval();
     }
     else {
         // I store duplicate lists of offer pointers. Two multimaps ordered by
@@ -829,8 +832,8 @@ bool OTMarket::AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile,
 
 bool OTMarket::LoadMarket()
 {
-    OT_ASSERT(NULL != GetCron());
-    OT_ASSERT(NULL != GetCron()->GetServerNym());
+    OT_ASSERT(nullptr != GetCron());
+    OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     OTIdentifier MARKET_ID(*this);
     OTString str_MARKET_ID(MARKET_ID);
@@ -847,7 +850,7 @@ bool OTMarket::LoadMarket()
     // Load the list of recent market trades (informational only.)
     //
     if (bSuccess) {
-        if (NULL != m_pTradeList) delete m_pTradeList;
+        if (nullptr != m_pTradeList) delete m_pTradeList;
 
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
@@ -862,8 +865,8 @@ bool OTMarket::LoadMarket()
 
 bool OTMarket::SaveMarket()
 {
-    OT_ASSERT(NULL != GetCron());
-    OT_ASSERT(NULL != GetCron()->GetServerNym());
+    OT_ASSERT(nullptr != GetCron());
+    OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     OTIdentifier MARKET_ID(*this);
     OTString str_MARKET_ID(MARKET_ID);
@@ -889,7 +892,7 @@ bool OTMarket::SaveMarket()
 
     // Save a copy of recent trades.
 
-    if (NULL != m_pTradeList) {
+    if (nullptr != m_pTradeList) {
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
         // If this fails, oh well. It's informational, anyway.
@@ -1036,17 +1039,20 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
     // Make sure have pointer to both trades.
     //
-    OT_ASSERT_MSG(NULL != pOtherTrade, "Offer was on the market, but somehow "
-                                       "got into processing without a trade "
-                                       "pointer.\n");
-    OT_ASSERT(NULL != pCron); // Also need the Cron pointer which SHOULD ALWAYS
-                              // be there.
+    OT_ASSERT_MSG(nullptr != pOtherTrade,
+                  "Offer was on the market, but somehow "
+                  "got into processing without a trade "
+                  "pointer.\n");
+    OT_ASSERT(nullptr !=
+              pCron); // Also need the Cron pointer which SHOULD ALWAYS
+                      // be there.
 
     OTPseudonym* pServerNym = pCron->GetServerNym();
 
-    OT_ASSERT_MSG(NULL != pServerNym, "Somehow a Market is running even though "
-                                      "there is no Server Nym on the Cron "
-                                      "object authorizing the trades.");
+    OT_ASSERT_MSG(nullptr != pServerNym,
+                  "Somehow a Market is running even though "
+                  "there is no Server Nym on the Cron "
+                  "object authorizing the trades.");
 
     const OTIdentifier SERVER_ID(pCron->GetServerID());
 
@@ -1123,8 +1129,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     bool bTradersAreSameNym = ((FIRST_NYM_ID == OTHER_NYM_ID) ? true : false);
 
     // Initially both nym pointers are set to their own blank objects
-    OTPseudonym* pFirstNym = NULL;
-    OTPseudonym* pOtherNym = NULL;
+    OTPseudonym* pFirstNym = nullptr;
+    OTPseudonym* pOtherNym = nullptr;
 
     // Unless either of them is actually the server,
     // in which case the pointer is re-pointed to the server Nym.
@@ -1239,7 +1245,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     OTAccount* pOtherCurrencyAcct = OTAccount::LoadExistingAccount(
         pOtherTrade->GetCurrencyAcctID(), SERVER_ID);
 
-    if ((NULL == pFirstAssetAcct) || (NULL == pFirstCurrencyAcct)) {
+    if ((nullptr == pFirstAssetAcct) || (nullptr == pFirstCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the first trader's "
                  "accounts during attempted Market trade.\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
@@ -1247,7 +1253,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         theTrade.FlagForRemoval(); // Removes from Cron.
         return;
     }
-    else if ((NULL == pOtherAssetAcct) || (NULL == pOtherCurrencyAcct)) {
+    else if ((nullptr == pOtherAssetAcct) ||
+               (nullptr == pOtherCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the second trader's "
                  "accounts during attempted Market trade.\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
@@ -1504,10 +1511,10 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(NULL != pItem1);
-            OT_ASSERT(NULL != pItem2);
-            OT_ASSERT(NULL != pItem3);
-            OT_ASSERT(NULL != pItem4);
+            OT_ASSERT(nullptr != pItem1);
+            OT_ASSERT(nullptr != pItem2);
+            OT_ASSERT(nullptr != pItem3);
+            OT_ASSERT(nullptr != pItem4);
 
             pItem1->SetStatus(OTItem::rejection); // the default.
             pItem2->SetStatus(OTItem::rejection); // the default.
@@ -1584,10 +1591,10 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // reached. The trade is complete,
             // from his side of it, anyway. Then the loop will be over for sure.
 
-            OTAccount* pAssetAccountToDebit = NULL;
-            OTAccount* pAssetAccountToCredit = NULL;
-            OTAccount* pCurrencyAccountToDebit = NULL;
-            OTAccount* pCurrencyAccountToCredit = NULL;
+            OTAccount* pAssetAccountToDebit = nullptr;
+            OTAccount* pAssetAccountToCredit = nullptr;
+            OTAccount* pCurrencyAccountToDebit = nullptr;
+            OTAccount* pCurrencyAccountToCredit = nullptr;
 
             if (theOffer.IsAsk()) // I'm selling, he's buying
             {
@@ -1884,7 +1891,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 // Here we save this trade in a list of the most recent 50
                 // trades.
                 {
-                    if (NULL == m_pTradeList) {
+                    if (nullptr == m_pTradeList) {
                         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(
                             OTDB::CreateObject(
                                 OTDB::STORED_OBJ_TRADE_LIST_MARKET));
@@ -1982,8 +1989,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // ORIGINAL TRADE (with the TRADER's SIGNATURE ON IT!) For both
             // traders.
 
-            OTCronItem* pOrigTrade = NULL;
-            OTCronItem* pOrigOtherTrade = NULL;
+            OTCronItem* pOrigTrade = nullptr;
+            OTCronItem* pOrigOtherTrade = nullptr;
 
             // OTCronItem::LoadCronReceipt loads the original version with the
             // user's signature.
@@ -1994,8 +2001,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             pOrigOtherTrade =
                 OTCronItem::LoadCronReceipt(pOtherTrade->GetTransactionNum());
 
-            OT_ASSERT(NULL != pOrigTrade);
-            OT_ASSERT(NULL != pOrigOtherTrade);
+            OT_ASSERT(nullptr != pOrigTrade);
+            OT_ASSERT(nullptr != pOrigOtherTrade);
 
             OT_ASSERT_MSG(pOrigTrade->VerifySignature(*pFirstNym),
                           "Signature was already verified on Trade when first "
@@ -2029,9 +2036,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // TODO: Run a scanner on the code for memory leaks and buffer
             // overflows.
             delete pOrigTrade;
-            pOrigTrade = NULL;
+            pOrigTrade = nullptr;
             delete pOrigOtherTrade;
-            pOrigOtherTrade = NULL;
+            pOrigOtherTrade = nullptr;
 
             // Here's where the item stores the UPDATED TRADE (in its Note)
             // and the UPDATED OFFER (in its attachment) with the SERVER's
@@ -2226,9 +2233,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 //
                 if (pAssetAccountToDebit->GetBalance() <
                     lMinIncrementPerRound) {
-                    OTItem* pTempItem = NULL;
-                    OTTransaction* pTempTransaction = NULL;
-                    OTLedger* pTempInbox = NULL;
+                    OTItem* pTempItem = nullptr;
+                    OTTransaction* pTempTransaction = nullptr;
+                    OTLedger* pTempInbox = nullptr;
 
                     if (pAssetAccountToDebit == pFirstAssetAcct) {
                         pTempItem = pItem1;
@@ -2237,9 +2244,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTempInbox = &theFirstAssetInbox;
 
                         delete pItem3;
-                        pItem3 = NULL;
+                        pItem3 = nullptr;
                         delete pTrans3;
-                        pTrans3 = NULL;
+                        pTrans3 = nullptr;
                     }
                     else // it's the other asset account
                     {
@@ -2249,9 +2256,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTempInbox = &theOtherAssetInbox;
 
                         delete pItem1;
-                        pItem1 = NULL;
+                        pItem1 = nullptr;
                         delete pTrans1;
-                        pTrans1 = NULL;
+                        pTrans1 = nullptr;
                     }
 
                     pTempItem->SetStatus(OTItem::rejection);
@@ -2273,22 +2280,22 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 }
                 else {
                     delete pItem1;
-                    pItem1 = NULL;
+                    pItem1 = nullptr;
                     delete pTrans1;
-                    pTrans1 = NULL;
+                    pTrans1 = nullptr;
                     delete pItem3;
-                    pItem3 = NULL;
+                    pItem3 = nullptr;
                     delete pTrans3;
-                    pTrans3 = NULL;
+                    pTrans3 = nullptr;
                 }
 
                 // This section is identical to the one above, except for the
                 // currency accounts.
                 //
                 if (pCurrencyAccountToDebit->GetBalance() < lPrice) {
-                    OTItem* pTempItem = NULL;
-                    OTTransaction* pTempTransaction = NULL;
-                    OTLedger* pTempInbox = NULL;
+                    OTItem* pTempItem = nullptr;
+                    OTTransaction* pTempTransaction = nullptr;
+                    OTLedger* pTempInbox = nullptr;
 
                     if (pCurrencyAccountToDebit == pFirstCurrencyAcct) {
                         pTempItem = pItem2;
@@ -2297,9 +2304,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTempInbox = &theFirstCurrencyInbox;
 
                         delete pItem4;
-                        pItem4 = NULL;
+                        pItem4 = nullptr;
                         delete pTrans4;
-                        pTrans4 = NULL;
+                        pTrans4 = nullptr;
                     }
                     else // it's the other asset account
                     {
@@ -2309,9 +2316,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTempInbox = &theOtherCurrencyInbox;
 
                         delete pItem2;
-                        pItem2 = NULL;
+                        pItem2 = nullptr;
                         delete pTrans2;
-                        pTrans2 = NULL;
+                        pTrans2 = nullptr;
                     }
 
                     pTempItem->SetStatus(OTItem::rejection);
@@ -2333,13 +2340,13 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 }
                 else {
                     delete pItem2;
-                    pItem2 = NULL;
+                    pItem2 = nullptr;
                     delete pTrans2;
-                    pTrans2 = NULL;
+                    pTrans2 = nullptr;
                     delete pItem4;
-                    pItem4 = NULL;
+                    pItem4 = nullptr;
                     delete pTrans4;
-                    pTrans4 = NULL;
+                    pTrans4 = nullptr;
                 }
 
                 // If either trader is broke, we flag the trade for removal.
@@ -2493,8 +2500,9 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
 
     if (theOffer.IsAsk()) // If I'm selling,
     {
-        OTOffer* pBid = NULL; // then I want to start at the highest bidder and
-                              // loop DOWN until hitting my price limit.
+        OTOffer* pBid =
+            nullptr; // then I want to start at the highest bidder and
+                     // loop DOWN until hitting my price limit.
 
         // rbegin puts us on the upper bound of the highest bidder (any new
         // bidders at the same price would
@@ -2505,7 +2513,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
              rr != m_mapBids.rend(); rr++) {
             pBid = rr->second;
-            OT_ASSERT(NULL != pBid);
+            OT_ASSERT(nullptr != pBid);
 
             // NOTE: Market orders only process once, and they are processed in
             // the order they were added to the market.
@@ -2555,7 +2563,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                      theOffer.GetMinimumIncrement()) &&
                     (theOffer.GetAmountAvailable() >=
                      pBid->GetMinimumIncrement()) &&
-                    (NULL != pBid->GetTrade()) &&
+                    (nullptr != pBid->GetTrade()) &&
                     !pBid->GetTrade()->IsFlaggedForRemoval())
 
                     ProcessTrade(theTrade, theOffer, *pBid); // <========
@@ -2565,7 +2573,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
             // remaining bids are even lower.)
             //
             else if (theOffer.IsLimitOrder()) {
-                pBid = NULL;
+                pBid = nullptr;
                 return true; // stay on cron for more processing (for now.)
             }
 
@@ -2577,13 +2585,14 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                  theOffer.GetAmountAvailable()))
                 return false; // remove this trade from cron
 
-            pBid = NULL;
+            pBid = nullptr;
         }
     }
     // I'm buying
     else {
-        OTOffer* pAsk = NULL; // then I want to start at the lowest seller and
-                              // loop UP until hitting my price limit.
+        OTOffer* pAsk =
+            nullptr; // then I want to start at the lowest seller and
+                     // loop UP until hitting my price limit.
 
         // Begin puts us on the lower bound of the lowest seller (any new
         // sellers at the same price would
@@ -2594,7 +2603,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         //
         for (auto& it : m_mapAsks) {
             pAsk = it.second;
-            OT_ASSERT(NULL != pAsk);
+            OT_ASSERT(nullptr != pAsk);
 
             // NOTE: Market orders only process once, and they are processed in
             // the order they were added to the market.
@@ -2635,7 +2644,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                      theOffer.GetMinimumIncrement()) &&
                     (theOffer.GetAmountAvailable() >=
                      pAsk->GetMinimumIncrement()) &&
-                    (NULL != pAsk->GetTrade()) &&
+                    (nullptr != pAsk->GetTrade()) &&
                     !pAsk->GetTrade()->IsFlaggedForRemoval())
 
                     ProcessTrade(theTrade, theOffer, *pAsk); // <=======
@@ -2643,7 +2652,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
             // Else, the ask price is higher than I am willing to pay. (And all
             // the remaining sellers are even HIGHER.)
             else if (theOffer.IsLimitOrder()) {
-                pAsk = NULL;
+                pAsk = nullptr;
                 return true; // stay on the market for now.
             }
 
@@ -2655,7 +2664,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
                  theOffer.GetAmountAvailable()))
                 return false; // remove this trade from the market.
 
-            pAsk = NULL;
+            pAsk = nullptr;
         }
     }
 
@@ -2733,7 +2742,7 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason)
         otOut << __FUNCTION__
               << ": Offer is invalid for this market: " << strReason << "\n";
 
-        if (NULL != pReason) *pReason = strReason;
+        if (nullptr != pReason) *pReason = strReason;
     }
 
     return bValidOffer;
@@ -2741,14 +2750,14 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason)
 
 OTMarket::OTMarket(const char* szFilename)
     : OTContract()
-    , m_pCron(NULL)
-    , m_pTradeList(NULL)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
     , m_lScale(1)
     , m_lLastSalePrice(0)
 {
-    OT_ASSERT(NULL != szFilename);
+    OT_ASSERT(nullptr != szFilename);
 
-    m_pCron = NULL; // just for convenience, not responsible to delete.
+    m_pCron = nullptr; // just for convenience, not responsible to delete.
     InitMarket();
 
     m_strFilename.Set(szFilename);
@@ -2757,12 +2766,12 @@ OTMarket::OTMarket(const char* szFilename)
 
 OTMarket::OTMarket()
     : OTContract()
-    , m_pCron(NULL)
-    , m_pTradeList(NULL)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
     , m_lScale(1)
     , m_lLastSalePrice(0)
 {
-    m_pCron = NULL; // just for convenience, not responsible to delete.
+    m_pCron = nullptr; // just for convenience, not responsible to delete.
     InitMarket();
 }
 
@@ -2770,12 +2779,12 @@ OTMarket::OTMarket(const OTIdentifier& SERVER_ID,
                    const OTIdentifier& ASSET_TYPE_ID,
                    const OTIdentifier& CURRENCY_TYPE_ID, const int64_t& lScale)
     : OTContract()
-    , m_pCron(NULL)
-    , m_pTradeList(NULL)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
     , m_lScale(1)
     , m_lLastSalePrice(0)
 {
-    m_pCron = NULL; // just for convenience, not responsible to delete.
+    m_pCron = nullptr; // just for convenience, not responsible to delete.
     InitMarket();
 
     m_ASSET_TYPE_ID = ASSET_TYPE_ID;
@@ -2806,9 +2815,9 @@ void OTMarket::Release_Market()
     m_SERVER_ID.Release();
 
     // Elements of this list are cleaned up automatically.
-    if (NULL != m_pTradeList) {
+    if (nullptr != m_pTradeList) {
         delete m_pTradeList;
-        m_pTradeList = NULL;
+        m_pTradeList = nullptr;
     }
 
     // If there were any dynamically allocated objects, clean them up here.
@@ -2816,13 +2825,13 @@ void OTMarket::Release_Market()
         OTOffer* pOffer = m_mapBids.begin()->second;
         m_mapBids.erase(m_mapBids.begin());
         delete pOffer;
-        pOffer = NULL;
+        pOffer = nullptr;
     }
     while (!m_mapAsks.empty()) {
         OTOffer* pOffer = m_mapAsks.begin()->second;
         m_mapAsks.erase(m_mapAsks.begin());
         delete pOffer;
-        pOffer = NULL;
+        pOffer = nullptr;
     }
 }
 

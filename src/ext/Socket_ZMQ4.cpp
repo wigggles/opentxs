@@ -152,8 +152,8 @@ public:
 };
 
 OTSocket_ZMQ_4::ZMQ4::ZMQ4()
-    : context_zmq(NULL)
-    , socket_zmq(NULL)
+    : context_zmq(nullptr)
+    , socket_zmq(nullptr)
 {
 }
 
@@ -178,9 +178,9 @@ bool OTSocket_ZMQ_4::CloseSocket(const bool bNewContext /*= false*/)
     if (!m_bInitialized) return false;
     if (!m_HasContext && !bNewContext) return false;
 
-    if (NULL != m_pzmq->socket_zmq) zmq_close(m_pzmq->socket_zmq);
-    if (NULL != m_pzmq->socket_zmq) delete m_pzmq->socket_zmq;
-    m_pzmq->socket_zmq = NULL;
+    if (nullptr != m_pzmq->socket_zmq) zmq_close(m_pzmq->socket_zmq);
+    if (nullptr != m_pzmq->socket_zmq) delete m_pzmq->socket_zmq;
+    m_pzmq->socket_zmq = nullptr;
 
     m_bConnected = false;
     m_bListening = false;
@@ -207,7 +207,7 @@ bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
         OT_FAIL;
     }
 
-    if (NULL == m_pzmq->socket_zmq) {
+    if (nullptr == m_pzmq->socket_zmq) {
         OTLog::vError("%s: Error: %s failed to be created!\n", __FUNCTION__,
                       "m_pzmq->socket_zmq");
         OT_FAIL;
@@ -239,9 +239,9 @@ bool OTSocket_ZMQ_4::NewContext()
 
     if (!CloseSocket(true)) return false;
 
-    if (NULL != m_pzmq->context_zmq) zmq_term(m_pzmq->context_zmq);
-    if (NULL != m_pzmq->context_zmq) delete m_pzmq->context_zmq;
-    m_pzmq->context_zmq = NULL;
+    if (nullptr != m_pzmq->context_zmq) zmq_term(m_pzmq->context_zmq);
+    if (nullptr != m_pzmq->context_zmq) delete m_pzmq->context_zmq;
+    m_pzmq->context_zmq = nullptr;
 
     try
     {
@@ -287,7 +287,7 @@ bool OTSocket_ZMQ_4::Connect()
         OT_FAIL;
     }
 
-    if (NULL == m_pzmq->context_zmq) {
+    if (nullptr == m_pzmq->context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "m_pzmq->context_zmq");
         OT_FAIL;
@@ -327,7 +327,7 @@ bool OTSocket_ZMQ_4::Listen()
         OT_FAIL;
     }
 
-    if (NULL == m_pzmq->context_zmq) {
+    if (nullptr == m_pzmq->context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "m_pzmq->context_zmq");
         OT_FAIL;
@@ -413,7 +413,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
     if (!m_HasContext) {
         OT_FAIL;
     }
-    if (NULL == m_pzmq->context_zmq) {
+    if (nullptr == m_pzmq->context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
                       "m_pzmq->context_zmq");
         OT_FAIL;
@@ -421,7 +421,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (NULL == m_pzmq->socket_zmq) {
+    if (nullptr == m_pzmq->socket_zmq) {
         OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
                       "m_pzmq->socket_zmq");
         OT_FAIL;
@@ -543,7 +543,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
     if (!m_HasContext) {
         OT_FAIL;
     }
-    if (NULL == m_pzmq->context_zmq) {
+    if (nullptr == m_pzmq->context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
                       "m_pzmq->context_zmq");
         OT_FAIL;
@@ -551,7 +551,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (NULL == m_pzmq->socket_zmq) {
+    if (nullptr == m_pzmq->socket_zmq) {
         OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
                       "m_pzmq->socket_zmq");
         OT_FAIL;
@@ -661,10 +661,10 @@ bool OTSocket_ZMQ_4::HandlePollingError()
                      "re-creating the context.)\n");
         NewContext();
         break;
-    // The provided items was not valid (NULL).
+    // The provided items was not valid (nullptr).
     case EFAULT:
         OTLog::Error("OTSocket::HandlePollingError: Failed: The provided "
-                     "polling items were not valid (NULL).\n");
+                     "polling items were not valid (nullptr).\n");
         break;
     // The operation was interrupted by delivery of a signal before any events
     // were available.
@@ -742,7 +742,7 @@ bool OTSocket_ZMQ_4::HandleSendingError()
     // Invalid message.
     case EFAULT:
         OTLog::Error("OTSocket::HandleSendingError: Failure: The provided "
-                     "pollitems were not valid (NULL).\n");
+                     "pollitems were not valid (nullptr).\n");
         break;
     default:
         OTLog::Error(

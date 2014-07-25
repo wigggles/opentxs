@@ -44,8 +44,8 @@ int32_t add_ext(X509* cert, int32_t nid, char* value);
 int32_t main(int32_t argc, char **argv)
         {
         BIO *bio_err;
-        X509 *x509=NULL;
-        EVP_PKEY *pkey=NULL;
+        X509 *x509=nullptr;
+        EVP_PKEY *pkey=nullptr;
 
         CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 
@@ -56,7 +56,8 @@ int32_t main(int32_t argc, char **argv)
         RSA_print_fp(stdout,pkey->pkey.rsa,0);
         X509_print_fp(stdout,x509);
 
-        PEM_write_PrivateKey(stdout,pkey,EVP_des_ede3_cbc(),NULL,0,NULL, NULL);
+        PEM_write_PrivateKey(stdout,pkey,EVP_des_ede3_cbc(),nullptr,0,nullptr,
+nullptr);
         PEM_write_X509(stdout,x509);
 
         X509_free(x509);
@@ -88,13 +89,13 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
 {
     bool bCreatedKey = false;
     bool bCreatedX509 = false;
-    X509* x = NULL;
-    EVP_PKEY* pk = NULL;
-    RSA* rsa = NULL;
-    X509_NAME* name = NULL;
+    X509* x = nullptr;
+    EVP_PKEY* pk = nullptr;
+    RSA* rsa = nullptr;
+    X509_NAME* name = nullptr;
 
-    if ((pkeyp == NULL) || (*pkeyp == NULL)) {
-        if ((pk = EVP_PKEY_new()) == NULL) {
+    if ((pkeyp == nullptr) || (*pkeyp == nullptr)) {
+        if ((pk = EVP_PKEY_new()) == nullptr) {
             abort(); // todo
                      // return(0); unneeded after abort.
         }
@@ -102,8 +103,8 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     }
     else
         pk = *pkeyp;
-    if ((x509p == NULL) || (*x509p == NULL)) {
-        if ((x = X509_new()) == NULL) {
+    if ((x509p == nullptr) || (*x509p == nullptr)) {
+        if ((x = X509_new()) == nullptr) {
             if (bCreatedKey) {
                 EVP_PKEY_free(pk);
             }
@@ -114,28 +115,28 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     }
     else
         x = *x509p;
-//        pRsaKey = RSA_generate_key(1024, 0x010001, NULL, NULL);
+//        pRsaKey = RSA_generate_key(1024, 0x010001, nullptr, nullptr);
 
 #ifdef ANDROID
     rsa = RSA_new();
     BIGNUM* e1 = BN_new();
 
-    if ((NULL == rsa) || (NULL == e1)) abort(); // todo
+    if ((nullptr == rsa) || (nullptr == e1)) abort(); // todo
 
     //      BN_set_word(e1, 65537);
     BN_set_word(e1, RSA_F4);
 
-    if (!RSA_generate_key_ex(rsa, bits, e1, NULL)) abort(); // todo
+    if (!RSA_generate_key_ex(rsa, bits, e1, nullptr)) abort(); // todo
 
     BN_free(e1);
 #else
-    rsa = RSA_generate_key(bits, RSA_F4, callback, NULL);
+    rsa = RSA_generate_key(bits, RSA_F4, callback, nullptr);
 #endif
     if (!EVP_PKEY_assign_RSA(pk, rsa)) {
         abort(); // todo
                  // return(0); undeeded after abort.
     }
-    rsa = NULL;
+    rsa = nullptr;
 
     X509_set_version(x, 2);
     ASN1_INTEGER_set(X509_get_serialNumber(x), serial);
@@ -180,15 +181,15 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     add_ext(x, NID_netscape_comment,
             szComment); // Some Netscape specific extensions
     delete[] szConstraints;
-    szConstraints = NULL;
+    szConstraints = nullptr;
     delete[] szKeyUsage;
-    szKeyUsage = NULL;
+    szKeyUsage = nullptr;
     delete[] szSubjectKeyID;
-    szSubjectKeyID = NULL;
+    szSubjectKeyID = nullptr;
     delete[] szCertType;
-    szCertType = NULL;
+    szCertType = nullptr;
     delete[] szComment;
-    szComment = NULL;
+    szComment = nullptr;
 
 #ifdef CUSTOM_EXT
     // Maybe even add our own extension based on existing
@@ -200,7 +201,7 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     }
 #endif
     if (!X509_sign(x, pk, EVP_md5()) || // TODO security:  md5 ???
-        (NULL == x509p) || (NULL == pkeyp)) {
+        (nullptr == x509p) || (nullptr == pkeyp)) {
         // ERROR
         //
         if (bCreatedX509) X509_free(x);
@@ -212,8 +213,8 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
         //            if (bCreatedKey)
         //                EVP_PKEY_free(pk);
 
-        x = NULL;
-        pk = NULL;
+        x = nullptr;
+        pk = nullptr;
 
         return 0;
     }
@@ -223,7 +224,7 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     return (1);
 }
 
-/* Add extension using V3 code: we can set the config file as NULL
+/* Add extension using V3 code: we can set the config file as nullptr
  * because we won't reference any other sections.
  */
 
@@ -237,8 +238,8 @@ int32_t add_ext(X509* cert, int32_t nid, char* value)
     /* Issuer and subject certs: both the target since it is self signed,
      * no request and no CRL
      */
-    X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
-    ex = X509V3_EXT_conf_nid(NULL, &ctx, nid, value);
+    X509V3_set_ctx(&ctx, cert, cert, nullptr, nullptr, 0);
+    ex = X509V3_EXT_conf_nid(nullptr, &ctx, nid, value);
 
     if (!ex) return 0;
 

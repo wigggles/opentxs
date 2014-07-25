@@ -242,7 +242,7 @@ protected:
     }
 
 public:
-    virtual void SetDisplayLabel(const std::string* pstrLabel = NULL);
+    virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     // FOR RECEIPTS
     // These IDs are stored for cases where this Cron Item is sitting in a
     // receipt
@@ -320,18 +320,18 @@ public:
                                                              // client-side.
 
     void CloseoutOpeningNumbers(OTPseudonym* pSignerNym =
-                                    NULL); // Server-side. Similar to below:
-    void HarvestClosingNumbers(OTPseudonym* pSignerNym = NULL,
+                                    nullptr); // Server-side. Similar to below:
+    void HarvestClosingNumbers(OTPseudonym* pSignerNym = nullptr,
                                std::set<OTParty*>* pFailedParties =
-                                   NULL); // Used on server-side. Assumes the
-                                          // related Nyms are already loaded and
-                                          // known to *this. Purpose of
-                                          // pSignerNymm is to pass in the
-                                          // server Nym, since internally a NULL
-                                          // is automatically interpeted as
-                                          // "each nym signs for himself" (which
-                                          // you don't want, on the server
-                                          // side.)
+                                   nullptr); // Used on server-side. Assumes the
+    // related Nyms are already loaded and
+    // known to *this. Purpose of
+    // pSignerNymm is to pass in the
+    // server Nym, since internally a nullptr
+    // is automatically interpeted as
+    // "each nym signs for himself" (which
+    // you don't want, on the server
+    // side.)
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -524,7 +524,7 @@ public:
 
     // Low-level.
     EXPORT void ExecuteClauses(mapOfClauses& theClauses,
-                               OTString* pParam = NULL);
+                               OTString* pParam = nullptr);
 
     // Low level.
     // This function (StashFunds) is called by StashAcctFunds() and

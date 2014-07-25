@@ -1008,7 +1008,7 @@ bool OTPaths::ToReal(const OTString& strExactPath,
 
     wchar_t szBuf[4096] = L"";
 
-    if (GetFullPathName(wzPath, 4096, szBuf, NULL)) {
+    if (GetFullPathName(wzPath, 4096, szBuf, nullptr)) {
         out_strCanonicalPath.Set(utf8util::UTF8FromUTF16(szBuf));
         return true;
     }
@@ -1021,7 +1021,7 @@ bool OTPaths::ToReal(const OTString& strExactPath,
     char_t szBuf[4096] = "";
     char_t const* szPath = strRealPath.Get();
 
-    if (GetFullPathName(szPath, 4096, szBuf, NULL)) {
+    if (GetFullPathName(szPath, 4096, szBuf, nullptr)) {
         out_strCanonicalPath.Set(szBuf);
         return true;
     }
@@ -1044,7 +1044,7 @@ bool OTPaths::ToReal(const OTString& strExactPath,
     char actualpath[path_max + 1];
     actualpath[0] = '\0';
 
-    if (NULL == realpath(strExactPath.Get(), actualpath)) {
+    if (nullptr == realpath(strExactPath.Get(), actualpath)) {
 
         if (errno == ENOTDIR) {
             otWarn << "Input value to RealPath is not a directory: (Realpath: "
@@ -1063,7 +1063,7 @@ bool OTPaths::ToReal(const OTString& strExactPath,
                                          "build RealPath: access denied");
         OT_ASSERT_MSG(
             (errno != EINVAL),
-            "Error (RealPath: EINVAL): Input value into RealPath was NULL");
+            "Error (RealPath: EINVAL): Input value into RealPath was nullptr");
         OT_ASSERT_MSG(
             (errno != ELOOP),
             "Error (RealPath: ELOOP): Resloving links resulted in a loop.");
@@ -1113,7 +1113,7 @@ bool GetExecutable(OTString& strExecutablePath)
     TCHAR bufPath[_MAX_PATH + 1] = "";
 #endif
 
-    GetModuleFileName(NULL, bufPath, sizeof(bufPath) / sizeof(TCHAR));
+    GetModuleFileName(nullptr, bufPath, sizeof(bufPath) / sizeof(TCHAR));
 
 #ifdef UNICODE
     strExecutablePath.Set(utf8util::UTF8FromUTF16(bufPath));
@@ -1131,7 +1131,7 @@ bool GetCurrentWorking(OTString& strCurrentWorkingPath)
 
 #ifdef _WIN32
     // Windows Common
-    TCHAR* szPath = NULL;
+    TCHAR* szPath = nullptr;
 #ifdef _UNICODE
 // Windows Unicode
 #define GetCurrentDir _wgetcwd
@@ -1142,12 +1142,12 @@ bool GetCurrentWorking(OTString& strCurrentWorkingPath)
 #else
 // Unix
 #define GetCurrentDir getcwd
-    char* szPath = NULL;
+    char* szPath = nullptr;
 #endif
 
     // All
-    szPath = GetCurrentDir(NULL, 0);
-    OT_ASSERT(szPath != NULL);
+    szPath = GetCurrentDir(nullptr, 0);
+    OT_ASSERT(szPath != nullptr);
 
     OTString result;
 
@@ -1174,8 +1174,8 @@ bool OTPaths::GetHomeFromSystem(OTString& out_strHomeFolder)
     TCHAR szPath[MAX_PATH] = "";
 #endif
 
-    if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL,
-                                  0, szPath))) {
+    if (SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE,
+                                  nullptr, 0, szPath))) {
 #ifdef UNICODE
         out_strHomeFolder.Set(utf8util::UTF8FromUTF16(szPath));
 #else

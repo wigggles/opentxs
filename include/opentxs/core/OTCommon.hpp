@@ -61,7 +61,7 @@ public:
 };
 std::stringstream& operator<<(const std::stringstream& str, const time64_t& t);
 
-EXPORT time64_t OTTimeGetCurrentTime(); // { return time(NULL); }
+EXPORT time64_t OTTimeGetCurrentTime(); // { return time(nullptr); }
 EXPORT time64_t
 OTTimeGetTimeFromSeconds(int64_t seconds); // { return seconds; }
 EXPORT time64_t
@@ -77,7 +77,7 @@ typedef int64_t time64_t;
 
 inline time64_t OTTimeGetCurrentTime()
 {
-    return time(NULL);
+    return time(nullptr);
 }
 inline time64_t OTTimeGetTimeFromSeconds(int64_t seconds)
 {
