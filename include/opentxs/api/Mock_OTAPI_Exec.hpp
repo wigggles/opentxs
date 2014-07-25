@@ -434,9 +434,10 @@ public:
     // anyway
     virtual std::string ProposePaymentPlan(
         const std::string& SERVER_ID,
-        const time64_t& VALID_FROM, // Default (0 or NULL) == current time
+        const time64_t& VALID_FROM, // Default (0 or nullptr) == current time
                                     // measured in seconds since Jan 1970.
-        const time64_t& VALID_TO,   // Default (0 or NULL) == no expiry / cancel
+        const time64_t& VALID_TO,   // Default (0 or nullptr) == no expiry /
+                                    // cancel
                                     // anytime. Otherwise this is ADDED to
                                     // VALID_FROM (it's a length.)
         const std::string& SENDER_ACCT_ID,     // Mandatory parameters.
@@ -446,22 +447,22 @@ public:
         const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
         const std::string& RECIPIENT_USER_ID,  // Both sender and recipient must
                                                // sign before submitting.
-        const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or NULL == no initial
+        const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or nullptr == no initial
                                                // payment.
         const time64_t& INITIAL_PAYMENT_DELAY, // seconds from creation date.
-                                               // Default is zero or NULL.
-        const int64_t& PAYMENT_PLAN_AMOUNT,    // Zero or NULL == no regular
+                                               // Default is zero or nullptr.
+        const int64_t& PAYMENT_PLAN_AMOUNT,    // Zero or nullptr == no regular
                                                // payments.
         const time64_t& PAYMENT_PLAN_DELAY,    // No. of seconds from creation
-                                               // date. Default is zero or NULL.
-                                               // (Causing 30 days.)
+        // date. Default is zero or nullptr.
+        // (Causing 30 days.)
         const time64_t& PAYMENT_PLAN_PERIOD, // No. of seconds between payments.
-                                             // Default is zero or NULL.
+                                             // Default is zero or nullptr.
                                              // (Causing 30 days.)
         const time64_t& PAYMENT_PLAN_LENGTH, // In seconds. Defaults to 0 or
-                                             // NULL (no maximum length.)
+                                             // nullptr (no maximum length.)
         const int32_t& PAYMENT_PLAN_MAX_PAYMENTS) // integer. Defaults to 0 or
-                                                  // NULL (no maximum payments.)
+    // nullptr (no maximum payments.)
     {
         return "";
     }
@@ -482,7 +483,7 @@ public:
                                                // sign before submitting.
         const std::string& INITIAL_PAYMENT, // "amount,delay"  Default 'amount'
                                             // (0 or "") == no initial payment.
-                                            // Default 'delay' (0 or NULL) is
+                                            // Default 'delay' (0 or nullptr) is
                                             // seconds from creation date.
         const std::string& PAYMENT_PLAN, // "amount,delay,period" 'amount' is a
                                          // recurring payment. 'delay' and

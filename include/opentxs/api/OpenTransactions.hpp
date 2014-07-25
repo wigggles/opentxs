@@ -268,7 +268,7 @@ public:
                                   OTEnvelope& theEnvelope);
     EXPORT bool GetWalletFilename(OTString& strPath);
     EXPORT bool SetWalletFilename(const OTString& strPath);
-    EXPORT OTWallet* GetWallet(const char* szFuncName = NULL);
+    EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr);
     inline OTClient* GetClient()
     {
         return m_pClient;
@@ -306,43 +306,45 @@ public:
     // Gets the data from Wallet.
     //
     EXPORT OTPseudonym* GetNym(const OTIdentifier& NYM_ID,
-                               const char* szFuncName = NULL);
+                               const char* szFuncName = nullptr);
     EXPORT OTServerContract* GetServer(const OTIdentifier& THE_ID,
-                                       const char* szFuncName = NULL);
+                                       const char* szFuncName = nullptr);
     EXPORT OTAssetContract* GetAssetType(const OTIdentifier& THE_ID,
-                                         const char* szFuncName = NULL);
+                                         const char* szFuncName = nullptr);
     EXPORT OTAccount* GetAccount(const OTIdentifier& THE_ID,
-                                 const char* szFuncName = NULL);
+                                 const char* szFuncName = nullptr);
 
     EXPORT OTPseudonym* GetNymByIDPartialMatch(const std::string PARTIAL_ID,
-                                               const char* szFuncName = NULL);
+                                               const char* szFuncName =
+                                                   nullptr);
     EXPORT OTServerContract* GetServerContractPartialMatch(
-        const std::string PARTIAL_ID, const char* szFuncName = NULL);
+        const std::string PARTIAL_ID, const char* szFuncName = nullptr);
     EXPORT OTAssetContract* GetAssetContractPartialMatch(
-        const std::string PARTIAL_ID, const char* szFuncName = NULL);
+        const std::string PARTIAL_ID, const char* szFuncName = nullptr);
     EXPORT OTAccount* GetAccountPartialMatch(const std::string PARTIAL_ID,
-                                             const char* szFuncName = NULL);
+                                             const char* szFuncName = nullptr);
     EXPORT OTPseudonym* GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
-                                           const char* szFuncName = NULL);
+                                           const char* szFuncName = nullptr);
     EXPORT OTPseudonym* GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                             const bool bChecking = false,
-                                            const char* szFuncName = NULL,
-                                            OTPasswordData* pPWData = NULL,
-                                            OTPassword* pImportPassword = NULL);
+                                            const char* szFuncName = nullptr,
+                                            OTPasswordData* pPWData = nullptr,
+                                            OTPassword* pImportPassword =
+                                                nullptr);
     EXPORT OTPseudonym* GetOrLoadNym(const OTIdentifier& NYM_ID,
                                      const bool bChecking = false,
-                                     const char* szFuncName = NULL,
-                                     OTPasswordData* pPWData = NULL);
+                                     const char* szFuncName = nullptr,
+                                     OTPasswordData* pPWData = nullptr);
 
     EXPORT OTAccount* GetOrLoadAccount(OTPseudonym& theNym,
                                        const OTIdentifier& ACCT_ID,
                                        const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = NULL);
+                                       const char* szFuncName = nullptr);
 
     EXPORT OTAccount* GetOrLoadAccount(const OTIdentifier& NYM_ID,
                                        const OTIdentifier& ACCT_ID,
                                        const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = NULL);
+                                       const char* szFuncName = nullptr);
     // The name is basically just a client-side label.
     // This function lets you change it.
     //
@@ -363,19 +365,19 @@ public:
     // (Caller responsible to delete.)
     //
     EXPORT OTPseudonym* LoadPublicNym(const OTIdentifier& NYM_ID,
-                                      const char* szFuncName = NULL);
+                                      const char* szFuncName = nullptr);
     EXPORT OTPseudonym* LoadPrivateNym(const OTIdentifier& NYM_ID,
                                        const bool bChecking = false,
-                                       const char* szFuncName = NULL,
-                                       OTPasswordData* pPWData = NULL,
-                                       OTPassword* pImportPassword = NULL);
+                                       const char* szFuncName = nullptr,
+                                       OTPasswordData* pPWData = nullptr,
+                                       OTPassword* pImportPassword = nullptr);
 
     EXPORT OTPseudonym* CreateNym(int32_t nKeySize = 1024,
                                   const std::string str_id_source = "",
                                   const std::string str_alt_location =
                                       ""); // returns a new nym (with key pair)
-                                           // and files created. (Or NULL.) Adds
-                                           // to wallet.
+    // and files created. (Or nullptr.) Adds
+    // to wallet.
 
     // This works by checking to see if the Nym has a request number for the
     // given server.
@@ -416,7 +418,7 @@ public:
     // then it will be set to the ID that was already there.
     //
     EXPORT bool Wallet_ImportNym(const OTString& FILE_CONTENTS,
-                                 OTIdentifier* pNymID = NULL);
+                                 OTIdentifier* pNymID = nullptr);
     // In this case, instead of importing a special "OT Nym all-in-one exported"
     // file format,
     // we are importing the public/private keys only, from their Cert file
@@ -433,7 +435,7 @@ public:
     //
     EXPORT bool Wallet_ImportCert(const OTString& DISPLAY_NAME,
                                   const OTString& FILE_CONTENTS,
-                                  OTIdentifier* pNymID = NULL);
+                                  OTIdentifier* pNymID = nullptr);
     // Removes master key and sets a normal passphrase on the Cert.
     // Similar to ExportNym except it only exports the Cert portion.
     //
@@ -457,31 +459,31 @@ public:
                                        // ownership will be re-assigned from
                                        // that key, to SIGNER_ID, as part of the
                                        // merging process.
-        const OTString& THE_PURSE, const OTString* pstrDisplay = NULL);
+        const OTString& THE_PURSE, const OTString* pstrDisplay = nullptr);
     //
     // ENCODE, DECODE, SIGN, VERIFY, ENCRYPT, DECRYPT
 
     /** OT-encode a plaintext string.
      This will pack, compress, and base64-encode a plain string.
-     Returns the base64-encoded string, or NULL.
+     Returns the base64-encoded string, or nullptr.
      */
     EXPORT bool Encode(const OTString& strPlaintext, OTString& strOutput,
                        bool bLineBreaks = true);
     /** Decode an OT-encoded string (back to plaintext.)
     This will base64-decode, uncompress, and unpack an OT-encoded string.
-    Returns the plaintext string, or NULL.
+    Returns the plaintext string, or nullptr.
     */
     EXPORT bool Decode(const OTString& strEncoded, OTString& strOutput,
                        bool bLineBreaks = true);
     /** OT-ENCRYPT a plaintext string.
     This will encode, ENCRYPT, and encode a plain string.
-    Returns the base64-encoded ciphertext, or NULL.
+    Returns the base64-encoded ciphertext, or nullptr.
     */
     EXPORT bool Encrypt(const OTIdentifier& theRecipientNymID,
                         const OTString& strPlaintext, OTString& strOutput);
     /** OT-DECRYPT an OT-encrypted string back to plaintext.
     Decrypts the base64-encoded ciphertext back into a normal string plaintext.
-    Returns the plaintext string, or NULL.
+    Returns the plaintext string, or nullptr.
     */
     EXPORT bool Decrypt(const OTIdentifier& theRecipientNymID,
                         const OTString& strCiphertext, OTString& strOutput);
@@ -496,14 +498,14 @@ public:
     /** OT-Sign a CONTRACT.  (First signature)
     Tries to instantiate the contract object, based on the string passed in.
     Then it releases ALL signatures, and then signs the contract.
-    Returns the signed contract, or NULL if failure.
+    Returns the signed contract, or nullptr if failure.
     */
     EXPORT bool SignContract(const OTIdentifier& theSignerNymID,
                              const OTString& strContract, OTString& strOutput);
     /** OT-Sign a CONTRACT.  (Add a signature)
     Tries to instantiate the contract object, based on the string passed in.
     Signs the contract, WITHOUT releasing any signatures that are already there.
-    Returns the signed contract, or NULL if failure.
+    Returns the signed contract, or nullptr if failure.
     */
     EXPORT bool AddSignature(const OTIdentifier& theSignerNymID,
                              const OTString& strContract, OTString& strOutput);
@@ -513,9 +515,9 @@ public:
     EXPORT bool VerifySignature(const OTString& strContract,
                                 const OTIdentifier& theSignerNymID,
                                 OTContract** ppContract =
-                                    NULL); // If you use this optional
-                                           // parameter, then YOU are
-                                           // responsible to clean it up.
+                                    nullptr); // If you use this optional
+                                              // parameter, then YOU are
+                                              // responsible to clean it up.
 
     /// Verify and Retrieve XML Contents.
     EXPORT bool VerifyAndRetrieveXMLContents(const OTString& strContract,
@@ -531,16 +533,14 @@ public:
                                      const OTIdentifier& USER_ID,
                                      const OTIdentifier& ACCOUNT_ID);
     //
-    // Returns an OTCheque pointer, or NULL.
+    // Returns an OTCheque pointer, or nullptr.
     // (Caller responsible to delete.)
-    EXPORT OTCheque* WriteCheque(const OTIdentifier& SERVER_ID,
-                                 const int64_t& CHEQUE_AMOUNT,
-                                 const time64_t& VALID_FROM,
-                                 const time64_t& VALID_TO,
-                                 const OTIdentifier& SENDER_ACCT_ID,
-                                 const OTIdentifier& SENDER_USER_ID,
-                                 const OTString& CHEQUE_MEMO,
-                                 const OTIdentifier* pRECIPIENT_USER_ID = NULL);
+    EXPORT OTCheque* WriteCheque(
+        const OTIdentifier& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
+        const time64_t& VALID_FROM, const time64_t& VALID_TO,
+        const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_USER_ID,
+        const OTString& CHEQUE_MEMO,
+        const OTIdentifier* pRECIPIENT_USER_ID = nullptr);
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)
 
@@ -548,7 +548,7 @@ public:
                               OTIdentifier& ACCT_ID, OTString& THE_CHEQUE);
     // PROPOSE PAYMENT PLAN (called by Merchant)
     //
-    // Returns an OTPaymentPlan pointer, or NULL.
+    // Returns an OTPaymentPlan pointer, or nullptr.
     // (Caller responsible to delete.)
     //
     // Payment Plan Delay, and Payment Plan Period, both default to 30 days (if
@@ -597,7 +597,7 @@ public:
     EXPORT OTPurse* LoadPurse(const OTIdentifier& SERVER_ID,
                               const OTIdentifier& ASSET_ID,
                               const OTIdentifier& USER_ID,
-                              const OTString* pstrDisplay = NULL);
+                              const OTString* pstrDisplay = nullptr);
     EXPORT bool SavePurse(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& ASSET_ID,
                           const OTIdentifier& USER_ID, OTPurse& THE_PURSE);
@@ -618,12 +618,13 @@ public:
                                  // scope when return value has a member set to
                                  // point to it.
         const bool bForEncrypting = true, // true==encrypting,false==decrypting.
-        const OTIdentifier* pOWNER_ID =
-            NULL, // This can be NULL, **IF** purse is password-protected. (It's
-                  // just ignored in that case.) Otherwise MUST contain the
-                  // NymID for the Purse owner.
-        const OTString* pstrDisplay1 = NULL,
-        const OTString* pstrDisplay2 = NULL);
+        const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
+                                                 // purse is password-protected.
+                                                 // (It's
+        // just ignored in that case.) Otherwise MUST contain the
+        // NymID for the Purse owner.
+        const OTString* pstrDisplay1 = nullptr,
+        const OTString* pstrDisplay2 = nullptr);
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerForMerge(
         const OTString& strPurse, OTPurse& thePurse, // output
         OTPassword& thePassword, // Only used in the case of password-protected
@@ -632,54 +633,58 @@ public:
         const bool bCanBePublic = false, // true==private nym isn't mandatory.
                                          // false==private nym IS mandatory.
                                          // (Only relevant if there's an owner.)
-        const OTIdentifier* pOWNER_ID =
-            NULL, // This can be NULL, **IF** purse is password-protected. (It's
-                  // just ignored in that case.) Otherwise if it's
-                  // Nym-protected, the purse will have a NymID on it already.
-                  // If not (it's optional), then pOWNER_ID is the ID it will
-                  // try next, before failing.
-        const OTString* pstrDisplay = NULL);
+        const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
+                                                 // purse is password-protected.
+                                                 // (It's
+        // just ignored in that case.) Otherwise if it's
+        // Nym-protected, the purse will have a NymID on it already.
+        // If not (it's optional), then pOWNER_ID is the ID it will
+        // try next, before failing.
+        const OTString* pstrDisplay = nullptr);
     EXPORT OTToken* Purse_Peek(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_PURSE,
-        const OTIdentifier* pOWNER_ID =
-            NULL, // This can be NULL, **IF** purse is password-protected. (It's
-                  // just ignored in that case.) Otherwise MUST contain the
-                  // NymID for the Purse owner (necessary to decrypt the token.)
-        const OTString* pstrDisplay = NULL);
+        const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
+                                                 // purse is password-protected.
+                                                 // (It's
+        // just ignored in that case.) Otherwise MUST contain the
+        // NymID for the Purse owner (necessary to decrypt the token.)
+        const OTString* pstrDisplay = nullptr);
 
     EXPORT OTPurse* Purse_Pop(const OTIdentifier& SERVER_ID,
                               const OTIdentifier& ASSET_TYPE_ID,
                               const OTString& THE_PURSE,
                               const OTIdentifier* pOWNER_ID =
-                                  NULL, // This can be NULL, **IF** purse is
-                                        // password-protected. (It's just
-                                        // ignored in that case.) Otherwise MUST
-                                        // contain the NymID for the Purse owner
-                                        // (necessary to decrypt the token.)
-                              const OTString* pstrDisplay = NULL);
+                                  nullptr, // This can be nullptr, **IF** purse
+                                           // is
+                                           // password-protected. (It's just
+                              // ignored in that case.) Otherwise MUST
+                              // contain the NymID for the Purse owner
+                              // (necessary to decrypt the token.)
+                              const OTString* pstrDisplay = nullptr);
 
     EXPORT OTPurse* Purse_Empty(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& ASSET_TYPE_ID,
                                 const OTString& THE_PURSE,
-                                const OTString* pstrDisplay = NULL);
+                                const OTString* pstrDisplay = nullptr);
 
     EXPORT OTPurse* Purse_Push(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_PURSE, const OTString& THE_TOKEN,
-        const OTIdentifier* pOWNER_ID =
-            NULL, // This can be NULL, **IF** purse is password-protected. (It's
-                  // just ignored in that case.) Otherwise MUST contain the
-                  // NymID for the Purse owner (recipient. necessary to encrypt
-                  // the token to him.)
-        const OTString* pstrDisplay = NULL);
+        const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
+                                                 // purse is password-protected.
+                                                 // (It's
+        // just ignored in that case.) Otherwise MUST contain the
+        // NymID for the Purse owner (recipient. necessary to encrypt
+        // the token to him.)
+        const OTString* pstrDisplay = nullptr);
 
     EXPORT OTToken* Token_ChangeOwner(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_TOKEN, const OTIdentifier& SIGNER_NYM_ID,
         const OTString& OLD_OWNER, // Pass a NymID here, or a purse.
         const OTString& NEW_OWNER, // Pass a NymID here, or a purse.
-        const OTString* pstrDisplay = NULL);
+        const OTString* pstrDisplay = nullptr);
     EXPORT OTMint* LoadMint(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& ASSET_ID);
     EXPORT OTAssetContract* LoadAssetContract(const OTIdentifier& ASSET_ID);
@@ -829,7 +834,7 @@ public:
     sendUserInstrument(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                        OTIdentifier& USER_ID_RECIPIENT,
                        OTString& RECIPIENT_PUBKEY, OTPayment& THE_INSTRUMENT,
-                       OTPayment* pINSTRUMENT_FOR_SENDER = NULL);
+                       OTPayment* pINSTRUMENT_FOR_SENDER = nullptr);
 
     EXPORT int32_t issueAssetType(OTIdentifier& SERVER_ID,
                                   OTIdentifier& USER_ID,
@@ -957,14 +962,15 @@ public:
     EXPORT int32_t
     triggerClause(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
                   const int64_t& lTransactionNum, const OTString& strClauseName,
-                  const OTString* pStrParam = NULL);
+                  const OTString* pStrParam = nullptr);
 
     EXPORT bool Create_SmartContract(
         const OTIdentifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
-        time64_t VALID_FROM,               // Default (0 or NULL) == NOW
-        time64_t VALID_TO, // Default (0 or NULL) == no expiry / cancel anytime
+        time64_t VALID_FROM,               // Default (0 or nullptr) == NOW
+        time64_t VALID_TO, // Default (0 or nullptr) == no expiry / cancel
+                           // anytime
         OTString& strOutput);
 
     EXPORT bool SmartContract_AddBylaw(

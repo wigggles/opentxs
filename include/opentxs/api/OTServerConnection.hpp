@@ -192,7 +192,7 @@ public:
         return m_pWallet;
     }
 
-    //    inline bool IsConnected()    { return ((NULL ==
+    //    inline bool IsConnected()    { return ((nullptr ==
     // m_pSocket)?false:true); }    // for socket mode                -- TCP /
     // SSL
     inline bool IsFocused()

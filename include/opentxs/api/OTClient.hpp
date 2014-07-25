@@ -405,17 +405,18 @@ public:
     ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                        OTMessage& theMessage, OTPseudonym& theNym,
                        // OTAssetContract & theContract,
-                       OTServerContract& theServer, OTAccount* pAccount = NULL,
+                       OTServerContract& theServer,
+                       OTAccount* pAccount = nullptr,
                        int64_t lTransactionAmount = 0,
-                       OTAssetContract* pMyAssetContract = NULL,
-                       OTIdentifier* pHisNymID = NULL,
-                       OTIdentifier* pHisAcctID = NULL);
+                       OTAssetContract* pMyAssetContract = nullptr,
+                       OTIdentifier* pHisNymID = nullptr,
+                       OTIdentifier* pHisAcctID = nullptr);
 
     bool ProcessServerReply(OTMessage& theReply,
-                            OTLedger* pNymbox =
-                                NULL); // IF the Nymbox is passed in, then use
-                                       // that one, where appropriate, instead
-                                       // of loading it internally.
+                            OTLedger* pNymbox = nullptr); // IF the Nymbox is
+                                                          // passed in, then use
+    // that one, where appropriate, instead
+    // of loading it internally.
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
                                      OTMessage& theReply);
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
