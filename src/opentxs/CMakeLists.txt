@@ -1,6 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
+  opentxs.cpp
   main.cpp
 )
 
