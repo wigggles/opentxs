@@ -39,6 +39,8 @@ extern string Args;
 
 extern string OT_CLI_GetValueByKey(string, string);
 
+using std::cout;
+
 namespace opentxs
 {
 
@@ -124,8 +126,8 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                     }
                     else {
                         // display all the details about this basket currency
-                        print("Name: " + strAssetName);
-                        print("ID:   " + strAssetID);
+                        cout << "Name: " << strAssetName << "\n";
+                        cout << "ID:   " << strAssetID << "\n";
 
                         int32_t nMemberCount =
                             OTAPI_Wrap::Basket_GetMemberCount(strAssetID);
@@ -151,12 +153,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                                          "instead.\n";
                             }
                             else {
-                                print(
-                                    "Minimum transfer amount for basket:     " +
-                                    to_string(nBasketMinTransAmt));
-                                print(
-                                    "Number of sub-currencies in the basket: " +
-                                    to_string(nMemberCount));
+                                cout << "Minimum transfer amount for basket:   "
+                                        "  " << nBasketMinTransAmt << "\n";
+                                cout << "Number of sub-currencies in the "
+                                        "basket: " << nMemberCount << "\n";
 
                                 bool bFirstMember = true;
 
@@ -184,15 +184,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                                                  "\n---------------------------"
                                                  "------------\n";
                                     }
-                                    print("    " + to_string(nMemberIndex) +
-                                          "      : " +
-                                          (VerifyIntVal(nMinTransAmt)
-                                               ? to_string(nMinTransAmt)
-                                               : "ERROR_AMT") +
-                                          " : " + strMemberType + " : " +
-                                          (VerifyStringVal(strMemberName)
-                                               ? strMemberName
-                                               : "ERROR_NAME"));
+                                    cout << "    " << nMemberIndex << "      : "
+                                         << nMinTransAmt << " : "
+                                         << strMemberType << " : "
+                                         << strMemberName << "\n";
                                     otOut << "---------------------------------"
                                              "------\n";
                                 }
@@ -220,11 +215,11 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                 string strAssetName = OTAPI_Wrap::GetAssetType_Name(strAssetID);
 
                 if (VerifyStringVal(strAssetName)) {
-                    print(to_string(nAssetIndex) + ": " + strAssetID + " : " +
-                          strAssetName);
+                    cout << nAssetIndex << ": " << strAssetID
+                         << " : " + strAssetName << "\n";
                 }
                 else {
-                    print(to_string(nAssetIndex) + ": " + strAssetID);
+                    cout << nAssetIndex << ": " << strAssetID << "\n";
                 }
             }
         }
@@ -366,7 +361,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     switch (nStatus) {
     case 1: {
         otOut << "\n\n SUCCESS in issue_basket_currency! Server response:\n\n";
-        print(strResponse);
+        cout << strResponse << "\n";
 
         string strNewID = OTAPI_Wrap::Message_GetNewAssetTypeID(strResponse);
         bool bGotNewID = VerifyStringVal(strNewID);
@@ -389,7 +384,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     }
     case 0:
         otOut << "\n\n FAILURE in issue_basket_currency! Server response:\n\n";
-        print(strResponse);
+        cout << strResponse << "\n";
         otOut << " FAILURE in issue_basket_currency!\n";
         break;
     default:
@@ -398,7 +393,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
 
         if (VerifyStringVal(strResponse)) {
             otOut << "Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\nError in issue_basket_currency! nStatus is: " << nStatus
                   << "\n";
         }
@@ -772,8 +767,9 @@ OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
                                  const bool bFilter,
                                  const string& strBasketType)
 {
-    print("------------------------------------------------------------------");
-    print(" ** ACCOUNTS :\n");
+    cout << "------------------------------------------------------------------"
+            "\n";
+    cout << " ** ACCOUNTS :\n\n";
 
     int32_t nAccountCount = OTAPI_Wrap::GetAccountCount();
 
@@ -794,24 +790,26 @@ OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
                     (VerifyStringVal(strBasketType) && !bFilter &&
                      (strBasketType != strAssetID))) {
                     if ((i > 0) && (i != (nAccountCount))) {
-                        print("-------------------------------------");
+                        cout << "-------------------------------------\n";
                     }
 
                     string strStatAcct = MadeEasy::stat_asset_account(strID);
                     bool bSuccess = VerifyStringVal(strStatAcct);
                     if (bSuccess) {
-                        print(strStatAcct);
+                        cout << strStatAcct << "\n";
                     }
                     else {
-                        print("Error trying to stat an account: " + strID);
+                        cout << "Error trying to stat an account: " << strID
+                             << "\n";
                     }
 
-                    print("");
+                    cout << "\n";
                 }
             }
         }
     }
-    print("------------------------------------------------------------------");
+    cout << "------------------------------------------------------------------"
+            "\n";
 
     return 1;
 }
@@ -1573,7 +1571,7 @@ OT_COMMANDS_OT bool OT_Command::details_show_credential(
 
     if (VerifyStringVal(strCredContents)) {
         otOut << "Master Credential contents:\n";
-        print(strCredContents);
+        cout << strCredContents << "\n";
         return true;
     }
 
@@ -1582,7 +1580,7 @@ OT_COMMANDS_OT bool OT_Command::details_show_credential(
 
     if (VerifyStringVal(strCredContents)) {
         otOut << "Revoked Credential contents:\n";
-        print(strCredContents);
+        cout << strCredContents << "\n";
         return true;
     }
 
@@ -1615,7 +1613,7 @@ OT_COMMANDS_OT bool OT_Command::details_show_credential(
         else {
             otOut << "Subcredential contents:\n";
         }
-        print(strCredContents);
+        cout << strCredContents << "\n";
         otOut << "\n";
         return true;
     }
@@ -1675,7 +1673,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
         for (int32_t nCurrent = 0; nCurrent < nCredCount; ++nCurrent) {
             string strCredID =
                 OTAPI_Wrap::GetNym_CredentialID(strMyNymID, nCurrent);
-            print(to_string(nCurrent) + ":      " + strCredID);
+            cout << nCurrent << ":      " << strCredID << "\n";
 
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
@@ -1690,8 +1688,8 @@ OT_Command::details_show_credentials(const string& strMyNymID)
                      nCurrentSubCred < nSubCredCount; ++nCurrentSubCred) {
                     string strSubCredID = OTAPI_Wrap::GetNym_SubCredentialID(
                         strMyNymID, strCredID, nCurrentSubCred);
-                    print("        " + to_string(nCurrentSubCred) + ":      " +
-                          strSubCredID);
+                    cout << "        " << nCurrentSubCred << ":      "
+                         << strSubCredID << "\n";
                 }
             }
         }
@@ -1718,7 +1716,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
         for (int32_t nCurrent = 0; nCurrent < nCredCount; ++nCurrent) {
             string strCredID =
                 OTAPI_Wrap::GetNym_RevokedCredID(strMyNymID, nCurrent);
-            print(to_string(nCurrent) + ":      " + strCredID);
+            cout << nCurrent << ":      " << strCredID << "\n";
 
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
@@ -1733,8 +1731,8 @@ OT_Command::details_show_credentials(const string& strMyNymID)
                      nCurrentSubCred < nSubCredCount; ++nCurrentSubCred) {
                     string strSubCredID = OTAPI_Wrap::GetNym_SubCredentialID(
                         strMyNymID, strCredID, nCurrentSubCred);
-                    print("        " + to_string(nCurrentSubCred) + ":      " +
-                          strSubCredID);
+                    cout << "        " << nCurrentSubCred << ":      "
+                         << strSubCredID << "\n";
                 }
             }
         }
@@ -1772,13 +1770,15 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagent(const string& strSmartContract,
         strSmartContract, strPartyName, strAgentName);
 
     if (VerifyStringVal(strAgentID)) {
-        print("--------------------\n " + strDisplayIndex + " : Agent '" +
-              strAgentName + "' (party '" + strPartyName + "') has NymID: " +
-              strAgentID + " ('" + OTAPI_Wrap::GetNym_Name(strAgentID) + "')");
+        cout << "--------------------\n " << strDisplayIndex << " : Agent '"
+             << strAgentName << "' (party '" << strPartyName
+             << "') has NymID: " << strAgentID << " ('"
+             << OTAPI_Wrap::GetNym_Name(strAgentID) << "')\n";
     }
     else {
-        print(" " + strDisplayIndex + " : Agent '" + strAgentName +
-              "' (party '" + strPartyName + "') has no NymID assigned (yet.)");
+        cout << " " << strDisplayIndex << " : Agent '" << strAgentName
+             << "' (party '" << strPartyName
+             << "') has no NymID assigned (yet.)\n";
     }
 
     return true;
@@ -1824,8 +1824,8 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagents(const string& strSmartContract,
         }
     }
     else {
-        print("Party '" + strPartyName + "' has " + to_string(nAgentCount) +
-              ((1 == nAgentCount) ? " agent." : " agents."));
+        cout << "Party '" << strPartyName << "' has " << nAgentCount
+             << (1 == nAgentCount ? " agent." : " agents.") << "\n";
     }
 
     return true;
@@ -1843,21 +1843,21 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccount(
         strSmartContract, strPartyName, strAcctName);
 
     if (VerifyStringVal(strAcctAssetID)) {
-        print("-------------------\nAccount '" + strAcctName + "' (index " +
-              to_string(nCurrentAccount) + " on Party '" + strPartyName +
-              "') has asset type: " + strAcctAssetID + " (" +
-              OTAPI_Wrap::GetAssetType_Name(strAcctAssetID) + ")");
+        cout << "-------------------\nAccount '" << strAcctName << "' (index "
+             << nCurrentAccount << " on Party '" << strPartyName
+             << "') has asset type: " << strAcctAssetID << " ("
+             << OTAPI_Wrap::GetAssetType_Name(strAcctAssetID) << ")\n";
     }
 
     if (VerifyStringVal(strAcctID)) {
-        print("Account '" + strAcctName + "' (party '" + strPartyName +
-              "') is confirmed as Account ID: " + strAcctID + " (" +
-              OTAPI_Wrap::GetAccountWallet_Name(strAcctID) + ")");
+        cout << "Account '" << strAcctName << "' (party '" << strPartyName
+             << "') is confirmed as Account ID: " << strAcctID << " ("
+             << OTAPI_Wrap::GetAccountWallet_Name(strAcctID) << ")\n";
     }
 
     if (VerifyStringVal(strAcctAgentName)) {
-        print("Account '" + strAcctName + "' (party '" + strPartyName +
-              "') is managed by agent: " + strAcctAgentName);
+        cout << "Account '" << strAcctName << "' (party '" << strPartyName
+             << "') is managed by agent: " << strAcctAgentName << "\n";
     }
 
     return true;
@@ -1904,8 +1904,9 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccounts(
         }
     }
     else {
-        print("Party '" + strPartyName + "' has " + to_string(nAccountCount) +
-              ((1 == nAccountCount) ? " asset account." : " asset accounts."));
+        cout << "Party '" << strPartyName << "' has " << nAccountCount
+             << (1 == nAccountCount ? " asset account." : " asset accounts.")
+             << "\n";
     }
 
     return true;
@@ -2490,12 +2491,12 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                         return -1;
                                     }
                                     while (true) {
-                                        print("--------------------------------"
-                                              "--------------------------------"
-                                              "--");
-                                        print(" ** PSEUDONYMS (filtered by "
-                                              "serverID: " +
-                                              strServerID + "): " + "\n");
+                                        cout << "------------------------------"
+                                                "------------------------------"
+                                                "------\n";
+                                        cout << " ** PSEUDONYMS (filtered by "
+                                                "serverID: " << strServerID
+                                             << "): \n\n";
 
                                         bool bFoundANym = false;
 
@@ -3500,12 +3501,12 @@ OT_COMMANDS_OT int32_t OT_Command::mainEncode()
     otOut << "\n\n--------------------------------------\n You entered:\n"
           << strInput << "\n\n";
 
-    string strOutput = OTAPI_Wrap::Encode(strInput, true); // bLineBreaks=true
+    string strOutput = OTAPI_Wrap::Encode(strInput, true);
 
     otOut << "-------------------------------------- \n Encoded:\n\n";
 
     if (VerifyStringVal(strOutput)) {
-        print(strOutput);
+        cout << strOutput << "\n";
 
         otOut << "\n\n";
         return 1;
@@ -3536,7 +3537,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainDecode()
     otOut << "--------------------------------------\n Decoded:\n\n";
 
     if (VerifyStringVal(strOutput)) {
-        print(strOutput);
+        cout << strOutput << "\n";
 
         otOut << "\n\n";
         return 1;
@@ -3573,7 +3574,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainEncrypt()
 
             otOut << "-------------------------------------- \n Encrypted:\n\n";
 
-            print(strOutput);
+            cout << strOutput << "\n";
 
             otOut << "\n\n";
             return 1;
@@ -3608,7 +3609,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainDecrypt()
 
             otOut << "-------------------------------------- \n Decrypted:\n\n";
 
-            print(strOutput);
+            cout << strOutput << "\n";
 
             otOut << "\n\n";
             return 1;
@@ -3644,7 +3645,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPasswordEncrypt()
             otOut << "-------------------------------------- \n "
                      "strCiphertext:\n\n";
 
-            print(strCiphertext);
+            cout << strCiphertext << "\n";
 
             otOut << "\n\n";
             return 1;
@@ -3679,7 +3680,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPasswordDecrypt()
 
             otOut << "-------------------------------------- \n Plaintext:\n\n";
 
-            print(strPlaintext);
+            cout << strPlaintext << "\n";
 
             otOut << "\n\n";
             return 1;
@@ -3747,7 +3748,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainExportNym()
         }
         else {
             otOut << "\n\n SUCCESS exporting Nym: " << MyNym << "\n\n";
-            print(strExportedNym);
+            cout << strExportedNym << "\n";
             otOut << "\n";
             return 1;
         }
@@ -4211,7 +4212,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendMessage()
         }
         else {
             otOut << "Success in send_user_msg! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\nSuccess in send_user_msg.\n\n";
             return 1;
         }
@@ -4455,7 +4456,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainWriteCheque()
         otOut << "\n-------------------------------------------\n the "
                  "cheque:\n\n";
 
-        print(strCheque);
+        cout << strCheque << "\n";
 
         otOut << "\n";
     }
@@ -4479,7 +4480,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainWriteInvoice()
         otOut << "\n-------------------------------------------\n the "
                  "invoice:\n\n";
 
-        print(strCheque);
+        cout << strCheque << "\n";
 
         otOut << "\n";
     }
@@ -4710,7 +4711,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCash()
     }
 
     otOut << "Success in sendcash! Server response:\n\n";
-    print(strResponse);
+    cout << strResponse << "\n";
     otOut << "(Success in sendcash)\n";
 
     return 1;
@@ -4733,7 +4734,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
         otOut << "\n-------------------------------------------\n the "
                  "cheque:\n\n";
 
-        print(strCheque);
+        cout << strCheque << "\n";
 
         otOut << "\n";
 
@@ -4784,7 +4785,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
         }
         else {
             otOut << "Success in sendcheque! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "(Success in sendcheque)\n";
             return 1;
         }
@@ -4810,7 +4811,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
         otOut << "\n-------------------------------------------\n the "
                  "invoice:\n\n";
 
-        print(strCheque);
+        cout << strCheque << "\n";
 
         otOut << "\n";
 
@@ -4855,7 +4856,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
         }
         else {
             otOut << "Success in sendinvoice! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "(Success in sendinvoice)\n";
             return 1;
         }
@@ -5209,7 +5210,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewServer()
                     otOut << "-------------------------------------------\nNew "
                              "server contract:\n\n";
 
-                    print(strContract);
+                    cout << strContract << "\n";
 
                     otOut << "\n\n";
 
@@ -5254,7 +5255,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewAsset()
                     otOut << "-------------------------------------------\nNew "
                              "asset contract:\n\n";
 
-                    print(strContract);
+                    cout << strContract << "\n";
 
                     otOut << "\n\n";
 
@@ -5296,7 +5297,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewAccount()
         }
         else {
             otOut << "Success in create_asset_acct! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\n (Success in create_asset_acct)\n\n";
             return 1;
         }
@@ -5332,7 +5333,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainAddSignature()
 
         otOut << "-------------------------------------------\nSigned:\n\n";
 
-        print(strOutput);
+        cout << strOutput << "\n";
 
         otOut << "\n\n";
 
@@ -5401,7 +5402,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSignContract()
 
             otOut << "-------------------------------------------\nSigned:\n\n";
 
-            print(strOutput);
+            cout << strOutput << "\n";
 
             nReturnVal = 1;
         }
@@ -5450,7 +5451,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_kill_offer(const string& strServerID,
         }
         else {
             otOut << "\n\nSuccess in killoffer! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\n";
             return 1;
         }
@@ -5529,7 +5530,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainKillPlan()
             else {
                 otOut
                     << "\n\nSuccess in kill_payment_plan! Server response:\n\n";
-                print(strResponse);
+                cout << strResponse << "\n";
                 otOut << "\n\n";
                 return 1;
             }
@@ -5558,11 +5559,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifySignature()
               << strInput << "\n\n";
 
         if (OTAPI_Wrap::VerifySignature(HisNym, strInput)) {
-            print("\n\n *** Verified! ***\n\n");
+            cout << "\n\n *** Verified! ***\n\n\n";
             return 1;
         }
         else {
-            print("Failed!\n\n");
+            cout << "Failed!\n\n\n";
         }
     }
 
@@ -5571,8 +5572,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifySignature()
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowNyms()
 {
-    print("------------------------------------------------------------------");
-    print(" ** PSEUDONYMS: \n");
+    cout << "------------------------------------------------------------------"
+            "\n";
+    cout << " ** PSEUDONYMS: \n\n";
 
     int32_t nNymCount = OTAPI_Wrap::GetNymCount();
 
@@ -5581,7 +5583,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowNyms()
         string strID = OTAPI_Wrap::GetNym_ID(i);
         string strName = OTAPI_Wrap::GetNym_Name(strID);
 
-        print(strIndex + ": " + strID + " ---  " + strName);
+        cout << strIndex << ": " << strID << " ---  " << strName << "\n";
     }
 
     return 1;
@@ -5589,8 +5591,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowNyms()
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowServers()
 {
-    print("------------------------------------------------------------------");
-    print(" ** SERVERS: \n");
+    cout << "------------------------------------------------------------------"
+            "\n";
+    cout << " ** SERVERS: \n\n";
     int32_t nServerCount = OTAPI_Wrap::GetServerCount();
 
     for (int32_t i = 0; i < nServerCount; ++i) {
@@ -5598,7 +5601,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowServers()
         string strID = OTAPI_Wrap::GetServer_ID(i);
         string strName = OTAPI_Wrap::GetServer_Name(strID);
 
-        print(strIndex + ": " + strID + " ---  " + strName);
+        cout << strIndex << ": " << strID << " ---  " << strName << "\n";
     }
 
     return 1;
@@ -5606,15 +5609,16 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowServers()
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowAssets()
 {
-    print("------------------------------------------------------------------");
-    print(" ** ASSET TYPES: \n");
+    cout << "------------------------------------------------------------------"
+            "\n";
+    cout << " ** ASSET TYPES: \n\n";
     int32_t nAssetTypeCount = OTAPI_Wrap::GetAssetTypeCount();
 
     for (int32_t i = 0; i < nAssetTypeCount; ++i) {
         string strID = OTAPI_Wrap::GetAssetType_ID(i);
         string strName = OTAPI_Wrap::GetAssetType_Name(strID);
 
-        print(strID + " ---  " + strName);
+        cout << strID << " ---  " << strName << "\n";
     }
 
     return 1;
@@ -5622,35 +5626,37 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowAssets()
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowAccounts()
 {
-    print("------------------------------------------------------------------");
-    print(" ** ACCOUNTS: \n");
+    cout << "------------------------------------------------------------------"
+            "\n";
+    cout << " ** ACCOUNTS: \n\n";
 
     int32_t nAccountCount = OTAPI_Wrap::GetAccountCount();
 
     for (int32_t i = 0; i < nAccountCount; ++i) {
         if ((i > 0) && (i != (nAccountCount))) {
-            print("-------------------------------------");
+            cout << "-------------------------------------\n";
         }
         string strID = OTAPI_Wrap::GetAccountWallet_ID(i);
         string strStatAcct = MadeEasy::stat_asset_account(strID);
         bool bSuccess = VerifyStringVal(strStatAcct);
         if (bSuccess) {
-            print(strStatAcct);
+            cout << strStatAcct << "\n";
         }
         else {
-            print("Error trying to stat an asset account: " + strID);
+            cout << "Error trying to stat an asset account: " << strID << "\n";
         }
 
-        print("");
+        cout << "\n";
     }
-    print("------------------------------------------------------------------");
+    cout << "------------------------------------------------------------------"
+            "\n";
 
     return 1;
 }
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowWallet()
 {
-    print("");
+    cout << "\n";
 
     OT_Command::mainShowNyms();
     OT_Command::mainShowServers();
@@ -5672,10 +5678,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_stat_account(const string& strID)
     int32_t nSuccess = (bSuccess ? 1 : -1);
 
     if (bSuccess) {
-        print(strStatAcct);
+        cout << strStatAcct << "\n";
     }
     else {
-        print("Error trying to stat an asset account: " + strID + "\n");
+        cout << "Error trying to stat an asset account: " << strID << "\n\n";
     }
 
     otOut << "\n";
@@ -5710,7 +5716,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_account_balance(const string& strID)
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strID);
 
     otOut << "\n    Balance: ";
-    print(OTAPI_Wrap::FormatAmount(strAssetID, lBalance));
+    cout << OTAPI_Wrap::FormatAmount(strAssetID, lBalance) << "\n";
     otOut << strID << "   (" << strName << ")\n\n";
 
     return 1;
@@ -5731,7 +5737,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_nym_stat(const string& strID)
         return -1;
     }
 
-    print(strStats);
+    cout << strStats << "\n";
     return 1;
 }
 
@@ -5770,7 +5776,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMint()
         }
         else {
             otOut << "\n\n";
-            print(strMint);
+            cout << strMint << "\n";
             otOut << "\n\n";
             return 1;
         }
@@ -5799,7 +5805,7 @@ OT_Command::details_create_nym(const int32_t nKeybits, const string& strName,
         return -1;
     }
     otOut << "Success creating! " << nKeybits << " keybits, new ID: ";
-    print(strNymID);
+    cout << strNymID << "\n";
     otOut << "\n";
 
     bool bSetName = OTAPI_Wrap::SetNym_Name(strNymID, strNymID, strName);
@@ -6359,7 +6365,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainCheckNym()
         //  1 is reply received: success
         if (1 == VerifyMessageSuccess(strResponse)) {
             otOut << "\n\nSuccess in checknym! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\n\n";
             return 1;
         }
@@ -6540,20 +6546,20 @@ OT_COMMANDS_OT int32_t OT_Command::mainRegisterNym()
         switch (nSuccess) {
         case 1:
             otOut << "\n\n Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\n\n SUCCESS in register_nym!\n(Also, success "
                      "syncronizing the request number.)\n\n";
             break;
         case 0:
             otOut << "\n\n FAILURE in register_nym! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             break;
         default:
             otOut << "\n\nError in register_nym!\n";
 
             if (VerifyStringVal(strResponse)) {
                 otOut << "Server response:\n\n";
-                print(strResponse);
+                cout << strResponse << "\n";
             }
             break;
         }
@@ -6711,7 +6717,7 @@ OT_Command::details_download_box_receipt(const string& strID,
     }
     else {
         otOut << "Success in get_box_receipt! Server response:\n\n";
-        print(strResponse);
+        cout << strResponse << "\n";
         otOut << "\n\n";
         return 1;
     }
@@ -7087,7 +7093,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 
         otOut << "details_withdraw_voucher: Voucher returned by "
                  "OT_API_Transaction_GetVoucher:\n\n";
-        print(strOutput);
+        cout << strOutput << "\n";
         otOut << "\n\n";
 
         otOut << "\n\nServer response (" << strAttempt
@@ -7142,7 +7148,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
             otOut << "\n-------------------------------------------\n the "
                      "voucher:\n\n";
 
-            print(strCheque);
+            cout << strCheque << "\n";
 
             otOut << "\n";
 
@@ -7186,7 +7192,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
             nReturnVal = VerifyMessageSuccess(strResponse);
             if (1 == nReturnVal) {
                 otOut << "Success in sendvoucher! Server response:\n\n";
-                print(strResponse);
+                cout << strResponse << "\n";
                 otOut << "(Success in sendvoucher)\n";
                 return 1;
             }
@@ -7291,9 +7297,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
                 }
 
                 // OUTPUT THE MARKET DATA...
-                print(to_string(nIndex) + "\t" + marketData.scale + "\tM " +
-                      marketData.market_id + "\tA " + marketData.asset_type_id +
-                      "\tC " + marketData.currency_type_id);
+                cout << nIndex << "\t" << marketData.scale << "\tM "
+                     << marketData.market_id << "\tA "
+                     << marketData.asset_type_id << "\tC "
+                     << marketData.currency_type_id << "\n";
             }
         }
 
@@ -7393,9 +7400,9 @@ OT_Command::details_show_market_offers(const string& strServerID,
             }
 
             // OUTPUT THE BID OFFER DATA...
-            print(to_string(nIndex) + "\t" + offerData.transaction_id + "\t" +
-                  offerData.price_per_scale + "\t" +
-                  offerData.available_assets);
+            cout << nIndex << "\t" << offerData.transaction_id << "\t"
+                 << offerData.price_per_scale << "\t"
+                 << offerData.available_assets << "\n";
         }
     }
 
@@ -7416,9 +7423,9 @@ OT_Command::details_show_market_offers(const string& strServerID,
             }
 
             // OUTPUT THE ASK OFFER DATA...
-            print(to_string(nIndex) + "\t" + offerData.transaction_id + "\t" +
-                  offerData.price_per_scale + "\t" +
-                  offerData.available_assets);
+            cout << nIndex << "\t" << offerData.transaction_id << "\t"
+                 << offerData.price_per_scale << "\t"
+                 << offerData.available_assets << "\n";
         }
     }
 
@@ -7582,7 +7589,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
         switch (nStatus) {
         case 1: {
             otOut << "\n\n Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
 
             // IF THE_MESSAGE is of command type @usageCredits, and IF it was a
             // SUCCESS,
@@ -7627,24 +7634,23 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
                                      " usage credits.";
             }
 
-            string strOutput =
-                "\n\n adjust_usage_credits -- reply: " + strNewUsageBalance +
-                "\n\n(FYI, this server message is the only and proper way to "
-                "query for your own current usage credits balance, or also to "
-                "set someone else's.)\n\n";
-            otOut << strOutput;
+            otOut << "\n\n adjust_usage_credits -- reply: " +
+                         strNewUsageBalance +
+                         "\n\n(FYI, this server message is the only and proper "
+                         "way to query for your own current usage credits "
+                         "balance, or also to set someone else's.)\n\n";
 
             break;
         }
         case 0:
             otOut << "\n\nServer response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             otOut << "\n\n FAILURE in adjust_usage_credits!\n\n";
             break;
         default:
             if (VerifyStringVal(strResponse)) {
                 otOut << "Server response:\n\n";
-                print(strResponse);
+                cout << strResponse << "\n";
             }
             otOut << "\n\nError in adjust_usage_credits! nStatus is: "
                   << nStatus << "\n";
@@ -7932,8 +7938,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
             int64_t lAmount =
                 OTAPI_Wrap::Purse_GetTotalValue(Server, MyPurse, strPurse);
 
-            print("\n\nTOTAL VALUE: " +
-                  OTAPI_Wrap::FormatAmount(MyPurse, lAmount));
+            cout << "\n\nTOTAL VALUE: "
+                 << OTAPI_Wrap::FormatAmount(MyPurse, lAmount) << "\n";
 
             // Loop through purse contents and display tokens.
             int32_t nCount = OTAPI_Wrap::Purse_Count(Server, MyPurse, strPurse);
@@ -7944,8 +7950,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
             }
 
             if (nCount > 0) {
-                print("Token count: " + to_string(nCount) + "\n");
-                print("Index\tValue\tSeries\tValidFrom\tValidTo\t\tStatus");
+                cout << "Token count: " << nCount << "\n\n";
+                cout << "Index\tValue\tSeries\tValidFrom\tValidTo\t\tStatus\n";
 
                 int32_t nIndex = -1;
 
@@ -8009,10 +8015,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
 
                     string strStatus = (lTime > tValidTo) ? "expired" : "valid";
 
-                    print(to_string(nIndex) + "\t" + to_string(lDenomination) +
-                          "\t" + to_string(nSeries) + "\t" +
-                          to_string(tValidFrom) + "\t" + to_string(tValidTo) +
-                          "\t" + strStatus);
+                    cout << nIndex << "\t" << lDenomination << "\t" << nSeries
+                         << "\t" << tValidFrom << "\t" << tValidTo << "\t"
+                         << strStatus << "\n";
                 }
             }
 
@@ -8892,7 +8897,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainExportCash()
             bPasswordProtected, strRetainedCopy);
 
         if (VerifyStringVal(strExportedPurse)) {
-            print("\n" + strExportedPurse + "\n");
+            cout << "\n" << strExportedPurse << "\n\n";
             otOut << "Success exporting cash purse!\n\n";
             return 1;
         }
@@ -9338,7 +9343,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewKey()
 
         otOut << "\n";
 
-        print(strKey);
+        cout << strKey << "\n";
 
         otOut << "\n";
 
@@ -9906,7 +9911,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
         place to take the necessary action. (Script cannot.)
         */
 
-        print("\n Success paying invoice!\n\n");
+        cout << "\n Success paying invoice!\n\n\n";
 
         return 1;
     }
@@ -10003,7 +10008,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowActive()
                 otOut << "ID: " << lTransNum << "  Type: " << strType
                       << "\n\nContents:\n\n";
 
-                print(strCronItem);
+                cout << strCronItem << "\n";
 
                 otOut << "\n";
             }
@@ -10036,8 +10041,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowActive()
                                     otOut << "\n Found " << vecIDs.size()
                                           << " active transactions:\n\n";
                                 }
-                                print("ID: " + strTransNum + "  Type: " +
-                                      strType + "\n");
+                                cout << "ID: " << strTransNum
+                                     << "  Type: " << strType << "\n\n";
                             }
                         }
                     }
@@ -10233,35 +10238,29 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
                     strAssetDenoter2 = "";
                 }
 
-                string strOut1 = to_string(nIndex) + "    ";
-
-                string strOut2 = "      ";
+                cout << nIndex << "    ";
 
                 if (bAssetIDExists && bHasAmount) {
-                    strOut2 = OTAPI_Wrap::FormatAmount(strAssetType, lAmount) +
-                              (OTAPI_Wrap::FormatAmount(strAssetType, lAmount)
-                                           .size() < 3
-                                   ? "    "
-                                   : "   ");
+                    string strAmount =
+                        OTAPI_Wrap::FormatAmount(strAssetType, lAmount);
+                    cout << strAmount
+                         << (strAmount.size() < 3 ? "    " : "   ");
+                }
+                else {
+                    cout << "      ";
                 }
 
-                string strOut3 = strType;
-                string strOut4 = strType.size() > 10 ? " " : "    ";
-                string strOut5 =
-                    to_string(lTransNumber) +
-                    (to_string(lTransNumber).size() < 2 ? "    " : "   ");
-                string strOut6 = (bMemoExists ? (strMemo) : "") + "\n";
-                string strOut7 = strUserDenoter + strUserID + strUserDenoter2 +
-                                 strUserName + strSeparator;
-                string strOut8 = strAcctDenoter + strAcctID + strAcctDenoter2 +
-                                 strAcctName + strSeparator;
-                string strOut9 = strAssetDenoter + strAssetType +
-                                 strAssetDenoter2 + strAssetName;
-
-                print(strOut1 + strOut2 + strOut3 + strOut4 + strOut5 +
-                      strOut6 + strOut7 + strOut8 + strOut9);
-
-                print("Instrument:\n" + strInstrument);
+                cout << strType << (strType.size() > 10 ? " " : "    ");
+                cout << lTransNumber
+                     << (to_string(lTransNumber).size() < 2 ? "    " : "   ");
+                cout << (bMemoExists ? strMemo : "") << "\n";
+                cout << strUserDenoter << strUserID << strUserDenoter2
+                     << strUserName << strSeparator;
+                cout << strAcctDenoter << strAcctID << strAcctDenoter2
+                     << strAcctName << strSeparator;
+                cout << strAssetDenoter << strAssetType << strAssetDenoter2
+                     << strAssetName << "\n";
+                cout << "Instrument:\n" << strInstrument << "\n";
             }
             return 1;
         }
@@ -10426,19 +10425,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainInpayments()
                             strAssetDenoter = "";
                         }
 
-                        string strOut1 = to_string(nIndex) + "    ";
-                        string strOut2 =
-                            strAmount + (strAmount.size() < 3 ? "    " : "   ");
-                        string strOut3 = strType;
-                        string strOut4 = strType.size() > 10 ? " " : "    ";
-                        string strOut5 =
-                            strTransID +
-                            (strTransID.size() < 2 ? "    " : "   ");
-                        string strOut6 =
-                            strAssetType + strAssetDenoter + strAssetName;
-
-                        print(strOut1 + strOut2 + strOut3 + strOut4 + strOut5 +
-                              strOut6);
+                        cout << nIndex << "    ";
+                        cout << strAmount
+                             << (strAmount.size() < 3 ? "    " : "   ");
+                        cout << strType << (strType.size() > 10 ? " " : "    ");
+                        cout << strTransID
+                             << (strTransID.size() < 2 ? "    " : "   ");
+                        cout << strAssetType << strAssetDenoter << strAssetName
+                             << "\n";
                     }
 
                     otOut << "\n For the above, try: acceptpayments, "
@@ -11277,12 +11271,12 @@ OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
     }
 
     if (!bMailVerified) {
-        print("UNVERIFIED mail! At index: " + to_string(nIndex) + "\n");
+        cout << "UNVERIFIED mail! At index: " << nIndex << "\n\n";
         //      return false;
     }
     else {
-        print("------------------------------\nVerified mail at index: " +
-              to_string(nIndex));
+        cout << "------------------------------\nVerified mail at index: "
+             << nIndex << "\n";
     }
 
     string strMailServerID =
@@ -11297,17 +11291,17 @@ OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
         if (!VerifyStringVal(strName)) {
             strName = "";
         }
-        print("Mail from: " + strMailSenderID + " \"" + strName + "\" ");
+        cout << "Mail from: " << strMailSenderID << " \"" << strName << "\" \n";
     }
     if (VerifyStringVal(strMailServerID)) {
         string strName = OTAPI_Wrap::GetServer_Name(strMailServerID);
         if (!VerifyStringVal(strName)) {
             strName = "";
         }
-        print("Server ID: " + strMailServerID + " \"" + strName + "\" ");
+        cout << "Server ID: " << strMailServerID << " \"" << strName << "\" \n";
     }
     if (bShowContents && VerifyStringVal(strMailContents)) {
-        print("Contents:\n" + strMailContents + "\n");
+        cout << "Contents:\n" << strMailContents << "\n\n";
     }
 
     return true;
@@ -11479,13 +11473,12 @@ OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
     }
 
     if (!bMailVerified) {
-        print("UNVERIFIED outmail! At index: " + to_string(nIndex) + "\n");
+        cout << "UNVERIFIED outmail! At index: " << nIndex << "\n\n";
         //      return false;
     }
     else {
-        print("--------------------------------------------------------"
-              "\nVerified outmail at index: " +
-              to_string(nIndex));
+        cout << "--------------------------------------------------------"
+                "\nVerified outmail at index: " << nIndex << "\n";
     }
 
     string strMailServerID =
@@ -11496,13 +11489,13 @@ OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
         OTAPI_Wrap::GetNym_OutmailContentsByIndex(strMyNymID, nIndex);
 
     if (VerifyStringVal(strMailRecipientID)) {
-        print("Mail was sent to: " + strMailRecipientID);
+        cout << "Mail was sent to: " << strMailRecipientID << "\n";
     }
     if (VerifyStringVal(strMailServerID)) {
-        print("At server ID: " + strMailServerID);
+        cout << "At server ID: " << strMailServerID << "\n";
     }
     if (bShowContents && VerifyStringVal(strMailContents)) {
-        print("Contents:\n" + strMailContents + "\n");
+        cout << "Contents:\n" << strMailContents << "\n\n";
     }
     return true;
 }
@@ -11671,13 +11664,13 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
     }
 
     if (!bMailVerified) {
-        print("UNVERIFIED sent (outgoing) payment! At index: " +
-              to_string(nIndex));
+        cout << "UNVERIFIED sent (outgoing) payment! At index: " << nIndex
+             << "\n";
         //      return false;
     }
     else {
-        print("\n----------------------------------------------\n(index " +
-              to_string(nIndex) + ")");
+        cout << "\n----------------------------------------------\n(index "
+             << nIndex << ")\n";
     }
 
     string strMailServerID =
@@ -11749,14 +11742,15 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
             strFormatted = "( " + strPaymentType + ": " + strTempFormat + " )";
         }
 
-        print("         Amount: " + strPaymentAmount + "  " + strFormatted);
-        print(strRecipientString);
-        print("  Of asset type: " + strPaymentAssetID + " \"" +
-              strAssetTypeName + "\" ");
-        print(strServerString);
+        cout << "         Amount: " << strPaymentAmount << "  " << strFormatted
+             << "\n";
+        cout << strRecipientString << "\n";
+        cout << "  Of asset type: " << strPaymentAssetID << " \""
+             << strAssetTypeName << "\"\n";
+        cout << strServerString << "\n";
 
         if (bShowInFull) {
-            print("     Instrument: \n" + strMailContents + "\n");
+            cout << "     Instrument: \n" << strMailContents << "\n\n";
         }
     }
     else {
@@ -11930,11 +11924,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainIssueAsset()
         switch (nStatus) {
         case 1:
             otOut << "\n\n SUCCESS in issue_asset! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             break;
         case 0:
             otOut << "\n\n FAILURE in issue_asset! Server response:\n\n";
-            print(strResponse);
+            cout << strResponse << "\n";
             break;
         default:
             otOut << "\n\nError in issue_asset! nStatus is: " << nStatus
@@ -11942,7 +11936,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainIssueAsset()
 
             if (VerifyStringVal(strResponse)) {
                 otOut << "Server response:\n\n";
-                print(strResponse);
+                cout << strResponse << "\n";
             }
             break;
         }
