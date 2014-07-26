@@ -349,14 +349,6 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     string strResponse =
         MadeEasy::issue_basket_currency(strServer, strNym, strBasket);
     int32_t nStatus = VerifyMessageSuccess(strResponse);
-
-    // NOTICE: No need here to deal with retries, timeouts, request number,
-    // syncing transaction number, download / process nymbox, etc! It's all
-    // handled at a lower level!  Instead, simply check for success or failure:
-    //
-    // -1 is error,
-    //  0 is reply received: failure
-    //  1 is reply received: success
     switch (nStatus) {
     case 1: {
         otOut << "\n\n SUCCESS in issue_basket_currency! Server response:\n\n";
@@ -440,7 +432,6 @@ OT_Command::details_exchange_basket(const string& strServer,
     }
 
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strAcct);
-
     if (0 > lBalance) {
         otOut << "Strange: unable to retrieve balance for basket account: "
               << strAcct << "\n";
@@ -596,7 +587,6 @@ OT_Command::details_exchange_basket(const string& strServer,
 
         string strSubAssetID =
             OTAPI_Wrap::GetAccountWallet_AssetTypeID(strSubAccount);
-
         if (!VerifyStringVal(strSubAssetID)) {
             otOut << "Error retrieving asset type ID from pasted account: "
                   << strSubAccount << "\n";
@@ -614,7 +604,6 @@ OT_Command::details_exchange_basket(const string& strServer,
         }
 
         lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strSubAccount);
-
         if (0 > lBalance) {
             otOut << "Strange, error while retrieving balance for sub-account: "
                   << strSubAccount << "\n";
@@ -652,19 +641,14 @@ OT_Command::details_exchange_basket(const string& strServer,
         otOut << "\n\n";
     }
 
-    // Send the exchange transaction...
     string strResponse = MadeEasy::exchange_basket_currency(
         strServer, strNym, strBasketType, strBasket, strAcct, bExchangingIn);
     string strAttempt = "exchange_basket";
 
-    // Interpret the server reply...
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strServer, strNym, strAcct, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved =
             MadeEasy::retrieve_account(strServer, strNym, strAcct, true);
 
@@ -969,35 +953,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainDiscard()
     return -1;
 }
 
-/*
-std::string GetNym_OutpaymentsContentsByIndex(const std::string & NYM_ID, const
-int32_t & nIndex); // returns the message itself
-std::string GetNym_OutpaymentsRecipientIDByIndex(const std::string & NYM_ID,
-const int32_t & nIndex); // returns the NymID of the recipient.
-std::string GetNym_OutpaymentsServerIDByIndex(const std::string & NYM_ID, const
-int32_t & nIndex); // returns the ServerID where the message came from.
-bool Nym_RemoveOutpaymentsByIndex(const std::string & NYM_ID, const int32_t &
-nIndex); // (1 or 0.)
-bool Nym_VerifyOutpaymentsByIndex(const std::string & NYM_ID, const int32_t &
-nIndex); // true if signature verifies. (Sender Nym MUST be in my wallet for
-this to work.)
-
-const char * OTAPI_Wrap::Instrmnt_GetAmount(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetTransNum(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetValidFrom(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetValidTo(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetMemo(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetType(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetServerID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetAssetID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetSenderUserID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetSenderAcctID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetRecipientUserID(const char *
-THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetRecipientAcctID(const char *
-THE_INSTRUMENT);
-*/
-
 OT_COMMANDS_OT int32_t
 OT_Command::details_cancel_outgoing(const string& strMyNym,
                                     const string& strMyAcct,
@@ -1236,36 +1191,23 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                             // and make SURE that he understands the
                             // consequences of that choice.
 
-                            // otOut << "Any outgoing cash will already be
-                            // automatically
-                            // moved to the record box once it expires. No need
-                            // to move it by hand.\nAre you SURE you want to
-                            // move it now? [y/N] ";
-                            // string strYes = OT_CLI_ReadLine()
-                            //
-                            // if (VerifyStringVal(strYes) && (("y" == strYes)
-                            // ||
-                            // ("Y" == strYes)))
-                            {
-                                // removes payment instrument (from payments in
-                                // or out box)
-                                bool bRecorded = OTAPI_Wrap::RecordPayment(
-                                    strServer, strMyNym, false, nIndex, false);
-                                if (!bRecorded) {
-                                    nSuccess = -1;
-                                }
-                                else {
-                                    otOut << "Discarded cash purse:\n\n"
-                                          << strPaymentContents << "\n";
-                                }
-                                string strRecorded =
-                                    bRecorded ? "Success" : "Failure";
-                                otOut << strRecorded
-                                      << " discarding cash purse from "
-                                         "outpayment box at index: " << nIndex
-                                      << ".\n\n";
+                            // removes payment instrument (from payments in
+                            // or out box)
+                            bool bRecorded = OTAPI_Wrap::RecordPayment(
+                                strServer, strMyNym, false, nIndex, false);
+                            if (!bRecorded) {
+                                nSuccess = -1;
                             }
-
+                            else {
+                                otOut << "Discarded cash purse:\n\n"
+                                      << strPaymentContents << "\n";
+                            }
+                            string strRecorded =
+                                bRecorded ? "Success" : "Failure";
+                            otOut << strRecorded
+                                  << " discarding cash purse from "
+                                     "outpayment box at index: " << nIndex
+                                  << ".\n\n";
                         }
                         else // CHEQUE VOUCHER INVOICE
                         {
@@ -1411,9 +1353,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_trigger_clause(
 
     return nMessageSuccess;
 }
-
-// def OT_Command::mainTriggerClause()
-//{; }
 
 OT_COMMANDS_OT int32_t OT_Command::mainTriggerClause()
 {
@@ -1803,7 +1742,6 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagents(const string& strSmartContract,
     }
 
     if (nDepth > 0) {
-        // Iterate the agents for this party.
         for (int32_t nCurrentAgent = 0; nCurrentAgent < nAgentCount;
              ++nCurrentAgent) {
             if (!stat_partyagent_index(strSmartContract, strPartyName,
@@ -1883,7 +1821,6 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccounts(
     }
 
     if (nDepth > 0) {
-        // Iterate the asset accounts for this party.
         for (int32_t nCurrentAccount = 0; nCurrentAccount < nAccountCount;
              ++nCurrentAccount) {
             if (!stat_partyaccount_index(strSmartContract, strPartyName,
@@ -2024,10 +1961,8 @@ OT_COMMANDS_OT int32_t OT_Command::details_propose_plan(
     return -1;
 }
 
-OT_COMMANDS_OT int32_t OT_Command::mainProposePlan() // payment plan -- called
-                                                     // by recipient. (Who
-                                                     // generates the
-                                                     // proposal.)
+// payment plan -- called  by recipient. (Who generates the proposal.)
+OT_COMMANDS_OT int32_t OT_Command::mainProposePlan()
 {
     otOut << "Usage:   propose   (For a merchant to propose a payment plan to "
              "a customer.)\nMandatory: --server SERVER_ID --mynym PAYEE_NYM_ID "
@@ -2198,11 +2133,7 @@ OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
             int32_t nInterpretReply = InterpretTransactionMsgReply(
                 strServerID, strSenderUserID, strSenderAcctID, strAttempt,
                 strResponse);
-
             if (1 == nInterpretReply) {
-                // Download all the intermediary files (account balance, inbox,
-                // outbox, etc)
-                // since they have probably changed from this operation.
                 bool bRetrieved = MadeEasy::retrieve_account(
                     strServerID, strSenderUserID, strSenderAcctID, true);
 
@@ -2597,7 +2528,6 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             for (int32_t i = 0; i < nCountAcctsWallet; ++i) {
                                 string strWalletAcctID =
                                     OTAPI_Wrap::GetAccountWallet_ID(i);
-
                                 if (!VerifyStringVal(strWalletAcctID)) {
                                     otOut << "Error reading account ID based "
                                              "on index: " << i << "\n";
@@ -2688,7 +2618,6 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             string strWalletAcctID =
                                 OTAPI_Wrap::GetAccountWallet_ID(
                                     nSelectedAcctIndex);
-
                             if (!VerifyStringVal(strWalletAcctID)) {
                                 otOut << "Error reading account ID based on "
                                          "index: " << nSelectedAcctIndex
@@ -3143,9 +3072,6 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                         strResponse);
 
                     if (1 == nInterpretReply) {
-                        // Download all the intermediary files (account balance,
-                        // inbox, outbox, etc)
-                        // since they have probably changed from this operation.
                         bool bRetrieved = MadeEasy::retrieve_account(
                             strServerID, strNymID, strMyAcctID, true);
 
@@ -3229,7 +3155,6 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                         }
                     }
 
-                    // Send it to the next user!
                     string strResponse = MadeEasy::send_user_payment(
                         strServerID, strNymID, strHisNymID, strSmartContract);
 
@@ -3472,12 +3397,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainEncode()
 {
     otOut << "Please enter multiple lines of input to be encoded, followed by "
              "an EOF or a ~ by itself on a blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strInput = OT_CLI_ReadUntilEOF();
 
     otOut << "\n\n--------------------------------------\n You entered:\n"
@@ -3503,12 +3422,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainDecode()
 {
     otOut << "Please enter multiple lines of OT-armored text to be decoded, "
              "followed by an EOF or a ~ by itself on a blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strInput = OT_CLI_ReadUntilEOF();
 
     otOut << "\n\n--------------------------------------\n You entered:\n"
@@ -3537,14 +3450,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainEncrypt()
         otOut << "Please enter multiple lines of input to be "
                  "encrypted,\nfollowed by an EOF or a ~ by itself on a blank "
                  "line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strInput = OT_CLI_ReadUntilEOF();
 
         otOut << "\n\n--------------------------------------\n You entered:\n"
@@ -3572,14 +3477,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainDecrypt()
 
         otOut << "Please enter multiple lines of input to be decrypted, "
                  "followed by an EOF or a ~ by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strInput = OT_CLI_ReadUntilEOF();
 
         otOut << "\n\n--------------------------------------\n You entered:\n"
@@ -3605,12 +3502,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainPasswordEncrypt()
 {
     otOut << "Please enter a symmetric key, followed by a ~ by itself on a "
              "blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strKey = OT_CLI_ReadUntilEOF();
 
     otOut << "Please enter the plaintext, followed by a ~ by itself on a blank "
@@ -3641,12 +3532,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainPasswordDecrypt()
 {
     otOut << "Please enter a symmetric key, followed by a ~ by itself on a "
              "blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strKey = OT_CLI_ReadUntilEOF();
 
     otOut << "Please enter the symmetrically-encrypted ciphertext, followed by "
@@ -3748,19 +3633,13 @@ OT_COMMANDS_OT int32_t OT_Command::mainChangePw()
     return -1;
 }
 
-//
-// SEND TRANSFER (From one asset account to another.)
-//
-
 OT_COMMANDS_OT int32_t
 OT_Command::details_send_transfer(const string& strMyAcctID,
                                   const string& strHisAcctID,
                                   const string& strAmount,
                                   const string& strNote)
 {
-    // Look up the NymID based on strMyAcctID
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "Failure: Unable to find NymID (for sender) based on myacct. "
                  "Use: --myacct ACCT_ID\n";
@@ -3775,9 +3654,7 @@ OT_Command::details_send_transfer(const string& strMyAcctID,
         return -1;
     }
 
-    // Look up the ServerID based on strMyAcctID
     string strMyServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strMyServerID)) {
         otOut << "Failure: Unable to find ServerID based on myacct. Use: "
                  "--myacct ACCT_ID\n";
@@ -3817,21 +3694,15 @@ OT_Command::details_send_transfer(const string& strMyAcctID,
     string strAssetTypeID =
         OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcctID);
 
-    // HERE, WE SEND THE TRANSFER REQUEST TO THE SERVER
     int64_t lAmount = OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount);
     string strResponse = MadeEasy::send_transfer(
         strMyServerID, strMyNymID, strMyAcctID, strHisAcctID, lAmount, strNote);
     string strAttempt = "send_transfer";
 
-    // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
-
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strMyServerID, strMyNymID, strMyAcctID, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved = MadeEasy::retrieve_account(strMyServerID, strMyNymID,
                                                      strMyAcctID, true);
 
@@ -3873,10 +3744,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainTransfer()
         // then grab them and use them instead of asking the user to enter them
         // at the command line.
         if (VerifyExists("Args", false)) {
-            string strNewAmount =
-                OT_CLI_GetValueByKey(Args, "amount"); // any integer value
-            string strNewNote =
-                OT_CLI_GetValueByKey(Args, "memo"); // optional memo field
+            string strNewAmount = OT_CLI_GetValueByKey(Args, "amount");
+            string strNewNote = OT_CLI_GetValueByKey(Args, "memo");
 
             // Set the values based on the custom arguments, for those found.
             if (VerifyStringVal(strNewAmount)) {
@@ -3913,8 +3782,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainTransfer()
 
     return -1;
 }
-
-// SET NAME!!
 
 OT_COMMANDS_OT int32_t OT_Command::mainEditNym()
 {
@@ -3975,9 +3842,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainEditAccount()
 
     if (VerifyExists("MyAcct")) {
 
-        // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
         string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
         if (!VerifyStringVal(strMyNymID)) {
             otOut << "\n\nFailure: Unable to find NymID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -4146,7 +4011,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainEditServer()
 
 OT_COMMANDS_OT int32_t OT_Command::mainSendMessage()
 {
-    // Just to show how easy it is, let's try a "send_user_message" message.
     otOut << "Usage:   sendmessage --server <SERVER_ID> --mynym <YOUR_NYM_ID> "
              "--hisnym <RECIPIENT_NYM_ID>\n\n";
 
@@ -4180,15 +4044,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendMessage()
 
         string strMessage = OT_CLI_ReadUntilEOF();
 
-        // Send the request.
         string strResponse =
             MadeEasy::send_user_msg(Server, MyNym, HisNym, strMessage);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!
-        //
-        // Instead, simply check for success or failure:
         if (1 != VerifyMessageSuccess(strResponse)) {
             otOut << "send_user_msg: Failed.\n";
         }
@@ -4210,9 +4067,7 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
 
     if (VerifyExists("MyAcct")) {
 
-        // Look up the NymID based on MyAcct
         string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
         if (!VerifyStringVal(strMyNymID)) {
             otOut << "Failure: Unable to find NymID (for sender) based on "
                      "myacct. Use: --myacct ACCT_ID\n";
@@ -4227,9 +4082,7 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
             return -1;
         }
 
-        // Look up the ServerID based on MyAcct
         string strMyServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
-
         if (!VerifyStringVal(strMyServerID)) {
             otOut << "Failure: Unable to find ServerID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -4648,7 +4501,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCash()
         string strNewAmount = OT_CLI_GetValueByKey(Args, "amount");
         string strNewMemo = OT_CLI_GetValueByKey(Args, "memo");
 
-        // Set the values based on the custom arguments, for those found.
         if (VerifyStringVal(strNewAmount)) {
             strAmount = strNewAmount;
         }
@@ -4748,12 +4600,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendCheque()
 
         string strResponse = MadeEasy::send_user_payment(
             strServerID, strSenderNymID, strRecipientNymID, strCheque);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!
-        //
-        // Instead, simply check for success or failure:
         nReturnVal = VerifyMessageSuccess(strResponse);
 
         if (1 != nReturnVal) {
@@ -4825,12 +4671,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
 
         string strResponse = MadeEasy::send_user_payment(
             strServerID, strSenderNymID, strRecipientNymID, strCheque);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!
-        //
-        // Instead, simply check for success or failure:
         nReturnVal = VerifyMessageSuccess(strResponse);
 
         if (1 != nReturnVal) {
@@ -5013,17 +4853,10 @@ OT_Command::details_create_offer(const string& strScale,
     // OKAY! Now that we've cleaned out any undesirable offers, let's place the
     // the offer itself!
 
-    //
-    // Send the "create offer" transaction.
     string strResponse = MadeEasy::create_market_offer(
         MyAcct, HisAcct, strScale, strMinIncrement, strQuantity, strPrice,
         bSelling, strLifespan, "", "0");
     string strAttempt = "create_market_offer";
-
-    // NOTICE: No need here to deal with retries, timeouts, request number,
-    // syncing transaction number, download / process nymbox, etc! It's all
-    // handled at a lower level!  Instead, simply check for success or failure:
-
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strMyServerID, strMyNymID, MyAcct, strAttempt, strResponse);
 
@@ -5148,11 +4981,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewOffer()
             strLifespan = strDefaultLifespan;
         }
 
-        //
-        // false == buying    bid
-        // true  == selling   ask
         bool bType = ((strType == "bid") ? false : true);
-
         return details_create_offer(strScale, strMinIncrement, strQuantity,
                                     strPrice, bType, strLifespan);
     }
@@ -5165,14 +4994,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewServer()
     if (VerifyExists("MyNym")) {
         otOut << "Please enter the XML contents for the contract, followed by "
                  "an EOF or a ~ by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strXML = OT_CLI_ReadUntilEOF();
 
         if (VerifyStringVal(strXML)) {
@@ -5210,14 +5031,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewAsset()
     if (VerifyExists("MyNym")) {
         otOut << "Please enter the XML contents for the contract, followed by "
                  "an EOF or a ~ by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strXML = OT_CLI_ReadUntilEOF();
 
         if (VerifyStringVal(strXML)) {
@@ -5263,16 +5076,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewAccount()
             OT_Command::mainRegisterNym();
         }
 
-        // Send the request.
         string strResponse =
             MadeEasy::create_asset_acct(Server, MyNym, MyPurse);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-
-        // -1 error, 0 failure, 1 success.
         if (1 != VerifyMessageSuccess(strResponse)) {
             otOut << "\n\ncreate_asset_acct: Failed.\n\n";
             return -1;
@@ -5299,14 +5104,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAddSignature()
         otOut << "Please enter an already-signed contract you wish to add your "
                  "signature to, followed by an EOF or a ~ by itself on a blank "
                  "line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strInput = OT_CLI_ReadUntilEOF();
 
         otOut << "\n\n You entered:\n" << strInput << "\n\n";
@@ -5340,14 +5137,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainSignContract()
     if (VerifyExists("MyNym")) {
         otOut << "Please enter a contract to be signed, followed by an EOF or "
                  "a ~ by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strInput = OT_CLI_ReadUntilEOF();
 
         otOut << "\n\n You entered:\n" << strInput << "\n\n";
@@ -5410,15 +5199,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_kill_offer(const string& strServerID,
 
     if (VerifyStringVal(strServerID) && VerifyStringVal(strNymID) &&
         VerifyStringVal(strAcctID) && VerifyStringVal(strTransNum)) {
-        // Send the transaction.
+
         string strResponse = MadeEasy::kill_market_offer(
             strServerID, strNymID, strAcctID, strTransNum);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-
         if (1 != VerifyMessageSuccess(strResponse)) {
             otOut << "\n\n killoffer: Failed.\n";
         }
@@ -5486,17 +5269,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainKillPlan()
             otOut << "\n\n\nYou need to provide a transaction number...\n\n";
         }
         else {
-            // Send the transaction.
             string strResponse = MadeEasy::kill_payment_plan(
                 Server, MyNym, MyAcct, strTransactionNum);
-
-            // NOTICE: No need here to deal with retries, timeouts, request
-            // number,
-            // syncing transaction number, download / process nymbox, etc! It's
-            // all
-            // handled at a lower level!  Instead, simply check for success or
-            // failure:
-
             if (1 != VerifyMessageSuccess(strResponse)) {
                 otOut << "\n\nkill_payment_plan: Failed.\n";
             }
@@ -5527,14 +5301,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifySignature()
     if (VerifyExists("HisNym")) {
         otOut << "Please enter a contract you wish to verify with HisNym, "
                  "followed by an EOF or a ~ by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strInput = OT_CLI_ReadUntilEOF();
 
         otOut << "\n\n--------------------------------------\n You entered:\n"
@@ -5733,25 +5499,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowNym()
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowMint()
 {
-    // SHOW MINT
-    //
-    // (Load a public mint from local storage and display it on the screen.
-    // If necessary, download it from the server.)
-
     if (VerifyExists("Server") && VerifyExists("MyNym") &&
         VerifyExists("MyPurse")) {
-        // Just to show how easy it is now, let's load up a mint and display it.
-        // If this function is unable to load it, it will download the mint from
-        // the server.
+
         string strMint =
             MadeEasy::load_or_retrieve_mint(Server, MyNym, MyPurse);
-
-        // NOTICE -- there's no need here to deal with retries, timeouts,
-        // request number, synching
-        // transaction number, download / process nymbox, etc! It's all handled
-        // interally.
-        //
-        // Simply "verify" the return value:
         if (!VerifyStringVal(strMint)) {
             otOut << "\n\n load_or_retrieve_mint: Failed.\n\n";
             return -1;
@@ -5915,16 +5667,13 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
 {
     Utility MsgUtil;
 
-    // Look up the Nym ID based on the Account ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut
             << "Failure: Unable to find NymID based on the specified account ( "
             << strMyAcctID << " ).\n";
         return -1;
     }
-
     if (VerifyExists("MyNym", false) && (MyNym != strMyNymID)) {
         otOut << "Try again: MyNym is specified, but it's not the owner of the "
                  "specified account ( " << strMyAcctID << " ).\n";
@@ -5933,15 +5682,12 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
         return -1;
     }
 
-    // Look up the Server ID based on the Account ID.
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strServerID)) {
         otOut << "Failure: Unable to find Server ID based on the specified "
                  "account ( " << strMyAcctID << " ).\n";
         return -1;
     }
-
     if (VerifyExists("Server", false) && (Server != strServerID)) {
         otOut << "Try again: Server is specified, but it's not the server for "
                  "the specified account ( " << strMyAcctID << " ).\n";
@@ -6119,7 +5865,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                 return -1;
             }
 
-            // Server communications are handled here...
             string strResponse = MadeEasy::process_inbox(
                 strServerID, strMyNymID, strMyAcctID, strFinalizedResponse);
             string strAttempt = "process_inbox";
@@ -6128,9 +5873,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                 strServerID, strMyNymID, strMyAcctID, strAttempt, strResponse);
 
             if (1 == nInterpretReply) {
-                // Download all the intermediary files (account balance, inbox,
-                // outbox, etc)
-                // since they have probably changed from this operation.
                 bool bRetrieved = MadeEasy::retrieve_account(
                     strServerID, strMyNymID, strMyAcctID, true);
 
@@ -6362,7 +6104,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainCheckNym()
 OT_COMMANDS_OT int32_t OT_Command::download_acct_files()
 {
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "Failure: Unable to find NymID based on myacct. Use: --myacct "
                  "ACCT_ID\n";
@@ -6371,8 +6112,6 @@ OT_COMMANDS_OT int32_t OT_Command::download_acct_files()
         return -1;
     }
 
-    // Download all the intermediary files (account balance, inbox, outbox, etc)
-    // since they have probably changed from this operation.
     bool bRetrieved =
         MadeEasy::retrieve_account(Server, strMyNymID, MyAcct, true);
 
@@ -6418,8 +6157,6 @@ OT_Command::details_download_contract(const string& strServerID,
                                       const string& strNymID,
                                       const string& strContractID)
 {
-    // Download all the intermediary files (account balance, inbox, outbox, etc)
-    // since they have probably changed from this operation.
     string strRetrieved =
         MadeEasy::retrieve_contract(strServerID, strNymID, strContractID);
     int32_t nRetrieved = VerifyMessageSuccess(strRetrieved);
@@ -6480,9 +6217,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifyReceipt()
 
     if (VerifyExists("Server") && VerifyExists("MyAcct")) {
 
-        // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
         string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
         if (!VerifyStringVal(strMyNymID)) {
             otOut << "Failure: Unable to find NymID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -6493,7 +6228,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainVerifyReceipt()
 
         bool bSuccess =
             OTAPI_Wrap::VerifyAccountReceipt(Server, strMyNymID, MyAcct);
-
         if (!bSuccess) {
             otOut << "\n\n OT_API_VerifyAccountReceipt: Failed. Try using "
                      "refreshaccount and then try verifying again.\n\n";
@@ -6516,15 +6250,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainRegisterNym()
     if (VerifyExists("Server") && VerifyExists("MyNym")) {
         string strResponse = MadeEasy::register_nym(Server, MyNym);
         int32_t nSuccess = VerifyMessageSuccess(strResponse);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-        //
-        // -1 is error,
-        //  0 is reply received: failure
-        //  1 is reply received: success
         switch (nSuccess) {
         case 1:
             otOut << "\n\n Server response:\n\n";
@@ -6560,14 +6285,6 @@ OT_COMMANDS_OT bool OT_Command::details_refresh_nym(const string& strServerID,
 {
     int32_t nGetAndProcessNymbox = MadeEasy::retrieve_nym(
         strServerID, strMyNymID, bWasMsgSent, bForceDownload);
-
-    // NOTICE: No need here to deal with retries, timeouts, request number,
-    // syncing transaction number, download / process nymbox, etc! It's all
-    // handled at a lower level!  Instead, simply check for success or failure:
-    //
-    // -1 is error,
-    //  0 is reply received: failure
-    //  1 is reply received: success
     bool bReturnVal = false;
 
     switch (nGetAndProcessNymbox) {
@@ -6613,25 +6330,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainRefreshNym()
     return -1;
 }
 
-// GET BOX RECEIPT          Note: from ot_made_easy.ot
 // Note: nBoxType is 0 for Nymbox, 1 for Inbox, and 2 for Outbox.
-// Also, if nBoxType is 0 (nymbox) then you have to pass the NymID in the
-// ACCT_ID
-// argument, as well as the NYM_ID argument (you have to pass it twice...)
-// Otherwise for inbox/outbox, pass the actual ACCT_ID there as normal.
-//
-// def OT_ME::get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID, nBoxType,
-// STR_TRANS_NUM)
-//{
-//    var ot_Msg := OTAPI_Func()
-//
-//    var theRequest := OTAPI_Func(ot_Msg.GET_BOX_RECEIPT, SERVER_ID, NYM_ID,
-// ACCT_ID, nBoxType, STR_TRANS_NUM)
-//    string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT")
-//
-//    return strResponse;
-//; }
-
 OT_COMMANDS_OT int32_t
 OT_Command::details_download_box_receipt(const string& strID,
                                          const int32_t nBoxType)
@@ -6639,8 +6338,6 @@ OT_Command::details_download_box_receipt(const string& strID,
     string strMyNymID = MyNym;
     string strAcctID;
 
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
-    //
     if (0 == nBoxType) {
         strAcctID = MyNym;
     }
@@ -6660,7 +6357,6 @@ OT_Command::details_download_box_receipt(const string& strID,
             // be
             // the same Nym...)
             strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strAcctID);
-
             if (!VerifyStringVal(strMyNymID)) {
                 otOut << "Failure: Unable to find NymID based on myacct. Use: "
                          "--myacct ACCT_ID\n";
@@ -6679,16 +6375,8 @@ OT_Command::details_download_box_receipt(const string& strID,
         }
     }
 
-    // HERE, WE SEND THE 'GET BOX RECEIPT' REQUEST TO THE SERVER
     string strResponse = MadeEasy::get_box_receipt(Server, strMyNymID,
                                                    strAcctID, nBoxType, strID);
-    //  string strAttempt = "get_box_receipt";
-
-    // NOTICE: No need here to deal with retries, timeouts, request number,
-    // syncing transaction number, download / process nymbox, etc! It's all
-    // handled at a lower level!
-    //
-    // Instead, simply check for success or failure:
     int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
     if (1 != nInterpretReply) {
@@ -6767,9 +6455,7 @@ OT_COMMANDS_OT int32_t
 OT_Command::details_withdraw_cash(const string& strMyAcctID,
                                   const int64_t lAmount)
 {
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "Failure: Unable to find NymID based on myacct. Use: --myacct "
                  "ACCT_ID\n";
@@ -6778,10 +6464,8 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
         return -1;
     }
 
-    // MAKE SURE WE HAVE THE RIGHT ASSET CONTRACT
     string strAssetTypeID =
         OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcctID);
-
     if (!VerifyStringVal(strAssetTypeID)) {
         otOut << "Failure: Unable to find Asset Type ID based on myacct. Use: "
                  "--myacct ACCT_ID\n";
@@ -6791,7 +6475,6 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
     }
 
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strServerID)) {
         otOut << "Unable to find the server ID based on the account. Strange! "
                  "Perhaps specify a different account? Use:  --myacct ACCT_ID "
@@ -6808,7 +6491,6 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
     }
 
     string assetContract = OTAPI_Wrap::LoadAssetContract(strAssetTypeID);
-
     if (!VerifyStringVal(assetContract)) {
         string strResponse = MadeEasy::retrieve_contract(
             strServerID, strMyNymID, strAssetTypeID);
@@ -6822,7 +6504,6 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
         }
 
         assetContract = OTAPI_Wrap::LoadAssetContract(strAssetTypeID);
-
         if (!VerifyStringVal(assetContract)) {
             otOut << "Failure: Unable to load Asset contract even after "
                      "retrieving it.\n";
@@ -6831,8 +6512,6 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
     }
     // By this point, we KNOW the appropriate asset contract is available.
 
-    //
-    // HERE, WE MAKE SURE WE HAVE THE PROPER MINT...
     string strMint = MadeEasy::load_or_retrieve_mint(strServerID, strMyNymID,
                                                      strAssetTypeID);
 
@@ -6844,22 +6523,15 @@ OT_Command::details_withdraw_cash(const string& strMyAcctID,
     // By this point, we know we can successfully load both:
     // 1. the proper asset contract.
     // 2. the proper (unexpired) mint file.
-    // HERE, WE SEND THE WITHDRAWAL REQUEST TO THE SERVER
 
     string strResponse =
         MadeEasy::withdraw_cash(strServerID, strMyNymID, strMyAcctID, lAmount);
     string strAttempt = "withdraw_cash";
 
-    // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
-
-    // VerifyMsgTrnxSuccess
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strServerID, strMyNymID, strMyAcctID, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved = MadeEasy::retrieve_account(strServerID, strMyNymID,
                                                      strMyAcctID, false);
 
@@ -7009,13 +6681,10 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
         strMemo = strDefaultMemo;
     }
 
-    // HERE, WE SEND THE VOUCHER WITHDRAWAL REQUEST TO THE SERVER
     int64_t lAmount = OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount);
     string strResponse = MadeEasy::withdraw_voucher(
         strServerID, strMyNymID, MyAcct, HisNym, strMemo, lAmount);
     string strAttempt = "withdraw_voucher";
-
-    // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strServerID, strMyNymID, MyAcct, strAttempt, strResponse);
@@ -7065,9 +6734,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
                                         strOutput);
         }
 
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved =
             MadeEasy::retrieve_account(strServerID, strMyNymID, MyAcct, true);
         otOut << (bRetrieved ? "Success" : "Failed")
@@ -7086,13 +6752,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_withdraw_voucher(string& strOutput)
 
     return nInterpretReply;
 }
-
-//  static int32_t withdrawVoucher(const std::string SERVER_ID,
-//                             const std::string USER_ID,
-//                             const std::string ACCT_ID,
-//                             const std::string RECIPIENT_USER_ID,
-//                             const std::string CHEQUE_MEMO,
-//                             const std::string AMOUNT)
 
 // HERE, WE GET ALL THE ARGUMENTS TOGETHER,
 // and then call the above function.
@@ -7163,14 +6822,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendVoucher()
 
             string strResponse = MadeEasy::send_user_payment(
                 strServerID, strSenderNymID, strRecipientNymID, strCheque);
-
-            // NOTICE: No need here to deal with retries, timeouts, request
-            // number,
-            // syncing transaction number, download / process nymbox, etc! It's
-            // all
-            // handled at a lower level!
-            //
-            // Instead, simply check for success or failure:
             nReturnVal = VerifyMessageSuccess(strResponse);
             if (1 == nReturnVal) {
                 otOut << "Success in sendvoucher! Server response:\n\n";
@@ -7220,28 +6871,6 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
     // This WAS a "load or create" sort of function, but I commented out the
     // "create" part because
     // you will literally NEVER need to create this list.
-    //
-    //    else
-    //    {
-    //        otOut << "Didn't exist. Creating market list object...\n";
-    //        storable := OTDB::CreateObject(STORED_OBJ_MARKET_LIST)
-    //
-    //        if (!VerifyStorable(storable))
-    //        {
-    //            otOut << "Failed trying to create market list object!\n";
-    //            return storable;  // containing null or undef
-    //        }
-    //
-    //        otOut << "CreateObject worked. Now dynamic casting from storable
-    // to marketlist...\n";
-    //        marketList := OTDB::CAST_MARKET_LIST(storable)
-    //
-    //        if (!VerifyStorable(marketList))
-    //        {
-    //            otOut << "Failed to dynamic cast from storable to
-    // marketlist.\n";
-    //        }
-    //   }
 }
 
 OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
@@ -7301,14 +6930,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetMarkets()
 
         string strResponse = MadeEasy::get_market_list(Server, MyNym);
         string strAttempt = "get_market_list";
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
-
         if (1 == nInterpretReply) {
             otOut << "Server response (" << strAttempt
                   << "): SUCCESS getting market list.\n\n";
@@ -7511,12 +7133,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetOffers()
         string strResponse =
             MadeEasy::get_market_offers(Server, MyNym, strMarket, lDepth);
         string strAttempt = "get_market_offers";
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
         if (1 == nInterpretReply) {
@@ -7532,7 +7148,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetOffers()
     return -1;
 }
 
-// FIX not used?
+// FIX: not used by opentxs CLI utility?
 OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
 {
     otOut << "\n\n  Options: --server SERVER_ID --mynym NYM_ID\n           "
@@ -7550,7 +7166,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
         if (VerifyExists("Args", false)) {
             string strNewAdjust = OT_CLI_GetValueByKey(Args, "adjust");
 
-            // Set the values based on the custom arguments, for those found.
             if (VerifyStringVal(strNewAdjust)) {
                 strAdjustment = strNewAdjust;
             }
@@ -7559,15 +7174,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
         string strResponse = MadeEasy::adjust_usage_credits(
             Server, MyNym, HisNym, strAdjustment);
         int32_t nStatus = VerifyMessageSuccess(strResponse);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-        //
-        // -1 is error,
-        //  0 is reply received: failure
-        //  1 is reply received: success
         switch (nStatus) {
         case 1: {
             otOut << "\n\n Server response:\n\n";
@@ -7713,11 +7319,6 @@ OT_Command::details_get_nym_market_offers(const string& strServerID,
 
     if (VerifyStringVal(strServerID) && VerifyStringVal(strNymID)) {
         strResponse = MadeEasy::get_nym_market_offers(strServerID, strNymID);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
     }
 
     return strResponse;
@@ -7732,14 +7333,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetMyOffers()
 
         string strResponse = details_get_nym_market_offers(Server, MyNym);
         string strAttempt = "get_nym_market_offers";
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-
         int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
-
         if (1 == nInterpretReply) {
             otOut << "Server response (" << strAttempt
                   << "): SUCCESS getting nym's market offers.\n\n";
@@ -7766,9 +7360,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetMyOffers()
 OT_COMMANDS_OT int32_t
 OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
 {
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "\n\nFailure: Unable to find Payer NymID based on myacct. "
                  "Use: --myacct DIVIDEND_SOURCE_ACCT_ID\n";
@@ -7804,8 +7396,6 @@ OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
         }
     }
 
-    // HERE, WE SEND THE PAY DIVIDEND REQUEST TO THE SERVER
-
     string strAssetTypeID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(MyAcct);
 
     int64_t lAmount = OTAPI_Wrap::StringToAmount(strAssetTypeID, strAmount);
@@ -7813,16 +7403,10 @@ OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
                                                 strHisPurse, strMemo, lAmount);
     string strAttempt = "pay_dividend";
 
-    // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
-
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         Server, strMyNymID, MyAcct, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
-
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved =
             MadeEasy::retrieve_account(Server, strMyNymID, MyAcct, true);
         otOut << (bRetrieved ? "Success" : "Failed")
@@ -8008,31 +7592,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
 // SMART CONTRACTS, and PURSEs into these functions, and they should be able
 // to handle any of those types.
 //
-// const char * OTAPI_Wrap::Instrmnt_GetAmount(const char * SERVER_ID, const
-// char * THE_INSTRUMENT);
-// const char * OTAPI_Wrap::Instrmnt_GetTransNum(const char * SERVER_ID, const
-// char * THE_INSTRUMENT);
-//
-// const char * OTAPI_Wrap::Instrmnt_GetValidFrom(const char * SERVER_ID, const
-// char * THE_INSTRUMENT);
-// const char * OTAPI_Wrap::Instrmnt_GetValidTo(const char * SERVER_ID, const
-// char * THE_INSTRUMENT);
-//
-// const char * OTAPI_Wrap::Instrmnt_GetMemo(const char * SERVER_ID, const char
-// * THE_INSTRUMENT);
-//
-// const char * OTAPI_Wrap::Instrmnt_GetAssetID(const char * SERVER_ID, const
-// char * THE_INSTRUMENT);
-//
-// const char * OTAPI_Wrap::Instrmnt_GetSenderUserID(const char * SERVER_ID,
-// const char * THE_INSTRUMENT);
-// const char * OTAPI_Wrap::Instrmnt_GetSenderAcctID(const char * SERVER_ID,
-// const char * THE_INSTRUMENT);
-// const char * OTAPI_Wrap::Instrmnt_GetRecipientUserID(const char * SERVER_ID,
-// const char * THE_INSTRUMENT);
-// const char * OTAPI_Wrap::Instrmnt_GetRecipientAcctID(const char * SERVER_ID,
-// const char * THE_INSTRUMENT);
-//
 
 OT_COMMANDS_OT int32_t
 OT_Command::details_deposit_cheque(const string& strServerID,
@@ -8050,7 +7609,6 @@ OT_Command::details_deposit_cheque(const string& strServerID,
 
     string strAssetTypeAcct =
         OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcct);
-
     if (strAssetTypeID != strAssetTypeAcct) {
         otOut << "\n\nFailure: Asset Type ID on the instrument ( "
               << strAssetTypeID << " ) doesn't match the one on the MyAcct ( "
@@ -8058,20 +7616,14 @@ OT_Command::details_deposit_cheque(const string& strServerID,
         return -1;
     }
 
-    // HERE, WE SEND THE DEPOSIT CHEQUE REQUEST TO THE SERVER
     string strResponse = MadeEasy::deposit_cheque(strServerID, strMyNymID,
                                                   strMyAcct, strInstrument);
     string strAttempt = "deposit_cheque";
-
-    // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
     int32_t nInterpretReply = InterpretTransactionMsgReply(
         strServerID, strMyNymID, strMyAcct, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
-        // Download all the intermediary files (account balance, inbox, outbox,
-        // etc)
-        // since they have probably changed from this operation.
         bool bRetrieved = MadeEasy::retrieve_account(strServerID, strMyNymID,
                                                      strMyAcct, true);
 
@@ -8098,9 +7650,7 @@ OT_Command::details_deposit_purse(const string& strServerID,
         strTHE_Instrument = strInstrument;
     }
 
-    // HERE, WE LOOK UP THE asset type ID, BASED ON THE ACCOUNT ID.
     string strAssetTypeID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcct);
-
     if (!VerifyStringVal(strAssetTypeID)) {
         otOut << "\n\nFailure: Unable to find Asset Type ID based on myacct. "
                  "Use: --myacct ACCT_ID\n";
@@ -8119,8 +7669,6 @@ OT_Command::details_deposit_purse(const string& strServerID,
     // If strInstrument wasn't passed, that means we're supposed to load
     // the purse ourselves, from local storage.
     if (!VerifyStringVal(strTHE_Instrument)) {
-        // LOAD PURSE
-
         strTHE_Instrument =
             OTAPI_Wrap::LoadPurse(strServerID, strAssetTypeID, strFromNymID);
 
@@ -8240,9 +7788,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string& strServerID,
 {
     string strInstrument = "";
 
-    // HERE, WE LOOK UP THE recipient NYM ID, BASED ON THE ACCOUNT ID.
     string strToNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strToNymID)) {
         otOut
             << "\n\nFailure: Unable to find depositor NymID based on account ( "
@@ -8298,31 +7844,6 @@ OT_COMMANDS_OT int32_t OT_Command::details_deposit(const string& strServerID,
         if (!VerifyStringVal(strInstrument)) {
             return -1;
         }
-
-        //      const char * OTPayment::_TypeStrings[] =
-        //      {
-        //
-        //          // OTCheque is derived from OTTrackable, which is derived
-        // from OTInstrument, which is
-        //          // derived from OTScriptable, which is derived from
-        // OTContract.
-        //
-        //          "CHEQUE",         // A cheque drawn on a user's account.
-        //          "VOUCHER",        // A cheque drawn on a server account
-        // (cashier's cheque aka banker's cheque)
-        //          "INVOICE",        // A cheque with a negative amount.
-        // (Depositing this causes a payment out, instead of a deposit in.)
-        //
-        //          "PAYMENT_PLAN",   // An OTCronItem-derived OTPaymentPlan,
-        // related to a recurring payment plan.
-        //          "SMART_CONTRACT", // An OTCronItem-derived OTSmartContract,
-        // related to a smart contract.
-        //
-        //          "PURSE",          // An OTContract-derived OTPurse
-        // containing a list of cash OTTokens.
-        //
-        //          "ERROR_STATE"
-        //; };
 
         string strType = OTAPI_Wrap::Instrmnt_GetType(strInstrument);
 
@@ -8394,9 +7915,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainDeposit()
 
     if (VerifyExists("MyAcct")) {
 
-        // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
         string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
-
         if (!VerifyStringVal(strServerID)) {
             otOut << "Failure: Unable to find Server ID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -8419,44 +7938,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainDeposit()
 
     return -1;
 }
-
-/*
-
-const char * OTAPI_Wrap::Instrmnt_GetAmount(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetTransNum(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetValidFrom(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetValidTo(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetMemo(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetType(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetServerID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetAssetID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetSenderUserID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetSenderAcctID(const char * THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetRecipientUserID(const char *
-THE_INSTRUMENT);
-const char * OTAPI_Wrap::Instrmnt_GetRecipientAcctID(const char *
-THE_INSTRUMENT);
-
-
-pScript->chai.add(fun(&OTAPI_Wrap::CreatePurse), "OT_API_CreatePurse");
-pScript->chai.add(fun(&OTAPI_Wrap::CreatePurse_Passphrase),
-"OT_API_CreatePurse_Passphrase");
-pScript->chai.add(fun(&OTAPI_Wrap::SavePurse), "OT_API_SavePurse");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_GetTotalValue),
-"OT_API_Purse_GetTotalValue");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_Count), "OT_API_Purse_Count");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_Peek), "OT_API_Purse_Peek");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_Pop), "OT_API_Purse_Pop");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_Push), "OT_API_Purse_Push");
-pScript->chai.add(fun(&OTAPI_Wrap::Wallet_ImportPurse),
-"OT_API_Wallet_ImportPurse");
-pScript->chai.add(fun(&OTAPI_Wrap::exchangePurse), "OT_API_exchangePurse");
-pScript->chai.add(fun(&OTAPI_Wrap::Token_ChangeOwner),
-"OT_API_Token_ChangeOwner");
-pScript->chai.add(fun(&OTAPI_Wrap::Purse_HasPassword),
-"OT_API_Purse_HasPassword");
-
-*/
 
 OT_COMMANDS_OT int32_t
 OT_Command::details_import_purse(const string& strInstrument,
@@ -9118,9 +8599,7 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
         return false;
     }
 
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << strLocation
               << ": Failure: Unable to find NymID based on strMyAcctID ("
@@ -9128,9 +8607,7 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
         return false;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strServerID)) {
         otOut << strLocation
               << ": Failure: Unable to find Server ID based on strMyAcctID ("
@@ -9140,7 +8617,6 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
 
     string strAssetTypeID =
         OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcctID);
-
     if (!VerifyStringVal(strAssetTypeID)) {
         otOut
             << strLocation
@@ -9343,9 +8819,7 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
         return -1;
     }
 
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "Failure: Unable to find NymID based on myacct. Use: --myacct "
                  "ACCT_ID\n";
@@ -9354,9 +8828,7 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
         return -1;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strServerID)) {
         otOut << "Failure: Unable to find Server ID based on myacct. Use: "
                  "--myacct ACCT_ID\n";
@@ -9369,13 +8841,6 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     if (-1 == nIndex) {
         otOut << "Please paste the instrument, followed by an EOF or a ~ by "
                  "itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
         strInstrument = OT_CLI_ReadUntilEOF();
 
         if (!VerifyStringVal(strInstrument)) {
@@ -9396,6 +8861,7 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
             return -1;
         }
     }
+
     // By this point, strInstrument is a valid string (whether we got it from
     // the payments inbox,
     // or whether we got it from stdin.)
@@ -9434,20 +8900,6 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     // since
     // details_deposit_cheque() already verifies that (so I don't need to do it
     // twice.)
-    //
-    //  string strInstrumentAssetType  =
-    // OTAPI_Wrap::Instrmnt_GetAssetID(strInstrument)
-    //  string strAccountAssetID       =
-    // OTAPI_Wrap::GetAccountWallet_AssetTypeID(strMyAcctID)
-    //
-    //  if (strInstrumentAssetType != strAccountAssetID)
-    //  {
-    //      otOut << "The instrument's asset type
-    // ("+strInstrumentAssetType+") doesn't match the account's asset type
-    // ("+strAccountAssetID+").\nTry specifying a different account using
-    // --myacct ACCT_ID\n");
-    //      return -1;
-    //; }
 
     // By this point, we know the invoice has the right asset type for the
     // account
@@ -9479,14 +8931,7 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     // made out to the owner of the account which I'm trying to use to pay the
     // invoice from.
     // So let's pay it!  P.S. strRecipientUserID might be nullptr, but
-    // strMyNymID
-    // is guaranteed
-    // to be good.
-
-    //  string strPayeeUserID    = OTAPI_Wrap::Instrmnt_GetSenderUserID
-    // (strInstrument)
-    //  string strPayeeAcctID    = OTAPI_Wrap::Instrmnt_GetSenderAcctID
-    // (strInstrument)
+    // strMyNymID is guaranteed to be good.
 
     string strInstrumentAssetType =
         OTAPI_Wrap::Instrmnt_GetAssetID(strInstrument);
@@ -9566,18 +9011,6 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     return -1;
 }
 
-/*
-EXPORT static std::string NumList_Add (const std::string & strNumList, const
-std::string & strNumbers);
-EXPORT static std::string NumList_Remove (const std::string & strNumList, const
-std::string & strNumbers);
-EXPORT static bool NumList_VerifyQuery(const std::string & strNumList, const
-std::string & strNumbers);
-EXPORT static bool NumList_VerifyAll (const std::string & strNumList, const
-std::string & strNumbers);
-EXPORT static int32_t NumList_Count (const std::string & strNumList);
-*/
-
 // COULD have been named
 // "details_accept_specific_instruments_of_specific_types_from_the_payment_inbox."
 OT_COMMANDS_OT int32_t
@@ -9590,9 +9023,7 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
         return -1;
     }
 
-    // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
-
     if (!VerifyStringVal(strMyNymID)) {
         otOut << "Failure: Unable to find NymID based on myacct. Use: --myacct "
                  "ACCT_ID\n";
@@ -9601,9 +9032,7 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
         return -1;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(strMyAcctID);
-
     if (!VerifyStringVal(strServerID)) {
         otOut << "Failure: Unable to find Server ID based on myacct. Use: "
                  "--myacct ACCT_ID\n";
@@ -10579,9 +10008,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowRecords()
         return -1;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
     string strServerID = "";
-
     if (bAcctExists) {
         strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
     }
@@ -10706,9 +10133,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearRecords()
         return -1;
     }
 
-    // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
     string strServerID = "";
-
     if (bAcctExists) {
         strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
     }
@@ -10732,7 +10157,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearRecords()
                                 "the account.)\n";
         return -1;
     }
-    //
+
     // REMEMBER, recordbox for MyAcct contains the old inbox receipts.
     // Whereas recordbox for MyNym contains the old payments (in and out.)
     // In the case of the latter, the NYM must be passed as the ACCT...
@@ -10774,7 +10199,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearExpired()
         string strMyNymID = MyNym;
         string strServerID = Server;
 
-        //
         // expiredBox for MyNym contains the old payments (in and out.)
         otOut << "\n Clearing archived Nym-related expired records ("
               << strMyNymID << ")... \n";
@@ -10940,9 +10364,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
 
     if (VerifyExists("MyAcct")) {
 
-        // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
         string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
         if (!VerifyStringVal(strMyNymID)) {
             otOut << "Failure: Unable to find NymID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -10951,9 +10373,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
             return -1;
         }
 
-        // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
         string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
-
         if (!VerifyStringVal(strServerID)) {
             otOut << "Failure: Unable to find Server ID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -10964,7 +10384,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
 
         string strInbox =
             OTAPI_Wrap::LoadInbox(strServerID, strMyNymID, MyAcct);
-
         if (!VerifyStringVal(strInbox)) {
             otOut << "\n Unable to load asset account inbox. ( " << MyAcct
                   << " )\n Perhaps it doesn't exist yet?\n\n";
@@ -11089,9 +10508,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
 
     if (VerifyExists("MyAcct")) {
 
-        // HERE, WE LOOK UP THE NYM ID, BASED ON THE ACCOUNT ID.
         string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
-
         if (!VerifyStringVal(strMyNymID)) {
             otOut << "Failure: Unable to find NymID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -11100,9 +10517,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
             return -1;
         }
 
-        // HERE, WE LOOK UP THE SERVER ID, BASED ON THE ACCOUNT ID.
         string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(MyAcct);
-
         if (!VerifyStringVal(strServerID)) {
             otOut << "Failure: Unable to find Server ID based on myacct. Use: "
                      "--myacct ACCT_ID\n";
@@ -11113,7 +10528,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
 
         string strOutbox =
             OTAPI_Wrap::LoadOutbox(strServerID, strMyNymID, MyAcct);
-
         if (!VerifyStringVal(strOutbox)) {
             otOut << "\n\n OT_API_LoadOutbox: Failed.\n\n";
             return -1;
@@ -11408,9 +10822,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainInmail()
 
     return nReturnVal;
 }
-
-// pScript->chai.add(fun(&OTAPI_Wrap::Nym_RemoveMailByIndex),
-// "OT_API_Nym_RemoveMailByIndex");
 
 OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
                                                      const int32_t nIndex,
@@ -11759,12 +11170,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAddServer()
 {
     otOut << "Please paste a server contract, followed by an EOF or a ~ by "
              "itself on a blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strContract = OT_CLI_ReadUntilEOF();
 
     if (!VerifyStringVal(strContract)) {
@@ -11789,12 +11194,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainAddAsset()
 {
     otOut << "Please paste a currency contract, followed by an EOF or a ~ by "
              "itself on a blank line:\n\n";
-
-    // The reason we accept the tilde ~ on a blank line by itself, is because
-    // the EOF, while it works, causes us not to be able to read any more input
-    // from stdin. Stdin is considered "closed" for the duration of the run.
-    // So the tilde allows us to read multiple times without closing stdin.
-
     string strContract = OT_CLI_ReadUntilEOF();
 
     if (!VerifyStringVal(strContract)) {
@@ -11825,14 +11224,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainIssueAsset()
     if (VerifyExists("Server") && VerifyExists("MyNym")) {
         otOut << "Please paste a currency contract, followed by an EOF or a ~ "
                  "by itself on a blank line:\n\n";
-
-        // The reason we accept the tilde ~ on a blank line by itself, is
-        // because
-        // the EOF, while it works, causes us not to be able to read any more
-        // input
-        // from stdin. Stdin is considered "closed" for the duration of the run.
-        // So the tilde allows us to read multiple times without closing stdin.
-
         string strContract = OT_CLI_ReadUntilEOF();
 
         if (!VerifyStringVal(strContract)) {
@@ -11850,15 +11241,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainIssueAsset()
         string strResponse =
             MadeEasy::issue_asset_type(Server, MyNym, strContract);
         int32_t nStatus = VerifyMessageSuccess(strResponse);
-
-        // NOTICE: No need here to deal with retries, timeouts, request number,
-        // syncing transaction number, download / process nymbox, etc! It's all
-        // handled at a lower level!  Instead, simply check for success or
-        // failure:
-        //
-        // -1 is error,
-        //  0 is reply received: failure
-        //  1 is reply received: success
         switch (nStatus) {
         case 1:
             otOut << "\n\n SUCCESS in issue_asset! Server response:\n\n";
