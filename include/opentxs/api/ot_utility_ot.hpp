@@ -15,22 +15,6 @@ namespace opentxs
 
 using std::string;
 
-inline OT_UTILITY_OT bool VerifyBoolVal(const bool)
-{
-    return true;
-}
-// extern OT_UTILITY_OT bool VerifyBoolVal(const int32_t bValue);
-// extern OT_UTILITY_OT bool VerifyBoolVal(const int64_t bValue);
-// extern OT_UTILITY_OT bool VerifyIntVal(const bool nValue);
-// inline OT_UTILITY_OT bool VerifyIntVal(const int32_t nValue) { return true; }
-inline OT_UTILITY_OT bool VerifyIntVal(const int64_t)
-{
-    return true;
-}
-inline OT_UTILITY_OT bool VerifyTimeVal(const time64_t)
-{
-    return true;
-}
 inline OT_UTILITY_OT bool VerifyStringVal(const string& nValue)
 {
     return 0 < nValue.length();

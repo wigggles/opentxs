@@ -248,10 +248,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         OTAPI_Wrap::Output(0, concat(strError, "p_strParam \n"));
     }
 
-    if (!VerifyIntVal(p_lData)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_lData l\n"));
-    }
-
     funcType = theType;
     serverID = p_serverID;
     nymID = p_nymID;
@@ -340,7 +336,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         int32_t nNumsNeeded =
             OTAPI_Wrap::SmartContract_CountNumsNeeded(p_strData2, p_strData);
 
-        if (VerifyIntVal(nNumsNeeded) && nNumsNeeded > 0) {
+        if (nNumsNeeded > 0) {
             nTransNumsNeeded = nNumsNeeded;
         }
     }
@@ -390,9 +386,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     //      var theRequest := OTAPI_Func(ot_Msg.SEND_TRANSFER, SERVER_ID,
     // NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE)
     if (theType == SEND_TRANSFER) {
-        if (!VerifyIntVal(p_lData)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
-        }
         if (!VerifyStringVal(p_strData2)) {
             OTAPI_Wrap::Output(0, concat(strError, "p_strData2"));
         }
@@ -443,9 +436,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         if (!VerifyStringVal(p_strData)) {
             OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
         }
-        if (!VerifyIntVal(p_lData2)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData2"));
-        }
         nymID2 = p_strParam; // str  Recipient Nym ID;
         strData = p_strData; // str  Memo;
         lData = p_lData2;    // int64_t Amount;
@@ -456,9 +446,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     else if (theType == PAY_DIVIDEND) {
         if (!VerifyStringVal(p_strData)) {
             OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
-        }
-        if (!VerifyIntVal(p_lData2)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData2"));
         }
         assetID = p_strParam; // str  Shares Asset ID;
         strData = p_strData;  // str  Memo;
@@ -1382,7 +1369,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
     int32_t nCount = offerList.GetOfferDataNymCount(); // size_t;
     int32_t nTemp = nCount; // so it's created as size_t;
 
-    if (VerifyIntVal(nCount) && (nCount > 0)) {
+    if (nCount > 0) {
         for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
             nTemp = nIndex; // convert from int32_t to size_t;
             OTDB::OfferDataNym& offerData = *offerList.GetOfferDataNym(nTemp);

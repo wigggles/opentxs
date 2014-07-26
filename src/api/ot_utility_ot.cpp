@@ -434,13 +434,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //
 // OT_UTILITY_OT int32_t ifB(the_expression, X, Y)
 //{
-//    if (!(VerifyBoolVal(the_expression)))
-//    {
-//        OTAPI_Wrap::Output(0, "ifB: ERROR: SHOULD NEVER HAPPEN: the_expression
-// isn't a boolean.\n");
-//        exit(-1)
-//    }
-//
 //    var theReturnValue
 //
 //    if (the_expression)
@@ -474,11 +467,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::OTBool(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to OTBool
-// constructor!\n");
-//    }
 //    value = param_value;
 //    value2 = false;
 //}
@@ -492,11 +480,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::setBooleanValue(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to
-// OTBool::setBooleanValue!\n");
-//    }
 //    value = param_value;
 //}
 //// ----------------------------
@@ -509,11 +492,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::setSecondValue(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to
-// OTBool::setSecondValue!\n");
-//    }
 //    value2 = param_value;
 //}
 //
@@ -530,11 +508,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTInteger::OTInteger(param_value)
 //{
-//    if (!VerifyIntVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-integer passed to OTInteger
-// constructor!\n");
-//    }
 //    value = param_value;
 //}
 //// ----------------------------
@@ -549,11 +522,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTInteger::setIntegerValue(param_value)
 //{
-//    if (!VerifyIntVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-integer passed to
-// OTInteger::setIntegerValue!\n");
-//    }
 //    value = param_value;
 //}
 ////
@@ -1013,9 +981,8 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     bool bMsgTransSuccess = bMsgFoursome[2];
     bool bMsgTransFailure = bMsgFoursome[3];
 
-    if (!VerifyIntVal(nRequestNumber)) {
-        OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber as an "
-                              "integer. \n\n\n\n\n");
+    if (0 > nRequestNumber) {
+        OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber.\n");
         return -1;
     }
 
@@ -1024,15 +991,6 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
             0, strLocation +
                    ": WARNING: Request Num of '1' was just passed in here.\n");
     }
-
-    //// This should NEVER happen (need an assert here.)
-    ////
-    // if (!VerifyOTBoolRef(bWasMsgSent) || !VerifyOTBoolRef(bFoundNymboxItem))
-    //{
-    //    OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!!
-    // ERROR!! FAILURE!!! PROBLEM!!!!!\n");
-    //    return -1;
-    //}
 
     bWasMsgSent = false;
 
@@ -1080,7 +1038,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     //
 
     int32_t nGetNymbox = getNymbox(serverID, nymID, bForceDownload);
-    if (!VerifyIntVal(nGetNymbox) || (nGetNymbox < 1)) {
+    if (nGetNymbox < 1) {
         OTAPI_Wrap::Output(0, strLocation +
                                   ": Failure: this.getNymbox returned: " +
                                   to_string(nGetNymbox) + "\n");
@@ -1132,7 +1090,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     bool bInsured = insureHaveAllBoxReceipts(
         serverID, nymID, nymID, nBoxType, nRequestNumber,
         bFoundNymboxItem); // ***************************;
-    if (VerifyBoolVal(bInsured) && bInsured) {
+    if (bInsured) {
         // If the caller was on about a specific request number...
         //
         if (nRequestNumber > 0) {
@@ -1690,12 +1648,6 @@ Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
 {
     string strLocation = "Utility::getAndProcessNymbox_4";
 
-    if (/* !VerifyOTBoolRef(bWasMsgSent) || */ !VerifyBoolVal(bForceDownload)) {
-        OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!! "
-                                            "ERROR!! FAILURE!!! "
-                                            "PROBLEM!!!!!\n");
-        return -1;
-    }
     if (!VerifyStringVal(serverID) || !VerifyStringVal(nymID)) {
         OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!! "
                                             "ERROR!! FAILURE!!! "
@@ -1945,7 +1897,7 @@ Utility::ReceiveReplyLowLevel(const string& serverID17, const string& nymID,
     delay();
     setLastReplyReceived("");
 
-    if (!VerifyIntVal(nRequestNumber8)) {
+    if (0 > nRequestNumber8) {
         OTAPI_Wrap::Output(0, "ReceiveReplyLowLevel (" + IN_FUNCTION +
                                   "): nRequestNumber isn't a valid number.\n");
         return "";
@@ -2248,14 +2200,12 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 
     int32_t nReceiptCount =
         OTAPI_Wrap::Ledger_GetCount(serverID, nymID, accountID, ledger);
-    if (VerifyIntVal(nReceiptCount) && (nReceiptCount > 0)) {
-        for (int32_t i_loop = 0; i_loop < nReceiptCount;
-             ++i_loop) // ******** FOR LOOP ****************
-        {
+    if (nReceiptCount > 0) {
+        for (int32_t i_loop = 0; i_loop < nReceiptCount; ++i_loop) {
             int64_t lTransactionNum =
                 OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
                     serverID, nymID, accountID, ledger, i_loop);
-            if (VerifyIntVal(lTransactionNum) && (lTransactionNum != -1)) {
+            if (lTransactionNum != -1) {
                 if (lTransactionNum > 0) {
                     string strTransaction =
                         OTAPI_Wrap::Ledger_GetTransactionByID(serverID, nymID,

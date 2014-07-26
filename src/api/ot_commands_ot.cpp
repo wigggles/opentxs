@@ -86,7 +86,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
     bool bOnFirstIteration = true;
     int32_t nAssetCount = OTAPI_Wrap::GetAssetTypeCount();
 
-    if (VerifyIntVal(nAssetCount) && (nAssetCount > 0)) {
+    if (nAssetCount > 0) {
         string strIndex = "";
 
         if (VerifyExists("Args", false)) {
@@ -100,10 +100,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
         if (VerifyStringVal(strIndex)) {
             int32_t nIndex = to_int(strIndex);
 
-            if (!VerifyIntVal(nIndex)) {
-                return -1;
-            }
-            else if ((nIndex < 0) || (nIndex >= nAssetCount)) {
+            if (nIndex < 0 || nIndex >= nAssetCount) {
                 otOut << "Error: index out of bounds.\n";
                 return -1;
             }
@@ -132,7 +129,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                         int32_t nMemberCount =
                             OTAPI_Wrap::Basket_GetMemberCount(strAssetID);
 
-                        if (!VerifyIntVal(nMemberCount)) {
+                        if (0 > nMemberCount) {
                             otOut << "ERROR: expected int32_t return value "
                                      "from "
                                      "OT_API_Basket_GetMemberCount(strAssetID)"
@@ -147,7 +144,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                                 OTAPI_Wrap::Basket_GetMinimumTransferAmount(
                                     strAssetID);
 
-                            if (!VerifyIntVal(nBasketMinTransAmt)) {
+                            if (0 > nBasketMinTransAmt) {
                                 otOut << "Strange: expected minimum transfer "
                                          "amount for basket, but got bad value "
                                          "instead.\n";
@@ -182,14 +179,16 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                                         otOut << "    Index  :  Min Transfer "
                                                  "Amount  :  Member currency  "
                                                  "\n---------------------------"
-                                                 "------------\n";
+                                                 "----"
+                                                 "--------\n";
                                     }
                                     cout << "    " << nMemberIndex << "      : "
                                          << nMinTransAmt << " : "
                                          << strMemberType << " : "
                                          << strMemberName << "\n";
                                     otOut << "---------------------------------"
-                                             "------\n";
+                                             "----"
+                                             "--\n";
                                 }
                             }
                         }
@@ -416,7 +415,7 @@ OT_Command::details_exchange_basket(const string& strServer,
     // in OT_Command::mainExchangeBasket.)
     int32_t nMemberCount = OTAPI_Wrap::Basket_GetMemberCount(strBasketType);
 
-    if (!VerifyIntVal(nMemberCount) || (nMemberCount < 2)) {
+    if (nMemberCount < 2) {
         otOut << "Strange, the chosen basket asset type apparently has no "
                  "sub-currencies. (Failure.)\n";
         return -1;
@@ -425,7 +424,7 @@ OT_Command::details_exchange_basket(const string& strServer,
     int64_t lMinimumTransAmount =
         OTAPI_Wrap::Basket_GetMinimumTransferAmount(strBasketType);
 
-    if (!VerifyIntVal(lMinimumTransAmount)) {
+    if (0 > lMinimumTransAmount) {
         otOut << "Strange, the chosen basket asset type apparently has no "
                  "minimum transfer amount. (Failure.)\n";
         return -1;
@@ -442,7 +441,7 @@ OT_Command::details_exchange_basket(const string& strServer,
 
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strAcct);
 
-    if (!VerifyIntVal(lBalance)) {
+    if (0 > lBalance) {
         otOut << "Strange: unable to retrieve balance for basket account: "
               << strAcct << "\n";
         return -1;
@@ -490,7 +489,7 @@ OT_Command::details_exchange_basket(const string& strServer,
     if (VerifyStringVal(strTransferMultiple)) {
         int32_t nTempMultiple = to_int(strTransferMultiple);
 
-        if (VerifyIntVal(nTempMultiple) && (nTempMultiple > 1)) {
+        if (nTempMultiple > 1) {
             nTransferMultiple = nTempMultiple;
         }
     }
@@ -554,7 +553,7 @@ OT_Command::details_exchange_basket(const string& strServer,
             OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(strBasketType,
                                                               nMember);
 
-        if (!VerifyIntVal(lMemberAmount)) {
+        if (0 > lMemberAmount) {
             otOut << "Error retrieving minimum transfer amount from index "
                   << nMember << " (" << strMemberType
                   << ") on basket currency: " << strBasketType << "\n";
@@ -616,7 +615,7 @@ OT_Command::details_exchange_basket(const string& strServer,
 
         lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strSubAccount);
 
-        if (!VerifyIntVal(lBalance)) {
+        if (0 > lBalance) {
             otOut << "Strange, error while retrieving balance for sub-account: "
                   << strSubAccount << "\n";
             OTAPI_Wrap::Msg_HarvestTransactionNumbers(
@@ -856,7 +855,7 @@ OT_Command::details_discard_incoming(const string& strServer,
     int32_t nInboxCount =
         OTAPI_Wrap::Ledger_GetCount(strServer, strMyNym, strMyNym, strInbox);
 
-    if (!VerifyIntVal(nInboxCount)) {
+    if (0 > nInboxCount) {
         otOut << "details_discard_incoming: Unable to retrieve size of "
                  "payments inbox ledger. (Failure.)\n";
         return -1;
@@ -1043,10 +1042,9 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
             // - If "all" was passed, we process the item.
             // - If indices are specified, but the current index is not on
             //   that list, then continue...
-            if (!("all" == strIndices) &&
-                (VerifyIntVal(nIndicesCount) && (nIndicesCount > 0) &&
-                 !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                  to_string(nIndex)))) {
+            if (!("all" == strIndices) && nIndicesCount > 0 &&
+                !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
+                                                 to_string(nIndex))) {
                 bContinue = true;
             }
 
@@ -1161,8 +1159,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                             strServer, strMyNym, strMyAcct,
                                             strResponse);
 
-                                    if (VerifyIntVal(nTransCancelled) &&
-                                        (1 == nTransCancelled)) {
+                                    if (1 == nTransCancelled) {
                                         otOut << "\n Success canceling!\n";
                                     }
                                     else {
@@ -1207,8 +1204,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                         strServer, strMyNym, strMyAcct,
                                         strResponse);
 
-                                if (VerifyIntVal(nTransCancelled) &&
-                                    (1 == nTransCancelled)) {
+                                if (1 == nTransCancelled) {
                                     otOut << "\n Success canceling!\n";
                                 }
                                 else {
@@ -1405,7 +1401,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_trigger_clause(
         strServerID, strMyNymID, strTransNum, strClause, strParam);
     int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
 
-    if (!VerifyIntVal(nMessageSuccess) || (1 != nMessageSuccess)) {
+    if (1 != nMessageSuccess) {
         otOut << "For whatever reason, our attempt to trigger the clause has "
                  "failed.\n";
     }
@@ -1497,7 +1493,7 @@ OT_Command::find_revokedID_for_subcred(const string& strMyNymID,
 {
     int32_t nCredCount = OTAPI_Wrap::GetNym_RevokedCredCount(strMyNymID);
 
-    if (!VerifyIntVal(nCredCount)) {
+    if (0 > nCredCount) {
         return "";
     }
     else if (nCredCount >= 1) {
@@ -1508,7 +1504,7 @@ OT_Command::find_revokedID_for_subcred(const string& strMyNymID,
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
 
-            if (VerifyIntVal(nSubCredCount) && (nSubCredCount >= 1)) {
+            if (nSubCredCount >= 1) {
                 for (int32_t nCurrentSubCred = 0;
                      nCurrentSubCred < nSubCredCount; ++nCurrentSubCred) {
                     string strSubCredID = OTAPI_Wrap::GetNym_SubCredentialID(
@@ -1530,7 +1526,7 @@ OT_Command::find_masterID_for_subcred(const string& strMyNymID,
 {
     int32_t nCredCount = OTAPI_Wrap::GetNym_CredentialCount(strMyNymID);
 
-    if (!VerifyIntVal(nCredCount)) {
+    if (0 > nCredCount) {
         return "";
     }
     else if (nCredCount >= 1) {
@@ -1541,7 +1537,7 @@ OT_Command::find_masterID_for_subcred(const string& strMyNymID,
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
 
-            if (VerifyIntVal(nSubCredCount) && (nSubCredCount >= 1)) {
+            if (nSubCredCount >= 1) {
                 for (int32_t nCurrentSubCred = 0;
                      nCurrentSubCred < nSubCredCount; ++nCurrentSubCred) {
                     string strSubCredID = OTAPI_Wrap::GetNym_SubCredentialID(
@@ -1661,7 +1657,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
 
     int32_t nCredCount = OTAPI_Wrap::GetNym_CredentialCount(strMyNymID);
 
-    if (!VerifyIntVal(nCredCount)) {
+    if (0 > nCredCount) {
         return -1;
     }
 
@@ -1678,7 +1674,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
 
-            if (VerifyIntVal(nSubCredCount) && (nSubCredCount >= 1)) {
+            if (nSubCredCount >= 1) {
 
                 otOut << "        ---------------------------\n        Idx     "
                          "Subcredential ID\n        "
@@ -1704,7 +1700,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
 
     nCredCount = OTAPI_Wrap::GetNym_RevokedCredCount(strMyNymID);
 
-    if (!VerifyIntVal(nCredCount)) {
+    if (0 > nCredCount) {
         return -1;
     }
 
@@ -1721,7 +1717,7 @@ OT_Command::details_show_credentials(const string& strMyNymID)
             int32_t nSubCredCount =
                 OTAPI_Wrap::GetNym_SubcredentialCount(strMyNymID, strCredID);
 
-            if (VerifyIntVal(nSubCredCount) && (nSubCredCount >= 1)) {
+            if (nSubCredCount >= 1) {
 
                 otOut << "        ---------------------------\n        Idx     "
                          "Revoked Subcredential ID\n        "
@@ -1760,25 +1756,18 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagent(const string& strSmartContract,
                                                 const string& strAgentName,
                                                 const int32_t nIndex)
 {
-    string strDisplayIndex = "*";
-
-    if (VerifyIntVal(nIndex)) {
-        strDisplayIndex = to_string(nIndex);
-    }
-
     string strAgentID = OTAPI_Wrap::Party_GetAgentID(
         strSmartContract, strPartyName, strAgentName);
 
     if (VerifyStringVal(strAgentID)) {
-        cout << "--------------------\n " << strDisplayIndex << " : Agent '"
+        cout << "--------------------\n " << nIndex << " : Agent '"
              << strAgentName << "' (party '" << strPartyName
              << "') has NymID: " << strAgentID << " ('"
              << OTAPI_Wrap::GetNym_Name(strAgentID) << "')\n";
     }
     else {
-        cout << " " << strDisplayIndex << " : Agent '" << strAgentName
-             << "' (party '" << strPartyName
-             << "') has no NymID assigned (yet.)\n";
+        cout << " " << nIndex << " : Agent '" << strAgentName << "' (party '"
+             << strPartyName << "') has no NymID assigned (yet.)\n";
     }
 
     return true;
@@ -1807,7 +1796,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagents(const string& strSmartContract,
     int32_t nAgentCount =
         OTAPI_Wrap::Party_GetAgentCount(strSmartContract, strPartyName);
 
-    if (!VerifyIntVal(nAgentCount) || (nAgentCount < 0)) {
+    if (nAgentCount < 0) {
         otOut << "Error: Party '" << strPartyName
               << "' has bad value for number of authorized agents.\n";
         return false;
@@ -1887,7 +1876,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccounts(
     int32_t nAccountCount =
         OTAPI_Wrap::Party_GetAcctCount(strSmartContract, strPartyName);
 
-    if (!VerifyIntVal(nAccountCount) || (nAccountCount < 0)) {
+    if (nAccountCount < 0) {
         otOut << "Error: Party '" << strPartyName
               << "' has bad value for number of asset accounts.\n";
         return false;
@@ -1915,9 +1904,9 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccounts(
 OT_COMMANDS_OT bool OT_Command::show_unconfirmed_parties(
     const string& strSmartContract, int32_t& nPartyCount)
 {
-    if (!VerifyIntVal(nPartyCount) || (0 == nPartyCount)) {
+    if (0 == nPartyCount) {
         nPartyCount = OTAPI_Wrap::Smart_GetPartyCount(strSmartContract);
-        if (!VerifyIntVal(nPartyCount) || (nPartyCount < 0)) {
+        if (nPartyCount < 0) {
             otOut << "Failure: There are apparently no PARTIES to this smart "
                      "contract.\n";
             return false;
@@ -2020,7 +2009,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_propose_plan(
             strServerID, strMyNymID, strHisNymID, strPlan);
         int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
 
-        if (!VerifyIntVal(nMessageSuccess) || (1 != nMessageSuccess)) {
+        if (1 != nMessageSuccess) {
             otOut << "For whatever reason, our attempt to send the payment "
                      "plan on to the next user has failed.\n";
             int32_t nHarvested = OTAPI_Wrap::Msg_HarvestTransactionNumbers(
@@ -2260,7 +2249,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
     int32_t nPartyCount = OTAPI_Wrap::Smart_GetPartyCount(strSmartContract);
 
-    if (!VerifyIntVal(nPartyCount) || (nPartyCount <= 0)) {
+    if (nPartyCount <= 0) {
         otOut << "Failed trying to confirm a smart contract: there are "
                  "apparently no PARTIES to this contract!\n";
         return -1;
@@ -2299,8 +2288,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
         if (VerifyStringVal(strPartyIndex)) {
             int32_t nCurrentParty = to_int(strPartyIndex);
 
-            if (VerifyIntVal(nCurrentParty) && (nCurrentParty >= 0) &&
-                (nCurrentParty < nPartyCount)) {
+            if (nCurrentParty >= 0 && nCurrentParty < nPartyCount) {
                 string strPartyName = OTAPI_Wrap::Smart_GetPartyByIndex(
                     strSmartContract, nCurrentParty);
 
@@ -2326,7 +2314,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                 int32_t nAccountCount = OTAPI_Wrap::Party_GetAcctCount(
                     strSmartContract, strPartyName);
 
-                if (!VerifyIntVal(nAccountCount) || (nAccountCount < 0)) {
+                if (nAccountCount < 0) {
                     otOut
                         << "Error: Party '" << strPartyName
                         << "' has a bad value for number of asset accounts.\n";
@@ -2358,7 +2346,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                         int32_t nAcctIndex = to_int(strAcctIndex);
 
-                        if (!VerifyIntVal(nAcctIndex) || (nAcctIndex < 0)) {
+                        if (nAcctIndex < 0) {
                             otOut << "Error: Bad Index: " << strAcctIndex
                                   << "\n";
                             return -1;
@@ -2539,8 +2527,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                         }
 
                                         int32_t nNymIndex = to_int(strNymIndex);
-                                        if (!VerifyIntVal(nNymIndex) ||
-                                            (nNymIndex < 0)) {
+                                        if (nNymIndex < 0) {
                                             otOut
                                                 << "Bad index: " << strNymIndex
                                                 << "\n";
@@ -2691,9 +2678,8 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             int32_t nSelectedAcctIndex =
                                 to_int(strSelectedAcctIndex);
 
-                            if (!VerifyIntVal(nSelectedAcctIndex) ||
-                                (nSelectedAcctIndex < 0) ||
-                                (nSelectedAcctIndex >= nCountAcctsWallet)) {
+                            if (nSelectedAcctIndex < 0 ||
+                                nSelectedAcctIndex >= nCountAcctsWallet) {
                                 otOut << "Bad index: " << strSelectedAcctIndex
                                       << "\n";
                                 return -1;
@@ -2782,9 +2768,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                                 int32_t nAgentIndex =
                                                     to_int(strAgentIndex);
 
-                                                if (!VerifyIntVal(
-                                                         nAgentIndex) ||
-                                                    (nAgentIndex < 0)) {
+                                                if (nAgentIndex < 0) {
                                                     otOut
                                                         << "Error: Bad Index: "
                                                         << strAgentIndex
@@ -3032,8 +3016,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                         int32_t nAcctIndex = to_int(strAcctIndex);
 
-                        if (!VerifyIntVal(nAcctIndex) || (nAcctIndex < 0) ||
-                            (nAcctIndex >= nAccountCount)) {
+                        if (nAcctIndex < 0 || nAcctIndex >= nAccountCount) {
                             otOut << "Error: Bad Index: " << strAcctIndex
                                   << " (Acceptable values are 0 through "
                                   << (nAccountCount - 1) << ")\n";
@@ -3252,8 +3235,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                     int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
 
-                    if (!VerifyIntVal(nMessageSuccess) ||
-                        (1 != nMessageSuccess)) {
+                    if (1 != nMessageSuccess) {
                         otOut << "\nFor whatever reason, our attempt to send "
                                  "the instrument on to the next user has "
                                  "failed.\n";
@@ -3333,7 +3315,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainConfirm()
         if (VerifyStringVal(strIndex)) {
             int32_t nTempIndex = to_int(strIndex);
 
-            if (VerifyIntVal(nTempIndex) && (nTempIndex >= 0)) {
+            if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
             }
         }
@@ -3353,7 +3335,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainConfirm()
             if (VerifyStringVal(strIndex)) {
                 int32_t nTempIndex = to_int(strIndex);
 
-                if (VerifyIntVal(nTempIndex) && (nTempIndex >= 0)) {
+                if (nTempIndex >= 0) {
                     nIndex = nTempIndex;
 
                     strInstrument = MadeEasy::get_payment_instrument(
@@ -4382,7 +4364,7 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
                   << strDefaultMemo << "]: ";
             strMemo = OT_CLI_ReadLine();
         }
-        if (!VerifyIntVal(nLength) || (nLength < 1)) {
+        if (nLength < 1) {
             otOut << "Enter the 'valid for' time period, in seconds (default "
                      "is 30 days.) [" << nDefaultLength << "]: ";
             string strTemp = OT_CLI_ReadLine();
@@ -4401,7 +4383,7 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
             strMemo = strDefaultMemo;
         }
 
-        if (!VerifyIntVal(nLength) || (nLength < 1)) {
+        if (nLength < 1) {
             nLength = nDefaultLength;
         }
 
@@ -4962,7 +4944,7 @@ OT_Command::details_create_offer(const string& strScale,
         // the value for each key is a sub-map, with the key: transaction ID and
         // value: the offer data itself.
         int32_t nCount = offerList.GetOfferDataNymCount();
-        if (VerifyIntVal(nCount) && (nCount > 0)) {
+        if (nCount > 0) {
             MapOfMaps* map_of_maps = convert_offerlist_to_maps(offerList);
 
             if (!VerifyType(map_of_maps, "Map")) {
@@ -6014,7 +5996,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
 
         int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                      strMyAcctID, strInbox);
-        if (VerifyIntVal(nCount) && (nCount > 0)) {
+        if (nCount > 0) {
             // NOTE!!! DO **NOT** create the response ledger until the FIRST
             // iteration of the below loop that actually
             // creates a transaction response! If that "first iteration" never
@@ -6709,7 +6691,7 @@ OT_Command::details_download_box_receipt(const string& strID,
     // Instead, simply check for success or failure:
     int32_t nInterpretReply = VerifyMessageSuccess(strResponse);
 
-    if (!VerifyIntVal(nInterpretReply) || (1 != nInterpretReply)) {
+    if (1 != nInterpretReply) {
         otOut << "get_box_receipt: Failed. nInterpretReply is: "
               << nInterpretReply << "\n";
         otOut << "get_box_receipt: Perhaps that receipt is no longer in the "
@@ -6755,7 +6737,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
                 nBoxType = to_int(strNewType);
             }
 
-            if (!VerifyIntVal(nBoxType) || (nBoxType < 0) || (nBoxType > 2)) {
+            if (nBoxType < 0 || nBoxType > 2) {
                 otOut << "\n\n box_type cannot be <0 or >2. Try:  --args "
                          "\"box_type 1\"\nBox types are 0 (Nymbox), 1 (Inbox), "
                          "2 (Outbox)\n\n";
@@ -7275,11 +7257,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
         // LOOP THROUGH THE MARKETS AND PRINT THEM OUT.
 
         int32_t nCount = marketList.GetMarketDataCount();
-        if (!VerifyIntVal(nCount)) {
+        if (0 > nCount) {
             otOut << "Loaded the market list, but GetMarketDataCount returns "
                      "an invalid result. (Failure.)\n";
         }
-        else if (!(nCount > 0)) {
+        else if (nCount <= 0) {
             otOut << "Loaded the market list, but GetMarketDataCount says "
                      "there aren't any markets in the list. (Returning.)\n";
         }
@@ -7388,7 +7370,7 @@ OT_Command::details_show_market_offers(const string& strServerID,
     int32_t nBidCount = offerList.GetBidDataCount();
     int32_t nTemp = nBidCount;
 
-    if (VerifyIntVal(nBidCount) && (nBidCount > 0)) {
+    if (nBidCount > 0) {
         otOut << "\n** BIDS **\n\nIndex\tTrans#\tPrice\tAvailable\n";
 
         for (int32_t nIndex = 0; nIndex < nBidCount; ++nIndex) {
@@ -7409,7 +7391,7 @@ OT_Command::details_show_market_offers(const string& strServerID,
     // LOOP THROUGH THE ASKS AND PRINT THEM OUT.
     int32_t nAskCount = offerList.GetAskDataCount();
 
-    if (VerifyIntVal(nAskCount) && (nAskCount > 0)) {
+    if (nAskCount > 0) {
         otOut << "\n** ASKS **\n\nIndex\tTrans#\tPrice\tAvailable\n";
 
         for (int32_t nIndex = 0; nIndex < nAskCount; ++nIndex) {
@@ -7603,9 +7585,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
             // balance.)
             int64_t lNewUsageBalance =
                 OTAPI_Wrap::Message_GetUsageCredits(strResponse);
-            string strNewUsageBalance = VerifyIntVal(lNewUsageBalance)
-                                            ? to_string(lNewUsageBalance)
-                                            : "";
+            string strNewUsageBalance =
+                lNewUsageBalance > -2 ? to_string(lNewUsageBalance) : "";
 
             if (!VerifyStringVal(strNewUsageBalance)) {
                 strNewUsageBalance = "(Error while calling API to retrieve "
@@ -7684,7 +7665,7 @@ OT_Command::details_show_nym_offers(const string& strServerID,
     // the value for each key is a sub-map, with the key: transaction ID and
     // value: the offer data itself.
     int32_t nCount = offerList.GetOfferDataNymCount();
-    if (VerifyIntVal(nCount) && (nCount > 0)) {
+    if (nCount > 0) {
         MapOfMaps& map_of_maps = *convert_offerlist_to_maps(offerList);
 
         if (!VerifyType(&map_of_maps, "Map")) {
@@ -7943,7 +7924,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
 
             // Loop through purse contents and display tokens.
             int32_t nCount = OTAPI_Wrap::Purse_Count(Server, MyPurse, strPurse);
-            if (!VerifyIntVal(nCount) || (nCount < 0)) {
+            if (nCount < 0) {
                 otOut << "\n OT_Command::mainShowPurse: Error: Unexpected bad "
                          "value returned from OT_API_Purse_Count.\n\n";
                 return -1;
@@ -7994,18 +7975,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
                     if (0 > lDenomination) {
                         otOut << "Error while showing purse: bad "
                                  "lDenomination.\n";
-                        return -1;
-                    }
-                    if (!VerifyIntVal(nSeries)) {
-                        otOut << "Error while showing purse: bad nSeries.\n";
-                        return -1;
-                    }
-                    if (!VerifyTimeVal(tValidFrom)) {
-                        otOut << "Error while showing purse: bad tValidFrom.\n";
-                        return -1;
-                    }
-                    if (!VerifyTimeVal(tValidTo)) {
-                        otOut << "Error while showing purse: bad tValidTo.\n";
                         return -1;
                     }
                     if (OT_TIME_ZERO > lTime) {
@@ -8186,7 +8155,7 @@ OT_Command::details_deposit_purse(const string& strServerID,
         // Loop through purse contents...
         int32_t nCount = OTAPI_Wrap::Purse_Count(strServerID, strAssetTypeID,
                                                  strTHE_Instrument);
-        if (!VerifyIntVal(nCount) || (nCount < 0)) {
+        if (nCount < 0) {
             otOut << "\n " << strLocation << ": Error: Unexpected bad value "
                                              "returned from "
                                              "OT_API_Purse_Count.\n\n";
@@ -8762,7 +8731,7 @@ OT_COMMANDS_OT string OT_Command::details_export_cash(
         // Loop through purse contents...
         int32_t nCount =
             OTAPI_Wrap::Purse_Count(strServerID, strAssetTypeID, strInstrument);
-        if (!VerifyIntVal(nCount) || (nCount < 0)) {
+        if (nCount < 0) {
             otOut << strLocation << ": Error: Unexpected bad value returned "
                                     "from OT_API_Purse_Count.\n\n";
             return "";
@@ -8973,7 +8942,7 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
         // Loop through purse contents...
         int32_t nCount =
             OTAPI_Wrap::Purse_Count(strServerID, strAssetTypeID, strLocalPurse);
-        if (!VerifyIntVal(nCount) || (nCount < 0)) {
+        if (nCount < 0) {
             otOut << strLocation << ": Error: Unexpected bad value returned "
                                     "from OT_API_Purse_Count.\n\n";
             return false;
@@ -9038,19 +9007,19 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                 }
                 int32_t nSeries = OTAPI_Wrap::Token_GetSeries(
                     strServerID, strAssetTypeID, strToken);
-                if (!VerifyIntVal(nSeries)) {
+                if (0 > nSeries) {
                     otOut << "Error while showing purse: bad nSeries.\n";
                     return false;
                 }
                 time64_t tValidFrom = OTAPI_Wrap::Token_GetValidFrom(
                     strServerID, strAssetTypeID, strToken);
-                if (!VerifyTimeVal(tValidFrom)) {
+                if (OT_TIME_ZERO > tValidFrom) {
                     otOut << "Error while showing purse: bad tValidFrom.\n";
                     return false;
                 }
                 time64_t tValidTo = OTAPI_Wrap::Token_GetValidTo(
                     strServerID, strAssetTypeID, strToken);
-                if (!VerifyTimeVal(tValidTo)) {
+                if (OT_TIME_ZERO > tValidTo) {
                     otOut << "Error while showing purse: bad tValidTo.\n";
                     return false;
                 }
@@ -9100,8 +9069,8 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                     }
                 }
                 else if (bFindIndicesFromAmount) {
-                    if (VerifyIntVal(lAmount) && (lAmountRemaining > 0) &&
-                        (lDenomination <= lAmountRemaining)) {
+                    if (lAmountRemaining > 0 &&
+                        lDenomination <= lAmountRemaining) {
                         string strTempIndices = OTAPI_Wrap::NumList_Add(
                             strLoopIndices, to_string(nIndex));
                         strLoopIndices = strTempIndices;
@@ -9186,7 +9155,7 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
         lAmount = to_long(strAmount);
     }
 
-    if (!VerifyIntVal(lAmount) || (lAmount <= 0)) {
+    if (lAmount <= 0) {
         otOut << strLocation << ": Invalid value: strAmount (" << strAmount
               << ")\n";
         return false;
@@ -9240,7 +9209,6 @@ OT_Command::details_send_cash(string& strResponse, const string& strServerID,
     // withdraw enough tokens until we do, and then try sending again.
 
     bool bAmountFromIndices = VerifyStringVal(strIndices);
-    VerifyIntVal(lAmount);
 
     bool bGotData = purse_get_indices_or_amount(
         strServerID, strAssetTypeID, strMyNymID, lAmount, strIndices);
@@ -9370,9 +9338,8 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
                                  const string& strPaymentType,
                                  const string& strInbox)
 {
-    if (!VerifyStringVal(strMyAcctID) || !VerifyIntVal(nIndex)) {
-        otOut << "Failure: Either strMyAcctID not a valid string, or nIndex "
-                 "not a valid int32_t.\n";
+    if (!VerifyStringVal(strMyAcctID)) {
+        otOut << "Failure: strMyAcctID not a valid string.\n";
         return -1;
     }
 
@@ -9654,7 +9621,7 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
 
     int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                  strMyNymID, strInbox);
-    if (!VerifyIntVal(nCount)) {
+    if (0 > nCount) {
         otOut
             << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
         return -1;
@@ -9777,7 +9744,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
         if (VerifyStringVal(strIndex)) {
             int32_t nTempIndex = to_int(strIndex);
 
-            if (VerifyIntVal(nTempIndex) && (nTempIndex >= 0)) {
+            if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
             }
         }
@@ -10086,7 +10053,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
         if (VerifyStringVal(strIndex)) {
             int32_t nTempIndex = to_int(strIndex);
 
-            if (VerifyIntVal(nTempIndex) && (nTempIndex >= 0)) {
+            if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
             }
         }
@@ -10102,7 +10069,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
 
             int32_t nCount =
                 OTAPI_Wrap::Ledger_GetCount(Server, MyNym, MyNym, strInbox);
-            if (VerifyIntVal(nCount)) {
+            if (0 <= nCount) {
                 if (nIndex > (nCount - 1)) {
                     otOut << "Index out of bounds. (There are " << nCount
                           << " indices, starting at 0.\n";
@@ -10160,7 +10127,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
                 bool bAssetIDExists = VerifyStringVal(strAssetType);
                 bool bMemoExists = VerifyStringVal(strMemo);
 
-                bool bHasAmount = VerifyIntVal(lAmount);
+                bool bHasAmount = OT_ERROR_AMOUNT != lAmount;
 
                 if (bMemoExists && (strMemo.find("\n") != string::npos) &&
                     !bShowLargeMemo) {
@@ -10346,104 +10313,102 @@ OT_COMMANDS_OT int32_t OT_Command::mainInpayments()
 
             int32_t nCount =
                 OTAPI_Wrap::Ledger_GetCount(Server, MyNym, MyNym, strInbox);
-            if (VerifyIntVal(nCount)) {
-                if (nCount > 0) {
-                    otOut << "Show payments inbox (Nym/Server)\n( " << MyNym
-                          << " / " << Server << " )\n";
-                    otOut << "Idx  Amt   Type      Txn#  Asset_Type\n";
-                    otOut << "---------------------------------------\n";
+            if (0 > nCount) {
+                return -1;
+            }
 
-                    for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                        string strInstrument = OTAPI_Wrap::Ledger_GetInstrument(
-                            Server, MyNym, MyNym, strInbox, nIndex);
+            if (nCount > 0) {
+                otOut << "Show payments inbox (Nym/Server)\n( " << MyNym
+                      << " / " << Server << " )\n";
+                otOut << "Idx  Amt   Type      Txn#  Asset_Type\n";
+                otOut << "---------------------------------------\n";
 
-                        if (!VerifyStringVal(strInstrument)) {
-                            otOut << "Failed trying to get payment instrument "
-                                     "from payments box.\n";
-                            return -1;
-                        }
+                for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                    string strInstrument = OTAPI_Wrap::Ledger_GetInstrument(
+                        Server, MyNym, MyNym, strInbox, nIndex);
 
-                        string strTrans =
-                            OTAPI_Wrap::Ledger_GetTransactionByIndex(
-                                Server, MyNym, MyNym, strInbox, nIndex);
-                        int64_t lTransNumber =
-                            OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
-                                Server, MyNym, MyNym, strInbox, nIndex);
-
-                        string strTransID = VerifyIntVal(lTransNumber)
-                                                ? to_string(lTransNumber)
-                                                : "UNKNOWN_TRANS_NUM";
-
-                        OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
-                            Server, MyNym, MyNym, strTrans);
-                        int64_t lAmount =
-                            OTAPI_Wrap::Instrmnt_GetAmount(strInstrument);
-                        string strType =
-                            OTAPI_Wrap::Instrmnt_GetType(strInstrument);
-                        string strAssetType = OTAPI_Wrap::Instrmnt_GetAssetID(
-                            strInstrument); // todo: output this.
-                        string strSenderUserID =
-                            OTAPI_Wrap::Instrmnt_GetSenderUserID(strInstrument);
-                        string strSenderAcctID =
-                            OTAPI_Wrap::Instrmnt_GetSenderAcctID(strInstrument);
-                        string strRecipientUserID =
-                            OTAPI_Wrap::Instrmnt_GetRecipientUserID(
-                                strInstrument);
-                        string strRecipientAcctID =
-                            OTAPI_Wrap::Instrmnt_GetRecipientAcctID(
-                                strInstrument);
-
-                        string strUserID = VerifyStringVal(strSenderUserID)
-                                               ? strSenderUserID
-                                               : strRecipientUserID;
-                        string strAcctID = VerifyStringVal(strSenderAcctID)
-                                               ? strSenderAcctID
-                                               : strRecipientAcctID;
-
-                        bool bHasAmount = VerifyIntVal(lAmount);
-                        bool bHasAsset = VerifyStringVal(strAssetType);
-
-                        string strAmount = (bHasAmount && bHasAsset)
-                                               ? OTAPI_Wrap::FormatAmount(
-                                                     strAssetType, lAmount)
-                                               : "UNKNOWN_AMOUNT";
-
-                        VerifyStringVal(strUserID);
-                        VerifyStringVal(strAcctID);
-                        bool bAssetIDExists = VerifyStringVal(strAssetType);
-
-                        string strAssetDenoter = (bAssetIDExists ? " - " : "");
-
-                        string strAssetName =
-                            (bAssetIDExists
-                                 ? ("\"" + OTAPI_Wrap::GetAssetType_Name(
-                                               strAssetType) +
-                                    "\"")
-                                 : "");
-                        if (!VerifyStringVal(strAssetName)) {
-                            strAssetName = "";
-                            strAssetDenoter = "";
-                        }
-
-                        cout << nIndex << "    ";
-                        cout << strAmount
-                             << (strAmount.size() < 3 ? "    " : "   ");
-                        cout << strType << (strType.size() > 10 ? " " : "    ");
-                        cout << strTransID
-                             << (strTransID.size() < 2 ? "    " : "   ");
-                        cout << strAssetType << strAssetDenoter << strAssetName
-                             << "\n";
+                    if (!VerifyStringVal(strInstrument)) {
+                        otOut << "Failed trying to get payment instrument from "
+                                 "payments box.\n";
+                        return -1;
                     }
 
-                    otOut << "\n For the above, try: acceptpayments, "
-                             "acceptinvoices, acceptmoney, or acceptall.\n "
-                             "EXCEPT for smart contracts and payment plans -- "
-                             "for those, use: opentxs confirm\n\n";
+                    string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
+                        Server, MyNym, MyNym, strInbox, nIndex);
+                    int64_t lTransNumber =
+                        OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
+                            Server, MyNym, MyNym, strInbox, nIndex);
+
+                    string strTransID = 0 <= lTransNumber
+                                            ? to_string(lTransNumber)
+                                            : "UNKNOWN_TRANS_NUM";
+
+                    OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
+                        Server, MyNym, MyNym, strTrans);
+                    int64_t lAmount =
+                        OTAPI_Wrap::Instrmnt_GetAmount(strInstrument);
+                    string strType =
+                        OTAPI_Wrap::Instrmnt_GetType(strInstrument);
+                    string strAssetType = OTAPI_Wrap::Instrmnt_GetAssetID(
+                        strInstrument); // todo: output this.
+                    string strSenderUserID =
+                        OTAPI_Wrap::Instrmnt_GetSenderUserID(strInstrument);
+                    string strSenderAcctID =
+                        OTAPI_Wrap::Instrmnt_GetSenderAcctID(strInstrument);
+                    string strRecipientUserID =
+                        OTAPI_Wrap::Instrmnt_GetRecipientUserID(strInstrument);
+                    string strRecipientAcctID =
+                        OTAPI_Wrap::Instrmnt_GetRecipientAcctID(strInstrument);
+
+                    string strUserID = VerifyStringVal(strSenderUserID)
+                                           ? strSenderUserID
+                                           : strRecipientUserID;
+                    string strAcctID = VerifyStringVal(strSenderAcctID)
+                                           ? strSenderAcctID
+                                           : strRecipientAcctID;
+
+                    bool bHasAmount = OT_ERROR_AMOUNT != lAmount;
+                    bool bHasAsset = VerifyStringVal(strAssetType);
+
+                    string strAmount =
+                        (bHasAmount && bHasAsset)
+                            ? OTAPI_Wrap::FormatAmount(strAssetType, lAmount)
+                            : "UNKNOWN_AMOUNT";
+
+                    VerifyStringVal(strUserID);
+                    VerifyStringVal(strAcctID);
+                    bool bAssetIDExists = VerifyStringVal(strAssetType);
+
+                    string strAssetDenoter = (bAssetIDExists ? " - " : "");
+
+                    string strAssetName =
+                        (bAssetIDExists ? ("\"" + OTAPI_Wrap::GetAssetType_Name(
+                                                      strAssetType) +
+                                           "\"")
+                                        : "");
+                    if (!VerifyStringVal(strAssetName)) {
+                        strAssetName = "";
+                        strAssetDenoter = "";
+                    }
+
+                    cout << nIndex << "    ";
+                    cout << strAmount
+                         << (strAmount.size() < 3 ? "    " : "   ");
+                    cout << strType << (strType.size() > 10 ? " " : "    ");
+                    cout << strTransID
+                         << (strTransID.size() < 2 ? "    " : "   ");
+                    cout << strAssetType << strAssetDenoter << strAssetName
+                         << "\n";
                 }
-                else {
-                    otOut << "\n Payments inbox is empty (Nym/Server: " << MyNym
-                          << " / " << Server << " )\n";
-                }
+
+                otOut << "\n For the above, try: acceptpayments, "
+                         "acceptinvoices, acceptmoney, or acceptall.\n EXCEPT "
+                         "for smart contracts and payment plans -- for those, "
+                         "use: opentxs confirm\n\n";
+            }
+            else {
+                otOut << "\n Payments inbox is empty (Nym/Server: " << MyNym
+                      << " / " << Server << " )\n";
             }
 
             return 1;
@@ -10507,7 +10472,7 @@ OT_Command::details_show_record(const string& strServerID,
         bAcctIDExists ? OTAPI_Wrap::GetAccountWallet_AssetTypeID(strAcctID)
                       : "";
 
-    bool bHasAmount = VerifyIntVal(lAmount);
+    bool bHasAmount = OT_ERROR_AMOUNT != lAmount;
     bool bHasAsset = VerifyStringVal(strAssetTypeID);
 
     string strAmount =
@@ -10544,18 +10509,20 @@ OT_Command::details_show_records(const string& strServerID,
 
     int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                  strMyAcctID, strRecordBox);
-    if (VerifyIntVal(nCount)) {
-        otOut << "SHOW RECORDS: \n\n";
-        otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
-        otOut << "---------------------------------|(from or to)\n";
+    if (0 > nCount) {
+        return -1;
+    }
 
-        for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!details_show_record(strServerID, strMyNymID, strMyAcctID,
-                                     nIndex, strRecordBox)) {
-                otOut << "details_show_records: Error calling "
-                         "details_show_record.\n";
-                return -1;
-            }
+    otOut << "SHOW RECORDS: \n\n";
+    otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
+    otOut << "---------------------------------|(from or to)\n";
+
+    for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!details_show_record(strServerID, strMyNymID, strMyAcctID, nIndex,
+                                 strRecordBox)) {
+            otOut
+                << "details_show_records: Error calling details_show_record.\n";
+            return -1;
         }
     }
 
@@ -10885,7 +10852,7 @@ OT_Command::details_show_expired(const string& strServerID,
                       : "";
 
     string strAmount =
-        VerifyIntVal(lAmount)
+        OT_ERROR_AMOUNT != lAmount
             ? (VerifyStringVal(strAssetTypeID)
                    ? OTAPI_Wrap::FormatAmount(strAssetTypeID, lAmount)
                    : to_string(lAmount))
@@ -10918,18 +10885,20 @@ OT_Command::details_show_expired_records(const string& strServerID,
 
     int32_t nCount = OTAPI_Wrap::Ledger_GetCount(strServerID, strMyNymID,
                                                  strMyNymID, strExpiredBox);
-    if (VerifyIntVal(nCount)) {
-        otOut << "SHOW EXPIRED RECORDS: \n\n";
-        otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
-        otOut << "---------------------------------|(from or to)\n";
+    if (0 > nCount) {
+        return -1;
+    }
 
-        for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-            if (!details_show_expired(strServerID, strMyNymID, nIndex,
-                                      strExpiredBox)) {
-                otOut << "details_show_expired_records: Error calling "
-                         "details_show_expired.\n";
-                return -1;
-            }
+    otOut << "SHOW EXPIRED RECORDS: \n\n";
+    otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
+    otOut << "---------------------------------|(from or to)\n";
+
+    for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (!details_show_expired(strServerID, strMyNymID, nIndex,
+                                  strExpiredBox)) {
+            otOut << "details_show_expired_records: Error calling "
+                     "details_show_expired.\n";
+            return -1;
         }
     }
 
@@ -11006,103 +10975,100 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
 
             int32_t nCount = OTAPI_Wrap::Ledger_GetCount(
                 strServerID, strMyNymID, MyAcct, strInbox);
-            if (VerifyIntVal(nCount)) {
-                if (nCount > 0) {
-                    otOut << "Show inbox for an asset account  (" << MyAcct
-                          << "): \n";
-                    otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
-                    otOut << "---------------------------------|(from or to)\n";
+            if (0 > nCount) {
+                return -1;
+            }
 
-                    for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                        string strTrans =
-                            OTAPI_Wrap::Ledger_GetTransactionByIndex(
-                                strServerID, strMyNymID, MyAcct, strInbox,
-                                nIndex);
-                        int64_t lTransID =
-                            OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
-                                strServerID, strMyNymID, MyAcct, strInbox,
-                                nIndex);
-                        int64_t lRefNum =
-                            OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        int64_t lAmount = OTAPI_Wrap::Transaction_GetAmount(
+            if (nCount > 0) {
+                otOut << "Show inbox for an asset account  (" << MyAcct
+                      << "): \n";
+                otOut << "Idx  Amt  Type        Txn# InRef#|User / Acct\n";
+                otOut << "---------------------------------|(from or to)\n";
+
+                for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                    string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
+                        strServerID, strMyNymID, MyAcct, strInbox, nIndex);
+                    int64_t lTransID =
+                        OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
+                            strServerID, strMyNymID, MyAcct, strInbox, nIndex);
+                    int64_t lRefNum =
+                        OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
                             strServerID, strMyNymID, MyAcct, strTrans);
-                        string strType = OTAPI_Wrap::Transaction_GetType(
+                    int64_t lAmount = OTAPI_Wrap::Transaction_GetAmount(
+                        strServerID, strMyNymID, MyAcct, strTrans);
+                    string strType = OTAPI_Wrap::Transaction_GetType(
+                        strServerID, strMyNymID, MyAcct, strTrans);
+                    string strSenderUserID =
+                        OTAPI_Wrap::Transaction_GetSenderUserID(
                             strServerID, strMyNymID, MyAcct, strTrans);
-                        string strSenderUserID =
-                            OTAPI_Wrap::Transaction_GetSenderUserID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strSenderAcctID =
-                            OTAPI_Wrap::Transaction_GetSenderAcctID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strRecipientUserID =
-                            OTAPI_Wrap::Transaction_GetRecipientUserID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strRecipientAcctID =
-                            OTAPI_Wrap::Transaction_GetRecipientAcctID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
+                    string strSenderAcctID =
+                        OTAPI_Wrap::Transaction_GetSenderAcctID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
+                    string strRecipientUserID =
+                        OTAPI_Wrap::Transaction_GetRecipientUserID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
+                    string strRecipientAcctID =
+                        OTAPI_Wrap::Transaction_GetRecipientAcctID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
 
-                        string strUserID = VerifyStringVal(strSenderUserID)
-                                               ? strSenderUserID
-                                               : strRecipientUserID;
-                        string strAcctID = VerifyStringVal(strSenderAcctID)
-                                               ? strSenderAcctID
-                                               : strRecipientAcctID;
+                    string strUserID = VerifyStringVal(strSenderUserID)
+                                           ? strSenderUserID
+                                           : strRecipientUserID;
+                    string strAcctID = VerifyStringVal(strSenderAcctID)
+                                           ? strSenderAcctID
+                                           : strRecipientAcctID;
 
-                        bool bUserIDExists = VerifyStringVal(strUserID);
-                        bool bAcctIDExists = VerifyStringVal(strAcctID);
+                    bool bUserIDExists = VerifyStringVal(strUserID);
+                    bool bAcctIDExists = VerifyStringVal(strAcctID);
 
-                        string strNewlineSeparator = "";
+                    string strNewlineSeparator = "";
 
-                        if (bUserIDExists || bAcctIDExists) {
-                            strNewlineSeparator =
-                                "\n                                 |";
-                        }
-
-                        string strSeparator = (!bUserIDExists && !bAcctIDExists)
-                                                  ? ""
-                                                  : strNewlineSeparator;
-
-                        string strUserDenoter = (bUserIDExists ? "U:" : "");
-                        string strAcctDenoter = (bAcctIDExists ? "A:" : "");
-
-                        string strAssetTypeID =
-                            bAcctIDExists
-                                ? OTAPI_Wrap::GetAccountWallet_AssetTypeID(
-                                      strAcctID)
-                                : "";
-
-                        string strAmount =
-                            VerifyIntVal(lAmount)
-                                ? (VerifyStringVal(strAssetTypeID)
-                                       ? OTAPI_Wrap::FormatAmount(
-                                             strAssetTypeID, lAmount)
-                                       : to_string(lAmount))
-                                : "UNKNOWN_AMOUNT";
-
-                        otOut << nIndex << "    ";
-                        otOut << strAmount
-                              << (strAmount.size() < 3 ? "    " : "   ");
-                        otOut << strType;
-                        otOut << (strType.size() > 10 ? " " : "    ");
-                        otOut << lTransID
-                              << (to_string(lTransID).size() < 2 ? "    "
-                                                                 : "   ");
-                        otOut << lRefNum
-                              << (to_string(lRefNum).size() > 2 ? "  " : " ")
-                              << "|";
-                        otOut << strUserDenoter << strUserID << strSeparator
-                              << strAcctDenoter << strAcctID << "\n";
+                    if (bUserIDExists || bAcctIDExists) {
+                        strNewlineSeparator =
+                            "\n                                 |";
                     }
 
-                    otOut << "\n For the above, try: accepttransfers, "
-                             "acceptreceipts, acceptinbox, acceptmoney, or "
-                             "acceptall.\n";
+                    string strSeparator = (!bUserIDExists && !bAcctIDExists)
+                                              ? ""
+                                              : strNewlineSeparator;
+
+                    string strUserDenoter = (bUserIDExists ? "U:" : "");
+                    string strAcctDenoter = (bAcctIDExists ? "A:" : "");
+
+                    string strAssetTypeID =
+                        bAcctIDExists
+                            ? OTAPI_Wrap::GetAccountWallet_AssetTypeID(
+                                  strAcctID)
+                            : "";
+
+                    string strAmount = OT_ERROR_AMOUNT != lAmount
+                                           ? (VerifyStringVal(strAssetTypeID)
+                                                  ? OTAPI_Wrap::FormatAmount(
+                                                        strAssetTypeID, lAmount)
+                                                  : to_string(lAmount))
+                                           : "UNKNOWN_AMOUNT";
+
+                    otOut << nIndex << "    ";
+                    otOut << strAmount
+                          << (strAmount.size() < 3 ? "    " : "   ");
+                    otOut << strType;
+                    otOut << (strType.size() > 10 ? " " : "    ");
+                    otOut << lTransID
+                          << (to_string(lTransID).size() < 2 ? "    " : "   ");
+                    otOut << lRefNum
+                          << (to_string(lRefNum).size() > 2 ? "  " : " ")
+                          << "|";
+                    otOut << strUserDenoter << strUserID << strSeparator
+                          << strAcctDenoter << strAcctID << "\n";
                 }
-                else {
-                    otOut << "\n Asset account inbox ( " << MyAcct
-                          << " ) is empty.\n";
-                }
+
+                otOut << "\n For the above, try: accepttransfers, "
+                         "acceptreceipts, acceptinbox, acceptmoney, or "
+                         "acceptall.\n";
+            }
+            else {
+                otOut << "\n Asset account inbox ( " << MyAcct
+                      << " ) is empty.\n";
             }
 
             return 1;
@@ -11157,97 +11123,91 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
 
             int32_t nCount = OTAPI_Wrap::Ledger_GetCount(
                 strServerID, strMyNymID, MyAcct, strOutbox);
-            if (VerifyIntVal(nCount)) {
-                otOut << "===> SHOW OUTBOX: \n";
+            if (0 > nCount) {
+                return -1;
+            }
 
-                if (nCount <= 0) {
-                    otOut
-                        << "\nAsset account outbox is empty for account: "
-                        << MyAcct
-                        << "\n\n--------------------------------------------\n";
-                }
-                else {
-                    otOut
-                        << "\nIdx  Amt  Type        Txn# InRef#|User / Acct\n";
-                    otOut << "---------------------------------|(from or to)\n";
+            otOut << "===> SHOW OUTBOX: \n";
 
-                    for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                        string strTrans =
-                            OTAPI_Wrap::Ledger_GetTransactionByIndex(
-                                strServerID, strMyNymID, MyAcct, strOutbox,
-                                nIndex);
-                        int64_t lTransID =
-                            OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
-                                strServerID, strMyNymID, MyAcct, strOutbox,
-                                nIndex);
-                        int64_t lRefNum =
-                            OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        int64_t lAmount = OTAPI_Wrap::Transaction_GetAmount(
+            if (nCount <= 0) {
+                otOut << "\nAsset account outbox is empty for account: "
+                      << MyAcct
+                      << "\n\n--------------------------------------------\n";
+            }
+            else {
+                otOut << "\nIdx  Amt  Type        Txn# InRef#|User / Acct\n";
+                otOut << "---------------------------------|(from or to)\n";
+
+                for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                    string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
+                        strServerID, strMyNymID, MyAcct, strOutbox, nIndex);
+                    int64_t lTransID =
+                        OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
+                            strServerID, strMyNymID, MyAcct, strOutbox, nIndex);
+                    int64_t lRefNum =
+                        OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
                             strServerID, strMyNymID, MyAcct, strTrans);
-                        string strType = OTAPI_Wrap::Transaction_GetType(
+                    int64_t lAmount = OTAPI_Wrap::Transaction_GetAmount(
+                        strServerID, strMyNymID, MyAcct, strTrans);
+                    string strType = OTAPI_Wrap::Transaction_GetType(
+                        strServerID, strMyNymID, MyAcct, strTrans);
+                    string strSenderUserID =
+                        OTAPI_Wrap::Transaction_GetSenderUserID(
                             strServerID, strMyNymID, MyAcct, strTrans);
-                        string strSenderUserID =
-                            OTAPI_Wrap::Transaction_GetSenderUserID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strSenderAcctID =
-                            OTAPI_Wrap::Transaction_GetSenderAcctID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strRecipientUserID =
-                            OTAPI_Wrap::Transaction_GetRecipientUserID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
-                        string strRecipientAcctID =
-                            OTAPI_Wrap::Transaction_GetRecipientAcctID(
-                                strServerID, strMyNymID, MyAcct, strTrans);
+                    string strSenderAcctID =
+                        OTAPI_Wrap::Transaction_GetSenderAcctID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
+                    string strRecipientUserID =
+                        OTAPI_Wrap::Transaction_GetRecipientUserID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
+                    string strRecipientAcctID =
+                        OTAPI_Wrap::Transaction_GetRecipientAcctID(
+                            strServerID, strMyNymID, MyAcct, strTrans);
 
-                        string strUserID = strRecipientUserID;
-                        string strAcctID = strRecipientAcctID;
+                    string strUserID = strRecipientUserID;
+                    string strAcctID = strRecipientAcctID;
 
-                        bool bUserIDExists = VerifyStringVal(strUserID);
-                        bool bAcctIDExists = VerifyStringVal(strAcctID);
+                    bool bUserIDExists = VerifyStringVal(strUserID);
+                    bool bAcctIDExists = VerifyStringVal(strAcctID);
 
-                        string strNewlineSeparator = "";
+                    string strNewlineSeparator = "";
 
-                        if (bUserIDExists || bAcctIDExists) {
-                            strNewlineSeparator =
-                                "\n                                 |";
-                        }
-
-                        string strSeparator = (!bUserIDExists && !bAcctIDExists)
-                                                  ? ""
-                                                  : strNewlineSeparator;
-
-                        string strUserDenoter = (bUserIDExists ? "U:" : "");
-                        string strAcctDenoter = (bAcctIDExists ? "A:" : "");
-
-                        string strAssetTypeID =
-                            bAcctIDExists
-                                ? OTAPI_Wrap::GetAccountWallet_AssetTypeID(
-                                      strAcctID)
-                                : "";
-
-                        string strAmount =
-                            VerifyIntVal(lAmount)
-                                ? (VerifyStringVal(strAssetTypeID)
-                                       ? OTAPI_Wrap::FormatAmount(
-                                             strAssetTypeID, lAmount)
-                                       : to_string(lAmount))
-                                : "UNKNOWN_AMOUNT";
-
-                        otOut << nIndex << "    ";
-                        otOut << strAmount
-                              << (strAmount.size() < 3 ? "    " : "   ");
-                        otOut << strType
-                              << (strType.size() > 10 ? " " : "    ");
-                        otOut << lTransID
-                              << (to_string(lTransID).size() < 2 ? "    "
-                                                                 : "   ");
-                        otOut << lRefNum
-                              << (to_string(lRefNum).size() > 2 ? "  " : " ")
-                              << "|";
-                        otOut << strUserDenoter << strUserID << strSeparator
-                              << strAcctDenoter << strAcctID << "\n";
+                    if (bUserIDExists || bAcctIDExists) {
+                        strNewlineSeparator =
+                            "\n                                 |";
                     }
+
+                    string strSeparator = (!bUserIDExists && !bAcctIDExists)
+                                              ? ""
+                                              : strNewlineSeparator;
+
+                    string strUserDenoter = (bUserIDExists ? "U:" : "");
+                    string strAcctDenoter = (bAcctIDExists ? "A:" : "");
+
+                    string strAssetTypeID =
+                        bAcctIDExists
+                            ? OTAPI_Wrap::GetAccountWallet_AssetTypeID(
+                                  strAcctID)
+                            : "";
+
+                    string strAmount = OT_ERROR_AMOUNT != lAmount
+                                           ? (VerifyStringVal(strAssetTypeID)
+                                                  ? OTAPI_Wrap::FormatAmount(
+                                                        strAssetTypeID, lAmount)
+                                                  : to_string(lAmount))
+                                           : "UNKNOWN_AMOUNT";
+
+                    otOut << nIndex << "    ";
+                    otOut << strAmount
+                          << (strAmount.size() < 3 ? "    " : "   ");
+                    otOut << strType << (strType.size() > 10 ? " " : "    ");
+                    otOut << lTransID
+                          << (to_string(lTransID).size() < 2 ? "    " : "   ");
+                    otOut << lRefNum
+                          << (to_string(lRefNum).size() > 2 ? "  " : " ")
+                          << "|";
+                    otOut << strUserDenoter << strUserID << strSeparator
+                          << strAcctDenoter << strAcctID << "\n";
                 }
             }
 
@@ -11262,13 +11222,6 @@ OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
                                                   const bool bShowContents)
 {
     bool bMailVerified = OTAPI_Wrap::Nym_VerifyMailByIndex(strMyNymID, nIndex);
-
-    if (!VerifyBoolVal(bMailVerified)) {
-        otOut
-            << "Error: bad result from OT_API_Nym_VerifyMailByIndex at Index: "
-            << nIndex << "\n";
-        return false;
-    }
 
     if (!bMailVerified) {
         cout << "UNVERIFIED mail! At index: " << nIndex << "\n\n";
@@ -11466,12 +11419,6 @@ OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutmailByIndex(strMyNymID, nIndex);
 
-    if (!VerifyBoolVal(bMailVerified)) {
-        otOut << "Error: bad result from OT_API_Nym_VerifyOutmailByIndex at "
-                 "Index: " << nIndex << "\n";
-        return false;
-    }
-
     if (!bMailVerified) {
         cout << "UNVERIFIED outmail! At index: " << nIndex << "\n\n";
         //      return false;
@@ -11656,13 +11603,6 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutpaymentsByIndex(strMyNym, nIndex);
 
-    if (!VerifyBoolVal(bMailVerified)) {
-        otOut
-            << "Error: bad result from  Nym_VerifyOutpaymentsByIndex at Index: "
-            << nIndex << "\n";
-        return false;
-    }
-
     if (!bMailVerified) {
         cout << "UNVERIFIED sent (outgoing) payment! At index: " << nIndex
              << "\n";
@@ -11683,11 +11623,9 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
     if (VerifyStringVal(strMailContents)) {
         int64_t lPaymentAmount =
             OTAPI_Wrap::Instrmnt_GetAmount(strMailContents);
-        string strPaymentAmount = "UNKNOWN_PAYMENT_AMOUNT";
-
-        if (VerifyIntVal(lPaymentAmount)) {
-            strPaymentAmount = to_string(lPaymentAmount);
-        }
+        string strPaymentAmount = OT_ERROR_AMOUNT != lPaymentAmount
+                                      ? to_string(lPaymentAmount)
+                                      : "UNKNOWN_PAYMENT_AMOUNT";
 
         string strPaymentAssetID =
             OTAPI_Wrap::Instrmnt_GetAssetID(strMailContents);
@@ -11726,12 +11664,12 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
             strPaymentAssetID = "UNKNOWN_ASSET_ID";
         }
 
-        if (VerifyIntVal(lPaymentAmount)) {
+        if (OT_ERROR_AMOUNT != lPaymentAmount) {
             if (!VerifyStringVal(strPaymentType)) {
                 strPaymentType = "UNKNOWN_PAYMENT_TYPE";
             }
             string strTempFormat;
-            if ((lPaymentAmount > -1)) {
+            if (lPaymentAmount >= 0) {
                 strTempFormat =
                     OTAPI_Wrap::FormatAmount(strPaymentAssetID, lPaymentAmount);
             }
