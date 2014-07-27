@@ -4771,7 +4771,7 @@ OT_Command::details_create_offer(const string& strScale,
 
     OTDB::OfferListNym& offerList = *loadNymOffers(strMyServerID, strMyNymID);
 
-    if (!VerifyStorable(&offerList, "OTDB::OfferListNym")) {
+    if (nullptr == &offerList) {
         otOut << strLocation << ": Unable to load up a (nym) offerList from "
                                 "local storage. Probably doesn't exist.\n";
     }
@@ -4784,7 +4784,7 @@ OT_Command::details_create_offer(const string& strScale,
         if (nCount > 0) {
             MapOfMaps* map_of_maps = convert_offerlist_to_maps(offerList);
 
-            if (!VerifyType(map_of_maps, "Map")) {
+            if (nullptr == map_of_maps) {
                 otOut << strLocation << ": Unable to convert offer list to map "
                                         "of offers. Perhaps it's empty?\n";
             }
@@ -6847,7 +6847,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
     OTDB::Storable* storable =
         OTDB::QueryObject(OTDB::STORED_OBJ_MARKET_LIST, "markets", serverID,
                           "market_data.bin", "");
-    if (!VerifyStorable(storable, "OTDB::Storable")) {
+    if (nullptr == storable) {
         otOut << "Failed to verify storable object. Probably doesn't exist.\n";
         return nullptr;
     }
@@ -6856,7 +6856,7 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
               "marketlist...\n";
 
     OTDB::MarketList* marketList = dynamic_cast<OTDB::MarketList*>(storable);
-    if (!VerifyStorable(marketList, "OTDB::MarketList")) {
+    if (nullptr == marketList) {
         otOut << "Unable to dynamic cast a storable to a marketlist.\n";
         return nullptr;
     }
@@ -6873,7 +6873,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
     if (VerifyExists("Server")) {
         OTDB::MarketList& marketList = *loadMarketList(Server);
 
-        if (!VerifyStorable(&marketList, "OTDB::MarketList")) {
+        if (nullptr == &marketList) {
             otOut << "Unable to load up marketlist from local storage.\n";
             return -1;
         }
@@ -6896,7 +6896,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
                 OTDB::MarketData& marketData =
                     *marketList.GetMarketData(nIndex);
-                if (!VerifyStorable(&marketData, "OTDB::MarketData")) {
+                if (nullptr == &marketData) {
                     otOut << "Unable to reference marketData on marketList, at "
                              "index: " << nIndex << "\n";
                     return -1;
@@ -6951,7 +6951,7 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
             OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET, "markets",
                               serverID, "offers", marketID + ".bin");
 
-        if (!VerifyStorable(storable, "OTDB::Storable")) {
+        if (nullptr == storable) {
             otOut << "Unable to verify storable object. Probably doesn't "
                      "exist.\n";
             return nullptr;
@@ -6961,7 +6961,7 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
                   "(market) offerList...\n";
         offerList = dynamic_cast<OTDB::OfferListMarket*>(storable);
 
-        if (!VerifyStorable(offerList, "OTDB::OfferListMarket")) {
+        if (nullptr == offerList) {
             otOut << "Unable to dynamic cast a storable to a (market) "
                      "offerList.\n";
             return nullptr;
@@ -6978,7 +6978,7 @@ OT_Command::details_show_market_offers(const string& strServerID,
     OTDB::OfferListMarket& offerList =
         *loadMarketOffers(strServerID, strMarketID);
 
-    if (!VerifyStorable(&offerList, "OTDB::OfferListMarket")) {
+    if (nullptr == &offerList) {
         otOut << "Unable to load up a (market) offerList from local storage.\n";
         return -1;
     }
@@ -6992,7 +6992,7 @@ OT_Command::details_show_market_offers(const string& strServerID,
 
         for (int32_t nIndex = 0; nIndex < nBidCount; ++nIndex) {
             OTDB::BidData& offerData = *offerList.GetBidData(nIndex);
-            if (!VerifyStorable(&offerData, "OTDB::BidData")) {
+            if (nullptr == &offerData) {
                 otOut << "Unable to reference bidData on offerList, at index: "
                       << nIndex << "\n";
                 return -1;
@@ -7015,7 +7015,7 @@ OT_Command::details_show_market_offers(const string& strServerID,
             nTemp = nIndex;
             OTDB::AskData& offerData = *offerList.GetAskData(nTemp);
 
-            if (!VerifyStorable(&offerData, "OTDB::AskData")) {
+            if (nullptr == &offerData) {
                 otOut << "Unable to reference askData on offerList, at index: "
                       << nIndex << "\n";
                 return -1;
@@ -7255,7 +7255,7 @@ OT_Command::details_show_nym_offers(const string& strServerID,
 
     OTDB::OfferListNym& offerList = *loadNymOffers(strServerID, strNymID);
 
-    if (!VerifyStorable(&offerList, "OTDB::OfferListNym")) {
+    if (nullptr == &offerList) {
         otOut << strLocation << ": Unable to load up a (nym) offerList from "
                                 "local storage. Probably doesn't exist.\n";
         return -1;
@@ -7269,7 +7269,7 @@ OT_Command::details_show_nym_offers(const string& strServerID,
     if (nCount > 0) {
         MapOfMaps& map_of_maps = *convert_offerlist_to_maps(offerList);
 
-        if (!VerifyType(&map_of_maps, "Map")) {
+        if (nullptr == &map_of_maps) {
             otOut << strLocation << ": Unable to convert offer list to map of "
                                     "offers. Perhaps it's empty?\n";
             return -1;
