@@ -20,7 +20,10 @@
 #include "ot_otapi_ot.hpp"
 
 #include <OTAPI.hpp>
+#include <OTLog.hpp>
 #include <OT_ME.hpp>
+
+#include <locale>
 
 namespace opentxs
 {
@@ -33,45 +36,14 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr)
 OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
                                 const bool bDisplayError)
 {
-    // var objs = get_objects();
-
-    // if (0 >= objs.size()) { return false; }
-
     if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
-        string strDefault = "";
-
-        if ("Server" == theObjectNameAsStr) {
-            strDefault = "--server <SERVER_ID>";
-        }
-        else if ("MyNym" == theObjectNameAsStr) {
-            strDefault = "--mynym <NYM_ID>";
-        }
-        else if ("MyAcct" == theObjectNameAsStr) {
-            strDefault = "--myacct <ACCT_ID>";
-        }
-        else if ("MyPurse" == theObjectNameAsStr) {
-            strDefault = "--mypurse <ASSET_TYPE_ID>";
-        }
-        else if ("HisNym" == theObjectNameAsStr) {
-            strDefault = "--hisnym <NYM_ID>";
-        }
-        else if ("HisAcct" == theObjectNameAsStr) {
-            strDefault = "--hisacct <ACCT_ID>";
-        }
-        else if ("HisPurse" == theObjectNameAsStr) {
-            strDefault = "--hispurse <ASSET_TYPE_ID>";
-        }
-        else if ("Args" == theObjectNameAsStr) {
-            strDefault = "--args \"key1 value1 key2 value2 key3 \\\"Here is "
-                         "value 3\\\"\"";
-        }
-
         if (bDisplayError) {
-            OTAPI_Wrap::Output(
-                0, "Missing variable: " + theObjectNameAsStr +
-                       ". Try adding it as a parameter, like this:\n" +
-                       strDefault + "\n(Or if you prefer, set the default in "
-                                    "~/.ot/command-line-ot.opt)\n\n");
+            otOut << "Missing parameter: --";
+            std::locale loc;
+            for (auto elem : theObjectNameAsStr) {
+                otOut << std::tolower(elem, loc);
+            }
+            otOut << "\n";
         }
         return false;
     }
