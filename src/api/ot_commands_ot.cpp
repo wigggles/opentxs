@@ -878,8 +878,7 @@ OT_Command::details_discard_incoming(const string& strServer,
                 // removes payment instrument (from payments in or out box)
                 bool bRecorded = OTAPI_Wrap::RecordPayment(
                     strServer, strMyNym, true, nInboxIndex, false);
-                string strRecorded = bRecorded ? "Success" : "Failure";
-                otOut << "\n" << strRecorded
+                otOut << "\n" << (bRecorded ? "Success" : "Failure")
                       << " discarding instrument from payments inbox at index: "
                       << nInboxIndex
                       << ".\n\n NOTE: Now the sender has to leave it in his "
@@ -1202,9 +1201,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                 otOut << "Discarded cash purse:\n\n"
                                       << strPaymentContents << "\n";
                             }
-                            string strRecorded =
-                                bRecorded ? "Success" : "Failure";
-                            otOut << strRecorded
+                            otOut << (bRecorded ? "Success" : "Failure")
                                   << " discarding cash purse from "
                                      "outpayment box at index: " << nIndex
                                   << ".\n\n";
@@ -4981,9 +4978,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewOffer()
             strLifespan = strDefaultLifespan;
         }
 
-        bool bType = ((strType == "bid") ? false : true);
         return details_create_offer(strScale, strMinIncrement, strQuantity,
-                                    strPrice, bType, strLifespan);
+                                    strPrice, strType != "bid", strLifespan);
     }
 
     return -1;
@@ -5969,8 +5965,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptMoney()
         int32_t nAcceptedCheques =
             accept_from_paymentbox(MyAcct, strIndices, "CHEQUE");
 
-        if ((nAcceptedTransfers > -1) || (nAcceptedPurses > -1) ||
-            (nAcceptedCheques > -1)) {
+        // FIX: these OR's should become AND's so we can detect any failure
+        if (nAcceptedTransfers >= 0 || nAcceptedPurses >= 0 ||
+            nAcceptedCheques >= 0) {
             return 1;
         }
     }
@@ -6003,10 +6000,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptAll()
         int32_t nAcceptedInvoices =
             accept_from_paymentbox(MyAcct, strIndices, "INVOICE");
 
-        // If all four calls succeed, then the total here is 4.
-        // So we return success as well (1).
-        if (4 == (nAcceptedInbox + nAcceptedPurses + nAcceptedCheques +
-                  nAcceptedInvoices)) {
+        if (nAcceptedInbox >= 0 && nAcceptedPurses >= 0 &&
+            nAcceptedCheques >= 0 && nAcceptedInvoices >= 0) {
             return 1;
         }
     }
@@ -6161,13 +6156,13 @@ OT_Command::details_download_contract(const string& strServerID,
         MadeEasy::retrieve_contract(strServerID, strNymID, strContractID);
     int32_t nRetrieved = VerifyMessageSuccess(strRetrieved);
 
-    string strSuccess = "ERROR";
+    string strSuccess = "Error";
 
     if (1 == nRetrieved) {
-        strSuccess = "SUCCESS";
+        strSuccess = "Success";
     }
     else if (0 == nRetrieved) {
-        strSuccess = "FAILED";
+        strSuccess = "Failed";
     }
 
     otOut << "\n\n " << strSuccess << " retrieving contract: " << strContractID
@@ -9040,8 +9035,8 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
                  "Server based on the account.\n\n";
         return -1;
     }
-    string strInbox = OTAPI_Wrap::LoadPaymentInbox(strServerID, strMyNymID);
 
+    string strInbox = OTAPI_Wrap::LoadPaymentInbox(strServerID, strMyNymID);
     if (!VerifyStringVal(strInbox)) {
         otOut << "\n\n accept_from_paymentbox:  OT_API_LoadPaymentInbox "
                  "Failed.\n\n";
@@ -9116,7 +9111,6 @@ OT_COMMANDS_OT int32_t
 OT_Command::details_accept_payments(const string& strMyAcctID,
                                     const string& strIndices)
 {
-
     int32_t nAcceptedPurses =
         accept_from_paymentbox(strMyAcctID, strIndices, "PURSE");
     int32_t nAcceptedCheques =
@@ -9124,9 +9118,8 @@ OT_Command::details_accept_payments(const string& strMyAcctID,
 
     // Note: NOT invoices.
 
-    // If all two calls succeed, then the total here is 2.
-    // So we return success as well (1).
-    if ((nAcceptedPurses > -1) || (nAcceptedCheques > -1)) {
+    // FIX: this OR should become AND so we can detect any failure
+    if (nAcceptedPurses >= 0 || nAcceptedCheques >= 0) {
         return 1;
     }
 
