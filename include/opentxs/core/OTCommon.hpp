@@ -5,7 +5,6 @@
 #include "TargetConditionals.h"
 #endif
 
-#include "WinsockWrapper.h"
 #include <cinttypes>
 #include <memory>
 
@@ -30,6 +29,8 @@ class IXMLBase;
 typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 }
 }
+
+#define OT_ERROR_AMOUNT INT64_MIN
 
 #define OT_TIME_YEAR_IN_SECONDS                                                \
     OTTimeGetTimeFromSeconds(31536000) // 60 * 60 * 24 * 365
