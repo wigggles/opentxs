@@ -271,6 +271,12 @@ if(KEYRING_FLATFILE)
   add_definitions(-DOT_KEYRING_FLATFILE)
 endif()
 
+if(WIN32)
+  add_definitions("-DEXPORT=__declspec(dllexport)")
+else()
+  add_definitions(-DEXPORT=)
+endif()
+
 #-----------------------------------------------------------------------------
 # Build source
 

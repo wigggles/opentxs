@@ -1,8 +1,6 @@
 #ifndef _ANYOPTION_H
 #define _ANYOPTION_H
 
-#include "ExportWrapper.h"
-
 #include <cinttypes>
 #include <iostream>
 #include <fstream>
