@@ -31,7 +31,7 @@ add_executable(opentxs ${cxx-sources})
 
 target_link_libraries(opentxs opentxs-api)
 
-if(MSVC)
+if(WIN32)
   add_custom_command(TARGET opentxs POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/deps/libzmq_4/bin/$<CONFIGURATION>/libzmq-mt-gd-4_1_0.dll"

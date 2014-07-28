@@ -225,6 +225,21 @@ endif()
 #-----------------------------------------------------------------------------
 # Source Definitions
 
+if(WIN32)
+    if(NOT IDC_STATIC)
+        add_definitions(-DIDC_STATIC=-1)
+    endif()
+
+    add_definitions(-DOT_COMPANYNAME="Open Transactions Community")
+    add_definitions(-DOT_PRODUCTNAME="Open Transactions")
+    add_definitions(-DOT_PRODUCTVERSION="${VERSION_MAJOR},${VERSION_MINOR},${VERSION_BUGFIX},0")
+    add_definitions(-DOT_API_NAME="Open Transactions API")
+    add_definitions(-DOT_LIBRARY_NAME="Open Transactions Library")
+    add_definitions(-DOT_PROMPT_NAME="Open Transactions Prompt")
+endif()
+
+add_definitions(-DOT_VERSION="${VERSION}")
+
 if(SIGNAL_HANLDER)
   add_definitions(-DOT_SIGNAL_HANDLING)
 endif()
@@ -265,7 +280,7 @@ if(APPLE)
 endif()
 if(NOT RPM)
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-  if(NOT MSVC)
+  if(NOT WIN32)
     include(GNUInstallDirs)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   endif()

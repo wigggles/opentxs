@@ -4,12 +4,12 @@ find_package(Protobuf REQUIRED)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER Generics.proto Bitcoin.proto Markets.proto Moneychanger.proto)
 
-if (MSVC)
+if (WIN32)
   # suppress std::_Copy_impl being unsafe warnings 
   add_Definitions("/wd4996")
 
   include_directories(${PROTOBUF_INCLUDE_DIR})
-endif(MSVC)
+endif()
 
 add_library(otprotob
   STATIC

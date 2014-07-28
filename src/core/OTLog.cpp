@@ -144,7 +144,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <constants.h>
 #include <stacktrace.h>
 
 #ifdef _WIN32
