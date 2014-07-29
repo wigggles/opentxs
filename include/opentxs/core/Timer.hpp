@@ -15,7 +15,18 @@
 #ifndef __TIMER_HPP__
 #define __TIMER_HPP__
 
-#include "OTCommon.hpp"
+#include <cinttypes>
+
+#ifdef _WIN32
+#ifndef _WINDOWS_
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+#else
+#include <sys/time.h>
+#endif
 
 class Timer
 {

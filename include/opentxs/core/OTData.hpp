@@ -133,8 +133,6 @@
 #ifndef __OT_DATA_HPP__
 #define __OT_DATA_HPP__
 
-#include "ExportWrapper.h"
-
 #include <cinttypes>
 
 namespace opentxs

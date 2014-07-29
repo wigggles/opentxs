@@ -136,9 +136,14 @@
 #ifndef __OT_WINDOWS_REGISTRY_TOOLS_HPP__
 #define __OT_WINDOWS_REGISTRY_TOOLS_HPP__
 
-#include "OTCommon.hpp"
-
 #ifdef _WIN32
+
+#ifndef _WINDOWS_
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 
 class WindowsRegistryTools
 {
