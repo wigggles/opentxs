@@ -71,5 +71,7 @@ add_subdirectory(libzmq_4)
 
 if (NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS bigint lucre DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS bigint lucre
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          COMPONENT)
 endif()

@@ -53,5 +53,7 @@ endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-ext DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS opentxs-ext
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          COMPONENT)
 endif()

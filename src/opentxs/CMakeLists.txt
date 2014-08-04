@@ -43,4 +43,6 @@ if(WIN32)
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/zlib1.dll")
 endif()
 
-install(TARGETS opentxs DESTINATION bin)
+install(TARGETS opentxs
+        DESTINATION bin
+        COMPONENT)
