@@ -860,8 +860,6 @@ OT_Command::details_discard_incoming(const string& strServer,
         // the indices remain accurate subsequently.
         for (int32_t nInboxIndex = (nInboxCount - 1); nInboxIndex >= 0;
              --nInboxIndex) {
-            bool bContinue = false;
-
             // - If "all" was passed, we process the item.
             // - If indices are specified, but the current index is not on
             //   that list, then continue...
@@ -869,24 +867,22 @@ OT_Command::details_discard_incoming(const string& strServer,
                 ((nIndicesCount > 0) &&
                  !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
                                                   to_string(nInboxIndex)))) {
-                bContinue = true;
+                continue;
             }
 
             // If it IS "all" OR, if there are indices and the current index was
             // found in them.
-            if (!bContinue) {
-                // removes payment instrument (from payments in or out box)
-                bool bRecorded = OTAPI_Wrap::RecordPayment(
-                    strServer, strMyNym, true, nInboxIndex, false);
-                otOut << "\n" << (bRecorded ? "Success" : "Failure")
-                      << " discarding instrument from payments inbox at index: "
-                      << nInboxIndex
-                      << ".\n\n NOTE: Now the sender has to leave it in his "
-                         "outbox until it expires or he cancels it on his "
-                         "end.\n";
-                if (!bRecorded) {
-                    nSuccess = -1;
-                }
+            // removes payment instrument (from payments in or out box)
+            bool bRecorded = OTAPI_Wrap::RecordPayment(
+                strServer, strMyNym, true, nInboxIndex, false);
+            otOut << "\n" << (bRecorded ? "Success" : "Failure")
+                  << " discarding instrument from payments inbox at index: "
+                  << nInboxIndex
+                  << ".\n\n NOTE: Now the sender has to leave it in his "
+                     "outbox until it expires or he cancels it on his "
+                     "end.\n";
+            if (!bRecorded) {
+                nSuccess = -1;
             }
         }
 
@@ -991,163 +987,114 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
     }
     else {
         for (int32_t nIndex = (nCount - 1); nIndex >= 0; --nIndex) {
-            bool bContinue = false;
-
             // - If "all" was passed, we process the item.
             // - If indices are specified, but the current index is not on
             //   that list, then continue...
             if (!("all" == strIndices) && nIndicesCount > 0 &&
                 !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
                                                  to_string(nIndex))) {
-                bContinue = true;
+                continue;
             }
 
-            string strServer = "";
             // If it IS "all," OR, if there are indices and the current index
             // was found in them.
-            if (!bContinue) {
-                strServer = OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(
-                    strMyNym, nIndex);
-                if (!VerifyStringVal(strServer)) {
-                    otOut << "ERROR: Failed retrieving server ID from "
-                             "outpayment at index: " << nIndex << "\n";
-                }
-                else {
-                    string strPaymentContents =
-                        OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(strMyNym,
-                                                                      nIndex);
+            string strServer =
+                OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(strMyNym, nIndex);
+            if (!VerifyStringVal(strServer)) {
+                otOut << "ERROR: Failed retrieving server ID from "
+                         "outpayment at index: " << nIndex << "\n";
+            }
+            else {
+                string strPaymentContents =
+                    OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(strMyNym,
+                                                                  nIndex);
 
-                    if (VerifyStringVal(strPaymentContents)) {
-                        //                        string strPaymentAssetID   =
-                        // OTAPI_Wrap::Instrmnt_GetAssetID (strPaymentContents)
-                        string strPaymentType =
-                            OTAPI_Wrap::Instrmnt_GetType(strPaymentContents);
+                if (VerifyStringVal(strPaymentContents)) {
+                    //                        string strPaymentAssetID   =
+                    // OTAPI_Wrap::Instrmnt_GetAssetID (strPaymentContents)
+                    string strPaymentType =
+                        OTAPI_Wrap::Instrmnt_GetType(strPaymentContents);
 
-                        // Done: Put the code here where we message the server
-                        // to cancel all relevant transaction
-                        // numbers for the instrument. If it's a cheque, there's
-                        // only one number. But if it's a smart
-                        // contract, there could be many numbers. Seems like
-                        // best thing is to just activate it, but
-                        // have a "rejected" flag which causes the activation to
-                        // fail. (That way, all the other parties
-                        // will be properly notified, which the server already
-                        // does.) We don't even need to remove it
-                        // from the outpayment box, because the failure
-                        // notification from the server will already cause
-                        // the OTClient to remove it from the outpayment box.
-                        //
-                        // Ah-ha! ANY outgoing payment plan or smart contract is
-                        // necessarily incomplete: it's outgoing
-                        // because it was sent to the next party so he could
-                        // sign it, too, and probably activate it.
-                        // Presumably he has not done so yet (if I am 'beating
-                        // him to the punch' by cancelling it before
-                        // he can activate it) and therefore the plan or smart
-                        // contract still is missing at least one
-                        // signer, so it is GUARANTEED to fail verification if I
-                        // try to activate it myself. (Good.)
-                        //
-                        // This means I can just take whatever instrument
-                        // appears outgoing, and try to activate it myself.
-                        // It will definitely fail activation, and then the
-                        // failure notice will already be sent from that,
-                        // to all the parties, and they can harvest back their
-                        // numbers automatically as necessary.
-                        //
-                        // The one problem is, though this works for payment
-                        // plans and smart contracts, it will not work
-                        // for cheques. The cheque is made out to someone else,
-                        // and he is the one normally who needs to
-                        // deposit it. Plus, I can't deposit a cheque into the
-                        // same account it's drawn on.
-                        //
-                        // UPDATE: Now when a cheque is deposited into the same
-                        // account it was drawn on, that will be
-                        // interpreted by the server as a request to CANCEL the
-                        // cheque.
+                    // Done: Put the code here where we message the server
+                    // to cancel all relevant transaction
+                    // numbers for the instrument. If it's a cheque, there's
+                    // only one number. But if it's a smart
+                    // contract, there could be many numbers. Seems like
+                    // best thing is to just activate it, but
+                    // have a "rejected" flag which causes the activation to
+                    // fail. (That way, all the other parties
+                    // will be properly notified, which the server already
+                    // does.) We don't even need to remove it
+                    // from the outpayment box, because the failure
+                    // notification from the server will already cause
+                    // the OTClient to remove it from the outpayment box.
+                    //
+                    // Ah-ha! ANY outgoing payment plan or smart contract is
+                    // necessarily incomplete: it's outgoing
+                    // because it was sent to the next party so he could
+                    // sign it, too, and probably activate it.
+                    // Presumably he has not done so yet (if I am 'beating
+                    // him to the punch' by cancelling it before
+                    // he can activate it) and therefore the plan or smart
+                    // contract still is missing at least one
+                    // signer, so it is GUARANTEED to fail verification if I
+                    // try to activate it myself. (Good.)
+                    //
+                    // This means I can just take whatever instrument
+                    // appears outgoing, and try to activate it myself.
+                    // It will definitely fail activation, and then the
+                    // failure notice will already be sent from that,
+                    // to all the parties, and they can harvest back their
+                    // numbers automatically as necessary.
+                    //
+                    // The one problem is, though this works for payment
+                    // plans and smart contracts, it will not work
+                    // for cheques. The cheque is made out to someone else,
+                    // and he is the one normally who needs to
+                    // deposit it. Plus, I can't deposit a cheque into the
+                    // same account it's drawn on.
+                    //
+                    // UPDATE: Now when a cheque is deposited into the same
+                    // account it was drawn on, that will be
+                    // interpreted by the server as a request to CANCEL the
+                    // cheque.
 
-                        if ("SMARTCONTRACT" == strPaymentType) {
-                            // Just take the smart contract from the outpayment
-                            // box, and try to
-                            // activate it. It WILL fail, and then the failure
-                            // message will be
-                            // propagated to all the other parties to the
-                            // contract. (Which will
-                            // result in its automatic removal from the
-                            // outpayment box.)
-                            if (!VerifyStringVal(strMyAcct)) {
-                                otOut << "You must provide an account owned by "
-                                         "this Nym, which will be used for the "
-                                         "cancellation. Try adding --myacct "
-                                         "ACCT_ID\nNOTE: in the future we "
-                                         "should just look up one of the "
-                                         "accounts from the smart contract "
-                                         "itself, since the current Nym has "
-                                         "already confirmed the contract. But "
-                                         "for now I'm just collecting the acct "
-                                         "ID at the command line, since it's "
-                                         "faster.\n";
-                            }
-                            else {
-                                string strResponse =
-                                    MadeEasy::activate_smart_contract(
-                                        strServer, strMyNym, strMyAcct,
-                                        "acct_agent_name", strPaymentContents);
-
-                                otOut << "Okay I just tried to activate the "
-                                         "smart contract. (As a way of "
-                                         "cancelling it.)\nSo while we expect "
-                                         "this 'activation' to fail, it should "
-                                         "have the desired effect of "
-                                         "cancelling the smart contract and "
-                                         "sending failure notices to all the "
-                                         "parties.\n";
-
-                                if (VerifyStringVal(strResponse)) {
-                                    otOut << "\n Here's the server reply: \n"
-                                          << strResponse << "\n";
-
-                                    int32_t nTransCancelled = OTAPI_Wrap::
-                                        Message_IsTransactionCanceled(
-                                            strServer, strMyNym, strMyAcct,
-                                            strResponse);
-
-                                    if (1 == nTransCancelled) {
-                                        otOut << "\n Success canceling!\n";
-                                    }
-                                    else {
-                                        otOut << "\n Error canceling!\n";
-                                        nSuccess = -1;
-                                    }
-                                }
-                                else {
-                                    otOut << "Strange, tried to cancel, but "
-                                             "received a nullptr server "
-                                             "reply.\n";
-                                }
-                            }
+                    if ("SMARTCONTRACT" == strPaymentType) {
+                        // Just take the smart contract from the outpayment
+                        // box, and try to
+                        // activate it. It WILL fail, and then the failure
+                        // message will be
+                        // propagated to all the other parties to the
+                        // contract. (Which will
+                        // result in its automatic removal from the
+                        // outpayment box.)
+                        if (!VerifyStringVal(strMyAcct)) {
+                            otOut << "You must provide an account owned by "
+                                     "this Nym, which will be used for the "
+                                     "cancellation. Try adding --myacct "
+                                     "ACCT_ID\nNOTE: in the future we "
+                                     "should just look up one of the "
+                                     "accounts from the smart contract "
+                                     "itself, since the current Nym has "
+                                     "already confirmed the contract. But "
+                                     "for now I'm just collecting the acct "
+                                     "ID at the command line, since it's "
+                                     "faster.\n";
                         }
-                        else if ("PAYMENT PLAN" == strPaymentType) {
-                            // Just take the payment plan from the outpayment
-                            // box, and try to
-                            // activate it. It WILL fail, and then the failure
-                            // message will be
-                            // propagated to the other party to the contract.
-                            // (Which will
-                            // result in its automatic removal from the
-                            // outpayment box.)
-
-                            string strResponse = MadeEasy::cancel_payment_plan(
-                                strServer, strMyNym, strPaymentContents);
+                        else {
+                            string strResponse =
+                                MadeEasy::activate_smart_contract(
+                                    strServer, strMyNym, strMyAcct,
+                                    "acct_agent_name", strPaymentContents);
 
                             otOut << "Okay I just tried to activate the "
-                                     "payment plan. (As a way of cancelling "
-                                     "it.)\nSo while we expect this "
-                                     "'activation' to fail, it should have the "
-                                     "desired effect of cancelling the payment "
-                                     "plan and sending failure notices to all "
-                                     "the parties.\n";
+                                     "smart contract. (As a way of "
+                                     "cancelling it.)\nSo while we expect "
+                                     "this 'activation' to fail, it should "
+                                     "have the desired effect of "
+                                     "cancelling the smart contract and "
+                                     "sending failure notices to all the "
+                                     "parties.\n";
 
                             if (VerifyStringVal(strResponse)) {
                                 otOut << "\n Here's the server reply: \n"
@@ -1168,90 +1115,131 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                             }
                             else {
                                 otOut << "Strange, tried to cancel, but "
-                                         "received a nullptr server reply.\n";
+                                         "received a nullptr server "
+                                         "reply.\n";
                             }
                         }
-                        else if ("PURSE" == strPaymentType) {
-                            // This is a tricky one -- why would anyone EVER
-                            // want to discard outgoing cash?
-                            // Normally your incentive would be to do the
-                            // opposite: Keep a copy of all outgoing
-                            // cash until the copy itself expires (when the cash
-                            // expires.) This way it's always
-                            // recoverable in the event of a "worst case"
-                            // situation.
-                            //
-                            // So what do we do in this case? Nevertheless, the
-                            // user has explicitly just instructed
-                            // the client to DISCARD OUTGOING CASH.
-                            //
-                            // Perhaps we should just ask the user to CONFIRM
-                            // that he wants to erase the cash,
-                            // and make SURE that he understands the
-                            // consequences of that choice.
+                    }
+                    else if ("PAYMENT PLAN" == strPaymentType) {
+                        // Just take the payment plan from the outpayment
+                        // box, and try to
+                        // activate it. It WILL fail, and then the failure
+                        // message will be
+                        // propagated to the other party to the contract.
+                        // (Which will
+                        // result in its automatic removal from the
+                        // outpayment box.)
 
-                            // removes payment instrument (from payments in
-                            // or out box)
-                            bool bRecorded = OTAPI_Wrap::RecordPayment(
-                                strServer, strMyNym, false, nIndex, false);
-                            if (!bRecorded) {
+                        string strResponse = MadeEasy::cancel_payment_plan(
+                            strServer, strMyNym, strPaymentContents);
+
+                        otOut << "Okay I just tried to activate the "
+                                 "payment plan. (As a way of cancelling "
+                                 "it.)\nSo while we expect this "
+                                 "'activation' to fail, it should have the "
+                                 "desired effect of cancelling the payment "
+                                 "plan and sending failure notices to all "
+                                 "the parties.\n";
+
+                        if (VerifyStringVal(strResponse)) {
+                            otOut << "\n Here's the server reply: \n"
+                                  << strResponse << "\n";
+
+                            int32_t nTransCancelled =
+                                OTAPI_Wrap::Message_IsTransactionCanceled(
+                                    strServer, strMyNym, strMyAcct,
+                                    strResponse);
+
+                            if (1 == nTransCancelled) {
+                                otOut << "\n Success canceling!\n";
+                            }
+                            else {
+                                otOut << "\n Error canceling!\n";
                                 nSuccess = -1;
                             }
-                            else {
-                                otOut << "Discarded cash purse:\n\n"
-                                      << strPaymentContents << "\n";
-                            }
-                            otOut << (bRecorded ? "Success" : "Failure")
-                                  << " discarding cash purse from "
-                                     "outpayment box at index: " << nIndex
-                                  << ".\n\n";
                         }
-                        else // CHEQUE VOUCHER INVOICE
-                        {
-                            int32_t nDepositCheque = -1;
-                            bool bIsVoucher = ("VOUCHER" == strPaymentType);
+                        else {
+                            otOut << "Strange, tried to cancel, but "
+                                     "received a nullptr server reply.\n";
+                        }
+                    }
+                    else if ("PURSE" == strPaymentType) {
+                        // This is a tricky one -- why would anyone EVER
+                        // want to discard outgoing cash?
+                        // Normally your incentive would be to do the
+                        // opposite: Keep a copy of all outgoing
+                        // cash until the copy itself expires (when the cash
+                        // expires.) This way it's always
+                        // recoverable in the event of a "worst case"
+                        // situation.
+                        //
+                        // So what do we do in this case? Nevertheless, the
+                        // user has explicitly just instructed
+                        // the client to DISCARD OUTGOING CASH.
+                        //
+                        // Perhaps we should just ask the user to CONFIRM
+                        // that he wants to erase the cash,
+                        // and make SURE that he understands the
+                        // consequences of that choice.
 
-                            // Get the nym and account IDs from the cheque
-                            // itself.
-                            string strSenderAcctID =
-                                (bIsVoucher
-                                     ? OTAPI_Wrap::Instrmnt_GetRemitterAcctID(
-                                           strPaymentContents)
-                                     : OTAPI_Wrap::Instrmnt_GetSenderAcctID(
-                                           strPaymentContents));
-                            string strSenderUserID =
-                                (bIsVoucher
-                                     ? OTAPI_Wrap::Instrmnt_GetRemitterUserID(
-                                           strPaymentContents)
-                                     : OTAPI_Wrap::Instrmnt_GetSenderUserID(
-                                           strPaymentContents));
+                        // removes payment instrument (from payments in
+                        // or out box)
+                        bool bRecorded = OTAPI_Wrap::RecordPayment(
+                            strServer, strMyNym, false, nIndex, false);
+                        if (!bRecorded) {
+                            nSuccess = -1;
+                        }
+                        else {
+                            otOut << "Discarded cash purse:\n\n"
+                                  << strPaymentContents << "\n";
+                        }
+                        otOut << (bRecorded ? "Success" : "Failure")
+                              << " discarding cash purse from "
+                                 "outpayment box at index: " << nIndex
+                              << ".\n\n";
+                    }
+                    else // CHEQUE VOUCHER INVOICE
+                    {
+                        int32_t nDepositCheque = -1;
+                        bool bIsVoucher = ("VOUCHER" == strPaymentType);
 
-                            if (!VerifyStringVal(strSenderAcctID)) {
-                                otOut << "Failure trying to retrieve asset "
-                                         "account ID from instrument.\n";
-                            }
-                            else if (!VerifyStringVal(strSenderUserID)) {
-                                otOut << "Failure trying to retrieve Sender "
-                                         "Nym ID from instrument.\n";
-                            }
-                            else if (!(strSenderUserID == strMyNym)) {
-                                otOut << "Failure, very strange: Sender Nym ID "
-                                         "on the instrument doesn't match the "
-                                         "Nym ID.\n";
-                            }
-                            else {
-                                nDepositCheque =
-                                    OT_Command::details_deposit_cheque(
-                                        strServer, strSenderAcctID,
-                                        strSenderUserID, strPaymentContents,
-                                        strPaymentType);
+                        // Get the nym and account IDs from the cheque
+                        // itself.
+                        string strSenderAcctID =
+                            (bIsVoucher
+                                 ? OTAPI_Wrap::Instrmnt_GetRemitterAcctID(
+                                       strPaymentContents)
+                                 : OTAPI_Wrap::Instrmnt_GetSenderAcctID(
+                                       strPaymentContents));
+                        string strSenderUserID =
+                            (bIsVoucher
+                                 ? OTAPI_Wrap::Instrmnt_GetRemitterUserID(
+                                       strPaymentContents)
+                                 : OTAPI_Wrap::Instrmnt_GetSenderUserID(
+                                       strPaymentContents));
 
-                                otOut << "\n"
-                                      << (1 == nDepositCheque ? "Success"
-                                                              : "Failure")
-                                      << " canceling cheque of type: "
-                                      << strPaymentType << "\n";
-                            }
+                        if (!VerifyStringVal(strSenderAcctID)) {
+                            otOut << "Failure trying to retrieve asset "
+                                     "account ID from instrument.\n";
+                        }
+                        else if (!VerifyStringVal(strSenderUserID)) {
+                            otOut << "Failure trying to retrieve Sender "
+                                     "Nym ID from instrument.\n";
+                        }
+                        else if (!(strSenderUserID == strMyNym)) {
+                            otOut << "Failure, very strange: Sender Nym ID "
+                                     "on the instrument doesn't match the "
+                                     "Nym ID.\n";
+                        }
+                        else {
+                            nDepositCheque = OT_Command::details_deposit_cheque(
+                                strServer, strSenderAcctID, strSenderUserID,
+                                strPaymentContents, strPaymentType);
+
+                            otOut << "\n" << (1 == nDepositCheque ? "Success"
+                                                                  : "Failure")
+                                  << " canceling cheque of type: "
+                                  << strPaymentType << "\n";
                         }
                     }
                 }
@@ -5754,8 +5742,6 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                                         : 0;
 
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                bool bContinue = false;
-
                 string strTrans = OTAPI_Wrap::Ledger_GetTransactionByIndex(
                     strServerID, strMyNymID, strMyAcctID, strInbox, nIndex);
 
@@ -5769,72 +5755,64 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                         strServerID, strMyNymID, strMyAcctID, strTrans);
 
                     // incoming transfer
-                    if (("pending" == strTransType) && (1 != nItemType)) {
+                    if ("pending" == strTransType && 1 != nItemType) {
                         // if it IS an incoming transfer, but we're doing
                         // receipts, then skip it.
-                        bContinue = true;
+                        continue;
                     }
                     // receipt
-                    else if (!bContinue && ("pending" != strTransType) &&
-                             (2 != nItemType)) {
+                    if ("pending" != strTransType && 2 != nItemType) {
                         // if it is NOT an incoming transfer, then it's a
                         // receipt. If we're not doing receipts, then skip it.
-                        bContinue = true;
+                        continue;
                     }
                 }
 
-                if (!bContinue) {
+                // - If NO indices are specified, process them ALL.
+                //
+                // - If indices are specified, but the current index is not on
+                //   that list, then continue...
+                if ((nIndicesCount > 0) &&
+                    !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
+                                                     to_string(nIndex))) {
+                    continue;
+                }
 
-                    // - If NO indices are specified, process them ALL.
-                    //
-                    // - If indices are specified, but the current index is not
-                    // on
-                    //   that list, then continue...
-                    if ((nIndicesCount > 0) &&
-                        !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                         to_string(nIndex))) {
-                        bContinue = true;
-                    }
-                    else if (!bContinue) {
-                        // By this point we know we actually have to call
-                        // OTAPI_Wrap::Transaction_CreateResponse
-                        // Therefore, if OTAPI_Wrap::Ledger_CreateResponse has
-                        // not yet been called (which it won't
-                        // have been, the first time we hit this in this loop),
-                        // then we call it here this one
-                        // time, to get things started...
-                        if (!VerifyStringVal(strResponseLEDGER)) {
-                            strResponseLEDGER =
-                                OTAPI_Wrap::Ledger_CreateResponse(
-                                    strServerID, strMyNymID, strMyAcctID,
-                                    strInbox);
+                // By this point we know we actually have to call
+                // OTAPI_Wrap::Transaction_CreateResponse
+                // Therefore, if OTAPI_Wrap::Ledger_CreateResponse has
+                // not yet been called (which it won't
+                // have been, the first time we hit this in this loop),
+                // then we call it here this one
+                // time, to get things started...
+                if (!VerifyStringVal(strResponseLEDGER)) {
+                    strResponseLEDGER = OTAPI_Wrap::Ledger_CreateResponse(
+                        strServerID, strMyNymID, strMyAcctID, strInbox);
 
-                            if (!VerifyStringVal(strResponseLEDGER)) {
-                                otOut << "\n\nFailure: "
-                                         "OT_API_Ledger_CreateResponse "
-                                         "returned nullptr.\n";
-                                return -1;
-                            }
-                        }
-
-                        // By this point, we know the ledger response exists,
-                        // and we know we have to create
-                        // a transaction response to go inside of it, so let's
-                        // do that next...
-                        string strNEW_ResponseLEDGER =
-                            OTAPI_Wrap::Transaction_CreateResponse(
-                                strServerID, strMyNymID, strMyAcctID,
-                                strResponseLEDGER, strTrans, true);
-
-                        if (!VerifyStringVal(strNEW_ResponseLEDGER)) {
-                            otOut << "\n\nFailure: "
-                                     "OT_API_Transaction_CreateResponse "
-                                     "returned nullptr.\n";
-                            return -1;
-                        }
-                        strResponseLEDGER = strNEW_ResponseLEDGER;
+                    if (!VerifyStringVal(strResponseLEDGER)) {
+                        otOut << "\n\nFailure: "
+                                 "OT_API_Ledger_CreateResponse "
+                                 "returned nullptr.\n";
+                        return -1;
                     }
                 }
+
+                // By this point, we know the ledger response exists,
+                // and we know we have to create
+                // a transaction response to go inside of it, so let's
+                // do that next...
+                string strNEW_ResponseLEDGER =
+                    OTAPI_Wrap::Transaction_CreateResponse(
+                        strServerID, strMyNymID, strMyAcctID, strResponseLEDGER,
+                        strTrans, true);
+
+                if (!VerifyStringVal(strNEW_ResponseLEDGER)) {
+                    otOut << "\n\nFailure: "
+                             "OT_API_Transaction_CreateResponse "
+                             "returned nullptr.\n";
+                    return -1;
+                }
+                strResponseLEDGER = strNEW_ResponseLEDGER;
             }
 
             if (!VerifyStringVal(strResponseLEDGER)) {
