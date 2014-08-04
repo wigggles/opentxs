@@ -34,7 +34,6 @@
 
 // ALL
 %{
-
 #ifndef IMPORT
 #define IMPORT
 #endif
@@ -604,7 +603,10 @@ OT_IS_ELEMENT_TYPE(TradeListNym)
 
 /* Parse the header file to generate wrappers */
 
-%include "../include/opentxs/core/ExportWrapper.h"
+#ifndef EXPORT
+#define EXPORT
+#endif
+
 %include "../include/opentxs/core/OTPassword.hpp"
 %include "../include/opentxs/api/OTAPI.hpp"
 %include "../include/opentxs/api/OT_ME.hpp"
