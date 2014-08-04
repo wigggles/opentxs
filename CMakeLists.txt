@@ -305,7 +305,8 @@ add_subdirectory(swig)
 # Install
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        DESTINATION include)
+        DESTINATION include
+        COMPONENT dev)
 
 install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.hpp
@@ -313,33 +314,38 @@ install(FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/exceptions.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/copy_functors.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.tpp
-	DESTINATION include/opentxs/core/containers)
+	DESTINATION include/opentxs/core/containers
+	COMPONENT dev)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/irrxml/
         DESTINATION include/irrxml
+        COMPONENT dev
         FILES_MATCHING PATTERN "*.hpp")
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ot/
         DESTINATION lib/opentxs
+        COMPONENT dev
         FILES_MATCHING PATTERN "*.ot")
 
 # opentxs CL client autocompletion
 if(AUTOCOMPLETION)
   install(FILES
           ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bash_completion.d/opentxs-bash-completion.sh
-	  DESTINATION /etc/bash_completion.d/)
+	  DESTINATION /etc/bash_completion.d/
+          COMPONENT)
 endif()
 
 
 #-----------------------------------------------------------------------------
 # Packaging
 set(CPACK_GENERATOR "TGZ")
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_NAME "opentxs")
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Lucas Betschart")
 set(CPACK_PACKAGE_VENDOR "Monetas AG")
-set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Transactions library and command line client")
 set(CPACK_PACKAGE_DESCRIPTION "
@@ -347,16 +353,16 @@ Open-Transactions democratizes financial and monetary actions.
 You can use it for issuing currencies/stock, paying dividends, creating asset accounts, sending/receiving digital cash, writing/depositing cheques, cashier's cheques, creating basket currencies, trading on markets, scripting custom agreements, recurring payments, escrow, etc.
 ")
 
-# RPM
 if(RPM)
-  set(CPACK_GENERATOR "${CPACK_GENERATOR};RPM")
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/package/opentxs.spec.in" "${CMAKE_CURRENT_BINARY_DIR}/package/opentxs.spec" @ONLY IMMEDIATE)
-  set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/package/opentxs.spec")
+  set(CPACK_GENERATOR "RPM")
+  set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+  set(CPACK_RPM_COMPONENT_INSTALL ON)
+  set(CPACK_RPM_CHANGELOG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog")
 endif()
 
-# DEB
 if(DEB)
-  set(CPACK_GENERATOR "${CPACK_GENERATOR};DEB")
+  set(CPACK_GENERATOR "DEB")
+  set(CPACK_DEB_COMPONENT_INSTALL ON)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "openssl, libprotobuf")
   set(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
   set(CPACK_DEBIAN_PACKAGE_SECTION "utils")

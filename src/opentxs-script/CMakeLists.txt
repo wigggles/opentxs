@@ -42,4 +42,6 @@ if(WIN32)
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/zlib1.dll")
 endif()
 
-install(TARGETS ot DESTINATION bin)
+install(TARGETS ot
+        DESTINATION bin
+        COMPONENT)
