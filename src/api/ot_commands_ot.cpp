@@ -35,10 +35,6 @@
 #include <OT_ME.hpp>
 #include <OTLog.hpp>
 
-extern string Args;
-
-extern string OT_CLI_GetValueByKey(string, string);
-
 using std::cout;
 
 namespace opentxs
