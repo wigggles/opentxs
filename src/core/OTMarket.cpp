@@ -2511,7 +2511,7 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         // first in line.  So we start there, and loop backwards until there are
         // no other bids within my price range.
         for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
-             rr != m_mapBids.rend(); rr++) {
+             rr != m_mapBids.rend(); ++rr) {
             pBid = rr->second;
             OT_ASSERT(nullptr != pBid);
 
