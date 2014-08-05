@@ -1142,9 +1142,6 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     }
     else // it's NOT a transaction, but a normal message..
     {
-        nBalanceSuccess = -1;
-        nTransSuccess = -1;
-
         bMsgTransSuccess = false;
         bMsgTransFailure = false;
 

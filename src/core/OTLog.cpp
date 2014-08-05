@@ -195,6 +195,7 @@ void LogStackFrames(void* FaultAdress, char*);
 // Fucking Apple!
 struct sigcontext
 {
+    // cppcheck-suppress unusedStructMember
     int32_t eip;
 };
 #endif // defined __APPLE__
@@ -1076,8 +1077,6 @@ void OTLog::SetupSignalHandler()
 
 struct sig_ucontext_t
 {
-    //  typedef struct _sig_ucontext {
-    uint64_t uc_flags;
     struct ucontext* uc_link;
     stack_t uc_stack;
     struct sigcontext uc_mcontext;

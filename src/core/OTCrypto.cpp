@@ -545,13 +545,7 @@ bool OTCrypto::GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
     {
         char buf[_PASSWORD_LEN + 10] = "", buff[_PASSWORD_LEN + 10] = "";
 
-        int32_t nReadPW = 0;
-
-        //  char * szPass = getpass(szPrompt); // "This function is obsolete. Do
-        // not use it."
-        if ((nReadPW = UI_UTIL_read_pw(buf, buff, _PASSWORD_LEN, szPrompt,
-                                       0)) == 0) // verify=0
-        {
+        if (UI_UTIL_read_pw(buf, buff, _PASSWORD_LEN, szPrompt, 0) == 0) {
             size_t nPassLength = OTString::safe_strlen(buf, _PASSWORD_LEN);
             theOutput.setPassword_uint8(reinterpret_cast<uint8_t*>(buf),
                                         nPassLength);
