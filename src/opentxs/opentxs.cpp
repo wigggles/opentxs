@@ -143,7 +143,6 @@
 #include <OTAccount.hpp>
 #include <OTAPI.hpp>
 #include <OTAssetContract.hpp>
-#include <OTCleanup.hpp>
 #include <OTLog.hpp>
 #include <OTPaths.hpp>
 #include <OTPseudonym.hpp>
@@ -697,21 +696,15 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         OTLog::vOutput(0, "Expecting a single opentxs command:\n\n");
     }
 
-    OTCleanup<OTVariable> angelArgs(setGlobalVariable(madeEasy, "Args", args_));
-    OTCleanup<OTVariable> angelMyAcct(
-        setGlobalVariable(madeEasy, "MyAcct", myAcct_));
-    OTCleanup<OTVariable> angelMyNym(
-        setGlobalVariable(madeEasy, "MyNym", myNym_));
-    OTCleanup<OTVariable> angelMyPurse(
-        setGlobalVariable(madeEasy, "MyPurse", myPurse_));
-    OTCleanup<OTVariable> angelHisAcct(
-        setGlobalVariable(madeEasy, "HisAcct", hisAcct_));
-    OTCleanup<OTVariable> angelHisNym(
-        setGlobalVariable(madeEasy, "HisNym", hisNym_));
-    OTCleanup<OTVariable> angelHisPurse(
-        setGlobalVariable(madeEasy, "HisPurse", hisPurse_));
-    OTCleanup<OTVariable> angelServer(
-        setGlobalVariable(madeEasy, "Server", server_));
+    typedef std::unique_ptr<OTVariable> GlobalVar;
+    GlobalVar varArgs(setGlobalVariable(madeEasy, "Args", args_));
+    GlobalVar varMyAcct(setGlobalVariable(madeEasy, "MyAcct", myAcct_));
+    GlobalVar varMyNym(setGlobalVariable(madeEasy, "MyNym", myNym_));
+    GlobalVar varMyPurse(setGlobalVariable(madeEasy, "MyPurse", myPurse_));
+    GlobalVar varHisAcct(setGlobalVariable(madeEasy, "HisAcct", hisAcct_));
+    GlobalVar varHisNym(setGlobalVariable(madeEasy, "HisNym", hisNym_));
+    GlobalVar varHisPurse(setGlobalVariable(madeEasy, "HisPurse", hisPurse_));
+    GlobalVar varServer(setGlobalVariable(madeEasy, "Server", server_));
 
     OTAPI_Func::CopyVariables();
 

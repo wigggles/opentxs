@@ -46,12 +46,6 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
     Utility MsgUtil;
     bool bReturnVal = true;
 
-    if (!VerifyIntVal(nNumberNeeded)) {
-        OTAPI_Wrap::Output(0, "insure_enough_nums: expected nNumberNeeded to "
-                              "be an integer. (Should never happen.)\n");
-        return false;
-    }
-
     // Make sure we have at least one transaction number (to write the
     // cheque...)
     //
@@ -625,7 +619,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
 
     int32_t nCount =
         OTAPI_Wrap::Ledger_GetCount(SERVER_ID, NYM_ID, NYM_ID, strInbox);
-    if (!VerifyIntVal(nCount)) {
+    if (0 > nCount) {
         OTAPI_Wrap::Output(
             0,
             "Unable to retrieve size of payments inbox ledger. (Failure.)\n");
@@ -1124,9 +1118,9 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
     //  OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, userInput purse:" +
     // userInput);
 
-    if (VerifyBoolVal(isPurse) && !isPurse) // it's not a purse. Must be a
-                                            // token, so let's create a purse
-                                            // for it.
+    if (!isPurse) // it's not a purse. Must be a
+                  // token, so let's create a purse
+                  // for it.
     {
         //      OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, isPurse:" +
         // isPurse)
@@ -1821,7 +1815,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                                   "import: " +
                                       to_string(importStatus) + "\n");
 
-            if (VerifyBoolVal(importStatus) && !importStatus) {
+            if (!importStatus) {
                 // Raise the alarm here that we failed depositing the purse, and
                 // then we failed
                 // importing it back into our wallet again.

@@ -20,7 +20,10 @@
 #include "ot_otapi_ot.hpp"
 
 #include <OTAPI.hpp>
+#include <OTLog.hpp>
 #include <OT_ME.hpp>
+
+#include <locale>
 
 namespace opentxs
 {
@@ -33,45 +36,14 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr)
 OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
                                 const bool bDisplayError)
 {
-    // var objs = get_objects();
-
-    // if (0 >= objs.size()) { return false; }
-
     if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
-        string strDefault = "";
-
-        if ("Server" == theObjectNameAsStr) {
-            strDefault = "--server <SERVER_ID>";
-        }
-        else if ("MyNym" == theObjectNameAsStr) {
-            strDefault = "--mynym <NYM_ID>";
-        }
-        else if ("MyAcct" == theObjectNameAsStr) {
-            strDefault = "--myacct <ACCT_ID>";
-        }
-        else if ("MyPurse" == theObjectNameAsStr) {
-            strDefault = "--mypurse <ASSET_TYPE_ID>";
-        }
-        else if ("HisNym" == theObjectNameAsStr) {
-            strDefault = "--hisnym <NYM_ID>";
-        }
-        else if ("HisAcct" == theObjectNameAsStr) {
-            strDefault = "--hisacct <ACCT_ID>";
-        }
-        else if ("HisPurse" == theObjectNameAsStr) {
-            strDefault = "--hispurse <ASSET_TYPE_ID>";
-        }
-        else if ("Args" == theObjectNameAsStr) {
-            strDefault = "--args \"key1 value1 key2 value2 key3 \\\"Here is "
-                         "value 3\\\"\"";
-        }
-
         if (bDisplayError) {
-            OTAPI_Wrap::Output(
-                0, "Missing variable: " + theObjectNameAsStr +
-                       ". Try adding it as a parameter, like this:\n" +
-                       strDefault + "\n(Or if you prefer, set the default in "
-                                    "~/.ot/command-line-ot.opt)\n\n");
+            otOut << "Missing parameter: --";
+            std::locale loc;
+            for (auto elem : theObjectNameAsStr) {
+                otOut << std::tolower(elem, loc);
+            }
+            otOut << "\n";
         }
         return false;
     }
@@ -145,168 +117,6 @@ OT_UTILITY_OT int32_t VerifyMessageSuccess(const string& strMessage)
 
     return nStatus;
 }
-
-OT_UTILITY_OT bool VerifyNotNull(const void* theObjectRef)
-{
-    // bool bNull = theObjectRef.is_var_null();
-    // bool bUndef = theObjectRef.is_var_undef();
-
-    if (theObjectRef == nullptr) {
-        OTAPI_Wrap::Output(1, "VerifyNotNull: false\n");
-        return false;
-    }
-
-    OTAPI_Wrap::Output(1, "VerifyNotNull: true\n");
-    return true;
-}
-
-OT_UTILITY_OT bool VerifyType(const void* theObjectRef, const string&)
-{
-    if (VerifyNotNull(theObjectRef)) {
-        // if (!strType.is_type("string"))
-        //{
-        //    OTAPI_Wrap::Output(0, "VerifyType: Expected strType to contain a
-        // string. (Failed.)\n");
-
-        //    return false;
-        //}
-
-        // bool bType = theObjectRef.is_type(strType);
-
-        // if (!bType)
-        //{
-        //    OTAPI_Wrap::Output(0, "VerifyType: Expected object of type: " +
-        // strType + " (failed type match.)\n");
-
-        //    return false;
-        //}
-
-        return true;
-    }
-    return false;
-}
-
-OT_UTILITY_OT bool VerifyStorable(OTDB::Storable* theStorableObjectRef,
-                                  const string& strType)
-{
-    // Put this in a separate function VerifyType so I can use it for
-    // non-storable
-    // types such as std::map.
-    // This function can still customize on top of that, if/when we need to.
-    //
-    return VerifyType(theStorableObjectRef, strType);
-}
-
-//// -------------------------------------------
-//// class ObjRef is here so I can pass references into maps.
-////
-// attr ObjRef::the_ref  // this is our "pointer" to an object we do NOT want to
-// clone. (ObjRef can be passed in and cloned, with all clones retaining same
-// pointer, theoretically.)
-//
-//
-// OT_UTILITY_OT int32_t ObjRef::ObjRef() // todo remove this?
-//{
-//    OTAPI_Wrap::Output(1, "(Version of ObjRef::ObjRef with 0 arguments. Must
-// call setRef next...)\n");
-//}
-//// ---------------------------------------
-//
-////def ObjRef::ObjRef(rhs)
-// OT_UTILITY_OT int32_t ObjRef::ObjRef(rhs)
-//{
-//    OTAPI_Wrap::Output(1, "Supposedly: Copy constructor. rhs type actually is:
-// " + rhs.get_type_info().name() + "\n");
-//
-//
-// the_ref: = rhs.the_ref // by REFERENCE :-)
-//}
-//
-//// ---------------------------------------
-//
-// OT_UTILITY_OT int32_t ObjRef::setRef(rhs) : rhs.is_type("ObjRef")
-//{
-//    OTAPI_Wrap::Output(1, "(Version of ObjRef::setRef with ObjRef arg.\n");
-// the_ref: = rhs.the_ref // by REFERENCE :-)
-//}
-//
-// OT_UTILITY_OT int32_t ObjRef::setRef(rhs) : !rhs.is_type("ObjRef")
-//{
-//    // By this point we know that rhs is NOT an ObjRef.
-//
-//    OTAPI_Wrap::Output(1, "(Version of ObjRef::setRef with non-ObjRef arg.
-// Good: creating a new wrapper around some unknown type. Specifically, " +
-// rhs.get_type_info().name() + ".)\n");
-//
-//    // if the_ref exists but doesn't match rhs's type...
-//    //
-//    if (VerifyNotNull(the_ref) &&
-// !(the_ref.get_type_info().bare_equal(rhs.get_type_info())))
-//    {
-//        print("rhs TYPE NAME: " + rhs.get_type_info().name())
-//            print("the_ref TYPE NAME: " + the_ref.get_type_info().name())
-//
-//            OTAPI_Wrap::Output(0, "ERROR: object being copied is not an ObjRef
-// like I am, neither is it the same type as the_ref is! (Which does exist.) You
-// are passing an object of the wrong type--or someone is. ASSERT!\n");
-//    }
-//
-//    // We know that the_ref is either nullptr... or if it's not nullptr,
-//    // then at least rhs is of the same data type that the_ref is.
-//    // Either way, now we can copy it's reference over.
-//    //
-//    else
-//    {
-//    the_ref: = rhs // by reference
-//        OTAPI_Wrap::Output(1, "Assigned the_ref to a reference to rhs. Type
-// is: " + rhs.get_type_info().name());
-//
-//    }
-//
-//}
-//// -------------------------------------------
-//
-// OT_UTILITY_OT int32_t clone(rhs) : rhs.is_type("ObjRef")
-//{
-//    print("clone ObjRef")
-//        var new_o : = ObjRef(rhs);
-//
-//    //    for_each(get_attrs(),
-//    //             bind(fun(new_o, x) { new_o.get_attr(x.first) = x.second; },
-//    //                  new_o, _)
-//    //             );
-//    return new_o;
-//}
-//
-//// ---------------------------------------
-//// All OTDB_ objects are not cloned, but instead return a;
-////
-// OT_UTILITY_OT int32_t clone(rhs) : (0 ==
-// rhs.get_type_info().name().find("OTDB_"))
-//{
-//    return rhs;
-//}
-//
-//// ---------------------------------------
-// OT_UTILITY_OT int32_t ObjRef::assign(rhs)
-//{
-//    print("assign")
-//        setRef(rhs)
-//        return this;
-//}
-//// ---------------------------------------
-
-// pScript->chai.add(fun(&OTAPI_Wrap::Message_GetSuccess),
-// "OT_API_Message_GetSuccess");                 *DONE (just above)
-// pScript->chai.add(fun(&OTAPI_Wrap::Msg_GetBlnceAgrmntSuccess),
-// "OT_API_Msg_GetBlnceAgrmntSuccess");   *DONE (first below)
-// pScript->chai.add(fun(&OTAPI_Wrap::Msg_GetTransactionSuccess),
-// "OT_API_Msg_GetTransactionSuccess");
-//
-// pScript->chai.add(fun(&OTAPI_Wrap::Transaction_GetSuccess),
-// "OT_API_Transaction_GetSuccess");
-// pScript->chai.add(fun(&OTAPI_Wrap::Transaction_GetBlnceAgrmntSuccess),
-// "OT_API_Transaction_GetBlnceAgrmntSuccess");
 
 OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
     const string& SERVER_ID, const string& USER_ID, const string& ACCOUNT_ID,
@@ -434,13 +244,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //
 // OT_UTILITY_OT int32_t ifB(the_expression, X, Y)
 //{
-//    if (!(VerifyBoolVal(the_expression)))
-//    {
-//        OTAPI_Wrap::Output(0, "ifB: ERROR: SHOULD NEVER HAPPEN: the_expression
-// isn't a boolean.\n");
-//        exit(-1)
-//    }
-//
 //    var theReturnValue
 //
 //    if (the_expression)
@@ -474,11 +277,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::OTBool(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to OTBool
-// constructor!\n");
-//    }
 //    value = param_value;
 //    value2 = false;
 //}
@@ -492,11 +290,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::setBooleanValue(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to
-// OTBool::setBooleanValue!\n");
-//    }
 //    value = param_value;
 //}
 //// ----------------------------
@@ -509,11 +302,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTBool::setSecondValue(param_value)
 //{
-//    if (!VerifyBoolVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-boolean passed to
-// OTBool::setSecondValue!\n");
-//    }
 //    value2 = param_value;
 //}
 //
@@ -530,11 +318,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTInteger::OTInteger(param_value)
 //{
-//    if (!VerifyIntVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-integer passed to OTInteger
-// constructor!\n");
-//    }
 //    value = param_value;
 //}
 //// ----------------------------
@@ -549,11 +332,6 @@ InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
 //// ----------------------------
 // OT_UTILITY_OT int32_t OTInteger::setIntegerValue(param_value)
 //{
-//    if (!VerifyIntVal(param_value))
-//    {
-//        OTAPI_Wrap::Output(0, "ERROR: Non-integer passed to
-// OTInteger::setIntegerValue!\n");
-//    }
 //    value = param_value;
 //}
 ////
@@ -1013,9 +791,8 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     bool bMsgTransSuccess = bMsgFoursome[2];
     bool bMsgTransFailure = bMsgFoursome[3];
 
-    if (!VerifyIntVal(nRequestNumber)) {
-        OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber as an "
-                              "integer. \n\n\n\n\n");
+    if (0 > nRequestNumber) {
+        OTAPI_Wrap::Output(0, "\n\n\n\n Failed verifying nRequestNumber.\n");
         return -1;
     }
 
@@ -1024,15 +801,6 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
             0, strLocation +
                    ": WARNING: Request Num of '1' was just passed in here.\n");
     }
-
-    //// This should NEVER happen (need an assert here.)
-    ////
-    // if (!VerifyOTBoolRef(bWasMsgSent) || !VerifyOTBoolRef(bFoundNymboxItem))
-    //{
-    //    OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!!
-    // ERROR!! FAILURE!!! PROBLEM!!!!!\n");
-    //    return -1;
-    //}
 
     bWasMsgSent = false;
 
@@ -1080,7 +848,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     //
 
     int32_t nGetNymbox = getNymbox(serverID, nymID, bForceDownload);
-    if (!VerifyIntVal(nGetNymbox) || (nGetNymbox < 1)) {
+    if (nGetNymbox < 1) {
         OTAPI_Wrap::Output(0, strLocation +
                                   ": Failure: this.getNymbox returned: " +
                                   to_string(nGetNymbox) + "\n");
@@ -1132,7 +900,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
     bool bInsured = insureHaveAllBoxReceipts(
         serverID, nymID, nymID, nBoxType, nRequestNumber,
         bFoundNymboxItem); // ***************************;
-    if (VerifyBoolVal(bInsured) && bInsured) {
+    if (bInsured) {
         // If the caller was on about a specific request number...
         //
         if (nRequestNumber > 0) {
@@ -1690,12 +1458,6 @@ Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
 {
     string strLocation = "Utility::getAndProcessNymbox_4";
 
-    if (/* !VerifyOTBoolRef(bWasMsgSent) || */ !VerifyBoolVal(bForceDownload)) {
-        OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!! "
-                                            "ERROR!! FAILURE!!! "
-                                            "PROBLEM!!!!!\n");
-        return -1;
-    }
     if (!VerifyStringVal(serverID) || !VerifyStringVal(nymID)) {
         OTAPI_Wrap::Output(0, strLocation + ": SHOULD NEVER HAPPEN!!! ASSERT!! "
                                             "ERROR!! FAILURE!!! "
@@ -1945,7 +1707,7 @@ Utility::ReceiveReplyLowLevel(const string& serverID17, const string& nymID,
     delay();
     setLastReplyReceived("");
 
-    if (!VerifyIntVal(nRequestNumber8)) {
+    if (0 > nRequestNumber8) {
         OTAPI_Wrap::Output(0, "ReceiveReplyLowLevel (" + IN_FUNCTION +
                                   "): nRequestNumber isn't a valid number.\n");
         return "";
@@ -2248,14 +2010,12 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 
     int32_t nReceiptCount =
         OTAPI_Wrap::Ledger_GetCount(serverID, nymID, accountID, ledger);
-    if (VerifyIntVal(nReceiptCount) && (nReceiptCount > 0)) {
-        for (int32_t i_loop = 0; i_loop < nReceiptCount;
-             ++i_loop) // ******** FOR LOOP ****************
-        {
+    if (nReceiptCount > 0) {
+        for (int32_t i_loop = 0; i_loop < nReceiptCount; ++i_loop) {
             int64_t lTransactionNum =
                 OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
                     serverID, nymID, accountID, ledger, i_loop);
-            if (VerifyIntVal(lTransactionNum) && (lTransactionNum != -1)) {
+            if (lTransactionNum != -1) {
                 if (lTransactionNum > 0) {
                     string strTransaction =
                         OTAPI_Wrap::Ledger_GetTransactionByID(serverID, nymID,

@@ -138,8 +138,8 @@
 
 #include <OpenTransactions.hpp>
 
-#include "OTCleanup.hpp"
 #include "OTAgent.hpp"
+#include "OTAPI.hpp"
 #include "OTAssetContract.hpp"
 #include "OTAsymmetricKey.hpp"
 #include "OTAmount.hpp"
@@ -147,6 +147,7 @@
 #include "OTBylaw.hpp"
 #include "OTCheque.hpp"
 #include "OTClause.hpp"
+#include "OTCleanup.hpp"
 #include "OTCredential.hpp"
 #include "OTEnvelope.hpp"
 #include "OTLedger.hpp"
@@ -3485,13 +3486,13 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT)
     if (!thePayment.IsValid()) {
         OTLog::vOutput(0, "%s: Unable to parse instrument:\n\n%s\n\n",
                        __FUNCTION__, strInstrument.Get());
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
     const bool& bSetValues = thePayment.SetTempValues();
     if (!bSetValues) {
         OTLog::vOutput(0, "%s: Unable to load instrument:\n\n%s\n\n",
                        __FUNCTION__, strInstrument.Get());
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
     // BY THIS POINT, we have definitely loaded up all the values of the
     // instrument
@@ -3502,7 +3503,7 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT)
     int64_t lOutput = 0;
     const bool& bGotData = thePayment.GetAmount(lOutput); // <========
 
-    return bGotData ? lOutput : -1;
+    return bGotData ? lOutput : OT_ERROR_AMOUNT;
 }
 
 int64_t OTAPI_Exec::Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT)
@@ -11698,7 +11699,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
 
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(
         theUserID, false, __FUNCTION__); // These copiously log, and ASSERT.
-    if (nullptr == pNym) return -1;
+    if (nullptr == pNym) return OT_ERROR_AMOUNT;
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
@@ -11707,7 +11708,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
         OTLog::vError(
             "%s: Error loading transaction from string. Acct ID: %s\n",
             __FUNCTION__, strAcctID.Get());
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
 
     OTTransaction* pTransaction = nullptr;
@@ -11732,7 +11733,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
             OTLog::vError("%s: Error loading from abbreviated transaction: "
                           "unknown ledger type. \n",
                           __FUNCTION__);
-            return -1;
+            return OT_ERROR_AMOUNT;
         }
         pTransaction = OTTransaction::LoadBoxReceipt(
             theTransaction, static_cast<int64_t>(lBoxType));
@@ -11740,7 +11741,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
             OTLog::vError("%s: Error loading from abbreviated transaction: "
                           "failed loading box receipt. \n",
                           __FUNCTION__);
-            return -1;
+            return OT_ERROR_AMOUNT;
         }
         theTransAngel.SetCleanupTargetPointer(pTransaction);
     }
