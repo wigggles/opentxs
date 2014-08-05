@@ -134,12 +134,12 @@
 namespace opentxs
 {
 
-EXPORT int32_t OT_CLI_GetArgsCount(const std::string str_Args);
-EXPORT std::string OT_CLI_GetValueByKey(const std::string str_Args,
-                                        const std::string str_key);
-EXPORT std::string OT_CLI_GetValueByIndex(const std::string str_Args,
+EXPORT int32_t OT_CLI_GetArgsCount(const std::string& str_Args);
+EXPORT std::string OT_CLI_GetValueByKey(const std::string& str_Args,
+                                        const std::string& str_key);
+EXPORT std::string OT_CLI_GetValueByIndex(const std::string& str_Args,
                                           const int32_t nIndex);
-EXPORT std::string OT_CLI_GetKeyByIndex(const std::string str_Args,
+EXPORT std::string OT_CLI_GetKeyByIndex(const std::string& str_Args,
                                         const int32_t nIndex);
 EXPORT std::string OT_CLI_ReadLine();
 EXPORT std::string OT_CLI_ReadUntilEOF();
