@@ -144,6 +144,10 @@ namespace opentxs
 
 class OTSettings::OTSettingsPvt
 {
+private:
+    OTSettingsPvt(const OTSettingsPvt&);
+    OTSettingsPvt& operator=(const OTSettingsPvt&);
+
 public:
     CSimpleIniA* iniSimple;
 

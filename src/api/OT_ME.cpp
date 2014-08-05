@@ -188,7 +188,7 @@ typedef std::map<std::string, std::string> mapOfArguments;
 // pairs available. (In that example, the return
 // value would be 3.)
 //
-int32_t OT_CLI_GetArgsCount(const std::string str_Args)
+int32_t OT_CLI_GetArgsCount(const std::string& str_Args)
 {
     const OTString strArgs(str_Args);
     int32_t nRetVal = 0;
@@ -202,8 +202,8 @@ int32_t OT_CLI_GetArgsCount(const std::string str_Args)
 // using:  --Args "key value key value key value"
 // then this function can retrieve any value (by key.)
 //
-std::string OT_CLI_GetValueByKey(const std::string str_Args,
-                                 const std::string str_key)
+std::string OT_CLI_GetValueByKey(const std::string& str_Args,
+                                 const std::string& str_key)
 {
     const OTString strArgs(str_Args);
     std::string str_retval = "";
@@ -223,7 +223,7 @@ std::string OT_CLI_GetValueByKey(const std::string str_Args,
 // using:  --Args "key value key value key value"
 // then this function can retrieve any value (by index.)
 //
-std::string OT_CLI_GetValueByIndex(const std::string str_Args,
+std::string OT_CLI_GetValueByIndex(const std::string& str_Args,
                                    const int32_t nIndex)
 {
     const OTString strArgs(str_Args);
@@ -255,7 +255,7 @@ std::string OT_CLI_GetValueByIndex(const std::string str_Args,
 // using:  --Args "key value key value key value"
 // then this function can retrieve any key (by index.)
 //
-std::string OT_CLI_GetKeyByIndex(const std::string str_Args,
+std::string OT_CLI_GetKeyByIndex(const std::string& str_Args,
                                  const int32_t nIndex)
 {
     const OTString strArgs(str_Args);

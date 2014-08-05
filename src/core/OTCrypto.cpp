@@ -2502,6 +2502,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
     class _OTEnv_Seal
     {
     private:
+        _OTEnv_Seal(const _OTEnv_Seal&);
+        _OTEnv_Seal& operator=(const _OTEnv_Seal&);
         const char* m_szFunc;
         EVP_CIPHER_CTX& m_ctx;      // reference to openssl cipher context.
         EVP_PKEY*** m_array_pubkey; // pointer to array of public key pointers.

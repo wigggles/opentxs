@@ -1692,7 +1692,7 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
     }
 
     int32_t nIndex = -1;
-    for (SubMap::iterator it = sub_map.begin(); it != sub_map.end(); it++) {
+    for (SubMap::iterator it = sub_map.begin(); it != sub_map.end(); ++it) {
         ++nIndex;
         // var offer_data_pair = range_sub_map.front();
 
@@ -1769,7 +1769,7 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
 
     int32_t nMainIndex = -1;
     for (MapOfMaps::iterator it = map_of_maps.begin(); it != map_of_maps.end();
-         it++) {
+         ++it) {
         ++nMainIndex; // so we can output a header on the FIRST one only.
 
         // var sub_map_pair = range_map_of_maps.front();

@@ -2499,7 +2499,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                         bool bAlreadyThere = false;
 
                         for (map<string, string>::iterator x = map_ID.begin();
-                             x != map_ID.end(); x++) {
+                             x != map_ID.end(); ++x) {
                             if (x->first == strAcctName) {
                                 bAlreadyThere = true;
                             }
@@ -2765,7 +2765,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                                 for (map<string, string>::iterator x =
                                          map_ID.begin();
-                                     x != map_ID.end(); x++) {
+                                     x != map_ID.end(); ++x) {
                                     if (x->second == strWalletAcctID) {
                                         bAlreadyOnTheMap = true;
                                     }
@@ -2875,7 +2875,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                                     for (map<string, string>::iterator x =
                                              map_ID.begin();
-                                         x != map_ID.end(); x++) {
+                                         x != map_ID.end(); ++x) {
                                         if (x->second == strWalletAcctID) {
                                             bAlreadyOnIt = true;
                                         }
@@ -2983,7 +2983,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                     }
 
                     for (map<string, string>::iterator x = map_ID.begin();
-                         x != map_ID.end(); x++) {
+                         x != map_ID.end(); ++x) {
                         int32_t numCountNeeded =
                             OTAPI_Wrap::SmartContract_CountNumsNeeded(
                                 strSmartContract, map_agent[x->first]) +
@@ -3016,7 +3016,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                     // not the opening numbers. But in here, this is
                     // confirmation, not activation.
                     for (map<string, string>::iterator x = map_ID.begin();
-                         x != map_ID.end(); x++) {
+                         x != map_ID.end(); ++x) {
                         // Here we check to see if MyAcct exists -- if so we
                         // compare it to the current acctID
                         // and if they match, we set strMyAcctID. Later on,
