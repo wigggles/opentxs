@@ -5,8 +5,7 @@
 sup_warn="--suppress=nullPointer"
 sup_info="--suppress=ConfigurationNotChecked"
 sup_perf="--suppress=passedByValue --suppress=postfixOperator"
-sup_style="--suppress=variableScope \
-           --suppress=noCopyConstructor"
+sup_style="--suppress=variableScope"
 suppress="$sup_warn $sup_info $sup_perf $sup_style"
 enabled="--enable=warning --enable=information --enable=performance \
          --enable=portability --enable=missingInclude --enable=style"
