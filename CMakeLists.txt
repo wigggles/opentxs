@@ -210,7 +210,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Get submodules
 
-execute_process(COMMAND git "submodule" "update" "--init" "--recursive")
+execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 #-----------------------------------------------------------------------------
