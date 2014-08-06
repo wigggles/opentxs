@@ -38,10 +38,6 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api
 )
 
-link_directories(
-  ${CMAKE_BINARY_DIR}/lib
-)
-
 add_library(opentxs-api
   ${cxx-sources}
 )
