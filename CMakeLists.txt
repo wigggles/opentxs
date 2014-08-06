@@ -214,11 +214,14 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_
 
 
 #-----------------------------------------------------------------------------
-# OpenSSL workaround for OSX brew
+# OSX workaround for traditional UNIX default include paths
+# Apparently, they are ignored. See clang -xc++ -E -v -
 
 if(APPLE)
-  include_directories(/usr/local/Cellar/openssl/1.0.1e/include)
-  link_directories(/usr/local/Cellar/openssl/1.0.1e/lib)
+  include_directories(SYSTEM /usr/local/include)
+  link_directories(/usr/local/lib)
+  # Hack for travis. Else, we get a link error.
+  link_directories(/usr/local/Cellar/openssl/1.0.1h/lib)
 endif()
 
 
