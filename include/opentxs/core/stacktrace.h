@@ -22,7 +22,7 @@
 // -----------------------------------------------------
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
-static inline void print_stacktrace(FILE *out = stderr, uint32_t max_frames = 63)
+static inline void print_stacktrace(FILE *out = stderr)
 {
 #ifdef _WIN32
 	//TODO: Write Winodws Code
@@ -36,7 +36,7 @@ static inline void print_stacktrace(FILE *out = stderr, uint32_t max_frames = 63
     fprintf(out, "stack trace:\n");
 
     // storage array for stack trace address data
-    void* addrlist[max_frames+1];
+    void* addrlist[64];
 
     // retrieve current stack addresses
     int32_t addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));

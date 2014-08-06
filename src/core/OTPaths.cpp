@@ -1033,18 +1033,8 @@ bool OTPaths::ToReal(const OTString& strExactPath,
 #endif
 #else
 
-    int64_t path_max = 0;
-#ifdef PATH_MAX
-    path_max = PATH_MAX;
-#else
-    path_max = pathconf("/", _PC_PATH_MAX);
-    if (path_max <= 0) path_max = 4096;
-#endif
-
-    char actualpath[path_max + 1];
-    actualpath[0] = '\0';
-
-    if (nullptr == realpath(strExactPath.Get(), actualpath)) {
+    char* actualpath = realpath(strExactPath.Get(), NULL);
+    if (actualpath == NULL) {
 
         if (errno == ENOTDIR) {
             otWarn << "Input value to RealPath is not a directory: (Realpath: "
@@ -1079,6 +1069,7 @@ bool OTPaths::ToReal(const OTString& strExactPath,
             "Error (RealPath: OTHER): Something bad Happend with 'realpath'.");
     }
     out_strCanonicalPath.Set(actualpath);
+    free(actualpath);
     return true;
 #endif
 }
