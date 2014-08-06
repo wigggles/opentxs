@@ -16,6 +16,9 @@
 #include "containers_fixes.hpp"
 #include "exceptions.hpp"
 
+//pragma needed to successfully build opentxs-server
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 namespace stlplus
 {
 
