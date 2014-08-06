@@ -134,13 +134,6 @@
 #define __OT_STORAGE_PB_HPP__
 
 #include "OTCommon.hpp"
-
-#if __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-
 #include "OTAssert.hpp"
 
 #include <deque>
@@ -440,9 +433,5 @@ PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
 } // namespace opentxs
 
 #endif // defined(OTDB_PROTOCOL_BUFFERS)
-
-#if __clang__
-#pragma clang diagnostic pop
-#endif
 
 #endif // __OT_STORAGE_PB_HPP__

@@ -135,12 +135,6 @@
 
 #include "OTScript.hpp"
 
-#if __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702) // warning C4702: unreachable code
@@ -178,10 +172,6 @@ public:
 };
 
 #endif // OT_USE_SCRIPT_CHAI
-
-#if __clang__
-#pragma clang diagnostic pop
-#endif
 
 } // namespace opentxs
 

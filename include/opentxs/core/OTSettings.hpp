@@ -140,12 +140,6 @@
 
 #include "OTString.hpp"
 
-#if __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-
 namespace opentxs
 {
 
@@ -239,10 +233,6 @@ public:
     EXPORT bool SetOption_bool(const OTString& strSection,
                                const OTString& strKey, bool& bVariableName);
 };
-
-#if __clang__
-#pragma clang diagnostic pop
-#endif
 
 } // namespace opentxs
 

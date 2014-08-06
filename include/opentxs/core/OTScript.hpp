@@ -137,12 +137,6 @@
 
 #include <map>
 
-#if __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702) // warning C4702: unreachable code
@@ -245,10 +239,6 @@ EXPORT std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type = "");
 EXPORT std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type, const std::string& script_contents);
-
-#if __clang__
-#pragma clang diagnostic pop
-#endif
 
 } // namespace opentxs
 
