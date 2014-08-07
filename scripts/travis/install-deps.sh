@@ -13,6 +13,19 @@ install_cppcheck()
     rm -rf ./cppcheck/
 }
 
+install_zeromq()
+{
+    wget http://download.zeromq.org/zeromq-4.0.4.tar.gz
+    tar xfz zeromq-4.0.4.tar.gz
+    cd  zeromq-4.0.4
+    # -fPIC is needed to be able to link libzmq.a to a shared lib
+    CXXFLAGS=-fPIC ./configure --enable-static=yes --enable-shared=no
+    make -j2
+    sudo make install
+    cd ..
+    rm -rf ./zeromq-4.0.4
+}
+
 if [ $# -ne 1 ]; then
     echo "Error: expected OS type argument." >&2
     exit 1
@@ -23,7 +36,7 @@ os=$1
 case "$os" in
     osx)
         brew update
-        brew install protobuf-c protobuf boost openssl cppcheck cmake
+        brew install protobuf-c protobuf boost openssl cppcheck cmake zeromq
         brew link --force openssl
         ;;
     linux|"" )
@@ -39,6 +52,7 @@ case "$os" in
         wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get -qq install clang-format-3.4
         install_cppcheck
+        install_zeromq
         ;;
     *)
         echo "Error: unknown OS '$os'" >&2

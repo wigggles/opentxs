@@ -26,7 +26,7 @@ add_library(opentxs-ext
   ${cxx-sources}
 )
 
-target_link_libraries(opentxs-ext opentxs-core libzmq)
+target_link_libraries(opentxs-ext opentxs-core ${ZMQ_LIBRARY})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-ext POST_BUILD

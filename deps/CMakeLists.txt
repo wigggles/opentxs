@@ -67,7 +67,9 @@ endif()
 
 set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
 
-add_subdirectory(libzmq_4)
+if (NOT ZMQ_LIB_FOUND)
+  add_subdirectory(libzmq_4)
+endif()
 
 if (NOT WIN32)
   include(GNUInstallDirs)
