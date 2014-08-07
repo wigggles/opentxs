@@ -152,6 +152,8 @@
 #include <ot_commands_ot.hpp>
 #include <ot_otapi_ot.hpp>
 
+#include <anyoption/anyoption.hpp>
+
 using namespace opentxs;
 
 const char* categoryName[] = {

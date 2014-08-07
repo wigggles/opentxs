@@ -133,10 +133,10 @@
 #ifndef __OPENTXS_HPP__
 #define __OPENTXS_HPP__
 
-#include "anyoption.hpp"
-
 #include <OTVariable.hpp>
 #include <OT_ME.hpp>
+
+class AnyOption;
 
 using namespace opentxs;
 
