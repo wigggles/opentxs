@@ -311,8 +311,8 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
     return "   Balance: " + OTAPI_Wrap::FormatAmount(strAssetID, lBalance) +
            "   (" + strName + ")\nAccount ID: " + ACCOUNT_ID + " ( " + strName +
            " )\nAsset Type: " + strAssetID + " ( " + strAssetTypeName +
-           " )\nOwner Nym:  " + strNymID + " ( " + strNymName +
-           " )\nServer:     " + strServerID + " ( " + strServerName + " )";
+           " )\nOwner Nym : " + strNymID + " ( " + strNymName +
+           " )\nServer    : " + strServerID + " ( " + strServerName + " )";
 }
 
 // DOWNLOAD ACCOUNT FILES  (account balance, inbox, outbox, etc)
