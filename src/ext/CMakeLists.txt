@@ -26,12 +26,7 @@ add_library(opentxs-ext
   ${cxx-sources}
 )
 
-if(WIN32)
-  # Windows ZMQ library has a difficult name and is harder to find
-  target_link_libraries(opentxs-ext opentxs-core ${CMAKE_BINARY_DIR}/deps/libzmq_4/lib/$<CONFIGURATION>/libzmq-mt-gd-4_1_0.lib)
-else()
-  target_link_libraries(opentxs-ext opentxs-core libzmq)
-endif()
+target_link_libraries(opentxs-ext opentxs-core libzmq)
 
 if(WIN32)
   add_custom_command(TARGET opentxs-ext POST_BUILD
