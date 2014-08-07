@@ -22,21 +22,15 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
 )
 
-link_directories(
-  ${CMAKE_BINARY_DIR}/lib
-)
-
 add_library(opentxs-ext
   ${cxx-sources}
 )
 
-if(APPLE)
-  target_link_libraries(opentxs-ext opentxs-core ZeroMQ)
-elseif(WIN32)
+if(WIN32)
   # Windows ZMQ library has a difficult name and is harder to find
   target_link_libraries(opentxs-ext opentxs-core ${CMAKE_BINARY_DIR}/deps/libzmq_4/lib/$<CONFIGURATION>/libzmq-mt-gd-4_1_0.lib)
 else()
-  target_link_libraries(opentxs-ext opentxs-core zmq)
+  target_link_libraries(opentxs-ext opentxs-core libzmq)
 endif()
 
 if(WIN32)
