@@ -233,9 +233,7 @@ bool OTMeCpp::retrieve_account(const std::string& SERVER_ID,
 bool OTMeCpp::retrieve_nym(const std::string& SERVER_ID,
                            const std::string& NYM_ID, const bool bForceDownload)
 {
-    bool bWasSent = false;
-    return OT_Command::details_refresh_nym(SERVER_ID, NYM_ID, bWasSent,
-                                           bForceDownload);
+    return OT_Command::details_refresh_nym(SERVER_ID, NYM_ID, bForceDownload);
 }
 
 std::string OTMeCpp::send_transfer(const std::string& SERVER_ID,

@@ -58,10 +58,9 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
 
         MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
 
-        bool bWasMsgSent = false;
         bool bForceDownload = false;
         bool bRefresh = OT_Command::details_refresh_nym(
-            strMyServerID, strMyNymID, bWasMsgSent, bForceDownload);
+            strMyServerID, strMyNymID, bForceDownload);
 
         if (!bRefresh) {
             return false;

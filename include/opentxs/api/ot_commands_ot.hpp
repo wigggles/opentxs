@@ -118,7 +118,7 @@ public:
         const string& strConsideration, const string& strInitialPayment,
         const string& strPaymentPlan, const string& strExpiry);
     EXPORT OT_COMMANDS_OT static bool details_refresh_nym(
-        const string& strServerID, const string& strMyNymID, bool& bWasMsgSent,
+        const string& strServerID, const string& strMyNymID,
         const bool bForceDownload);
     EXPORT OT_COMMANDS_OT static int32_t details_send_cash(
         string& strResponse, const string& strServerID,
