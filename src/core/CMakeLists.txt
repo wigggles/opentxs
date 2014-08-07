@@ -136,15 +136,13 @@ if(WIN32)
     ${cxx-sources}
     OTWindowsRegistryTools.cpp
   )
-
-  target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${LIB_EAY_RELEASE} ${SSL_EAY_RELEASE} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 else()
   add_library(opentxs-core
     ${cxx-sources}
   )
-
-  target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 endif()
+
+target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD
