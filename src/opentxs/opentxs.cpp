@@ -455,7 +455,7 @@ void Opentxs::handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     bool configPathFound = configPath.Exists() && 3 < configPath.GetLength();
     OT_ASSERT_MSG(configPathFound,
                   "RegisterAPIWithScript: Must set Config Path first!\n");
-    OTLog::vOutput(1, "Using configuration path:  %s\n", configPath.Get());
+    otWarn << "Using configuration path: " << configPath << "\n";
 
     opt.addUsage("");
     opt.addUsage(" Opentxs CLI Usage:  ");
@@ -488,7 +488,7 @@ void Opentxs::handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     OTString optionsFile("command-line-ot.opt"), iniFileExact;
     bool buildFullPathSuccess =
         OTPaths::RelativeToCanonical(iniFileExact, configPath, optionsFile);
-    OT_ASSERT_MSG(buildFullPathSuccess, "Unalbe to set Full Path");
+    OT_ASSERT_MSG(buildFullPathSuccess, "Unable to set Full Path");
 
     opt.processFile(iniFileExact.Get());
     opt.processCommandArgs(argc, argv);
@@ -500,7 +500,7 @@ const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
     // can we get the default value from the command line?
     const char* value = opt.getValue(optionName);
     if (value != nullptr) {
-        OTLog::vOutput(1, "Option  %s: %s\n", optionName, value);
+        otWarn << "Option  " << optionName << ": " << value << "\n";
         return value;
     }
 
@@ -508,7 +508,7 @@ const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
     if (nullptr != defaultName) {
         value = opt.getValue(defaultName);
         if (value != nullptr) {
-            OTLog::vOutput(1, "Default %s: %s\n", optionName, value);
+            otWarn << "Default " << optionName << ": " << value << "\n";
             return value;
         }
     }
@@ -521,12 +521,11 @@ OTVariable* Opentxs::setGlobalVar(OT_ME& madeEasy, const std::string& name,
                                   const std::string& value)
 {
     if (value.size() == 0) {
-        OTLog::vOutput(2, "Variable %s isn't set\n", name.c_str());
+        otInfo << "Variable " << name << " isn't set\n";
         return nullptr;
     }
 
-    OTLog::vOutput(1, "Variable %s has value: %s\n", name.c_str(),
-                   value.c_str());
+    otWarn << "Variable " << name << " has value: " << value << "\n";
 
     OTVariable* var = new OTVariable(name, value, OTVariable::Var_Constant);
     OT_ASSERT(var != nullptr);
@@ -559,9 +558,8 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (serverContract == nullptr) {
             serverContract = wallet->GetServerContractPartialMatch(argServer);
             if (serverContract == nullptr) {
-                OTLog::vOutput(
-                    0, "Unknown default server contract for --server %s\n",
-                    argServer.c_str());
+                otOut << "Unknown default server contract for --server "
+                      << argServer << "\n";
             }
         }
         if (serverContract != nullptr) {
@@ -578,15 +576,14 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (myNym == nullptr) {
             myNym = wallet->GetNymByIDPartialMatch(argMyNym);
             if (myNym == nullptr) {
-                OTLog::vOutput(0, "Unknown default nym for --mynym %s\n",
-                               argMyNym.c_str());
+                otOut << "Unknown default nym for --mynym " << argMyNym << "\n";
             }
         }
         if (myNym != nullptr) {
             OTString tmp;
             myNym->GetIdentifier(tmp);
             argMyNym = tmp.Get();
-            OTLog::vOutput(0, "Using as mynym: %s\n", argMyNym.c_str());
+            otOut << "Using as mynym: " << argMyNym << "\n";
         }
     }
 
@@ -596,15 +593,15 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (myAccount == nullptr) {
             myAccount = wallet->GetAccountPartialMatch(argMyAcct);
             if (myAccount == nullptr) {
-                OTLog::vOutput(0, "Unknown default account for --myacct %s\n",
-                               argMyAcct.c_str());
+                otOut << "Unknown default account for --myacct " << argMyAcct
+                      << "\n";
             }
         }
         if (myAccount != nullptr) {
             OTString tmp;
             myAccount->GetPurportedAccountID().GetString(tmp);
             argMyAcct = tmp.Get();
-            OTLog::vOutput(0, "Using as myacct: %s\n", argMyAcct.c_str());
+            otOut << "Using as myacct: " << argMyAcct << "\n";
         }
     }
 
@@ -614,15 +611,15 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (hisNym == nullptr) {
             hisNym = wallet->GetNymByIDPartialMatch(argHisNym);
             if (hisNym == nullptr) {
-                OTLog::vOutput(0, "Unknown default nym for --hisnym %s\n",
-                               argHisNym.c_str());
+                otOut << "Unknown default nym for --hisnym " << argHisNym
+                      << "\n";
             }
         }
         if (hisNym != nullptr) {
             OTString tmp;
             hisNym->GetIdentifier(tmp);
             argHisNym = tmp.Get();
-            OTLog::vOutput(0, "Using as hisnym: %s\n", argHisNym.c_str());
+            otOut << "Using as hisnym: " << argHisNym << "\n";
         }
     }
 
@@ -632,15 +629,15 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (hisAccount == nullptr) {
             hisAccount = wallet->GetAccountPartialMatch(argHisAcct);
             if (hisAccount == nullptr) {
-                OTLog::vOutput(0, "Unknown default account for --hisacct %s\n",
-                               argHisAcct.c_str());
+                otOut << "Unknown default account for --hisacct " << argHisAcct
+                      << "\n";
             }
         }
         if (hisAccount != nullptr) {
             OTString tmp;
             hisAccount->GetPurportedAccountID().GetString(tmp);
             argHisAcct = tmp.Get();
-            OTLog::vOutput(0, "Using as hisacct: %s\n", argHisAcct.c_str());
+            otOut << "Using as hisacct: " << argHisAcct << "\n";
         }
     }
 
@@ -651,8 +648,8 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         if (myAssetContract == nullptr) {
             myAssetContract = wallet->GetAssetContractPartialMatch(argMyPurse);
             if (myAssetContract == nullptr) {
-                OTLog::vOutput(0, "Unknown default purse for --mypurse %s\n",
-                               argMyPurse.c_str());
+                otOut << "Unknown default purse for --mypurse " << argMyPurse
+                      << "\n";
             }
         }
         if (myAssetContract != nullptr) {
@@ -660,7 +657,7 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
             OTString tmp;
             myAssetContract->GetIdentifier(tmp);
             argMyPurse = tmp.Get();
-            OTLog::vOutput(0, "Using as mypurse: %s\n", argMyPurse.c_str());
+            otOut << "Using as mypurse: " << argMyPurse << "\n";
         }
     }
 
@@ -672,8 +669,8 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
             hisAssetContract =
                 wallet->GetAssetContractPartialMatch(argHisPurse);
             if (hisAssetContract == nullptr) {
-                OTLog::vOutput(0, "Unknown default purse for --hispurse %s\n",
-                               argHisPurse.c_str());
+                otOut << "Unknown default purse for --hispurse " << argHisPurse
+                      << "\n";
             }
         }
         if (hisAssetContract != nullptr) {
@@ -681,11 +678,11 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
             OTString tmp;
             hisAssetContract->GetIdentifier(tmp);
             argHisPurse = tmp.Get();
-            OTLog::vOutput(0, "Using as hispurse: %s\n", argHisPurse.c_str());
+            otOut << "Using as hispurse: " << argHisPurse << "\n";
         }
     }
 
-    OTLog::Output(0, "\n");
+    otOut << "\n";
 
     if (serverContract != nullptr && myNym != nullptr) {
         OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
@@ -698,7 +695,7 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         command = opt.getArgv(0);
     }
     else {
-        OTLog::vOutput(0, "Expecting a single opentxs command:\n\n");
+        otOut << "Expecting a single opentxs command:\n\n";
     }
 
     typedef std::unique_ptr<OTVariable> GlobalVar;
@@ -713,7 +710,7 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
 
     OTAPI_Func::CopyVariables();
 
-    OTLog::Output(1, "Script output:\n\n");
+    otWarn << "Script output:\n\n";
 
     int result = opentxsCommand(command);
     return opt.getArgc() == 1 ? result : -2;
@@ -726,15 +723,15 @@ int Opentxs::opentxsCommand(const string& command)
     }
 
     if ("list" == command) {
-        OTAPI_Wrap::Output(0, "\nCommands:\n\n");
+        otOut << "\nCommands:\n\n";
         for (int32_t i = 0; commands[i].command != nullptr; i++) {
             CommandEntry& cmd = commands[i];
-            OTAPI_Wrap::Output(0, (cmd.command + spaces18).substr(0, 18));
+            otOut << (cmd.command + spaces18).substr(0, 18);
             if (i % 4 == 3) {
-                OTAPI_Wrap::Output(0, "\n");
+                otOut << "\n";
             }
         }
-        OTAPI_Wrap::Output(0, "\n");
+        otOut << "\n";
         return 0;
     }
 
@@ -746,7 +743,7 @@ int Opentxs::opentxsCommand(const string& command)
         }
 
         // add commands to their category group
-        OTAPI_Wrap::Output(0, "\nCommands:\n");
+        otOut << "\nCommands:\n";
         for (int32_t i = 0; commands[i].command != nullptr; i++) {
             CommandEntry& cmd = commands[i];
             categoryGroup[cmd.category] +=
@@ -755,7 +752,7 @@ int Opentxs::opentxsCommand(const string& command)
 
         // print all category groups
         for (int i = 1; i < catLast; i++) {
-            OTAPI_Wrap::Output(0, categoryGroup[i]);
+            otOut << categoryGroup[i];
         }
 
         return 0;
@@ -774,17 +771,15 @@ int Opentxs::opentxsCommand(const string& command)
             case -1: // failed
                 return -1;
             default: // should not happen
-                OTAPI_Wrap::Output(0, "\nUndefined error code: \"" +
-                                          std::to_string(returnValue) +
-                                          "\".\n\n");
+                otOut << "\nUndefined error code: \"" << returnValue
+                      << "\".\n\n";
                 return -1;
             }
             break;
         }
     }
 
-    OTAPI_Wrap::Output(0, "\nUndefined command: \"" + command +
-                              "\" -- Try 'list'.\n\n");
+    otOut << "\nUndefined command: \"" << command << "\" -- Try 'list'.\n\n";
     return -1;
 }
 
@@ -812,7 +807,6 @@ int Opentxs::run(int argc, char* argv[])
     bool echoExpand = opt.getFlag("echoexpand") || opt.getFlag("test");
     bool noPrompt = opt.getFlag("noprompt") || opt.getFlag("test");
     int processed = 0;
-    int failed = 0;
     while (true) {
         // get next command line from input stream
         if (!noPrompt) {
@@ -877,11 +871,10 @@ int Opentxs::run(int argc, char* argv[])
             }
 
             if (i == cmd.length() || cmd[i] != '=') {
-                OTLog::vOutput(0, "\n\n***ERROR***\n"
-                                  "Expected macro definition of the form: "
-                                  "$macroName = macroValue\n"
-                                  "Command was: %s",
-                               cmd.c_str());
+                otOut << "\n\n***ERROR***\n"
+                         "Expected macro definition of the form: "
+                         "$macroName = macroValue\n"
+                         "Command was: " << cmd;
                 continue;
             }
 
@@ -915,11 +908,11 @@ int Opentxs::run(int argc, char* argv[])
             std::map<std::string, std::string>::iterator found =
                 macros.find(macroName);
             if (found == macros.end()) {
-                OTLog::vOutput(0, "\n\n***ERROR***\n"
-                                  "Macro expansion failed.\n"
-                                  "Unknown macro: %s\n"
-                                  "Command was: %s",
-                               macroName.c_str(), cmd.c_str());
+                otOut << "\n\n***ERROR***\n"
+                         "Macro expansion failed.\n"
+                         "Unknown macro: " << macroName
+                      << "\n"
+                         "Command was: " << cmd;
                 expansions = 100;
                 break;
             }
@@ -929,23 +922,23 @@ int Opentxs::run(int argc, char* argv[])
             // limit to 100 expansions to avoid endless recusion loop
             expansions++;
             if (expansions > 100) {
-                OTLog::vOutput(0, "\n\n***ERROR***\n"
-                                  "Macro expansion failed.\n"
-                                  "Too many expansions at macro: %s\n"
-                                  "Command was: %s",
-                               macroName.c_str(), cmd.c_str());
+                otOut << "\n\n***ERROR***\n"
+                         "Macro expansion failed.\n"
+                         "Too many expansions at macro: " << macroName
+                      << "\n"
+                         "Command was: " << cmd;
                 break;
             }
 
             // limit to 10000 characters to avoid crazy recursive expansions
             if (cmd.length() + macroValue.length() > 10000) {
-                OTLog::vOutput(0, "\n\n***ERROR***\n"
-                                  "Macro expansion failed.\n"
-                                  "Command length exceeded at macro: %s\n"
-                                  "Macro value is: %s\n"
-                                  "Command was: %s",
-                               macroName.c_str(), macroValue.c_str(),
-                               cmd.c_str());
+                otOut << "\n\n***ERROR***\n"
+                         "Macro expansion failed.\n"
+                         "Command length exceeded at macro: " << macroName
+                      << "\n"
+                         "Macro value is: " << macroValue
+                      << "\n"
+                         "Command was: " << cmd;
                 expansions = 100;
                 break;
             }
@@ -955,7 +948,7 @@ int Opentxs::run(int argc, char* argv[])
         }
 
         if (echoExpand && cmd != originalCmd) {
-            std::cout << cmd << std::endl;
+            otOut << cmd << std::endl;
         }
 
         // skip command when anything during macro expansion failed
@@ -1062,34 +1055,23 @@ int Opentxs::run(int argc, char* argv[])
         AnyOption opt;
         handleCommandLineArguments(newArgc, newArgv, opt);
 
-        bool bFailedCommand = 0 != processCommand(madeEasy, opt);
-        if (expectFailure) {
-            if (!bFailedCommand) {
-                failed++;
-                OTLog::vOutput(0, "\n\n***ERROR***\nExpected command to "
-                                  "fail.\nSucceeding command was: %s",
-                               cmd.c_str());
-                errorLineNumbers.push_back(lineNumber);
-                errorCommands.push_back(originalCmd);
-            }
-        }
-        else {
-            if (bFailedCommand) {
-                failed++;
-                OTLog::vOutput(0, "\n\n***ERROR***\nFailed command was: %s",
-                               cmd.c_str());
-                errorLineNumbers.push_back(lineNumber);
-                errorCommands.push_back(originalCmd);
-            }
+        std::cout << "\n";
+        if (expectFailure != (0 != processCommand(madeEasy, opt))) {
+            errorLineNumbers.push_back(lineNumber);
+            errorCommands.push_back(originalCmd);
+            otOut << "\n\n***ERROR***\n"
+                  << (expectFailure ? "Expected command to fail.\nSucceeding"
+                                    : "Failed") << " command was: " << cmd;
         }
 
         delete[] newArgv;
         delete[] buf;
 
-        OTLog::Output(0, "\n\n");
+        otOut << "\n\n";
         processed++;
     }
 
+    int failed = errorLineNumbers.size();
     std::cout << "\n\n" << processed << " commands were processed.\n" << failed
               << " commands failed.\n" << std::endl;
 
