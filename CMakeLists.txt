@@ -219,9 +219,6 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_
 
 if(APPLE)
   include_directories(SYSTEM /usr/local/include)
-  link_directories(/usr/local/lib)
-  # Hack for travis. Else, we get a link error.
-  link_directories(/usr/local/Cellar/openssl/1.0.1h/lib)
 endif()
 
 
