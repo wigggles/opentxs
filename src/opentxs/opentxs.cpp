@@ -494,8 +494,8 @@ void Opentxs::handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     opt.processCommandArgs(argc, argv);
 }
 
-const char* Opentxs::getOption(AnyOption& opt, const char* defaultName,
-                               const char* optionName)
+const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
+                               const char* defaultName)
 {
     // can we get the default value from the command line?
     const char* value = opt.getValue(optionName);
@@ -505,18 +505,20 @@ const char* Opentxs::getOption(AnyOption& opt, const char* defaultName,
     }
 
     // can we get the default value from the options file?
-    value = opt.getValue(defaultName);
-    if (value != nullptr) {
-        OTLog::vOutput(1, "Default %s: %s\n", optionName, value);
-        return value;
+    if (nullptr != defaultName) {
+        value = opt.getValue(defaultName);
+        if (value != nullptr) {
+            OTLog::vOutput(1, "Default %s: %s\n", optionName, value);
+            return value;
+        }
     }
 
     // clear option value
     return "";
 }
 
-OTVariable* Opentxs::setGlobalVariable(OT_ME& madeEasy, const std::string& name,
-                                       const std::string& value)
+OTVariable* Opentxs::setGlobalVar(OT_ME& madeEasy, const std::string& name,
+                                  const std::string& value)
 {
     if (value.size() == 0) {
         OTLog::vOutput(2, "Variable %s isn't set\n", name.c_str());
@@ -536,14 +538,14 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
 {
     // process command line values such as account ID, Nym ID, etc.
     // Also available as defaults in a config file in the ~/.ot folder
-    args_ = getOption(opt, "defaultargs", "args");
-    hisAcct_ = getOption(opt, "defaulthisacct", "hisacct");
-    hisNym_ = getOption(opt, "defaulthisnym", "hisnym");
-    hisPurse_ = getOption(opt, "defaulthispurse", "hispurse");
-    myAcct_ = getOption(opt, "defaultmyacct", "myacct");
-    myNym_ = getOption(opt, "defaultmynym", "mynym");
-    myPurse_ = getOption(opt, "defaultmypurse", "mypurse");
-    server_ = getOption(opt, "defaultserver", "server");
+    argArgs = getOption(opt, "args", "defaultargs");
+    argHisAcct = getOption(opt, "hisacct", "defaulthisacct");
+    argHisNym = getOption(opt, "hisnym", "defaulthisnym");
+    argHisPurse = getOption(opt, "hispurse", "defaulthispurse");
+    argMyAcct = getOption(opt, "myacct", "defaultmyacct");
+    argMyNym = getOption(opt, "mynym", "defaultmynym");
+    argMyPurse = getOption(opt, "mypurse", "defaultmypurse");
+    argServer = getOption(opt, "server", "defaultserver");
 
     OTWallet* wallet = OTAPI_Wrap::OTAPI()->GetWallet();
 
@@ -552,133 +554,134 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         "The wallet object is still nullptr, somehow. Please load it.\n");
 
     OTServerContract* serverContract = nullptr;
-    if (server_.size() > 0) {
-        serverContract = wallet->GetServerContract(server_);
+    if (argServer.size() > 0) {
+        serverContract = wallet->GetServerContract(argServer);
         if (serverContract == nullptr) {
-            serverContract = wallet->GetServerContractPartialMatch(server_);
+            serverContract = wallet->GetServerContractPartialMatch(argServer);
             if (serverContract == nullptr) {
                 OTLog::vOutput(
                     0, "Unknown default server contract for --server %s\n",
-                    server_.c_str());
+                    argServer.c_str());
             }
         }
         if (serverContract != nullptr) {
             OTString tmp;
             serverContract->GetIdentifier(tmp);
-            server_ = tmp.Get();
-            OTLog::vOutput(0, "Using as server: %s\n", server_.c_str());
+            argServer = tmp.Get();
+            otOut << "Using as server: " << argServer << "\n";
         }
     }
 
     OTPseudonym* myNym = nullptr;
-    if (myNym_.size() > 0) {
-        myNym = wallet->GetNymByID(myNym_);
+    if (argMyNym.size() > 0) {
+        myNym = wallet->GetNymByID(argMyNym);
         if (myNym == nullptr) {
-            myNym = wallet->GetNymByIDPartialMatch(myNym_);
+            myNym = wallet->GetNymByIDPartialMatch(argMyNym);
             if (myNym == nullptr) {
                 OTLog::vOutput(0, "Unknown default nym for --mynym %s\n",
-                               myNym_.c_str());
+                               argMyNym.c_str());
             }
         }
         if (myNym != nullptr) {
             OTString tmp;
             myNym->GetIdentifier(tmp);
-            myNym_ = tmp.Get();
-            OTLog::vOutput(0, "Using as mynym: %s\n", myNym_.c_str());
+            argMyNym = tmp.Get();
+            OTLog::vOutput(0, "Using as mynym: %s\n", argMyNym.c_str());
         }
     }
 
     OTAccount* myAccount = nullptr;
-    if (myAcct_.size() > 0) {
-        myAccount = wallet->GetAccount(myAcct_);
+    if (argMyAcct.size() > 0) {
+        myAccount = wallet->GetAccount(argMyAcct);
         if (myAccount == nullptr) {
-            myAccount = wallet->GetAccountPartialMatch(myAcct_);
+            myAccount = wallet->GetAccountPartialMatch(argMyAcct);
             if (myAccount == nullptr) {
                 OTLog::vOutput(0, "Unknown default account for --myacct %s\n",
-                               myAcct_.c_str());
+                               argMyAcct.c_str());
             }
         }
         if (myAccount != nullptr) {
             OTString tmp;
             myAccount->GetPurportedAccountID().GetString(tmp);
-            myAcct_ = tmp.Get();
-            OTLog::vOutput(0, "Using as myacct: %s\n", myAcct_.c_str());
+            argMyAcct = tmp.Get();
+            OTLog::vOutput(0, "Using as myacct: %s\n", argMyAcct.c_str());
         }
     }
 
     OTPseudonym* hisNym = nullptr;
-    if (hisNym_.size() > 0) {
-        hisNym = wallet->GetNymByID(hisNym_);
+    if (argHisNym.size() > 0) {
+        hisNym = wallet->GetNymByID(argHisNym);
         if (hisNym == nullptr) {
-            hisNym = wallet->GetNymByIDPartialMatch(hisNym_);
+            hisNym = wallet->GetNymByIDPartialMatch(argHisNym);
             if (hisNym == nullptr) {
                 OTLog::vOutput(0, "Unknown default nym for --hisnym %s\n",
-                               hisNym_.c_str());
+                               argHisNym.c_str());
             }
         }
         if (hisNym != nullptr) {
             OTString tmp;
             hisNym->GetIdentifier(tmp);
-            hisNym_ = tmp.Get();
-            OTLog::vOutput(0, "Using as hisnym: %s\n", hisNym_.c_str());
+            argHisNym = tmp.Get();
+            OTLog::vOutput(0, "Using as hisnym: %s\n", argHisNym.c_str());
         }
     }
 
     OTAccount* hisAccount = nullptr;
-    if (hisAcct_.size() > 0) {
-        hisAccount = wallet->GetAccount(hisAcct_);
+    if (argHisAcct.size() > 0) {
+        hisAccount = wallet->GetAccount(argHisAcct);
         if (hisAccount == nullptr) {
-            hisAccount = wallet->GetAccountPartialMatch(hisAcct_);
+            hisAccount = wallet->GetAccountPartialMatch(argHisAcct);
             if (hisAccount == nullptr) {
                 OTLog::vOutput(0, "Unknown default account for --hisacct %s\n",
-                               hisAcct_.c_str());
+                               argHisAcct.c_str());
             }
         }
         if (hisAccount != nullptr) {
             OTString tmp;
             hisAccount->GetPurportedAccountID().GetString(tmp);
-            hisAcct_ = tmp.Get();
-            OTLog::vOutput(0, "Using as hisacct: %s\n", hisAcct_.c_str());
+            argHisAcct = tmp.Get();
+            OTLog::vOutput(0, "Using as hisacct: %s\n", argHisAcct.c_str());
         }
     }
 
     OTIdentifier purseAssetTypeID;
     OTAssetContract* myAssetContract = nullptr;
-    if (myPurse_.size() > 0) {
-        myAssetContract = wallet->GetAssetContract(myPurse_);
+    if (argMyPurse.size() > 0) {
+        myAssetContract = wallet->GetAssetContract(argMyPurse);
         if (myAssetContract == nullptr) {
-            myAssetContract = wallet->GetAssetContractPartialMatch(myPurse_);
+            myAssetContract = wallet->GetAssetContractPartialMatch(argMyPurse);
             if (myAssetContract == nullptr) {
                 OTLog::vOutput(0, "Unknown default purse for --mypurse %s\n",
-                               myPurse_.c_str());
+                               argMyPurse.c_str());
             }
         }
         if (myAssetContract != nullptr) {
             myAssetContract->GetIdentifier(purseAssetTypeID);
             OTString tmp;
             myAssetContract->GetIdentifier(tmp);
-            myPurse_ = tmp.Get();
-            OTLog::vOutput(0, "Using as mypurse: %s\n", myPurse_.c_str());
+            argMyPurse = tmp.Get();
+            OTLog::vOutput(0, "Using as mypurse: %s\n", argMyPurse.c_str());
         }
     }
 
     OTIdentifier hisPurseAssetTypeID;
     OTAssetContract* hisAssetContract = nullptr;
-    if (hisPurse_.size() > 0) {
-        hisAssetContract = wallet->GetAssetContract(hisPurse_);
+    if (argHisPurse.size() > 0) {
+        hisAssetContract = wallet->GetAssetContract(argHisPurse);
         if (hisAssetContract == nullptr) {
-            hisAssetContract = wallet->GetAssetContractPartialMatch(hisPurse_);
+            hisAssetContract =
+                wallet->GetAssetContractPartialMatch(argHisPurse);
             if (hisAssetContract == nullptr) {
                 OTLog::vOutput(0, "Unknown default purse for --hispurse %s\n",
-                               hisPurse_.c_str());
+                               argHisPurse.c_str());
             }
         }
         if (hisAssetContract != nullptr) {
             hisAssetContract->GetIdentifier(hisPurseAssetTypeID);
             OTString tmp;
             hisAssetContract->GetIdentifier(tmp);
-            hisPurse_ = tmp.Get();
-            OTLog::vOutput(0, "Using as hispurse: %s\n", hisPurse_.c_str());
+            argHisPurse = tmp.Get();
+            OTLog::vOutput(0, "Using as hispurse: %s\n", argHisPurse.c_str());
         }
     }
 
@@ -699,14 +702,14 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
     }
 
     typedef std::unique_ptr<OTVariable> GlobalVar;
-    GlobalVar varArgs(setGlobalVariable(madeEasy, "Args", args_));
-    GlobalVar varMyAcct(setGlobalVariable(madeEasy, "MyAcct", myAcct_));
-    GlobalVar varMyNym(setGlobalVariable(madeEasy, "MyNym", myNym_));
-    GlobalVar varMyPurse(setGlobalVariable(madeEasy, "MyPurse", myPurse_));
-    GlobalVar varHisAcct(setGlobalVariable(madeEasy, "HisAcct", hisAcct_));
-    GlobalVar varHisNym(setGlobalVariable(madeEasy, "HisNym", hisNym_));
-    GlobalVar varHisPurse(setGlobalVariable(madeEasy, "HisPurse", hisPurse_));
-    GlobalVar varServer(setGlobalVariable(madeEasy, "Server", server_));
+    GlobalVar varArgs(setGlobalVar(madeEasy, "Args", argArgs));
+    GlobalVar varHisAcct(setGlobalVar(madeEasy, "HisAcct", argHisAcct));
+    GlobalVar varHisNym(setGlobalVar(madeEasy, "HisNym", argHisNym));
+    GlobalVar varHisPurse(setGlobalVar(madeEasy, "HisPurse", argHisPurse));
+    GlobalVar varMyAcct(setGlobalVar(madeEasy, "MyAcct", argMyAcct));
+    GlobalVar varMyNym(setGlobalVar(madeEasy, "MyNym", argMyNym));
+    GlobalVar varMyPurse(setGlobalVar(madeEasy, "MyPurse", argMyPurse));
+    GlobalVar varServer(setGlobalVar(madeEasy, "Server", argServer));
 
     OTAPI_Func::CopyVariables();
 

@@ -172,10 +172,10 @@ public:
 
 private:
     void handleCommandLineArguments(int argc, char* argv[], AnyOption& opt);
-    const char* getOption(AnyOption& opt, const char* defaultName,
-                          const char* optionName);
-    OTVariable* setGlobalVariable(OT_ME& madeEasy, const std::string& name,
-                                  const std::string& value);
+    const char* getOption(AnyOption& opt, const char* optionName,
+                          const char* defaultName = nullptr);
+    OTVariable* setGlobalVar(OT_ME& madeEasy, const std::string& name,
+                             const std::string& value);
     int processCommand(OT_ME& madeEasy, AnyOption& opt);
 
     int opentxsCommand(const std::string& command);
@@ -186,14 +186,14 @@ private:
 
     const std::string spaces18 = "                  ";
 
-    std::string args_;
-    std::string hisAcct_;
-    std::string hisNym_;
-    std::string hisPurse_;
-    std::string myAcct_;
-    std::string myNym_;
-    std::string myPurse_;
-    std::string server_;
+    std::string argArgs;
+    std::string argHisAcct;
+    std::string argHisNym;
+    std::string argHisPurse;
+    std::string argMyAcct;
+    std::string argMyNym;
+    std::string argMyPurse;
+    std::string argServer;
 };
 
 #endif // __OPENTXS_HPP__
