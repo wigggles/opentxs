@@ -1264,14 +1264,11 @@ bool OTCronItem::MoveFunds(
             // Make sure each Account can afford it, and roll back in case of
             // failure.
 
-            bool bMoveSender = false;
-            bool bMoveRecipient = false;
-
             // Make sure he can actually afford it...
             if (pSourceAcct->GetBalance() >= lAmount) {
                 // Debit the source account.
-                bMoveSender =
-                    pSourceAcct->Debit(lAmount); // <====== DEBIT FUNDS
+                bool bMoveSender = pSourceAcct->Debit(lAmount);
+                bool bMoveRecipient = false;
 
                 // IF success, credit the recipient.
                 if (bMoveSender) {
@@ -1956,7 +1953,6 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const OTString strServerID(GetServerID());
 
-    OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
 
@@ -1990,6 +1986,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // process inbox.
         //
         const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
+        OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;

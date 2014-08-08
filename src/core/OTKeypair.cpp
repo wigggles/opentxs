@@ -431,15 +431,13 @@ bool OTKeypair::LoadPublicKeyFromCertFile(
 
 bool OTKeypair::MakeNewKeypair(int32_t nBits)
 {
-    const char* szFunc = "OTKeypair::MakeNewKeypair";
-
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
 
     OTLowLevelKeyData lowLevelData;
 
     if (!lowLevelData.MakeNewKeypair(nBits)) {
-        otErr << szFunc
+        otErr << "OTKeypair::MakeNewKeypair"
               << ": Failed in a call to OTLowLevelKeyData::MakeNewKeypair("
               << nBits << ").\n";
         return false;

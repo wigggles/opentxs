@@ -344,10 +344,8 @@ bool OTCryptoConfig::GetSetValue(OTSettings& config,
     if (strKeyName.empty()) return false;
     if (3 > strKeyName.size()) return false;
 
-    OTString strResult("");
-    bool bIsNew(false);
-
     {
+        bool bIsNew = false;
         int64_t nValue = 0;
         config.CheckSet_long("crypto", strKeyName, nDefaultValue, nValue,
                              bIsNew);
@@ -1662,9 +1660,6 @@ bool OTCrypto_OpenSSL::CalculateDigest(const OTString& strInput,
                                        const OTString& strHashAlgorithm,
                                        OTIdentifier& theOutput) const
 {
-
-    const char* szFunc = "OTCrypto_OpenSSL::CalculateDigest";
-
     theOutput.Release();
 
     // Some hash algorithms are handled by other methods.
@@ -1686,7 +1681,7 @@ bool OTCrypto_OpenSSL::CalculateDigest(const OTString& strInput,
         strHashAlgorithm); // todo cleanup?
 
     if (!md) {
-        otErr << szFunc
+        otErr << "OTCrypto_OpenSSL::CalculateDigest"
               << ": Unknown message digest algorithm: " << strHashAlgorithm
               << "\n";
         return false;
@@ -1707,9 +1702,6 @@ bool OTCrypto_OpenSSL::CalculateDigest(const OTData& dataInput,
                                        const OTString& strHashAlgorithm,
                                        OTIdentifier& theOutput) const
 {
-
-    const char* szFunc = "OTCrypto_OpenSSL::CalculateDigest";
-
     theOutput.Release();
 
     // Some hash algorithms are handled by other methods.
@@ -1731,7 +1723,7 @@ bool OTCrypto_OpenSSL::CalculateDigest(const OTData& dataInput,
         strHashAlgorithm); // todo cleanup ?
 
     if (!md) {
-        otErr << szFunc
+        otErr << "OTCrypto_OpenSSL::CalculateDigest"
               << ": Unknown message digest algorithm: " << strHashAlgorithm
               << "\n";
         return false;
@@ -2221,8 +2213,6 @@ bool OTCrypto_OpenSSL::Encrypt(
     std::vector<uint8_t> vBuffer(OTCryptoConfig::SymmetricBufferSize()); // 4096
     std::vector<uint8_t> vBuffer_out(OTCryptoConfig::SymmetricBufferSize() +
                                      EVP_MAX_IV_LENGTH);
-
-    uint32_t len = 0;
     int32_t len_out = 0;
 
     memset(&vBuffer.at(0), 0, OTCryptoConfig::SymmetricBufferSize());
@@ -2287,7 +2277,8 @@ bool OTCrypto_OpenSSL::Encrypt(
         // size, then use the default buffer size.
         // Resulting value stored in len.
         //
-        len = static_cast<uint32_t>(
+
+        uint32_t len = static_cast<uint32_t>(
             (lRemainingLength < OTCryptoConfig::SymmetricBufferSize())
                 ? lRemainingLength
                 : OTCryptoConfig::SymmetricBufferSize()); // 4096
@@ -2349,8 +2340,6 @@ bool OTCrypto_OpenSSL::Decrypt(
     std::vector<uint8_t> vBuffer(OTCryptoConfig::SymmetricBufferSize()); // 4096
     std::vector<uint8_t> vBuffer_out(OTCryptoConfig::SymmetricBufferSize() +
                                      EVP_MAX_IV_LENGTH);
-
-    uint32_t len = 0;
     int32_t len_out = 0;
 
     memset(&vBuffer.at(0), 0, OTCryptoConfig::SymmetricBufferSize());
@@ -2413,9 +2402,10 @@ bool OTCrypto_OpenSSL::Decrypt(
         // size, then use the default buffer size.
         // Resulting value stored in len.
         //
-        len = (lRemainingLength < OTCryptoConfig::SymmetricBufferSize())
-                  ? lRemainingLength
-                  : OTCryptoConfig::SymmetricBufferSize(); // 4096
+        uint32_t len =
+            (lRemainingLength < OTCryptoConfig::SymmetricBufferSize())
+                ? lRemainingLength
+                : OTCryptoConfig::SymmetricBufferSize(); // 4096
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
@@ -4783,7 +4773,6 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTString& strHashType,
                                     OTPasswordData* pPWData) const
 {
-    const char* szFunc = "OTCrypto_OpenSSL::SignContract";
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
     OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
@@ -4795,7 +4784,8 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
 
     if (false == dp->SignContract(strContractUnsigned, pkey, theSignature,
                                   strHashType, pPWData)) {
-        otErr << szFunc << ": SignContract returned false.\n";
+        otErr << "OTCrypto_OpenSSL::SignContract: "
+              << "SignContract returned false.\n";
         return false;
     }
 
@@ -4808,8 +4798,6 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
                                        const OTString& strHashType,
                                        OTPasswordData* pPWData) const
 {
-    const char* szFunc = "OTCrypto_OpenSSL::VerifySignature";
-
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
     OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
         dynamic_cast<OTAsymmetricKey_OpenSSL*>(&theTempKey);
@@ -4820,7 +4808,8 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 
     if (false == dp->VerifySignature(strContractToVerify, pkey, theSignature,
                                      strHashType, pPWData)) {
-        otLog3 << szFunc << ": VerifySignature returned false.\n";
+        otLog3 << "OTCrypto_OpenSSL::VerifySignature: "
+               << "VerifySignature returned false.\n";
         return false;
     }
 
@@ -4941,8 +4930,6 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
         strCertFileContents.size() > 2,
         "Empty strCertFileContents passed to OTCrypto_OpenSSL::SignContract");
 
-    const char* szFunc = "OTCrypto_OpenSSL::SignContract";
-
     // Create a new memory buffer on the OpenSSL side
     //
     OpenSSL_BIO bio =
@@ -4970,7 +4957,8 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
         bio, nullptr, OTAsymmetricKey::GetPasswordCallback(), pPWData);
 
     if (nullptr == pkey) {
-        otErr << szFunc << ": Error reading private key from BIO.\n";
+        otErr << "OTCrypto_OpenSSL::SignContract: "
+              << "Error reading private key from BIO.\n";
     }
     else {
         bSigned = dp->SignContract(strContractUnsigned, pkey, theSignature,

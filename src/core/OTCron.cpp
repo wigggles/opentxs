@@ -642,11 +642,7 @@ void OTCron::UpdateContents()
 
     // Save the transaction numbers.
     //
-    int64_t lTransactionNumber = 0;
-
-    for (auto& it : m_listTransactionNumbers) {
-        lTransactionNumber = it;
-
+    for (auto& lTransactionNumber : m_listTransactionNumbers) {
         m_xmlUnsigned.Concatenate("<transactionNum value=\"%lld\" />\n\n",
                                   lTransactionNumber);
     } // for

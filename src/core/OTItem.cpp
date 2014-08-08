@@ -831,9 +831,6 @@ bool OTItem::VerifyBalanceStatement(
               << TARGET_TRANSACTION.GetTypeString() << "\n";
         break;
     }
-
-    int64_t lTransactionNumber = 0; // Used in the loop below.
-
     int32_t nNumberOfTransactionNumbers1 = 0; // The Nym on this side
     int32_t nNumberOfTransactionNumbers2 = 0; // The Message Nym.
 
@@ -878,8 +875,7 @@ bool OTItem::VerifyBalanceStatement(
                     static_cast<int32_t>(pDeque->size());
 
                 for (uint32_t i = 0; i < pDeque->size(); i++) {
-                    lTransactionNumber = pDeque->at(i);
-
+                    int64_t lTransactionNumber = pDeque->at(i);
                     if (false ==
                         THE_NYM.VerifyIssuedNum(OTstrServerID,
                                                 lTransactionNumber)) // FAILURE
@@ -1629,13 +1625,11 @@ void OTItem::Release_Item()
 
 void OTItem::ReleaseItems()
 {
-    OTItem* pItem = nullptr;
 
     while (!m_listItems.empty()) {
-        pItem = m_listItems.front();
+        OTItem* pItem = m_listItems.front();
         m_listItems.pop_front();
         delete pItem;
-        pItem = nullptr;
     }
 }
 

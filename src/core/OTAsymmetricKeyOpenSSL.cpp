@@ -515,7 +515,6 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
 
-    EVP_PKEY* pClearKey = nullptr;
     OTPayload theData; // after base64-decoding the ascii-armored string, the
                        // (encrypted) binary will be stored here.
 
@@ -527,6 +526,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                                   // text-armoring.
 
     if (theData.GetSize() > 0) {
+        EVP_PKEY* pClearKey = nullptr;
 
         // Copy the encrypted binary private key data into an OpenSSL memory
         // BIO...
@@ -585,8 +585,6 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
             OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
             OT_ASSERT(nullptr != bmem);
 
-            int64_t lSize = 0;
-
             // write a private key to that buffer, from pClearKey
             //
             int32_t nWriteBio = 0;
@@ -639,7 +637,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
                 // where the private key supposedly is,
                 // and lSize will contain the size of that memory.
                 //
-                lSize = BIO_get_mem_data(bmem, &pChar);
+                int64_t lSize = BIO_get_mem_data(bmem, &pChar);
                 uint32_t nSize = static_cast<uint32_t>(lSize);
 
                 if (nSize > 0) {

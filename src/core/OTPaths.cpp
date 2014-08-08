@@ -658,13 +658,14 @@ bool OTPaths::Get(OTSettings& config, const OTString& strSection,
         }
     }
 
-    bool bBoolExists(false), bStringExists(false), bIsRelative(false);
+    bool bBoolExists(false), bIsRelative(false);
     OTString strRelativeKey(""), strOutFolder("");
 
     strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
     if (config.Check_bool(strSection, strRelativeKey, bIsRelative,
                           bBoolExists)) {
+        bool bStringExists = false;
         if (config.Check_str(strSection, strKey, strOutFolder, bStringExists)) {
             if (bBoolExists && bStringExists) {
                 if (!bIsRelative) // lets fix the path, so it dosn't matter how
@@ -731,13 +732,14 @@ bool OTPaths::Set(OTSettings& config, const OTString& strSection,
         }
     }
 
-    bool bBoolIsNew(false), bStringIsNew(false);
+    bool bBoolIsNew(false);
     OTString strRelativeKey("");
 
     strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
     if (config.Set_bool(strSection, strRelativeKey, bIsRelative, bBoolIsNew,
                         strComment)) {
+        bool bStringIsNew = false;
         if (config.Set_str(strSection, strKey, strValue, bStringIsNew)) {
             if (bBoolIsNew && bStringIsNew) // using existing key
             {

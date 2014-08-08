@@ -533,8 +533,6 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
         nullptr != bmem,
         "OTAsymmetricKey_OpenSSL::ArmorPublicKey: ASSERT: nullptr != bmem");
 
-    int64_t lSize = 0;
-
     // write a public key to that buffer, from theKey (parameter.)
     //
     int32_t nWriteBio = PEM_write_bio_PUBKEY(bmem, &theKey);
@@ -553,7 +551,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
         // public key
         // supposedly is, and lSize will contain the size of that memory.
         //
-        lSize = BIO_get_mem_data(bmem, &pChar);
+        int64_t lSize = BIO_get_mem_data(bmem, &pChar);
         uint32_t nSize = static_cast<uint32_t>(
             lSize); // todo security, etc. Fix this assumed type conversion.
 
@@ -749,8 +747,6 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
     OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT(nullptr != bmem);
 
-    int64_t lSize = 0;
-
     // write a private key to that buffer, from theKey
     //
     OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::ArmorPrivateKey is "
@@ -801,7 +797,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
         // private key supposedly is,
         // and lSize will contain the size of that memory.
         //
-        lSize = BIO_get_mem_data(bmem, &pChar);
+        int64_t lSize = BIO_get_mem_data(bmem, &pChar);
         uint32_t nSize = static_cast<uint32_t>(lSize);
 
         if (nSize > 0) {

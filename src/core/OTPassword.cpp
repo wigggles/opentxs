@@ -677,6 +677,7 @@ int32_t OTPassword::setPassword_uint8(const uint8_t* szInput,
 {
     OT_ASSERT(nullptr != szInput);
 
+    // cppcheck-suppress variableScope
     const char* szFunc = "OTPassword::setPassword";
 
     // Wipe whatever was in there before.

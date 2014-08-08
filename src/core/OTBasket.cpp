@@ -511,12 +511,10 @@ OTBasket::~OTBasket()
 
 void OTBasket::Release_Basket()
 {
-    BasketItem* pItem = nullptr;
-
     m_RequestAccountID.Release();
 
     while (!m_dequeItems.empty()) {
-        pItem = m_dequeItems.front();
+        BasketItem* pItem = m_dequeItems.front();
         m_dequeItems.pop_front();
         delete pItem;
     }

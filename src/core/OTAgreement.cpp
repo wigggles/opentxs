@@ -628,13 +628,15 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const OTString strServerID(GetServerID());
 
-    OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
 
     //
     if ((lSenderOpeningNumber > 0) &&
         theOriginator.VerifyIssuedNum(strServerID, lSenderOpeningNumber)) {
+
+        OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
+
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
         // So when the number is released from the Nym, we also take it off that

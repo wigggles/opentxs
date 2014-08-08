@@ -123,10 +123,12 @@ static thread::id _pthread_t_to_ID(const pthread_t& aHandle)
 {
     static mutex idMapLock;
     static std::map<pthread_t, unsigned long int> idMap;
-    static unsigned long int idCount(1);
 
     lock_guard<mutex> guard(idMapLock);
-    if (idMap.find(aHandle) == idMap.end()) idMap[aHandle] = idCount++;
+    if (idMap.find(aHandle) == idMap.end()) {
+        static unsigned long int idCount(1);
+        idMap[aHandle] = idCount++;
+    }
     return thread::id(idMap[aHandle]);
 }
 #endif // _TTHREAD_POSIX_

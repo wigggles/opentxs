@@ -1117,11 +1117,10 @@ int32_t main(int32_t argc, char* argv[])
         // ---------------------------------------------------------------------------
         OTIdentifier hisPurseAssetTypeID;
 
-        OTAssetContract* pHisAssetContract = nullptr;
-
         if (str_HisPurse.size() > 0) {
             const OTIdentifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
-            pHisAssetContract = pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
+            OTAssetContract* pHisAssetContract =
+                pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
 
             // If failure, then we try PARTIAL match.
             if (nullptr == pHisAssetContract)
