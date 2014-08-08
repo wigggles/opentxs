@@ -13,19 +13,6 @@ install_cppcheck()
     rm -rf ./cppcheck/
 }
 
-install_zeromq()
-{
-    wget http://download.zeromq.org/zeromq-4.0.4.tar.gz
-    tar xfz zeromq-4.0.4.tar.gz
-    cd  zeromq-4.0.4
-    # -fPIC is needed to be able to link libzmq.a to a shared lib
-    CXXFLAGS=-fPIC ./configure --enable-static=yes --enable-shared=no
-    make -j2
-    sudo make install
-    cd ..
-    rm -rf ./zeromq-4.0.4
-}
-
 if [ $# -ne 1 ]; then
     echo "Error: expected OS type argument." >&2
     exit 1
@@ -43,16 +30,16 @@ case "$os" in
         sudo echo 'deb http://llvm.org/apt/precise/ '\
             'llvm-toolchain-precise-3.4 main' >>/etc/apt/sources.list
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo add-apt-repository -y ppa:chris-lea/zeromq
         sudo apt-get -qq update
         sudo apt-get -qq install g++-4.8
         sudo apt-get install libprotobuf-dev protobuf-compiler \
-            libboost-all-dev doxygen
+            libboost-all-dev doxygen libzmq3
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
         wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get -qq install clang-format-3.4
         install_cppcheck
-        install_zeromq
         ;;
     *)
         echo "Error: unknown OS '$os'" >&2
