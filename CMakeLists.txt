@@ -143,6 +143,16 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 find_package(OpenSSL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
+find_library(ZMQ_LIB NAMES libzmq.a zmq)
+if (ZMQ_LIB STREQUAL "ZMQ_LIB-NOTFOUND")
+  set(ZMQ_LIB_FOUND 0)
+  set(ZMQ_LIBRARY libzmq)
+  message(STATUS "System's ZeroMQ not found. Using local ZeroMQ.")
+else()
+  set(ZMQ_LIB_FOUND 1)
+  set(ZMQ_LIBRARY "${ZMQ_LIB}")
+  message(STATUS "Found ZeroMQ: ${ZMQ_LIB}")
+endif()
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
