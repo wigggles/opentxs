@@ -1371,16 +1371,11 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
     const OTIdentifier theAssetID(ASSET_TYPE_ID);
     OTAssetContract* pContract =
         OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
-    if (nullptr == pContract) return 0;
+    if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     OTAmount theResult;
-    const int64_t lBackup = StringToLong(str_input);
-    const bool bParsed = pContract->StringToAmount(
-        theResult, str_input); // Convert $5.45 to 545.
-
-    if (bParsed) return theResult.GetAmount();
-
-    return lBackup;
+    bool bParsed = pContract->StringToAmount(theResult, str_input);
+    return bParsed ? theResult.GetAmount() : StringToLong(str_input);
 }
 
 // Returns formatted string for output, for a given amount, based on currency
@@ -3499,11 +3494,8 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT)
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTString strOutput;
     int64_t lOutput = 0;
-    const bool& bGotData = thePayment.GetAmount(lOutput); // <========
-
-    return bGotData ? lOutput : OT_ERROR_AMOUNT;
+    return thePayment.GetAmount(lOutput) ? lOutput : OT_ERROR_AMOUNT;
 }
 
 int64_t OTAPI_Exec::Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT)
@@ -4892,9 +4884,7 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID)
 
     OTIdentifier theID(THE_ID);
     OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
-    if (nullptr == pAccount) return -1;
-    int64_t lBalance = pAccount->GetBalance();
-    return lBalance;
+    return nullptr == pAccount ? OT_ERROR_AMOUNT : pAccount->GetBalance();
 }
 
 // returns an account's "account type", (simple, issuer, etc.)
@@ -11748,10 +11738,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
     else
         pTransaction = &theTransaction;
 
-    OTString strOutput;
-    const int64_t lAmount = pTransaction->GetReceiptAmount();
-
-    return lAmount;
+    return pTransaction->GetReceiptAmount();
 }
 
 // There is a notice in my inbox, from the server, informing me of
@@ -12587,13 +12574,11 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
         OTLog::vError(
             "%s: Error loading purse from string. Asset Type ID: %s\n",
             __FUNCTION__, strAssetTypeID.Get());
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
-    int64_t lTotalValue = 0;
 
-    if (thePurse.GetTotalValue() > 0) lTotalValue = thePurse.GetTotalValue();
-
-    return lTotalValue;
+    int64_t lTotalValue = thePurse.GetTotalValue();
+    return lTotalValue > 0 ? lTotalValue : 0;
 }
 
 // Returns a count of the tokens inside this purse. (Coins.)
@@ -13677,7 +13662,7 @@ int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
         OTLog::vError(
             "%s: returned 0 (or negitive). Strange... what basket is this?\n",
             __FUNCTION__);
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
 
     return lMinTransAmount;
@@ -13719,7 +13704,7 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
         OTLog::vError(
             "%s: returned 0 (or negitive). Strange... what basket is this?\n",
             __FUNCTION__);
-        return -1;
+        return OT_ERROR_AMOUNT;
     }
 
     return lMinTransAmount;
