@@ -140,9 +140,9 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 #-----------------------------------------------------------------------------
 # Third party libraries
 
-find_package(OpenSSL)
-find_package(Protobuf)
-find_package(ZLIB)
+find_package(OpenSSL REQUIRED)
+find_package(Protobuf REQUIRED)
+find_package(ZLIB REQUIRED)
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
