@@ -957,11 +957,10 @@ void ot_terminate()
 
     tthread::lock_guard<tthread::mutex> lock(the_Mutex);
 
-    static bool tried_throw = false;
-
     try
     {
         // try once to re-throw currently active exception
+        static bool tried_throw = false;
         if (!tried_throw) {
             tried_throw = true;
             throw;
@@ -1601,7 +1600,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
 
 #elif defined(_WIN32) // not _WIN64 ? Must be _WIN32
 
-    char* p = nullptr, *pBP = nullptr;
+    char* pBP = nullptr;
     uint32_t i = 0, x = 0, BpPassed = 0;
     static int32_t CurrentlyInTheStackDump = 0;
 
@@ -1644,7 +1643,7 @@ void LogStackFrames(void* FaultAdress, char* eNextBP)
         pBP = eNextBP;          // keep current BasePointer
         eNextBP = *(char**)pBP; // dereference next BP
 
-        p = pBP + 8;
+        char* p = pBP + 8;
 
         // Write 20 Bytes of potential arguments
         fprintf(stderr, "         with ");

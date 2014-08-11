@@ -739,7 +739,7 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
                                                          : nullptr;
 
     OTString strTempResult;
-    bool bKeyExist, bNewKeyCheck;
+    bool bKeyExist;
     if (!Check_str(strSection, strKey, strTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
@@ -749,6 +749,7 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
         return true;
     }
     else {
+        bool bNewKeyCheck;
         if (!Set_str(strSection, strKey, strDefault, bNewKeyCheck, strComment))
             return false;
 
@@ -791,7 +792,7 @@ bool OTSettings::CheckSet_long(const OTString& strSection,
     }
 
     int64_t lTempResult;
-    bool bKeyExist, bNewKeyCheck;
+    bool bKeyExist;
     if (!Check_long(strSection, strKey, lTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
@@ -801,6 +802,7 @@ bool OTSettings::CheckSet_long(const OTString& strSection,
         return true;
     }
     else {
+        bool bNewKeyCheck;
         if (!Set_long(strSection, strKey, lDefault, bNewKeyCheck, strComment))
             return false;
         if (bNewKeyCheck) {
@@ -833,7 +835,7 @@ bool OTSettings::CheckSet_bool(const OTString& strSection,
         OT_FAIL;
     }
 
-    bool bKeyExist, bNewKeyCheck, bTempResult;
+    bool bKeyExist, bTempResult;
     if (!Check_bool(strSection, strKey, bTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
@@ -843,6 +845,7 @@ bool OTSettings::CheckSet_bool(const OTString& strSection,
         return true;
     }
     else {
+        bool bNewKeyCheck;
         if (!Set_bool(strSection, strKey, bDefault, bNewKeyCheck, strComment))
             return false;
         if (bNewKeyCheck) {

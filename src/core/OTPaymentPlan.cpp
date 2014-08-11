@@ -1057,14 +1057,12 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             // Make sure each Account can afford it, and roll back in case of
             // failure.
 
-            bool bMoveSender = false;
-            bool bMoveRecipient = false;
-
             // Make sure he can actually afford it...
             if (pSourceAcct->GetBalance() >= lAmount) {
                 // Debit the source account.
-                bMoveSender =
+                bool bMoveSender =
                     pSourceAcct->Debit(lAmount); // <====== DEBIT FUNDS
+                bool bMoveRecipient = false;
 
                 // IF success, credit the recipient.
                 if (bMoveSender) {

@@ -1111,9 +1111,8 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
 bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
                                      OTPartyAccount& thePartyAcct)
 {
-    int64_t lTransactionNumber = 0;
-
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
+        int64_t lTransactionNumber = 0;
         if (thePartyAcct.GetClosingTransNo() > 0) {
             otOut << "OTAgent::ReserveClosingTransNum: Failure: The account "
                      "ALREADY has a closing transaction number "
@@ -1163,9 +1162,8 @@ bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
 // Done
 bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
 {
-    int64_t lTransactionNumber = 0;
-
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
+        int64_t lTransactionNumber = 0;
         if (nullptr == m_pForParty) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Party pointer "
                      "was nullptr.  SHOULD NEVER HAPPEN!!\n";

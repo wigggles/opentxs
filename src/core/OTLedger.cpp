@@ -1170,15 +1170,14 @@ mapOfTransactions& OTLedger::GetTransactionMap()
 ///
 bool OTLedger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
 {
-    const char* szFunc = "OTLedger::RemoveTransaction";
-
     // See if there's something there with that transaction number.
     mapOfTransactions::iterator it = m_mapTransactions.find(lTransactionNum);
 
     // If it's not already on the list, then there's nothing to remove.
     if (it == m_mapTransactions.end()) {
-        otErr << szFunc << ": Attempt to remove Transaction from ledger, when "
-                           "not already there: " << lTransactionNum << "\n";
+        otErr << "OTLedger::RemoveTransaction"
+              << ": Attempt to remove Transaction from ledger, when "
+                 "not already there: " << lTransactionNum << "\n";
         return false;
     }
     // Otherwise, if it WAS already there, remove it properly.

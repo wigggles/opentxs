@@ -1526,11 +1526,6 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // Make sure each Account can afford it, and roll back in case of
             // failure.
 
-            bool bMove1 = false;
-            bool bMove2 = false;
-            bool bMove3 = false;
-            bool bMove4 = false;
-
             // -- TheTrade will get the PriceLimit offered by theOtherOffer, and
             // not vice-versa.
             //    (See explanation below this function if you need to know the
@@ -1773,11 +1768,12 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 // each of the relevant accounts to cover the round, (for SURE.)
                 // So let's DO it.
 
-                bMove1 = pAssetAccountToDebit->Debit(lMinIncrementPerRound);
-                bMove2 = pCurrencyAccountToDebit->Debit(lPrice);
-
-                bMove3 = pAssetAccountToCredit->Credit(lMinIncrementPerRound);
-                bMove4 = pCurrencyAccountToCredit->Credit(lPrice);
+                bool bMove1 =
+                    pAssetAccountToDebit->Debit(lMinIncrementPerRound);
+                bool bMove2 = pCurrencyAccountToDebit->Debit(lPrice);
+                bool bMove3 =
+                    pAssetAccountToCredit->Credit(lMinIncrementPerRound);
+                bool bMove4 = pCurrencyAccountToCredit->Credit(lPrice);
 
                 // If ANY of these failed, then roll them all back and break.
                 if (!bMove1 || !bMove2 || !bMove3 || !bMove4) {
@@ -2500,10 +2496,6 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
 
     if (theOffer.IsAsk()) // If I'm selling,
     {
-        OTOffer* pBid =
-            nullptr; // then I want to start at the highest bidder and
-                     // loop DOWN until hitting my price limit.
-
         // rbegin puts us on the upper bound of the highest bidder (any new
         // bidders at the same price would
         // be added at the lower bound, where they are last in line.) The upper
@@ -2512,7 +2504,9 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         // no other bids within my price range.
         for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
              rr != m_mapBids.rend(); ++rr) {
-            pBid = rr->second;
+            // then I want to start at the highest bidder and loop DOWN until
+            // hitting my price limit.
+            OTOffer* pBid = rr->second;
             OT_ASSERT(nullptr != pBid);
 
             // NOTE: Market orders only process once, and they are processed in
@@ -2590,10 +2584,6 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
     }
     // I'm buying
     else {
-        OTOffer* pAsk =
-            nullptr; // then I want to start at the lowest seller and
-                     // loop UP until hitting my price limit.
-
         // Begin puts us on the lower bound of the lowest seller (any new
         // sellers at the same price would
         // be added at the upper bound for that price, where they are last in
@@ -2602,7 +2592,9 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
         // no other asks within my price range.
         //
         for (auto& it : m_mapAsks) {
-            pAsk = it.second;
+            // then I want to start at the lowest seller and loop UP until
+            // hitting my price limit.
+            OTOffer* pAsk = it.second;
             OT_ASSERT(nullptr != pAsk);
 
             // NOTE: Market orders only process once, and they are processed in

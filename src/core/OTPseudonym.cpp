@@ -2804,8 +2804,6 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
                                             OTPseudonym& theOtherNym,
                                             bool bSave)
 {
-    const char* szFunc = "OTPseudonym::HarvestTransactionNumbers";
-
     int64_t lTransactionNumber = 0;
 
     std::set<int64_t> setInput, setOutputGood, setOutputBad;
@@ -2879,10 +2877,10 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
         // highest number.'
         //
         if ((-1) == lViolator)
-            otErr << szFunc << ": ERROR: UpdateHighestNum() returned (-1), "
-                               "which is an error condition. "
-                               "(Should never happen.)\nNym ID: " << strNymID
-                  << " \n";
+            otErr << "OTPseudonym::HarvestTransactionNumbers"
+                  << ": ERROR: UpdateHighestNum() returned (-1), "
+                     "which is an error condition. "
+                     "(Should never happen.)\nNym ID: " << strNymID << " \n";
         else {
             // We only remove-tentative-num/add-transaction-num for the numbers
             // that were above our 'last highest number'.
@@ -4477,11 +4475,9 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
 
     //  SaveCredentialsToString(strNym);
 
-    int64_t lRequestNum;
-
     for (auto& it : m_mapRequestNum) {
         std::string strServerID = it.first;
-        lRequestNum = it.second;
+        int64_t lRequestNum = it.second;
 
         strNym.Concatenate("<requestNum\n"
                            " serverID=\"%s\"\n"
@@ -4490,11 +4486,9 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
                            strServerID.c_str(), lRequestNum);
     }
 
-    int64_t lHighestNum;
-
     for (auto& it : m_mapHighTransNo) {
         std::string strServerID = it.first;
-        lHighestNum = it.second;
+        int64_t lHighestNum = it.second;
 
         strNym.Concatenate("<highestTransNum\n"
                            " serverID=\"%s\"\n"

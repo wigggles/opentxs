@@ -980,8 +980,6 @@ bool OTASCIIArmor::WriteArmoredFile(
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
 
-    const char* szFunc = "OTASCIIArmor::WriteArmoredFile";
-
     OTString strOutput;
 
     if (WriteArmoredString(strOutput, str_type, bEscaped) &&
@@ -995,7 +993,7 @@ bool OTASCIIArmor::WriteArmoredFile(
                                              filename.Get());
 
         if (!bSaved) {
-            otErr << szFunc
+            otErr << "OTASCIIArmor::WriteArmoredFile"
                   << ": Failed saving to file: %s%s%s\n\n Contents:\n\n"
                   << strOutput << "\n\n",
                 foldername.Get(), OTLog::PathSeparator(), filename.Get();

@@ -4054,7 +4054,6 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
             // and passing
             // a string parameter to that clause as input.)
             //
-            OTVariable* pVar = nullptr;
             const std::string str_Name("param_string");
             std::string str_Value("");
 
@@ -4077,8 +4076,8 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
                     str_Value = pParam->Get();
                 // else (it's already "")
 
-                pVar = new OTVariable(str_Name, str_Value,
-                                      OTVariable::Var_Constant);
+                OTVariable* pVar = new OTVariable(str_Name, str_Value,
+                                                  OTVariable::Var_Constant);
                 OT_ASSERT(nullptr != pVar);
                 theVarAngel.SetCleanupTarget(*pVar);
 

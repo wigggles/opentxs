@@ -2433,8 +2433,6 @@ void OTScriptable::UpdateContents() // Before transmission or serialization,
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const char* szFunc = "OTScriptable::ProcessXMLNode";
-
     int32_t nReturnVal = 0; // Unless/until I want to add OTContract::Compare(),
                             // then people would be able to surreptitiously
                             // insert keys and
@@ -2460,6 +2458,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // strNodeName.Get());
 
     if (strNodeName.Compare("scriptableContract")) {
+        const char* szFunc = "OTScriptable::ProcessXMLNode";
         const OTString strSpecify1 = xml->getAttributeValue("specifyAssetID");
         const OTString strSpecify2 = xml->getAttributeValue("specifyParties");
 

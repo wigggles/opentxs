@@ -224,6 +224,7 @@ void OTAsymmetricKey::SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback)
 
 OT_OPENSSL_CALLBACK* OTAsymmetricKey::GetPasswordCallback()
 {
+    // cppcheck-suppress variableScope
     const char* szFunc = "OTAsymmetricKey::GetPasswordCallback";
 
 #if defined(OT_TEST_PASSWORD)

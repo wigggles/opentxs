@@ -978,7 +978,6 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
     const OTString strOrigCronItem(origCronItem);
 
-    OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use actualNym.)
 
@@ -1007,6 +1006,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
         const OTIdentifier actualNymId = GetSenderUserID();
 
+        OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
         if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
             actualNym = serverNym;
         else if (originator.CompareID(actualNymId))

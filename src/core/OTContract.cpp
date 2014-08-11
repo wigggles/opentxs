@@ -808,8 +808,6 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
                               const OTString& strHashType,
                               OTPasswordData* pPWData)
 {
-    const char* szFunc = "OTContract::SignContract";
-
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
     //
@@ -830,7 +828,8 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
     if (false == OTCrypto::It()->SignContract(m_xmlUnsigned, theKey,
                                               theSignature, strHashType,
                                               pPWData)) {
-        otErr << szFunc << ": OTCrypto::It()->SignContract returned false.\n";
+        otErr << "OTContract::SignContract: "
+                 "OTCrypto::It()->SignContract returned false.\n";
         return false;
     }
 
@@ -1150,13 +1149,11 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
 
 void OTContract::ReleaseSignatures()
 {
-    OTSignature* pSig = nullptr;
 
     while (!m_listSignatures.empty()) {
-        pSig = m_listSignatures.front();
+        OTSignature* pSig = m_listSignatures.front();
         m_listSignatures.pop_front();
         delete pSig;
-        pSig = nullptr;
     }
 }
 
@@ -1995,11 +1992,10 @@ bool OTContract::SkipAfterLoadingField(IrrXMLReader*& xml)
         nullptr != xml,
         "OTContract::SkipAfterLoadingField -- assert: nullptr != xml");
 
-    const char* szFunc = "OTContract::SkipAfterLoadingField";
-
     if (EXN_ELEMENT_END != xml->getNodeType()) // If we're not ALREADY on the
                                                // ending element, then go there.
     {
+        const char* szFunc = "OTContract::SkipAfterLoadingField";
         // move to the next node which SHOULD be the expected element_end.
         //
         while (xml->read()) {

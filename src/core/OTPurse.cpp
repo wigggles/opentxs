@@ -585,8 +585,6 @@ OTPurse* OTPurse::LowLevelInstantiate(const OTString& strFirstLine)
 OTPurse* OTPurse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
                                const OTIdentifier& ASSET_ID)
 {
-    const char* szFunc = "OTPurse::PurseFactory";
-
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
@@ -600,6 +598,7 @@ OTPurse* OTPurse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
 
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
+            const char* szFunc = "OTPurse::PurseFactory";
             if (SERVER_ID != pPurse->GetServerID()) {
                 const OTString strServerID(SERVER_ID),
                     strPurseServerID(pPurse->GetServerID());
@@ -636,8 +635,6 @@ OTPurse* OTPurse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
 //
 OTPurse* OTPurse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID)
 {
-    const char* szFunc = "OTPurse::PurseFactory";
-
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
@@ -653,9 +650,9 @@ OTPurse* OTPurse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID)
             if (SERVER_ID != pPurse->GetServerID()) {
                 const OTString strServerID(SERVER_ID),
                     strPurseServerID(pPurse->GetServerID());
-                otErr << szFunc << ": Failure: ServerID on purse ("
-                      << strPurseServerID << ") doesn't match expected "
-                                             "server ID (" << strServerID
+                otErr << "OTPurse::PurseFactory"
+                      << ": Failure: ServerID on purse (" << strPurseServerID
+                      << ") doesn't match expected server ID (" << strServerID
                       << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
@@ -1653,10 +1650,8 @@ bool OTPurse::IsEmpty() const
 
 void OTPurse::ReleaseTokens()
 {
-    OTASCIIArmor* pArmor = nullptr;
-
     while (!m_dequeTokens.empty()) {
-        pArmor = m_dequeTokens.front();
+        OTASCIIArmor* pArmor = m_dequeTokens.front();
         m_dequeTokens.pop_front();
         delete pArmor;
     }

@@ -146,8 +146,6 @@ namespace opentxs
 
 OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
 {
-    const char* szFunc = "OTTransactionType::TransactionFactory";
-
     OTString strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
@@ -188,6 +186,8 @@ OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
 
         // The string didn't match any of the options in the factory.
         //
+
+        const char* szFunc = "OTTransactionType::TransactionFactory";
         // The string didn't match any of the options in the factory.
         if (nullptr == pContract) {
             otOut << szFunc

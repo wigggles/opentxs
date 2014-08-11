@@ -2126,15 +2126,15 @@ bool OTTransaction::VerifyBalanceReceipt(
                  // actually has the issued list we'll be
                  // using.
 
-    OTItem* pResponseTransactionItem =
-        nullptr; // only if it's new than balance receipt does this get set, to:
-                 // tranOut.GetItem(OTItem::atTransactionStatement);
     OTItem* pTransactionItem = nullptr;
 
     if (tranOut.GetDateSigned() > GetDateSigned()) // it's newer.
     {
         // GET THE "AT TRANSACTION STATEMENT" ITEM
-        pResponseTransactionItem =
+        //
+        // only if it's new than balance receipt does this get set, to:
+        // tranOut.GetItem(OTItem::atTransactionStatement);
+        OTItem* pResponseTransactionItem =
             tranOut.GetItem(OTItem::atTransactionStatement);
 
         if (nullptr == pResponseTransactionItem) {
@@ -2910,8 +2910,6 @@ bool OTTransaction::VerifyBalanceReceipt(
         OTItem* pSubItem = pBalanceItem->GetItemByTransactionNum(
             pTransaction->GetTransactionNum());
 
-        OTItem* pFinalReceiptItem = nullptr;
-
         // The above loop already verified that all items in the receipt's inbox
         // were found in the new inbox.
         //
@@ -2920,6 +2918,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         // That means it needs to be accounted for against the account balance!
         //
         if (nullptr == pSubItem) {
+            OTItem* pFinalReceiptItem = nullptr;
             switch (pTransaction->GetType()) {
             case OTTransaction::marketReceipt:
             case OTTransaction::paymentReceipt:
@@ -4036,10 +4035,6 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 //
 bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 {
-    // loop through the ALL items that make up this transaction and check to see
-    // if a response to deposit.
-    OTItem* pItem = nullptr;
-
     const OTIdentifier NYM_ID(theNym);
 
     if (NYM_ID != GetUserID()) {
@@ -4057,7 +4052,9 @@ bool OTTransaction::VerifyItems(OTPseudonym& theNym)
     // (not a rejection or error)
     //
     for (auto& it : GetItemList()) {
-        pItem = it;
+        // loop through the ALL items that make up this transaction and check
+        // to see if a response to deposit.
+        OTItem* pItem = it;
         OT_ASSERT(nullptr != pItem);
 
         if (GetTransactionNum() != pItem->GetTransactionNum()) return false;
@@ -4400,13 +4397,10 @@ OTTransaction::~OTTransaction()
 
 void OTTransaction::ReleaseItems()
 {
-    OTItem* pItem = nullptr;
-
     while (!m_listItems.empty()) {
-        pItem = m_listItems.front();
+        OTItem* pItem = m_listItems.front();
         m_listItems.pop_front();
         delete pItem;
-        pItem = nullptr;
     }
 }
 
@@ -7750,7 +7744,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     OTCleanup<OTItem> theItemAngel;
-    OTCronItem* pCronItem = nullptr;
     OTCleanup<OTCronItem> theCronItemAngel;
 
     OTString strReference;
@@ -7771,7 +7764,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
+        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
         theCronItemAngel.SetCleanupTargetPointer(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
@@ -8097,7 +8090,6 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     OTCleanup<OTItem> theItemAngel;
-    OTCronItem* pCronItem = nullptr;
     OTCleanup<OTCronItem> theCronItemAngel;
 
     OTString strReference;
@@ -8116,7 +8108,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
+        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
         theCronItemAngel.SetCleanupTargetPointer(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
@@ -8230,7 +8222,6 @@ bool OTTransaction::GetMemo(OTString& strMemo)
 
     OTItem* pOriginalItem = nullptr;
     OTCleanup<OTItem> theItemAngel;
-    OTCronItem* pCronItem = nullptr;
     OTCleanup<OTCronItem> theCronItemAngel;
 
     OTString strReference;
@@ -8249,7 +8240,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
+        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
         theCronItemAngel.SetCleanupTargetPointer(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);

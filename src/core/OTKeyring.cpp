@@ -558,7 +558,6 @@ bool OTKeyring::Mac_DeleteSecret(const OTString& strUser,
     SecKeychainSearchRef theSearch = nullptr;
     OSStatus theStatus = 0;
     OSErr theResult;
-    int32_t numberOfItemsFound = 0;
 
     theResult = theKeychain.SearchCreateFromAttributes(
         nullptr, nullptr, // CFTypeRef SecItemClass, // unused here.
@@ -569,6 +568,7 @@ bool OTKeyring::Mac_DeleteSecret(const OTString& strUser,
     if (errSecSuccess == theResult) // Success searching, now let's iterate the
                                     // results and count them.
     {
+        int32_t numberOfItemsFound = 0;
         while (theKeychain.SearchCopyNext(theSearch, &theItem) == noErr) {
             numberOfItemsFound++;
         }
@@ -1235,8 +1235,6 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString& strUser,
                                         const std::string& str_display)
 {
     OT_ASSERT(strUser.Exists());
-    const char* szFunc = "OTKeyring::FlatFile_RetrieveSecret";
-
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
     if (!str_pw_folder.empty()) {
         OTString strExactPath;
@@ -1249,8 +1247,9 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString& strUser,
         OTASCIIArmor ascData;
 
         if (!ascData.LoadFromExactPath(str_ExactPath))
-            otErr << szFunc << ": Failed trying to decode secret from flat "
-                               "file contents.\n";
+            otErr << "OTKeyring::FlatFile_RetrieveSecret: "
+                  << "Failed trying to decode secret from flat file contents."
+                  << "\n";
         else {
             OTPayload thePayload(ascData);
             ascData.zeroMemory();
