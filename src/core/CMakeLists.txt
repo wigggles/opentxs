@@ -125,12 +125,6 @@ if(WIN32)
   # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
   add_definitions(/bigobj)
 
-  include_directories(
-    ${OPENSSL_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIR}
-    ${ZLIB_INCLUDE_DIRS}
-  )
-
   # we have an extra Windows-specific file to compile
   add_library(opentxs-core
     ${cxx-sources}
@@ -141,6 +135,12 @@ else()
     ${cxx-sources}
   )
 endif()
+
+include_directories(SYSTEM
+  ${OPENSSL_INCLUDE_DIR}
+  ${PROTOBUF_INCLUDE_DIR}
+  ${ZLIB_INCLUDE_DIRS}
+)
 
 target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
