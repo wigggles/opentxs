@@ -718,9 +718,6 @@ bool OTServerConnection::SignAndSend(OTMessage& theMessage)
 
 void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
 {
-    int32_t err = 0;
-    uint32_t nwritten;
-
     u_header theCMD;
     OTPayload thePayload;
 
@@ -784,7 +781,8 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
     {
         const uint32_t nHeaderSize = OT_CMD_HEADER_SIZE;
 
-        for (nwritten = 0; nwritten < nHeaderSize; nwritten += err) {
+        int32_t err = 0;
+        for (uint32_t nwritten = 0; nwritten < nHeaderSize; nwritten += err) {
 //            err = SFSocketWrite(m_pSocket, theCMD.buf + nwritten, nHeaderSize
 // - nwritten);
 
@@ -802,7 +800,7 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
 
         uint32_t nPayloadSize = thePayload.GetSize();
 
-        for (nwritten = 0; nwritten < nPayloadSize; nwritten += err) {
+        for (uint32_t nwritten = 0; nwritten < nPayloadSize; nwritten += err) {
 //            err = SFSocketWrite(m_pSocket, (uint8_t
 // *)thePayload.GetPayloadPointer() + nwritten, nPayloadSize - nwritten);
 

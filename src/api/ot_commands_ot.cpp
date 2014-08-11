@@ -79,7 +79,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowBasket()
 
 OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
 {
-    bool bOnFirstIteration = true;
     int32_t nAssetCount = OTAPI_Wrap::GetAssetTypeCount();
 
     if (nAssetCount > 0) {
@@ -194,6 +193,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
             return 1;
         }
 
+        bool bOnFirstIteration = true;
         // List ALL the basket currencies.
         for (int32_t nAssetIndex = 0; nAssetIndex < nAssetCount;
              ++nAssetIndex) {
@@ -6370,7 +6370,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
              "(Outbox)\n\n";
 
     string strID;
-    int32_t nBoxType = 1;
 
     if (VerifyExists("Server") && VerifyExists("MyNym")) {
 
@@ -6389,6 +6388,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
                 otOut << "\n\nMissing --args \"id TRANSACTION_ID_HERE\"\n\n";
                 return -1;
             }
+            int32_t nBoxType = 1;
             if (VerifyStringVal(strNewType)) {
                 nBoxType = to_int(strNewType);
             }
@@ -6916,11 +6916,10 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
     const string& serverID, const string& marketID)
 {
     OTDB::OfferListMarket* offerList = nullptr;
-    OTDB::Storable* storable = nullptr;
 
     if (OTDB::Exists("markets", serverID, "offers", marketID + ".bin")) {
         otWarn << "Offers file exists... Querying file for market offers...\n";
-        storable =
+        OTDB::Storable* storable =
             OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET, "markets",
                               serverID, "offers", marketID + ".bin");
 
@@ -9284,12 +9283,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
 vector<string> tokenize(const string& str, const string& delimiters,
                         const bool trimEmpty)
 {
-    int32_t pos = 0;
     int32_t lastPos = 0;
     vector<string> tokens;
 
     while (true) {
-        pos = str.find_first_of(delimiters, lastPos);
+        int32_t pos = str.find_first_of(delimiters, lastPos);
 
         if (-1 == pos) {
             pos = str.size();
@@ -9320,15 +9318,15 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowActive()
              "currently active payment plans\nand smart contracts. Also useful "
              "for displaying contents by ID.\n\n";
 
-    int64_t lTransNum = 0;
-    bool bDetailMode = false;
-
     string strError = "\nPlease provide either:  --mynym NYM_ID   (to view a "
                       "list of active transactions)\nor, to view details for a "
                       "specific transaction, use --args \"id TRANSACTION_ID\" "
                       "\n\n";
 
     if (VerifyExists("Server")) {
+        int64_t lTransNum = 0;
+        bool bDetailMode = false;
+
         if (VerifyExists("Args", false)) {
             string strTransNum = OT_CLI_GetValueByKey(Args, "id");
             if (VerifyStringVal(strTransNum)) {

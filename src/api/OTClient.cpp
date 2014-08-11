@@ -2499,12 +2499,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     const int32_t nOutpaymentIndex =
                                         pNym->GetOutpaymentsIndexByTransNum(
                                             lNymOpeningNumber);
-                                    OTMessage* pMsg = nullptr;
                                     OTCleanup<OTMessage> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
-                                        pMsg = pNym->GetOutpaymentsByIndex(
-                                            nOutpaymentIndex);
+                                        OTMessage* pMsg =
+                                            pNym->GetOutpaymentsByIndex(
+                                                nOutpaymentIndex);
 
                                         if (nullptr == pMsg) {
                                             otErr << __FUNCTION__
@@ -2771,7 +2771,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                        // we are removing
                                                        // things.
                                             {
-                                                int64_t lPaymentTransNum = 0;
                                                 OTPayment* pPayment =
                                                     thePmntInbox.GetInstrument(
                                                         *pNym, ii);
@@ -2827,7 +2826,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     OT_ASSERT(
                                                         nullptr !=
                                                         pTransPaymentInbox); // It DEFINITELY should be there. (Assert otherwise.)
-                                                    lPaymentTransNum =
+                                                    int64_t lPaymentTransNum =
                                                         pTransPaymentInbox
                                                             ->GetTransactionNum();
 
@@ -3661,8 +3660,6 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                 // data when we
                 // needed it (now).
                 OTPurse* pRequestPurse = pWallet->GetPendingWithdrawal();
-                OTToken* pToken = nullptr;
-                OTToken* pOriginalToken = nullptr;
 
                 OTString strAssetID(thePurse.GetAssetID());
                 OTMint* pMint = OTMint::MintFactory(strServerID, strAssetID);
@@ -3696,11 +3693,12 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                 bool bSuccess = false;
 
                 if ((nullptr != pRequestPurse) && (nullptr != pServerNym) &&
-                    pMint->LoadMint() && pMint->VerifyMint(*pServerNym))
+                    pMint->LoadMint() && pMint->VerifyMint(*pServerNym)) {
+                    OTToken* pToken = nullptr;
                     while ((pToken = thePurse.Pop(*pNym)) != nullptr) {
                         OT_ASSERT(nullptr != pToken);
 
-                        pOriginalToken = pRequestPurse->Pop(*pNym);
+                        OTToken* pOriginalToken = pRequestPurse->Pop(*pNym);
 
                         if (nullptr == pOriginalToken) {
                             otErr << "ERROR, processing withdrawal response, "
@@ -3758,6 +3756,7 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                             pOriginalToken = nullptr;
                         }
                     } // while (pToken = thePurse.Pop(*pNym))
+                }
 
                 if (bSuccess) {
                     // Sign it, save it.
@@ -6665,12 +6664,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 const int32_t nOutpaymentIndex =
                                                     pNym->GetOutpaymentsIndexByTransNum(
                                                         lNymOpeningNumber);
-                                                OTMessage* pMsg = nullptr;
                                                 OTCleanup<OTMessage>
                                                 theMessageAngel;
 
                                                 if (nOutpaymentIndex >= 0) {
-                                                    pMsg =
+                                                    OTMessage* pMsg =
                                                         pNym->GetOutpaymentsByIndex(
                                                             nOutpaymentIndex);
 
@@ -7062,9 +7060,6 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                    // removing
                                                                    // things.
                                                         {
-                                                            int64_t
-                                                            lPaymentTransNum =
-                                                                0;
                                                             OTPayment*
                                                             pPayment =
                                                                 thePmntInbox
@@ -7169,6 +7164,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                 OT_ASSERT(
                                                                     nullptr !=
                                                                     pTransPaymentInbox); // It DEFINITELY should be there. (Assert otherwise.)
+                                                                int64_t
                                                                 lPaymentTransNum =
                                                                     pTransPaymentInbox
                                                                         ->GetTransactionNum();

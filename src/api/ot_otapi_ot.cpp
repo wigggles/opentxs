@@ -958,11 +958,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     // back, it will ONLY be for transactions, not normal messages. (Those
     // are the only ones that USE transaction numbers.)
     //
-    int32_t nTransSuccess;
-    int32_t nBalanceSuccess;
-    //
     if (bIsTransaction) // This request contains a TRANSACTION...
     {
+        int32_t nTransSuccess;
+        int32_t nBalanceSuccess;
         if (bMsgReplySuccess) // If message was success, then let's see if the
                               // transaction was, too.
         {

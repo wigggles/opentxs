@@ -540,8 +540,8 @@ bool OTRecordList::PerformAutoAccept()
     }
     // LOOP NYMS
     //
-    int32_t nNymIndex = -1;
     if (m_bAutoAcceptCheques || m_bAutoAcceptCash) {
+        int32_t nNymIndex = -1;
         for (auto& it_nym : m_nyms) {
             ++nNymIndex;
             if (0 == nNymIndex)
@@ -583,9 +583,9 @@ bool OTRecordList::PerformAutoAccept()
                                      theServerID, theNymID);
                 OTCleanup<OTLedger> theInboxAngel(pInbox);
 
-                int32_t nIndex = (-1);
                 // It loaded up, so let's loop through it.
                 if (nullptr != pInbox) {
+                    int32_t nIndex = (-1);
                     for (auto& it : pInbox->GetTransactionMap()) {
                         OTTransaction* pBoxTrans = it.second;
                         OT_ASSERT(nullptr != pBoxTrans);
@@ -839,8 +839,8 @@ bool OTRecordList::PerformAutoAccept()
     //
     // Loop through the Accounts.
     //
-    int32_t nAccountIndex = -1;
     if (m_bAutoAcceptReceipts || m_bAutoAcceptTransfers) {
+        int32_t nAccountIndex = -1;
         for (auto& it_acct : m_accounts) {
             ++nAccountIndex; // (0 on first iteration.)
             if (0 == nAccountIndex)
@@ -2735,9 +2735,9 @@ bool OTRecordList::Populate()
                                                         theAccountID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
 
-        int32_t nInboxIndex = -1;
         // It loaded up, so let's loop through it.
         if (nullptr != pInbox) {
+            int32_t nInboxIndex = -1;
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
@@ -2998,8 +2998,8 @@ bool OTRecordList::Populate()
         OTCleanup<OTLedger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
-        int32_t nOutboxIndex = -1;
         if (nullptr != pOutbox) {
+            int32_t nOutboxIndex = -1;
             for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex; // (0 on first iteration.)
                 if (0 == nOutboxIndex)
@@ -3170,8 +3170,8 @@ bool OTRecordList::Populate()
         OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.
-        int32_t nRecordIndex = -1;
         if (nullptr != pRecordbox) {
+            int32_t nRecordIndex = -1;
             for (auto& it : pRecordbox->GetTransactionMap()) {
                 ++nRecordIndex;
                 OTTransaction* pBoxTrans = it.second;
