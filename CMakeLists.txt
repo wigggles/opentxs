@@ -301,6 +301,19 @@ add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(swig)
 
+
+#-----------------------------------------------------------------------------
+# Produce a pkg-config file
+
+
+if(NOT WIN32)
+	configure_file("opentxs.pc.in" "opentxs.pc" @ONLY)
+	include(GNUInstallDirs)
+	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+endif()
+
+
 #-----------------------------------------------------------------------------
 # Install
 
