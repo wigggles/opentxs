@@ -222,16 +222,6 @@ endif()
 
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-
-#-----------------------------------------------------------------------------
-# OSX workaround for traditional UNIX default include paths
-# Apparently, they are ignored. See clang -xc++ -E -v -
-
-if(APPLE)
-  include_directories(SYSTEM /usr/local/include)
-endif()
-
-
 #-----------------------------------------------------------------------------
 # Source Definitions
 
