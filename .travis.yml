@@ -1,29 +1,29 @@
 os:
-  - linux
-  - osx
+- linux
+- osx
 language: cpp
 compiler:
-  - gcc
-  - clang
+- gcc
+- clang
 install: ./scripts/travis/install-deps.sh "${TRAVIS_OS_NAME}"
 before_script:
-  - ./scripts/travis/cppcheck_wrapper.sh ./src
-  - ./scripts/travis/clang-format-checker.sh
+- ./scripts/travis/cppcheck_wrapper.sh ./src
+- ./scripts/travis/clang-format-checker.sh
 script:
-  - mkdir build
-  - cd build
-  - cmake .. && make -j 2 && make test
-  - cd ..
+- mkdir build
+- cd build
+- cmake .. && make -j 2 && make test
+- cd ..
 branches:
   only:
-    - master
-    - develop
+  - master
+  - develop
 before_deploy: ./scripts/travis/build_tar.sh "${TRAVIS_OS_NAME}"
 deploy:
   provider: s3
   access_key_id: AKIAIR7XPKSU5OIGJ5IA
   secret_access_key:
-    secure: OmWoO89STsqHMOKFs8LzbepnSMQnBsrzZmVOXzJpVfM5iyecNqn2H+7gTehayC/nmNUnzQ2rWYjZHYDCDQeJPUFe1RXzamNTo40wPIDdv3ZB/XNmS5Yv+yA4k7//BV3RKvFoVsA9TqDWl7rEPDnWs95Hu4qHqNMi292QrDPaAq4=
+    secure: FvR6JgcTeINRq4df75oaeirenrwnjc5jTMEojeHVxDMXWIDzFRWN51tie1TnKCbxZcehtw/fQFDjFT+Uktm0QvyzPcbpxI92JQt+cW1Nu+f5FKmsl795apU6sXAqSGI9fYzooUdfJHB4VMjv5vKun8OdXJY87WmvY6wYYUZhjiw=
   bucket: monetas-builds
   skip_cleanup: true
   local-dir: s3
