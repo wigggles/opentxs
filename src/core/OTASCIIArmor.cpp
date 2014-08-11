@@ -374,8 +374,10 @@ std::string decompress_string(const std::string& str)
 
     if (ret != Z_STREAM_END) { // an error occurred that was not EOF
         std::ostringstream oss;
-        oss << "Exception during zlib decompression: (" << ret << ") "
-            << zs.msg;
+        oss << "Exception during zlib decompression: (" << ret << ")";
+        if (zs.msg != nullptr) {
+            oss << " " << zs.msg;
+        }
         throw(std::runtime_error(oss.str()));
     }
 
@@ -416,7 +418,17 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
         delete[] pData;
         pData = nullptr;
 
-        std::string str_uncompressed = decompress_string(str_decoded);
+        std::string str_uncompressed = "";
+        try
+        {
+            str_uncompressed = decompress_string(str_decoded);
+        }
+        catch (const std::runtime_error&)
+        {
+            otErr << "Failed decompressing string in "
+                     "OTASCIIArmor::GetAndUnpackString.\n";
+            return false;
+        }
 
         // PUT THE PACKED BUFFER HERE, AND UNPACK INTO strData
 

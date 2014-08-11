@@ -6249,9 +6249,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainRegisterNym()
 
 OT_COMMANDS_OT bool OT_Command::details_refresh_nym(const string& strServerID,
                                                     const string& strMyNymID,
-                                                    bool& bWasMsgSent,
                                                     const bool bForceDownload)
 {
+    bool bWasMsgSent = false;
     int32_t nGetAndProcessNymbox = MadeEasy::retrieve_nym(
         strServerID, strMyNymID, bWasMsgSent, bForceDownload);
     bool bReturnVal = false;
@@ -6286,8 +6286,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainRefreshNym()
              "don't have a NymID, then use the newnym command first.)\n\n";
 
     if (VerifyExists("Server") && VerifyExists("MyNym")) {
-        bool bWasMsgSent = false;
-        bool bReturnVal = details_refresh_nym(Server, MyNym, bWasMsgSent, true);
+        bool bReturnVal = details_refresh_nym(Server, MyNym, true);
 
         otOut << "\n";
 
