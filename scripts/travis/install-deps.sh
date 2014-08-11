@@ -23,6 +23,7 @@ os=$1
 case "$os" in
     osx)
         brew update
+        brew unlink cmake
         brew install protobuf-c protobuf boost openssl cppcheck cmake zeromq
         brew link --force openssl
         ;;
