@@ -1,4 +1,4 @@
-﻿########################################################################
+########################################################################
 #                                                                      #
 #                                                                      #
 #                      ##  INSTALL - Windows   ##                      #
@@ -74,6 +74,11 @@ Note:
 $ git clone https://github.com/monetas/opentxs.git
 $ cd opentxs
 $ git submodule update --init --recursive 
+
+# to clean and reset to HEAD:
+$ git clean -fxd && git submodule foreach git clean -fxd
+$ git reset --hard HEAD && git submodule foreach git reset --hard HEAD
+
 $ md build
 $ cd build
 $ cmake ..
