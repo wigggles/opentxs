@@ -1,4 +1,4 @@
-﻿##########################################################################
+##########################################################################
 #                                                                        #
 #                                                                        #
 #                   ##    INSTALL - OSX Homebrew    ##                   #
@@ -90,6 +90,10 @@ $ export PKG_CONFIG_PATH=$HOMEBREW_PREFIX/lib/pkgconfig
 $ mkdir -p ~/Scratch/Sources; cd ~/Scratch/Sources
 $ git clone git://github.com/Open-Transactions/Open-Transactions.git
 $ cd Open-Transactions
+
+# to clean and reset to HEAD:
+$ git clean -fxd && git submodule foreach git clean -fxd
+$ git reset --hard HEAD && git submodule foreach git reset --hard HEAD
 
 $ ./autogen.sh
 

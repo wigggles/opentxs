@@ -39,6 +39,11 @@ SWIG D:
 ################# Get opentxs ##################
 # git pull from master branch (current stable)
 $ git clone git://github.com/Open-Transactions/opentxs.git
+
+# to clean and reset to HEAD:
+$ git clean -fxd && git submodule foreach git clean -fxd
+$ git reset --hard HEAD && git submodule foreach git reset --hard HEAD
+
 $ cd opentxs
 $ mkdir build && cd build
 
