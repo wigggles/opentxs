@@ -31,32 +31,14 @@ string MyPurse;
 string Server;
 
 /*
-* FT:  I noticed a lot of code duplication, when sending messages and
-* transaction
+* FT: I noticed a lot of code duplication, when sending messages and transaction
 * requests. I could basically remove all that duplication, except there are a
-* couple
-* of OT_API calls inside each one, that are different, and that take different
-* parameters.
+* couple of OT_API calls inside each one, that are different, and that take
+* different parameters.
 * Best way to get around that, is to just make an object that will do the
-* appropriate
-* API call, and store the necessary parameters inside. (A "functor" aka function
-* object.) Then pass it in as a parameter and trigger it at the appropriate
-* time.
-* (That's what this is.)
-*/
-
-/* public String   serverID;
-public String   nymID, nymID2;
-public String   assetID, assetID2;
-public String   accountID;
-public String   accountID2;
-public String   basket;
-public String   strData, strData2, strData3, strData4;
-public boolean  bBool;
-public int32_t      nData;
-public int64_t     lData;
-public int32_t      nTransNumsNeeded;
-public int32_t      nRequestNum;
+* appropriate API call, and store the necessary parameters inside. (A "functor"
+* aka function object.) Then pass it in as a parameter and trigger it at the
+* appropriate time. (That's what this is.)
 */
 
 string GetVariable(const char* name)
@@ -88,7 +70,7 @@ OT_OTAPI_OT void OTAPI_Func::InitCustom()
     funcType = NO_FUNC;
 }
 
-OTAPI_Func::OTAPI_Func() // 0 args
+OTAPI_Func::OTAPI_Func()
 {
     // otOut << "(Version of OTAPI_Func with 0 arguments.)\n";
 
@@ -100,7 +82,7 @@ OTAPI_Func::~OTAPI_Func()
 }
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
-                       const string& p_nymID) // 3 args
+                       const string& p_nymID)
 {
     // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
 
@@ -123,8 +105,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 }
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
-                       const string& p_nymID,
-                       const string& p_strParam) // 4 args
+                       const string& p_nymID, const string& p_strParam)
 {
     // otOut << "(Version of OTAPI_Func with 4 arguments.)\n";
 
@@ -173,7 +154,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_strParam,
-                       const string& p_strData) // 5 args
+                       const string& p_strData)
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -202,11 +183,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     nTransNumsNeeded = 1;
     bBool = false;
 
-    // if ((theType == KILL_MARKET_OFFER) || (theType == KILL_PAYMENT_PLAN) ||
-    // (theType == PROCESS_INBOX) ||
-    //   (theType == DEPOSIT_CASH) || (theType == DEPOSIT_CHEQUE) || (theType ==
-    // WITHDRAW_CASH))
-
     if ((theType == KILL_MARKET_OFFER) || (theType == KILL_PAYMENT_PLAN) ||
         (theType == PROCESS_INBOX) || (theType == DEPOSIT_CASH) ||
         (theType == DEPOSIT_CHEQUE) || (theType == DEPOSIT_PAYMENT_PLAN)) {
@@ -228,7 +204,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_strParam,
-                       const int64_t p_lData) // 5 args
+                       const int64_t p_lData)
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -253,11 +229,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     nTransNumsNeeded = 1;
     bBool = false;
 
-    // if ((theType == KILL_MARKET_OFFER) || (theType == KILL_PAYMENT_PLAN) ||
-    // (theType == PROCESS_INBOX) ||
-    //   (theType == DEPOSIT_CASH) || (theType == DEPOSIT_CHEQUE) || (theType ==
-    // WITHDRAW_CASH))
-
     if (theType == WITHDRAW_CASH) {
         accountID = p_strParam;
         lData = p_lData;
@@ -273,11 +244,9 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_nymID2,
-                       const string& p_strData,
-                       const string& p_strData2) // 6 args
+                       const string& p_strData, const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
-
     InitCustom();
 
     string strError =
@@ -309,21 +278,12 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         strData = p_strData;
         strData2 = p_strData2;
     }
-    /*
-
-    OTAPI_Func(ot_Msg.TRIGGER_CLAUSE, SERVER_ID, NYM_ID, STR_TRANS_NUM,
-    CLAUSE_NAME, STR_PARAM)
-    */
     else if (theType == TRIGGER_CLAUSE) {
         strData = p_nymID2;
         strData2 = p_strData;
         strData3 = p_strData2;
     }
     else if (theType == ACTIVATE_SMART_CONTRACT) {
-        //      OTAPI_Func(ot_Msg.ACTIVATE_SMART_CONTRACT, SERVER_ID, NYM_ID,
-        // ACCT_ID, AGENT_NAME, THE_SMART_CONTRACT)
-        //          def OTAPI_Func::OTAPI_Func  (theType, p_serverID, p_nymID,
-        // p_nymID2, p_strData, p_strData2) // 6 args
 
         accountID = p_nymID2;  // the "official" asset account of the party
                                // activating the contract.;
@@ -353,7 +313,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const int64_t p_lData,
-                       const string& p_strData2) // 7 args
+                       const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -381,8 +341,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     bBool = false;
     accountID = p_accountID;
 
-    //      var theRequest := OTAPI_Func(ot_Msg.SEND_TRANSFER, SERVER_ID,
-    // NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE)
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
             otOut << strError << "p_strData2";
@@ -400,7 +358,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
-                       const int64_t p_lData2) // 7 args
+                       const int64_t p_lData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -428,8 +386,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     bBool = false;
     accountID = p_accountID;
 
-    //      var theRequest := OTAPI_Func(ot_Msg.WITHDRAW_VOUCHER, SERVER_ID,
-    // NYM_ID, ACCT_ID, RECIP_NYM_ID, STR_MEMO, STR_AMOUNT)
     if (theType == WITHDRAW_VOUCHER) {
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
@@ -438,9 +394,6 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         strData = p_strData; // str  Memo;
         lData = p_lData2;    // int64_t Amount;
     }
-
-    //      var theRequest := OTAPI_Func(ot_Msg.PAY_DIVIDEND, SERVER_ID, NYM_ID,
-    // SOURCE_ACCT_ID, SHARES_ASSET_ID, STR_MEMO, STR_AMOUNT_PER_SHARE)
     else if (theType == PAY_DIVIDEND) {
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
@@ -458,7 +411,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
-                       const string& p_strData2) // 7 args
+                       const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -509,7 +462,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 }
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
-                       const string& p_nymID, const string& p_assetID, // 8 args
+                       const string& p_nymID, const string& p_assetID,
                        const string& p_basket, const string& p_accountID,
                        const bool p_bBool, const int32_t p_nTransNumsNeeded)
 {
@@ -545,13 +498,11 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     accountID = p_accountID;
 }
 
-// CREATE_MARKET_OFFER
-//
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& assetAccountID,
                        const string& currencyAcctID, const string& scale,
                        const string& minIncrement, const string& quantity,
-                       const string& price, const bool bSelling) // 10 args
+                       const string& price, const bool bSelling)
 {
     // otOut << "(Version of OTAPI_Func with 10 arguments.)\n";
 
@@ -812,8 +763,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     // second try
     getnym_trnsnum_count =
         OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
-    if (getnym_trnsnum_count < comparative) // try a second time.
-    {
+    if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
             << ", failure: MsgUtil.getTransactionNumbers. (Trying again...)\n";
@@ -829,8 +779,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     // third try
     getnym_trnsnum_count =
         OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
-    if (getnym_trnsnum_count < comparative) // try a second time.
-    {
+    if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
             << ", failure: MsgUtil.getTransactionNumbers. (Trying again...)\n";
@@ -857,25 +806,22 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(theFunction, IN_FUNCTION,
-                                       true, // bIsTransaction      = true;
-                                       true, // bWillRetryAfterThis = true
-                                       bCanRetryAfterThis); // output
+    string strResult = SendRequestOnce(theFunction, IN_FUNCTION, true, true,
+                                       bCanRetryAfterThis);
 
     if (VerifyStringVal(strResult)) {
         otOut << " Getting Intermediary files.. \n";
 
-        if (!MsgUtil.getIntermediaryFiles(
-                 theFunction.serverID, theFunction.nymID, theFunction.accountID,
-                 true)) // bForceDownload=true
-        {
+        if (!MsgUtil.getIntermediaryFiles(theFunction.serverID,
+                                          theFunction.nymID,
+                                          theFunction.accountID, true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
                                     "(After a success sending the transaction. "
                                     "Strange...)\n";
             return "";
         }
 
-        return strResult; // success!;
+        return strResult;
     }
 
     //
@@ -916,10 +862,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         // see the results of our success. So we get these either way...
         //
         if (VerifyStringVal(strResult)) {
-            if (!MsgUtil.getIntermediaryFiles(
-                     theFunction.serverID, theFunction.nymID,
-                     theFunction.accountID, true)) // bForceDownload=true
-            {
+            if (!MsgUtil.getIntermediaryFiles(theFunction.serverID,
+                                              theFunction.nymID,
+                                              theFunction.accountID, true)) {
                 otOut << strLocation
                       << ", getIntermediaryFiles (loop) returned false even "
                          "after successfully sending the transaction.\n";
@@ -927,11 +872,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
             }
             break;
         }
+    }
 
-    } // while
-
-    // Here we return strResult, for good or ill.
-    //
     return strResult;
 }
 
@@ -942,21 +884,13 @@ OTAPI_Func::SendRequest(OTAPI_Func& theFunction, const string& IN_FUNCTION)
 
     bool bCanRetryAfterThis = false;
 
-    string strResult = SendRequestOnce(
-        theFunction, IN_FUNCTION, false, /*bIsTransaction=false*/ true,
-        /* bWillRetryAfterThis=true*/ bCanRetryAfterThis);
+    string strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, true,
+                                       bCanRetryAfterThis);
 
     if (!VerifyStringVal(strResult) && bCanRetryAfterThis) {
-        strResult = SendRequestOnce(
-            theFunction, IN_FUNCTION, false, /* bIsTransaction=false;*/ false,
-            /*bWillRetryAfterThis=false*/ bCanRetryAfterThis); // unused in this
-                                                               // case, I
-                                                               // suppose. It's
-                                                               // still returned
-                                                               // as output.
+        strResult = SendRequestOnce(theFunction, IN_FUNCTION, false, false,
+                                    bCanRetryAfterThis);
     }
-    // Here we return strResult.
-    //
     return strResult;
 }
 
@@ -1038,20 +972,18 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
             if (nBalanceSuccess > 0) {
                 // Sometimes a transaction is sent that is meant to "fail" in
-                // order to cancel itself from
-                // ever being run in the future. It's being cancelled. In that
-                // case, whether the server reply
+                // order to cancel itself from ever being run in the future.
+                // It's being cancelled. In that case, whether the server reply
                 // itself is acknowledged or rejection, either way,
                 // IsCancelled() will be set to TRUE.
                 // This is used when cancelling a cheque, or a payment plan, or
-                // a smart contract, so that it
-                // can never be activated at some future time.
+                // a smart contract, so that it can never be activated at some
+                // future time.
                 //
                 // Therefore when we see that IsCancelled is set to TRUE, we
-                // interpret it as a "success" as far
-                // as the UI is concerned, even though behind the scenes, it is
-                // still "rejected" and transaction
-                // numbers were harvested from it.
+                // interpret it as a "success" as far as the UI is concerned,
+                // even though behind the scenes, it is still "rejected" and
+                // transaction numbers were harvested from it.
                 //
                 int32_t nTransCancelled =
                     OTAPI_Wrap::Message_IsTransactionCanceled(
@@ -1189,8 +1121,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
         // GET REQUEST WAS A SUCCESS.
         //
-        if (bWasGetReqSent && (nGetRequest > 0)) // success
-        {
+        if (bWasGetReqSent && (nGetRequest > 0)) {
             bCanRetryAfterThis = true;
 
             // But--if it was a TRANSACTION, then we're not done syncing yet!
@@ -1205,9 +1136,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
                          theFunction.serverID, theFunction.nymID,
-                         theFunction.accountID,
-                         bForceDownload)) // bForceDownload=true
-                {
+                         theFunction.accountID, bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "
                                             "the transaction. Thus, I give "
@@ -1265,10 +1194,8 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
                     if (VerifyStringVal(strNymbox)) {
                         OTAPI_Wrap::FlushSentMessages(
-                            false,
-                            /*harvesting-for-retry==OT_FALSE*/ theFunction
-                                .serverID,
-                            theFunction.nymID, strNymbox);
+                            false, theFunction.serverID, theFunction.nymID,
+                            strNymbox);
                     }
                 }
             } // if (bIsTransaction)
@@ -1322,7 +1249,7 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
         if (nullptr == storable) {
             otOut << "Unable to verify storable object. Probably doesn't "
                      "exist.\n";
-            return nullptr; // containing null or undef;
+            return nullptr;
         }
 
         otWarn << "QueryObject worked. Now dynamic casting from storable to a "
@@ -1336,30 +1263,26 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
         }
     }
 
-    return offerList; // possibly containing the offerList (if success), or
-                      // possibly containing a null/undef value (if failure.);
+    return offerList;
 }
 
 OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 {
     string strLocation = "convert_offerlist_to_maps";
 
-    MapOfMaps* map_of_maps =
-        nullptr; // return value. (currently undefined or null
-                 // or whatever. VerifyType("Map") will return
-                 // false at this point.;
+    MapOfMaps* map_of_maps = nullptr;
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
     // scale-assetID-currencyID
     // the value for each key is a sub-map, with the key: transaction ID and
     // value: the offer data itself.
     //
-    int32_t nCount = offerList.GetOfferDataNymCount(); // size_t;
-    int32_t nTemp = nCount; // so it's created as size_t;
+    int32_t nCount = offerList.GetOfferDataNymCount();
+    int32_t nTemp = nCount;
 
     if (nCount > 0) {
         for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-            nTemp = nIndex; // convert from int32_t to size_t;
+            nTemp = nIndex;
             OTDB::OfferDataNym& offerData = *offerList.GetOfferDataNym(nTemp);
 
             if (nullptr == &offerData) {
@@ -1418,17 +1341,13 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             }
 
             // Supposedly by this point I have constructed a map keyed by the
-            // market,
-            // which returns a sub_map for each market. Each sub map uses the
-            // key "BUY"
-            // or "SELL" and that points to the actual offer data. (Like a
-            // Multimap.)
+            // market, which returns a sub_map for each market. Each sub map
+            // uses the key "BUY" or "SELL" and that points to the actual
+            // offer data. (Like a Multimap.)
             //
             // Therefore we have sorted out all the buys and sells for each
-            // market.
-            // Later on, we can loop through the main map, and for each market,
-            // we can
-            // loop through all the buys and sells.
+            // market. Later on, we can loop through the main map, and for each
+            // market, we can loop through all the buys and sells.
         } // for (constructing the map_of_maps and all the sub_maps, so that the
           // offers are sorted
           // by market and buy/sell status.
@@ -1473,32 +1392,25 @@ output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
 }
 
 // If you have a buy offer, to buy silver for $30, and to sell silver for $35,
-// what happens tomorrow when the market shifts, and you want to buy for $40 and
-// sell for $45 ?
+// what happens tomorrow when the market shifts, and you want to buy for $40
+// and sell for $45 ?
 //
 // Well, now you need to cancel certain sell orders from yesterday! Because why
-// on
-// earth would you want to sell silver for $35 while buying it for $40?
-// (knotwork
-// raised ) That would be buy-high, sell-low.
+// on earth would you want to sell silver for $35 while buying it for $40?
+// (knotwork raised ) That would be buy-high, sell-low.
 //
 // Any rational trader would cancel the old $35 sell order before placing a new
-// $40
-// buy order!
+// $40 buy order!
 //
 // Similarly, if the market went DOWN such that my old offers were $40 buy / $45
-// sell,
-// and my new offers are going to be $30 buy / $35 sell, then I want to cancel
-// certain
-// buy orders for yesterday. After all, why on earth would you want to buy
-// silver for
-// $40 meanwhile putting up a new sell order at $35! You would immediately just
-// turn
-// around, after buying something, and sell it for LESS?
+// sell, and my new offers are going to be $30 buy / $35 sell, then I want to
+// cancel certain buy orders for yesterday. After all, why on earth would you
+// want to buy silver for $40 meanwhile putting up a new sell order at $35!
+// You would immediately just turn around, after buying something, and sell it
+// for LESS?
 //
 // Since the user would most likely be forced anyway to do this, for reasons of
-// self-interest,
-// it will probably end up as the default behavior here.
+// self-interest, it will probably end up as the default behavior here.
 //
 
 // RETURN VALUE: extra_vals will contain a list of offers that need to be
@@ -1605,8 +1517,7 @@ find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
     // We don't actually do the removing here, since we are still looping
     // through the maps.
     // So we just add the IDs to a vector so that the caller can do the removing
-    // once this loop
-    // is over.
+    // once this loop is over.
 
     return 1;
 }
@@ -1631,7 +1542,8 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
-    // def the_lambda(offer_data, nIndex, map_of_maps, sub_map, extra_vals) //
+    // def the_lambda(offer_data, nIndex, map_of_maps, sub_map, extra_vals)
+    //
     // if 10 offers are printed for the SAME market, nIndex will be 0..9
 
     string strLocation = "iterate_nymoffers_sub_map";
@@ -1711,7 +1623,8 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
-    // def the_lambda(offer_data, nIndex, map_of_maps, sub_map, extra_vals) //
+    // def the_lambda(offer_data, nIndex, map_of_maps, sub_map, extra_vals)
+    // //
     // if 10 offers are printed for the SAME market, nIndex will be 0..9
 
     string strLocation = "iterate_nymoffers_maps";
