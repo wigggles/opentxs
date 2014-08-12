@@ -10,8 +10,8 @@ set(dependency_include_dir
 )
 
 include_directories(SYSTEM
+  ${ZMQ_INCLUDE_DIR}
   ${dependency_include_dir}
-  ${dependency_include_dir}/libzmq_4/include
   ${dependency_include_dir}/cppzmq
 )
 
