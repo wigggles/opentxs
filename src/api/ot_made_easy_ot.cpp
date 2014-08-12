@@ -27,6 +27,7 @@
 #include "ot_commands_ot.hpp"
 
 #include <OTAPI.hpp>
+#include <OTLog.hpp>
 #include <OT_ME.hpp>
 
 // Returns:
@@ -53,8 +54,8 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
         OTAPI_Wrap::GetNym_TransactionNumCount(strMyServerID, strMyNymID);
 
     if (nTransCount < nNumberNeeded) {
-        OTAPI_Wrap::Output(0, "insure_enough_nums: I don't have enough "
-                              "transaction numbers. Grabbing more now...\n");
+        otOut << "insure_enough_nums: I don't have enough "
+                 "transaction numbers. Grabbing more now...\n";
 
         MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
 
@@ -72,12 +73,11 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
             OTAPI_Wrap::GetNym_TransactionNumCount(strMyServerID, strMyNymID);
 
         if (nTransCount < nNumberNeeded) {
-            OTAPI_Wrap::Output(
-                0, "insure_enough_nums: I still don't have enough transaction "
-                   "numbers (I have " +
-                       to_string(nTransCount) + ", but I need " +
-                       to_string(nNumberNeeded) +
-                       ".)\n(Tried grabbing some, but failed somehow.)\n");
+            otOut
+                << "insure_enough_nums: I still don't have enough transaction "
+                   "numbers (I have " << nTransCount << ", but I need "
+                << nNumberNeeded
+                << ".)\n(Tried grabbing some, but failed somehow.)\n";
             return false;
         }
         else {
@@ -106,16 +106,16 @@ MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
         // in sync.
         //
         if (1 != MsgUtil.getRequestNumber(SERVER_ID, NYM_ID)) {
-            OTAPI_Wrap::Output(0, "\n Succeeded in register_nym, but strange: "
-                                  "then failed calling getRequest, to sync the "
-                                  "request number for the first time.\n");
+            otOut << "\n Succeeded in register_nym, but strange: "
+                     "then failed calling getRequest, to sync the "
+                     "request number for the first time.\n";
             return "";
         }
     }
     else {
         // maybe an invalid server ID or the server contract isn't available (do
         // AddServerContract(..) first)
-        OTAPI_Wrap::Output(0, "Failed to register_nym.\n");
+        otOut << "Failed to register_nym.\n";
         return "";
     }
 
@@ -132,15 +132,14 @@ MadeEasy::retrieve_nym(const string& strServerID, const string& strMyNymID,
     Utility MsgUtil;
 
     if (1 != MsgUtil.getRequestNumber(strServerID, strMyNymID)) {
-        OTAPI_Wrap::Output(0, "\n Failed calling getRequest, to sync the "
-                              "request number. (Finished.)\n");
+        otOut << "\n Failed calling getRequest, to sync the "
+                 "request number. (Finished.)\n";
         return -1;
     }
     else // If it returns 1, we know for sure that the request number is in
            // sync.
     {
-        OTAPI_Wrap::Output(0,
-                           "\n\n SUCCESS syncronizing the request number.\n");
+        otOut << "\n\n SUCCESS syncronizing the request number.\n";
     }
 
     int32_t nGetAndProcessNymbox = MsgUtil.getAndProcessNymbox_4(
@@ -176,9 +175,9 @@ OT_MADE_EASY_OT string MadeEasy::create_pseudonym(const int32_t nKeybits,
         nKeybits, strNymIDSource, strAltLocation); // returns new Nym ID;
 
     if (!VerifyStringVal(strNymID)) {
-        OTAPI_Wrap::Output(0, strLocation +
-                                  ": Failed in OT_API_CreateNym(keybits == " +
-                                  to_string(nKeybits) + ")\n");
+        otOut << strLocation
+              << ": Failed in OT_API_CreateNym(keybits == " << nKeybits
+              << ")\n";
     }
 
     return strNymID;
@@ -286,18 +285,16 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 {
     string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
     if (!VerifyStringVal(strName)) {
-        OTAPI_Wrap::Output(
-            0, "\nstat_asset_account: Cannot find account wallet for: " +
-                   ACCOUNT_ID + "\n");
+        otOut << "\nstat_asset_account: Cannot find account wallet for: "
+              << ACCOUNT_ID << "\n";
         return "";
     }
 
     string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(ACCOUNT_ID);
     if (!VerifyStringVal(strAssetID)) {
-        OTAPI_Wrap::Output(
-            0,
-            "\nstat_asset_account: Cannot cannot determine asset type for: " +
-                ACCOUNT_ID + "\n");
+        otOut
+            << "\nstat_asset_account: Cannot cannot determine asset type for: "
+            << ACCOUNT_ID << "\n";
         return "";
     }
 
@@ -373,24 +370,22 @@ MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Wrap::Output(0, "\nload_public_encryption_key: Trying to load public "
-                          "key, assuming Nym isn't in the local wallet...\n");
+    otOut << "\nload_public_encryption_key: Trying to load public "
+             "key, assuming Nym isn't in the local wallet...\n";
 
     string strPubkey = OTAPI_Wrap::LoadPubkey_Encryption(
         NYM_ID); // This version is for "other people";
 
     if (!VerifyStringVal(strPubkey)) {
-        OTAPI_Wrap::Output(
-            0, "\nload_public_encryption_key: Didn't find the Nym (" + NYM_ID +
-                   ") as an 'other' user, so next, checking to see if there's "
-                   "a pubkey available for one of the local private Nyms...\n");
+        otOut << "\nload_public_encryption_key: Didn't find the Nym (" << NYM_ID
+              << ") as an 'other' user, so next, checking to see if there's "
+                 "a pubkey available for one of the local private Nyms...\n";
         strPubkey = OTAPI_Wrap::LoadUserPubkey_Encryption(
             NYM_ID); // This version is for "the user sitting at the machine.";
 
         if (!VerifyStringVal(strPubkey)) {
-            OTAPI_Wrap::Output(0, "\nload_public_encryption_key: Didn't find "
-                                  "him as a local Nym either... returning "
-                                  "nullptr.\n");
+            otOut << "\nload_public_encryption_key: Didn't find "
+                     "him as a local Nym either... returning nullptr.\n";
         }
     }
     return strPubkey; // might be null.;
@@ -531,9 +526,9 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
         load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
-        OTAPI_Wrap::Output(0, "OT_ME_send_user_msg: Unable to load or retrieve "
-                              "public encryption key for recipient: ");
-        OTAPI_Wrap::Output(0, concat(RECIPIENT_NYM_ID, "\n"));
+        otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
+                 "public encryption key for recipient: ";
+        otOut << concat(RECIPIENT_NYM_ID, "\n");
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -557,9 +552,9 @@ MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
         load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
-        OTAPI_Wrap::Output(0, "OT_ME_send_user_payment: Unable to load or "
-                              "retrieve public encryption key for recipient: ");
-        OTAPI_Wrap::Output(0, concat(RECIPIENT_NYM_ID, "\n"));
+        otOut << "OT_ME_send_user_payment: Unable to load or "
+                 "retrieve public encryption key for recipient: ";
+        otOut << concat(RECIPIENT_NYM_ID, "\n");
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -583,9 +578,9 @@ MadeEasy::send_user_cash(const string& SERVER_ID, const string& NYM_ID,
         load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
-        OTAPI_Wrap::Output(0, "OT_ME_send_user_payment: Unable to load or "
-                              "retrieve public encryption key for recipient: ");
-        OTAPI_Wrap::Output(0, concat(RECIPIENT_NYM_ID, "\n"));
+        otOut << "OT_ME_send_user_payment: Unable to load or "
+                 "retrieve public encryption key for recipient: ";
+        otOut << concat(RECIPIENT_NYM_ID, "\n");
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -610,33 +605,30 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
                   SERVER_ID, NYM_ID); // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
-        OTAPI_Wrap::Output(1, "\n\n get_payment_instrument:  "
-                              "OT_API_LoadPaymentInbox Failed. (Probably just "
-                              "doesn't exist yet.)\n\n");
+        otWarn << "\n\n get_payment_instrument:  "
+                  "OT_API_LoadPaymentInbox Failed. (Probably just "
+                  "doesn't exist yet.)\n\n";
         return "";
     }
 
     int32_t nCount =
         OTAPI_Wrap::Ledger_GetCount(SERVER_ID, NYM_ID, NYM_ID, strInbox);
     if (0 > nCount) {
-        OTAPI_Wrap::Output(
-            0,
-            "Unable to retrieve size of payments inbox ledger. (Failure.)\n");
+        otOut
+            << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
         return "";
     }
     if (nIndex > (nCount - 1)) {
-        OTAPI_Wrap::Output(0, "Index " + to_string(nIndex) +
-                                  " out of bounds. (The last index is: " +
-                                  to_string(nCount - 1) +
-                                  ". The first is 0.)\n");
+        otOut << "Index " << nIndex
+              << " out of bounds. (The last index is: " << (nCount - 1)
+              << ". The first is 0.)\n";
         return "";
     }
 
     strInstrument = OTAPI_Wrap::Ledger_GetInstrument(SERVER_ID, NYM_ID, NYM_ID,
                                                      strInbox, nIndex);
     if (!VerifyStringVal(strInstrument)) {
-        OTAPI_Wrap::Output(
-            0, "Failed trying to get payment instrument from payments box.\n");
+        otOut << "Failed trying to get payment instrument from payments box.\n";
         return "";
     }
 
@@ -696,11 +688,10 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
 {
     string strResponse = check_user(SERVER_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(strResponse)) {
-        OTAPI_Wrap::Output(
-            0, "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n");
-        OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
-        OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
-        OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
+        otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
+        otOut << "  Server ID: " << SERVER_ID << "\n";
+        otOut << "     Nym ID: " << NYM_ID << "\n";
+        otOut << "   Asset ID: " << ASSET_ID << "\n";
         return "";
     }
 
@@ -711,27 +702,27 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
 
     // expired or missing.
     if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
-        OTAPI_Wrap::Output(1, "OT_ME_load_or_retrieve_mint: Mint file is "
-                              "missing or expired. Downloading from "
-                              "server...\n");
+        otWarn << "OT_ME_load_or_retrieve_mint: Mint file is "
+                  "missing or expired. Downloading from "
+                  "server...\n";
 
         string strResponse = retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 
         if (1 != VerifyMessageSuccess(strResponse)) {
-            OTAPI_Wrap::Output(0, "OT_ME_load_or_retrieve_mint: Unable to "
-                                  "retrieve mint for IDs: \n");
-            OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
-            OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
-            OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
+            otOut << "OT_ME_load_or_retrieve_mint: Unable to "
+                     "retrieve mint for IDs: \n";
+            otOut << "  Server ID: " << SERVER_ID << "\n";
+            otOut << "     Nym ID: " << NYM_ID << "\n";
+            otOut << "   Asset ID: " << ASSET_ID << "\n";
             return "";
         }
 
         if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
-            OTAPI_Wrap::Output(0, "OT_ME_load_or_retrieve_mint: Retrieved "
-                                  "mint, but still 'not good' for IDs: \n");
-            OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
-            OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
-            OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
+            otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
+                     "mint, but still 'not good' for IDs: \n";
+            otOut << "  Server ID: " << SERVER_ID << "\n";
+            otOut << "     Nym ID: " << NYM_ID << "\n";
+            otOut << "   Asset ID: " << ASSET_ID << "\n";
             return "";
         }
     }
@@ -744,11 +735,10 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
 
     string strMint = OTAPI_Wrap::LoadMint(SERVER_ID, ASSET_ID);
     if (!VerifyStringVal(strMint)) {
-        OTAPI_Wrap::Output(
-            0, "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n");
-        OTAPI_Wrap::Output(0, "  Server ID: " + SERVER_ID + "\n");
-        OTAPI_Wrap::Output(0, "     Nym ID: " + NYM_ID + "\n");
-        OTAPI_Wrap::Output(0, "   Asset ID: " + ASSET_ID + "\n");
+        otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
+        otOut << "  Server ID: " << SERVER_ID << "\n";
+        otOut << "     Nym ID: " << NYM_ID << "\n";
+        otOut << "   Asset ID: " << ASSET_ID << "\n";
     }
 
     return strMint;
@@ -914,7 +904,7 @@ MadeEasy::cancel_payment_plan(const string& SERVER_ID, const string& NYM_ID,
     string strRecipientAcctID =
         OTAPI_Wrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
 
-    //  OTAPI_Wrap::Output(0, "\n\n DEBUGGING: NYM_ID: "+NYM_ID+"
+    //  otOut << "\n\n DEBUGGING: NYM_ID: "+NYM_ID+"
     // strRecipientAcctID: "+strRecipientAcctID+" \n\n")
 
     // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
@@ -1112,43 +1102,43 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
 {
     bool isSuccess = true;
 
-    //  OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, serverID:" + serverID + "
-    // nymID:" + nymID + " assetID:" + assetID);
-    //  OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, userInput purse:" +
-    // userInput);
+    //  otOut << "OT_ME_importCashPurse, serverID:" << serverID << "
+    // nymID:" << nymID << " assetID:" << assetID);
+    //  otOut << "OT_ME_importCashPurse, userInput purse:" <<
+    // userInput <<);
 
     if (!isPurse) // it's not a purse. Must be a
                   // token, so let's create a purse
                   // for it.
     {
-        //      OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, isPurse:" +
+        //      otOut << "OT_ME_importCashPurse, isPurse:" +
         // isPurse)
 
         string purse = OTAPI_Wrap::CreatePurse(
             serverID, assetID, nymID, nymID); // nymID, nymID == owner, signer;
 
         if (!VerifyStringVal(purse)) {
-            OTAPI_Wrap::Output(0, "OT_ME_importCashPurse: Error: "
-                                  "OT_API_CreatePurse returned null\n");
+            otOut << "OT_ME_importCashPurse: Error: "
+                     "OT_API_CreatePurse returned null\n";
             return false;
         }
-        //      OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, OT_API_CreatePurse
+        //      otOut << "OT_ME_importCashPurse, OT_API_CreatePurse
         // return :" + purse);
 
         string newPurse = OTAPI_Wrap::Purse_Push(serverID, assetID, nymID,
                                                  nymID, purse, userInput);
         if (!VerifyStringVal(newPurse)) {
-            OTAPI_Wrap::Output(0, "OT_ME_importCashPurse: Error: "
-                                  "OT_API_Purse_Push returned null\n");
+            otOut << "OT_ME_importCashPurse: Error: "
+                     "OT_API_Purse_Push returned null\n";
             return false;
         }
-        //      OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, OT_API_Purse_Push
+        //      otOut << "OT_ME_importCashPurse, OT_API_Purse_Push
         // returned :" + newPurse);
         userInput = newPurse;
     }
-    //  OTAPI_Wrap::Output(0, "OT_ME_importCashPurse, Before calling
+    //  otOut << "OT_ME_importCashPurse, Before calling
     // OT_API_Wallet_ImportPurse, final purse:" + userInput);
-    //  OTAPI_Wrap::Output(0, "OT_ME_importCashPurse just before api ,
+    //  otOut << "OT_ME_importCashPurse just before api ,
     // serverID:" + serverID + " nymID:" + nymID + " assetID:" + assetID);
 
     // Here we have either a purse that was passed in, or a purse that we
@@ -1233,11 +1223,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                                                     // nymID is signer;
 
         if (!VerifyStringVal(newPurse)) {
-            OTAPI_Wrap::Output(0, strLocation + ": " +
-                                      (bPWProtectNewPurse
-                                           ? "OT_API_CreatePurse_Passphrase"
-                                           : "OT_API_CreatePurse") +
-                                      " returned null\n");
+            otOut << strLocation << ": "
+                  << (bPWProtectNewPurse ? "OT_API_CreatePurse_Passphrase"
+                                         : "OT_API_CreatePurse")
+                  << " returned null\n";
             return false;
         }
 
@@ -1252,9 +1241,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                                     nymID); // nymID is owner, nymID is signer;
 
         if (!VerifyStringVal(newPurseForSender)) {
-            OTAPI_Wrap::Output(
-                0,
-                strLocation + ": Failure: OT_API_CreatePurse returned null\n");
+            otOut << strLocation
+                  << ": Failure: OT_API_CreatePurse returned null\n";
             return false;
         }
 
@@ -1278,10 +1266,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 OTAPI_Wrap::Purse_Pop(serverID, assetID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
-                OTAPI_Wrap::Output(
-                    0, strLocation + ": OT_API_Purse_Peek or OT_API_Purse_Pop "
-                                     "returned null... SHOULD NEVER HAPPEN. "
-                                     "Returning null.\n");
+                otOut << strLocation
+                      << ": OT_API_Purse_Peek or OT_API_Purse_Pop "
+                         "returned null... SHOULD NEVER HAPPEN. "
+                         "Returning null.\n";
                 return false;
             }
 
@@ -1311,10 +1299,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                OTAPI_Wrap::Output(0, strLocation +
-                                          ": 1, OT_API_Token_ChangeOwner "
-                                          "returned null...(should never "
-                                          "happen) Returning null.\n");
+                otOut << strLocation << ": 1, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
@@ -1327,10 +1314,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                OTAPI_Wrap::Output(0, strLocation +
-                                          ":  2, OT_API_Token_ChangeOwner "
-                                          "returned null...(should never "
-                                          "happen) Returning null.\n");
+                otOut << strLocation << ":  2, OT_API_Token_ChangeOwner "
+                                        "returned null...(should never "
+                                        "happen) Returning null.\n";
                 return false;
             }
 
@@ -1351,9 +1337,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRecipient)) {
-                OTAPI_Wrap::Output(
-                    0, strLocation + ":  OT_API_Purse_Push 1 returned null... "
-                                     "(should never happen) Returning null.\n");
+                otOut << strLocation
+                      << ":  OT_API_Purse_Push 1 returned null... "
+                         "(should never happen) Returning null.\n";
                 return false;
             }
 
@@ -1370,9 +1356,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRetention)) {
-                OTAPI_Wrap::Output(
-                    0, strLocation + ":  OT_API_Purse_Push 2 returned null... "
-                                     "(should never happen) Returning null.\n");
+                otOut << strLocation
+                      << ":  OT_API_Purse_Push 2 returned null... "
+                         "(should never happen) Returning null.\n";
                 return false;
             }
 
@@ -1406,9 +1392,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                OTAPI_Wrap::Output(0, strLocation + ":  OT_API_SavePurse "
-                                                    "FAILED. SHOULD NEVER "
-                                                    "HAPPEN!!!!!!\n");
+                otOut << strLocation << ": OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         }
@@ -1429,7 +1414,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     // Else, SPECIFIC TOKENS were selected, so process those only...
     //
     else {
-        //      OTAPI_Wrap::Output(0, "Tokens in Cash Purse being processed");
+        //      otOut << "Tokens in Cash Purse being processed");
 
         // newPurseSelectedTokens is created (CORRECTLY) with recipientNymID as
         // owner. (Or with a symmetric key / passphrase.)
@@ -1453,19 +1438,17 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     // decrypt if necessary.);
 
         if (!VerifyStringVal(newPurseSelectedForSender)) {
-            OTAPI_Wrap::Output(0, strLocation +
-                                      ":  OT_API_CreatePurse returned null\n");
+            otOut << strLocation << ":  OT_API_CreatePurse returned null\n";
             return false;
         }
         if (!VerifyStringVal(newPurseSelectedTokens)) {
-            OTAPI_Wrap::Output(0, strLocation + ":  OT_API_CreatePurse or "
-                                                "OT_API_CreatePurse_Passphrase "
-                                                "returned null\n");
+            otOut << strLocation
+                  << ":  OT_API_CreatePurse or "
+                     "OT_API_CreatePurse_Passphrase returned null\n";
             return false;
         }
         if (!VerifyStringVal((newPurseUnSelectedTokens))) {
-            OTAPI_Wrap::Output(0, strLocation +
-                                      ":  OT_API_Purse_Empty returned null\n");
+            otOut << strLocation << ":  OT_API_Purse_Empty returned null\n";
             return false;
         }
 
@@ -1488,10 +1471,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 OTAPI_Wrap::Purse_Pop(serverID, assetID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
-                OTAPI_Wrap::Output(0, strLocation + ":  OT_API_Purse_Peek or "
-                                                    "OT_API_Purse_Pop returned "
-                                                    "null... returning Null. "
-                                                    "(SHOULD NEVER HAPPEN.)\n");
+                otOut << strLocation
+                      << ":  OT_API_Purse_Peek or "
+                         "OT_API_Purse_Pop returned null... returning Null. "
+                         "(SHOULD NEVER HAPPEN.)\n";
                 return false;
             }
 
@@ -1505,9 +1488,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             string tokenID = OTAPI_Wrap::Token_GetID(serverID, assetID, token);
 
             if (!VerifyStringVal(tokenID)) {
-                OTAPI_Wrap::Output(
-                    0, strLocation + ":  OT_API_Token_GetID returned null... "
-                                     "SHOULD NEVER HAPPEN. Returning now.\n");
+                otOut << strLocation
+                      << ":  OT_API_Token_GetID returned null... "
+                         "SHOULD NEVER HAPPEN. Returning now.\n";
                 return false;
             }
 
@@ -1540,10 +1523,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     strSender,                // old owner
                     strRecipient);            // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    OTAPI_Wrap::Output(0, strLocation +
-                                              ": 1  OT_API_Token_ChangeOwner "
-                                              "returned null... SHOULD NEVER "
-                                              "HAPPEN. Returning now.\n");
+                    otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1553,10 +1535,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     strSender,                // old owner
                     strSenderAsRecipient);    // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    OTAPI_Wrap::Output(0, strLocation +
-                                              ": 2  OT_API_Token_ChangeOwner "
-                                              "returned null... SHOULD NEVER "
-                                              "HAPPEN. Returning now.\n");
+                    otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
+                                            "returned null... SHOULD NEVER "
+                                            "HAPPEN. Returning now.\n";
                     return false;
                 }
 
@@ -1573,11 +1554,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     // password-protected purse) or recipientNymID
                     newPurseSelectedTokens, exportedToken); // purse, token
                 if (!VerifyStringVal(strPushedForRecipient)) {
-                    OTAPI_Wrap::Output(0, strLocation + ":  OT_API_Purse_Push "
-                                                        "newPurseSelectedTokens"
-                                                        " returned null... "
-                                                        "SHOULD NEVER HAPPEN "
-                                                        "(returning.)\n");
+                    otOut << strLocation
+                          << ":  OT_API_Purse_Push "
+                             "newPurseSelectedTokens returned null... "
+                             "SHOULD NEVER HAPPEN (returning.)\n";
                     return false;
                 }
 
@@ -1595,11 +1575,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                     strSenderAsRecipient, newPurseSelectedForSender,
                     retainedToken); // purse, token
                 if (!VerifyStringVal(strPushedForRetention)) {
-                    OTAPI_Wrap::Output(0, strLocation + ":  OT_API_Purse_Push "
-                                                        "newPurseSelectedForSen"
-                                                        "der returned null... "
-                                                        "SHOULD NEVER HAPPEN "
-                                                        "(returning.)\n");
+                    otOut << strLocation
+                          << ":  OT_API_Purse_Push "
+                             "newPurseSelectedForSender returned null... "
+                             "SHOULD NEVER HAPPEN (returning.)\n";
                     return false;
                 }
 
@@ -1619,11 +1598,10 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                                               // purse) or nymID
                     newPurseUnSelectedTokens, token); // purse, token
                 if (!VerifyStringVal(str)) {
-                    OTAPI_Wrap::Output(0, strLocation + ": OT_API_Purse_Push "
-                                                        "newPurseUnSelectedToke"
-                                                        "ns returned null... "
-                                                        "SHOULD NEVER HAPPEN. "
-                                                        "Returning false.\n");
+                    otOut << strLocation
+                          << ": OT_API_Purse_Push "
+                             "newPurseUnSelectedTokens returned null... "
+                             "SHOULD NEVER HAPPEN. Returning false.\n";
                     return false;
                 }
 
@@ -1641,9 +1619,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 // No modal?
                 //
                 // FT: adding log.
-                OTAPI_Wrap::Output(0, strLocation + ":  OT_API_SavePurse "
-                                                    "FAILED. SHOULD NEVER "
-                                                    "HAPPEN!!!!!!\n");
+                otOut << strLocation << ":  OT_API_SavePurse "
+                                        "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
                 return false;
             }
         }
@@ -1686,17 +1663,16 @@ MadeEasy::exportCashPurse(const string& serverID, const string& assetID,
                           string& recipientNymID, const bool bPasswordProtected,
                           string& strRetainedCopy)
 {
-    //  OTAPI_Wrap::Output(0, "OT_ME_exportCashPurse starts, selectedTokens:" +
-    // selectedTokens + "\n");
+    //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
+    // selectedTokens << "\n";
     //  Utility.setObj(null);
 
     if (!bPasswordProtected) {
         // If no recipient, then recipient == Nym.
         //
         if (!VerifyStringVal(recipientNymID) || (recipientNymID.size() == 0)) {
-            OTAPI_Wrap::Output(0, "OT_ME_exportCashPurse: recipientNym "
-                                  "empty--using NymID for recipient instead: " +
-                                      nymID + "\n");
+            otOut << "OT_ME_exportCashPurse: recipientNym empty--using NymID "
+                     "for recipient instead: " << nymID << "\n";
             recipientNymID = nymID;
         }
 
@@ -1712,8 +1688,7 @@ MadeEasy::exportCashPurse(const string& serverID, const string& assetID,
                                                   // partial IDs for recipient.;
 
             if (!VerifyStringVal(recipientPubKey)) {
-                OTAPI_Wrap::Output(
-                    0, "OT_ME_exportCashPurse: recipientPubKey is null\n");
+                otOut << "OT_ME_exportCashPurse: recipientPubKey is null\n";
                 return "";
             }
         }
@@ -1755,8 +1730,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
 {
     string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
-        OTAPI_Wrap::Output(0, "\ndepositCashPurse: Unable to find recipient "
-                              "Nym based on myacct. \n");
+        otOut << "\ndepositCashPurse: Unable to find recipient Nym based on "
+                 "myacct. \n";
         return -1;
     }
 
@@ -1770,8 +1745,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
         selectedTokens, recipientNymID, bPasswordProtected, false);
 
     if (!bSuccessProcess || !VerifyStringVal(newPurse)) {
-        OTAPI_Wrap::Output(0, "OT_ME_depositCashPurse: new Purse is empty, "
-                              "after processing it for deposit. \n");
+        otOut << "OT_ME_depositCashPurse: new Purse is empty, after processing "
+                 "it for deposit. \n";
         return -1;
     }
 
@@ -1797,11 +1772,10 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
             retrieve_account(serverID, recipientNymID, accountID,
                              true); // bForceDownload defaults to false.;
 
-        OTAPI_Wrap::Output(0, "\nServer response (" + strAttempt +
-                                  "): SUCCESS depositing cash!\n");
-        OTAPI_Wrap::Output(0,
-                           string(bRetrieved ? "Success" : "Failed") +
-                               " retrieving intermediary files for account.\n");
+        otOut << "\nServer response (" << strAttempt
+              << "): SUCCESS depositing cash!\n";
+        otOut << string(bRetrieved ? "Success" : "Failed")
+              << " retrieving intermediary files for account.\n";
     }
     else // failure. (so we re-import the cash, so as not to lose it...)
     {
@@ -1809,38 +1783,36 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
         if (!bPasswordProtected && bReimportIfFailure) {
             bool importStatus = OTAPI_Wrap::Wallet_ImportPurse(
                 serverID, assetID, recipientNymID, newPurse);
-            OTAPI_Wrap::Output(0, "Since failure in OT_ME_depositCashPurse, "
-                                  "OT_API_Wallet_ImportPurse called. Status of "
-                                  "import: " +
-                                      to_string(importStatus) + "\n");
+            otOut << "Since failure in OT_ME_depositCashPurse, "
+                     "OT_API_Wallet_ImportPurse called. Status of "
+                     "import: " << importStatus << "\n";
 
             if (!importStatus) {
                 // Raise the alarm here that we failed depositing the purse, and
                 // then we failed
                 // importing it back into our wallet again.
-                OTAPI_Wrap::Output(0, "Error: Failed depositing the cash "
-                                      "purse, and then failed re-importing it "
-                                      "back to wallet. Therefore YOU must copy "
-                                      "the purse NOW and save it to a safe "
-                                      "place! \n");
+                otOut << "Error: Failed depositing the cash purse, and then "
+                         "failed re-importing it back to wallet. Therefore YOU "
+                         "must copy the purse NOW and save it to a safe place! "
+                         "\n";
 
                 print(newPurse);
 
-                OTAPI_Wrap::Output(0, "AGAIN: Be sure to copy the above purse "
-                                      "to a safe place, since it FAILED to "
-                                      "deposit and FAILED to re-import back "
-                                      "into the wallet. \n");
+                otOut << "AGAIN: Be sure to copy the above purse "
+                         "to a safe place, since it FAILED to "
+                         "deposit and FAILED to re-import back "
+                         "into the wallet. \n";
             }
         }
         else {
-            OTAPI_Wrap::Output(0, "Error: Failed depositing the cash purse. "
-                                  "Therefore YOU must copy the purse NOW and "
-                                  "save it to a safe place! \n");
+            otOut << "Error: Failed depositing the cash purse. "
+                     "Therefore YOU must copy the purse NOW and "
+                     "save it to a safe place! \n";
 
             print(newPurse);
 
-            OTAPI_Wrap::Output(0, "AGAIN: Be sure to copy the above purse to a "
-                                  "safe place, since it FAILED to deposit. \n");
+            otOut << "AGAIN: Be sure to copy the above purse to a "
+                     "safe place, since it FAILED to deposit. \n";
         }
 
         return -1;
@@ -1857,7 +1829,7 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
     string& oldPurse, const vector<string>& selectedTokens)
 {
     //  Utility.setObj(null);
-    //  OTAPI_Wrap::Output(0, " Cash Purse exchange starts, selectedTokens:" +
+    //  otOut << " Cash Purse exchange starts, selectedTokens:" +
     // selectedTokens + "\n")
 
     string newPurse;
@@ -1868,9 +1840,8 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
         selectedTokens, nymID, false, false); // bIsPasswordProtected=false;
 
     if (bProcessSuccess && !VerifyStringVal(newPurse)) {
-        OTAPI_Wrap::Output(0, "OT_ME_exchangeCashPurse: Before server "
-                              "OT_API_exchangePurse call, new Purse is empty. "
-                              "returning false \n");
+        otOut << "OT_ME_exchangeCashPurse: Before server OT_API_exchangePurse "
+                 "call, new Purse is empty. Returning false.\n";
         return false;
     }
 
@@ -1880,16 +1851,14 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
         theRequest, "EXCHANGE_CASH"); // <========================;
 
     if (!VerifyStringVal(strResponse)) {
-        OTAPI_Wrap::Output(0, "IN OT_ME_exchangeCashPurse: "
-                              "theRequest.SendTransaction(() failed. (I give "
-                              "up.) \n");
+        otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
+                 "failed. (I give up.) \n";
 
         bool importStatus =
             OTAPI_Wrap::Wallet_ImportPurse(serverID, assetID, nymID, newPurse);
-        OTAPI_Wrap::Output(
-            0, "Since failure in OT_ME_exchangeCashPurse, "
-               "OT_API_Wallet_ImportPurse called, status of import: " +
-                   string(importStatus ? "true" : "false") + "\n");
+        otOut << "Since failure in OT_ME_exchangeCashPurse, "
+                 "OT_API_Wallet_ImportPurse called, status of import: "
+              << string(importStatus ? "true" : "false") << "\n";
         if (!importStatus) {
             //          Utility.setObj(newPurse)
         }
@@ -1897,7 +1866,7 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
         return false;
     }
 
-    //  OTAPI_Wrap::Output(0, "OT_ME_exchangeCashPurse ends, status:
+    //  otOut << "OT_ME_exchangeCashPurse ends, status:
     // success.\n")
 
     return true;

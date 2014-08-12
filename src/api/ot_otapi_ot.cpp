@@ -16,6 +16,7 @@
 #include "ot_otapi_ot.hpp"
 
 #include "ot_utility_ot.hpp"
+#include "OTLog.hpp"
 #include "OTVariable.hpp"
 
 using namespace opentxs;
@@ -89,7 +90,7 @@ OT_OTAPI_OT void OTAPI_Func::InitCustom()
 
 OTAPI_Func::OTAPI_Func() // 0 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 0 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 0 arguments.)\n";
 
     InitCustom();
 }
@@ -101,17 +102,17 @@ OTAPI_Func::~OTAPI_Func()
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID) // 3 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 3 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
 
     funcType = theType;
@@ -125,20 +126,20 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID,
                        const string& p_strParam) // 4 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 4 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 4 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam"));
+        otOut << strError << "p_strParam";
     }
 
     funcType = theType;
@@ -166,8 +167,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         strData = p_strParam;
     }
     else {
-        OTAPI_Wrap::Output(
-            0, "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
 }
 
@@ -175,25 +175,25 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_strParam,
                        const string& p_strData) // 5 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 5 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID \n"));
+        otOut << strError << "p_serverID \n";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID \n"));
+        otOut << strError << "p_nymID \n";
     }
 
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam \n"));
+        otOut << strError << "p_strParam \n";
     }
 
     if (!VerifyStringVal(p_strData)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strData \n"));
+        otOut << strError << "p_strData \n";
     }
 
     funcType = theType;
@@ -222,8 +222,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         strData = p_strData;
     }
     else {
-        OTAPI_Wrap::Output(
-            0, "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
 }
 
@@ -231,21 +230,21 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_strParam,
                        const int64_t p_lData) // 5 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 5 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID \n"));
+        otOut << strError << "p_serverID \n";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID \n"));
+        otOut << strError << "p_nymID \n";
     }
 
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam \n"));
+        otOut << strError << "p_strParam \n";
     }
 
     funcType = theType;
@@ -268,8 +267,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         lData = p_lData;
     }
     else {
-        OTAPI_Wrap::Output(
-            0, "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
     }
 }
 
@@ -278,26 +276,26 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_strData,
                        const string& p_strData2) // 6 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 6 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 6 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_nymID2)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID2"));
+        otOut << strError << "p_nymID2";
     }
     if (!VerifyStringVal(p_strData)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
+        otOut << strError << "p_strData";
     }
     if (!VerifyStringVal(p_strData2)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strData2"));
+        otOut << strError << "p_strData2";
     }
 
     funcType = theType;
@@ -347,8 +345,8 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
         strData = p_strData2; // transaction number passed here as string;
     }
     else {
-        OTAPI_Wrap::Output(0, "ERROR! WRONG TYPE passed to "
-                              "OTAPI_Func.OTAPI_Func() ERROR!!!!!!\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+                 "ERROR!!!!!!\n";
     }
 }
 
@@ -357,23 +355,23 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_strParam, const int64_t p_lData,
                        const string& p_strData2) // 7 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 7 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_accountID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_accountID"));
+        otOut << strError << "p_accountID";
     }
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam"));
+        otOut << strError << "p_strParam";
     }
 
     funcType = theType;
@@ -387,15 +385,15 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     // NYM_ID, ACCT_FROM, ACCT_TO, AMOUNT, NOTE)
     if (theType == SEND_TRANSFER) {
         if (!VerifyStringVal(p_strData2)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData2"));
+            otOut << strError << "p_strData2";
         }
         accountID2 = p_strParam;
         lData = p_lData;      // int64_t Amount;
         strData = p_strData2; // str  Note;
     }
     else {
-        OTAPI_Wrap::Output(0, "ERROR! WRONG TYPE passed to "
-                              "OTAPI_Func.OTAPI_Func() ERROR!!!!!!\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+                 "ERROR!!!!!!\n";
     }
 }
 
@@ -404,23 +402,23 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_strParam, const string& p_strData,
                        const int64_t p_lData2) // 7 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 7 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_accountID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_accountID"));
+        otOut << strError << "p_accountID";
     }
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam"));
+        otOut << strError << "p_strParam";
     }
 
     funcType = theType;
@@ -434,7 +432,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     // NYM_ID, ACCT_ID, RECIP_NYM_ID, STR_MEMO, STR_AMOUNT)
     if (theType == WITHDRAW_VOUCHER) {
         if (!VerifyStringVal(p_strData)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
+            otOut << strError << "p_strData";
         }
         nymID2 = p_strParam; // str  Recipient Nym ID;
         strData = p_strData; // str  Memo;
@@ -445,15 +443,15 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     // SOURCE_ACCT_ID, SHARES_ASSET_ID, STR_MEMO, STR_AMOUNT_PER_SHARE)
     else if (theType == PAY_DIVIDEND) {
         if (!VerifyStringVal(p_strData)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
+            otOut << strError << "p_strData";
         }
         assetID = p_strParam; // str  Shares Asset ID;
         strData = p_strData;  // str  Memo;
         lData = p_lData2;     // int64_t Amount Per Share;
     }
     else {
-        OTAPI_Wrap::Output(0, "ERROR! WRONG TYPE passed to "
-                              "OTAPI_Func.OTAPI_Func() ERROR!!!!!!\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+                 "ERROR!!!!!!\n";
     }
 }
 
@@ -462,23 +460,23 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_strParam, const string& p_strData,
                        const string& p_strData2) // 7 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 7 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_accountID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_accountID"));
+        otOut << strError << "p_accountID";
     }
     if (!VerifyStringVal(p_strParam)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_strParam"));
+        otOut << strError << "p_strParam";
     }
 
     funcType = theType;
@@ -490,13 +488,13 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
     if (theType == SEND_USER_INSTRUMENT) {
         if (!VerifyStringVal(p_accountID)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_accountID"));
+            otOut << strError << "p_accountID";
         }
         if (!VerifyStringVal(p_strParam)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strParam"));
+            otOut << strError << "p_strParam";
         }
         if (!VerifyStringVal(p_strData)) {
-            OTAPI_Wrap::Output(0, concat(strError, "p_strData"));
+            otOut << strError << "p_strData";
         }
         nymID2 = p_accountID; // Recipient Nym;
         strData = p_strParam; // Recipient pubkey;
@@ -505,8 +503,8 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
             p_strData2; // sender_instrument is attached here. (Optional.);
     }
     else {
-        OTAPI_Wrap::Output(0, "ERROR! WRONG TYPE passed to "
-                              "OTAPI_Func.OTAPI_Func() ERROR!!!!!!\n");
+        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
+                 "ERROR!!!!!!\n";
     }
 }
 
@@ -515,26 +513,26 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_basket, const string& p_accountID,
                        const bool p_bBool, const int32_t p_nTransNumsNeeded)
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 8 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 8 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(p_assetID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_assetID"));
+        otOut << strError << "p_assetID";
     }
     if (!VerifyStringVal(p_accountID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_accountID"));
+        otOut << strError << "p_accountID";
     }
     if (!VerifyStringVal(p_basket)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_basket"));
+        otOut << strError << "p_basket";
     }
 
     funcType = theType;
@@ -555,35 +553,35 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& minIncrement, const string& quantity,
                        const string& price, const bool bSelling) // 10 args
 {
-    // OTAPI_Wrap::Output(0, "(Version of OTAPI_Func with 10 arguments.)\n");
+    // otOut << "(Version of OTAPI_Func with 10 arguments.)\n";
 
     InitCustom();
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
     if (!VerifyStringVal(p_serverID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_serverID"));
+        otOut << strError << "p_serverID";
     }
     if (!VerifyStringVal(p_nymID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "p_nymID"));
+        otOut << strError << "p_nymID";
     }
     if (!VerifyStringVal(assetAccountID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "assetAccountID"));
+        otOut << strError << "assetAccountID";
     }
     if (!VerifyStringVal(currencyAcctID)) {
-        OTAPI_Wrap::Output(0, concat(strError, "currencyAcctID"));
+        otOut << strError << "currencyAcctID";
     }
     if (!VerifyStringVal(scale)) {
-        OTAPI_Wrap::Output(0, concat(strError, "scale"));
+        otOut << strError << "scale";
     }
     if (!VerifyStringVal(minIncrement)) {
-        OTAPI_Wrap::Output(0, concat(strError, "minIncrement"));
+        otOut << strError << "minIncrement";
     }
     if (!VerifyStringVal(quantity)) {
-        OTAPI_Wrap::Output(0, concat(strError, "quantity"));
+        otOut << strError << "quantity";
     }
     if (!VerifyStringVal(price)) {
-        OTAPI_Wrap::Output(0, concat(strError, "price"));
+        otOut << strError << "price";
     }
 
     funcType = theType;
@@ -700,9 +698,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
         break;
     }
 
-    OTAPI_Wrap::Output(
-        0, "ERROR! OTAPI_Func.Send() activated, with bad function type: ");
-    OTAPI_Wrap::Output(0, concat(to_string(funcType), "\n"));
+    otOut << "ERROR! OTAPI_Func.Send() activated, with bad function type: "
+          << funcType << "\n";
 
     return -1;
 }
@@ -722,8 +719,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
     if (nRun == -1) // if the requestNumber returned by the send-attempt is -1,
                     // that means it DIDN'T SEND (error)
     {
-        OTAPI_Wrap::Output(0, strLocation +
-                                  ": Failed to send message due to error.\n");
+        otOut << strLocation << ": Failed to send message due to error.\n";
 
         theFunction.nRequestNum = -1;
     }
@@ -731,12 +727,11 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
                           // is 0, it means no error, but nothing was sent.
                           // (Like processing an empty box.)
     {
-        OTAPI_Wrap::Output(0, strLocation + ": Didn't send this message, but "
-                                            "NO error occurred, either. (For "
-                                            "example, a request to process an "
-                                            "empty Nymbox will return 0, "
-                                            "meaning, nothing was sent, but "
-                                            "also no error occurred.)\n");
+        otOut << strLocation << ": Didn't send this message, but NO error "
+                                "occurred, either. (For example, a request to "
+                                "process an empty Nymbox will return 0, "
+                                "meaning, nothing was sent, but also no error "
+                                "occurred.)\n";
 
         theFunction.nRequestNum = 0;
     }
@@ -745,8 +740,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
                              // returned and then you can retrieve the actual
                              // number via a separate call.)
     {
-        OTAPI_Wrap::Output(
-            0, strLocation + ": ERROR, not supported. (-2 was returned.)\n");
+        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
 
         // TODO: Have an OT API call here, which retrieves the request number
         // (It must be too large to fit into an integer, which is why this
@@ -786,9 +780,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
                                       theFunction.accountID,
                                       false)) // bForceDownload=false))
     {
-        OTAPI_Wrap::Output(0, strLocation + ", getIntermediaryFiles returned "
-                                            "false. (It couldn't download "
-                                            "files that it needed.)\n");
+        otOut << strLocation << ", getIntermediaryFiles returned false. (It "
+                                "couldn't download files that it needed.)\n";
         return "";
     }
 
@@ -808,10 +801,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     }
 
     if (getnym_trnsnum_count < comparative) {
-        OTAPI_Wrap::Output(0, strLocation + ", I don't have enough transaction "
-                                            "numbers to perform this "
-                                            "transaction. Grabbing more "
-                                            "now...\n");
+        otOut << strLocation << ", I don't have enough transaction numbers to "
+                                "perform this transaction. Grabbing more "
+                                "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
         MsgUtil.getTransactionNumbers(theFunction.serverID, theFunction.nymID);
         MsgUtil.setNbrTransactionCount(configTxnCount);
@@ -822,9 +814,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
     if (getnym_trnsnum_count < comparative) // try a second time.
     {
-        OTAPI_Wrap::Output(0, strLocation + ", failure: "
-                                            "MsgUtil.getTransactionNumbers. "
-                                            "(Trying again...)\n");
+        otOut
+            << strLocation
+            << ", failure: MsgUtil.getTransactionNumbers. (Trying again...)\n";
 
         // (the final parameter, the 'false' is us telling getTransNumbers that
         // it can skip the first call to getTransNumLowLevel)
@@ -839,9 +831,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
     if (getnym_trnsnum_count < comparative) // try a second time.
     {
-        OTAPI_Wrap::Output(0, strLocation + ", failure: "
-                                            "MsgUtil.getTransactionNumbers. "
-                                            "(Trying again...)\n");
+        otOut
+            << strLocation
+            << ", failure: MsgUtil.getTransactionNumbers. (Trying again...)\n";
 
         // (the final parameter, the 'false' is us telling getTransNumbers that
         // it can skip the first call to getTransNumLowLevel)
@@ -857,9 +849,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         theFunction.serverID, theFunction.nymID);
 
     if (getnym_trnsnum_count < comparative) {
-        OTAPI_Wrap::Output(0, strLocation + ", third failure: "
-                                            "MsgUtil.getTransactionNumbers. "
-                                            "(Giving up.)\n");
+        otOut
+            << strLocation
+            << ", third failure: MsgUtil.getTransactionNumbers. (Giving up.)\n";
         return "";
     }
 
@@ -871,16 +863,15 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
                                        bCanRetryAfterThis); // output
 
     if (VerifyStringVal(strResult)) {
-        OTAPI_Wrap::Output(0, " Getting Intermediary files.. \n");
+        otOut << " Getting Intermediary files.. \n";
 
         if (!MsgUtil.getIntermediaryFiles(
                  theFunction.serverID, theFunction.nymID, theFunction.accountID,
                  true)) // bForceDownload=true
         {
-            OTAPI_Wrap::Output(0, strLocation + ", getIntermediaryFiles "
-                                                "returned false. (After a "
-                                                "success sending the "
-                                                "transaction. Strange...)\n");
+            otOut << strLocation << ", getIntermediaryFiles returned false. "
+                                    "(After a success sending the transaction. "
+                                    "Strange...)\n";
             return "";
         }
 
@@ -929,10 +920,9 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
                      theFunction.serverID, theFunction.nymID,
                      theFunction.accountID, true)) // bForceDownload=true
             {
-                OTAPI_Wrap::Output(
-                    0, strLocation + ", getIntermediaryFiles (loop) returned "
-                                     "false even after successfully sending "
-                                     "the transaction.\n");
+                otOut << strLocation
+                      << ", getIntermediaryFiles (loop) returned false even "
+                         "after successfully sending the transaction.\n";
                 return "";
             }
             break;
@@ -1172,7 +1162,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         // already removed the sent message from the sent buffer (so no need to
         // do that here.)
 
-        //          OTAPI_Wrap::Output(0, strLocation + ", SendRequestOnce():
+        //          otOut << strLocation << ", SendRequestOnce():
         // OT_API_RemoveSentMessage: " + nRemoved);
 
         return strReply;
@@ -1218,10 +1208,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                          theFunction.accountID,
                          bForceDownload)) // bForceDownload=true
                 {
-                    OTAPI_Wrap::Output(
-                        0, strLocation + ", getIntermediaryFiles returned "
-                                         "false. (After a failure to send the "
-                                         "transaction. Thus, I give up.)\n");
+                    otOut << strLocation << ", getIntermediaryFiles returned "
+                                            "false. (After a failure to send "
+                                            "the transaction. Thus, I give "
+                                            "up.)\n";
                     return "";
                 }
 
@@ -1285,10 +1275,9 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 
         } // if getRequest was success.
         else {
-            OTAPI_Wrap::Output(0, strLocation + ", Failure: Never got reply "
-                                                "from server, so tried "
-                                                "getRequest, and that failed "
-                                                "too. (I give up.)\n");
+            otOut << strLocation << ", Failure: Never got reply from server, "
+                                    "so tried getRequest, and that failed too. "
+                                    "(I give up.)\n";
 
             // Note: cannot harvest transaction nums here because I do NOT know
             // for sure
@@ -1325,25 +1314,24 @@ OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
     OTDB::OfferListNym* offerList = nullptr;
 
     if (OTDB::Exists("nyms", serverID, "offers", nymID + ".bin")) {
-        OTAPI_Wrap::Output(1, "Offers file exists... Querying nyms...\n");
+        otWarn << "Offers file exists... Querying nyms...\n";
         OTDB::Storable* storable =
             OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_NYM, "nyms", serverID,
                               "offers", nymID + ".bin");
 
         if (nullptr == storable) {
-            OTAPI_Wrap::Output(
-                0,
-                "Unable to verify storable object. Probably doesn't exist.\n");
+            otOut << "Unable to verify storable object. Probably doesn't "
+                     "exist.\n";
             return nullptr; // containing null or undef;
         }
 
-        OTAPI_Wrap::Output(1, "QueryObject worked. Now dynamic casting from "
-                              "storable to a (nym) offerList...\n");
+        otWarn << "QueryObject worked. Now dynamic casting from storable to a "
+                  "(nym) offerList...\n";
         offerList = dynamic_cast<OTDB::OfferListNym*>(storable);
 
         if (nullptr == offerList) {
-            OTAPI_Wrap::Output(
-                0, "Unable to dynamic cast a storable to a (nym) offerList.\n");
+            otOut
+                << "Unable to dynamic cast a storable to a (nym) offerList.\n";
             return nullptr;
         }
     }
@@ -1375,10 +1363,9 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             OTDB::OfferDataNym& offerData = *offerList.GetOfferDataNym(nTemp);
 
             if (nullptr == &offerData) {
-                OTAPI_Wrap::Output(0, strLocation + ": Unable to reference "
-                                                    "(nym) offerData on "
-                                                    "offerList, at index: " +
-                                          to_string(nIndex) + "\n");
+                otOut << strLocation << ": Unable to reference (nym) offerData "
+                                        "on offerList, at index: " << nIndex
+                      << "\n";
                 return map_of_maps;
             }
 
@@ -1398,8 +1385,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             }
 
             if (nullptr != sub_map) {
-                OTAPI_Wrap::Output(1, strLocation +
-                                          ": The sub-map already exists!\n");
+                otWarn << strLocation << ": The sub-map already exists!\n";
 
                 // Let's just add this offer to the existing submap
                 // (There must be other offers already there for the same
@@ -1416,8 +1402,8 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
             else // submap does NOT already exist for this market. (Create
                    // it...)
             {
-                OTAPI_Wrap::Output(
-                    1, strLocation + ": The sub-map does NOT already exist!\n");
+                otWarn << strLocation
+                       << ": The sub-map does NOT already exist!\n";
                 //
                 // Let's create the submap with this new offer, and add it
                 // to the main map.
@@ -1470,10 +1456,10 @@ output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
 
     if (0 == nIndex) // first iteration! (Output a header.)
     {
-        OTAPI_Wrap::Output(0, "Scale:\t\t" + strScale + "\n");
-        OTAPI_Wrap::Output(0, "Asset:\t\t" + strAssetTypeID + "\n");
-        OTAPI_Wrap::Output(0, "Currency:\t" + strCurrencyTypeID + "\n");
-        OTAPI_Wrap::Output(0, "\nIndex\tTrans#\tType\tPrice\tAvailable\n");
+        otOut << "Scale:\t\t" << strScale << "\n";
+        otOut << "Asset:\t\t" << strAssetTypeID << "\n";
+        otOut << "Currency:\t" << strCurrencyTypeID << "\n";
+        otOut << "\nIndex\tTrans#\tType\tPrice\tAvailable\n";
     }
 
     //
@@ -1578,15 +1564,13 @@ find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
     attr the_lambda_struct::the_price         // for newoffer as well.
     attr the_lambda_struct::bSelling          // for newoffer as well.
     */
-    OTAPI_Wrap::Output(4, strLocation + ": About to compare the new potential "
-                                        "offer against one of the existing "
-                                        "ones...");
+    otLog4 << strLocation << ": About to compare the new potential offer "
+                             "against one of the existing ones...";
 
     if ((extra_vals.the_asset_acct == offer_data.asset_acct_id) &&
         (extra_vals.the_currency_acct == offer_data.currency_acct_id) &&
         (extra_vals.the_scale == offer_data.scale)) {
-        OTAPI_Wrap::Output(4, strLocation +
-                                  ": the account IDs and the scale match...");
+        otLog4 << strLocation << ": the account IDs and the scale match...";
 
         // By this point we know the current offer_data has the same asset acct,
         // currency acct, and scale
@@ -1659,9 +1643,8 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
     // var range_sub_map = sub_map.range();
 
     if (nullptr == &sub_map) {
-        OTAPI_Wrap::Output(0, strLocation + ": No range retrieved from "
-                                            "sub_map. It must be non-existent, "
-                                            "I guess.\n");
+        otOut << strLocation << ": No range retrieved from sub_map. It must be "
+                                "non-existent, I guess.\n";
         return -1;
     }
     if (sub_map.empty()) {
@@ -1670,9 +1653,8 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
         // chaiscript
         // bug (extremely unlikely.)
         //
-        OTAPI_Wrap::Output(0, strLocation + ": Error: A range was retrieved "
-                                            "for the sub_map, but the range is "
-                                            "empty.\n");
+        otOut << strLocation << ": Error: A range was retrieved for the "
+                                "sub_map, but the range is empty.\n";
         return -1;
     }
 
@@ -1682,17 +1664,16 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
         // var offer_data_pair = range_sub_map.front();
 
         if (nullptr == it->second) {
-            OTAPI_Wrap::Output(
-                0, strLocation + ": Looping through range_sub_map range, and "
-                                 "first offer_data_pair fails to verify.\n");
+            otOut << strLocation << ": Looping through range_sub_map range, "
+                                    "and first offer_data_pair fails to "
+                                    "verify.\n";
             return -1;
         }
 
         OTDB::OfferDataNym& offer_data = *it->second;
         if (nullptr == &offer_data) {
-            OTAPI_Wrap::Output(
-                0, strLocation +
-                       ": Error: offer_data is not an OTDB::OfferDataNym.\n");
+            otOut << strLocation
+                  << ": Error: offer_data is not an OTDB::OfferDataNym.\n";
             return -1;
         }
 
@@ -1701,8 +1682,7 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
                           extra_vals); // if 10 offers are printed for the SAME
                                        // market, nIndex will be 0..9;
         if (-1 == nLambda) {
-            OTAPI_Wrap::Output(0,
-                               strLocation + ": Error: the_lambda failed.\n");
+            otOut << strLocation << ": Error: the_lambda failed.\n";
             return -1;
         }
     }
@@ -1741,14 +1721,12 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
     //
     // var range_map_of_maps = map_of_maps.range();
     if (nullptr == &map_of_maps) {
-        OTAPI_Wrap::Output(0, strLocation +
-                                  ": No range retrieved from map_of_maps.\n");
+        otOut << strLocation << ": No range retrieved from map_of_maps.\n";
         return -1;
     }
     if (map_of_maps.empty()) {
-        OTAPI_Wrap::Output(0, strLocation + ": A range was retrieved for the "
-                                            "map_of_maps, but the range is "
-                                            "empty.\n");
+        otOut << strLocation << ": A range was retrieved for the map_of_maps, "
+                                "but the range is empty.\n";
         return -1;
     }
 
@@ -1759,9 +1737,8 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
 
         // var sub_map_pair = range_map_of_maps.front();
         if (nullptr == it->second) {
-            OTAPI_Wrap::Output(0, strLocation + ": Looping through map_of_maps "
-                                                "range, and first sub_map_pair "
-                                                "fails to verify.\n");
+            otOut << strLocation << ": Looping through map_of_maps range, and "
+                                    "first sub_map_pair fails to verify.\n";
             return -1;
         }
 
@@ -1769,32 +1746,29 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
 
         SubMap& sub_map = *it->second;
         if (nullptr == &sub_map) {
-            OTAPI_Wrap::Output(0, strLocation + ": Error: Sub_map is not a "
-                                                "map. (Then how is it even "
-                                                "here?? Submaps are only added "
-                                                "based on existing offers.)\n");
+            otOut << strLocation << ": Error: Sub_map is not a map. (Then how "
+                                    "is it even here?? Submaps are only added "
+                                    "based on existing offers.)\n";
             return -1;
         }
         if (sub_map.empty()) {
-            OTAPI_Wrap::Output(0, strLocation + ": Error: Sub_map is empty "
-                                                "(Then how is it even here?? "
-                                                "Submaps are only added based "
-                                                "on existing offers.)\n");
+            otOut << strLocation << ": Error: Sub_map is empty (Then how is it "
+                                    "even here?? Submaps are only added based "
+                                    "on existing offers.)\n";
             return -1;
         }
 
         if (0 == nMainIndex) // this is the first iteration of the main output
                              // loop...
         {
-            //          OTAPI_Wrap::Output(0, "\n** MY OFFERS **\n\n")
+            //          otOut << "\n** MY OFFERS **\n\n")
         }
 
         int32_t nSubMap = iterate_nymoffers_sub_map(map_of_maps, sub_map,
                                                     the_lambda, extra_vals);
         if (-1 == nSubMap) {
-            OTAPI_Wrap::Output(
-                0, strLocation +
-                       ": Error: while trying to iterate_nymoffers_sub_map.\n");
+            otOut << strLocation
+                  << ": Error: while trying to iterate_nymoffers_sub_map.\n";
             return -1;
         }
     }

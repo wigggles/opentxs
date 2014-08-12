@@ -166,29 +166,29 @@ bool OT_API_Set_AddrBookCallback(OTLookupCaller& theCaller) // OTLookupCaller
                                                             // attached already.
 {
     if (!theCaller.isCallbackSet()) {
-        OTLog::vError("%s: ERROR:\nOTLookupCaller::setCallback() "
-                      "MUST be called first, with an OTNameLookup-extended "
-                      "class passed to it,\n"
-                      "before then invoking this function (and passing that "
-                      "OTLookupCaller as a parameter "
-                      "into this function.)\n",
-                      __FUNCTION__);
+        otErr << __FUNCTION__
+              << ": ERROR:\nOTLookupCaller::setCallback() "
+                 "MUST be called first, with an OTNameLookup-extended "
+                 "class passed to it,\n"
+                 "before then invoking this function (and passing that "
+                 "OTLookupCaller as a parameter "
+                 "into this function.)\n";
         return false;
     }
 
-    OTLog::vOutput(1, "%s: FYI, calling "
-                      "OTRecordList::setAddrBookCaller(theCaller) now... "
-                      "(which is where "
-                      "OT internally sets its pointer to the Java caller "
-                      "object, which must have been passed in as a "
-                      "parameter to this function.\n",
-                   __FUNCTION__);
+    otWarn << __FUNCTION__
+           << ": FYI, calling "
+              "OTRecordList::setAddrBookCaller(theCaller) now... "
+              "(which is where "
+              "OT internally sets its pointer to the Java caller "
+              "object, which must have been passed in as a "
+              "parameter to this function.\n";
 
     const bool bSuccess = OTRecordList::setAddrBookCaller(theCaller);
 
-    OTLog::vOutput(1,
-                   "%s: RESULT of call to OTRecordList::setAddrBookCaller: %s",
-                   __FUNCTION__, bSuccess ? "SUCCESS" : "FAILURE");
+    otWarn << __FUNCTION__
+           << ": RESULT of call to OTRecordList::setAddrBookCaller: "
+           << (bSuccess ? "SUCCESS" : "FAILURE") << "";
 
     return bSuccess;
 }
@@ -206,9 +206,8 @@ OTNameLookup::~OTNameLookup()
     // line? No error message necessary here as we have with the password
     // callback.
     //
-    //    OTLog::vError("OTNameLookup::~OTNameLookup:  "
-    //                  "(This should only happen ONCE ONLY -- as the
-    // application is closing.)\n");
+    //    otErr << "OTNameLookup::~OTNameLookup:  (This should only happen ONCE
+    // ONLY -- as the application is closing.)\n";
     //    std::cout << "OTNameLookup::~OTNameLookup()" << std:: endl;
 }
 
@@ -242,8 +241,8 @@ std::string OTNameLookup::GetAddressName(const std::string&) const
 
 OTLookupCaller::~OTLookupCaller()
 {
-    OTLog::vOutput(0, "OTLookupCaller::~OTLookupCaller: (This should only "
-                      "happen as the application is closing.)\n");
+    otOut << "OTLookupCaller::~OTLookupCaller: (This should only "
+             "happen as the application is closing.)\n";
 
     delCallback();
 }
@@ -256,21 +255,20 @@ void OTLookupCaller::delCallback()
     // And since the object comes from Java, who am I to delete it? Let Java
     // clean it up.
     if (isCallbackSet())
-        OTLog::Output(
-            0, "OTLookupCaller::delCallback: WARNING: setting existing "
-               "callback object pointer to nullptr. "
-               "(This message doesn't trigger if it was already nullptr.)\n");
+        otOut << "OTLookupCaller::delCallback: WARNING: setting existing "
+                 "callback object pointer to nullptr. "
+                 "(This message doesn't trigger if it was already nullptr.)\n";
     _callback = nullptr;
 }
 
 void OTLookupCaller::setCallback(OTNameLookup* cb)
 {
-    OTLog::Output(0, "OTLookupCaller::setCallback: Attempting to set the "
-                     "OTNameLookup pointer...\n");
+    otOut << "OTLookupCaller::setCallback: Attempting to set the "
+             "OTNameLookup pointer...\n";
 
     if (nullptr == cb) {
-        OTLog::Output(0, "OTLookupCaller::setCallback: ERROR: nullptr "
-                         "OTNameLookup object passed in. (Returning.)\n");
+        otOut << "OTLookupCaller::setCallback: ERROR: nullptr "
+                 "OTNameLookup object passed in. (Returning.)\n";
         return;
     }
 
@@ -278,8 +276,8 @@ void OTLookupCaller::setCallback(OTNameLookup* cb)
                    // already
                    // set.
     _callback = cb;
-    OTLog::Output(0, "OTLookupCaller::setCallback: FYI, the OTNameLookup "
-                     "pointer was set.\n");
+    otOut << "OTLookupCaller::setCallback: FYI, the OTNameLookup "
+             "pointer was set.\n";
 }
 
 bool OTLookupCaller::isCallbackSet() const
@@ -291,14 +289,14 @@ std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
                                        const std::string* p_server_id) const
 {
     if (isCallbackSet()) {
-        OTLog::Output(1, "OTLookupCaller::GetNymName: FYI, Executing address "
-                         "book callback...\n");
+        otWarn << "OTLookupCaller::GetNymName: FYI, Executing address "
+                  "book callback...\n";
         return _callback->GetNymName(str_id, p_server_id);
     }
     else {
-        OTLog::Output(0, "OTLookupCaller::GetNymName: "
-                         "WARNING: Failed attempt to trigger address book "
-                         "callback, due to \"it hasn't been set yet.\"\n");
+        otOut << "OTLookupCaller::GetNymName: "
+                 "WARNING: Failed attempt to trigger address book "
+                 "callback, due to \"it hasn't been set yet.\"\n";
     }
     return "";
 }
@@ -309,15 +307,15 @@ std::string OTLookupCaller::GetAcctName(const std::string& str_id, // AcctID
                                         const std::string* p_asset_id) const
 {
     if (isCallbackSet()) {
-        OTLog::Output(1, "OTLookupCaller::GetAcctName: FYI, Executing address "
-                         "book callback...\n");
+        otWarn << "OTLookupCaller::GetAcctName: FYI, Executing address "
+                  "book callback...\n";
         return _callback->GetAcctName(str_id, p_nym_id, p_server_id,
                                       p_asset_id);
     }
     else {
-        OTLog::Output(0, "OTLookupCaller::GetAcctName: "
-                         "WARNING: Failed attempt to trigger address book "
-                         "callback, due to \"it hasn't been set yet.\"\n");
+        otOut << "OTLookupCaller::GetAcctName: "
+                 "WARNING: Failed attempt to trigger address book "
+                 "callback, due to \"it hasn't been set yet.\"\n";
     }
     return "";
 }
@@ -325,14 +323,14 @@ std::string OTLookupCaller::GetAcctName(const std::string& str_id, // AcctID
 std::string OTLookupCaller::GetAddressName(const std::string& str_address) const
 {
     if (isCallbackSet()) {
-        OTLog::Output(1, "OTLookupCaller::GetAddressName: FYI, Executing "
-                         "address book callback...\n");
+        otWarn << "OTLookupCaller::GetAddressName: FYI, Executing "
+                  "address book callback...\n";
         return _callback->GetAddressName(str_address);
     }
     else {
-        OTLog::Output(0, "OTLookupCaller::GetAddressName: "
-                         "WARNING: Failed attempt to trigger address book "
-                         "callback, due to \"it hasn't been set yet.\"\n");
+        otOut << "OTLookupCaller::GetAddressName: "
+                 "WARNING: Failed attempt to trigger address book "
+                 "callback, due to \"it hasn't been set yet.\"\n";
     }
     return "";
 }
@@ -354,34 +352,33 @@ OTLookupCaller* OTRecordList::s_pCaller = nullptr;
 // static
 bool OTRecordList::setAddrBookCaller(OTLookupCaller& theCaller)
 {
-    OTLog::vOutput(3, "%s: Attempting to set the address book caller... \n",
-                   __FUNCTION__);
+    otLog3 << __FUNCTION__
+           << ": Attempting to set the address book caller... \n";
 
     if (!theCaller.isCallbackSet()) {
-        OTLog::vError("%s: ERROR: OTLookupCaller::setCallback() "
-                      "MUST be called first, with an OTNameLookup-extended "
-                      "object passed to it,\n"
-                      "BEFORE calling this function with that OTLookupCaller. "
-                      "(Returning false.)\n",
-                      __FUNCTION__);
+        otErr << __FUNCTION__
+              << ": ERROR: OTLookupCaller::setCallback() "
+                 "MUST be called first, with an OTNameLookup-extended "
+                 "object passed to it,\n"
+                 "BEFORE calling this function with that OTLookupCaller. "
+                 "(Returning false.)\n";
         return false;
     }
 
     if (nullptr != s_pCaller) {
-        OTLog::vError(
-            "%s: WARNING: Setting the address book caller again, even though "
-            "it was apparently ALREADY set... (Meaning Java has probably "
-            "erroneously called this twice, "
-            "possibly passing the same OTLookupCaller both times.)\n",
-            __FUNCTION__);
+        otErr
+            << __FUNCTION__
+            << ": WARNING: Setting the address book caller again, even though "
+               "it was apparently ALREADY set... (Meaning Java has probably "
+               "erroneously called this twice, "
+               "possibly passing the same OTLookupCaller both times.)\n";
         //        delete s_pCaller; // Let Java delete it.
     }
 
     s_pCaller = &theCaller;
-    OTLog::vOutput(
-        1, "%s: FYI, Successfully set the address book caller object from "
-           "Java (or from another SWIG language.) Returning true.\n",
-        __FUNCTION__);
+    otWarn << __FUNCTION__
+           << ": FYI, Successfully set the address book caller object from "
+              "Java (or from another SWIG language.) Returning true.\n";
 
     return true;
 }
@@ -537,8 +534,8 @@ bool OTRecordList::PerformAutoAccept()
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) {
-        OTLog::vError("OTRecordList::%s: Error: Wallet is nullptr.\n",
-                      __FUNCTION__);
+        otErr << "OTRecordList::" << __FUNCTION__
+              << ": Error: Wallet is nullptr.\n";
         return false;
     }
     // LOOP NYMS
@@ -548,10 +545,9 @@ bool OTRecordList::PerformAutoAccept()
         for (auto& it_nym : m_nyms) {
             ++nNymIndex;
             if (0 == nNymIndex)
-                OTLog::vOutput(0, "======================================\n "
-                                  "%s: Beginning auto-accept loop through "
-                                  "Nyms...\n",
-                               __FUNCTION__);
+                otOut << "======================================\n "
+                      << __FUNCTION__ << ": Beginning auto-accept loop through "
+                                         "Nyms...\n";
             const std::string& str_nym_id(it_nym);
             const OTIdentifier theNymID(str_nym_id);
             const OTString strNymID(theNymID);
@@ -570,8 +566,8 @@ bool OTRecordList::PerformAutoAccept()
                     pWallet->GetServerContract(theServerID);
                 OT_ASSERT(nullptr != pServer);
                 const OTString strServerID(theServerID);
-                OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__,
-                               nServerIndex, strServerID.Get());
+                otOut << __FUNCTION__ << ": Server " << nServerIndex
+                      << ", ID: " << strServerID.Get() << "\n";
                 mapOfPayments thePaymentMap;
                 // OPTIMIZE FYI:
                 // The "NoVerify" version is much faster, but you will lose the
@@ -594,8 +590,8 @@ bool OTRecordList::PerformAutoAccept()
                         OTTransaction* pBoxTrans = it.second;
                         OT_ASSERT(nullptr != pBoxTrans);
                         ++nIndex; // 0 on first iteration.
-                        OTLog::vOutput(0, "%s: Incoming payment: %d\n",
-                                       __FUNCTION__, nIndex);
+                        otOut << __FUNCTION__
+                              << ": Incoming payment: " << nIndex << "\n";
                         const std::string* p_str_asset_type =
                             &OTRecordList::s_blank; // <========== ASSET TYPE
                         const std::string* p_str_asset_name =
@@ -608,11 +604,10 @@ bool OTRecordList::PerformAutoAccept()
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
-                            OTLog::vError(
-                                "%s: Payment retrieved from payments "
-                                "inbox was nullptr. (It's abbreviated?) "
-                                "Skipping.\n",
-                                __FUNCTION__);
+                            otErr << __FUNCTION__
+                                  << ": Payment retrieved from payments "
+                                     "inbox was nullptr. (It's abbreviated?) "
+                                     "Skipping.\n";
                         }
                         // We have pPayment, the instrument accompanying the
                         // receipt in the payments inbox.
@@ -650,10 +645,10 @@ bool OTRecordList::PerformAutoAccept()
                                     // care about.
                                     // Therefore, skip.
                                     //
-                                    OTLog::vError(
-                                        "%s: Skipping: Incoming payment (we "
-                                        "don't care about asset %s)\n",
-                                        __FUNCTION__, str_inpmt_asset.c_str());
+                                    otErr << __FUNCTION__
+                                          << ": Skipping: Incoming payment (we "
+                                             "don't care about asset "
+                                          << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
                             }
@@ -686,10 +681,10 @@ bool OTRecordList::PerformAutoAccept()
                                   (0 == str_type.compare("voucher")))) ||
                                 (m_bAutoAcceptCash &&
                                  (0 == str_type.compare("cash")))) {
-                                OTLog::vOutput(0, "%s: Adding to acceptance "
-                                                  "list: pending incoming "
-                                                  "%s.\n",
-                                               __FUNCTION__, str_type.c_str());
+                                otOut << __FUNCTION__
+                                      << ": Adding to acceptance "
+                                         "list: pending incoming "
+                                      << str_type.c_str() << ".\n";
                                 thePaymentMap.insert(
                                     std::pair<int32_t, OTPayment*>(nIndex,
                                                                    pPayment));
@@ -699,20 +694,20 @@ bool OTRecordList::PerformAutoAccept()
                                               // Otherwise pPayment will leak.
                             }
                             else
-                                OTLog::vOutput(
-                                    0, "%s: Unknown instrument type: %s\n",
-                                    __FUNCTION__, str_type.c_str());
+                                otOut << __FUNCTION__
+                                      << ": Unknown instrument type: "
+                                      << str_type.c_str() << "\n";
                         }
                         else
-                            OTLog::vOutput(0, "%s: Failed in pPayment->IsValid "
-                                              "or pPayment->SetTempValues()\n",
-                                           __FUNCTION__);
+                            otOut << __FUNCTION__
+                                  << ": Failed in pPayment->IsValid "
+                                     "or pPayment->SetTempValues()\n";
                     }
                 } // looping through payments inbox.
                 else
-                    OTLog::vOutput(1, "%s: Failed loading payments inbox. "
-                                      "(Probably just doesn't exist yet.)\n",
-                                   __FUNCTION__);
+                    otWarn << __FUNCTION__
+                           << ": Failed loading payments inbox. "
+                              "(Probably just doesn't exist yet.)\n";
                 // Above we compiled a list of purses, cheques / vouchers to
                 // accept.
                 // If there are any on that list, then ACCEPT them here.
@@ -727,18 +722,18 @@ bool OTRecordList::PerformAutoAccept()
                         int32_t lIndex = it->first;
                         OTPayment* pPayment = it->second;
                         if (nullptr == pPayment) {
-                            OTLog::vError("%s: Error: payment pointer was "
-                                          "nullptr! (Should never happen.) "
-                                          "Skipping.\n",
-                                          __FUNCTION__);
+                            otErr << __FUNCTION__
+                                  << ": Error: payment pointer was "
+                                     "nullptr! (Should never happen.) "
+                                     "Skipping.\n";
                             continue;
                         }
                         OTString payment;
                         if (!pPayment->GetPaymentContents(payment)) {
-                            OTLog::vError("%s: Error: Failed while trying to "
-                                          "get payment string contents. "
-                                          "(Skipping.)\n",
-                                          __FUNCTION__);
+                            otErr << __FUNCTION__
+                                  << ": Error: Failed while trying to "
+                                     "get payment string contents. "
+                                     "(Skipping.)\n";
                             continue;
                         }
                         OTIdentifier paymentAssetType;
@@ -752,10 +747,10 @@ bool OTRecordList::PerformAutoAccept()
                             str_asset_type_id = strAssetTypeID.Get();
                         }
                         if (str_asset_type_id.empty()) {
-                            OTLog::vError("%s: Error: Failed while trying to "
-                                          "get asset type ID from payment. "
-                                          "(Skipping.)\n",
-                                          __FUNCTION__);
+                            otErr << __FUNCTION__
+                                  << ": Error: Failed while trying to "
+                                     "get asset type ID from payment. "
+                                     "(Skipping.)\n";
                             continue;
                         }
                         // pick an account to deposit the cheque into.
@@ -809,17 +804,17 @@ bool OTRecordList::PerformAutoAccept()
 
                                 switch (nReturn) {
                                 case 0:
-                                    OTLog::vOutput(0, "%s: This instrument was "
-                                                      "expired, so it was "
-                                                      "moved to the record "
-                                                      "box.\n",
-                                                   __FUNCTION__);
+                                    otOut << __FUNCTION__
+                                          << ": This instrument was "
+                                             "expired, so it was "
+                                             "moved to the record "
+                                             "box.\n";
                                 case 1: // success
                                     break;
                                 default:
-                                    OTLog::vError("%s: Error while trying to "
-                                                  "accept this instrument.\n",
-                                                  __FUNCTION__);
+                                    otErr << __FUNCTION__
+                                          << ": Error while trying to "
+                                             "accept this instrument.\n";
                                     break;
                                 } // switch
                                 break;
@@ -849,10 +844,10 @@ bool OTRecordList::PerformAutoAccept()
         for (auto& it_acct : m_accounts) {
             ++nAccountIndex; // (0 on first iteration.)
             if (0 == nAccountIndex)
-                OTLog::vOutput(0, "---------------------------------\n %s: "
-                                  "Beginning auto-accept loop through the "
-                                  "accounts in the wallet...\n",
-                               __FUNCTION__);
+                otOut << "---------------------------------\n " << __FUNCTION__
+                      << ": "
+                         "Beginning auto-accept loop through the "
+                         "accounts in the wallet...\n";
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
             const OTIdentifier theAccountID(str_account_id);
@@ -864,8 +859,9 @@ bool OTRecordList::PerformAutoAccept()
             const OTString strNymID(theNymID);
             const OTString strServerID(theServerID);
             const OTString strAssetID(theAssetID);
-            OTLog::vOutput(0, "------------\n%s: Account: %d, ID: %s\n",
-                           __FUNCTION__, nAccountIndex, str_account_id.c_str());
+            otOut << "------------\n" << __FUNCTION__
+                  << ": Account: " << nAccountIndex
+                  << ", ID: " << str_account_id.c_str() << "\n";
             const std::string str_nym_id(strNymID.Get());
             const std::string str_server_id(strServerID.Get());
             const std::string str_asset_id(strAssetID.Get());
@@ -889,10 +885,10 @@ bool OTRecordList::PerformAutoAccept()
             map_of_strings::iterator it_asset = m_assets.find(str_asset_id);
             if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
                 (m_assets.end() == it_asset)) {
-                OTLog::vOutput(
-                    0, "%s: Skipping an account (%s) since its Nym, or Server, "
-                       "or Asset Type wasn't on my list.\n",
-                    __FUNCTION__, str_account_id.c_str());
+                otOut << __FUNCTION__ << ": Skipping an account ("
+                      << str_account_id.c_str()
+                      << ") since its Nym, or Server, "
+                         "or Asset Type wasn't on my list.\n";
                 continue;
             }
             // Loop through asset account INBOX.
@@ -912,10 +908,11 @@ bool OTRecordList::PerformAutoAccept()
                                          theServerID, theNymID, theAccountID);
             OTCleanup<OTLedger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
-                OTLog::vOutput(0, "%s: Skipping an account (%s) since its "
-                                  "inbox failed to load (have you downloaded "
-                                  "the latest one?)\n",
-                               __FUNCTION__, str_account_id.c_str());
+                otOut << __FUNCTION__ << ": Skipping an account ("
+                      << str_account_id.c_str()
+                      << ") since its "
+                         "inbox failed to load (have you downloaded "
+                         "the latest one?)\n";
                 continue;
             }
             const OTString strInbox(*pInbox);
@@ -927,14 +924,13 @@ bool OTRecordList::PerformAutoAccept()
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
-                    OTLog::vOutput(
-                        0,
-                        "%s: Beginning loop through asset account INBOX...\n",
-                        __FUNCTION__);
+                    otOut
+                        << __FUNCTION__
+                        << ": Beginning loop through asset account INBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
-                               nInboxIndex);
+                otOut << __FUNCTION__ << ": Inbox index: " << nInboxIndex
+                      << "\n";
                 const std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
                 const bool bIsTransfer =
@@ -942,11 +938,9 @@ bool OTRecordList::PerformAutoAccept()
                 const bool bIsReceipt = !bIsTransfer;
                 if ((m_bAutoAcceptReceipts && bIsReceipt) ||
                     (m_bAutoAcceptTransfers && bIsTransfer)) {
-                    OTLog::vOutput(
-                        0, "%s: Auto-accepting: incoming %s (str_type: %s)\n",
-                        __FUNCTION__,
-                        bIsTransfer ? "pending transfer" : "receipt",
-                        str_type.c_str());
+                    otOut << __FUNCTION__ << ": Auto-accepting: incoming "
+                          << (bIsTransfer ? "pending transfer" : "receipt")
+                          << " (str_type: " << str_type.c_str() << ")\n";
                     // If we haven't found any yet, then this must be the first
                     // one!
                     //
@@ -960,11 +954,11 @@ bool OTRecordList::PerformAutoAccept()
                                                 // sure I have at least 20
                                                 // transaction numbers."
                                  str_server_id, str_nym_id)) {
-                            OTLog::vOutput(0, "\n\nFailure: "
-                                              "make_sure_enough_trans_nums: "
-                                              "returned false. (Skipping inbox "
-                                              "for account %s)\n",
-                                           str_account_id.c_str());
+                            otOut << "\n\nFailure: "
+                                     "make_sure_enough_trans_nums: "
+                                     "returned false. (Skipping inbox "
+                                     "for account " << str_account_id.c_str()
+                                  << ")\n";
                             continue;
                         }
                         strResponseLedger =
@@ -973,12 +967,11 @@ bool OTRecordList::PerformAutoAccept()
                                 str_inbox);
 
                         if (strResponseLedger.empty()) {
-                            OTLog::vOutput(0,
-                                           "\n\nFailure: "
-                                           "OT_API_Ledger_CreateResponse "
-                                           "returned nullptr. (Skipping inbox "
-                                           "for account %s)\n",
-                                           str_account_id.c_str());
+                            otOut << "\n\nFailure: "
+                                     "OT_API_Ledger_CreateResponse "
+                                     "returned nullptr. (Skipping inbox "
+                                     "for account " << str_account_id.c_str()
+                                  << ")\n";
                             continue;
                         }
                     }
@@ -992,12 +985,10 @@ bool OTRecordList::PerformAutoAccept()
                                    // transfer, for example.)
 
                     if (strNEW_ResponseLEDGER.empty()) {
-                        OTLog::vOutput(0,
-                                       "\n\nFailure: "
-                                       "OT_API_Transaction_CreateResponse "
-                                       "returned nullptr. (Skipping inbox for "
-                                       "account %s)\n",
-                                       str_account_id.c_str());
+                        otOut << "\n\nFailure: "
+                                 "OT_API_Transaction_CreateResponse "
+                                 "returned nullptr. (Skipping inbox for "
+                                 "account " << str_account_id.c_str() << ")\n";
                         continue;
                     }
                     strResponseLedger = strNEW_ResponseLEDGER;
@@ -1013,11 +1004,10 @@ bool OTRecordList::PerformAutoAccept()
                         strResponseLedger);
 
                 if (strFinalizedResponse.empty()) {
-                    OTLog::vOutput(0,
-                                   "\n\nFailure: "
-                                   "OT_API_Ledger_FinalizeResponse returned "
-                                   "nullptr. (Skipping inbox for account %s)\n",
-                                   str_account_id.c_str());
+                    otOut << "\n\nFailure: "
+                             "OT_API_Ledger_FinalizeResponse returned "
+                             "nullptr. (Skipping inbox for account "
+                          << str_account_id.c_str() << ")\n";
                     continue;
                 }
                 // Instantiate the "OT Made Easy" object.
@@ -1044,12 +1034,11 @@ bool OTRecordList::PerformAutoAccept()
                         str_server_id, str_nym_id, str_account_id,
                         true); // bForceDownload defaults to false.
 
-                    OTLog::vOutput(0, "\n\nServer response (%s): SUCCESS "
-                                      "processing/accepting inbox.\n",
-                                   strAttempt.c_str());
-                    OTLog::vOutput(
-                        0, "%s retrieving intermediary files for account.\n",
-                        (bRetrieved ? "Success" : "Failed"));
+                    otOut << "\n\nServer response (" << strAttempt.c_str()
+                          << "): SUCCESS "
+                             "processing/accepting inbox.\n";
+                    otOut << (bRetrieved ? "Success" : "Failed")
+                          << " retrieving intermediary files for account.\n";
                 }
             }
         }
@@ -1081,8 +1070,8 @@ bool OTRecordList::Populate()
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) {
-        OTLog::vError("OTRecordList::%s: Error: Wallet is nullptr.\n",
-                      __FUNCTION__);
+        otErr << "OTRecordList::" << __FUNCTION__
+              << ": Error: Wallet is nullptr.\n";
         return false;
     }
     // Before populating, process out any items we're supposed to accept
@@ -1096,9 +1085,8 @@ bool OTRecordList::Populate()
     for (auto& it_nym : m_nyms) {
         ++nNymIndex;
         if (0 == nNymIndex)
-            OTLog::vOutput(
-                0, "=============== %s: Beginning loop through Nyms...\n",
-                __FUNCTION__);
+            otOut << "=============== " << __FUNCTION__
+                  << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
         const OTIdentifier theNymID(str_nym_id);
         const OTString strNymID(theNymID);
@@ -1109,13 +1097,13 @@ bool OTRecordList::Populate()
         const int32_t nOutpaymentsCount =
             OTAPI_Wrap::GetNym_OutpaymentsCount(str_nym_id);
 
-        OTLog::vOutput(
-            0, "--------\n%s: Nym %d, nOutpaymentsCount: %d, ID: %s\n",
-            __FUNCTION__, nNymIndex, nOutpaymentsCount, strNymID.Get());
+        otOut << "--------\n" << __FUNCTION__ << ": Nym " << nNymIndex
+              << ", nOutpaymentsCount: " << nOutpaymentsCount
+              << ", ID: " << strNymID.Get() << "\n";
         for (int32_t nCurrentOutpayment = 0;
              nCurrentOutpayment < nOutpaymentsCount; ++nCurrentOutpayment) {
-            OTLog::vOutput(0, "%s: Outpayment instrument: %d\n", __FUNCTION__,
-                           nCurrentOutpayment);
+            otOut << __FUNCTION__
+                  << ": Outpayment instrument: " << nCurrentOutpayment << "\n";
             const OTString strOutpayment(
                 OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
                     str_nym_id, nCurrentOutpayment));
@@ -1123,9 +1111,10 @@ bool OTRecordList::Populate()
             OTPayment theOutPayment(strOutpayment);
 
             if (!theOutPayment.IsValid() || !theOutPayment.SetTempValues()) {
-                OTLog::vError("%s: Skipping: Unable to load outpayments "
-                              "instrument from string:\n%s\n",
-                              __FUNCTION__, strOutpayment.Get());
+                otErr << __FUNCTION__
+                      << ": Skipping: Unable to load outpayments "
+                         "instrument from string:\n" << strOutpayment.Get()
+                      << "\n";
                 continue;
             }
             int64_t lAmount = 0;
@@ -1174,9 +1163,10 @@ bool OTRecordList::Populate()
                     // did not match any of the assets that we care about.
                     // Therefore, skip.
                     //
-                    OTLog::vOutput(0, "%s: Skipping outpayment (we don't care "
-                                      "about asset type %s)\n",
-                                   __FUNCTION__, str_outpmt_asset.c_str());
+                    otOut << __FUNCTION__
+                          << ": Skipping outpayment (we don't care "
+                             "about asset type " << str_outpmt_asset.c_str()
+                          << ")\n";
                     continue;
                 }
             }
@@ -1221,9 +1211,10 @@ bool OTRecordList::Populate()
                     // did not match any of the accounts that we care about.
                     // Therefore, skip.
                     //
-                    OTLog::vOutput(0, "%s: Skipping outpayment (we don't care "
-                                      "about account %s)\n",
-                                   __FUNCTION__, str_outpmt_account.c_str());
+                    otOut << __FUNCTION__
+                          << ": Skipping outpayment (we don't care "
+                             "about account " << str_outpmt_account.c_str()
+                          << ")\n";
                     continue;
                 }
             }
@@ -1295,10 +1286,9 @@ bool OTRecordList::Populate()
                 const std::string& str_type = OTRecord_GetTypeString(nType);
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                OTLog::vOutput(
-                    0,
-                    "%s: ADDED: pending outgoing instrument (str_type: %s)\n",
-                    __FUNCTION__, str_type.c_str());
+                otOut << __FUNCTION__
+                      << ": ADDED: pending outgoing instrument (str_type: "
+                      << str_type.c_str() << ")\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1336,9 +1326,10 @@ bool OTRecordList::Populate()
             else // the server for this outpayment is not on the list of
                    // servers we care about. Skip this outpayment.
             {
-                OTLog::vOutput(0, "%s: Skipping outgoing instrument (we don't "
-                                  "care about server %s)\n",
-                               __FUNCTION__, str_outpmt_server.c_str());
+                otOut << __FUNCTION__
+                      << ": Skipping outgoing instrument (we don't "
+                         "care about server " << str_outpmt_server.c_str()
+                      << ")\n";
                 continue;
             }
         } // for outpayments.
@@ -1347,8 +1338,7 @@ bool OTRecordList::Populate()
         const int32_t nMailCount = OTAPI_Wrap::GetNym_MailCount(str_nym_id);
         for (int32_t nCurrentMail = 0; nCurrentMail < nMailCount;
              ++nCurrentMail) {
-            OTLog::vOutput(0, "%s: Mail index: %d\n", __FUNCTION__,
-                           nCurrentMail);
+            otOut << __FUNCTION__ << ": Mail index: " << nCurrentMail << "\n";
             OTMessage* pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
@@ -1403,7 +1393,7 @@ bool OTRecordList::Populate()
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                OTLog::vOutput(0, "%s: ADDED: incoming mail.\n", __FUNCTION__);
+                otOut << __FUNCTION__ << ": ADDED: incoming mail.\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1444,8 +1434,8 @@ bool OTRecordList::Populate()
             OTAPI_Wrap::GetNym_OutmailCount(str_nym_id);
         for (int32_t nCurrentOutmail = 0; nCurrentOutmail < nOutmailCount;
              ++nCurrentOutmail) {
-            OTLog::vOutput(0, "%s: Outmail index: %d\n", __FUNCTION__,
-                           nCurrentOutmail);
+            otOut << __FUNCTION__ << ": Outmail index: " << nCurrentOutmail
+                  << "\n";
             OTMessage* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
@@ -1500,7 +1490,7 @@ bool OTRecordList::Populate()
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
                 //
-                OTLog::vOutput(0, "%s: ADDED: sent mail.\n", __FUNCTION__);
+                otOut << __FUNCTION__ << ": ADDED: sent mail.\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1545,8 +1535,8 @@ bool OTRecordList::Populate()
             OTServerContract* pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(nullptr != pServer);
             const OTString strServerID(theServerID);
-            OTLog::vOutput(0, "%s: Server %d, ID: %s\n", __FUNCTION__,
-                           nServerIndex, strServerID.Get());
+            otOut << __FUNCTION__ << ": Server " << nServerIndex
+                  << ", ID: " << strServerID.Get() << "\n";
             // OPTIMIZE FYI:
             // The "NoVerify" version is much faster, but you will lose the
             // ability to get the
@@ -1568,8 +1558,8 @@ bool OTRecordList::Populate()
                     OTTransaction* pBoxTrans = it.second;
                     OT_ASSERT(nullptr != pBoxTrans);
                     ++nIndex; // 0 on first iteration.
-                    OTLog::vOutput(0, "%s: Incoming payment: %d\n",
-                                   __FUNCTION__, nIndex);
+                    otOut << __FUNCTION__ << ": Incoming payment: " << nIndex
+                          << "\n";
                     std::string str_name; // name of sender (since its in the
                                           // payments inbox.)
                     std::string str_sender_nym_id;
@@ -1711,10 +1701,10 @@ bool OTRecordList::Populate()
                                     // care about.
                                     // Therefore, skip.
                                     //
-                                    OTLog::vError(
-                                        "%s: Skipping: Incoming payment (we "
-                                        "don't care about asset %s)\n",
-                                        __FUNCTION__, str_inpmt_asset.c_str());
+                                    otErr << __FUNCTION__
+                                          << ": Skipping: Incoming payment (we "
+                                             "don't care about asset "
+                                          << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
                             }
@@ -1754,10 +1744,9 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    OTLog::vOutput(
-                        0,
-                        "%s: ADDED: pending incoming payment (str_type: %s)\n",
-                        __FUNCTION__, str_type.c_str());
+                    otOut << __FUNCTION__
+                          << ": ADDED: pending incoming payment (str_type: "
+                          << str_type.c_str() << ")\n";
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         it_server, *p_str_asset_type, *p_str_asset_name,
@@ -1799,9 +1788,9 @@ bool OTRecordList::Populate()
                 } // looping through inbox.
             }
             else
-                OTLog::vOutput(1, "%s: Failed loading payments inbox. "
-                                  "(Probably just doesn't exist yet.)\n",
-                               __FUNCTION__);
+                otWarn << __FUNCTION__
+                       << ": Failed loading payments inbox. "
+                          "(Probably just doesn't exist yet.)\n";
             nIndex = (-1);
 
             // Also loop through its record box. For this record box, pass the
@@ -1823,8 +1812,8 @@ bool OTRecordList::Populate()
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
-                    OTLog::vOutput(0, "%s: Payment RECORD index: %d\n",
-                                   __FUNCTION__, nIndex);
+                    otOut << __FUNCTION__
+                          << ": Payment RECORD index: " << nIndex << "\n";
                     std::string str_name; // name of sender OR recipient
                                           // (depending on whether it was
                                           // originally incoming or outgoing.)
@@ -2065,12 +2054,12 @@ bool OTRecordList::Populate()
                                         // that we care about.
                                         // Therefore, skip.
                                         //
-                                        OTLog::vOutput(
-                                            0, "%s: Skipping 'sent payment' "
-                                               "record. (We don't care about "
-                                               "account %s)\n",
-                                            __FUNCTION__,
-                                            str_outpmt_account.c_str());
+                                        otOut << __FUNCTION__
+                                              << ": Skipping 'sent payment' "
+                                                 "record. (We don't care about "
+                                                 "account "
+                                              << str_outpmt_account.c_str()
+                                              << ")\n";
                                         continue;
                                     }
                                 }
@@ -2144,10 +2133,10 @@ bool OTRecordList::Populate()
                                     // care about.
                                     // Therefore, skip.
                                     //
-                                    OTLog::vError(
-                                        "%s: Skipping: Payment record (we "
-                                        "don't care about asset type %s)\n",
-                                        __FUNCTION__, str_inpmt_asset.c_str());
+                                    otErr << __FUNCTION__
+                                          << ": Skipping: Payment record (we "
+                                             "don't care about asset type "
+                                          << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
                             }
@@ -2185,10 +2174,9 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    OTLog::vOutput(
-                        0, "%s: ADDED: Payment record %s (str_type: %s)\n",
-                        __FUNCTION__, bOutgoing ? "(sent)" : "(received)",
-                        str_type.c_str());
+                    otOut << __FUNCTION__ << ": ADDED: Payment record "
+                          << (bOutgoing ? "(sent)" : "(received)")
+                          << " (str_type: " << str_type.c_str() << ")\n";
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         it_server, *p_str_asset_type, *p_str_asset_name,
@@ -2230,9 +2218,9 @@ bool OTRecordList::Populate()
                 } // Loop through Recordbox
             }
             else
-                OTLog::vOutput(1, "%s: Failed loading payments record box. "
-                                  "(Probably just doesn't exist yet.)\n",
-                               __FUNCTION__);
+                otWarn << __FUNCTION__
+                       << ": Failed loading payments record box. "
+                          "(Probably just doesn't exist yet.)\n";
 
             // EXPIRED RECORDS:
             nIndex = (-1);
@@ -2253,8 +2241,9 @@ bool OTRecordList::Populate()
                     OT_ASSERT(nullptr != pBoxTrans);
                     bool bOutgoing = false;
                     ++nIndex; // 0 on first iteration.
-                    OTLog::vOutput(0, "%s: Expired payment RECORD index: %d\n",
-                                   __FUNCTION__, nIndex);
+                    otOut << __FUNCTION__
+                          << ": Expired payment RECORD index: " << nIndex
+                          << "\n";
                     std::string str_name; // name of sender OR recipient
                                           // (depending on whether it was
                                           // originally incoming or outgoing.)
@@ -2495,12 +2484,13 @@ bool OTRecordList::Populate()
                                         // that we care about.
                                         // Therefore, skip.
                                         //
-                                        OTLog::vOutput(
-                                            0, "%s: Skipping 'sent payment' "
+                                        otOut
+                                            << __FUNCTION__
+                                            << ": Skipping 'sent payment' "
                                                "expired record. (We don't care "
-                                               "about account %s)\n",
-                                            __FUNCTION__,
-                                            str_outpmt_account.c_str());
+                                               "about account "
+                                            << str_outpmt_account.c_str()
+                                            << ")\n";
                                         continue;
                                     }
                                 }
@@ -2574,10 +2564,11 @@ bool OTRecordList::Populate()
                                     // care about.
                                     // Therefore, skip.
                                     //
-                                    OTLog::vError(
-                                        "%s: Skipping: Expired payment record "
-                                        "(we don't care about asset type %s)\n",
-                                        __FUNCTION__, str_inpmt_asset.c_str());
+                                    otErr
+                                        << __FUNCTION__
+                                        << ": Skipping: Expired payment record "
+                                           "(we don't care about asset type "
+                                        << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
                             }
@@ -2615,11 +2606,9 @@ bool OTRecordList::Populate()
                             }
                         }
                     }
-                    OTLog::vOutput(
-                        0,
-                        "%s: ADDED: Expired payment record %s (str_type: %s)\n",
-                        __FUNCTION__, bOutgoing ? "(sent)" : "(received)",
-                        str_type.c_str());
+                    otOut << __FUNCTION__ << ": ADDED: Expired payment record "
+                          << (bOutgoing ? "(sent)" : "(received)")
+                          << " (str_type: " << str_type.c_str() << ")\n";
 
                     shared_ptr_OTRecord sp_Record(new OTRecord(
                         it_server, *p_str_asset_type, *p_str_asset_name,
@@ -2662,19 +2651,17 @@ bool OTRecordList::Populate()
                 } // Loop through ExpiredBox
             }
             else
-                OTLog::vOutput(1, "%s: Failed loading expired payments box. "
-                                  "(Probably just doesn't exist yet.)\n",
-                               __FUNCTION__);
+                otWarn << __FUNCTION__
+                       << ": Failed loading expired payments box. "
+                          "(Probably just doesn't exist yet.)\n";
 
         } // Loop through servers for each Nym.
     }     // Loop through Nyms.
-    // ASSET ACCOUNT -- INBOX/OUTBOX + RECORD BOX
-    // Loop through the Accounts.
-    //
-    OTLog::vOutput(
-        0,
-        "================ %s: Looping through the accounts in the wallet...\n",
-        __FUNCTION__);
+          // ASSET ACCOUNT -- INBOX/OUTBOX + RECORD BOX
+          // Loop through the Accounts.
+          //
+    otOut << "================ " << __FUNCTION__
+          << ": Looping through the accounts in the wallet...\n";
     int32_t nAccountIndex = -1;
     for (auto& it_acct : m_accounts) {
         ++nAccountIndex; // (0 on first iteration.)
@@ -2690,8 +2677,9 @@ bool OTRecordList::Populate()
         const OTString strNymID(theNymID);
         const OTString strServerID(theServerID);
         const OTString strAssetID(theAssetID);
-        OTLog::vOutput(0, "------------\n%s: Account: %d, ID: %s\n",
-                       __FUNCTION__, nAccountIndex, str_account_id.c_str());
+        otOut << "------------\n" << __FUNCTION__
+              << ": Account: " << nAccountIndex
+              << ", ID: " << str_account_id.c_str() << "\n";
         const std::string str_nym_id(strNymID.Get());
         const std::string str_server_id(strServerID.Get());
         const std::string str_asset_id(strAssetID.Get());
@@ -2718,10 +2706,10 @@ bool OTRecordList::Populate()
         map_of_strings::iterator it_asset = m_assets.find(str_asset_id);
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
             (m_assets.end() == it_asset)) {
-            OTLog::vOutput(
-                0, "%s: Skipping an account (%s) since its Nym, or Server, "
-                   "or Asset Type wasn't on my list.\n",
-                __FUNCTION__, str_account_id.c_str());
+            otOut << __FUNCTION__ << ": Skipping an account ("
+                  << str_account_id.c_str()
+                  << ") since its Nym, or Server, "
+                     "or Asset Type wasn't on my list.\n";
             continue;
         }
         // These pointers are what we'll use to construct each OTRecord.
@@ -2753,14 +2741,13 @@ bool OTRecordList::Populate()
             for (auto& it : pInbox->GetTransactionMap()) {
                 ++nInboxIndex; // (0 on first iteration.)
                 if (0 == nInboxIndex)
-                    OTLog::vOutput(
-                        0,
-                        "%s: Beginning loop through asset account INBOX...\n",
-                        __FUNCTION__);
+                    otOut
+                        << __FUNCTION__
+                        << ": Beginning loop through asset account INBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                OTLog::vOutput(0, "%s: Inbox index: %d\n", __FUNCTION__,
-                               nInboxIndex);
+                otOut << __FUNCTION__ << ": Inbox index: " << nInboxIndex
+                      << "\n";
                 bool bCanceled = false;
                 std::string str_name; // name of sender (since its in the
                                       // inbox.)
@@ -2946,12 +2933,11 @@ bool OTRecordList::Populate()
                 }
                 const std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
-                OTLog::vOutput(0, "%s: ADDED: incoming %s (str_type: %s)\n",
-                               __FUNCTION__,
-                               (OTTransaction::pending == pBoxTrans->GetType())
-                                   ? "pending transfer"
-                                   : "receipt",
-                               str_type.c_str());
+                otOut << __FUNCTION__ << ": ADDED: incoming "
+                      << ((OTTransaction::pending == pBoxTrans->GetType())
+                              ? "pending transfer"
+                              : "receipt") << " (str_type: " << str_type.c_str()
+                      << ")\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
@@ -3017,14 +3003,13 @@ bool OTRecordList::Populate()
             for (auto& it : pOutbox->GetTransactionMap()) {
                 ++nOutboxIndex; // (0 on first iteration.)
                 if (0 == nOutboxIndex)
-                    OTLog::vOutput(
-                        0,
-                        "%s: Beginning loop through asset account OUTBOX...\n",
-                        __FUNCTION__);
+                    otOut
+                        << __FUNCTION__
+                        << ": Beginning loop through asset account OUTBOX...\n";
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                OTLog::vOutput(0, "%s: Outbox index: %d\n", __FUNCTION__,
-                               nOutboxIndex);
+                otOut << __FUNCTION__ << ": Outbox index: " << nOutboxIndex
+                      << "\n";
                 std::string str_name; // name of recipient (since its in the
                                       // outbox.)
                 std::string str_other_nym_id;
@@ -3126,12 +3111,12 @@ bool OTRecordList::Populate()
                 std::string str_type(
                     pBoxTrans->GetTypeString()); // pending, chequeReceipt, etc.
                 if (0 == str_type.compare("pending")) str_type = "transfer";
-                OTLog::vOutput(
-                    0, "%s: ADDED: %s outgoing transfer (str_type: %s).\n",
-                    __FUNCTION__,
-                    (OTTransaction::pending == pBoxTrans->GetType()) ? "pending"
-                                                                     : "ERROR",
-                    str_type.c_str());
+                otOut << __FUNCTION__ << ": ADDED: "
+                      << ((OTTransaction::pending == pBoxTrans->GetType())
+                              ? "pending"
+                              : "ERROR")
+                      << " outgoing transfer (str_type: " << str_type.c_str()
+                      << ").\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
@@ -3191,8 +3176,8 @@ bool OTRecordList::Populate()
                 ++nRecordIndex;
                 OTTransaction* pBoxTrans = it.second;
                 OT_ASSERT(nullptr != pBoxTrans);
-                OTLog::vOutput(0, "%s: Account RECORD index: %d\n",
-                               __FUNCTION__, nRecordIndex);
+                otOut << __FUNCTION__
+                      << ": Account RECORD index: " << nRecordIndex << "\n";
                 bool bOutgoing = false;
                 bool bCanceled = false;
                 std::string str_name; // name of sender OR recipient (depending
@@ -3581,22 +3566,20 @@ bool OTRecordList::Populate()
                     strTemp.Format("%" PRId64 "", lAmount);
                     str_amount = strTemp.Get();
                 }
-                OTLog::vOutput(
-                    0, "%s: ADDED: %s (asset account) record (str_type: %s)\n",
-                    __FUNCTION__,
-                    // This line means: If it's a receipt, use a blank string.
-                    // Otherwise if
-                    // it's a transfer, then show sent/received. (This is the
-                    // record box, so
-                    // if it's a transfer, it's a completed one.)
-                    //
-                    // FYI, for Receipts we don't say "sent transferReceipt",
-                    // we just say "transferReceipt."
-                    //
-                    (pBoxTrans->GetType() != OTTransaction::pending)
-                        ? ""
-                        : (bOutgoing ? "sent" : "received"),
-                    str_type.c_str());
+                otOut << __FUNCTION__ << ": ADDED: "
+                      << ((pBoxTrans->GetType() != OTTransaction::pending)
+                              ? ""
+                              : (bOutgoing ? "sent" : "received"))
+                      << " (asset account) record (str_type: "
+                      << str_type.c_str() << ")\n";
+                // This line means: If it's a receipt, use a blank string.
+                // Otherwise if
+                // it's a transfer, then show sent/received. (This is the
+                // record box, so
+                // if it's a transfer, it's a completed one.)
+                //
+                // FYI, for Receipts we don't say "sent transferReceipt",
+                // we just say "transferReceipt."
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
                     *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
@@ -3765,8 +3748,9 @@ void OTRecordList::AddSpecialMsg(
     sp_Record->SetOtherAddress(str_other_address);
     sp_Record->SetMsgType(str_type);
     sp_Record->SetMsgTypeDisplay(str_type_display);
-    OTLog::vOutput(1, "%s: ADDED: %s special mail.\n", __FUNCTION__,
-                   bIsOutgoing ? "outgoing" : "incoming");
+    otWarn << __FUNCTION__
+           << ": ADDED: " << (bIsOutgoing ? "outgoing" : "incoming")
+           << " special mail.\n";
 
     m_contents.push_back(sp_Record);
 }
