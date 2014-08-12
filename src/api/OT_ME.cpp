@@ -341,8 +341,8 @@ std::string OT_CLI_ReadUntilEOF()
             result += input_line;
         }
         else {
-            OTLog::Error("OT_CLI_ReadUntilEOF: getline() was unable to read a "
-                         "string from std::cin\n");
+            otErr << "OT_CLI_ReadUntilEOF: getline() was unable to read a "
+                     "string from std::cin\n";
             break;
         }
         if (std::cin.eof()) {
@@ -944,8 +944,8 @@ std::string OT_ME::adjust_usage_credits(const std::string& SERVER_ID,
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message)
 {
     if (str_Message.size() < 10) {
-        OTLog::vOutput(1, "%s: Error str_Message is: Too Short: \n%s\n\n",
-                       __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
+               << str_Message << "\n\n";
         return -1;
     }
 
@@ -953,25 +953,23 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message)
 
     switch (nStatus) {
     case(-1) :
-        OTLog::vOutput(
-            0,
-            "%s: Error calling OT_API_Message_GetSuccess, for message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error calling OT_API_Message_GetSuccess, for message:\n"
+              << str_Message << "\n";
         break;
     case(0) :
-        OTLog::vOutput(
-            1, "%s: Reply received: success == FALSE. Reply message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__
+               << ": Reply received: success == FALSE. Reply message:\n"
+               << str_Message << "\n";
         break;
     case(1) :
-        OTLog::vOutput(1, "%s: Reply received: success == TRUE.\n",
-                       __FUNCTION__);
+        otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
-        OTLog::vOutput(
-            0,
-            "%s: Error. (This should never happen!) nStatus: %d, Input:\n%s\n",
-            __FUNCTION__, static_cast<int32_t>(nStatus), str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error. (This should never happen!) nStatus: "
+              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
+              << "\n";
         nStatus = (-1);
         break;
     }
@@ -985,8 +983,8 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
                                              const std::string& str_Message)
 {
     if (str_Message.size() < 10) {
-        OTLog::vOutput(1, "%s: Error str_Message is: Too Short: \n%s\n\n",
-                       __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
+               << str_Message << "\n\n";
         return -1;
     }
 
@@ -995,25 +993,23 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
 
     switch (nStatus) {
     case(-1) :
-        OTLog::vOutput(
-            0,
-            "%s: Error calling Msg_GetBlnceAgrmntSuccess, for message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error calling Msg_GetBlnceAgrmntSuccess, for message:\n"
+              << str_Message << "\n";
         break;
     case(0) :
-        OTLog::vOutput(
-            1, "%s: Reply received: success == FALSE. Reply message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__
+               << ": Reply received: success == FALSE. Reply message:\n"
+               << str_Message << "\n";
         break;
     case(1) :
-        OTLog::vOutput(1, "%s: Reply received: success == TRUE.\n",
-                       __FUNCTION__);
+        otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
-        OTLog::vOutput(
-            0,
-            "%s: Error. (This should never happen!) nStatus: %d, Input:\n%s\n",
-            __FUNCTION__, static_cast<int32_t>(nStatus), str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error. (This should never happen!) nStatus: "
+              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
+              << "\n";
         nStatus = (-1);
         break;
     }
@@ -1027,8 +1023,8 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
                                     const std::string& str_Message)
 {
     if (str_Message.size() < 10) {
-        OTLog::vOutput(1, "%s: Error str_Message is: Too Short: \n%s\n\n",
-                       __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
+               << str_Message << "\n\n";
         return -1;
     }
 
@@ -1037,25 +1033,23 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
 
     switch (nStatus) {
     case(-1) :
-        OTLog::vOutput(
-            0,
-            "%s: Error calling Msg_GetTransactionSuccess, for message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error calling Msg_GetTransactionSuccess, for message:\n"
+              << str_Message << "\n";
         break;
     case(0) :
-        OTLog::vOutput(
-            1, "%s: Reply received: success == FALSE. Reply message:\n%s\n",
-            __FUNCTION__, str_Message.c_str());
+        otWarn << __FUNCTION__
+               << ": Reply received: success == FALSE. Reply message:\n"
+               << str_Message << "\n";
         break;
     case(1) :
-        OTLog::vOutput(1, "%s: Reply received: success == TRUE.\n",
-                       __FUNCTION__);
+        otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
-        OTLog::vOutput(
-            0,
-            "%s: Error. (This should never happen!) nStatus: %d, Input:\n%s\n",
-            __FUNCTION__, static_cast<int32_t>(nStatus), str_Message.c_str());
+        otOut << __FUNCTION__
+              << ": Error. (This should never happen!) nStatus: "
+              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
+              << "\n";
         nStatus = (-1);
         break;
     }
@@ -1076,13 +1070,12 @@ int32_t OT_ME::InterpretTransactionMsgReply(const std::string& SERVER_ID,
     int32_t nMessageSuccess = VerifyMessageSuccess(str_Response);
 
     if ((-1) == nMessageSuccess) {
-        OTLog::vOutput(0, "%s: Message error: %s\n", __FUNCTION__,
-                       str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Message error: " << str_Attempt << "\n";
         return (-1);
     }
     else if (0 == nMessageSuccess) {
-        OTLog::vOutput(0, "%s: Server reply (%s): Message failure.\n",
-                       __FUNCTION__, str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Server reply (" << str_Attempt
+              << "): Message failure.\n";
         return 0;
     }
     // (else 1.)
@@ -1090,13 +1083,13 @@ int32_t OT_ME::InterpretTransactionMsgReply(const std::string& SERVER_ID,
         SERVER_ID, USER_ID, ACCOUNT_ID, str_Response);
 
     if ((-1) == nBalanceSuccess) {
-        OTLog::vOutput(0, "%s: Balance agreement error: %s\n", __FUNCTION__,
-                       str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Balance agreement error: " << str_Attempt
+              << "\n";
         return (-1);
     }
     else if (0 == nBalanceSuccess) {
-        OTLog::vOutput(0, "%s: Server reply (%s): Balance agreement failure.\n",
-                       __FUNCTION__, str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Server reply (" << str_Attempt
+              << "): Balance agreement failure.\n";
         return 0;
     }
     // (else 1.)
@@ -1104,13 +1097,12 @@ int32_t OT_ME::InterpretTransactionMsgReply(const std::string& SERVER_ID,
         VerifyMsgTrnxSuccess(SERVER_ID, USER_ID, ACCOUNT_ID, str_Response);
 
     if ((-1) == nTransSuccess) {
-        OTLog::vOutput(0, "%s: Transaction error: %s\n", __FUNCTION__,
-                       str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Transaction error: " << str_Attempt << "\n";
         return (-1);
     }
     else if (0 == nTransSuccess) {
-        OTLog::vOutput(0, "%s: Server reply (%s): Transaction failure.\n",
-                       __FUNCTION__, str_Attempt.c_str());
+        otOut << __FUNCTION__ << ": Server reply (" << str_Attempt
+              << "): Transaction failure.\n";
         return 0;
     }
     // (else 1.)
@@ -1132,13 +1124,13 @@ bool OT_ME::HaveWorkingScript()
     // language.
     m_pScript = OTScriptFactory();
     if (!m_pScript) {
-        OTLog::vError("%s: Error instantiating script.\n", __FUNCTION__);
+        otErr << __FUNCTION__ << ": Error instantiating script.\n";
         return false;
     }
 
 #ifdef OT_USE_SCRIPT_CHAI
     if (!SetupScriptObject()) {
-        OTLog::vError("%s: Error setting up script object.\n", __FUNCTION__);
+        otErr << __FUNCTION__ << ": Error setting up script object.\n";
         m_pScript.reset(); // Erase the one we just created, since we failed
                            // setting it up.
         return false;
@@ -1259,8 +1251,8 @@ bool OT_ME::Register_OTDB_With_Script()
     }
 #endif // OT_USE_SCRIPT_CHAI
 
-    OTLog::vError("%s: Failed dynamic casting OTScript to OTScriptChai \n",
-                  __FUNCTION__);
+    otErr << __FUNCTION__
+          << ": Failed dynamic casting OTScript to OTScriptChai \n";
     return false;
 }
 
@@ -1276,8 +1268,8 @@ bool OT_ME::Register_CLI_With_Script()
     }
 #endif // OT_USE_SCRIPT_CHAI
 
-    OTLog::vError("%s: Failed dynamic casting OTScript to OTScriptChai \n",
-                  __FUNCTION__);
+    otErr << __FUNCTION__
+          << ": Failed dynamic casting OTScript to OTScriptChai \n";
     return false;
 }
 
@@ -1293,8 +1285,8 @@ bool OT_ME::Register_API_With_Script()
     }
 #endif // OT_USE_SCRIPT_CHAI
 
-    OTLog::vError("%s: Failed dynamic casting OTScript to OTScriptChai \n",
-                  __FUNCTION__);
+    otErr << __FUNCTION__
+          << ": Failed dynamic casting OTScript to OTScriptChai \n";
     return false;
 }
 
@@ -1310,8 +1302,8 @@ bool OT_ME::Register_Headers_With_Script()
     }
 #endif // OT_USE_SCRIPT_CHAI
 
-    OTLog::vError("%s: Failed dynamic casting OTScript to OTScriptChai \n",
-                  __FUNCTION__);
+    otErr << __FUNCTION__
+          << ": Failed dynamic casting OTScript to OTScriptChai \n";
     return false;
 }
 
@@ -2523,8 +2515,8 @@ bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
     OT_ASSERT_MSG(strScriptFilename.Exists(),
                   "NewScriptHeaderExists: Error! Filename not Supplied!");
     if (3 > strScriptFilename.GetLength()) {
-        OTLog::vError("NewScriptHeaderExists: Filename: %s  is too short!\n",
-                      strScriptFilename.Get());
+        otErr << "NewScriptHeaderExists: Filename: " << strScriptFilename
+              << "  is too short!\n";
         OT_FAIL;
     }
 
@@ -2669,25 +2661,27 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
         //  SCRIPT HEADERS
         //
 
-        OTLog::vOutput(1, "\n%s: Using Script Headers:\n", __FUNCTION__);
+        otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
 
         OTString strHeaderFilePath_01;
         if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
-            OTLog::vOutput(1, " %s\n", strHeaderFilePath_01.Get());
+            otWarn << " " << strHeaderFilePath_01 << "\n";
         }
         else {
-            OTLog::vError("%s: Header script not found: %s\n", __FUNCTION__,
-                          strHeaderFilePath_01.Get());
+            otErr << __FUNCTION__
+                  << ": Header script not found: " << strHeaderFilePath_01
+                  << "\n";
             return false;
         }
 
         OTString strHeaderFilePath_02;
         if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
-            OTLog::vOutput(1, " %s\n", strHeaderFilePath_02.Get());
+            otWarn << " " << strHeaderFilePath_02 << "\n";
         }
         else {
-            OTLog::vError("%s: Header script not found: %s\n", __FUNCTION__,
-                          strHeaderFilePath_02.Get());
+            otErr << __FUNCTION__
+                  << ": Header script not found: " << strHeaderFilePath_02
+                  << "\n";
             return false;
         }
 
@@ -2699,14 +2693,16 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
         catch (const chaiscript::exception::eval_error& ee)
         {
             // Error in script parsing / execution
-            OTLog::vError(
-                "%s: Caught chaiscript::exception::eval_error : %s. \n"
-                "   File: %s\n"
-                "   Start position, line: %d column: %d\n"
-                "   End position,   line: %d column: %d\n",
-                __FUNCTION__, ee.reason.c_str(), ee.filename.c_str(),
-                ee.start_position.line, ee.start_position.column,
-                ee.end_position.line, ee.end_position.column);
+            otErr << __FUNCTION__
+                  << ": Caught chaiscript::exception::eval_error : "
+                  << ee.reason << ". \n"
+                                  "   File: " << ee.filename
+                  << "\n"
+                     "   Start position, line: " << ee.start_position.line
+                  << " column: " << ee.start_position.column
+                  << "\n"
+                     "   End position,   line: " << ee.end_position.line
+                  << " column: " << ee.end_position.column << "\n";
 
             std::cout << ee.what();
             if (ee.call_stack.size() > 0) {
@@ -2737,26 +2733,26 @@ bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
         catch (const chaiscript::exception::bad_boxed_cast& e)
         {
             // Error unboxing return value
-            OTLog::vError(
-                "%s: Caught chaiscript::exception::bad_boxed_cast : %s.\n",
-                __FUNCTION__,
-                (e.what() != nullptr) ? e.what()
-                                      : "e.what() returned null, sorry");
+            otErr << __FUNCTION__
+                  << ": Caught chaiscript::exception::bad_boxed_cast : "
+                  << ((e.what() != nullptr) ? e.what()
+                                            : "e.what() returned null, sorry")
+                  << ".\n";
             return false;
         }
         catch (const std::exception& e)
         {
             // Error explicitly thrown from script
-            OTLog::vError("%s: Caught std::exception exception: %s\n",
-                          __FUNCTION__, (e.what() != nullptr)
-                                            ? e.what()
-                                            : "e.what() returned null, sorry");
+            otErr << __FUNCTION__ << ": Caught std::exception exception: "
+                  << ((e.what() != nullptr) ? e.what()
+                                            : "e.what() returned null, sorry")
+                  << "\n";
             return false;
         }
         //          catch (chaiscript::Boxed_Value bv) {}
         catch (...)
         {
-            OTLog::vError("%s: Caught exception.\n", __FUNCTION__);
+            otErr << __FUNCTION__ << ": Caught exception.\n";
             return false;
         }
 

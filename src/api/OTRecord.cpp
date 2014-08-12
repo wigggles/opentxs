@@ -173,10 +173,9 @@ bool OTRecord::FormatAmount(std::string& str_output)
     if (m_str_amount.empty() ||
         m_str_asset_id.empty()) // Need these to do the formatting.
     {
-        //      OTLog::vOutput(0, "%s: Unable to format amount. Type: %s Amount:
-        // %s  Asset: %s",
-        //                     __FUNCTION__, m_str_type.c_str(),
-        // m_str_amount.c_str(), m_str_asset_id.c_str());
+        //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
+        // m_str_type << " Amount:
+        // " << m_str_amount << "  Asset: " << m_str_asset_id << "";
         return false;
     }
     str_output = OTAPI_Wrap::It()->FormatAmount(
@@ -676,9 +675,8 @@ bool OTRecord::DeleteRecord()
     if (!CanDeleteRecord()) return false;
     if (!m_bIsSpecialMail &&
         (m_str_server_id.empty() || m_str_nym_id.empty())) {
-        OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
-                      __FUNCTION__, m_str_server_id.c_str(),
-                      m_str_nym_id.c_str());
+        otErr << __FUNCTION__ << ": Error: missing server id ("
+              << m_str_server_id << ") or nym id (" << m_str_nym_id << ")\n";
         return false;
     }
     std::string str_using_account;
@@ -686,9 +684,8 @@ bool OTRecord::DeleteRecord()
     if ((OTRecord::Transfer == GetRecordType()) ||
         (OTRecord::Receipt == GetRecordType())) {
         if (m_str_account_id.empty()) {
-            OTLog::vError(
-                "%s: Error: missing account id for transfer or receipt.\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error: missing account id for transfer or receipt.\n";
             return false;
         }
 
@@ -748,18 +745,18 @@ bool OTRecord::DeleteRecord()
     case OTRecord::Instrument: // Delete from Nym's recordbox.
         break;
     default:
-        OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      GetInstrumentType().c_str());
+        otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
+              << "\n";
         return false;
     }
     // The below section handles both the Nym's recordbox AND the Asset Account
     // recordbox.
     //
     if (0 == m_lTransactionNum) {
-        OTLog::vError("%s: Error: Transaction number is 0, in recordbox for "
-                      "server id (%s), nym id (%s), acct id ()\n",
-                      __FUNCTION__, m_str_server_id.c_str(),
-                      m_str_nym_id.c_str(), str_using_account.c_str());
+        otErr << __FUNCTION__
+              << ": Error: Transaction number is 0, in recordbox for "
+                 "server id (" << m_str_server_id << "), nym id ("
+              << m_str_nym_id << "), acct id (" << str_using_account << ")\n";
         return false;
     }
     const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
@@ -770,10 +767,10 @@ bool OTRecord::DeleteRecord()
         OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID, theAcctID);
     OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
-        OTLog::vError("%s: Failed loading record box for server ID (%s) nymID "
-                      "(%s) accountID (%s)\n",
-                      __FUNCTION__, m_str_server_id.c_str(),
-                      m_str_nym_id.c_str(), str_using_account.c_str());
+        otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
+              << m_str_server_id << ") nymID "
+                                    "(" << m_str_nym_id << ") accountID ("
+              << str_using_account << ")\n";
         return false;
     }
     // Find the receipt in the recordbox that correlates to this OTRecord.
@@ -781,10 +778,11 @@ bool OTRecord::DeleteRecord()
     int nIndex = pRecordbox->GetTransactionIndex(m_lTransactionNum);
 
     if ((-1) == nIndex) {
-        OTLog::vError("%s: Error: Unable to find transaction %ld in recordbox "
-                      "for server id (%s), nym id (%s), acct id (%s)\n",
-                      __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(),
-                      m_str_nym_id.c_str(), str_using_account.c_str());
+        otErr << __FUNCTION__ << ": Error: Unable to find transaction "
+              << m_lTransactionNum << " in recordbox "
+                                      "for server id (" << m_str_server_id
+              << "), nym id (" << m_str_nym_id << "), acct id ("
+              << str_using_account << ")\n";
         return false;
     }
     // Accept it.
@@ -812,17 +810,17 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
     case OTRecord::Receipt: {
         if (m_str_server_id.empty() || m_str_nym_id.empty() ||
             m_str_account_id.empty()) {
-            OTLog::vError("%s: Error: missing server id (%s) or nym id (%s) or "
-                          "acct id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str(), m_str_account_id.c_str());
+            otErr << __FUNCTION__ << ": Error: missing server id ("
+                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << ") or "
+                     "acct id (" << m_str_account_id << ")\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
-            OTLog::vError("%s: Error: Transaction number is 0, in asset "
-                          "account inbox for server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__
+                  << ": Error: Transaction number is 0, in asset "
+                     "account inbox for server id (" << m_str_server_id
+                  << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
@@ -833,10 +831,10 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
             OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID, theAcctID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
-            OTLog::vError("%s: Error: Unable to load asset account inbox for "
-                          "server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__
+                  << ": Error: Unable to load asset account inbox for "
+                     "server id (" << m_str_server_id << "), nym id ("
+                  << m_str_nym_id << ")\n";
             return false;
         }
         // Find the transfer/receipt therein that correlates to this OTRecord.
@@ -844,11 +842,11 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
         int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
 
         if ((-1) == nIndex) {
-            OTLog::vError(
-                "%s: Error: Unable to find transaction %ld in payment inbox "
-                "for server id (%s), nym id (%s), acct id (%s)\n",
-                __FUNCTION__, m_lTransactionNum, m_str_server_id.c_str(),
-                m_str_nym_id.c_str(), m_str_account_id.c_str());
+            otErr << __FUNCTION__ << ": Error: Unable to find transaction "
+                  << m_lTransactionNum << " in payment inbox "
+                                          "for server id (" << m_str_server_id
+                  << "), nym id (" << m_str_nym_id << "), acct id ("
+                  << m_str_account_id << ")\n";
             return false;
         }
         // Accept it.
@@ -862,8 +860,8 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
         return madeEasy.accept_inbox_items(m_str_account_id, 0, str_indices);
     } break;
     default:
-        OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      GetInstrumentType().c_str());
+        otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
+              << "\n";
         return false;
     }
 
@@ -880,16 +878,16 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
     //
     case OTRecord::Instrument: {
         if (m_str_server_id.empty() || m_str_nym_id.empty()) {
-            OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: missing server id ("
+                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << ")\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
-            OTLog::vError("%s: Error: Transaction number is 0, in payment "
-                          "inbox for server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__
+                  << ": Error: Transaction number is 0, in payment "
+                     "inbox for server id (" << m_str_server_id << "), nym id ("
+                  << m_str_nym_id << ")\n";
             return false;
         }
         const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
@@ -899,10 +897,10 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
-            OTLog::vError("%s: Error: Unable to load payment inbox for server "
-                          "id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__
+                  << ": Error: Unable to load payment inbox for server "
+                     "id (" << m_str_server_id << "), nym id (" << m_str_nym_id
+                  << ")\n";
             return false;
         }
         // Find the payment therein that correlates to this OTRecord.
@@ -910,10 +908,10 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
         int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
 
         if ((-1) == nIndex) {
-            OTLog::vError("%s: Error: Unable to find transaction %ld in "
-                          "payment inbox for server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_lTransactionNum,
-                          m_str_server_id.c_str(), m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: Unable to find transaction "
+                  << m_lTransactionNum << " in "
+                                          "payment inbox for server id ("
+                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Accept it.
@@ -928,23 +926,22 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
 
         switch (nReturn) {
         case 0:
-            OTLog::vOutput(0, "%s: This instrument was expired, so it was "
-                              "moved to the record box.\n",
-                           __FUNCTION__);
+            otOut << __FUNCTION__ << ": This instrument was expired, so it was "
+                                     "moved to the record box.\n";
             return true;
 
         case 1: // success
             break;
         default:
-            OTLog::vError("%s: Error while trying to accept this instrument.\n",
-                          __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error while trying to accept this instrument.\n";
             return false;
         } // switch
     }     // case: instrument
     break;
     default:
-        OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      GetInstrumentType().c_str());
+        otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
+              << "\n";
         return false;
     }
 
@@ -959,16 +956,15 @@ bool OTRecord::DiscardIncoming()
     switch (GetRecordType()) {
     case OTRecord::Instrument: {
         if (m_str_server_id.empty() || m_str_nym_id.empty()) {
-            OTLog::vError("%s: Error: missing server id (%s) or nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: missing server id ("
+                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << ")\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
-            OTLog::vError("%s: Error: Transaction number is 0, in payment "
-                          "inbox for server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: Transaction number is 0, in "
+                                     "payment inbox for server id ("
+                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
@@ -978,10 +974,9 @@ bool OTRecord::DiscardIncoming()
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
         OTCleanup<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
-            OTLog::vError("%s: Error: Unable to load payment inbox for server "
-                          "id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_str_server_id.c_str(),
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__
+                  << ": Error: Unable to load payment inbox for server id ("
+                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Find the payment therein that correlates to this OTRecord.
@@ -989,10 +984,10 @@ bool OTRecord::DiscardIncoming()
         int nIndex = pInbox->GetTransactionIndex(m_lTransactionNum);
 
         if ((-1) == nIndex) {
-            OTLog::vError("%s: Error: Unable to find transaction %ld in "
-                          "payment inbox for server id (%s), nym id (%s)\n",
-                          __FUNCTION__, m_lTransactionNum,
-                          m_str_server_id.c_str(), m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: Unable to find transaction "
+                  << m_lTransactionNum << " in "
+                                          "payment inbox for server id ("
+                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Accept it.
@@ -1009,8 +1004,8 @@ bool OTRecord::DiscardIncoming()
     } // case: instrument
     break;
     default:
-        OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      GetInstrumentType().c_str());
+        otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
+              << "\n";
         return false;
     }
 
@@ -1055,8 +1050,8 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
     switch (GetRecordType()) {
     case OTRecord::Instrument: {
         if (m_str_nym_id.empty()) {
-            OTLog::vError("%s: Error: missing nym id (%s)\n", __FUNCTION__,
-                          m_str_nym_id.c_str());
+            otErr << __FUNCTION__ << ": Error: missing nym id (" << m_str_nym_id
+                  << ")\n";
             return false;
         }
 
@@ -1070,8 +1065,7 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
             str_using_acct = str_via_acct;
         }
         if (str_using_acct.empty()) {
-            OTLog::vError("%s: Error: Missing account ID (FAILURE)\n",
-                          __FUNCTION__);
+            otErr << __FUNCTION__ << ": Error: Missing account ID (FAILURE)\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
@@ -1083,8 +1077,9 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
 
                 if (strOutpayment.empty()) {
                     int32_t lIndex = GetBoxIndex();
-                    OTLog::vError("%s: Error: Blank outpayment at index %d\n",
-                                  __FUNCTION__, lIndex);
+                    otErr << __FUNCTION__
+                          << ": Error: Blank outpayment at index " << lIndex
+                          << "\n";
                     return false;
                 }
                 OTString strPayment(strOutpayment);
@@ -1092,8 +1087,9 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
 
                 if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                     int32_t lIndex = GetBoxIndex();
-                    OTLog::vError("%s: Error: Invalid outpayment at index %d\n",
-                                  __FUNCTION__, lIndex);
+                    otErr << __FUNCTION__
+                          << ": Error: Invalid outpayment at index " << lIndex
+                          << "\n";
                     return false;
                 }
                 int64_t lTransNum = 0;
@@ -1110,18 +1106,18 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
                         m_str_nym_id, str_using_acct, str_indices);
                 }
                 else {
-                    OTLog::vError(
-                        "%s: Error: Transaction number is non-zero (%" PRId64
-                        "), "
-                        "for cash outgoing payment for nym id (%s)\n",
-                        __FUNCTION__, lTransNum, m_str_nym_id.c_str());
+                    otErr << __FUNCTION__
+                          << ": Error: Transaction number is non-zero ("
+                          << lTransNum
+                          << "), for cash outgoing payment for nym id ("
+                          << m_str_nym_id << ")\n";
                     return false;
                 }
             } // IsCash()
             else {
-                OTLog::vError("%s: Error: Transaction number is 0, for "
-                              "non-cash outgoing payment for nym id (%s)\n",
-                              __FUNCTION__, m_str_nym_id.c_str());
+                otErr << __FUNCTION__ << ": Error: Transaction number is 0, "
+                                         "for non-cash outgoing payment for "
+                                         "nym id (" << m_str_nym_id << ")\n";
                 return false;
             }
         }
@@ -1136,16 +1132,16 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
                                                               nIndex));
 
             if (strOutpayment.empty()) {
-                OTLog::vError("%s: Error: Blank outpayment at index %d\n",
-                              __FUNCTION__, nIndex);
+                otErr << __FUNCTION__ << ": Error: Blank outpayment at index "
+                      << nIndex << "\n";
                 return false;
             }
             OTString strPayment(strOutpayment);
             OTPayment thePayment(strPayment);
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
-                OTLog::vError("%s: Error: Invalid outpayment at index %d\n",
-                              __FUNCTION__, nIndex);
+                otErr << __FUNCTION__ << ": Error: Invalid outpayment at index "
+                      << nIndex << "\n";
                 return false;
             }
             int64_t lTransNum = 0;
@@ -1163,8 +1159,8 @@ bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
         } // for
     } break;
     default:
-        OTLog::vError("%s: Unexpected type: %s\n", __FUNCTION__,
-                      GetInstrumentType().c_str());
+        otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()
+              << "\n";
         return false;
     }
 
