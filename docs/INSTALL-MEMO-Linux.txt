@@ -65,6 +65,8 @@ Enable OTAPI support for swig wrapper:
     D		: -DD=ON
     Go		: -DGO=ON
 
+SWIG Version 3.0.0 or newer required.
+
 Build Packages:
        RPM:      -DRPM=ON
        DEB:      -DDEB=ON

@@ -21,6 +21,8 @@ $ sudo zypper in openssl libopenssl1_0_0 libopenssl-devel libprotobuf7 libprotob
 
 
 #########  Optional API dependencies  ##########
+SWIG Version 3.0.0 or newer required.
+
 $ sudo zypper in ...
 
 SWIG JAVA:         java-1_7_0-openjdk java-1_7_0-openjdk-devel

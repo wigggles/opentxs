@@ -129,6 +129,8 @@ Enable SWIG Support for:
        CSHARP:   --with-csharp
        D:        --with-d
 
+SWIG Version 3.0.0 or newer required.
+
 ##########################################
 
 
