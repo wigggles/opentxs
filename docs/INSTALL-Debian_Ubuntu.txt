@@ -22,6 +22,8 @@ $ sudo aptitude install libssl-dev protobuf-compiler libprotobuf-dev
 
 
 #########  Optional API dependencies  ##########
+SWIG Version 3.0.0 or newer required.
+
 $ sudo aptitude install ...
 
 SWIG JAVA:         openjdk-6-jdk openjdk-6-source

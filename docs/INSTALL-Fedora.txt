@@ -18,6 +18,8 @@ $ sudo yum install zeromq-devel openssl-devel msgpack-devel protobuf-devel
 
 
 #########  Optional API dependencies  ##########
+SWIG Version 3.0.0 or newer required.
+
 $ sudo yum install ...
 
 SWIG JAVA:         java-1.6.0-openjdk java-1.6.0-openjdk-devel
@@ -31,6 +33,7 @@ SWIG CSHARP:       monodevelop
 SWIG D:
 # find .rpm for "gdc" d-compiler front end for gcc
 # or build-install "gdc" yourself from source
+
 
 ################################################
 You may be required to add /usr/local/lib to your ld directory.

@@ -58,6 +58,8 @@ Dependencies (packaged):
     swigwin-2.0.11.zip: http://www.swig.org/download.html
     extract to ..\dev\swigwin-2.0.11
 
+    SWIG Version 3.0.0 or newer required.
+
 
 Note:
  How to ‘install’ these dependancies.
