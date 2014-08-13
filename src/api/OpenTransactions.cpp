@@ -521,11 +521,10 @@ void OT_API::Pid::ClosePid()
     // to the same data folder simultaneously, which could corrupt the data...)
     //
 
-    uint32_t the_pid = 0;
-
     std::ofstream pid_outfile(m_strPidFilePath.Get());
 
     if (pid_outfile.is_open()) {
+        uint32_t the_pid = 0;
         pid_outfile << the_pid;
         pid_outfile.close();
         m_bIsPidOpen = false;
@@ -6074,22 +6073,14 @@ OTToken* OT_API::Token_ChangeOwner(
     // a corresponding master key.)
     OTIdentifier oldOwnerNymID,
         newOwnerNymID; // if either owner is a Nym, the ID goes here.
-    OTPurse* pOldPurse =
-        nullptr; // if the old owner is a Purse (symmetric+master
-                 // key), the entire purse is loaded.
     OTCleanup<OTPurse> theOldPurseAngel;
     OTPassword theOldPassword; // Only used in the case of password-protected
                                // purses.
-    OTPseudonym* pOldNym = nullptr;
     OTNym_or_SymmetricKey* pOldOwner = nullptr;
     OTCleanup<OTNym_or_SymmetricKey> theOldOwnerAngel;
-    OTPurse* pNewPurse =
-        nullptr; // if the new owner is a Purse (symmetric+master
-                 // key), the entire purse is loaded.
     OTCleanup<OTPurse> theNewPurseAngel;
     OTPassword theNewPassword; // Only used in the case of password-protected
                                // purses.
-    OTPseudonym* pNewNym = nullptr;
     OTNym_or_SymmetricKey* pNewOwner = nullptr;
     OTCleanup<OTNym_or_SymmetricKey> theNewOwnerAngel;
     const bool bOldOwnerIsPurse = OLD_OWNER.Contains("PURSE");
@@ -6097,7 +6088,7 @@ OTToken* OT_API::Token_ChangeOwner(
     if (!bOldOwnerIsPurse) // The old owner is a NYM (public/private keys.)
     {
         oldOwnerNymID.SetString(OLD_OWNER);
-        pOldNym = GetOrLoadPrivateNym(
+        OTPseudonym* pOldNym = GetOrLoadPrivateNym(
             oldOwnerNymID, false, __FUNCTION__,
             &thePWDataWallet); // These copiously log, and ASSERT.
                                //      if (nullptr == pOldNym)    pOldNym =
@@ -6111,7 +6102,9 @@ OTToken* OT_API::Token_ChangeOwner(
     else // The old owner is a PURSE (Symmetric/master keys, internal to that
            // purse.)
     {
-        pOldPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+        // if the old owner is a Purse (symmetric+master key), the entire
+        // purse is loaded.
+        OTPurse* pOldPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pOldPurse);
         theOldPurseAngel.SetCleanupTargetPointer(pOldPurse);
         pOldOwner = LoadPurseAndOwnerForMerge(
@@ -6139,7 +6132,7 @@ OTToken* OT_API::Token_ChangeOwner(
     if (!bNewOwnerIsPurse) // The new owner is a NYM
     {
         newOwnerNymID.SetString(NEW_OWNER);
-        pNewNym =
+        OTPseudonym* pNewNym =
             GetOrLoadNym(newOwnerNymID, false, __FUNCTION__,
                          &thePWDataWallet); // These copiously log, and ASSERT.
         if (nullptr == pNewNym) return nullptr;
@@ -6149,7 +6142,9 @@ OTToken* OT_API::Token_ChangeOwner(
     }
     else // The new owner is a PURSE
     {
-        pNewPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+        // if the new owner is a Purse (symmetric+master key), the entire purse
+        // is loaded.
+        OTPurse* pNewPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pNewPurse);
         theNewPurseAngel.SetCleanupTargetPointer(pNewPurse);
         pNewOwner = LoadPurseAndOwnerForMerge(
@@ -7052,7 +7047,6 @@ bool OT_API::RecordPayment(
     OTCleanup<OTTransaction> theTransactionAngel;
 
     // second block:
-    OTMessage* pMessage = nullptr;
     OTCleanup<OTMessage> theMessageAngel;
 
     bool bRemoved = false, bNeedToSaveTheNym = false;
@@ -7126,7 +7120,7 @@ bool OT_API::RecordPayment(
                      "on index " << nIndex << ". (Out of bounds.)\n";
             return false;
         }
-        pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+        OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
         if (nullptr == pMessage) {
             otErr << __FUNCTION__
@@ -7142,8 +7136,6 @@ bool OT_API::RecordPayment(
             return false;
         }
         OTPayment thePayment(strInstrument);
-        int64_t lPaymentOpeningNum = 0;
-        int64_t lPaymentTransNum = 0;
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {
             // EXPIRED?
@@ -7153,6 +7145,8 @@ bool OT_API::RecordPayment(
             if (bIsExpired) pActualBox = pExpiredBox;
             // Anything but a purse?
             //
+            int64_t lPaymentOpeningNum = 0;
+            int64_t lPaymentTransNum = 0;
             if (thePayment.GetOpeningNum(lPaymentOpeningNum,
                                          USER_ID)) // cheques, invoices,
                                                    // vouchers, smart contracts,
@@ -7234,7 +7228,6 @@ bool OT_API::RecordPayment(
 
                 bool bShouldHarvestPayment = false;
                 bool bNeedToLoadAssetAcctInbox = false;
-                bool bIsIssued = false;
                 OTIdentifier theSenderUserID, theSenderAcctID;
 
                 bool bPaymentSenderIsNym = false;
@@ -7292,7 +7285,7 @@ bool OT_API::RecordPayment(
                                  "number on it?\n";
                         return false;
                     }
-                    bIsIssued =
+                    bool bIsIssued =
                         pNym->VerifyIssuedNum(strServerID, lPaymentTransNum);
 
                     // If pNym is the sender AND the payment instrument IS
@@ -7740,8 +7733,6 @@ bool OT_API::RecordPayment(
                 }
                 //
                 bool bFoundReceiptInInbox = false;
-                bool bIsSmartContract = false;
-                OTTrackable* pTrackable = nullptr;
                 OTSmartContract* pSmartContract = nullptr;
                 OTPaymentPlan* pPlan = nullptr;
                 OTCleanup<OTTrackable> theTrackableAngel;
@@ -7754,8 +7745,9 @@ bool OT_API::RecordPayment(
                 //
                 if (bNeedToLoadAssetAcctInbox &&
                     (bFromAcctIsAvailable || bIsRecurring)) {
+                    bool bIsSmartContract = false;
                     if (bIsRecurring) {
-                        pTrackable = thePayment.Instantiate();
+                        OTTrackable* pTrackable = thePayment.Instantiate();
                         if (nullptr == pTrackable) {
                             OTString strPaymentContents;
                             thePayment.GetPaymentContents(strPaymentContents);
@@ -9400,8 +9392,6 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
     OT_ASSERT(nullptr != pMint);
     OTMessage theMessage;
 
-    int64_t lRequestNumber = 0;
-
     const int64_t lTotalAmount = AMOUNT;
     int64_t lAmount = lTotalAmount;
 
@@ -9450,6 +9440,7 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
     const OTIdentifier SERVER_USER_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
         pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
+        int64_t lRequestNumber = 0;
         OTPurse* pPurse = new OTPurse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
         OTPurse* pPurseMyCopy = new OTPurse(SERVER_ID, CONTRACT_ID, USER_ID);
 
@@ -9646,7 +9637,6 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
     OTMessage theMessage;
-    int64_t lRequestNumber = 0;
 
     OTString strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
 
@@ -9780,6 +9770,7 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
         } // while
     }
     if (bSuccess) {
+        int64_t lRequestNumber = 0;
         // Save the purse into a string...
         OTString strPurse;
         thePurse.SignContract(*pNym);
@@ -10872,12 +10863,12 @@ int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
     // By this point, pNym is a good pointer.  (No need to cleanup.)
     OTPaymentPlan thePlan;
     OTMessage theMessage;
-    int64_t lRequestNumber = 0;
 
     const OTString strServerID(SERVER_ID), strNymID(USER_ID);
 
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
         thePlan.VerifySignature(*pNym)) {
+        int64_t lRequestNumber = 0;
         const bool bCancelling = (thePlan.GetRecipientUserID() == USER_ID);
 
         if (bCancelling) {
@@ -11130,10 +11121,10 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTSmartContract theContract(SERVER_ID);
     OTMessage theMessage;
-    int64_t lRequestNumber = 0;
     const OTString strServerID(SERVER_ID), strNymID(USER_ID);
 
     if (theContract.LoadContractFromString(THE_SMART_CONTRACT)) {
+        int64_t lRequestNumber = 0;
         OTAgent* pAgent = nullptr;
         OTParty* pParty =
             theContract.FindPartyBasedOnNymAsAuthAgent(*pNym, &pAgent);
@@ -11564,8 +11555,6 @@ int32_t OT_API::cancelCronItem(const OTIdentifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTMessage theMessage;
 
-    int64_t lRequestNumber = 0;
-
     const OTString strServerID(SERVER_ID), strNymID(USER_ID);
 
     if (pNym->GetTransactionNumCount(strServerID) < 1) {
@@ -11583,6 +11572,8 @@ int32_t OT_API::cancelCronItem(const OTIdentifier& SERVER_ID,
                  "transaction number available, but the call\n"
                  "still failed.\n";
     else {
+        int64_t lRequestNumber = 0;
+
         OTString str_ASSET_ACCT_ID(ASSET_ACCT_ID);
 
         // Create a transaction
@@ -11740,7 +11731,6 @@ int32_t OT_API::issueMarketOffer(
         return (-1);
     }
     OTMessage theMessage;
-    int64_t lRequestNumber = 0;
     const OTString strServerID(SERVER_ID), strNymID(USER_ID);
     if (pNym->GetTransactionNumCount(strServerID) < 3) {
         otOut << __FUNCTION__
@@ -11888,6 +11878,7 @@ int32_t OT_API::issueMarketOffer(
             }
         } // if ( bCreateOffer )
         if (bCreateOffer && bIssueTrade) {
+            int64_t lRequestNumber = 0;
             OTString str_ASSET_ACCT_ID(ASSET_ACCT_ID);
 
             // Create a transaction
@@ -12292,7 +12283,6 @@ int32_t OT_API::notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
     OTMessage theMessage;
 
-    int64_t lRequestNumber = 0;
     const int64_t lAmount = AMOUNT;
 
     OTString strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_FROM),
@@ -12350,6 +12340,7 @@ int32_t OT_API::notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                     true); // bSave=true
         }
         else {
+            int64_t lRequestNumber = 0;
             // Need to setup a dummy outbox transaction (to mimic the one that
             // will be on the server side when this pending transaction is
             // actually put into the real outbox.)
@@ -13299,11 +13290,11 @@ int32_t OT_API::getBoxReceipt(
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount = nullptr;
     if (USER_ID != ACCOUNT_ID) // inbox/outbox (if it were nymbox, the USER_ID
                                // and ACCOUNT_ID would match)
     {
-        pAccount = GetOrLoadAccount(*pNym, ACCOUNT_ID, SERVER_ID, __FUNCTION__);
+        OTAccount* pAccount =
+            GetOrLoadAccount(*pNym, ACCOUNT_ID, SERVER_ID, __FUNCTION__);
         if (nullptr == pAccount) return (-1);
     }
     // By this point, pAccount is a good pointer, and is on the wallet. (No need

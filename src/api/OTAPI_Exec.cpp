@@ -12559,10 +12559,9 @@ std::string OTAPI_Exec::Purse_Peek(
                                                      // MUST be
                                                      // password-protected.
     OTIdentifier theOwnerID;
-    OTPseudonym* pNym = nullptr;
     if (bDoesOwnerIDExist) {
         const OTString strOwnerID(OWNER_ID);
-
+        OTPseudonym* pNym = nullptr;
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12836,10 +12835,9 @@ std::string OTAPI_Exec::Purse_Push(
                                                      // MUST be
                                                      // password-protected.
     OTIdentifier theOwnerID;
-    OTPseudonym* pOwnerNym = nullptr;
     if (bDoesOwnerIDExist) {
         const OTString strOwnerID(OWNER_ID);
-
+        OTPseudonym* pOwnerNym = nullptr;
         if (strOwnerID.Exists()) {
             theOwnerID.SetString(strOwnerID);
             pOwnerNym = OTAPI()->GetOrLoadNym(
