@@ -1,7 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 if(PYTHON OR PERL OR RUBY OR TCL OR JAVA OR PHP)
-  find_package(SWIG REQUIRED)
+  find_package(SWIG 3.0.0 REQUIRED)
   include(${SWIG_USE_FILE})
   set(CMAKE_SWIG_FLAGS "")
 endif()
