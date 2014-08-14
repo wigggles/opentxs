@@ -81,6 +81,27 @@ $ git submodule update --init --recursive
 $ git clean -fxd && git submodule foreach git clean -fxd
 $ git reset --hard HEAD && git submodule foreach git reset --hard HEAD
 
+Make sure the Cmake environment variables are set up correctly so it can find the
+externally installed dependencies:
+
+CMAKE_INCLUDE_PATH needs to point to the external include folders for
+- protobuf
+- openssl
+- zlib
+- ZeroMQ
+
+Example:
+CMAKE_INCLUDE_PATH=D:\Work\Monetas\protobuf-2.5.0\include;C:\OpenSSL-Win32\include;C:\Program Files (x86)\GnuWin32\include;C:\Program Files\ZeroMQ 4.0.4\include
+
+CMAKE_LIBRARY_PATH needs to point to the external library folders for
+- protobuf
+- openssl
+- zlib
+- ZeroMQ
+
+Example:
+CMAKE_LIBRARY_PATH=D:\Work\Monetas\protobuf-2.5.0\lib\win32\debug;C:\OpenSSL-Win32\lib\VC;C:\Program Files (x86)\GnuWin32\lib;C:\Program File\ZeroMQ 4.0.4\lib
+
 $ md build
 $ cd build
 $ cmake ..
