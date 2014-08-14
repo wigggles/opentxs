@@ -1230,6 +1230,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
 // used for passing and returning values when giving a
 // lambda function to a loop function.
 //
+// cppcheck-suppress uninitMemberVar
 the_lambda_struct::the_lambda_struct()
 {
 }
