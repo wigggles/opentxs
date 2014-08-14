@@ -2490,11 +2490,9 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
 
                 pNym->GetPrivateCredentials(strCredList, &theMap);
                 // Serialize the StringMap to a string...
-                //
-                if (strCredList.Exists() &&
-                    (theMap.size() > 0)) // Won't bother if there are zero
-                                         // credentials somehow.
-                {
+
+                // Won't bother if there are zero credentials somehow.
+                if (strCredList.Exists() && (!theMap.empty())) {
                     std::string str_Encoded = OTDB::EncodeObject(*pMap);
                     const bool bSuccessEncoding = (str_Encoded.size() > 0);
                     if (bSuccessEncoding) {
