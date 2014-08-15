@@ -502,7 +502,7 @@ public:
                                          OTString& strType);
     inline void GetTypeString(OTString& strType)
     {
-        OTItem::GetStringFromType(GetType(), strType);
+        GetStringFromType(GetType(), strType);
     }
     OTItem(const OTIdentifier& theUserID,
            const OTItem& theOwner); // From owner we can get acct ID, server ID,

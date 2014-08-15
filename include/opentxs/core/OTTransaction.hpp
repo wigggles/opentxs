@@ -938,7 +938,7 @@ public:
 
     const char* GetTypeString() const
     {
-        return OTTransaction::_GetTypeString(m_Type);
+        return _GetTypeString(m_Type);
     }
     // These functions are fairly smart about which transaction types are
     // harvestable,
