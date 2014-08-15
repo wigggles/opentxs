@@ -158,7 +158,6 @@ static Container& split_byChar(Container& result,
                                split::empties_t empties)
 {
     result.clear();
-    size_t current;
     int64_t next = -1;
     do {
         if (empties == split::no_empties) {
@@ -169,7 +168,7 @@ static Container& split_byChar(Container& result,
             }
             next -= 1;
         }
-        current = static_cast<size_t>(next + 1);
+        size_t current = static_cast<size_t>(next + 1);
         next = s.find_first_of(delimiters, current);
         result.push_back(
             s.substr(current, static_cast<uint32_t>(next) - current));
