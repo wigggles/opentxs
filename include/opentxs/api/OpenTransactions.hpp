@@ -210,6 +210,8 @@ class OT_API // The C++ high-level interface to the Open Transactions
 {
     // Static
 private:
+    OT_API(const OT_API&);
+    OT_API& operator=(const OT_API&);
     static bool bInitOTApp;
     static bool bCleanupOTApp;
 
