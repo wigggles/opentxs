@@ -349,16 +349,15 @@ OT_API::OT_API()
     , m_bInitialized(false)
     , m_pTransportCallback(nullptr)
     , m_pSocket(new OTSocket_ZMQ_4())
+    , m_strDataPath("")
+    , m_strWalletFilename("")
+    , m_strWalletFilePath("")
+    , m_strConfigFilename("")
+    , m_strConfigFilePath("")
     , m_pWallet(nullptr)
     , m_pClient(nullptr)
+
 {
-
-    m_strDataPath = "";
-    m_strWalletFilename = "";
-    m_strWalletFilePath = "";
-    m_strConfigFilename = "";
-    m_strConfigFilePath = "";
-
     if (!Init()) {
         Cleanup();
     }
@@ -388,9 +387,10 @@ OT_API::~OT_API()
     if (nullptr != m_pPid) delete m_pPid;
 }
 
-OT_API::Pid::Pid() : m_bIsPidOpen(false)
+OT_API::Pid::Pid()
+    : m_bIsPidOpen(false)
+    , m_strPidFilePath("")
 {
-    m_strPidFilePath = "";
 }
 
 OT_API::Pid::~Pid()
