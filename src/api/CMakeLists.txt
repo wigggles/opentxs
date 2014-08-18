@@ -1,6 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/anyoption/anyoption.cpp
   OpenTransactions.cpp
   ot_commands_ot.cpp
   ot_made_easy_ot.cpp

@@ -79,7 +79,7 @@ extern "C" {
 #include <assert.h>
 }
 
-#include <anyoption.hpp>
+#include "anyoption/anyoption.hpp"
 
 using namespace std;
 
@@ -204,52 +204,48 @@ bool AnyOption::alloc()
 
 bool AnyOption::doubleOptStorage()
 {
-    options = (const char**)realloc(options, ((2 * max_options) + 1) *
-                                                 sizeof(const char*));
-    optiontype = (int32_t*)realloc(optiontype,
-                                   ((2 * max_options) + 1) * sizeof(int32_t));
-    optionindex = (int32_t*)realloc(optionindex,
-                                    ((2 * max_options) + 1) * sizeof(int32_t));
+    int newSize = max_options * 2 + 1;
+    options = (const char**)realloc(options, newSize * sizeof(const char*));
+    optiontype = (int32_t*)realloc(optiontype, newSize * sizeof(int32_t));
+    optionindex = (int32_t*)realloc(optionindex, newSize * sizeof(int32_t));
     if (options == NULL || optiontype == NULL || optionindex == NULL)
         return false;
     /* init new storage */
-    for (int32_t i = max_options; i < ((2 * max_options) + 1); i++) {
+    for (int32_t i = max_options; i < newSize; i++) {
         options[i] = NULL;
         optiontype[i] = 0;
         optionindex[i] = -1;
     }
-    max_options = 2 * max_options;
+    max_options *= 2;
     return true;
 }
 
 bool AnyOption::doubleCharStorage()
 {
-    optionchars = (char*)realloc(optionchars,
-                                 ((2 * max_char_options) + 1) * sizeof(char));
-    optchartype = (int32_t*)realloc(optchartype, ((2 * max_char_options) + 1) *
-                                                     sizeof(int32_t));
-    optcharindex = (int32_t*)realloc(
-        optcharindex, ((2 * max_char_options) + 1) * sizeof(int32_t));
+    int newSize = max_char_options * 2 + 1;
+    optionchars = (char*)realloc(optionchars, newSize * sizeof(char));
+    optchartype = (int32_t*)realloc(optchartype, newSize * sizeof(int32_t));
+    optcharindex = (int32_t*)realloc(optcharindex, newSize * sizeof(int32_t));
     if (optionchars == NULL || optchartype == NULL || optcharindex == NULL)
         return false;
     /* init new storage */
-    for (int32_t i = max_char_options; i < ((2 * max_char_options) + 1); i++) {
+    for (int32_t i = max_char_options; i < newSize; i++) {
         optionchars[i] = '0';
         optchartype[i] = 0;
         optcharindex[i] = -1;
     }
-    max_char_options = 2 * max_char_options;
+    max_char_options *= 2;
     return true;
 }
 
 bool AnyOption::doubleUsageStorage()
 {
-    usage = (const char**)realloc(usage, ((2 * max_usage_lines) + 1) *
-                                             sizeof(const char*));
+    int newSize = max_usage_lines + 1;
+    usage = (const char**)realloc(usage, newSize * sizeof(const char*));
     if (usage == NULL) return false;
-    for (int32_t i = max_usage_lines; i < ((2 * max_usage_lines) + 1); i++)
+    for (int32_t i = max_usage_lines; i < newSize; i++)
         usage[i] = NULL;
-    max_usage_lines = 2 * max_usage_lines;
+    max_usage_lines *= 2;
     return true;
 }
 
@@ -734,12 +730,23 @@ bool AnyOption::valueStoreOK()
 /*
  * public get methods
  */
+bool AnyOption::findOption(const char * option)
+{
+    for (int32_t i = 0; i < option_counter; i++) {
+        if (strcmp(options[i], option) == 0) return true;
+    }
+    return false;
+}
+
 char* AnyOption::getValue(const char* option)
 {
     if (!valueStoreOK()) return NULL;
 
     for (int32_t i = 0; i < option_counter; i++) {
-        if (strcmp(options[i], option) == 0) return values[optionindex[i]];
+        if (strcmp(options[i], option) == 0)
+        {
+            return values[optionindex[i]];
+        }
     }
     return NULL;
 }

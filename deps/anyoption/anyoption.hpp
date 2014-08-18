@@ -128,8 +128,11 @@ public: /* the public interface */
          * process the specified options
          */
     EXPORT void processCommandArgs(int32_t _argc, char** _argv);
-    void processCommandArgs(int32_t _argc, char** _argv, int32_t max_args);
+    EXPORT void processCommandArgs(int32_t _argc, char** _argv, int32_t max_args);
     EXPORT bool processFile(const char* _filename);
+
+    /* checks to see if option exists */
+    EXPORT bool findOption(const char * option);
 
     /*
          * get the value of the options
