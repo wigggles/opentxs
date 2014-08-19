@@ -5,6 +5,8 @@ set(cxx-sources
   Socket_ZMQ4.cpp
 )
 
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext/*.hpp")
+
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )
@@ -24,6 +26,7 @@ include_directories(
 
 add_library(opentxs-ext
   ${cxx-sources}
+  ${cxx-headers}
 )
 
 target_link_libraries(opentxs-ext opentxs-core ${ZMQ_LIBRARY})
