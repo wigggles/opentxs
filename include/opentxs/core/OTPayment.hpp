@@ -391,7 +391,7 @@ public:
     EXPORT static const char* _GetTypeString(paymentType theType);
     EXPORT const char* GetTypeString() const
     {
-        return OTPayment::_GetTypeString(m_Type);
+        return _GetTypeString(m_Type);
     }
     EXPORT static paymentType GetTypeFromString(const OTString& strType);
 };

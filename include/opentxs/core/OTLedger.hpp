@@ -384,7 +384,7 @@ public:
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString()
     {
-        return OTLedger::_GetTypeString(m_Type);
+        return _GetTypeString(m_Type);
     }
 };
 

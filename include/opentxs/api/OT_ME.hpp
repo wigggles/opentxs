@@ -152,6 +152,9 @@ class OTVariable;
 class OT_ME
 {
 private:
+    OT_ME(const OT_ME&);
+    OT_ME& operator=(const OT_ME&);
+
     static OT_ME* s_pMe;
 
     OT_ME* r_pPrev; // For reference only. Do not delete.
