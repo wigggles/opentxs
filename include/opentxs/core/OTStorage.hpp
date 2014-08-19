@@ -440,9 +440,8 @@ EndInterface
                           // storage context.
 
 protected:
-    Storable()
+    Storable() : m_Type("Storable")
     {
-        m_Type = "Storable";
     }
 
     std::string m_Type;

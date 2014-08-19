@@ -9824,7 +9824,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // I want to verify that the server has actually signed the thing, before
     // I go off responding to it like a damned fool.
     //
-    if (false == pTransaction->VerifyAccount(*((OTPseudonym*)pServerNym))) {
+    if (false ==
+        pTransaction->VerifyAccount(*(const_cast<OTPseudonym*>(pServerNym)))) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying transaction. Acct ID: " << strAcctID

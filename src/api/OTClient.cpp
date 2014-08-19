@@ -2061,9 +2061,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID
                                         // depending on whether trans statement
                                         // or balance statement.
-    OTPseudonym* pServerNym =
-        (OTPseudonym*)(theConnection.GetServerContract()
-                           ->GetContractPublicNym()); // todo fix cast.
+
+    // todo fix cast.
+    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
+        theConnection.GetServerContract()->GetContractPublicNym());
     // The only incoming transactions that we actually care about are responses
     // to cash
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not
@@ -3611,8 +3612,8 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
     const OTString strUserID(USER_ID);
 
     OTWallet* pWallet = theConnection.GetWallet();
-    OTPseudonym* pServerNym = (OTPseudonym*)(theConnection.GetServerContract()
-                                                 ->GetContractPublicNym());
+    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
+        theConnection.GetServerContract()->GetContractPublicNym());
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to withdrawal.
@@ -3813,8 +3814,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     OTPseudonym* pNym = theConnection.GetNym();
     OTIdentifier USER_ID(*pNym);
     const OTString strServerID(SERVER_ID), strNymID(USER_ID);
-    OTPseudonym* pServerNym = (OTPseudonym*)(theConnection.GetServerContract()
-                                                 ->GetContractPublicNym());
+    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
+        theConnection.GetServerContract()->GetContractPublicNym());
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
@@ -9136,12 +9137,9 @@ int32_t OTClient::ProcessUserCommand(
                                              "doesn't have one yet.)\n";
             }
             // Serialize the StringMap to a string...
-            //
-            if (strCredList.Exists() && (theMap.size() > 0)) // Won't bother if
-                                                             // there are zero
-                                                             // credentials
-                                                             // somehow.
-            {
+
+            // Won't bother if there are zero credentials somehow.
+            if (strCredList.Exists() && (!theMap.empty())) {
                 std::string str_Encoded = OTDB::EncodeObject(*pMap);
                 const bool bSuccessEncoding = (str_Encoded.size() > 0);
                 if (bSuccessEncoding) {
