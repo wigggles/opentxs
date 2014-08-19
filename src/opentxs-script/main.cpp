@@ -603,7 +603,6 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
 }
 
 // *************************************   MAIN FUNCTION
-// *************************************
 
 using std::cerr;
 using std::endl;
@@ -894,7 +893,6 @@ int32_t main(int32_t argc, char* argv[])
         // Below this point, pWallet and pServerContract are both available.
         // UPDATE: Not necessarily... (pServerContract may be nullptr...)
         //
-        // ***********************************************************
 
         OTAccount* pMyAccount = nullptr;
         OTAccount* pHisAccount = nullptr;
@@ -971,8 +969,6 @@ int32_t main(int32_t argc, char* argv[])
             //
         }
 
-        // ***********************************************************
-
         // I put this here too since I think it's required in all cases.
         // Update: commented out the return in order to allow for empty wallets.
         //
@@ -1018,8 +1014,6 @@ int32_t main(int32_t argc, char* argv[])
         // This is so the script has the opportunity to "check nym" (Download
         // it)
         // based on the ID that the user has entered here.
-
-        // ***********************************************************
 
         OTIdentifier thePurseAssetTypeID;
         OTAssetContract* pMyAssetContract = nullptr;
@@ -1429,7 +1423,6 @@ int32_t main(int32_t argc, char* argv[])
             else {
                 otInfo << "MyPurse variable isn't set...\n";
             }
-            // ************************************************
 
             OTAPI_Func::CopyVariables();
 
@@ -1438,8 +1431,6 @@ int32_t main(int32_t argc, char* argv[])
             return madeEasy.ExecuteScript_ReturnInt(results, strFilename);
         }
         // OT SCRIPT ABOVE.
-
-        // *******************************************************************
 
         if ((nullptr == pServerContract) || (nullptr == pMyNym)) {
             otErr << "Unexpected nullptr: "
@@ -1547,7 +1538,6 @@ int32_t main(int32_t argc, char* argv[])
                          "ProcessMessage.\n";
         }
 
-        // ********************************************************
         /*
                 bool ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                   OTMessage & theMessage,
@@ -1597,7 +1587,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing activate payment plan command in "
                          "ProcessMessage.\n";
         }
-        // *******************************************************
         else if (opt->getFlag("depositcheque")) {
             otOut << "(User has instructed to deposit a cheque...)\n";
 
@@ -1725,7 +1714,6 @@ int32_t main(int32_t argc, char* argv[])
             return 0;
         }
         //
-        // ***********************************************************
 
         if (bSendCommand && pServerNym->VerifyPseudonym()) {
             OTString strEnvelopeContents(theMessage);
@@ -1745,8 +1733,6 @@ int32_t main(int32_t argc, char* argv[])
             return 0;
         }
     } // Command line interface (versus below, which is the PROMPT interface.)
-
-    // ****************************************************************************
 
     otOut << "\nLOOKING FOR INSTRUCTIONS for the OT COMMAND LINE?\n"
              "Try:   quit\n"
@@ -1808,7 +1794,6 @@ int32_t main(int32_t argc, char* argv[])
     // Below this point, pMyNym MIGHT be a valid pointer (if it was specified),
     // or MIGHT be nullptr. Same with pServerContract. (MIGHT be there.)
     //
-    // ***********************************************************
 
     char buf[200] = "";
 
@@ -2160,8 +2145,6 @@ int32_t main(int32_t argc, char* argv[])
         // If we can match the user's request to a client command,
         // AND theClient object is able to process that request into
         // theMessage, then we send it down the pipe.
-
-        // *******************************************************************************
 
         // In lieu of maintaining a constant connection to the server, in RPC
         // mode,
@@ -2863,8 +2846,6 @@ int32_t main(int32_t argc, char* argv[])
             }
             continue;
         }
-
-        // ************************************************************************
 
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
 
