@@ -140,7 +140,7 @@
 #ifndef __OPEN_TRANSACTIONS_INTERFACE_HPP__
 #define __OPEN_TRANSACTIONS_INTERFACE_HPP__
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 
 #ifndef SWIG
 #ifndef NOT_SWIG
@@ -154,13 +154,13 @@
 
 #ifdef NOT_SWIG
 
-#include "OTString.hpp"
-#include "OTASCIIArmor.hpp"
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/OTASCIIArmor.hpp>
 
 #include <string>
 #include <functional>
 
-#include "tinythread.hpp"
+#include <opentxs/core/tinythread.hpp>
 
 namespace opentxs
 {

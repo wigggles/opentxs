@@ -133,7 +133,7 @@
 #ifndef __OTClient__OTRecord__
 #define __OTClient__OTRecord__
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 
 #include <cinttypes>
 #include <memory>
