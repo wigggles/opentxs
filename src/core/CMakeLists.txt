@@ -91,6 +91,8 @@ set(cxx-sources
   OTWallet.cpp
 )
 
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp")
+
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
 )
@@ -128,11 +130,13 @@ if(WIN32)
   # we have an extra Windows-specific file to compile
   add_library(opentxs-core
     ${cxx-sources}
+    ${cxx-headers}
     OTWindowsRegistryTools.cpp
   )
 else()
   add_library(opentxs-core
     ${cxx-sources}
+    ${cxx-headers}
   )
 endif()
 

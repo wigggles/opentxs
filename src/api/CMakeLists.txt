@@ -17,6 +17,8 @@ set(cxx-sources
   OTServerConnection.cpp
 )
 
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp")
+
 if(MSVC)
   # suppress "decorated name length exceeded, name was truncated" warnings 
   add_Definitions("/wd4503")
@@ -41,6 +43,7 @@ include_directories(
 
 add_library(opentxs-api
   ${cxx-sources}
+  ${cxx-headers}
 )
 
 target_link_libraries(opentxs-api opentxs-ext opentxs-core)
