@@ -133,9 +133,9 @@
 #ifndef __OTClient__OTRecordList__
 #define __OTClient__OTRecordList__
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 
-#include "OTRecord.hpp"
+#include <opentxs/api/OTRecord.hpp>
 
 #include <cinttypes>
 #include <memory>

@@ -166,7 +166,7 @@ kamH0Y/n11lCvo1oQxM+
 #define EXPORT
 #endif
 #ifndef NOEXPORT
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 #endif
 
 #include <string>

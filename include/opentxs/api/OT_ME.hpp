@@ -127,9 +127,9 @@
 #ifndef __OT_ME_HPP__
 #define __OT_ME_HPP__
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 
-#include "OTScript.hpp"
+#include <opentxs/core/OTScript.hpp>
 
 namespace opentxs
 {

@@ -127,7 +127,7 @@
 #ifndef __OTAPI_HPP__
 #define __OTAPI_HPP__
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTCommon.hpp>
 
 #include <string>
 
