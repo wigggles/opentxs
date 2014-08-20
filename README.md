@@ -1,6 +1,7 @@
 ## Open-Transactions Library Project
 
-[![Build Status](https://travis-ci.org/Open-Transactions/opentxs.svg?branch=develop)](https://travis-ci.org/Open-Transactions/opentxs)
+[![Build Status](https://travis-ci.org/Open-Transactions/opentxs.svg?branch=develop)](https://travis-ci.org/Open-Transactions/opentxs)[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)
+
 
 The Open-Transactions project is a collaborative effort to develop
 a robust, commercial-grade, fully-featured, free-software toolkit
