@@ -196,12 +196,6 @@
 #endif
 
 #define OT_INIT_CONFIG_FILENAME "ot_init.cfg"
-#define CONFIG_FILE_EXT ".cfg"
-#define OT_HOME_DIR "."
-#define OT_CONFIG_DIR "."
-#define OT_USER_SCRIPTS_DIR "scripts"
-#define DATA_FOLDER_EXT "_data"
-#define OT_LIB_DIR "lib"
 #define OT_CONFIG_ISRELATIVE "_is_relative"
 
 #ifdef _WIN32
