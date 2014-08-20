@@ -155,57 +155,6 @@
 #include <limits.h>
 #endif
 
-#ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-#endif
-
-#ifndef S_ISREG
-#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
-#endif
-
-#ifdef _WIN32
-#define OT_APPDATA_DIR "OpenTransactions"
-#elif TARGET_OS_IPHONE
-#define OT_APPDATA_DIR "Documents"
-#elif ANDROID
-#define OT_APPDATA_DIR "ot"
-#else
-#define OT_APPDATA_DIR ".ot"
-#endif
-
-#ifndef OT_PREFIX_PATH
-#ifdef _WIN32
-#define OT_PREFIX_PATH                                                         \
-    OTPaths::AppDataFolder() // windows, set to OT AppData Folder.
-#elif TARGET_OS_IPHONE
-#define OT_PREFIX_PATH                                                         \
-    OTPaths::AppDataFolder() // iphone,  set to OT AppData Folder.
-#elif ANDROID
-#define OT_PREFIX_PATH                                                         \
-    "res/raw" // android, set to res/raw folder for static files in android app
-// sandbox.
-#else
-#define OT_PREFIX_PATH "/usr/local" // default prefix_path unix
-#endif
-#endif
-
-#define OT_INIT_CONFIG_FILENAME "ot_init.cfg"
-#define CONFIG_FILE_EXT ".cfg"
-#define OT_HOME_DIR "."
-#define OT_CONFIG_DIR "."
-#define OT_USER_SCRIPTS_DIR "scripts"
-#define DATA_FOLDER_EXT "_data"
-#define OT_LIB_DIR "lib"
-#define OT_CONFIG_ISRELATIVE "_is_relative"
-
-#ifdef _WIN32
-#define OT_SCRIPTS_DIR "scripts/ot"
-#elif defined(ANDROID)
-#define OT_SCRIPTS_DIR ""
-#else
-#define OT_SCRIPTS_DIR "lib/opentxs"
-#endif
-
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"
 #define DEFAULT_CONTRACT "contracts"
