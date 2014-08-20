@@ -13,7 +13,7 @@ before_script:
 script:
 - mkdir build
 - cd build
-- if [ "$os" = "osx" ]; then cmake .. -DCMAKE_PREFIX_PATH=/usr/local/opt/openssl ; else cmake ..; fi 
+- if [ "${TRAVIS_OS_NAME}" = "osx" ]; then cmake .. -DCMAKE_PREFIX_PATH=/usr/local/opt/openssl ; else cmake ..; fi 
 - make -j 2 && make test
 - cd ..
 branches:
