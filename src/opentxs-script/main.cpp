@@ -183,7 +183,6 @@ ACCT starting j43k)
 
 */
 
-// -------------------------------------------------------------------------------
 // If false, error happened, usually based on what user just attemped.
 //
 bool SetupPointersForWalletMyNymAndServerContract(
@@ -202,7 +201,6 @@ bool SetupPointersForWalletMyNymAndServerContract(
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
-    // -----------------------------------------------------
     //
     pWallet = OTAPI_Wrap::OTAPI()->GetWallet();
 
@@ -213,7 +211,6 @@ bool SetupPointersForWalletMyNymAndServerContract(
     }
 
     // Below this point, pWallet is available :-)
-    // -----------------------------------------------------
 
     if (str_ServerID.size() > 0) {
         const OTIdentifier SERVER_ID(str_ServerID.c_str());
@@ -246,7 +243,6 @@ bool SetupPointersForWalletMyNymAndServerContract(
     // Below this point, pServerContract MAY be available, but also may be
     // nullptr.
     //
-    // ------------------------------------------------------------------------------
 
     if (str_MyNym.size() > 0) {
         const OTIdentifier MY_NYM_ID(str_MyNym.c_str());
@@ -301,13 +297,11 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     //    OT_ASSERT(nullptr != opt);
     //    OTCleanup<AnyOption> theOptionAngel(opt);
 
-    // -----------------------------------------------------
     /* 2. SET PREFERENCES  */
     // opt->noPOSIX(); /* do not check for POSIX style character options */
     // opt->setVerbose(); /* print warnings about unknown options */
     // opt->autoUsagePrint(true); /* print usage for bad options */
 
-    // -----------------------------------------------------
     /* 3. SET THE USAGE/HELP   */
     opt->addUsage("");
     opt->addUsage(" **** NOTE: DO NOT USE 'ot' !! Use 'opentxs help' instead! "
@@ -375,7 +369,6 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     opt->addUsage(
         " **** NOTE: DO NOT USE 'ot' !! Use 'opentxs help' instead! ***");
 
-    // -----------------------------------------------------
     /* 4. SET THE OPTION STRINGS/CHARACTERS */
     //
     // COMMAND LINE *AND* RESOURCE FILE
@@ -383,15 +376,12 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     //  opt->setOption(  "server" );      /* an option (takes an argument),
     // supporting only int64_t form */
 
-    // -----------------------------------------------------
     /* 4. SET THE OPTION STRINGS/CHARACTERS */
     //
     // COMMAND LINE *AND* RESOURCE FILE
 
     //  opt->setOption(  "server" );      /* an option (takes an argument),
     // supporting only int64_t form */
-
-    // -----------------------------------------------------
 
     // COMMAND LINE ONLY
     /* for options that will be checked only on the command and line not in
@@ -452,7 +442,6 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
 
     // NOTE: Above and Below me are IDs. This interface should allow PARTIAL
     // IDs.
-    // -----------------------------------------------------
 
     // RESOURCE FILE ONLY
     /* for options that will be checked only from the option/resource file */
@@ -481,7 +470,6 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
           --defaulttopurse  (ASSET TYPE ID)
           */
 
-    // -----------------------------------------------------
     /* 5. PROCESS THE COMMANDLINE AND RESOURCE FILE */
 
     /* read options from a option/resource file with ':' separated options or
@@ -494,9 +482,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         OT_ASSERT_MSG(bBuildFullPathSuccess, "Unalbe to set Full Path");
     }
 
-    // -----------------------------------------------------
     opt->processFile(strIniFileExact.Get());
-    // -----------------------------------------------------
     opt->processCommandArgs(argc, argv);
 }
 
@@ -564,7 +550,6 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
         otWarn << "HisPurse default: " << str_HisPurse << " \n";
     }
 
-    // --------------
     // Next, we overwrite those with any that were passed in on the command
     // line.
 
@@ -618,14 +603,12 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
 }
 
 // *************************************   MAIN FUNCTION
-// *************************************
 
 using std::cerr;
 using std::endl;
 
 int32_t main(int32_t argc, char* argv[])
 {
-    // --------------------------------------------
     class __OTclient_RAII
     {
     public:
@@ -642,7 +625,6 @@ int32_t main(int32_t argc, char* argv[])
             OTAPI_Wrap::AppCleanup();
         }
     };
-    // --------------------------------------------
     //
     // This makes SURE that AppCleanup() gets called before main() exits
     // (without
@@ -650,7 +632,6 @@ int32_t main(int32_t argc, char* argv[])
     // twisted logic being necessary below, for that to happen.)
     //
     __OTclient_RAII the_client_cleanup;
-    // -------------------------------------------------------------------
     //
 
     if (nullptr == OTAPI_Wrap::OTAPI())
@@ -671,7 +652,6 @@ int32_t main(int32_t argc, char* argv[])
     //    OTString out_strHomeFolder;
     //    OTPaths::GetHomeFromSystem(out_strHomeFolder);
     //    otOut << "Home from System:  " << out_strHomeFolder << "\n";
-    // -------------------------------------------------------------------
 
     // COMMAND-LINE OPTIONS (and default values from files.)
     //
@@ -699,7 +679,6 @@ int32_t main(int32_t argc, char* argv[])
     CollectDefaultedCLValues(opt, str_ServerID, str_MyAcct, str_MyNym,
                              str_MyPurse, str_HisAcct, str_HisNym,
                              str_HisPurse);
-    // -----------------------------------------------------
     // Users can put --args "key value key value key value etc"
     // Then they can access those values from within their scripts.
 
@@ -709,7 +688,6 @@ int32_t main(int32_t argc, char* argv[])
         cerr << "User-defined arguments aka:  --args "
              << (str_Args = opt->getValue("args")) << endl;
 
-    // -----------------------------------------------------
     /*  USAGE SCREEN (HELP) */
     //
     if (opt->getFlag("help") || opt->getFlag('h') || opt->getFlag('?')) {
@@ -717,7 +695,6 @@ int32_t main(int32_t argc, char* argv[])
 
         return 0;
     }
-    // -----------------------------------------------------
 
     bool bIsCommandProvided = false;
 
@@ -821,7 +798,6 @@ int32_t main(int32_t argc, char* argv[])
     else
         bIsCommandProvided = false;
 
-    // ---------------------------------------------------------------------------------------
     //
     if (!(opt->getArgc() > 0) && (false == bIsCommandProvided)) // If no command
                                                                 // was provided
@@ -834,7 +810,6 @@ int32_t main(int32_t argc, char* argv[])
                  "==> Expecting ot script from standard input. (Terminate "
                  "with CTRL-D):\n\n";
 
-        // ----------------------------------------
         // don't skip the whitespace while reading
         std::cin >> std::noskipws;
 
@@ -843,11 +818,9 @@ int32_t main(int32_t argc, char* argv[])
         std::istream_iterator<char> end;
         std::string results(it, end);
 
-        // -----------------------------------------------
         OT_ME madeEasy;
         OTAPI_Func::CopyVariables();
         madeEasy.ExecuteScript_ReturnVoid(results, ("stdin"));
-        // --------------------------------------------------------------------
 
         return 0;
     }
@@ -874,7 +847,6 @@ int32_t main(int32_t argc, char* argv[])
             "to return true");
 
         // Below this point, pWallet is available :-)
-        // -----------------------------------------------------
         // Later I can split the below commands into "those that need a server
         // contract"
         // and "those that don't need a server contract", and put this code
@@ -900,10 +872,8 @@ int32_t main(int32_t argc, char* argv[])
             pServerContract->GetIdentifier(theServerID);
             theServerID.GetString(strServerID);
         }
-        // -----------------------------------------------------
         //      int32_t       nServerPort = 0;
         //      OTString  strServerHostname;
-        // ------------------------------------------------------------------------------
         // You can't just connect to any hostname and port.
         // Instead, you give me the Server Contract, and *I'll* look up all that
         // stuff FOR you...
@@ -923,7 +893,6 @@ int32_t main(int32_t argc, char* argv[])
         // Below this point, pWallet and pServerContract are both available.
         // UPDATE: Not necessarily... (pServerContract may be nullptr...)
         //
-        // ***********************************************************
 
         OTAccount* pMyAccount = nullptr;
         OTAccount* pHisAccount = nullptr;
@@ -952,7 +921,6 @@ int32_t main(int32_t argc, char* argv[])
                 return 0;
             }
         }
-        // -------------------------------------------------------------------------
         // TODO: I wouldn't have HIS account in MY wallet -- I'd only have his
         // account ID.
         // Therefore need to be able to retrieve this info from the ADDRESS BOOK
@@ -968,7 +936,6 @@ int32_t main(int32_t argc, char* argv[])
             // If failure, then we try PARTIAL match.
             if (nullptr == pHisAccount)
                 pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
-            // ------------------------------------------
             if (nullptr != pHisAccount) {
                 OTString strTemp;
                 pHisAccount->GetPurportedAccountID().GetString(strTemp);
@@ -1002,8 +969,6 @@ int32_t main(int32_t argc, char* argv[])
             //
         }
 
-        // ***********************************************************
-
         // I put this here too since I think it's required in all cases.
         // Update: commented out the return in order to allow for empty wallets.
         //
@@ -1022,7 +987,6 @@ int32_t main(int32_t argc, char* argv[])
         OTIdentifier MY_NYM_ID;
 
         if (nullptr != pMyNym) pMyNym->GetIdentifier(MY_NYM_ID);
-        // -----------------------------------------------
         OTPseudonym* pHisNym = nullptr;
 
         if (str_HisNym.size() > 0) {
@@ -1032,7 +996,6 @@ int32_t main(int32_t argc, char* argv[])
             // If failure, then we try PARTIAL match.
             if (nullptr == pHisNym)
                 pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
-            // ----------------------------
             if (nullptr != pHisNym) {
                 OTString strTemp;
                 pHisNym->GetIdentifier(strTemp);
@@ -1052,8 +1015,6 @@ int32_t main(int32_t argc, char* argv[])
         // it)
         // based on the ID that the user has entered here.
 
-        // ***********************************************************
-
         OTIdentifier thePurseAssetTypeID;
         OTAssetContract* pMyAssetContract = nullptr;
 
@@ -1066,7 +1027,6 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAssetContract =
                     pWallet->GetAssetContractPartialMatch(str_MyPurse);
 
-            // ------------------------------------------
             if (nullptr != pMyAssetContract) {
                 OTString strTemp;
                 pMyAssetContract->GetIdentifier(strTemp);
@@ -1074,7 +1034,6 @@ int32_t main(int32_t argc, char* argv[])
                 str_MyPurse = strTemp.Get();
                 otOut << "Using as mypurse: " << str_MyPurse << "\n";
 
-                // ------------------------------------------
                 pMyAssetContract->GetIdentifier(thePurseAssetTypeID);
             }
             // Execution continues here, so the script has the option to
@@ -1086,7 +1045,6 @@ int32_t main(int32_t argc, char* argv[])
         // use the asset type for the account instead.
         else if (nullptr != pMyAccount)
             thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
-        // ------------------
         if (!thePurseAssetTypeID.IsEmpty()) {
             OTString strTempAssetType(thePurseAssetTypeID);
             str_MyPurse = strTempAssetType.Get();
@@ -1097,7 +1055,6 @@ int32_t main(int32_t argc, char* argv[])
         // There's no guarantee that it's available, but if it IS, then it WILL
         // be
         // available below this point.
-        // ---------------------------------------------------------------------------
         OTIdentifier hisPurseAssetTypeID;
 
         if (str_HisPurse.size() > 0) {
@@ -1110,7 +1067,6 @@ int32_t main(int32_t argc, char* argv[])
                 pHisAssetContract =
                     pWallet->GetAssetContractPartialMatch(str_HisPurse);
 
-            // ------------------------------------------
             if (nullptr != pHisAssetContract) {
                 OTString strTemp;
                 pHisAssetContract->GetIdentifier(strTemp);
@@ -1118,7 +1074,6 @@ int32_t main(int32_t argc, char* argv[])
                 str_HisPurse = strTemp.Get();
                 otOut << "Using as hispurse: " << str_HisPurse << "\n";
 
-                // ------------------------------------------
                 pHisAssetContract->GetIdentifier(hisPurseAssetTypeID);
             }
         }
@@ -1126,12 +1081,10 @@ int32_t main(int32_t argc, char* argv[])
         // asset type of HisAcct as HisPurse.
         else if (nullptr != pHisAccount)
             hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
-        // ------------------
         if (!hisPurseAssetTypeID.IsEmpty()) {
             OTString strTempAssetType(hisPurseAssetTypeID);
             str_HisPurse = strTempAssetType.Get();
         }
-        // --------------------------------------------------------------------------
 
         otOut << "\n";
 
@@ -1141,7 +1094,6 @@ int32_t main(int32_t argc, char* argv[])
         // Also, pHisAccount and pHisAssetContract have not be validated AGAINST
         // EACH OTHER (yet)...
 
-        // -----------------------------------------------------
         /*  GET THE ACTUAL ARGUMENTS AFTER THE OPTIONS */
         //
         //      for( int32_t i = 0 ; i < opt->getArgc() ; i++ )
@@ -1236,7 +1188,6 @@ int32_t main(int32_t argc, char* argv[])
             std::stringstream buffer;
             buffer << t.rdbuf();
             std::string results = buffer.str();
-            // ----------------------------------------
             OT_ME madeEasy;
 
             OTCleanup<OTVariable> angelArgs; // For user-defined arguments that
@@ -1255,7 +1206,6 @@ int32_t main(int32_t argc, char* argv[])
             OTCleanup<OTVariable> angelHisAcct;
             OTCleanup<OTVariable> angelMyPurse;
             OTCleanup<OTVariable> angelHisPurse;
-            // -------------------------
 
             if ((str_Args.size() > 0) || (opt->getArgc() > 1)) {
                 const std::string str_var_name("Args");
@@ -1285,7 +1235,6 @@ int32_t main(int32_t argc, char* argv[])
                                                               // important.
                 angelArgs.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
@@ -1293,7 +1242,6 @@ int32_t main(int32_t argc, char* argv[])
                           "arguments) isn't set...\n";
             }
 
-            // -------------------------
             if (str_ServerID.size() > 0) {
                 const std::string str_var_name("Server");
                 const std::string str_var_value(str_ServerID);
@@ -1308,13 +1256,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelServer.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
                 otInfo << "Server variable isn't set...\n";
             }
-            // -------------------------
 
             if (nullptr != pMyNym) {
                 const std::string str_party_name("MyNym");
@@ -1329,13 +1275,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelMyNymVar.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
             else {
                 otInfo << "MyNym variable isn't set...\n";
             }
-            // -------------------------
 
             if ((nullptr != pHisNym) || (str_HisNym.size() > 0)) // Even if we
                                                                  // didn't find
@@ -1355,13 +1299,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelHisNymVar.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
             else {
                 otInfo << "HisNym variable isn't set...\n";
             }
-            // -------------------------
             // WE NO LONGER PASS THE PARTY DIRECTLY TO THE SCRIPT,
             // BUT INSTEAD, ONLY THE PARTY'S NAME.
             //
@@ -1379,14 +1321,12 @@ int32_t main(int32_t argc, char* argv[])
             str_agent_name, pMyAccount, &str_acct_name);
                       angelMyNym.SetCleanupTargetPointer(pPartyMyNym);
                       OT_ASSERT(nullptr != pPartyMyNym);
-                      // ------------------------------------------
                       pScript-> AddParty("MyNym", *pPartyMyNym);
                   }
                   else
                   {
                       otErr << "MyNym variable isn't set...\n";
                   }
-                  // -------------------------
                   if (nullptr != pHisNym)
                   {
                       const std::string str_party_name("HisNym"),
@@ -1396,7 +1336,6 @@ int32_t main(int32_t argc, char* argv[])
             str_agent_name, pHisAccount, &str_acct_name);
                       angelHisNym.SetCleanupTargetPointer(pPartyHisNym);
                       OT_ASSERT(nullptr != pPartyHisNym);
-                      // ------------------------------------------
                       pScript-> AddParty("HisNym", *pPartyHisNym);
                   }
                   else
@@ -1404,7 +1343,6 @@ int32_t main(int32_t argc, char* argv[])
                       otErr << "HisNym variable isn't set...\n";
                   }
                   */
-            // -------------------------
 
             if (str_MyAcct.size() > 0) {
                 const std::string str_var_name("MyAcct");
@@ -1420,13 +1358,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelMyAcct.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
                 otInfo << "MyAcct variable isn't set...\n";
             }
-            // -------------------------
 
             if (str_MyPurse.size() > 0) {
                 const std::string str_var_name("MyPurse");
@@ -1442,13 +1378,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelMyPurse.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
                 otInfo << "MyPurse variable isn't set...\n";
             }
-            // -------------------------
 
             if (str_HisAcct.size() > 0) {
                 const std::string str_var_name("HisAcct");
@@ -1464,13 +1398,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelHisAcct.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
                 otInfo << "HisAcct variable isn't set...\n";
             }
-            // -------------------------
 
             if (str_HisPurse.size() > 0) {
                 const std::string str_var_name("HisPurse");
@@ -1486,13 +1418,11 @@ int32_t main(int32_t argc, char* argv[])
                                                // important.
                 angelHisPurse.SetCleanupTargetPointer(pVar);
                 OT_ASSERT(nullptr != pVar);
-                // ------------------------------------------
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
             else {
                 otInfo << "MyPurse variable isn't set...\n";
             }
-            // ************************************************
 
             OTAPI_Func::CopyVariables();
 
@@ -1500,11 +1430,7 @@ int32_t main(int32_t argc, char* argv[])
 
             return madeEasy.ExecuteScript_ReturnInt(results, strFilename);
         }
-        // ------------------------------------------------------------------------
         // OT SCRIPT ABOVE.
-        // ------------------------------------------------------------------------
-
-        // *******************************************************************
 
         if ((nullptr == pServerContract) || (nullptr == pMyNym)) {
             otErr << "Unexpected nullptr: "
@@ -1517,7 +1443,6 @@ int32_t main(int32_t argc, char* argv[])
 
             otOut << "(User has instructed to withdraw cash...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1528,7 +1453,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr
                     << "Error processing withdraw command in ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
         else if (opt->getValue('t') != nullptr ||
                    opt->getValue("transfer") != nullptr) {
@@ -1540,7 +1464,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "User has instructed to send a Transfer command "
                      "(Notarize Transactions)...\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1600,7 +1523,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a marketOffer command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1614,10 +1536,8 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing marketOffer command in "
                          "ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
 
-        // ********************************************************
         /*
                 bool ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                   OTMessage & theMessage,
@@ -1644,7 +1564,6 @@ int32_t main(int32_t argc, char* argv[])
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr,
                 (str_HisAcct.size() > 0) ? &HIS_ACCT_ID : nullptr);
         }
-        // ------------------------------------------------------------------------
         else if (opt->getFlag("confirmpaymentplan")) {
             otOut << "(User has instructed to confirm a payment plan...)\n";
 
@@ -1653,7 +1572,6 @@ int32_t main(int32_t argc, char* argv[])
                 *pServerContract,
                 nullptr); // the account info is already on the plan, right?
         }
-        // ------------------------------------------------------------------------
         else if (opt->getFlag("activatepaymentplan")) {
             otOut << "(User has instructed to activate a payment plan...)\n";
 
@@ -1669,11 +1587,9 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing activate payment plan command in "
                          "ProcessMessage.\n";
         }
-        // *******************************************************
         else if (opt->getFlag("depositcheque")) {
             otOut << "(User has instructed to deposit a cheque...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1684,12 +1600,10 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing deposit cheque command in "
                          "ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
         else if (opt->getFlag("depositpurse")) {
             otOut << "(User has instructed to deposit a cash purse...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1701,13 +1615,11 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing deposit purse command in "
                          "ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
         else if (opt->getFlag("deposittokens")) {
             otOut << "(User has instructed to deposit individual cash "
                      "tokens...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1718,7 +1630,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing deposit cash tokens command in "
                          "ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
         else if (opt->getFlag('i') || opt->getFlag("inbox")) {
             cerr << "DISPLAY INBOX CONTENTS HERE... (When I code this. What "
@@ -1766,7 +1677,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to download intermediary files "
                      "for an asset account...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1777,13 +1687,11 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing getAccount command in "
                          "ProcessMessage.\n";
-            // ------------------------------------------------------------------------
         }
         else if (opt->getFlag("refreshnym")) {
             otOut << "(User has instructed to download intermediary files "
                      "for a Nym...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -1796,7 +1704,6 @@ int32_t main(int32_t argc, char* argv[])
                          "ProcessMessage.\n";
         }
 
-        // ----------------------------------------------------------------------
         //
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
 
@@ -1807,14 +1714,12 @@ int32_t main(int32_t argc, char* argv[])
             return 0;
         }
         //
-        // ***********************************************************
 
         if (bSendCommand && pServerNym->VerifyPseudonym()) {
             OTString strEnvelopeContents(theMessage);
             OTEnvelope theEnvelope; // Seal the string up into an encrypted
                                     // Envelope
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
-            // -----------------------------------
 
             OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
                 *pServerContract, theEnvelope);
@@ -1829,8 +1734,6 @@ int32_t main(int32_t argc, char* argv[])
         }
     } // Command line interface (versus below, which is the PROMPT interface.)
 
-    // ****************************************************************************
-
     otOut << "\nLOOKING FOR INSTRUCTIONS for the OT COMMAND LINE?\n"
              "Try:   quit\n"
              "Followed by:  ot -?\n"
@@ -1840,7 +1743,6 @@ int32_t main(int32_t argc, char* argv[])
              "(NOW ENTERING OT PROMPT) \n"
              "See docs/CLIENT-COMMANDS.txt\n\n";
 
-    // -----------------------------------------------------------------------
     //
     //  THE OPEN-TRANSACTIONS PROMPT
     //
@@ -1892,7 +1794,6 @@ int32_t main(int32_t argc, char* argv[])
     // Below this point, pMyNym MIGHT be a valid pointer (if it was specified),
     // or MIGHT be nullptr. Same with pServerContract. (MIGHT be there.)
     //
-    // ***********************************************************
 
     char buf[200] = "";
 
@@ -1902,8 +1803,6 @@ int32_t main(int32_t argc, char* argv[])
 #ifndef _WIN32
 // XmlRpc::setVerbosity(1);
 #endif
-
-    // -----------------------------------------------------------------------
 
     for (;;) {
         buf[0] = 0; // Making it fresh again.
@@ -1939,15 +1838,12 @@ int32_t main(int32_t argc, char* argv[])
         else if ('\0' == buf[0]) {
             continue;
         }
-
-        // --------------------------------------------------------------------
         else if (strLine.compare(0, 4, "test") == 0) {
             std::string strScript = "print(\"Hello, world\")";
             OT_ME madeEasy;
             OTAPI_Func::CopyVariables();
             madeEasy.ExecuteScript_ReturnVoid(strScript, "hardcoded");
 
-            // --------------------------------------------------------------------
             /*
                               // TODO: Make sure there's no issues with a known
          plaintext attack.
@@ -1979,9 +1875,8 @@ int32_t main(int32_t argc, char* argv[])
 
             continue;
         }
-        // --------------------------------
         else if (strLine.compare(0, 8, "clearreq") ==
-                 0) // clear request numbers
+                   0) // clear request numbers
         {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available. Try 'load'.\n";
@@ -2001,8 +1896,6 @@ int32_t main(int32_t argc, char* argv[])
                                                  ? str_ServerID.c_str()
                                                  : strServerID.Get());
 
-            // --------------------------------
-
             pMyNym->RemoveReqNumbers(&strReqNumServerID);
 
             pMyNym->SaveSignedNymfile(*pMyNym);
@@ -2011,7 +1904,6 @@ int32_t main(int32_t argc, char* argv[])
                   << strReqNumServerID << ". Saving nym...\n";
             continue;
         }
-        // --------------------------------
         else if (strLine.compare(0, 5, "clear") == 0) {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available. Try 'load'.\n";
@@ -2031,8 +1923,6 @@ int32_t main(int32_t argc, char* argv[])
                                                    ? str_ServerID.c_str()
                                                    : strServerID.Get());
 
-            // --------------------------------
-
             pMyNym->RemoveAllNumbers(&strTransNumServerID,
                                      true); // bRemoveHighestNum = true.
             pMyNym->SaveSignedNymfile(*pMyNym);
@@ -2042,7 +1932,6 @@ int32_t main(int32_t argc, char* argv[])
                   << ". Saving nym...\n";
             continue;
         }
-        // --------------------------------
         else if (strLine.compare(0, 7, "decrypt") == 0) {
             if (nullptr == pMyNym) {
                 otOut << "No Nym yet available to decrypt with.\n";
@@ -2075,7 +1964,6 @@ int32_t main(int32_t argc, char* argv[])
 
             continue;
         }
-        // --------------------------------
         else if (strLine.compare(0, 6, "decode") == 0) {
             otOut << "Enter text to be decoded:\n> ";
 
@@ -2189,8 +2077,6 @@ int32_t main(int32_t argc, char* argv[])
             break;
         }
 
-        // ------------------------------------------------------------------------------
-
         /*
                     --myacct   (ACCT ID)
                     --mynym    (NYM ID)
@@ -2237,8 +2123,6 @@ int32_t main(int32_t argc, char* argv[])
         //     continue;
         // }
 
-        // ------------------------------------------------------------------------------
-
         // I put this here too since I think it's required in all cases below.
         //
         if (nullptr ==
@@ -2253,8 +2137,6 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        // ------------------------------------------------------------------------------
-
         bool bSendCommand = false; // Determines whether to actually send a
                                    // message to the server.
 
@@ -2263,8 +2145,6 @@ int32_t main(int32_t argc, char* argv[])
         // If we can match the user's request to a client command,
         // AND theClient object is able to process that request into
         // theMessage, then we send it down the pipe.
-
-        // *******************************************************************************
 
         // In lieu of maintaining a constant connection to the server, in RPC
         // mode,
@@ -2287,14 +2167,11 @@ int32_t main(int32_t argc, char* argv[])
         // ProcessServerReply()
         // (which comes next.)
 
-        // -------------------------------------------------------------------------
-
         // 'check server ID' command
         if (buf[0] == 'c') {
             otOut << "(User has instructed to send a checkServerID command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2308,7 +2185,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing checkServerID command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // register new user account
@@ -2316,7 +2192,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a createUserAccount "
                      "command to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2330,7 +2205,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing createUserAccount command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // ALL MESSAGES BELOW THIS POINT SHOULD ATTACH A REQUEST NUMBER IF THEY
@@ -2342,7 +2216,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a checkUser command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2356,7 +2229,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing checkUser command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // register new asset account
@@ -2364,7 +2236,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a createAccount command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2378,7 +2249,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing createAccount command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // issue a new asset type
@@ -2386,7 +2256,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send an issueAssetType command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2400,7 +2269,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing issueAssetType command in "
                          "ProcessMessage: " << buf << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // issue a new basket asset type
@@ -2408,7 +2276,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send an issueBasket command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2422,7 +2289,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing issueBasket command in "
                          "ProcessMessage: " << buf << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // exchange in/out of a basket currency
@@ -2430,7 +2296,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send an exchangeBasket command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2444,7 +2309,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing exchangeBasket command in "
                          "ProcessMessage: " << buf << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // make an offer and put it onto a market.
@@ -2452,7 +2316,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a marketOffer command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2466,7 +2329,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing marketOffer command in "
                          "ProcessMessage: " << buf << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // Set a Server Contract's client-side name (merely a label.)
@@ -2474,7 +2336,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User wants to set a Server Contract's "
                      "client-side name...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2486,7 +2347,6 @@ int32_t main(int32_t argc, char* argv[])
                 // No
                 // message needed. Local data only.
             }
-            // ------------------------------------------------------------------------
         }
 
         // Set an Asset Contract's client-side name (merely a label.)
@@ -2494,7 +2354,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User wants to set an Asset Contract's "
                      "client-side name...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2506,14 +2365,12 @@ int32_t main(int32_t argc, char* argv[])
                 // No
                 // message needed. Local data only.
             }
-            // ------------------------------------------------------------------------
         }
 
         // Set a Nym's client-side name (merely a label.)
         else if (!strcmp(buf, "setnymname\n")) {
             otOut << "(User wants to set a Nym's client-side name...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2525,7 +2382,6 @@ int32_t main(int32_t argc, char* argv[])
                 // No
                 // message needed. Local data only.
             }
-            // ------------------------------------------------------------------------
         }
 
         // Set an Asset Account's client-side name (merely a label.)
@@ -2533,7 +2389,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User wants to set an Asset Account's client-side "
                      "name...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2546,7 +2401,6 @@ int32_t main(int32_t argc, char* argv[])
                 // message needed. Local data only.
             }
 
-            // ------------------------------------------------------------------------
         }
 
         // sign contract
@@ -2566,7 +2420,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a sendUserMessage command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2580,7 +2433,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing sendUserMessage command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // process nymbox
@@ -2588,7 +2440,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a processNymbox command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2602,7 +2453,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error in processNymbox command in ProcessMessage: "
                       << strLine << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // get nymbox
@@ -2610,7 +2460,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getNymbox command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2624,7 +2473,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getNymbox command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // Nym, Account, Server ID, Server Contract
@@ -2634,7 +2482,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a processInbox command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2648,7 +2495,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error in processInbox command in ProcessMessage: "
                       << strLine << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // get inbox
@@ -2656,7 +2502,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getInbox command to the "
                      "server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2668,7 +2513,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getInbox command in ProcessMessage: "
                       << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // get outbox
@@ -2676,7 +2520,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getOutbox command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2688,14 +2531,12 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getOutbox command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // deposit cheque
         else if (buf[0] == 'q') {
             otOut << "User has instructed to deposit a cheque...\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2707,7 +2548,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing deposit cheque command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // deposit purse
@@ -2715,7 +2555,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to deposit a purse "
                      "containing cash...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2727,14 +2566,12 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing deposit command in ProcessMessage: "
                       << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // deposit tokens
         else if (buf[0] == 'd') {
             otOut << "(User has instructed to deposit cash tokens...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2746,7 +2583,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing deposit command in ProcessMessage: "
                       << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // withdraw voucher
@@ -2754,7 +2590,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "User has instructed to withdraw a voucher (like a "
                      "cashier's cheque)...\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2768,14 +2603,12 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing withdraw voucher command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // withdraw cash
         else if (buf[0] == 'w') {
             otOut << "(User has instructed to withdraw cash...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2789,14 +2622,12 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing withdraw command in ProcessMessage: "
                       << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // activate payment plan
         else if (!strcmp(buf, "activate\n")) {
             otOut << "User has instructed to activate a payment plan...\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2810,7 +2641,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing payment plan command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // get account
@@ -2818,7 +2648,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getAccount command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2832,7 +2661,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getAccount command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // get contract
@@ -2840,7 +2668,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getContract command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2854,10 +2681,7 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getContract command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
-
-        // ------------------------------------------------------------------------
         else if (!strcmp(buf, "propose\n")) {
             otOut << "(User has instructed to propose a payment plan...)\n";
 
@@ -2876,8 +2700,6 @@ int32_t main(int32_t argc, char* argv[])
                 nullptr); // the account info is already on the plan, right?
             continue;
         }
-
-        // ------------------------------------------------------------------------
         else if (!strcmp(buf, "cheque\n")) {
             otOut << "(User has instructed to write a cheque...)\n";
 
@@ -2892,7 +2714,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getMint command "
                      "to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2906,7 +2727,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getMint command in ProcessMessage: "
                       << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // notarize transfer
@@ -2914,7 +2734,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a Transfer command "
                      "(Notarize Transactions) to the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2928,7 +2747,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing notarizeTransactions command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // getRequest
@@ -2936,7 +2754,6 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "(User has instructed to send a getRequest command to "
                      "the server...)\n";
 
-            // ------------------------------------------------------------------------------
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -2950,7 +2767,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getRequest command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-            // ------------------------------------------------------------------------
         }
 
         // getTransactionNum
@@ -2993,8 +2809,6 @@ int32_t main(int32_t argc, char* argv[])
                                                        ? str_ServerID.c_str()
                                                        : strServerID.Get());
 
-                // --------------------------
-
                 pMyNym->AddTransactionNum(*pMyNym, strTransNumServerID,
                                           lTransactionNumber,
                                           true); // bool bSave=true
@@ -3007,7 +2821,6 @@ int32_t main(int32_t argc, char* argv[])
                 otOut << "(User has instructed to send a getTransactionNum "
                          "command to the server...)\n";
 
-                // ------------------------------------------------------------------------------
                 // if successful setting up the command payload...
 
                 if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
@@ -3022,7 +2835,6 @@ int32_t main(int32_t argc, char* argv[])
                              "ProcessMessage: " << buf[0] << "\n";
             }
 
-            // ------------------------------------------------------------------------
         }
         else {
             {
@@ -3035,8 +2847,6 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        // ************************************************************************
-
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
 
         if (bSendCommand && (nullptr != pServerNym) &&
@@ -3044,15 +2854,12 @@ int32_t main(int32_t argc, char* argv[])
             OTString strEnvelopeContents(theMessage);
             OTEnvelope theEnvelope;
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
-            // -----------------------------------
 
             OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
                 *pServerContract, theEnvelope);
 
         } // if bSendCommand
     }     // for
-
-    // -----------------------------------------------------------
 
     otOut << "Exiting OT prompt.\n";
 
