@@ -566,7 +566,8 @@ public:
 
 // For declaring subclasses of OTPacker.
 
-template <class theBufferType> class PackerSubclass : public OTPacker
+template <class theBufferType>
+class PackerSubclass : public OTPacker
 {
 public:
     PackerSubclass() : OTPacker()

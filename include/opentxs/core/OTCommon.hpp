@@ -22,7 +22,8 @@ namespace irr
 {
 namespace io
 {
-template <class char_type, class super_class> class IIrrXMLReader;
+template <class char_type, class super_class>
+class IIrrXMLReader;
 class IFileReadCallBack;
 class IXMLBase;
 

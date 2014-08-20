@@ -1563,7 +1563,8 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
         list_##element_type##s.push_back(thePtr);                              \
     }
 
-template <> void WalletDataPB::hookBeforePack()
+template <>
+void WalletDataPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(bitcoin_server, BitcoinServer)
     OT_IMPLEMENT_PB_LIST_PACK(bitcoin_acct, BitcoinAcct)
@@ -1571,7 +1572,8 @@ template <> void WalletDataPB::hookBeforePack()
     OT_IMPLEMENT_PB_LIST_PACK(loom_server, LoomServer)
 }
 
-template <> void WalletDataPB::hookAfterUnpack()
+template <>
+void WalletDataPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(bitcoin_server, BitcoinServer,
                                 STORED_OBJ_BITCOIN_SERVER)
@@ -1582,7 +1584,8 @@ template <> void WalletDataPB::hookAfterUnpack()
     OT_IMPLEMENT_PB_LIST_UNPACK(loom_server, LoomServer, STORED_OBJ_LOOM_SERVER)
 }
 
-template <> void StringMapPB::hookBeforePack()
+template <>
+void StringMapPB::hookBeforePack()
 {
     __pb_obj.clear_node(); // "node" is the repeated field of Key/Values.
 
@@ -1597,7 +1600,8 @@ template <> void StringMapPB::hookBeforePack()
     }
 }
 
-template <> void StringMapPB::hookAfterUnpack()
+template <>
+void StringMapPB::hookAfterUnpack()
 {
     //    the_map = __pb_obj.the_map();
 
@@ -1611,14 +1615,16 @@ template <> void StringMapPB::hookAfterUnpack()
     }
 }
 
-template <> void StringPB::hookBeforePack()
+template <>
+void StringPB::hookBeforePack()
 {
     __pb_obj.set_value(m_string);
     // The way StringPB is used, this function will never actually get called.
     // (But if you used it like the others, it would work, since this function
     // is here.)
 }
-template <> void StringPB::hookAfterUnpack()
+template <>
+void StringPB::hookAfterUnpack()
 {
     m_string = __pb_obj.value();
     // The way StringPB is used, this function will never actually get called.
@@ -1626,12 +1632,14 @@ template <> void StringPB::hookAfterUnpack()
     // is here.)
 }
 
-template <> void BlobPB::hookBeforePack()
+template <>
+void BlobPB::hookBeforePack()
 {
     if (m_memBuffer.size() > 0)
         __pb_obj.set_value(m_memBuffer.data(), m_memBuffer.size());
 }
-template <> void BlobPB::hookAfterUnpack()
+template <>
+void BlobPB::hookAfterUnpack()
 {
     if (__pb_obj.has_value()) {
         std::string strTemp = __pb_obj.value();
@@ -1639,7 +1647,8 @@ template <> void BlobPB::hookAfterUnpack()
     }
 }
 
-template <> void ContactPB::hookBeforePack()
+template <>
+void ContactPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_contact_id(contact_id);
@@ -1651,7 +1660,8 @@ template <> void ContactPB::hookBeforePack()
     OT_IMPLEMENT_PB_LIST_PACK(accounts, ContactAcct)
 }
 
-template <> void ContactPB::hookAfterUnpack()
+template <>
+void ContactPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     contact_id = __pb_obj.contact_id();
@@ -1663,7 +1673,8 @@ template <> void ContactPB::hookAfterUnpack()
     OT_IMPLEMENT_PB_LIST_UNPACK(accounts, ContactAcct, STORED_OBJ_CONTACT_ACCT)
 }
 
-template <> void ContactNymPB::hookBeforePack()
+template <>
+void ContactNymPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_nym_id(nym_id);
@@ -1674,7 +1685,8 @@ template <> void ContactNymPB::hookBeforePack()
     OT_IMPLEMENT_PB_LIST_PACK(servers, ServerInfo)
 }
 
-template <> void ContactNymPB::hookAfterUnpack()
+template <>
+void ContactNymPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     nym_id = __pb_obj.nym_id();
@@ -1685,17 +1697,20 @@ template <> void ContactNymPB::hookAfterUnpack()
     OT_IMPLEMENT_PB_LIST_UNPACK(servers, ServerInfo, STORED_OBJ_SERVER_INFO)
 }
 
-template <> void AddressBookPB::hookBeforePack()
+template <>
+void AddressBookPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(contacts, Contact)
 }
 
-template <> void AddressBookPB::hookAfterUnpack()
+template <>
+void AddressBookPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(contacts, Contact, STORED_OBJ_CONTACT)
 }
 
-template <> void ContactAcctPB::hookBeforePack()
+template <>
+void ContactAcctPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_server_id(server_id);
@@ -1706,7 +1721,8 @@ template <> void ContactAcctPB::hookBeforePack()
     __pb_obj.set_memo(memo);
     __pb_obj.set_public_key(public_key);
 }
-template <> void ContactAcctPB::hookAfterUnpack()
+template <>
+void ContactAcctPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     server_id = __pb_obj.server_id();
@@ -1718,25 +1734,29 @@ template <> void ContactAcctPB::hookAfterUnpack()
     public_key = __pb_obj.public_key();
 }
 
-template <> void ServerInfoPB::hookBeforePack()
+template <>
+void ServerInfoPB::hookBeforePack()
 {
     __pb_obj.set_server_id(server_id);
     __pb_obj.set_server_type(server_type);
 }
-template <> void ServerInfoPB::hookAfterUnpack()
+template <>
+void ServerInfoPB::hookAfterUnpack()
 {
     server_id = __pb_obj.server_id();
     server_type = __pb_obj.server_type();
 }
 
-template <> void BitcoinAcctPB::hookBeforePack()
+template <>
+void BitcoinAcctPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_acct_id(acct_id);
     __pb_obj.set_server_id(server_id);
     __pb_obj.set_bitcoin_acct_name(bitcoin_acct_name);
 }
-template <> void BitcoinAcctPB::hookAfterUnpack()
+template <>
+void BitcoinAcctPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     acct_id = __pb_obj.acct_id();
@@ -1744,7 +1764,8 @@ template <> void BitcoinAcctPB::hookAfterUnpack()
     bitcoin_acct_name = __pb_obj.bitcoin_acct_name();
 }
 
-template <> void BitcoinServerPB::hookBeforePack()
+template <>
+void BitcoinServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_server_id(server_id);
@@ -1754,7 +1775,8 @@ template <> void BitcoinServerPB::hookBeforePack()
     __pb_obj.set_bitcoin_username(bitcoin_username);
     __pb_obj.set_bitcoin_password(bitcoin_password);
 }
-template <> void BitcoinServerPB::hookAfterUnpack()
+template <>
+void BitcoinServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     server_id = __pb_obj.server_id();
@@ -1765,7 +1787,8 @@ template <> void BitcoinServerPB::hookAfterUnpack()
     bitcoin_password = __pb_obj.bitcoin_password();
 }
 
-template <> void RippleServerPB::hookBeforePack()
+template <>
+void RippleServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_server_id(server_id);
@@ -1777,7 +1800,8 @@ template <> void RippleServerPB::hookBeforePack()
     __pb_obj.set_namefield_id(namefield_id);
     __pb_obj.set_passfield_id(passfield_id);
 }
-template <> void RippleServerPB::hookAfterUnpack()
+template <>
+void RippleServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     server_id = __pb_obj.server_id();
@@ -1790,7 +1814,8 @@ template <> void RippleServerPB::hookAfterUnpack()
     passfield_id = __pb_obj.passfield_id();
 }
 
-template <> void LoomServerPB::hookBeforePack()
+template <>
+void LoomServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_server_id(server_id);
@@ -1800,7 +1825,8 @@ template <> void LoomServerPB::hookBeforePack()
     __pb_obj.set_loom_username(loom_username);
     __pb_obj.set_namefield_id(namefield_id);
 }
-template <> void LoomServerPB::hookAfterUnpack()
+template <>
+void LoomServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     server_id = __pb_obj.server_id();
@@ -1811,7 +1837,8 @@ template <> void LoomServerPB::hookAfterUnpack()
     namefield_id = __pb_obj.namefield_id();
 }
 
-template <> void MarketDataPB::hookBeforePack()
+template <>
+void MarketDataPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_server_id(server_id);
@@ -1833,7 +1860,8 @@ template <> void MarketDataPB::hookBeforePack()
     __pb_obj.set_recent_lowest_ask(recent_lowest_ask);
 }
 
-template <> void MarketDataPB::hookAfterUnpack()
+template <>
+void MarketDataPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     server_id = __pb_obj.server_id();
@@ -1855,17 +1883,20 @@ template <> void MarketDataPB::hookAfterUnpack()
     recent_lowest_ask = __pb_obj.recent_lowest_ask();
 }
 
-template <> void MarketListPB::hookBeforePack()
+template <>
+void MarketListPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(market_data, MarketData)
 }
 
-template <> void MarketListPB::hookAfterUnpack()
+template <>
+void MarketListPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(market_data, MarketData, STORED_OBJ_MARKET_DATA)
 }
 
-template <> void BidDataPB::hookBeforePack()
+template <>
+void BidDataPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_transaction_id(transaction_id);
@@ -1875,7 +1906,8 @@ template <> void BidDataPB::hookBeforePack()
     __pb_obj.set_date(date);
 }
 
-template <> void BidDataPB::hookAfterUnpack()
+template <>
+void BidDataPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     transaction_id = __pb_obj.transaction_id();
@@ -1885,7 +1917,8 @@ template <> void BidDataPB::hookAfterUnpack()
     date = __pb_obj.date();
 }
 
-template <> void AskDataPB::hookBeforePack()
+template <>
+void AskDataPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_transaction_id(transaction_id);
@@ -1895,7 +1928,8 @@ template <> void AskDataPB::hookBeforePack()
     __pb_obj.set_date(date);
 }
 
-template <> void AskDataPB::hookAfterUnpack()
+template <>
+void AskDataPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     transaction_id = __pb_obj.transaction_id();
@@ -1905,19 +1939,22 @@ template <> void AskDataPB::hookAfterUnpack()
     date = __pb_obj.date();
 }
 
-template <> void OfferListMarketPB::hookBeforePack()
+template <>
+void OfferListMarketPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(bids, BidData)
     OT_IMPLEMENT_PB_LIST_PACK(asks, AskData)
 }
 
-template <> void OfferListMarketPB::hookAfterUnpack()
+template <>
+void OfferListMarketPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(bids, BidData, STORED_OBJ_BID_DATA)
     OT_IMPLEMENT_PB_LIST_UNPACK(asks, AskData, STORED_OBJ_ASK_DATA)
 }
 
-template <> void TradeDataMarketPB::hookBeforePack()
+template <>
+void TradeDataMarketPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_transaction_id(transaction_id);
@@ -1926,7 +1963,8 @@ template <> void TradeDataMarketPB::hookBeforePack()
     __pb_obj.set_amount_sold(amount_sold);
 }
 
-template <> void TradeDataMarketPB::hookAfterUnpack()
+template <>
+void TradeDataMarketPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     transaction_id = __pb_obj.transaction_id();
@@ -1935,18 +1973,21 @@ template <> void TradeDataMarketPB::hookAfterUnpack()
     amount_sold = __pb_obj.amount_sold();
 }
 
-template <> void TradeListMarketPB::hookBeforePack()
+template <>
+void TradeListMarketPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(trades, TradeDataMarket)
 }
 
-template <> void TradeListMarketPB::hookAfterUnpack()
+template <>
+void TradeListMarketPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataMarket,
                                 STORED_OBJ_TRADE_DATA_MARKET)
 }
 
-template <> void OfferDataNymPB::hookBeforePack()
+template <>
+void OfferDataNymPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_valid_from(valid_from);
@@ -1968,7 +2009,8 @@ template <> void OfferDataNymPB::hookBeforePack()
     __pb_obj.set_date(date);
 }
 
-template <> void OfferDataNymPB::hookAfterUnpack()
+template <>
+void OfferDataNymPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     valid_from = __pb_obj.valid_from();
@@ -1990,17 +2032,20 @@ template <> void OfferDataNymPB::hookAfterUnpack()
     date = __pb_obj.date();
 }
 
-template <> void OfferListNymPB::hookBeforePack()
+template <>
+void OfferListNymPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(offers, OfferDataNym)
 }
 
-template <> void OfferListNymPB::hookAfterUnpack()
+template <>
+void OfferListNymPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(offers, OfferDataNym, STORED_OBJ_OFFER_DATA_NYM)
 }
 
-template <> void TradeDataNymPB::hookBeforePack()
+template <>
+void TradeDataNymPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_transaction_id(transaction_id);
@@ -2016,7 +2061,8 @@ template <> void TradeDataNymPB::hookBeforePack()
     __pb_obj.set_currency_paid(currency_paid);
 }
 
-template <> void TradeDataNymPB::hookAfterUnpack()
+template <>
+void TradeDataNymPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     transaction_id = __pb_obj.transaction_id();
@@ -2032,12 +2078,14 @@ template <> void TradeDataNymPB::hookAfterUnpack()
     currency_paid = __pb_obj.currency_paid();
 }
 
-template <> void TradeListNymPB::hookBeforePack()
+template <>
+void TradeListNymPB::hookBeforePack()
 {
     OT_IMPLEMENT_PB_LIST_PACK(trades, TradeDataNym)
 }
 
-template <> void TradeListNymPB::hookAfterUnpack()
+template <>
+void TradeListNymPB::hookAfterUnpack()
 {
     OT_IMPLEMENT_PB_LIST_UNPACK(trades, TradeDataNym, STORED_OBJ_TRADE_DATA_NYM)
 }
