@@ -346,7 +346,8 @@ private:
 /// }
 /// @endcode
 
-template <class T> class lock_guard
+template <class T>
+class lock_guard
 {
 public:
     typedef T mutex_type;
@@ -425,7 +426,8 @@ public:
     /// is woken by @c notify_one(), @c notify_all() or a spurious wake up.
     /// @param[in] aMutex A mutex that will be unlocked when the wait operation
     ///   starts, an locked again as soon as the wait operation is finished.
-    template <class _mutexT> inline void wait(_mutexT& aMutex)
+    template <class _mutexT>
+    inline void wait(_mutexT& aMutex)
     {
 #if defined(_TTHREAD_WIN32_)
         // Increment number of waiters
@@ -658,7 +660,8 @@ typedef long long __intmax_t;
 
 /// Minimal implementation of the @c ratio class. This class provides enough
 /// functionality to implement some basic @c chrono classes.
-template <__intmax_t N, __intmax_t D = 1> class ratio
+template <__intmax_t N, __intmax_t D = 1>
+class ratio
 {
 public:
     static double _as_double()
@@ -673,7 +676,8 @@ namespace chrono
 {
 /// Duration template class. This class provides enough functionality to
 /// implement @c this_thread::sleep_for().
-template <class _Rep, class _Period = ratio<1>> class duration
+template <class _Rep, class _Period = ratio<1>>
+class duration
 {
 private:
     _Rep rep_;
@@ -683,7 +687,9 @@ public:
     typedef _Period period;
 
     /// Construct a duration object with the given duration.
-    template <class _Rep2> explicit duration(const _Rep2& r) : rep_(r)
+    template <class _Rep2>
+    explicit duration(const _Rep2& r)
+        : rep_(r)
     {
     }
 

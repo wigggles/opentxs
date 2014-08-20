@@ -149,7 +149,8 @@
 namespace opentxs
 {
 
-template <class T> class OTCleanup
+template <class T>
+class OTCleanup
 {
 private:
     const T* m_pCharge;
