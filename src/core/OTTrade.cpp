@@ -1004,7 +1004,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                                                   // since multiple things
                                                   // have changed.
 
-        const OTIdentifier actualNymId = GetSenderUserID();
+        const OTIdentifier& actualNymId = GetSenderUserID();
 
         OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
         if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
