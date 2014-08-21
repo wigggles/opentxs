@@ -930,7 +930,9 @@ extern "C" {
 #include <openssl/opensslv.h>
 }
 
-OTCrypto_OpenSSL::OTCrypto_OpenSSL() : OTCrypto()
+OTCrypto_OpenSSL::OTCrypto_OpenSSL()
+    : OTCrypto()
+    , dp(nullptr)
 {
 }
 

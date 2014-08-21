@@ -711,6 +711,7 @@ OTPurse::OTPurse()
 
 OTPurse::OTPurse(const OTPurse& thePurse)
     : ot_super()
+    , m_UserID()
     , m_ServerID(thePurse.GetServerID())
     , m_AssetID(thePurse.GetAssetID())
     , m_lTotalValue(0)
