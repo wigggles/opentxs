@@ -151,7 +151,7 @@ namespace opentxs
 
 // OTSocket base class.
 OTSocket::OTSocket()
-    : m_Mutex(Mutex())
+    : m_Mutex()
     , m_lLatencySendMs(0)
     , m_nLatencySendNoTries(0)
     , m_lLatencyReceiveMs(0)

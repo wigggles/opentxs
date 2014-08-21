@@ -170,6 +170,8 @@ private:
     class Mutex
     {
     private:
+        Mutex(const Mutex&);
+        Mutex& operator=(const Mutex&);
         tthread::mutex* m_pMutex;
 
     public:
