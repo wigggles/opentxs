@@ -160,10 +160,6 @@ private:
     // Log (log to Output in a well-formated way).
     EXPORT bool LogChange_str(const OTString& strSection,
                               const OTString& strKey, const OTString& strValue);
-    EXPORT bool LogChange_long(const OTString& strSection,
-                               const OTString& strKey, const int64_t& lValue);
-    EXPORT bool LogChange_bool(const OTString& strSection,
-                               const OTString& strKey, const bool& bValue);
 
 public:
     EXPORT OTSettings();
