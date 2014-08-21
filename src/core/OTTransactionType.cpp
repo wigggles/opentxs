@@ -268,6 +268,8 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
                                      const OTIdentifier& theAccountID,
                                      const OTIdentifier& theServerID)
     : OTContract(theAccountID)
+    , m_ServerID(theServerID)
+    , m_AcctUserID(theUserID)
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -277,8 +279,6 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
 
     //  m_ID            = theAccountID  -- This happens in OTContract, no need
     // to do it twice.
-    m_ServerID = theServerID;
-    m_AcctUserID = theUserID;
 
     // do NOT set m_AcctID and m_AcctServerID here.  Let the child classes LOAD
     // them or GENERATE them.
@@ -289,7 +289,9 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
                                      const OTIdentifier& theServerID,
                                      int64_t lTransactionNum)
     : OTContract(theAccountID)
-    , m_lTransactionNum(0)
+    , m_ServerID(theServerID)
+    , m_AcctUserID(theUserID)
+    , m_lTransactionNum(lTransactionNum)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
     , m_bLoadSecurely(true)
@@ -300,9 +302,6 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
 
     //  m_ID                = theAccountID  -- This happens in OTContract, no
     // need to do it twice.
-    m_ServerID = theServerID;
-    m_AcctUserID = theUserID;
-    m_lTransactionNum = lTransactionNum;
 
     // do NOT set m_AcctID and m_AcctServerID here.  Let the child classes LOAD
     // them or GENERATE them.
