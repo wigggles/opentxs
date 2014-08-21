@@ -1,4 +1,4 @@
-%module(directors="1") otapi
+%module(directors="1") opentxs
 
 // remove these %ignores in updated version of swig...
 // for inttypes.i

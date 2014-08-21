@@ -20,12 +20,12 @@ include_directories(SYSTEM
 if(PYTHON)
   find_package(PythonLibs)
   include_directories(${PYTHON_INCLUDE_PATH})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-python python OTAPI.i)
-  swig_link_libraries(otapi-python ${PYTHON_LIBRARIES})
-  set_target_properties(_otapi-python
-                      PROPERTIES OUTPUT_NAME otapi-python)
-  install(TARGETS _otapi-python
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-python python opentxs.i)
+  swig_link_libraries(opentxs-python ${PYTHON_LIBRARIES})
+  set_target_properties(_opentxs-python
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-python
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT python)
 endif()
@@ -34,12 +34,12 @@ endif()
 if(PERL)
   find_package(PerlLibs)
   include_directories(${PERL_INCLUDE_PATH})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-perl perl OTAPI.i)
-  swig_link_libraries(otapi-perl ${PERL_LIBRARIES})
-  set_target_properties(_otapi-perl
-                      PROPERTIES OUTPUT_NAME otapi-perl)
-  install(TARGETS _otapi-perl
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-perl perl opentxs.i)
+  swig_link_libraries(opentxs-perl ${PERL_LIBRARIES})
+  set_target_properties(_opentxs-perl
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-perl
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT perl)
 endif()
@@ -48,12 +48,12 @@ endif()
 if(RUBY)
   find_package(Ruby)
   include_directories(${RUBY_INCLUDE_PATH})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-ruby ruby OTAPI.i)
-  swig_link_libraries(otapi-ruby ${RUBY_LIBRARIES})
-  set_target_properties(_otapi-ruby
-                      PROPERTIES OUTPUT_NAME otapi-ruby)
-  install(TARGETS _otapi-ruby
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-ruby ruby opentxs.i)
+  swig_link_libraries(opentxs-ruby ${RUBY_LIBRARIES})
+  set_target_properties(_opentxs-ruby
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-ruby
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT ruby)
 endif()
@@ -62,12 +62,12 @@ endif()
 if(TCL)
   find_package(TCL)
   include_directories(${TCL_INCLUDE_PATH})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-tcl tcl OTAPI.i)
-  swig_link_libraries(otapi-tcl ${TCL_LIBRARIES})
-  set_target_properties(_otapi-tcl
-                      PROPERTIES OUTPUT_NAME otapi-tcl)
-  install(TARGETS _otapi-tcl
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-tcl tcl opentxs.i)
+  swig_link_libraries(opentxs-tcl ${TCL_LIBRARIES})
+  set_target_properties(_opentxs-tcl
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-tcl
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT tcl)
 endif()
@@ -76,12 +76,12 @@ endif()
 if(JAVA)
   find_package(Java)
   include_directories(${JAVA_INCLUDE_PATH})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-java java OTAPI.i)
-  swig_link_libraries(otapi-java ${JAVA_LIBRARIES})
-  set_target_properties(_otapi-java
-                      PROPERTIES OUTPUT_NAME otapi-java)
-  install(TARGETS _otapi-java
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-java java opentxs.i)
+  swig_link_libraries(opentxs-java ${JAVA_LIBRARIES})
+  set_target_properties(_opentxs-java
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-java
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT java)
 endif()
@@ -91,12 +91,12 @@ if(PHP)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
   find_package(PHP5)
   include_directories(${PHP5_INCLUDE_DIR} ${PHP5_MAIN_INCLUDE_DIR} ${PHP5_ZEND_INCLUDE_DIR} ${PHP5_TSRM_INCLUDE_DIR})
-  set_source_files_properties(OTAPI.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(otapi-php php OTAPI.i)
-  swig_link_libraries(otapi-php ${PHP_LIBRARIES})
-  set_target_properties(_otapi-php
-                      PROPERTIES OUTPUT_NAME otapi-php)
-  install(TARGETS _otapi-php
+  set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(opentxs-php php opentxs.i)
+  swig_link_libraries(opentxs-php ${PHP_LIBRARIES})
+  set_target_properties(_opentxs-php
+                      PROPERTIES OUTPUT_NAME _opentxs)
+  install(TARGETS _opentxs-php
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT php)
 endif()
