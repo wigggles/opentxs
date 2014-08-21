@@ -158,8 +158,7 @@ LONG WindowsRegistryTools::GetBoolRegKey(HKEY hKey,
 {
     DWORD nDefValue((bDefaultValue) ? 1 : 0);
     DWORD nResult(nDefValue);
-    LONG nError =
-        GetDWORDRegKey(hKey, strValueName.c_str(), nResult, nDefValue);
+    LONG nError = GetDWORDRegKey(hKey, strValueName, nResult, nDefValue);
     if (ERROR_SUCCESS == nError) {
         bValue = (nResult != 0) ? true : false;
     }

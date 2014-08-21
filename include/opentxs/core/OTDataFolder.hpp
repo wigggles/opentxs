@@ -157,15 +157,6 @@ private:
     OTString m_strDataFolderPath;
     OTString m_strDataConifgFilePath;
 
-    static inline bool CheckDataFolder(OTDataFolder* pDataFolder)
-    {
-        if (nullptr != pDataFolder)
-            if (pDataFolder->m_bInitialized) return true;
-
-        OT_FAIL;
-        return false;
-    }
-
 public:
     EXPORT static bool Init(const OTString& strThreadContext);
 

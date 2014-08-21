@@ -2395,7 +2395,7 @@ void OTContract::CreateInnerContents()
 {
     // CONDITIONS
     //
-    if (m_mapConditions.size() > 0) {
+    if (!m_mapConditions.empty()) {
         m_xmlUnsigned.Concatenate("<!-- CONDITIONS -->\n\n");
 
         for (auto& it : m_mapConditions) {
@@ -2410,7 +2410,7 @@ void OTContract::CreateInnerContents()
 
     // KEYS (old) / CREDENTIALS (new)
     //
-    if (m_mapNyms.size() > 0) {
+    if (!m_mapNyms.empty()) {
         OTString strTemp;
 
         // KEYS  (Note: deprecated in favor of NymID source and credentials.)
@@ -2508,8 +2508,8 @@ void OTContract::CreateInnerContents()
                         // Serialize the StringMap to a string...
                         //
                         if (strCredList.Exists() &&
-                            (theMap.size() > 0)) // Won't bother if there are
-                                                 // zero credentials somehow.
+                            (!theMap.empty())) // Won't bother if there are
+                                               // zero credentials somehow.
                         {
                             std::string str_Encoded = OTDB::EncodeObject(*pMap);
                             const bool bSuccessEncoding =

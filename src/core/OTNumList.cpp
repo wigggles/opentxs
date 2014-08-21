@@ -433,7 +433,7 @@ bool OTNumList::Output(std::set<int64_t>& theOutput) const // returns false if
 {
     theOutput = m_setData;
 
-    return (m_setData.size() > 0) ? true : false;
+    return !m_setData.empty();
 }
 
 // Outputs the numlist as a comma-separated string (for serialization, usually.)
@@ -454,7 +454,7 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
             (1 == nIterationCount) ? "" : ",", it);
     }
 
-    return (m_setData.size() > 0) ? true : false;
+    return !m_setData.empty();
 }
 
 int32_t OTNumList::Count() const

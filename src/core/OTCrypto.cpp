@@ -2452,7 +2452,7 @@ bool OTCrypto_OpenSSL::Decrypt(
 bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                             const OTString& theInput, OTData& dataOutput) const
 {
-    OT_ASSERT_MSG(RecipPubKeys.size() > 0,
+    OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OTCrypto_OpenSSL::Seal: ASSERT: RecipPubKeys.size() > 0");
 
     const char* szFunc = "OTCrypto_OpenSSL::Seal";
@@ -2531,7 +2531,7 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
             if (nullptr == param_array_pubkey) OT_FAIL;
             if (nullptr == param_ek) OT_FAIL;
             if (nullptr == param_eklen) OT_FAIL;
-            OT_ASSERT(m_RecipPubKeys.size() > 0);
+            OT_ASSERT(!m_RecipPubKeys.empty());
 
             // Notice that each variable is a "pointer to" the actual array that
             // was passed in.

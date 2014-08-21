@@ -247,7 +247,7 @@ void OTSubcredential::UpdateMasterPublicToString(
 void OTSubcredential::UpdatePublicContentsToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
-    if (m_mapPublicInfo.size() > 0) {
+    if (!m_mapPublicInfo.empty()) {
         strAppendTo.Concatenate("<publicContents count=\"%d\">\n\n",
                                 m_mapPublicInfo.size());
 
@@ -278,7 +278,7 @@ void OTSubcredential::UpdatePublicCredentialToString(
 void OTSubcredential::UpdatePrivateContentsToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
-    if (m_mapPrivateInfo.size() > 0) {
+    if (!m_mapPrivateInfo.empty()) {
         strAppendTo.Concatenate("<privateContents count=\"%d\">\n\n",
                                 m_mapPrivateInfo.size());
 
@@ -760,9 +760,9 @@ void OTSubcredential::CalculateContractID(OTIdentifier& newID)
 // I needed this for exporting a Nym (with credentials) from the wallet.
 const OTString& OTSubcredential::GetPriCredential() const
 {
-    OT_ASSERT_MSG(m_mapPrivateInfo.size() > 0, "ASSERT: GetPriCredential can "
-                                               "only be called on private "
-                                               "subcredentials.");
+    OT_ASSERT_MSG(!m_mapPrivateInfo.empty(), "ASSERT: GetPriCredential can "
+                                             "only be called on private "
+                                             "subcredentials.");
 
     return m_strRawFile;
 }
@@ -778,7 +778,7 @@ const OTString& OTSubcredential::GetPubCredential() const // More intelligent
 {
     // If this is a private (client-side) credential containing private keys,
     // then the public version is stored in GetContents(), and return that.
-    if ((m_mapPrivateInfo.size() > 0) && GetContents().Exists())
+    if ((!m_mapPrivateInfo.empty()) && GetContents().Exists())
         return GetContents();
 
     // Otherwise this is a server-side copy of a Nym's credential, with no

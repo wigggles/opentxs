@@ -548,7 +548,7 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
             const_cast<OTAsymmetricKey*>(&(pNym->GetPublicEncrKey()))));
     }
 
-    if (0 == RecipPubKeys.size()) return false;
+    if (RecipPubKeys.empty()) return false;
 
     return Seal(RecipPubKeys, theInput);
 }
@@ -570,7 +570,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
 bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                       const OTString& theInput)
 {
-    OT_ASSERT_MSG(RecipPubKeys.size() > 0,
+    OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
     return OTCrypto::It()->Seal(RecipPubKeys, theInput, m_dataContents);

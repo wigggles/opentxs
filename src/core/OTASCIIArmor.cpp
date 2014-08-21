@@ -571,7 +571,7 @@ bool OTASCIIArmor::SetAndPackStringMap(
 
     Release();
 
-    if (the_map.size() < 1) return true;
+    if (the_map.empty()) return true;
 
     OTDB::OTPacker* pPacker =
         OTASCIIArmor::GetPacker(); // No need to check for failure, since this

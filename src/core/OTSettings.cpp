@@ -244,56 +244,6 @@ bool OTSettings::LogChange_str(const OTString& strSection,
     return true;
 }
 
-bool OTSettings::LogChange_long(const OTString& strSection,
-                                const OTString& strKey, const int64_t& lValue)
-{
-    if (!strSection.Exists()) {
-        otErr << __FUNCTION__ << ": Error: "
-              << "strSection"
-              << " is Empty!\n";
-        OT_FAIL;
-    }
-    if (!strKey.Exists()) {
-        otErr << __FUNCTION__ << ": Error: "
-              << "strKey"
-              << " is Empty!\n";
-        OT_FAIL;
-    }
-
-    OTString strCategory, strOption;
-    if (!OTLog::StringFill(strCategory, strSection.Get(), 12)) return false;
-    if (!OTLog::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
-
-    otWarn << "Setting " << strCategory << " " << strOption << " " << lValue
-           << " \n";
-    return true;
-}
-
-bool OTSettings::LogChange_bool(const OTString& strSection,
-                                const OTString& strKey, const bool& bValue)
-{
-    if (!strSection.Exists()) {
-        otErr << __FUNCTION__ << ": Error: "
-              << "strSection"
-              << " is Empty!\n";
-        OT_FAIL;
-    }
-    if (!strKey.Exists()) {
-        otErr << __FUNCTION__ << ": Error: "
-              << "strKey"
-              << " is Empty!\n";
-        OT_FAIL;
-    }
-
-    OTString strCategory, strOption;
-    if (!OTLog::StringFill(strCategory, strSection.Get(), 12)) return false;
-    if (!OTLog::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
-
-    otWarn << "Setting " << strCategory << " " << strOption << " "
-           << (bValue ? "true" : "false") << " \n";
-    return true;
-}
-
 OTSettings::OTSettings(const OTString& strConfigFilePath)
     : pvt(new OTSettingsPvt())
     , b_Loaded(false)
