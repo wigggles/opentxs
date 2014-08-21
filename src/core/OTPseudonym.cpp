@@ -496,7 +496,7 @@ bool OTPseudonym::AddNewMasterCredential(
         OTIdentifier theSelfSignedNymID;
         m_pkeypair->CalculateID(theSelfSignedNymID);
 
-        if ((!(m_mapCredentials.size() > 0) ||
+        if ((m_mapCredentials.empty() ||
              CompareID(theSelfSignedNymID)) && // If there AREN'T any
                                                // credentials yet, or if
                                                // the Nym is self-signed,
@@ -769,7 +769,7 @@ bool OTPseudonym::AddNewMasterCredential(
     // See if there are any other master credentials already. If there are, make
     // sure they have the same source string calculated above.
     //
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         for (auto& it : m_mapCredentials) {
             OTCredential* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
@@ -800,7 +800,7 @@ bool OTPseudonym::AddNewMasterCredential(
 
     // Can't change the NymID if it's already registered at a server somewhere.
     //
-    if (bChangeNymID && (m_mapRequestNum.size() > 0)) {
+    if (bChangeNymID && (!m_mapRequestNum.empty())) {
         otErr << __FUNCTION__ << ": Failure: cannot change NymID for Nym who "
                                  "already is registered at "
                                  "transaction servers.\n";
@@ -3565,7 +3565,7 @@ bool OTPseudonym::VerifyPseudonym() const
     // Otherwise we do it the old way (using the Nym's "keypair")--which is
     // being deprecated.
     //
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         // Verify Nym by his own credentials.
         for (const auto& it : m_mapCredentials) {
             const OTCredential* pCredential = it.second;
@@ -6326,7 +6326,7 @@ bool OTPseudonym::SetPrivateKey(const OTASCIIArmor& strKey)
 
 const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
@@ -6367,7 +6367,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateAuthKey() const
 
 const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
@@ -6409,7 +6409,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateEncrKey() const
 
 const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
@@ -6451,7 +6451,7 @@ const OTAsymmetricKey& OTPseudonym::GetPrivateSignKey() const
 
 const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {
@@ -6493,7 +6493,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicAuthKey() const
 
 const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
         for (const auto& it : m_mapCredentials) {
             // Todo: If we have some criteria, such as which master or
@@ -6534,7 +6534,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicEncrKey() const
 
 const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 {
-    if (m_mapCredentials.size() > 0) {
+    if (!m_mapCredentials.empty()) {
         const OTCredential* pCredential = nullptr;
 
         for (const auto& it : m_mapCredentials) {

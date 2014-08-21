@@ -534,7 +534,7 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
 //
 bool OTScriptable::AllPartiesHaveSupposedlyConfirmed()
 {
-    bool bReturnVal = (m_mapParties.size() > 0) ? true : false;
+    bool bReturnVal = !m_mapParties.empty();
 
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -2061,7 +2061,7 @@ OTBylaw* OTScriptable::GetBylawByIndex(int32_t nIndex)
 //
 bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 {
-    bool bReturnVal = (m_mapParties.size() > 0) ? true : false;
+    bool bReturnVal = !m_mapParties.empty();
 
     // MAKE SURE ALL SIGNED COPIES ARE OF THE SAME CONTRACT.
     // Loop through ALL the parties. For whichever ones are already signed,
@@ -2387,7 +2387,7 @@ void OTScriptable::CalculateContractID(OTIdentifier& newID)
 
 void OTScriptable::UpdateContentsToString(OTString& strAppend)
 {
-    if ((m_mapParties.size() > 0) || (m_mapBylaws.size() > 0)) {
+    if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
         strAppend.Concatenate("<scriptableContract\n specifyAssetID=\"%s\"\n "
                               "specifyParties=\"%s\"\n"
                               " numParties=\"%d\"\n numBylaws=\"%d\" >\n\n",
