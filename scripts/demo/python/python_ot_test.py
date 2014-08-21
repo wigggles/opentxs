@@ -3,31 +3,31 @@
 # This script demonstrates both the high-level AND low-level
 # OT API, in the Python language.
 #
-# Before running this script, make sure the _otapi.so and
-# the otapi.py are both in a folder on the path:  $PYTHONPATH
+# Before running this script, make sure the _opentxs.so and
+# the opentxs.py are both in a folder on the path:  $PYTHONPATH
 # Personally I put them in /usr/local/lib/python2.7/site-packages
 # and then I set $PYTHONPATH to contain that path.
 #
-# Also, make sure the server is running ('otserver')
+# Also, make sure the server is running ('opentxs-server')
 #
 nb = raw_input('\n\
-    nBefore running this script, make sure the _otapi.so and\nthe otapi.py are both in a folder on the path:  $PYTHONPATH\nPersonally I put them in /usr/local/lib/python2.7/site-packages\nand then I set $PYTHONPATH to contain that path.\n\nAlso, make sure the server is running (otserver)\n\nOkay, ready to test?\nPress enter TWICE to try out the OT API... ')
+    nBefore running this script, make sure the _opentxs.so and\nthe opentxs.py are both in a folder on the path:  $PYTHONPATH\nPersonally I put them in /usr/local/lib/python2.7/site-packages\nand then I set $PYTHONPATH to contain that path.\n\nAlso, make sure the server is running (opentxs-server)\n\nOkay, ready to test?\nPress enter TWICE to try out the OT API... ')
 
 # ---------------------------------------------------------
-import otapi
+import opentxs
 
 # These functions are perfect examples of the 'Low-level API',
 # which is useful for simple functions that don't require messaging
 # any OT servers. See OTAPI.hpp for the complete low-level API.
 
-otapi.OTAPI_Wrap_AppInit()
-otapi.OTAPI_Wrap_LoadWallet()
+opentxs.OTAPI_Wrap_AppInit()
+opentxs.OTAPI_Wrap_LoadWallet()
 
 # ---------------------------------------------------------
 # Use the low-level API to see how many server contracts
 # are in the user's wallet.
 
-count = otapi.OTAPI_Wrap_GetServerCount()
+count = opentxs.OTAPI_Wrap_GetServerCount()
 print 'Server count: ', count
 
 # ---------------------------------------------------------
@@ -39,7 +39,7 @@ print 'Server count: ', count
 # the 'High-level API'. See OT_ME.h for the complete set of
 # high-level API functions.
 
-objEasy = otapi.OT_ME()
+objEasy = opentxs.OT_ME()
 
 # ---------------------------------------------------------
 #
@@ -89,7 +89,7 @@ if objEasy.VerifyMessageSuccess(strCheck) < 0:
 
 # This is a "real" financial transaction:
 #
-strWithdraw = objEasy.withdraw_cash('r1fUoHwJOWCuK3WBAAySjmKYqsG6G2TYIxdqY6YNuuG', 'DYEB6U7dcpbwdGrftPnslNKz76BDuBTFAjiAgKaiY2n', 'yQGh0vgm9YiqYOh6bfLDxyAA7Nnh2NmturCQmOt4LTo', '1')
+strWithdraw = objEasy.withdraw_cash('r1fUoHwJOWCuK3WBAAySjmKYqsG6G2TYIxdqY6YNuuG', 'DYEB6U7dcpbwdGrftPnslNKz76BDuBTFAjiAgKaiY2n', 'yQGh0vgm9YiqYOh6bfLDxyAA7Nnh2NmturCQmOt4LTo', 1)
 
 # ---------------------------------------------------------
 # InterpretTransactionMsgReply
@@ -130,15 +130,15 @@ else:
 # So... we're done. Let's shutdown OT and finish execution.
 # (Using the low-level API...)
 
-otapi.OTAPI_Wrap_Output(0, "\nOne more thing: Successfully used OT_API_Output.\n")
+opentxs.OTAPI_Wrap_Output(0, "\nOne more thing: Successfully used OT_API_Output.\n")
 
-otapi.OTAPI_Wrap_AppCleanup()
+opentxs.OTAPI_Wrap_AppCleanup()
 
 
 # P.S. to see the complete OT high-level API:  OT_ME.hpp
 #  and to see the complete OT low-level  API:  OTAPI.hpp
 #
-# See the Open-Transactions/include/otapi folder for all
+# See the Open-Transactions/include/opentxs folder for all
 # relevant headers.
 #
 # One more thing: If you want to see a lot of free sample code
