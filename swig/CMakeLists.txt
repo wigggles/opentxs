@@ -23,6 +23,7 @@ if(PYTHON)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-python python opentxs.i)
   swig_link_libraries(opentxs-python ${PYTHON_LIBRARIES})
+  target_link_libraries(_opentxs-python opentxs-api)
   set_target_properties(_opentxs-python
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-python
@@ -37,6 +38,7 @@ if(PERL)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-perl perl opentxs.i)
   swig_link_libraries(opentxs-perl ${PERL_LIBRARIES})
+  target_link_libraries(_opentxs-perl opentxs-api)
   set_target_properties(_opentxs-perl
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-perl
@@ -51,6 +53,7 @@ if(RUBY)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-ruby ruby opentxs.i)
   swig_link_libraries(opentxs-ruby ${RUBY_LIBRARIES})
+  target_link_libraries(_opentxs-ruby opentxs-api)
   set_target_properties(_opentxs-ruby
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-ruby
@@ -65,6 +68,7 @@ if(TCL)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-tcl tcl opentxs.i)
   swig_link_libraries(opentxs-tcl ${TCL_LIBRARIES})
+  target_link_libraries(_opentxs-tcl opentxs-api)
   set_target_properties(_opentxs-tcl
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-tcl
@@ -79,6 +83,7 @@ if(JAVA)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-java java opentxs.i)
   swig_link_libraries(opentxs-java ${JAVA_LIBRARIES})
+  target_link_libraries(_opentxs-java opentxs-api)
   set_target_properties(_opentxs-java
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-java
@@ -94,6 +99,7 @@ if(PHP)
   set_source_files_properties(opentxs.i PROPERTIES CPLUSPLUS ON)
   swig_add_module(opentxs-php php opentxs.i)
   swig_link_libraries(opentxs-php ${PHP_LIBRARIES})
+  target_link_libraries(_opentxs-php opentxs-api)
   set_target_properties(_opentxs-php
                       PROPERTIES OUTPUT_NAME _opentxs)
   install(TARGETS _opentxs-php
