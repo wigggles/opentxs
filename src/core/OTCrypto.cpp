@@ -290,7 +290,7 @@ const int32_t* OTCryptoConfig::sp_nDigest2Size = nullptr;
 
 bool OTCryptoConfig::GetSetAll()
 {
-    OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
+    OTSettings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 

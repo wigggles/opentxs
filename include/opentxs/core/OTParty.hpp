@@ -173,6 +173,10 @@ typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
 //
 class OTParty
 {
+private:
+    OTParty(const OTParty&);
+    OTParty& operator=(const OTParty&);
+
     std::string* m_pstr_party_name;
 
     bool m_bPartyIsNym; // true, is "nym". false, is "entity".

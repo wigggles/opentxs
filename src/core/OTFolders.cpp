@@ -229,7 +229,7 @@ OTString OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
-    OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
+    OTSettings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 

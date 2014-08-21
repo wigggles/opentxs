@@ -146,6 +146,9 @@ namespace opentxs
 class OTSettings
 {
 private:
+    OTSettings(const OTSettings&);
+    OTSettings& operator=(const OTSettings&);
+
     class OTSettingsPvt;
     OTSettingsPvt* pvt;
 

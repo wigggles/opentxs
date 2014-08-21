@@ -187,6 +187,10 @@ EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller); // Caller must
 /// throughout the rest of OT.
 class OTLowLevelKeyData
 {
+private:
+    OTLowLevelKeyData(const OTLowLevelKeyData&);
+    OTLowLevelKeyData& operator=(const OTLowLevelKeyData&);
+
 public:
     bool m_bCleanup; // By default, OTLowLevelKeyData cleans up the members. But
                      // if you set this to false, it will NOT cleanup.
