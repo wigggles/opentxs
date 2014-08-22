@@ -331,7 +331,7 @@ bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
             pLogger->m_strLogFileName.Format(
                 "%s%s%s", LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
 
-            OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
+            OTSettings config(OTPaths::GlobalConfigFile());
 
             config.Reset();
             if (!config.Load()) {

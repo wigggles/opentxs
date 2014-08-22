@@ -659,7 +659,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                                       false); // bSave=false
         theOriginator.SaveSignedNymfile(*pServerNym);
 
-        const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
+        const OTIdentifier& ACTUAL_NYM_ID = GetSenderUserID();
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;

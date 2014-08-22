@@ -290,7 +290,7 @@ const int32_t* OTCryptoConfig::sp_nDigest2Size = nullptr;
 
 bool OTCryptoConfig::GetSetAll()
 {
-    OTSettings config = OTSettings(OTPaths::GlobalConfigFile());
+    OTSettings config(OTPaths::GlobalConfigFile());
 
     config.Reset();
 
@@ -930,7 +930,9 @@ extern "C" {
 #include <openssl/opensslv.h>
 }
 
-OTCrypto_OpenSSL::OTCrypto_OpenSSL() : OTCrypto()
+OTCrypto_OpenSSL::OTCrypto_OpenSSL()
+    : OTCrypto()
+    , dp(nullptr)
 {
 }
 

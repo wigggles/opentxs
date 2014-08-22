@@ -327,12 +327,12 @@ void OTPaymentPlan::UpdateContents()
     // OTPaymentPlan
 
     if (HasInitialPayment()) {
-        const time64_t tInitialPaymentDate = GetInitialPaymentDate();
+        const time64_t& tInitialPaymentDate = GetInitialPaymentDate();
         const int64_t lAmount = GetInitialPaymentAmount();
         const int32_t nNumberOfFailedAttempts = GetNoInitialFailures();
-        const time64_t tFailedInitialPaymentDate =
+        const time64_t& tFailedInitialPaymentDate =
             GetLastFailedInitialPaymentDate();
-        const time64_t tCompletedInitialPaymentDate =
+        const time64_t& tCompletedInitialPaymentDate =
             GetInitialPaymentCompletedDate();
 
         m_xmlUnsigned.Concatenate(

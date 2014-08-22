@@ -167,6 +167,9 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 class OTPseudonym
 {
 private:
+    OTPseudonym(const OTPseudonym&);
+    OTPseudonym& operator=(const OTPseudonym&);
+
     bool m_bMarkForDeletion; // Default FALSE. When set to true, saves a
                              // "DELETED" flag with this Nym,
     // for easy cleanup later when the server is doing some maintenance.

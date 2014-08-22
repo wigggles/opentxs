@@ -1985,7 +1985,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        const OTIdentifier ACTUAL_NYM_ID = GetSenderUserID();
+        const OTIdentifier& ACTUAL_NYM_ID = GetSenderUserID();
         OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))

@@ -1179,7 +1179,7 @@ std::string OTSmartContract::GetRemainingTimer() const // returns seconds left
                                                        // on the timer, in
                                                        // string format, or "0".
 {
-    const time64_t tNextDate = GetNextProcessDate();
+    const time64_t& tNextDate = GetNextProcessDate();
     const time64_t tCurrent = OTTimeGetCurrentTime();
 
     OTString strReturnVal("0"); // the default return value is "0".
@@ -3936,7 +3936,7 @@ bool OTSmartContract::ProcessCron()
     // is reached. (If the timer's not set, then we go ahead and process every
     // time.)
     //
-    const time64_t tNextProcessDate = GetNextProcessDate();
+    const time64_t& tNextProcessDate = GetNextProcessDate();
 
     if (tNextProcessDate > OT_TIME_ZERO) // IF there is a timer set (as to when
                                          // the next "onProcess" should
@@ -5645,8 +5645,8 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // signer.
     // (The final date will be set upon activation.)
     //
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime(),
-                   OLD_TIME = GetCreationDate();
+    const time64_t& CURRENT_TIME = OTTimeGetCurrentTime(),
+                    OLD_TIME = GetCreationDate();
 
     // Set the Creation Date.
     SetCreationDate(CURRENT_TIME);
