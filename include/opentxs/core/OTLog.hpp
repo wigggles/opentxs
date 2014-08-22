@@ -192,6 +192,7 @@ public:
     virtual int overflow(int c);
 };
 
+// cppcheck-suppress noConstructor
 class OTLog
 {
 private:
