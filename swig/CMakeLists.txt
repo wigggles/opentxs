@@ -26,8 +26,13 @@ if(PYTHON)
   target_link_libraries(_opentxs-python opentxs-api)
   set_target_properties(_opentxs-python
                       PROPERTIES OUTPUT_NAME _opentxs)
+  string(REGEX REPLACE "\\.[0-9]+$" "" PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
   install(TARGETS _opentxs-python
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/site-packages
+          COMPONENT python)
+  install(FILES
+          ${CMAKE_CURRENT_BINARY_DIR}/opentxs.py
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/site-packages
           COMPONENT python)
 endif()
 
