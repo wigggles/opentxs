@@ -144,6 +144,7 @@
 namespace opentxs
 {
 
+// cppcheck-suppress noConstructor
 class OTDataFolder
 {
 private:
