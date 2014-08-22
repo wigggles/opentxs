@@ -203,6 +203,10 @@ EXPORT OT_OPENSSL_CALLBACK souped_up_pass_cb;
 
 class OTAsymmetricKey // <========= OT ASYMMETRIC KEY
 {
+private:
+    OTAsymmetricKey(const OTAsymmetricKey&);
+    OTAsymmetricKey& operator=(const OTAsymmetricKey&);
+
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory();  // Caller IS responsible to
                                                   // delete!
@@ -265,8 +269,6 @@ protected:
     virtual void ReleaseKeyLowLevel_Hook() = 0; // override this.
                                                 // CONSTRUCTION (PROTECTED)
     EXPORT OTAsymmetricKey();
-    OTAsymmetricKey(const OTAsymmetricKey& rhs);
-    OTAsymmetricKey& operator=(const OTAsymmetricKey& rhs);
 
 public: // DESTRUCTION
     EXPORT virtual ~OTAsymmetricKey();
