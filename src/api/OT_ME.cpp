@@ -1223,6 +1223,7 @@ void OT_ME::ExecuteScript_ReturnVoid(const std::string& str_Code,
     }
 }
 
+#ifdef OT_USE_SCRIPT_CHAI
 bool OT_ME::SetupScriptObject()
 {
     OTString strDataPath;
@@ -1241,7 +1242,6 @@ bool OT_ME::SetupScriptObject()
 
 bool OT_ME::Register_OTDB_With_Script()
 {
-#ifdef OT_USE_SCRIPT_CHAI
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1249,7 +1249,6 @@ bool OT_ME::Register_OTDB_With_Script()
     if (nullptr != pScript) {
         return Register_OTDB_With_Script_Chai(*pScript);
     }
-#endif // OT_USE_SCRIPT_CHAI
 
     otErr << __FUNCTION__
           << ": Failed dynamic casting OTScript to OTScriptChai \n";
@@ -1258,7 +1257,6 @@ bool OT_ME::Register_OTDB_With_Script()
 
 bool OT_ME::Register_CLI_With_Script()
 {
-#ifdef OT_USE_SCRIPT_CHAI
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1266,7 +1264,6 @@ bool OT_ME::Register_CLI_With_Script()
     if (nullptr != pScript) {
         return Register_CLI_With_Script_Chai(*pScript);
     }
-#endif // OT_USE_SCRIPT_CHAI
 
     otErr << __FUNCTION__
           << ": Failed dynamic casting OTScript to OTScriptChai \n";
@@ -1275,7 +1272,6 @@ bool OT_ME::Register_CLI_With_Script()
 
 bool OT_ME::Register_API_With_Script()
 {
-#ifdef OT_USE_SCRIPT_CHAI
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1283,7 +1279,6 @@ bool OT_ME::Register_API_With_Script()
     if (nullptr != pScript) {
         return Register_API_With_Script_Chai(*pScript);
     }
-#endif // OT_USE_SCRIPT_CHAI
 
     otErr << __FUNCTION__
           << ": Failed dynamic casting OTScript to OTScriptChai \n";
@@ -1292,7 +1287,6 @@ bool OT_ME::Register_API_With_Script()
 
 bool OT_ME::Register_Headers_With_Script()
 {
-#ifdef OT_USE_SCRIPT_CHAI
     // See if it's ChaiScript.
     //
     OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(m_pScript.get());
@@ -1300,14 +1294,11 @@ bool OT_ME::Register_Headers_With_Script()
     if (nullptr != pScript) {
         return Register_Headers_With_Script_Chai(*pScript);
     }
-#endif // OT_USE_SCRIPT_CHAI
 
     otErr << __FUNCTION__
           << ": Failed dynamic casting OTScript to OTScriptChai \n";
     return false;
 }
-
-#ifdef OT_USE_SCRIPT_CHAI
 
 // bool OT_ME::Register_OTDB_With_Script_Lua(OTScriptLua & theScript)
 

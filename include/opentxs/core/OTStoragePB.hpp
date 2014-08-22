@@ -267,8 +267,8 @@ public:
     ProtobufSubclass()
         : theBaseType()
         , IStorablePB()
+        , m_Type(StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
     {
-        m_Type = StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)];
         m_Type += "PB";
         /*std::cout << m_Type << " -- Constructor" << std::endl;*/ }
 
@@ -276,8 +276,8 @@ public:
                                             theObjectType>& rhs)
         : theBaseType()
         , IStorablePB()
+        , m_Type(StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)])
     {
-        m_Type = StoredObjectTypeStrings[static_cast<int32_t>(theObjectType)];
         m_Type += "PB";
         /*std::cout << m_Type << " -- Copy Constructor" << std::endl; */ rhs
             .CopyToObject(*this);

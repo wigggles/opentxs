@@ -161,7 +161,6 @@ private:
     std::shared_ptr<OTScript> m_pScript;
     OTMeCpp* m_pImplementation;
 
-    bool SetupScriptObject();
     bool HaveWorkingScript();
 
     bool Register_OTDB_With_Script();
@@ -172,6 +171,7 @@ private:
 #ifdef OT_USE_SCRIPT_CHAI
     // For ChaiScript:
     //
+    bool SetupScriptObject();
     bool Register_OTDB_With_Script_Chai(OTScriptChai& theScript);
     bool Register_CLI_With_Script_Chai(OTScriptChai& theScript);
     bool Register_API_With_Script_Chai(OTScriptChai& theScript);
