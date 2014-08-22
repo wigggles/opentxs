@@ -992,64 +992,6 @@ bool OTAsymmetricKey::SetPrivateKey(const OTASCIIArmor& ascKey)
     return true;
 }
 
-// Does public key only.
-OTAsymmetricKey& OTAsymmetricKey::operator=(const OTAsymmetricKey& rhs)
-{
-    // Already done in SetPublicKey()
-    //    m_bIsPublicKey    = true;
-    //    m_bIsPrivateKey    = false;
-
-    if ((&rhs != this) && (false == rhs.IsPrivate()) && (rhs.IsPublic())) {
-        OTASCIIArmor ascTransfer;
-
-        // Get the Issuer's public key in ASCII-armored format
-        rhs.GetPublicKey(ascTransfer);
-
-        // Decodes a public key from ASCII armor into m_keyPublic, which stores
-        // it as a EVP_PKEY pointer.
-        SetPublicKey(ascTransfer);
-
-        // Even if unused, both should always already be instantiated.
-        if ((nullptr != m_pMetadata) && (nullptr != rhs.m_pMetadata))
-            *(m_pMetadata) = *(rhs.m_pMetadata);
-    }
-
-    return *this;
-}
-
-// Does public key only.
-OTAsymmetricKey::OTAsymmetricKey(const OTAsymmetricKey& rhs)
-    : m_p_ascKey(nullptr)
-    , m_bIsPublicKey(true)
-    , // PUBLIC KEY
-    m_bIsPrivateKey(false)
-    , m_pMetadata(new OTSignatureMetadata)
-{
-    if ((&rhs != this) && (false == rhs.IsPrivate()) && (rhs.IsPublic())) {
-        OTASCIIArmor ascTransfer;
-
-        // Get the Issuer's public key in ASCII-armored format
-        rhs.GetPublicKey(ascTransfer);
-
-        // Decodes a public key from ASCII armor into m_keyPublic, which stores
-        // it as a EVP_PKEY pointer.
-        SetPublicKey(ascTransfer);
-
-        if ((nullptr != m_pMetadata) && (nullptr != rhs.m_pMetadata))
-            *(m_pMetadata) = *(rhs.m_pMetadata);
-    }
-    else
-        otErr << "OTAsymmetricKey::OTAsymmetricKey: Error: Asymmetric key "
-                 "construction attempt either with itself, "
-                 "or with a private key (when expecting public.)\n";
-
-    //    if (nullptr == m_p_ascKey)
-    //    {
-    //        m_p_ascKey = new OTASCIIArmor;
-    //        OT_ASSERT(nullptr != m_p_ascKey);
-    //    }
-}
-
 OTAsymmetricKey::OTAsymmetricKey()
     : m_p_ascKey(nullptr)
     , m_bIsPublicKey(false)
