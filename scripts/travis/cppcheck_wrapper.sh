@@ -16,6 +16,7 @@ includes="-I./include/opentxs/api/ -I./include/opentxs/core/ \
 args="-f -q --inline-suppr --error-exitcode=2"
 # Travis kills the check if he does not see output for some time
 ( while true; do sleep 300; echo "cppcheck in progress ..."; done) &
-sleep_pid=$!
+loop_pid=$!
 cppcheck $args $define $includes $enabled $suppress "$@"
-kill $sleep_pid
+sleep_pid=$(pstree -p $loop_pid | sed -n 's/.*(\([[:digit:]]\+\))$/\1/p')
+kill $loop_pid $sleep_pid
