@@ -144,6 +144,7 @@
 #include <OTMessage.hpp>
 #include <OTPayload.hpp>
 #include <OTPseudonym.hpp>
+#include <OTServerContract.hpp>
 #include <OTWallet.hpp>
 
 #include <cstdio>

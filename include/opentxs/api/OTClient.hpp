@@ -133,10 +133,7 @@
 #ifndef __OT_CLIENT_HPP__
 #define __OT_CLIENT_HPP__
 
-#include "OTCommon.hpp"
-
-#include "OTServerConnection.hpp"
-
+#include "OTMessageBuffer.hpp"
 #include "OTMessageOutbuffer.hpp"
 
 namespace opentxs
@@ -147,11 +144,8 @@ struct TransportCallback;
 class OTAccount;
 class OTAssetContract;
 class OTLedger;
-class OTMessage;
-class OTPayload;
-class OTPseudonym;
+class OTServerConnection;
 class OTServerContract;
-class OTTransaction;
 class OTWallet;
 
 // This class represents the "test client"

@@ -133,23 +133,18 @@
 #ifndef __OT_SERVER_CONNECTION_HPP__
 #define __OT_SERVER_CONNECTION_HPP__
 
-#include "OTCommon.hpp"
-
-#include "OTMessageBuffer.hpp"
-#include "OTServerContract.hpp"
+#include <OTMessageBuffer.hpp>
 
 namespace opentxs
 {
 
 struct TransportCallback;
 
-class OTMessage;
-class OTEnvelope;
-class OTPseudonym;
-class OTAccount;
-class OTWallet;
-class OTString;
 class OTClient;
+class OTIdentifier;
+class OTPseudonym;
+class OTServerContract;
+class OTWallet;
 
 class OTServerConnection
 {

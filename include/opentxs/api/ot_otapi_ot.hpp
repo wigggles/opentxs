@@ -7,19 +7,14 @@
 #ifndef __OT_OTAPI_OT_HPP__
 #define __OT_OTAPI_OT_HPP__
 
-#include "OTCommon.hpp"
+#include "OTAPI.hpp"
+#include "OT_ME.hpp"
 
-#include <string>
-#include <iostream>
+#include <OTStorage.hpp>
 
 #ifndef OT_USE_CXX11
 #include <cstdlib>
 #endif
-
-#include <OTStorage.hpp>
-
-#include <OTAPI.hpp>
-#include <OT_ME.hpp>
 
 #define OT_OTAPI_OT
 

@@ -135,15 +135,11 @@
 
 #include <opentxs/core/OTCommon.hpp>
 
-#include <string>
-
 namespace opentxs
 {
 
 class OT_API;
 class OTAPI_Exec;
-class OTServerContract;
-class OTEnvelope;
 
 class OTAPI_Wrap
 {

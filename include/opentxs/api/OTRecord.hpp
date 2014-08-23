@@ -135,12 +135,6 @@
 
 #include <opentxs/core/OTCommon.hpp>
 
-#include <cinttypes>
-#include <memory>
-
-#include <iostream>
-#include <string>
-
 namespace opentxs
 {
 

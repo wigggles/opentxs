@@ -133,6 +133,9 @@
 #include <stdafx.hpp>
 
 #include <OpenTransactions.hpp>
+
+#include "OTServerConnection.hpp"
+
 #include <OTClient.hpp>
 #include <OTAPI.hpp>
 
@@ -163,6 +166,7 @@
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTPurse.hpp>
+#include <OTServerContract.hpp>
 #include <OTSmartContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTStorage.hpp>

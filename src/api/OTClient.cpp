@@ -134,6 +134,8 @@
 
 #include <OTClient.hpp>
 
+#include "OTServerConnection.hpp"
+
 #include <StringUtils.hpp>
 #include <OTCleanup.hpp>
 #include <OTAssetContract.hpp>
@@ -154,6 +156,7 @@
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTPurse.hpp>
+#include <OTServerContract.hpp>
 #include <OTStorage.hpp>
 #include <OTToken.hpp>
 #include <OTTrade.hpp>

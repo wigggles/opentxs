@@ -136,6 +136,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <functional>
 
 #include <OpenTransactions.hpp>
 #include <OTClient.hpp>

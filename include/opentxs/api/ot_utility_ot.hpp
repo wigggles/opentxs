@@ -1,12 +1,9 @@
 #ifndef __OT_UTILITY_OT_HPP__
 #define __OT_UTILITY_OT_HPP__
 
-#include "OTCommon.hpp"
+#include <OTCommon.hpp>
 
 #include <array>
-#include <string>
-
-#include <OTStorage.hpp>
 
 namespace opentxs
 {

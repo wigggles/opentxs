@@ -133,16 +133,7 @@ kamH0Y/n11lCvo1oQxM+
 #ifndef __OT_API_EXEC_HPP__
 #define __OT_API_EXEC_HPP__
 
-#ifndef EXPORT
-#define EXPORT
-#endif
-#ifndef NOEXPORT
 #include <opentxs/core/OTCommon.hpp>
-#endif
-
-#include <string>
-
-#include <stdint.h>
 
 namespace opentxs
 {

@@ -135,8 +135,6 @@
 
 #include <opentxs/core/OTCommon.hpp>
 
-#include <opentxs/core/OTScript.hpp>
-
 namespace opentxs
 {
 
