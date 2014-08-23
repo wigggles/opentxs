@@ -1,17 +1,8 @@
-//  ot_utility_ot
-//
-// This is part of a library written in OTScript, which makes the OT-API
-// much easier to use from inside your own OTScripts, by providing
-// a higher-level layer.
-//
-// Think of it as the "standard header" for using OT from a script.
-//
-// There is similar code to this in Java also, in the OTAPI_Func and
-// Utility classes, in the Moneychanger project. They also make the
-// OTAPI much easier to use, by providing a higher-level layer.
-//
-//  http://www.chaiscript.com/doxygen/namespace_chai_script___language.html
-//
+/************************************************************
+*
+*  ot_utility_ot.cpp
+*
+*/
 
 #include <stdafx.hpp>
 

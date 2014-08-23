@@ -1,8 +1,6 @@
-/************************************************************************************
+/************************************************************
 *
-* OTAPI.cpp   --    A C++ Low-Level API (wraps OT_API)
-*
-* This is a C++ class that contains many helper functions.
+*  OTAPI_Exec.cpp
 *
 */
 

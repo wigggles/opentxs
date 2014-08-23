@@ -1,11 +1,7 @@
 /************************************************************
-
-OT_ME.cpp   -- "OT Made Easy"
-
-This adds functionality to OTAPI.h
-
-This could be wrapped by OTAPI_Basic, just as OTAPI was.
-
+*
+*  OT_ME.cpp
+*
 */
 
 /************************************************************

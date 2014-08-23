@@ -1,15 +1,8 @@
-/*****************************************************************
- *
- *  OpenTransactions.cpp  ( low-level api for OTLIB )
- *
- *        This file contains 2 classes:
- *
- *    OTSocket: This class helps with connecting to a ot server.
- *
- *    OT_API: This class provides functions for many core tasks
- *        using the otlib.
- *
- */
+/************************************************************
+*
+*  OpenTransactions.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
