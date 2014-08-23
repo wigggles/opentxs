@@ -132,14 +132,12 @@
 
 #include <stdafx.hpp>
 
-#include <OpenTransactions.hpp>
+#include "OpenTransactions.hpp"
 
+#include "OTAPI.hpp"
+#include "OTClient.hpp"
 #include "OTServerConnection.hpp"
 
-#include <OTClient.hpp>
-#include <OTAPI.hpp>
-
-#include <OTCleanup.hpp>
 #include <OTAgent.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
@@ -147,6 +145,7 @@
 #include <OTBylaw.hpp>
 #include <OTCachedKey.hpp>
 #include <OTCheque.hpp>
+#include <OTCleanup.hpp>
 #include <OTCrypto.hpp>
 #include <OTDataFolder.hpp>
 #include <OTEnvelope.hpp>

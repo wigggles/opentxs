@@ -130,19 +130,20 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <OTRecord.hpp>
+#include <stdafx.hpp>
 
-#include <OpenTransactions.hpp>
-#include <OTAPI.hpp>
-#include <OTAPI_Exec.hpp>
+#include "OTRecord.hpp"
+
+#include "OpenTransactions.hpp"
+#include "OT_ME.hpp"
+#include "OTAPI.hpp"
+#include "OTAPI_Exec.hpp"
 
 #include <OTCleanup.hpp>
-#include <OTString.hpp>
-#include <OTPaymentPlan.hpp>
-#include <OTPayment.hpp>
 #include <OTLedger.hpp>
-#include <OT_ME.hpp>
 #include <OTLog.hpp>
+#include <OTPayment.hpp>
+#include <OTPaymentPlan.hpp>
 
 #include <algorithm>
 

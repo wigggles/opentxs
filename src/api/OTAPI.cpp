@@ -132,47 +132,12 @@
 
 #include <stdafx.hpp>
 
-// A C++ class, low-level interface to OT.
 #include "OTAPI.hpp"
 
-#include <OTAPI_Exec.hpp>
-#include <OpenTransactions.hpp>
+#include "OpenTransactions.hpp"
+#include "OTAPI_Exec.hpp"
 
-#include <OTBasket.hpp>
-#include <OTCheque.hpp>
-#include <OTCredential.hpp>
-#include <OTEnvelope.hpp>
-#include <OTLedger.hpp>
 #include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <OTMint.hpp>
-#include <OTPassword.hpp>
-#include <OTPaths.hpp>
-#include <OTPayment.hpp>
-#include <OTPaymentPlan.hpp>
-#include <OTPurse.hpp>
-#include <OTServerContract.hpp>
-#include <OTSymmetricKey.hpp>
-#include <OTWallet.hpp>
-
-#include <OTAccount.hpp> //included in OTSmartContract.hpp
-
-// extern "C"
-//{
-//#ifndef _WIN32
-//#include <inttypes.h>
-//#else
-//
-//#ifndef PRId64
-//#define PRId64 "I64d"
-//#endif
-//
-//#ifndef PRId32
-//#define PRId32 "I32d"
-//#endif
-//
-//#endif
-//}
 
 namespace opentxs
 {

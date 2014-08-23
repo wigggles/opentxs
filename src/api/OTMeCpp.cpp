@@ -134,9 +134,9 @@ kamH0Y/n11lCvo1oQxM+
 
 #include "OTMeCpp.hpp"
 
-#include <ot_commands_ot.hpp>
-#include <ot_made_easy_ot.hpp>
-#include <ot_otapi_ot.hpp>
+#include "ot_commands_ot.hpp"
+#include "ot_made_easy_ot.hpp"
+#include "ot_otapi_ot.hpp"
 
 namespace opentxs
 {

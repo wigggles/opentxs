@@ -9,8 +9,9 @@
 #include "ot_otapi_ot.hpp"
 
 #include "ot_utility_ot.hpp"
-#include "OTLog.hpp"
-#include "OTVariable.hpp"
+
+#include <OTLog.hpp>
+#include <OTVariable.hpp>
 
 using namespace opentxs;
 

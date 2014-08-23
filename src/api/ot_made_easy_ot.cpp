@@ -6,17 +6,15 @@
 
 #include <stdafx.hpp>
 
-#include <algorithm>
-
 #include "ot_made_easy_ot.hpp"
 
-#include "ot_utility_ot.hpp"
-#include "ot_otapi_ot.hpp"
 #include "ot_commands_ot.hpp"
+#include "ot_otapi_ot.hpp"
+#include "ot_utility_ot.hpp"
 
-#include <OTAPI.hpp>
 #include <OTLog.hpp>
-#include <OT_ME.hpp>
+
+#include <algorithm>
 
 // Returns:
 //  True if I have enough numbers, or if there was success getting more

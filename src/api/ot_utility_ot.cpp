@@ -10,9 +10,7 @@
 
 #include "ot_otapi_ot.hpp"
 
-#include <OTAPI.hpp>
 #include <OTLog.hpp>
-#include <OT_ME.hpp>
 
 #include <locale>
 

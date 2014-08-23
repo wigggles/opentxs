@@ -134,40 +134,36 @@
 
 #include "OTAPI_Exec.hpp"
 
-#include <OpenTransactions.hpp>
+#include "OpenTransactions.hpp"
 
-#include "OTAgent.hpp"
-#include "OTAPI.hpp"
-#include "OTAssetContract.hpp"
-#include "OTAsymmetricKey.hpp"
-#include "OTAmount.hpp"
-#include "OTBasket.hpp"
-#include "OTBylaw.hpp"
-#include "OTCheque.hpp"
-#include "OTClause.hpp"
-#include "OTCleanup.hpp"
-#include "OTCredential.hpp"
-#include "OTEnvelope.hpp"
-#include "OTLedger.hpp"
-#include "OTLog.hpp"
-#include "OTMessage.hpp"
-#include "OTMint.hpp"
-#include "OTParty.hpp"
-#include "OTPartyAccount.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
-#include "OTPaths.hpp"
-#include "OTPayment.hpp"
-#include "OTPaymentPlan.hpp"
-#include "OTPseudonym.hpp"
-#include "OTPurse.hpp"
-#include "OTServerContract.hpp"
-#include "OTStorage.hpp"
-#include "OTSymmetricKey.hpp"
-#include "OTToken.hpp"
-#include "OTWallet.hpp"
-
-#include "OTAccount.hpp" //included in OTSmartContract.hpp
+#include <OTAccount.hpp>
+#include <OTAgent.hpp>
+#include <OTAmount.hpp>
+#include <OTAssetContract.hpp>
+#include <OTAsymmetricKey.hpp>
+#include <OTBasket.hpp>
+#include <OTBylaw.hpp>
+#include <OTCheque.hpp>
+#include <OTClause.hpp>
+#include <OTCleanup.hpp>
+#include <OTCredential.hpp>
+#include <OTEnvelope.hpp>
+#include <OTLedger.hpp>
+#include <OTLog.hpp>
+#include <OTMessage.hpp>
+#include <OTMint.hpp>
+#include <OTParty.hpp>
+#include <OTPartyAccount.hpp>
+#include <OTPasswordData.hpp>
+#include <OTPaths.hpp>
+#include <OTPayment.hpp>
+#include <OTPaymentPlan.hpp>
+#include <OTPseudonym.hpp>
+#include <OTPurse.hpp>
+#include <OTServerContract.hpp>
+#include <OTSymmetricKey.hpp>
+#include <OTToken.hpp>
+#include <OTWallet.hpp>
 
 namespace opentxs
 {
