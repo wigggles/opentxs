@@ -1,5 +1,5 @@
-#ifndef _H_OT_UTILITY_OT
-#define _H_OT_UTILITY_OT
+#ifndef __OT_UTILITY_OT_HPP__
+#define __OT_UTILITY_OT_HPP__
 
 #include "OTCommon.hpp"
 
@@ -160,4 +160,4 @@ public:
 
 } // namespace opentxs
 
-#endif
+#endif // __OT_UTILITY_OT_HPP__

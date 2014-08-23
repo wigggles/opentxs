@@ -159,8 +159,8 @@ kamH0Y/n11lCvo1oQxM+
 -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OTAPI_Exec_H__
-#define __OTAPI_Exec_H__
+#ifndef __OT_API_EXEC_HPP__
+#define __OT_API_EXEC_HPP__
 
 #ifndef EXPORT
 #define EXPORT
@@ -4068,4 +4068,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OTAPI_Exec_H__
+#endif // __OT_API_EXEC_HPP__

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTClient__OTRecord__
-#define __OTClient__OTRecord__
+#ifndef __OT_RECORD_HPP__
+#define __OT_RECORD_HPP__
 
 #include <opentxs/core/OTCommon.hpp>
 
@@ -370,4 +370,4 @@ public:
 
 } // namespace opentxs
 
-#endif /* defined(__OTClient__OTRecord__) */
+#endif // __OT_RECORD_HPP__

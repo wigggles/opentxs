@@ -124,8 +124,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTAPI_HPP__
-#define __OTAPI_HPP__
+#ifndef __OT_API_HPP__
+#define __OT_API_HPP__
 
 #include <opentxs/core/OTCommon.hpp>
 
@@ -4036,4 +4036,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OTAPI_HPP__
+#endif // __OT_API_HPP__

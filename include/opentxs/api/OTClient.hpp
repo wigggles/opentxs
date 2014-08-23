@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTCLIENT_HPP__
-#define __OTCLIENT_HPP__
+#ifndef __OT_CLIENT_HPP__
+#define __OT_CLIENT_HPP__
 
 #include "OTCommon.hpp"
 
@@ -450,4 +450,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OTCLIENT_HPP__
+#endif // __OT_CLIENT_HPP__

@@ -137,8 +137,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPEN_TRANSACTIONS_INTERFACE_HPP__
-#define __OPEN_TRANSACTIONS_INTERFACE_HPP__
+#ifndef __OPEN_TRANSACTIONS_HPP__
+#define __OPEN_TRANSACTIONS_HPP__
 
 #include <opentxs/core/OTCommon.hpp>
 
@@ -1160,4 +1160,4 @@ public:
 
 #endif // NOT_SWIG
 
-#endif // __OPEN_TRANSACTIONS_INTERFACE_HPP__
+#endif // __OPEN_TRANSACTIONS_HPP__

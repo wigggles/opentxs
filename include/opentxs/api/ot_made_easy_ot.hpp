@@ -1,5 +1,5 @@
-#ifndef _H_OT_MADE_EASY_OT
-#define _H_OT_MADE_EASY_OT
+#ifndef __OT_MADE_EASY_OT_HPP__
+#define __OT_MADE_EASY_OT_HPP__
 
 #include "OTCommon.hpp"
 
@@ -199,4 +199,4 @@ public:
 
 } // namespace opentxs
 
-#endif
+#endif // __OT_MADE_EASY_OT_HPP__

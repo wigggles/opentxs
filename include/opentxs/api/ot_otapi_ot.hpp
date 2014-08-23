@@ -1,5 +1,5 @@
-#ifndef _H_OT_OTAPI_OT
-#define _H_OT_OTAPI_OT
+#ifndef __OT_OTAPI_OT_HPP__
+#define __OT_OTAPI_OT_HPP__
 
 #include "OTCommon.hpp"
 
@@ -249,4 +249,4 @@ public:
                                        const int32_t nTotalRetries);
 };
 
-#endif
+#endif // __OT_OTAPI_OT_HPP__
