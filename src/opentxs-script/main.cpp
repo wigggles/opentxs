@@ -148,11 +148,10 @@
 #include <OTMessage.hpp>
 #include <OTPaths.hpp>
 #include <OTPseudonym.hpp>
-#include <OTPurse.hpp>
 #include <OTServerContract.hpp>
 #include <OTVariable.hpp>
 #include <OTWallet.hpp>
-
+#include <cash/Purse.hpp>
 #include <iterator>
 
 #ifdef __APPLE__
