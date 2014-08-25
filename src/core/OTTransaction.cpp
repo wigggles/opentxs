@@ -142,7 +142,7 @@
 #include "OTMessage.hpp"
 #include "OTPseudonym.hpp"
 #include "OTPaymentPlan.hpp"
-#include "OTSmartContract.hpp"
+#include "script/OTSmartContract.hpp"
 #include "OTStorage.hpp"
 #include "OTTrade.hpp"
 

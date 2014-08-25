@@ -137,8 +137,8 @@
 #include "OTCheque.hpp"
 #include "OTLog.hpp"
 #include "OTPaymentPlan.hpp"
-#include "OTSmartContract.hpp"
 #include "cash/Purse.hpp"
+#include "script/OTSmartContract.hpp"
 
 #include <irrxml/irrXML.hpp>
 

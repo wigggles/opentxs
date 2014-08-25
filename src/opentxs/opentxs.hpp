@@ -133,8 +133,8 @@
 #ifndef __OPENTXS_HPP__
 #define __OPENTXS_HPP__
 
-#include <OTVariable.hpp>
 #include <OT_ME.hpp>
+#include <script/OTVariable.hpp>
 
 class AnyOption;
 

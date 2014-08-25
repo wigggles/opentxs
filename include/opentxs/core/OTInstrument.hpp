@@ -133,7 +133,7 @@
 #ifndef __OT_INSTRUMENT_HPP__
 #define __OT_INSTRUMENT_HPP__
 
-#include "OTScriptable.hpp"
+#include "script/OTScriptable.hpp"
 
 namespace opentxs
 {
