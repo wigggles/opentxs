@@ -137,8 +137,8 @@
 #include "OTCheque.hpp"
 #include "OTLog.hpp"
 #include "OTPaymentPlan.hpp"
-#include "OTPurse.hpp"
 #include "OTSmartContract.hpp"
+#include "cash/Purse.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -196,7 +196,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
-        OTPurse* pPurse = InstantiatePurse();
+        Purse* pPurse = InstantiatePurse();
 
         if (nullptr == pPurse) {
             otErr << "OTPayment::SetTempValues: Error: Failed instantiating "
@@ -204,7 +204,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
                   << "\n\n";
             return false;
         }
-        OTCleanup<OTPurse> thePurseAngel(
+        OTCleanup<Purse> thePurseAngel(
             *pPurse); // (This automates the deletion.)
 
         return SetTempValuesFromPurse(*pPurse);
@@ -422,7 +422,7 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
     return false;
 }
 
-bool OTPayment::SetTempValuesFromPurse(const OTPurse& theInput)
+bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
 {
     if (OTPayment::PURSE == m_Type) {
         m_bAreTempValuesSet = true;
@@ -1358,10 +1358,10 @@ OTTrackable* OTPayment::Instantiate(const OTString& strPayment)
 //
 // CALLER is responsible to delete!
 //
-OTPurse* OTPayment::InstantiatePurse() const
+Purse* OTPayment::InstantiatePurse() const
 {
     if (OTPayment::PURSE == GetType()) {
-        return OTPurse::PurseFactory(m_strPayment);
+        return Purse::PurseFactory(m_strPayment);
     }
     else
         otErr << "OTPayment::InstantiatePurse: Failure: This payment object "
@@ -1402,7 +1402,7 @@ NOT contain a purse. "
 }
 */
 
-OTPurse* OTPayment::InstantiatePurse(const OTString& strPayment)
+Purse* OTPayment::InstantiatePurse(const OTString& strPayment)
 {
     if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the "

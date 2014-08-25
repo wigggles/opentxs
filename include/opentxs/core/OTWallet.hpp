@@ -148,7 +148,7 @@ class OTMessage;
 class OTPassword;
 class OTPasswordData;
 class OTPseudonym;
-class OTPurse;
+class Purse;
 class OTServerContract;
 class OTString;
 class OTSymmetricKey;
@@ -206,7 +206,7 @@ private:
 
     // While waiting on server response to withdrawal,
     // store private coin data here for unblinding
-    OTPurse* m_pWithdrawalPurse;
+    Purse* m_pWithdrawalPurse;
 
 public:
     OTString m_strFilename;
@@ -291,9 +291,9 @@ public:
     // This information is so important (as important as the digital cash token
     // itself, until the unblinding is done) that we need to save the file right
     // away.
-    EXPORT void AddPendingWithdrawal(const OTPurse& thePurse);
+    EXPORT void AddPendingWithdrawal(const Purse& thePurse);
     void RemovePendingWithdrawal();
-    inline OTPurse* GetPendingWithdrawal() const
+    inline Purse* GetPendingWithdrawal() const
     {
         return m_pWithdrawalPurse;
     }

@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTTokenLucre.hpp
+ *  TokenLucre.hpp
  *
  */
 
@@ -130,18 +130,18 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_TOKEN_LUCRE_HPP__
-#define __OT_TOKEN_LUCRE_HPP__
+#ifndef __TOKEN_LUCRE_HPP__
+#define __TOKEN_LUCRE_HPP__
 
-#include "OTToken.hpp"
+#include "cash/Token.hpp"
 
 namespace opentxs
 {
 
 class OTIdentifier;
-class OTMint;
+class Mint;
 class OTPseudonym;
-class OTPurse;
+class Purse;
 
 /*
  Here's a rough sketch of the protocol:
@@ -193,31 +193,31 @@ key for that denomination will work.
 
 #if defined(OT_CASH_USING_LUCRE)
 
-class OTToken_Lucre : public OTToken
+class Token_Lucre : public Token
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTToken ot_super;
-    friend class OTToken; // for the factory.
+    typedef Token ot_super;
+    friend class Token; // for the factory.
 
 protected:
-    EXPORT OTToken_Lucre();
-    EXPORT OTToken_Lucre(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID);
-    EXPORT OTToken_Lucre(const OTPurse& thePurse);
+    EXPORT Token_Lucre();
+    EXPORT Token_Lucre(const OTIdentifier& SERVER_ID,
+                       const OTIdentifier& ASSET_ID);
+    EXPORT Token_Lucre(const Purse& thePurse);
 
     EXPORT virtual bool GenerateTokenRequest(
-        const OTPseudonym& theNym, OTMint& theMint, int64_t lDenomination,
-        int32_t nTokenCount = OTToken::GetMinimumPrototokenCount());
+        const OTPseudonym& theNym, Mint& theMint, int64_t lDenomination,
+        int32_t nTokenCount = Token::GetMinimumPrototokenCount());
 
 public:
-    EXPORT virtual bool ProcessToken(const OTPseudonym& theNym, OTMint& theMint,
-                                     OTToken& theRequest);
+    EXPORT virtual bool ProcessToken(const OTPseudonym& theNym, Mint& theMint,
+                                     Token& theRequest);
 
-    EXPORT virtual ~OTToken_Lucre();
+    EXPORT virtual ~Token_Lucre();
 };
 
 #endif // Lucre
 
 } // namespace opentxs
 
-#endif // __OT_TOKEN_LUCRE_HPP__
+#endif // __TOKEN_LUCRE_HPP__

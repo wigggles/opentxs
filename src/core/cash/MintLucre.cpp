@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTMintLucre.cpp
+ *  MintLucre.cpp
  *
  */
 
@@ -132,14 +132,14 @@
 
 #include "stdafx.hpp"
 
-#include "OTMintLucre.hpp"
+#include "cash/MintLucre.hpp"
 
 #include "OTAsymmetricKey.hpp"
-#include "OTDigitalCash.hpp"
 #include "OTEnvelope.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"
-#include "OTToken.hpp"
+#include "cash/DigitalCash.hpp"
+#include "cash/Token.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
 #include "OpenSSL_BIO.hpp"
@@ -150,24 +150,24 @@ namespace opentxs
 
 #if defined(OT_CASH_USING_LUCRE)
 
-OTMint_Lucre::OTMint_Lucre() : ot_super()
+MintLucre::MintLucre() : ot_super()
 {
 }
 
-OTMint_Lucre::OTMint_Lucre(const OTString& strServerID,
-                           const OTString& strAssetTypeID)
+MintLucre::MintLucre(const OTString& strServerID,
+                     const OTString& strAssetTypeID)
     : ot_super(strServerID, strAssetTypeID)
 {
 }
 
-OTMint_Lucre::OTMint_Lucre(const OTString& strServerID,
-                           const OTString& strServerNymID,
-                           const OTString& strAssetTypeID)
+MintLucre::MintLucre(const OTString& strServerID,
+                     const OTString& strServerNymID,
+                     const OTString& strAssetTypeID)
     : ot_super(strServerID, strServerNymID, strAssetTypeID)
 {
 }
 
-OTMint_Lucre::~OTMint_Lucre()
+MintLucre::~MintLucre()
 {
 }
 
@@ -187,8 +187,8 @@ void SetMonitor(const char* filepathexact)
 
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
-bool OTMint_Lucre::AddDenomination(OTPseudonym& theNotary,
-                                   int64_t lDenomination, int32_t nPrimeLength)
+bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+                                int32_t nPrimeLength)
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
@@ -338,14 +338,14 @@ bool OTMint_Lucre::AddDenomination(OTPseudonym& theNotary,
 
 // Lucre step 3: the mint signs the token
 //
-bool OTMint_Lucre::SignToken(OTPseudonym& theNotary, OTToken& theToken,
-                             OTString& theOutput, int32_t nTokenIndex)
+bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
+                          OTString& theOutput, int32_t nTokenIndex)
 {
     bool bReturnValue = false;
 
     // otErr << "%s <bank file> <coin request> <coin signature> [<signature
     // repeats>]\n",
-    _OT_Lucre_Dumper setDumper;
+    LucreDumper setDumper;
 
     //    otErr << "OTMint::SignToken!!\nnTokenIndex: %d\n Denomination:
     // %lld\n", nTokenIndex, theToken.GetDenomination());
@@ -403,7 +403,7 @@ bool OTMint_Lucre::SignToken(OTPseudonym& theNotary, OTToken& theToken,
 
         if (nullptr == bnSignature) {
             otErr << "MAJOR ERROR!: Bank.SignRequest failed in "
-                     "OTMint_Lucre::SignToken\n";
+                     "MintLucre::SignToken\n";
         }
         else {
             //            otErr << "BANK.SIGNREQUEST
@@ -482,13 +482,12 @@ bool OTMint_Lucre::SignToken(OTPseudonym& theNotary, OTToken& theToken,
 // Lucre step 5: mint verifies token when it is redeemed by merchant.
 // This function is called by OTToken::VerifyToken.
 // That's the one you should be calling, most likely, not this one.
-bool OTMint_Lucre::VerifyToken(OTPseudonym& theNotary,
-                               OTString& theCleartextToken,
-                               int64_t lDenomination)
+bool MintLucre::VerifyToken(OTPseudonym& theNotary, OTString& theCleartextToken,
+                            int64_t lDenomination)
 {
     bool bReturnValue = false;
     //    otErr << "%s <bank info> <coin>\n", argv[0]);
-    _OT_Lucre_Dumper setDumper;
+    LucreDumper setDumper;
 
     OpenSSL_BIO bioBank = BIO_new(BIO_s_mem()); // input
     OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem()); // input

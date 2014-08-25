@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTMint.hpp
+ *  Mint.hpp
  *
  */
 
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_MINT_HPP__
-#define __OT_MINT_HPP__
+#ifndef _MINT_HPP__
+#define _MINT_HPP__
 
 #include "OTContract.hpp"
 
@@ -140,11 +140,11 @@ namespace opentxs
 
 class OTAccount;
 class OTASCIIArmor;
-class OTToken;
+class Token;
 
 typedef std::map<int64_t, OTASCIIArmor*> mapOfArmor;
 
-class OTMint : public OTContract
+class Mint : public OTContract
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
@@ -236,21 +236,21 @@ public:
 public:
     // Caller is responsible to delete.
     //
-    EXPORT static OTMint* MintFactory();
-    EXPORT static OTMint* MintFactory(const OTString& strServerID,
-                                      const OTString& strAssetTypeID);
-    EXPORT static OTMint* MintFactory(const OTString& strServerID,
-                                      const OTString& strServerNymID,
-                                      const OTString& strAssetTypeID);
+    EXPORT static Mint* MintFactory();
+    EXPORT static Mint* MintFactory(const OTString& strServerID,
+                                    const OTString& strAssetTypeID);
+    EXPORT static Mint* MintFactory(const OTString& strServerID,
+                                    const OTString& strServerNymID,
+                                    const OTString& strAssetTypeID);
 
 protected:
-    OTMint();
-    EXPORT OTMint(const OTString& strServerID, const OTString& strAssetTypeID);
-    EXPORT OTMint(const OTString& strServerID, const OTString& strServerNymID,
-                  const OTString& strAssetTypeID);
+    Mint();
+    EXPORT Mint(const OTString& strServerID, const OTString& strAssetTypeID);
+    EXPORT Mint(const OTString& strServerID, const OTString& strServerNymID,
+                const OTString& strAssetTypeID);
 
 public:
-    EXPORT virtual ~OTMint();
+    EXPORT virtual ~Mint();
     virtual void Release();
     void Release_Mint();
     void ReleaseDenominations();
@@ -305,13 +305,13 @@ public:
                                 int64_t nDenom8 = 0, int64_t nDenom9 = 0,
                                 int64_t nDenom10 = 0);
 
-    // step 2: (coin request is in OTToken)
+    // step 2: (coin request is in Token)
 
     // Lucre step 3: mint signs token
-    EXPORT virtual bool SignToken(OTPseudonym& theNotary, OTToken& theToken,
+    EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
                                   OTString& theOutput, int32_t nTokenIndex) = 0;
 
-    // step 4: (unblind coin is in OTToken)
+    // step 4: (unblind coin is in Token)
 
     // Lucre step 5: mint verifies token when it is redeemed by merchant.
     EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
@@ -323,4 +323,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_MINT_HPP__
+#endif // _MINT_HPP__

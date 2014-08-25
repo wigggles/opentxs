@@ -151,7 +151,6 @@
 #include <OTLedger.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
-#include <OTMint.hpp>
 #include <OTParty.hpp>
 #include <OTPartyAccount.hpp>
 #include <OTPasswordData.hpp>
@@ -159,11 +158,12 @@
 #include <OTPayment.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
-#include <OTPurse.hpp>
 #include <OTServerContract.hpp>
 #include <OTSymmetricKey.hpp>
-#include <OTToken.hpp>
 #include <OTWallet.hpp>
+#include <cash/Mint.hpp>
+#include <cash/Purse.hpp>
+#include <cash/Token.hpp>
 
 namespace opentxs
 {
@@ -8008,11 +8008,10 @@ bool OTAPI_Exec::Mint_IsStillGood(const std::string& SERVER_ID,
     const OTIdentifier theServerID(SERVER_ID), theAssetID(ASSET_TYPE_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    OTMint* pMint = OTAPI()->LoadMint(theServerID, theAssetID);
+    Mint* pMint = OTAPI()->LoadMint(theServerID, theAssetID);
 
     // Make sure it gets cleaned up when this goes out of scope.
-    OTCleanup<OTMint> theMintAngel(
-        pMint); // I pass the pointer, in case it's "".
+    OTCleanup<Mint> theMintAngel(pMint); // I pass the pointer, in case it's "".
 
     if (nullptr == pMint)
         otOut << __FUNCTION__
@@ -8046,11 +8045,10 @@ std::string OTAPI_Exec::LoadMint(const std::string& SERVER_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    OTMint* pMint = OTAPI()->LoadMint(theServerID, theAssetID);
+    Mint* pMint = OTAPI()->LoadMint(theServerID, theAssetID);
 
     // Make sure it gets cleaned up when this goes out of scope.
-    OTCleanup<OTMint> theMintAngel(
-        pMint); // I pass the pointer, in case it's "".
+    OTCleanup<Mint> theMintAngel(pMint); // I pass the pointer, in case it's "".
 
     if (nullptr == pMint)
         otOut << __FUNCTION__ << "OTAPI_Exec::LoadMint: Failure calling "
@@ -12232,7 +12230,7 @@ bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
         theUserID(USER_ID);
     const OTString strPurse(THE_PURSE);
     bool bSuccess = false;
-    OTPurse thePurse(theServerID, theAssetTypeID, theUserID);
+    Purse thePurse(theServerID, theAssetTypeID, theUserID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
         // NOTE: no need to verify the server / asset ID here, since the call
@@ -12290,10 +12288,10 @@ std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
-    OTPurse* pPurse = OTAPI()->LoadPurse(theServerID, theAssetID, theUserID);
+    Purse* pPurse = OTAPI()->LoadPurse(theServerID, theAssetID, theUserID);
 
     // Make sure it gets cleaned up when this goes out of scope.
-    OTCleanup<OTPurse> thePurseAngel(
+    OTCleanup<Purse> thePurseAngel(
         pPurse); // I pass the pointer, in case it's "".
 
     if (nullptr == pPurse) {
@@ -12333,7 +12331,7 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
     }
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     OTString strPurse(THE_PURSE);
-    OTPurse thePurse(theServerID, theAssetTypeID);
+    Purse thePurse(theServerID, theAssetTypeID);
 
     if (false == thePurse.LoadContractFromString(strPurse)) {
         OTString strAssetTypeID(theAssetTypeID);
@@ -12369,7 +12367,7 @@ int32_t OTAPI_Exec::Purse_Count(const std::string& SERVER_ID,
 
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const OTString strPurse(THE_PURSE);
-    OTPurse thePurse(theServerID, theAssetTypeID);
+    Purse thePurse(theServerID, theAssetTypeID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse) &&
         (thePurse.GetServerID() == theServerID) &&
@@ -12398,7 +12396,7 @@ bool OTAPI_Exec::Purse_HasPassword(const std::string& SERVER_ID,
 
     const OTIdentifier theServerID(SERVER_ID);
     const OTString strPurse(THE_PURSE);
-    OTPurse thePurse(theServerID);
+    Purse thePurse(theServerID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse) &&
         (thePurse.GetServerID() == theServerID)) {
@@ -12447,9 +12445,9 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
     if (nullptr == pSignerNym) return "";
     // By this point, pSignerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    OTPurse* pPurse =
+    Purse* pPurse =
         OTAPI()->CreatePurse(theServerID, theAssetTypeID, theOwnerID);
-    OTCleanup<OTPurse> theAngel(pPurse);
+    OTCleanup<Purse> theAngel(pPurse);
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pSignerNym, &thePWData);
@@ -12496,9 +12494,9 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(const std::string& SERVER_ID,
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTPurse* pPurse =
+    Purse* pPurse =
         OTAPI()->CreatePurse_Passphrase(theServerID, theAssetTypeID);
-    OTCleanup<OTPurse> theAngel(pPurse);
+    OTCleanup<Purse> theAngel(pPurse);
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pNym, &thePWData);
@@ -12569,10 +12567,10 @@ std::string OTAPI_Exec::Purse_Peek(
     // cleanup.)
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const OTString strPurse(THE_PURSE);
-    OTToken* pToken =
+    Token* pToken =
         OTAPI()->Purse_Peek(theServerID, theAssetTypeID, strPurse,
                             bDoesOwnerIDExist ? &theOwnerID : nullptr, nullptr);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    OTCleanup<Token> theTokenAngel(pToken);
     if (nullptr != pToken) {
         pToken->SaveContractRaw(strOutput);
 
@@ -12642,12 +12640,12 @@ std::string OTAPI_Exec::Purse_Pop(
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTPurse* pPurse = OTAPI()->Purse_Pop(
+    Purse* pPurse = OTAPI()->Purse_Pop(
         theServerID, theAssetTypeID, strPurse,
         &theNymID, // Note: if the purse is password-protected, then this
                    // parameter is ignored.
         &strReason);
-    OTCleanup<OTPurse> thePurseAngel(pPurse);
+    OTCleanup<Purse> thePurseAngel(pPurse);
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -12748,9 +12746,9 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTPurse* pPurse =
+    Purse* pPurse =
         OTAPI()->Purse_Empty(theServerID, theAssetTypeID, strPurse, &strReason);
-    OTCleanup<OTPurse> thePurseAngel(pPurse);
+    OTCleanup<Purse> thePurseAngel(pPurse);
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -12845,13 +12843,13 @@ std::string OTAPI_Exec::Purse_Push(
     // need to cleanup.)
     const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const OTString strPurse(THE_PURSE), strToken(THE_TOKEN);
-    OTPurse* pPurse = OTAPI()->Purse_Push(
+    Purse* pPurse = OTAPI()->Purse_Push(
         theServerID, theAssetTypeID, strPurse, strToken,
         bDoesOwnerIDExist ? &theOwnerID : nullptr, // Note: if the purse is
         // password-protected, then this
         // parameter should be "".
         &strReason);
-    OTCleanup<OTPurse> thePurseAngel(pPurse);
+    OTCleanup<Purse> thePurseAngel(pPurse);
     if (nullptr != pPurse) {
         const OTIdentifier theSignerID(SIGNER_ID);
         OTPseudonym* pSignerNym = OTAPI()->GetOrLoadPrivateNym(
@@ -13047,7 +13045,7 @@ std::string OTAPI_Exec::Token_ChangeOwner(
                                 // crypto, versus being encrypted to a Nym's
                                 // public key.)
     OTString strToken(THE_TOKEN);
-    OTToken* pToken = OTAPI()->Token_ChangeOwner(
+    Token* pToken = OTAPI()->Token_ChangeOwner(
         theServerID, theAssetTypeID, strToken, theSignerNymID,
         strOldOwner,  // Pass a NymID here as a string, or a purse. (IF
                       // symmetrically encrypted, the relevant key is in the
@@ -13055,7 +13053,7 @@ std::string OTAPI_Exec::Token_ChangeOwner(
         strNewOwner); // Pass a NymID here as a string, or a purse. (IF
                       // symmetrically encrypted, the relevant key is in the
                       // purse.)
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    OTCleanup<Token> theTokenAngel(pToken);
     if (nullptr != pToken) // Success!
     {
         const OTString strOutput(*pToken);
@@ -13096,9 +13094,8 @@ std::string OTAPI_Exec::Token_GetID(const std::string& SERVER_ID,
     OTString strOutput("0");
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken =
-        OTToken::TokenFactory(strToken, theServerID, theAssetTypeID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, theServerID, theAssetTypeID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -13138,9 +13135,8 @@ int64_t OTAPI_Exec::Token_GetDenomination(const std::string& SERVER_ID,
     OTString strOutput("0");
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken =
-        OTToken::TokenFactory(strToken, theServerID, theAssetTypeID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, theServerID, theAssetTypeID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -13176,9 +13172,8 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& SERVER_ID,
     OTString strOutput;
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken =
-        OTToken::TokenFactory(strToken, theServerID, theAssetTypeID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, theServerID, theAssetTypeID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
         return pToken->GetSeries();
@@ -13210,9 +13205,8 @@ time64_t OTAPI_Exec::Token_GetValidFrom(const std::string& SERVER_ID,
     OTString strOutput;
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken =
-        OTToken::TokenFactory(strToken, theServerID, theAssetTypeID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, theServerID, theAssetTypeID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -13245,9 +13239,8 @@ time64_t OTAPI_Exec::Token_GetValidTo(const std::string& SERVER_ID,
     OTString strOutput;
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken =
-        OTToken::TokenFactory(strToken, theServerID, theAssetTypeID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, theServerID, theAssetTypeID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -13266,8 +13259,8 @@ std::string OTAPI_Exec::Token_GetAssetID(const std::string& THE_TOKEN)
     OTString strOutput;
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken = OTToken::TokenFactory(strToken);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -13290,8 +13283,8 @@ std::string OTAPI_Exec::Token_GetServerID(const std::string& THE_TOKEN)
     OTString strOutput;
 
     OTString strToken(THE_TOKEN);
-    OTToken* pToken = OTToken::TokenFactory(strToken);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {

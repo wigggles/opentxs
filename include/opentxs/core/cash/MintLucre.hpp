@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTMintLucre.hpp
+ *  MintLucre.hpp
  *
  */
 
@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_MINT_LUCRE_HPP__
-#define __OT_MINT_LUCRE_HPP__
+#ifndef __MINT_LUCRE_HPP__
+#define __MINT_LUCRE_HPP__
 
-#include "OTMint.hpp"
+#include "cash/Mint.hpp"
 
 namespace opentxs
 {
 
-class OTToken;
+class Token;
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
@@ -148,34 +148,34 @@ class OTToken;
 
 #if defined(OT_CASH_USING_LUCRE)
 
-class OTMint_Lucre : public OTMint
+class MintLucre : public Mint
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTMint ot_super;
-    friend class OTMint; // for the factory.
+    typedef Mint ot_super;
+    friend class Mint; // for the factory.
 protected:
-    OTMint_Lucre();
-    EXPORT OTMint_Lucre(const OTString& strServerID,
-                        const OTString& strAssetTypeID);
-    EXPORT OTMint_Lucre(const OTString& strServerID,
-                        const OTString& strServerNymID,
-                        const OTString& strAssetTypeID);
+    MintLucre();
+    EXPORT MintLucre(const OTString& strServerID,
+                     const OTString& strAssetTypeID);
+    EXPORT MintLucre(const OTString& strServerID,
+                     const OTString& strServerNymID,
+                     const OTString& strAssetTypeID);
 
 public:
     virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
                                  int32_t nPrimeLength = 1024);
 
-    EXPORT virtual bool SignToken(OTPseudonym& theNotary, OTToken& theToken,
+    EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
                                   OTString& theOutput, int32_t nTokenIndex);
     EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
                                     OTString& theCleartextToken,
                                     int64_t lDenomination);
 
-    EXPORT virtual ~OTMint_Lucre();
+    EXPORT virtual ~MintLucre();
 };
 
 #endif // Lucre
 
 } // namespace opentxs
 
-#endif // __OT_MINT_LUCRE_HPP__
+#endif // __MINT_LUCRE_HPP__

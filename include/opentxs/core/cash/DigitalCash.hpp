@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTDigitalCash.hpp
+ *  DigitalCash.hpp
  *
  *  This header is for info shared between OTMint and OTToken.
  */
@@ -131,8 +131,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_DIGITAL_CASH_HPP__
-#define __OT_DIGITAL_CASH_HPP__
+#ifndef __DIGITAL_CASH_HPP__
+#define __DIGITAL_CASH_HPP__
 
 #include "OTCommon.hpp"
 
@@ -160,13 +160,13 @@ namespace opentxs
 
 #ifdef OT_CASH_USING_LUCRE
 
-class _OT_Lucre_Dumper
+class LucreDumper
 {
     std::string m_str_dumpfile;
 
 public:
-    _OT_Lucre_Dumper();
-    ~_OT_Lucre_Dumper();
+    LucreDumper();
+    ~LucreDumper();
 };
 
 #endif
@@ -179,4 +179,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_DIGITAL_CASH_HPP__
+#endif // __DIGITAL_CASH_HPP__

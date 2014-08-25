@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTPurse.hpp
+ *  Purse.hpp
  *
  */
 
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PURSE_HPP__
-#define __OT_PURSE_HPP__
+#ifndef __PURSE_HPP__
+#define __PURSE_HPP__
 
 #include "OTContract.hpp"
 
@@ -144,7 +144,7 @@ class OTASCIIArmor;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPseudonym;
-class OTToken;
+class Token;
 
 // A token has no User ID, or Account ID, or even a traceable TokenID (the
 // tokenID only becomes relevant
@@ -169,7 +169,7 @@ class OTToken;
 
 typedef std::deque<OTASCIIArmor*> dequeOfTokens;
 
-class OTPurse : public OTContract
+class Purse : public OTContract
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
@@ -221,24 +221,24 @@ protected:
     time64_t m_tEarliestValidTo; // The tokens in the purse may have different
                                  // expirations. This stores the earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
-    OTPurse(); // private
+    Purse(); // private
 
 public:
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID
     // in advance. I decided to add a factory for OTPurse to facilitate that.
-    EXPORT static OTPurse* PurseFactory(OTString strInput);
-    EXPORT static OTPurse* PurseFactory(OTString strInput,
-                                        const OTIdentifier& SERVER_ID);
-    EXPORT static OTPurse* PurseFactory(OTString strInput,
-                                        const OTIdentifier& SERVER_ID,
-                                        const OTIdentifier& ASSET_ID);
-    EXPORT static OTPurse* LowLevelInstantiate(const OTString& strFirstLine);
-    EXPORT static OTPurse* LowLevelInstantiate(const OTString& strFirstLine,
-                                               const OTIdentifier& SERVER_ID);
-    EXPORT static OTPurse* LowLevelInstantiate(const OTString& strFirstLine,
-                                               const OTIdentifier& SERVER_ID,
-                                               const OTIdentifier& ASSET_ID);
+    EXPORT static Purse* PurseFactory(OTString strInput);
+    EXPORT static Purse* PurseFactory(OTString strInput,
+                                      const OTIdentifier& SERVER_ID);
+    EXPORT static Purse* PurseFactory(OTString strInput,
+                                      const OTIdentifier& SERVER_ID,
+                                      const OTIdentifier& ASSET_ID);
+    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine);
+    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine,
+                                             const OTIdentifier& SERVER_ID);
+    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine,
+                                             const OTIdentifier& SERVER_ID,
+                                             const OTIdentifier& ASSET_ID);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     // What if you DON'T want to encrypt the purse to your Nym??
     // What if you just want to use a passphrase instead?
@@ -276,16 +276,16 @@ public:
     EXPORT bool GetNymID(OTIdentifier& theOutput) const;
     // FYI: OTPurse::Push makes its own copy of theToken and does NOT take
     // ownership of the one passed in.
-    EXPORT bool Push(OTNym_or_SymmetricKey theOwner, const OTToken& theToken);
-    EXPORT OTToken* Pop(OTNym_or_SymmetricKey theOwner); // Caller IS
-                                                         // responsible to
-                                                         // delete. (Peek
-    EXPORT OTToken* Peek(OTNym_or_SymmetricKey theOwner) const; // Caller IS
-                                                                // responsible
-                                                                // to delete.
-                                                                // (Peek returns
-                                                                // a copy of the
-                                                                // token.)
+    EXPORT bool Push(OTNym_or_SymmetricKey theOwner, const Token& theToken);
+    EXPORT Token* Pop(OTNym_or_SymmetricKey theOwner);        // Caller IS
+                                                              // responsible to
+                                                              // delete. (Peek
+    EXPORT Token* Peek(OTNym_or_SymmetricKey theOwner) const; // Caller IS
+                                                              // responsible
+                                                              // to delete.
+                                                              // (Peek returns
+                                                              // a copy of the
+                                                              // token.)
     EXPORT int32_t Count() const;
     EXPORT bool IsEmpty() const;
     inline int64_t GetTotalValue() const
@@ -305,19 +305,19 @@ public:
                              // "VALID TO" date.
     EXPORT bool Merge(const OTPseudonym& theSigner,
                       OTNym_or_SymmetricKey theOldNym,
-                      OTNym_or_SymmetricKey theNewNym, OTPurse& theNewPurse);
-    EXPORT OTPurse(const OTPurse& thePurse); // just for copy another purse's
-                                             // Server and Asset ID
-    EXPORT OTPurse(const OTIdentifier& SERVER_ID,
-                   const OTIdentifier& ASSET_ID);  // similar thing
-    EXPORT OTPurse(const OTIdentifier& SERVER_ID); // Don't use this unless you
-                                                   // really don't know the
-                                                   // asset type
+                      OTNym_or_SymmetricKey theNewNym, Purse& theNewPurse);
+    EXPORT Purse(const Purse& thePurse); // just for copy another purse's
+                                         // Server and Asset ID
+    EXPORT Purse(const OTIdentifier& SERVER_ID,
+                 const OTIdentifier& ASSET_ID);  // similar thing
+    EXPORT Purse(const OTIdentifier& SERVER_ID); // Don't use this unless you
+                                                 // really don't know the
+                                                 // asset type
     // (Like if you're about to read it out of a string.)
     // Normally you really really want to set the asset type.
-    EXPORT OTPurse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                   const OTIdentifier& USER_ID); // UserID optional
-    EXPORT virtual ~OTPurse();
+    EXPORT Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
+                 const OTIdentifier& USER_ID); // UserID optional
+    EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(const char* szServerID = nullptr,
                           const char* szUserID = nullptr,
                           const char* szAssetTypeID = nullptr);
@@ -346,4 +346,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PURSE_HPP__
+#endif // __PURSE_HPP__

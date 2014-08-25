@@ -161,18 +161,18 @@ class OTClient;
 class OTEnvelope;
 class OTLedger;
 class OTMessage;
-class OTMint;
 class OTNumList;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
-class OTPurse;
 class OTServerContract;
 class OTSocket;
-class OTToken;
 class OTWallet;
+class Mint;
+class Purse;
+class Token;
 
 struct TransportCallback
     : public std::binary_function<OTServerContract&, OTEnvelope&, bool>
@@ -577,25 +577,25 @@ public:
                                    const OTIdentifier& SENDER_ACCT_ID,
                                    const OTIdentifier& RECIPIENT_USER_ID,
                                    OTPaymentPlan& thePlan);
-    EXPORT OTPurse* LoadPurse(const OTIdentifier& SERVER_ID,
-                              const OTIdentifier& ASSET_ID,
-                              const OTIdentifier& USER_ID,
-                              const OTString* pstrDisplay = nullptr);
+    EXPORT Purse* LoadPurse(const OTIdentifier& SERVER_ID,
+                            const OTIdentifier& ASSET_ID,
+                            const OTIdentifier& USER_ID,
+                            const OTString* pstrDisplay = nullptr);
     EXPORT bool SavePurse(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& ASSET_ID,
-                          const OTIdentifier& USER_ID, OTPurse& THE_PURSE);
-    EXPORT OTPurse* CreatePurse(const OTIdentifier& SERVER_ID,
-                                const OTIdentifier& ASSET_ID,
-                                const OTIdentifier& OWNER_ID);
-    EXPORT OTPurse* CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
-                                           const OTIdentifier& ASSET_ID);
+                          const OTIdentifier& USER_ID, Purse& THE_PURSE);
+    EXPORT Purse* CreatePurse(const OTIdentifier& SERVER_ID,
+                              const OTIdentifier& ASSET_ID,
+                              const OTIdentifier& OWNER_ID);
+    EXPORT Purse* CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
+                                         const OTIdentifier& ASSET_ID);
     // This is a low-level utility function. Probably should
     // make this private so people don't confuse it with the API.
     // All the purse functions use this.
     //
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
         const OTIdentifier& theServerID, const OTIdentifier& theAssetTypeID,
-        const OTString& strPurse, OTPurse& thePurse, // output
+        const OTString& strPurse, Purse& thePurse, // output
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of
                                  // scope when return value has a member set to
@@ -609,7 +609,7 @@ public:
         const OTString* pstrDisplay1 = nullptr,
         const OTString* pstrDisplay2 = nullptr);
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerForMerge(
-        const OTString& strPurse, OTPurse& thePurse, // output
+        const OTString& strPurse, Purse& thePurse, // output
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of
                                  // scope when pOwner is set to point to it.
@@ -624,7 +624,7 @@ public:
         // If not (it's optional), then pOWNER_ID is the ID it will
         // try next, before failing.
         const OTString* pstrDisplay = nullptr);
-    EXPORT OTToken* Purse_Peek(
+    EXPORT Token* Purse_Peek(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_PURSE,
         const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
@@ -634,24 +634,24 @@ public:
         // NymID for the Purse owner (necessary to decrypt the token.)
         const OTString* pstrDisplay = nullptr);
 
-    EXPORT OTPurse* Purse_Pop(const OTIdentifier& SERVER_ID,
+    EXPORT Purse* Purse_Pop(const OTIdentifier& SERVER_ID,
+                            const OTIdentifier& ASSET_TYPE_ID,
+                            const OTString& THE_PURSE,
+                            const OTIdentifier* pOWNER_ID =
+                                nullptr, // This can be nullptr, **IF** purse
+                                         // is
+                                         // password-protected. (It's just
+                            // ignored in that case.) Otherwise MUST
+                            // contain the NymID for the Purse owner
+                            // (necessary to decrypt the token.)
+                            const OTString* pstrDisplay = nullptr);
+
+    EXPORT Purse* Purse_Empty(const OTIdentifier& SERVER_ID,
                               const OTIdentifier& ASSET_TYPE_ID,
                               const OTString& THE_PURSE,
-                              const OTIdentifier* pOWNER_ID =
-                                  nullptr, // This can be nullptr, **IF** purse
-                                           // is
-                                           // password-protected. (It's just
-                              // ignored in that case.) Otherwise MUST
-                              // contain the NymID for the Purse owner
-                              // (necessary to decrypt the token.)
                               const OTString* pstrDisplay = nullptr);
 
-    EXPORT OTPurse* Purse_Empty(const OTIdentifier& SERVER_ID,
-                                const OTIdentifier& ASSET_TYPE_ID,
-                                const OTString& THE_PURSE,
-                                const OTString* pstrDisplay = nullptr);
-
-    EXPORT OTPurse* Purse_Push(
+    EXPORT Purse* Purse_Push(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_PURSE, const OTString& THE_TOKEN,
         const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
@@ -662,14 +662,14 @@ public:
         // the token to him.)
         const OTString* pstrDisplay = nullptr);
 
-    EXPORT OTToken* Token_ChangeOwner(
+    EXPORT Token* Token_ChangeOwner(
         const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
         const OTString& THE_TOKEN, const OTIdentifier& SIGNER_NYM_ID,
         const OTString& OLD_OWNER, // Pass a NymID here, or a purse.
         const OTString& NEW_OWNER, // Pass a NymID here, or a purse.
         const OTString* pstrDisplay = nullptr);
-    EXPORT OTMint* LoadMint(const OTIdentifier& SERVER_ID,
-                            const OTIdentifier& ASSET_ID);
+    EXPORT Mint* LoadMint(const OTIdentifier& SERVER_ID,
+                          const OTIdentifier& ASSET_ID);
     EXPORT OTAssetContract* LoadAssetContract(const OTIdentifier& ASSET_ID);
     EXPORT OTServerContract* LoadServerContract(const OTIdentifier& SERVER_ID);
     EXPORT bool IsBasketCurrency(const OTIdentifier& BASKET_ASSET_TYPE_ID);

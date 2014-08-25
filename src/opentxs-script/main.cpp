@@ -1666,9 +1666,9 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n ACCT BALANCE (server-side): "
                   << pMyAccount->GetBalance() << "\n\n";
 
-            OTPurse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
+            Purse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
                 theServerID, thePurseAssetTypeID, MY_NYM_ID);
-            OTCleanup<OTPurse> thePurseAngel(pPurse);
+            OTCleanup<Purse> thePurseAngel(pPurse);
             if (nullptr != pPurse)
                 otOut << " CASH PURSE (client-side): "
                       << pPurse->GetTotalValue() << "\n";

@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTMint.cpp
+ *  Mint.cpp
  *
  */
 
@@ -132,15 +132,15 @@
 
 #include "stdafx.hpp"
 
-#include "OTMint.hpp"
+#include "cash/Mint.hpp"
 
 #include "OTAccount.hpp"
 #include "OTAsymmetricKey.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
-#include "OTMintLucre.hpp"
 #include "OTStorage.hpp"
+#include "cash/MintLucre.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -152,14 +152,14 @@ namespace opentxs
 {
 
 // static
-OTMint* OTMint::MintFactory()
+Mint* Mint::MintFactory()
 {
-    OTMint* pMint = nullptr;
+    Mint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
-    pMint = new OTMint_Lucre;
+    pMint = new MintLucre;
 #elif defined(OT_CASH_USING_MAGIC_MONEY)
-    //  pMint = new OTMint_MagicMoney;
+    //  pMint = new Mint_MagicMoney;
     otErr << __FUCNTION__ << ": Open-Transactions doesn't support Magic Money "
                              "by Pr0duct Cypher (yet), "
           << "so it's impossible to instantiate a mint.\n";
@@ -173,13 +173,13 @@ OTMint* OTMint::MintFactory()
 }
 
 // static
-OTMint* OTMint::MintFactory(const OTString& strServerID,
-                            const OTString& strAssetTypeID)
+Mint* Mint::MintFactory(const OTString& strServerID,
+                        const OTString& strAssetTypeID)
 {
-    OTMint* pMint = nullptr;
+    Mint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
-    pMint = new OTMint_Lucre(strServerID, strAssetTypeID);
+    pMint = new MintLucre(strServerID, strAssetTypeID);
 #elif defined(OT_CASH_USING_MAGIC_MONEY)
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
@@ -195,14 +195,14 @@ OTMint* OTMint::MintFactory(const OTString& strServerID,
 }
 
 // static
-OTMint* OTMint::MintFactory(const OTString& strServerID,
-                            const OTString& strServerNymID,
-                            const OTString& strAssetTypeID)
+Mint* Mint::MintFactory(const OTString& strServerID,
+                        const OTString& strServerNymID,
+                        const OTString& strAssetTypeID)
 {
-    OTMint* pMint = nullptr;
+    Mint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
-    pMint = new OTMint_Lucre(strServerID, strServerNymID, strAssetTypeID);
+    pMint = new MintLucre(strServerID, strServerNymID, strAssetTypeID);
 #elif defined(OT_CASH_USING_MAGIC_MONEY)
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
@@ -225,7 +225,7 @@ OTMint* OTMint::MintFactory(const OTString& strServerID,
 
 // Verify the current date against the VALID FROM / EXPIRATION dates.
 // (As opposed to tokens, which are verified against the valid from/to dates.)
-bool OTMint::Expired() const
+bool Mint::Expired() const
 {
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
 
@@ -235,7 +235,7 @@ bool OTMint::Expired() const
         return true;
 }
 
-void OTMint::ReleaseDenominations()
+void Mint::ReleaseDenominations()
 {
     while (!m_mapPublic.empty()) {
         OTASCIIArmor* pArmor = m_mapPublic.begin()->second;
@@ -258,7 +258,7 @@ void OTMint::ReleaseDenominations()
 // pieces of
 // data.
 //
-void OTMint::Release_Mint()
+void Mint::Release_Mint()
 {
     ReleaseDenominations();
 
@@ -270,7 +270,7 @@ void OTMint::Release_Mint()
     }
 }
 
-void OTMint::Release()
+void Mint::Release()
 {
     Release_Mint();
 
@@ -280,7 +280,7 @@ void OTMint::Release()
     InitMint();
 }
 
-OTMint::~OTMint()
+Mint::~Mint()
 {
     Release_Mint();
 
@@ -294,7 +294,7 @@ OTMint::~OTMint()
                                  "(That pointer should never be nullptr.)\n";
 }
 
-void OTMint::InitMint()
+void Mint::InitMint()
 {
     m_strContractType.Set("MINT");
 
@@ -314,8 +314,8 @@ void OTMint::InitMint()
     m_pReserveAcct = nullptr;
 }
 
-OTMint::OTMint(const OTString& strServerID, const OTString& strServerNymID,
-               const OTString& strAssetTypeID)
+Mint::Mint(const OTString& strServerID, const OTString& strServerNymID,
+           const OTString& strAssetTypeID)
     : ot_super(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_ServerNymID(strServerNymID)
@@ -336,7 +336,7 @@ OTMint::OTMint(const OTString& strServerID, const OTString& strServerNymID,
     InitMint();
 }
 
-OTMint::OTMint(const OTString& strServerID, const OTString& strAssetTypeID)
+Mint::Mint(const OTString& strServerID, const OTString& strAssetTypeID)
     : ot_super(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
@@ -356,7 +356,7 @@ OTMint::OTMint(const OTString& strServerID, const OTString& strAssetTypeID)
     InitMint();
 }
 
-OTMint::OTMint()
+Mint::Mint()
     : ot_super()
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_nDenominationCount(0)
@@ -370,16 +370,16 @@ OTMint::OTMint()
     InitMint();
 }
 
-bool OTMint::LoadContract()
+bool Mint::LoadContract()
 {
-    otOut << "OTMint::LoadContract OVERRIDE.\n";
+    otOut << "Mint::LoadContract OVERRIDE.\n";
     return LoadMint();
 }
 
-bool OTMint::LoadMint(const char* szAppend) // todo: server should
-                                            // always pass something
-                                            // here. client never
-                                            // should. Enforcement?
+bool Mint::LoadMint(const char* szAppend) // todo: server should
+                                          // always pass something
+                                          // here. client never
+                                          // should. Enforcement?
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
@@ -410,7 +410,7 @@ bool OTMint::LoadMint(const char* szAppend) // todo: server should
         strFilename.Get(); // "mints/SERVER_ID/ASSET_TYPE_ID<szAppend>"
 
     if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
-        otOut << "OTMint::LoadMint: File does not exist: " << szFolder1name
+        otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
               << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -421,7 +421,7 @@ bool OTMint::LoadMint(const char* szAppend) // todo: server should
                                szFilename)); // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.length() < 2) {
-        otErr << "OTMint::LoadMint: Error reading file: " << szFolder1name
+        otErr << "Mint::LoadMint: Error reading file: " << szFolder1name
               << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -438,7 +438,7 @@ bool OTMint::LoadMint(const char* szAppend) // todo: server should
     return bSuccess;
 }
 
-bool OTMint::SaveMint(const char* szAppend)
+bool Mint::SaveMint(const char* szAppend)
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
@@ -468,7 +468,7 @@ bool OTMint::SaveMint(const char* szAppend)
     OTString strRawFile;
 
     if (!SaveContractRaw(strRawFile)) {
-        otErr << "OTMint::SaveMint: Error saving Mintfile (to string):\n"
+        otErr << "Mint::SaveMint: Error saving Mintfile (to string):\n"
               << szFolder1name << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -479,7 +479,7 @@ bool OTMint::SaveMint(const char* szAppend)
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
-        otErr << "OTMint::SaveMint: Error saving mint (failed writing armored "
+        otErr << "Mint::SaveMint: Error saving mint (failed writing armored "
                  "string):\n" << szFolder1name << OTLog::PathSeparator()
               << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -490,12 +490,12 @@ bool OTMint::SaveMint(const char* szAppend)
                                szFilename); // <=== SAVING TO LOCAL DATA STORE.
     if (!bSaved) {
         if (nullptr != szAppend)
-            otErr << "OTMint::SaveMint: Error writing to file: "
-                  << szFolder1name << OTLog::PathSeparator() << szFolder2name
+            otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
+                  << OTLog::PathSeparator() << szFolder2name
                   << OTLog::PathSeparator() << szFilename << szAppend << "\n";
         else
-            otErr << "OTMint::SaveMint: Error writing to file: "
-                  << szFolder1name << OTLog::PathSeparator() << szFolder2name
+            otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
+                  << OTLog::PathSeparator() << szFolder2name
                   << OTLog::PathSeparator() << szFilename << "\n";
 
         return false;
@@ -506,17 +506,17 @@ bool OTMint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool OTMint::VerifyMint(const OTPseudonym& theOperator)
+bool Mint::VerifyMint(const OTPseudonym& theOperator)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
     if (false == VerifyContractID()) {
         otErr << "Error comparing Mint ID to Asset Contract ID in "
-                 "OTMint::VerifyMint\n";
+                 "Mint::VerifyMint\n";
         return false;
     }
     else if (false == VerifySignature(theOperator)) {
-        otErr << "Error verifying signature on mint in OTMint::VerifyMint.\n";
+        otErr << "Error verifying signature on mint in Mint::VerifyMint.\n";
         return false;
     }
 
@@ -533,7 +533,7 @@ bool OTMint::VerifyMint(const OTPseudonym& theOperator)
 // Asset Type ID
 // from it and then verify that it matches what we were expecting from the asset
 // type.
-bool OTMint::VerifyContractID()
+bool Mint::VerifyContractID()
 {
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
@@ -541,7 +541,7 @@ bool OTMint::VerifyContractID()
         OTString str1(m_ID), str2(m_AssetID);
 
         otErr << "\nMint ID does NOT match Asset Type ID in "
-                 "OTMint::VerifyContractID.\n" << str1 << "\n" << str2 << "\n";
+                 "Mint::VerifyContractID.\n" << str1 << "\n" << str2 << "\n";
         //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
         return false;
     }
@@ -555,12 +555,12 @@ bool OTMint::VerifyContractID()
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
+bool Mint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPrivate) {
         OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in OTMint::GetPrivate.\n");
+                      "nullptr mint pointer in Mint::GetPrivate.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -572,12 +572,12 @@ bool OTMint::GetPrivate(OTASCIIArmor& theArmor, int64_t lDenomination)
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool OTMint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
+bool Mint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 {
     for (auto& it : m_mapPublic) {
         OTASCIIArmor* pArmor = it.second;
         OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in OTMint::GetPublic.\n");
+                      "nullptr mint pointer in Mint::GetPublic.\n");
         // if this denomination (say, 50) matches the one passed in
         if (it.first == lDenomination) {
             theArmor.Set(*pArmor);
@@ -594,7 +594,7 @@ bool OTMint::GetPublic(OTASCIIArmor& theArmor, int64_t lDenomination)
 // Then you can subtract the denomination from the amount and call this method
 // again, and again, until it reaches 0, in order to create all the necessary
 // tokens to reach the full withdrawal amount.
-int64_t OTMint::GetLargestDenomination(int64_t lAmount)
+int64_t Mint::GetLargestDenomination(int64_t lAmount)
 {
     for (int32_t nIndex = GetDenominationCount() - 1; nIndex >= 0; nIndex--) {
         int64_t lDenom = GetDenomination(nIndex);
@@ -608,7 +608,7 @@ int64_t OTMint::GetLargestDenomination(int64_t lAmount)
 // If you call GetDenominationCount, you can then use this method
 // to look up a denomination by index.
 // You could also iterate through them by index.
-int64_t OTMint::GetDenomination(int32_t nIndex)
+int64_t Mint::GetDenomination(int32_t nIndex)
 {
     // index out of bounds.
     if (nIndex > (m_nDenominationCount - 1)) {
@@ -621,7 +621,7 @@ int64_t OTMint::GetDenomination(int32_t nIndex)
          ++ii, nIterateIndex++) {
         OTASCIIArmor* pArmor = ii->second;
         OT_ASSERT_MSG(nullptr != pArmor,
-                      "nullptr mint pointer in OTMint::GetDenomination.\n");
+                      "nullptr mint pointer in Mint::GetDenomination.\n");
 
         if (nIndex == nIterateIndex) return ii->first;
     }
@@ -633,7 +633,7 @@ int64_t OTMint::GetDenomination(int32_t nIndex)
 // serializes the public keys, and it is safe to send the object to the client.
 // If the server needs to save the private keys, then call SetSavePrivateKeys()
 // first.
-void OTMint::UpdateContents()
+void Mint::UpdateContents()
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
@@ -678,7 +678,7 @@ void OTMint::UpdateContents()
                 OTASCIIArmor* pArmor = it.second;
                 OT_ASSERT_MSG(nullptr != pArmor, "nullptr private mint pointer "
                                                  "in "
-                                                 "OTMint::UpdateContents.\n");
+                                                 "Mint::UpdateContents.\n");
 
                 m_xmlUnsigned.Concatenate(
                     "<mintPrivateInfo denomination=\"%lld\">\n"
@@ -690,7 +690,7 @@ void OTMint::UpdateContents()
             OTASCIIArmor* pArmor = it.second;
             OT_ASSERT_MSG(
                 nullptr != pArmor,
-                "nullptr public mint pointer in OTMint::UpdateContents.\n");
+                "nullptr public mint pointer in Mint::UpdateContents.\n");
 
             m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%lld\">\n"
                                       "%s</mintPublicInfo>\n\n",
@@ -702,7 +702,7 @@ void OTMint::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
@@ -769,7 +769,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                           ""
                << ((m_pReserveAcct != nullptr) ? "SUCCESS" : "FAILURE")
                << " loading Cash Account into memory for pointer: "
-                  "OTMint::m_pReserveAcct\n"
+                  "Mint::m_pReserveAcct\n"
                   " Series: " << m_nSeries << "\n Expiration: " << nExpiration
                << "\n Valid From: " << nValidFrom << "\n Valid To: " << nValidTo
                << "\n";
@@ -781,7 +781,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (false == OTContract::LoadEncodedTextField(xml, armorPublicKey) ||
             !armorPublicKey.Exists()) {
-            otErr << "Error in OTMint::ProcessXMLNode: mintPublicKey field "
+            otErr << "Error in Mint::ProcessXMLNode: mintPublicKey field "
                      "without value.\n";
             return (-1); // error condition
         }
@@ -801,7 +801,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
-            otErr << "Error in OTMint::ProcessXMLNode: mintPrivateInfo field "
+            otErr << "Error in Mint::ProcessXMLNode: mintPrivateInfo field "
                      "without value.\n";
 
             delete pArmor;
@@ -824,7 +824,7 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
-            otErr << "Error in OTMint::ProcessXMLNode: mintPublicInfo field "
+            otErr << "Error in Mint::ProcessXMLNode: mintPublicInfo field "
                      "without value.\n";
 
             delete pArmor;
@@ -877,14 +877,14 @@ int32_t OTMint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // Make sure the issuer here has a private key
 // theMint.GenerateNewMint(nSeries, VALID_FROM, VALID_TO, ASSET_ID, m_nymServer,
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
-void OTMint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
-                             time64_t VALID_TO, time64_t MINT_EXPIRATION,
-                             const OTIdentifier& theAssetID,
-                             const OTIdentifier& theServerID,
-                             OTPseudonym& theNotary, int64_t nDenom1,
-                             int64_t nDenom2, int64_t nDenom3, int64_t nDenom4,
-                             int64_t nDenom5, int64_t nDenom6, int64_t nDenom7,
-                             int64_t nDenom8, int64_t nDenom9, int64_t nDenom10)
+void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
+                           time64_t VALID_TO, time64_t MINT_EXPIRATION,
+                           const OTIdentifier& theAssetID,
+                           const OTIdentifier& theServerID,
+                           OTPseudonym& theNotary, int64_t nDenom1,
+                           int64_t nDenom2, int64_t nDenom3, int64_t nDenom4,
+                           int64_t nDenom5, int64_t nDenom6, int64_t nDenom7,
+                           int64_t nDenom8, int64_t nDenom9, int64_t nDenom10)
 {
     Release();
 
@@ -967,7 +967,7 @@ void OTMint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     }
 }
 
-bool OTMint::SaveContractWallet(std::ofstream&)
+bool Mint::SaveContractWallet(std::ofstream&)
 {
     return true;
 }
