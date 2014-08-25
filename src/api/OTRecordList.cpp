@@ -1,8 +1,8 @@
 /************************************************************
- *
- *  OTRecordList.cpp
- *
- */
+*
+*  OTRecordList.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -132,22 +132,22 @@
 
 #include <stdafx.hpp>
 
-#include <OTRecordList.hpp>
+#include "OTRecordList.hpp"
 
-#include <OpenTransactions.hpp>
-#include <OTAPI.hpp>
-#include <OTAPI_Exec.hpp>
-#include <OTCleanup.hpp>
-#include <OTWallet.hpp>
-#include <OTPayment.hpp>
+#include "OpenTransactions.hpp"
+#include "OT_ME.hpp"
+#include "OTAPI.hpp"
+#include "OTAPI_Exec.hpp"
+
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
-#include <OTPseudonym.hpp>
+#include <OTCleanup.hpp>
 #include <OTLedger.hpp>
-#include <OT_ME.hpp>
-#include <OTMessage.hpp>
 #include <OTLog.hpp>
-#include <OTStorage.hpp>
+#include <OTMessage.hpp>
+#include <OTPayment.hpp>
+#include <OTPseudonym.hpp>
+#include <OTWallet.hpp>
 
 #include <algorithm>
 

@@ -1,15 +1,8 @@
-/*************************************************************
- *
- *  OpenTransactions.h  ( low-level api for OTLIB )
- *
- *        This file contains 2 classes:
- *
- *    OTSocket: This class helps with connecting to a ot server.
- *
- *    OT_API: This class provides functions for many core tasks
- *        using the otlib.
- *
- */
+/************************************************************
+*
+*  OpenTransactions.hpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -137,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPEN_TRANSACTIONS_INTERFACE_HPP__
-#define __OPEN_TRANSACTIONS_INTERFACE_HPP__
+#ifndef __OPEN_TRANSACTIONS_HPP__
+#define __OPEN_TRANSACTIONS_HPP__
 
 #include <opentxs/core/OTCommon.hpp>
 
@@ -155,25 +148,17 @@
 #ifdef NOT_SWIG
 
 #include <opentxs/core/OTString.hpp>
-#include <opentxs/core/OTASCIIArmor.hpp>
-
-#include <string>
-#include <functional>
-
-#include <opentxs/core/tinythread.hpp>
 
 namespace opentxs
 {
 
 class OT_API;
 class OTAccount;
-class OTASCIIArmor;
 class OTAssetContract;
 class OTBasket;
 class OTCheque;
 class OTClient;
 class OTEnvelope;
-class OTIdentifier;
 class OTLedger;
 class OTMessage;
 class OTMint;
@@ -183,15 +168,11 @@ class OTPassword;
 class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
-class OTPseudonym;
 class OTPurse;
 class OTServerContract;
-class OTServerContract;
-class OTSettings;
-class OTString;
+class OTSocket;
 class OTToken;
 class OTWallet;
-class OTSocket;
 
 struct TransportCallback
     : public std::binary_function<OTServerContract&, OTEnvelope&, bool>
@@ -1160,4 +1141,4 @@ public:
 
 #endif // NOT_SWIG
 
-#endif // __OPEN_TRANSACTIONS_INTERFACE_HPP__
+#endif // __OPEN_TRANSACTIONS_HPP__

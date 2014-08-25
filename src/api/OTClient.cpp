@@ -1,8 +1,8 @@
 /************************************************************
- *
- *  OTClient.cpp
- *
- */
+*
+*  OTClient.hpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -132,14 +132,16 @@
 
 #include <stdafx.hpp>
 
-#include <OTClient.hpp>
+#include "OTClient.hpp"
 
-#include <StringUtils.hpp>
-#include <OTCleanup.hpp>
+#include "OTServerConnection.hpp"
+
+#include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
 #include <OTBasket.hpp>
 #include <OTCheque.hpp>
+#include <OTCleanup.hpp>
 #include <OTEnvelope.hpp>
 #include <OTFolders.hpp>
 #include <OTLedger.hpp>
@@ -148,22 +150,20 @@
 #include <OTMint.hpp>
 #include <OTNymOrSymmetricKey.hpp>
 #include <OTOffer.hpp>
-#include <OTPaths.hpp>
 #include <OTPayload.hpp>
 #include <OTPayment.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTPurse.hpp>
+#include <OTServerContract.hpp>
 #include <OTStorage.hpp>
 #include <OTToken.hpp>
 #include <OTTrade.hpp>
 #include <OTWallet.hpp>
 
-#include <OTAccount.hpp> //included in OTSmartContract.hpp
+#include <StringUtils.hpp>
 
 #include <cstdio>
-
-#include <time.h>
 
 namespace opentxs
 {

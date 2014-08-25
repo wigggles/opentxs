@@ -1,15 +1,8 @@
-/*****************************************************************
- *
- *  OpenTransactions.cpp  ( low-level api for OTLIB )
- *
- *        This file contains 2 classes:
- *
- *    OTSocket: This class helps with connecting to a ot server.
- *
- *    OT_API: This class provides functions for many core tasks
- *        using the otlib.
- *
- */
+/************************************************************
+*
+*  OpenTransactions.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -139,11 +132,12 @@
 
 #include <stdafx.hpp>
 
-#include <OpenTransactions.hpp>
-#include <OTClient.hpp>
-#include <OTAPI.hpp>
+#include "OpenTransactions.hpp"
 
-#include <OTCleanup.hpp>
+#include "OTAPI.hpp"
+#include "OTClient.hpp"
+#include "OTServerConnection.hpp"
+
 #include <OTAgent.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
@@ -151,6 +145,7 @@
 #include <OTBylaw.hpp>
 #include <OTCachedKey.hpp>
 #include <OTCheque.hpp>
+#include <OTCleanup.hpp>
 #include <OTCrypto.hpp>
 #include <OTDataFolder.hpp>
 #include <OTEnvelope.hpp>
@@ -170,6 +165,7 @@
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTPurse.hpp>
+#include <OTServerContract.hpp>
 #include <OTSmartContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTStorage.hpp>

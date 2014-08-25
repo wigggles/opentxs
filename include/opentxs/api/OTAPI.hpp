@@ -1,4 +1,10 @@
 /************************************************************
+*
+*  OTAPI.hpp
+*
+*/
+
+/************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
 
@@ -124,20 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTAPI_HPP__
-#define __OTAPI_HPP__
+#ifndef __OT_API_HPP__
+#define __OT_API_HPP__
 
 #include <opentxs/core/OTCommon.hpp>
-
-#include <string>
 
 namespace opentxs
 {
 
 class OT_API;
 class OTAPI_Exec;
-class OTServerContract;
-class OTEnvelope;
 
 class OTAPI_Wrap
 {
@@ -4036,4 +4038,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OTAPI_HPP__
+#endif // __OT_API_HPP__

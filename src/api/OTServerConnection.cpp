@@ -1,8 +1,8 @@
-/************************************************************************************
- *
- *  OTServerConnection.cpp
- *
- */
+/************************************************************
+*
+*  OTServerConnection.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -132,22 +132,20 @@
 
 #include <stdafx.hpp>
 
-#include <OTServerConnection.hpp>
+#include "OTServerConnection.hpp"
 
-#include <OTClient.hpp>
-#include <OpenTransactions.hpp>
+#include "OpenTransactions.hpp"
 
 #include <OTAssetContract.hpp>
+#include <OTClient.hpp>
 #include <OTDataCheck.hpp>
 #include <OTEnvelope.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
 #include <OTPayload.hpp>
 #include <OTPseudonym.hpp>
+#include <OTServerContract.hpp>
 #include <OTWallet.hpp>
-
-#include <cstdio>
-#include <iostream>
 
 extern "C" {
 #ifdef _WIN32

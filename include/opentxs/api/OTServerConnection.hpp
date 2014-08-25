@@ -1,8 +1,8 @@
-/************************************************************************************
- *
- *  OTServerConnection.h
- *
- */
+/************************************************************
+*
+*  OTServerConnection.hpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,26 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SERVERCONNECTION_HPP__
-#define __OT_SERVERCONNECTION_HPP__
+#ifndef __OT_SERVER_CONNECTION_HPP__
+#define __OT_SERVER_CONNECTION_HPP__
 
-#include "OTCommon.hpp"
-
-#include "OTMessageBuffer.hpp"
-#include "OTServerContract.hpp"
+#include <OTMessageBuffer.hpp>
 
 namespace opentxs
 {
 
 struct TransportCallback;
 
-class OTMessage;
-class OTEnvelope;
-class OTPseudonym;
-class OTAccount;
-class OTWallet;
-class OTString;
 class OTClient;
+class OTIdentifier;
+class OTPseudonym;
+class OTServerContract;
+class OTWallet;
 
 class OTServerConnection
 {
@@ -230,4 +225,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SERVERCONNECTION_HPP__
+#endif // __OT_SERVER_CONNECTION_HPP__

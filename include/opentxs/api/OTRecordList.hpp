@@ -1,8 +1,8 @@
 /************************************************************
- *
- *  OTRecordList.hpp
- *
- */
+*
+*  OTRecordList.hpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,21 +130,14 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTClient__OTRecordList__
-#define __OTClient__OTRecordList__
-
-#include <opentxs/core/OTCommon.hpp>
+#ifndef __OT_RECORD_LIST__
+#define __OT_RECORD_LIST__
 
 #include <opentxs/api/OTRecord.hpp>
 
-#include <cinttypes>
-#include <memory>
-
-#include <iostream>
-#include <vector>
 #include <list>
 #include <map>
-#include <string>
+#include <vector>
 
 // For address book lookups. Your client app inherits this and provides
 // addr storage/lookup through this simple interface. OTRecordList then
@@ -401,4 +394,4 @@ public:
 
 } // namespace opentxs
 
-#endif /* defined(__OTClient__OTRecordList__) */
+#endif // __OT_RECORD_LIST__

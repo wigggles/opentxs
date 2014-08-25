@@ -139,57 +139,14 @@
 #include "win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
-#include <list>
-#include <iostream>
-#include <map>
-#include <string>
-#include <sstream>
-
 #include <cstdarg>
 #include <cstring>
+#include <iostream>
+#include <list>
+#include <map>
+#include <sstream>
 
-// All of the below PRI values are defined in inttypes.h
-// Therefore if it's NOT defined, then we must probably be
-// on Windows, since Windows doesn't have inttypes.h yet,
-// only stdint.h
-#if !defined(PRId8)
-#define PRId8 "d"
-#endif
-
-#if !defined(PRId16)
-#define PRId16 "d"
-#endif
-
-#if !defined(PRId32)
-#if defined(WINAPI)
-#define PRId32 "I32d"
-
-#else
-#define PRId32 "d"
-
-#endif
-#endif
-
-#if !defined(PRId64)
-#if defined(WINAPI)
-#define PRId64 "I64d"
-
-#elif __WORDSIZE == 64
-#define PRId64 "ld"
-
-#else
-#define PRId64 "lld"
-
-#endif
-#endif
-
-//#ifdef _WIN32
-//#define MAX_STRING_LENGTH   631072
-//#else
 #define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
-//#define MAX_STRING_LENGTH   1262144
-//#endif // _WIN32
-// TODO: consider how MAX_SIZE affects the above hard-coded number...
 
 namespace opentxs
 {

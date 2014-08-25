@@ -1,6 +1,6 @@
-/************************************************************************************
+/************************************************************
 *
-* OTClient.h
+*  OTClient.hpp
 *
 */
 
@@ -130,13 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OTCLIENT_HPP__
-#define __OTCLIENT_HPP__
+#ifndef __OT_CLIENT_HPP__
+#define __OT_CLIENT_HPP__
 
-#include "OTCommon.hpp"
-
-#include "OTServerConnection.hpp"
-
+#include "OTMessageBuffer.hpp"
 #include "OTMessageOutbuffer.hpp"
 
 namespace opentxs
@@ -147,11 +144,8 @@ struct TransportCallback;
 class OTAccount;
 class OTAssetContract;
 class OTLedger;
-class OTMessage;
-class OTPayload;
-class OTPseudonym;
+class OTServerConnection;
 class OTServerContract;
-class OTTransaction;
 class OTWallet;
 
 // This class represents the "test client"
@@ -450,4 +444,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OTCLIENT_HPP__
+#endif // __OT_CLIENT_HPP__
