@@ -149,9 +149,9 @@ private:
     OTSettingsPvt& operator=(const OTSettingsPvt&);
 
 public:
-    CSimpleIniA* iniSimple;
+    CSimpleIniA iniSimple;
 
-    OTSettingsPvt() : iniSimple(new CSimpleIniA())
+    OTSettingsPvt() : iniSimple()
     {
     }
 };
@@ -183,16 +183,16 @@ bool OTSettings::Load(const OTString& strConfigurationFileExactPath)
                              lFilelength)) // we don't have a config file, lets
                                            // create a blank one first.
     {
-        pvt->iniSimple->Reset(); // clean the config.
+        pvt->iniSimple.Reset(); // clean the config.
 
-        SI_Error rc = pvt->iniSimple->SaveFile(
+        SI_Error rc = pvt->iniSimple.SaveFile(
             strConfigurationFileExactPath.Get()); // save a new file.
         if (0 > rc) return false;                 // error!
 
-        pvt->iniSimple->Reset(); // clean the config (again).
+        pvt->iniSimple.Reset(); // clean the config (again).
     }
 
-    SI_Error rc = pvt->iniSimple->LoadFile(strConfigurationFileExactPath.Get());
+    SI_Error rc = pvt->iniSimple.LoadFile(strConfigurationFileExactPath.Get());
     if (0 > rc)
         return false;
     else
@@ -208,7 +208,7 @@ bool OTSettings::Save(const OTString& strConfigurationFileExactPath)
         return false;
     }
 
-    SI_Error rc = pvt->iniSimple->SaveFile(strConfigurationFileExactPath.Get());
+    SI_Error rc = pvt->iniSimple.SaveFile(strConfigurationFileExactPath.Get());
     if (0 > rc)
         return false;
     else
@@ -270,10 +270,6 @@ OTSettings::OTSettings()
 
 OTSettings::~OTSettings()
 {
-    if (nullptr != pvt->iniSimple) {
-        delete pvt->iniSimple;
-        pvt->iniSimple = nullptr;
-    }
 }
 
 bool OTSettings::Load()
@@ -301,13 +297,13 @@ const bool& OTSettings::IsLoaded() const
 bool OTSettings::Reset()
 {
     b_Loaded = false;
-    pvt->iniSimple->Reset();
+    pvt->iniSimple.Reset();
     return true;
 }
 
 bool OTSettings::IsEmpty() const
 {
-    return pvt->iniSimple->IsEmpty();
+    return pvt->iniSimple.IsEmpty();
 }
 
 bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
@@ -340,7 +336,7 @@ bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
+        pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
@@ -385,13 +381,13 @@ bool OTSettings::Check_long(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
+        pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
         out_bKeyExist = true;
         out_lResult =
-            pvt->iniSimple->GetLongValue(strSection.Get(), strKey.Get(), 0);
+            pvt->iniSimple.GetLongValue(strSection.Get(), strKey.Get(), 0);
     }
     else {
         out_bKeyExist = false;
@@ -431,7 +427,7 @@ bool OTSettings::Check_bool(const OTString& strSection, const OTString& strKey,
     }
 
     const char* szVar =
-        pvt->iniSimple->GetValue(strSection.Get(), strKey.Get(), nullptr);
+        pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
     OTString strVar(szVar);
 
     if (strVar.Exists() &&
@@ -506,8 +502,8 @@ bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
     if (!LogChange_str(strSection, strKey, strValue)) return false;
 
     // Set New Value
-    SI_Error rc = pvt->iniSimple->SetValue(strSection.Get(), strKey.Get(),
-                                           szValue, szComment, true);
+    SI_Error rc = pvt->iniSimple.SetValue(strSection.Get(), strKey.Get(),
+                                          szValue, szComment, true);
     if (0 > rc) return false;
 
     if (nullptr == szValue) // We set the key's value to null, thus removing it.
@@ -589,8 +585,8 @@ bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
     if (!LogChange_str(strSection, strKey, strValue)) return false;
 
     // Set New Value
-    SI_Error rc = pvt->iniSimple->SetLongValue(strSection.Get(), strKey.Get(),
-                                               lValue, szComment, false, true);
+    SI_Error rc = pvt->iniSimple.SetLongValue(strSection.Get(), strKey.Get(),
+                                              lValue, szComment, false, true);
     if (0 > rc) return false;
 
     // Check if the new value is the same as intended.
@@ -651,12 +647,12 @@ bool OTSettings::CheckSetSection(const OTString& strSection,
                                                          : nullptr;
 
     const int64_t lSectionSize =
-        pvt->iniSimple->GetSectionSize(strSection.Get());
+        pvt->iniSimple.GetSectionSize(strSection.Get());
 
     if (1 > lSectionSize) {
         out_bIsNewSection = true;
-        SI_Error rc = pvt->iniSimple->SetValue(strSection.Get(), nullptr,
-                                               nullptr, szComment, false);
+        SI_Error rc = pvt->iniSimple.SetValue(strSection.Get(), nullptr,
+                                              nullptr, szComment, false);
         if (0 > rc) return false;
     }
     else {
