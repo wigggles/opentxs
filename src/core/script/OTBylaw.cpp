@@ -137,7 +137,6 @@
 #include "OTClause.hpp"
 #include "OTLog.hpp"
 #include "OTScriptable.hpp"
-#include "OTStorage.hpp"
 
 #include <set>
 
