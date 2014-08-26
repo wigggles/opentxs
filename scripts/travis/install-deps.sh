@@ -24,7 +24,8 @@ case "$os" in
     osx)
         brew update
         brew unlink cmake
-        brew install protobuf-c protobuf boost openssl cppcheck cmake zeromq
+        brew install protobuf-c protobuf boost openssl cppcheck cmake zeromq \
+                     pstree
         ;;
     linux|"" )
         sudo echo 'deb http://llvm.org/apt/precise/ '\
