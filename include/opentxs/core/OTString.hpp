@@ -136,7 +136,7 @@
 #include "OTCommon.hpp"
 
 #ifdef _WIN32
-#include "win32_utf8conv.hpp" // support for changing between std::string and std::wstring
+#include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
 #include <cstdarg>
