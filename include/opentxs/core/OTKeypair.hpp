@@ -133,9 +133,8 @@
 #ifndef __OT_KEYPAIR_HPP__
 #define __OT_KEYPAIR_HPP__
 
-#include "util/OTCommon.hpp"
-
 #include <list>
+#include <cstdint>
 
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have
@@ -193,8 +192,10 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 class OTKeypair
 {
     friend class OTLowLevelKeyData;
+
     OTAsymmetricKey* m_pkeyPublic;  // This nym's public key
     OTAsymmetricKey* m_pkeyPrivate; // This nym's private key
+
 public:
     EXPORT bool MakeNewKeypair(int32_t nBits = 1024);
     EXPORT bool ReEncrypt(OTPassword& theExportPassword, bool bImporting,

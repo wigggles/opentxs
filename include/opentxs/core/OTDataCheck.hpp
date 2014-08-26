@@ -133,7 +133,7 @@
 #ifndef __DATA_CHECK_HPP__
 #define __DATA_CHECK_HPP__
 
-#include "util/OTCommon.hpp"
+#include <cstdint>
 
 namespace opentxs
 {

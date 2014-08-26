@@ -135,6 +135,14 @@
 
 #include "OTString.hpp"
 
+namespace irr
+{
+namespace io
+{
+class IFileReadCallBack;
+}
+}
+
 namespace opentxs
 {
 

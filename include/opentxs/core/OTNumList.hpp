@@ -133,8 +133,6 @@
 #ifndef __OT_NUM_LIST_HPP__
 #define __OT_NUM_LIST_HPP__
 
-#include "util/OTCommon.hpp"
-
 #include <string>
 #include <set>
 #include <cstdint>

@@ -133,9 +133,9 @@
 #ifndef __OT_SCRIPT_HPP__
 #define __OT_SCRIPT_HPP__
 
-#include "util/OTCommon.hpp"
-
 #include <map>
+#include <string>
+#include <memory>
 
 #ifdef _MSC_VER
 #pragma warning(push)
