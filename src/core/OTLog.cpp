@@ -133,9 +133,8 @@
 #include "stdafx.hpp"
 
 #include "OTLog.hpp"
-
 #include "OTPaths.hpp"
-
+#include "util/stacktrace.h"
 #include "util/tinythread.hpp"
 
 #ifndef _WIN32
@@ -143,8 +142,6 @@
 #endif
 #include <fstream>
 #include <iostream>
-
-#include <stacktrace.h>
 
 #ifdef _WIN32
 #include <Shlobj.h>

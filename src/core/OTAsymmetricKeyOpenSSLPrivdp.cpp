@@ -144,7 +144,7 @@
 #include "OpenSSL_BIO.hpp"
 #endif
 
-#include <stacktrace.h>
+#include "util/stacktrace.h"
 
 namespace opentxs
 {
