@@ -130,7 +130,7 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "StringUtils.hpp"
+#include "util/StringUtils.hpp"
 #include "util/OTAssert.hpp"
 
 namespace opentxs

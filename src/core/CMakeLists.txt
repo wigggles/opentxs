@@ -7,6 +7,7 @@ set(cxx-sources
   util/Timer.cpp
   util/tinythread.cpp
   util/OTAssert.cpp
+  util/StringUtils.cpp
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp
@@ -72,7 +73,6 @@ set(cxx-sources
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
-  StringUtils.cpp
   OTString.cpp
   OTStringXML.cpp
   OTSubcredential.cpp
