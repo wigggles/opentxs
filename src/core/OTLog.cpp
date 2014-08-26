@@ -136,7 +136,7 @@
 
 #include "OTPaths.hpp"
 
-#include "tinythread.hpp"
+#include "util/tinythread.hpp"
 
 #ifndef _WIN32
 #include <cerrno>

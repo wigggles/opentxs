@@ -140,7 +140,7 @@
 #include "OTAssert.hpp"
 #include "OTString.hpp"
 
-#include "tinythread.hpp"
+#include "util/tinythread.hpp"
 
 #include <set>
 

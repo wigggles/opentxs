@@ -135,7 +135,7 @@
 
 #include "OTCommon.hpp"
 
-#include "tinythread.hpp"
+#include "util/tinythread.hpp"
 
 #include <map>
 

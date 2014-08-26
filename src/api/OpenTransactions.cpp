@@ -179,12 +179,12 @@
 
 #include <Socket_ZMQ4.hpp>
 
+#include "util/tinythread.hpp"
+
 #include <cassert>
 #include <fstream>
 
 #include <time.h>
-
-#include "tinythread.hpp"
 
 #if defined(OPENTXS_HAVE_NETINET_IN_H)
 extern "C" {
