@@ -6,13 +6,13 @@ add_subdirectory(cash)
 set(cxx-sources
   util/Timer.cpp
   util/tinythread.cpp
+  util/OTAssert.cpp
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp
   OTAgent.cpp
   OTAgreement.cpp
   OTASCIIArmor.cpp
-  OTAssert.cpp
   OTAssetContract.cpp
   OTAsymmetricKey.cpp
   OTAsymmetricKeyOpenSSL.cpp

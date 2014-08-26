@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
 
 #include <iostream>
 #include <cstring>

@@ -131,7 +131,7 @@
  **************************************************************/
 
 #include "StringUtils.hpp"
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
 
 namespace opentxs
 {

@@ -140,7 +140,7 @@
 
 #ifndef SWIG
 
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
 
 #include <deque>
 #include <iostream>

@@ -136,7 +136,7 @@
 #ifndef __OT_CRON_HPP__
 #define __OT_CRON_HPP__
 
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
 #include "OTContract.hpp"
 #include "StringUtils.hpp"
 

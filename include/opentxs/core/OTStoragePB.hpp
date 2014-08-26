@@ -134,7 +134,7 @@
 #define __OT_STORAGE_PB_HPP__
 
 #include "OTCommon.hpp"
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
 
 #include <deque>
 #include <iostream>

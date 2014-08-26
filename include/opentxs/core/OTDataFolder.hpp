@@ -136,8 +136,8 @@
 #ifndef __OT_DATA_FOLDER_HPP__
 #define __OT_DATA_FOLDER_HPP__
 
-#include "OTAssert.hpp"
 #include "OTString.hpp"
+#include "util/OTAssert.hpp"
 
 // Thread local.
 
