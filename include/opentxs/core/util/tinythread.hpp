@@ -21,8 +21,8 @@ freely, subject to the following restrictions:
     distribution.
 */
 
-#ifndef __TINYTHREAD_HPP__
-#define __TINYTHREAD_HPP__
+#ifndef OPENTXS_CORE_TINYTHREAD_HPP
+#define OPENTXS_CORE_TINYTHREAD_HPP
 
 /// @file
 /// @mainpage TinyThread++ API Reference
@@ -765,4 +765,4 @@ void sleep_for(const chrono::duration<_Rep, _Period>& aTime)
 // Define/macro cleanup
 #undef _TTHREAD_DISABLE_ASSIGNMENT
 
-#endif // __TINYTHREAD_HPP__
+#endif // OPENTXS_CORE_TINYTHREAD_HPP

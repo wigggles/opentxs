@@ -1,5 +1,5 @@
-#ifndef __OT_COMMON_HPP__
-#define __OT_COMMON_HPP__
+#ifndef OPENTXS_CORE_COMMON_HPP
+#define OPENTXS_CORE_COMMON_HPP
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
@@ -109,4 +109,4 @@ inline time64_t OTTimeAddTimeInterval(time64_t lhs, int64_t rhs)
 }
 #endif
 
-#endif // __OT_COMMON_HPP__
+#endif // OPENTXS_CORE_COMMON_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPENTXS_STRINGUTILS_HPP__
-#define __OPENTXS_STRINGUTILS_HPP__
+#ifndef OPENTXS_CORE_STRINGUTILS_HPP
+#define OPENTXS_CORE_STRINGUTILS_HPP
 
 #include <cinttypes>
 #include <string>
@@ -272,4 +272,4 @@ inline size_t strlcat(char* dst, const char* src, size_t siz)
 
 } // namespace opentxs
 
-#endif // __OPENTXS_STRINGUTILS_HPP__
+#endif // OPENTXS_CORE_STRINGUTILS_HPP

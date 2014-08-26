@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASSERT_HPP__
-#define __OT_ASSERT_HPP__
+#ifndef OPENTXS_CORE_ASSERT_HPP
+#define OPENTXS_CORE_ASSERT_HPP
 
 #include <cstddef>
 #include <exception>
@@ -177,4 +177,4 @@ public:
     EXPORT static fpt_Assert_sz_n_sz(Assert); // assert
 };
 
-#endif // __OT_ASSERT_HPP__
+#endif // OPENTXS_CORE_ASSERT_HPP
