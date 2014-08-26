@@ -2,7 +2,6 @@
  *
  *  DigitalCash.hpp
  *
- *  This header is for info shared between OTMint and OTToken.
  */
 
 /************************************************************
@@ -152,6 +151,8 @@
 //
 // Implementations for Chaum and Brands are circulating online. They could all
 // be easily added here as options for Open-Transactions.
+
+#include <string>
 
 namespace opentxs
 {

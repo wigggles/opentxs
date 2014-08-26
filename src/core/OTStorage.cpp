@@ -142,6 +142,7 @@
 #include "OTStoragePB.hpp"
 
 #include <fstream>
+#include <typeinfo>
 
 /*
  // We want to store EXISTING OT OBJECTS (Usually signed contracts)
