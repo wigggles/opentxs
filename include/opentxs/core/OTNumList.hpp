@@ -135,7 +135,9 @@
 
 #include "util/OTCommon.hpp"
 
+#include <string>
 #include <set>
+#include <cstdint>
 
 namespace opentxs
 {
