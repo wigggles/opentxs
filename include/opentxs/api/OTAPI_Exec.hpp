@@ -133,7 +133,7 @@
 #ifndef __OT_API_EXEC_HPP__
 #define __OT_API_EXEC_HPP__
 
-#include <opentxs/core/util/OTCommon.hpp>
+#include <opentxs/core/util/Common.hpp>
 
 namespace opentxs
 {

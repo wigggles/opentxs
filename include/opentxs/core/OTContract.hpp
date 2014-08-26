@@ -135,7 +135,7 @@
 
 #include "OTIdentifier.hpp"
 #include "OTStringXML.hpp"
-#include "util/OTCommon.hpp" // TODO: remove this when feasible
+#include "util/Common.hpp" // TODO: remove this when feasible
 
 namespace irr
 {
