@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTTokenLucre.cpp
+ *  TokenLucre.cpp
  *
  */
 
@@ -132,13 +132,13 @@
 
 #include "stdafx.hpp"
 
-#include "OTTokenLucre.hpp"
+#include "cash/TokenLucre.hpp"
 
-#include "OTDigitalCash.hpp"
 #include "OTEnvelope.hpp"
 #include "OTLog.hpp"
-#include "OTMint.hpp"
-#include "OTToken.hpp"
+#include "cash/DigitalCash.hpp"
+#include "cash/Mint.hpp"
+#include "cash/Token.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
 #include "OpenSSL_BIO.hpp"
@@ -155,21 +155,21 @@ namespace opentxs
 
 #if defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
 
-OTToken_Lucre::OTToken_Lucre() : ot_super()
+Token_Lucre::Token_Lucre() : ot_super()
 {
 }
 
-OTToken_Lucre::OTToken_Lucre(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& ASSET_ID)
+Token_Lucre::Token_Lucre(const OTIdentifier& SERVER_ID,
+                         const OTIdentifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
 {
 }
 
-OTToken_Lucre::OTToken_Lucre(const OTPurse& thePurse) : ot_super(thePurse)
+Token_Lucre::Token_Lucre(const Purse& thePurse) : ot_super(thePurse)
 {
 }
 
-OTToken_Lucre::~OTToken_Lucre()
+Token_Lucre::~Token_Lucre()
 {
 }
 
@@ -177,19 +177,19 @@ OTToken_Lucre::~OTToken_Lucre()
 // nDenomination must be one of the denominations supported by the mint.
 // sets m_nTokenCount and populates the maps with prototokens (in ASCII-armored
 // format.)
-bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
-                                         OTMint& theMint, int64_t lDenomination,
-                                         int32_t nTokenCount)
+bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
+                                       int64_t lDenomination,
+                                       int32_t nTokenCount)
 {
     //    otErr << "%s <bank public info> <coin request private output file>
     // <coin request public output file>\n", argv[0]);
     //
-    if (OTToken::blankToken != m_State) {
-        otErr << "OTToken_Lucre::GenerateTokenRequest: Blank token expected.\n";
+    if (Token::blankToken != m_State) {
+        otErr << "Token_Lucre::GenerateTokenRequest: Blank token expected.\n";
         return false;
     }
 
-    _OT_Lucre_Dumper setDumper; // todo security.
+    LucreDumper setDumper; // todo security.
 
     OpenSSL_BIO bioBank = BIO_new(
         BIO_s_mem()); // Input. We must supply the bank's public lucre info
@@ -248,8 +248,8 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
                            theMint.GetValidTo());
 
     const int32_t nFinalTokenCount =
-        (nTokenCount < OTToken::GetMinimumPrototokenCount())
-            ? OTToken::GetMinimumPrototokenCount()
+        (nTokenCount < Token::GetMinimumPrototokenCount())
+            ? Token::GetMinimumPrototokenCount()
             : nTokenCount;
 
     // Token count is actually 1 (always) with Lucre, although this lib has
@@ -295,10 +295,10 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
             OT_ASSERT_MSG(
                 ((nullptr != pArmoredPublic) && (nullptr != pArmoredPrivate)),
                 "ERROR: Unable to allocate memory in "
-                "OTToken_Lucre::GenerateTokenRequest\n");
+                "Token_Lucre::GenerateTokenRequest\n");
 
             // Change the state. It's no longer a blank token, but a prototoken.
-            m_State = OTToken::protoToken;
+            m_State = Token::protoToken;
 
             // Seal the private coin info up into an encrypted Envelope
             // and set it onto pArmoredPrivate (which was just added to our
@@ -326,8 +326,8 @@ bool OTToken_Lucre::GenerateTokenRequest(const OTPseudonym& theNym,
 // Lucre step 4: client unblinds token -- now it's ready for use.
 // Final unblinded spendable token is encrypted to theNym for safe storage.
 //
-bool OTToken_Lucre::ProcessToken(const OTPseudonym& theNym, OTMint& theMint,
-                                 OTToken& theRequest)
+bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
+                               Token& theRequest)
 {
     //    otErr << "%s <bank public info> <private coin request> <signed coin
     // request> <coin>\n",
@@ -336,13 +336,13 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym& theNym, OTMint& theMint,
     // When the Mint has signed a token and sent it back to the client,
     // the client must unblind the token and set it as spendable. Thus,
     // this function is only performed on tokens in the signedToken state.
-    if (OTToken::signedToken != m_State) {
-        otErr << "Signed token expected in OTToken_Lucre::ProcessToken\n";
+    if (Token::signedToken != m_State) {
+        otErr << "Signed token expected in Token_Lucre::ProcessToken\n";
         return false;
     }
 
     // Lucre
-    _OT_Lucre_Dumper setDumper; // todo security.
+    LucreDumper setDumper; // todo security.
 
     OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());           // input
     OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());      // input
@@ -440,7 +440,7 @@ bool OTToken_Lucre::ProcessToken(const OTPseudonym& theNym, OTMint& theMint,
 
             // Now the coin is encrypted from here on out, and otherwise
             // ready-to-spend.
-            m_State = OTToken::spendableToken;
+            m_State = Token::spendableToken;
             bReturnValue = true;
 
             // Lastly, we free the signature data, which is no longer needed,

@@ -142,7 +142,6 @@
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
-#include "OTMint.hpp"
 #include "OTOffer.hpp"
 #include "OTPasswordData.hpp"
 #include "OTPaymentPlan.hpp"
@@ -152,8 +151,9 @@
 #include "OTSignedFile.hpp"
 #include "OTSmartContract.hpp"
 #include "OTStorage.hpp"
-#include "OTToken.hpp"
 #include "OTTrade.hpp"
+#include "cash/Mint.hpp"
+#include "cash/Token.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -279,7 +279,7 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
-            pContract = OTMint::MintFactory();
+            pContract = Mint::MintFactory();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
@@ -287,16 +287,16 @@ OTContract* OTContract::InstantiateContract(OTString strInput)
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
-            pContract = OTToken::LowLevelInstantiate(strFirstLine);
+            pContract = Token::LowLevelInstantiate(strFirstLine);
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
-            pContract = OTToken::LowLevelInstantiate(strFirstLine);
+            pContract = Token::LowLevelInstantiate(strFirstLine);
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
-            pContract = OTToken::LowLevelInstantiate(strFirstLine);
+            pContract = Token::LowLevelInstantiate(strFirstLine);
             OT_ASSERT(nullptr != pContract);
         }
 

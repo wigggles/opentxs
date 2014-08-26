@@ -153,7 +153,6 @@
 #include <OTLedger.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
-#include <OTMint.hpp>
 #include <OTNymOrSymmetricKey.hpp>
 #include <OTOffer.hpp>
 #include <OTParty.hpp>
@@ -164,14 +163,15 @@
 #include <OTPayment.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
-#include <OTPurse.hpp>
 #include <OTServerContract.hpp>
 #include <OTSmartContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTStorage.hpp>
-#include <OTToken.hpp>
 #include <OTTrade.hpp>
 #include <OTWallet.hpp>
+#include <cash/Mint.hpp>
+#include <cash/Purse.hpp>
+#include <cash/Token.hpp>
 
 #if defined(OT_KEYRING_FLATFILE)
 #include <OTKeyring.hpp>
@@ -5187,10 +5187,10 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
 //
 // (Caller responsible to delete.)
 //
-OTPurse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_ID,
-                           const OTIdentifier& USER_ID,
-                           const OTString* pstrDisplay)
+Purse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
+                         const OTIdentifier& ASSET_ID,
+                         const OTIdentifier& USER_ID,
+                         const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason((nullptr == pstrDisplay)
@@ -5204,7 +5204,7 @@ OTPurse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
         GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__,
                             &thePWData); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
-    OTPurse* pPurse = new OTPurse(SERVER_ID, ASSET_ID, USER_ID);
+    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID, USER_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5231,7 +5231,7 @@ OTPurse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
 
 bool OT_API::SavePurse(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ASSET_ID,
-                       const OTIdentifier& USER_ID, OTPurse& THE_PURSE)
+                       const OTIdentifier& USER_ID, Purse& THE_PURSE)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (THE_PURSE.IsPasswordProtected()) {
@@ -5262,12 +5262,12 @@ bool OT_API::SavePurse(const OTIdentifier& SERVER_ID,
 //
 // Caller is responsible to delete!
 //
-OTPurse* OT_API::CreatePurse(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& ASSET_ID,
-                             const OTIdentifier& OWNER_ID)
+Purse* OT_API::CreatePurse(const OTIdentifier& SERVER_ID,
+                           const OTIdentifier& ASSET_ID,
+                           const OTIdentifier& OWNER_ID)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    OTPurse* pPurse = new OTPurse(SERVER_ID, ASSET_ID, OWNER_ID);
+    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID, OWNER_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5283,11 +5283,11 @@ OTPurse* OT_API::CreatePurse(const OTIdentifier& SERVER_ID,
 //
 // Caller is responsible to delete!
 //
-OTPurse* OT_API::CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
-                                        const OTIdentifier& ASSET_ID)
+Purse* OT_API::CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
+                                      const OTIdentifier& ASSET_ID)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    OTPurse* pPurse = new OTPurse(SERVER_ID, ASSET_ID);
+    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5310,7 +5310,7 @@ OTPurse* OT_API::CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
 //
 OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
     const OTIdentifier& theServerID, const OTIdentifier& theAssetTypeID,
-    const OTString& strPurse, OTPurse& thePurse, // output
+    const OTString& strPurse, Purse& thePurse, // output
     OTPassword& thePassword,   // Only used in the case of password-protected
                                // purses. Passed in so it won't go out of scope
                                // when pOwner is set to point to it.
@@ -5458,7 +5458,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
 // Caller must delete.
 //
 OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
-    const OTString& strPurse, OTPurse& thePurse, // output
+    const OTString& strPurse, Purse& thePurse, // output
     OTPassword& thePassword, // Only used in the case of password-protected
                              // purses. Passed in so it won't go out of scope
                              // when pOwner is set to point to it.
@@ -5598,18 +5598,18 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
 ///
 /// returns nullptr if failure.
 ///
-OTToken* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
-                            const OTIdentifier& ASSET_TYPE_ID,
-                            const OTString& THE_PURSE,
-                            const OTIdentifier* pOWNER_ID, // This can be
-                                                           // nullptr,
-                                                           // **IF** purse
-                            // is password-protected. (It's
-                            // just ignored in that case.)
-                            // Otherwise MUST contain the NymID
-                            // for the Purse owner (necessary
-                            // to decrypt the token.)
-                            const OTString* pstrDisplay)
+Token* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
+                          const OTIdentifier& ASSET_TYPE_ID,
+                          const OTString& THE_PURSE,
+                          const OTIdentifier* pOWNER_ID, // This can be
+                                                         // nullptr,
+                                                         // **IF** purse
+                          // is password-protected. (It's
+                          // just ignored in that case.)
+                          // Otherwise MUST contain the NymID
+                          // for the Purse owner (necessary
+                          // to decrypt the token.)
+                          const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -5621,7 +5621,7 @@ OTToken* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
             ? "Enter the passphrase for this purse. (Purse_Peek)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    OTPurse thePurse(SERVER_ID, ASSET_TYPE_ID);
+    Purse thePurse(SERVER_ID, ASSET_TYPE_ID);
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5650,7 +5650,7 @@ OTToken* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
     OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
-    OTToken* pToken = nullptr;
+    Token* pToken = nullptr;
 
     if (thePurse.IsEmpty())
         otOut << __FUNCTION__ << ": Failed attempt to peek; purse is empty.\n";
@@ -5681,18 +5681,18 @@ OTToken* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
 ///
 /// returns nullptr if failure.
 ///
-OTPurse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_TYPE_ID,
-                           const OTString& THE_PURSE,
-                           const OTIdentifier* pOWNER_ID, // This can be
-                                                          // nullptr,
-                                                          // **IF** purse
-                           // is password-protected. (It's
-                           // just ignored in that case.)
-                           // Otherwise MUST contain the NymID
-                           // for the Purse owner (necessary
-                           // to decrypt the token.)
-                           const OTString* pstrDisplay)
+Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
+                         const OTIdentifier& ASSET_TYPE_ID,
+                         const OTString& THE_PURSE,
+                         const OTIdentifier* pOWNER_ID, // This can be
+                                                        // nullptr,
+                                                        // **IF** purse
+                         // is password-protected. (It's
+                         // just ignored in that case.)
+                         // Otherwise MUST contain the NymID
+                         // for the Purse owner (necessary
+                         // to decrypt the token.)
+                         const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -5704,11 +5704,11 @@ OTPurse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
             ? "Enter the passphrase for this purse. (Purse_Pop)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    OTPurse* pPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+    Purse* pPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
     OT_ASSERT(nullptr != pPurse);
-    OTCleanup<OTPurse> thePurseAngel(pPurse); // We'll unset this in success
-                                              // case, so it doesn't delete the
-                                              // purse we're returning.
+    OTCleanup<Purse> thePurseAngel(pPurse); // We'll unset this in success
+                                            // case, so it doesn't delete the
+                                            // purse we're returning.
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5737,13 +5737,13 @@ OTPurse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
     OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
-    OTPurse* pReturnPurse = nullptr;
+    Purse* pReturnPurse = nullptr;
 
     if (pPurse->IsEmpty())
         otOut << __FUNCTION__ << ": Failed attempt to pop; purse is empty.\n";
     else {
-        OTToken* pToken = pPurse->Pop(*pOwner);
-        OTCleanup<OTToken> theTokenAngel(pToken);
+        Token* pToken = pPurse->Pop(*pOwner);
+        OTCleanup<Token> theTokenAngel(pToken);
 
         if (nullptr == pToken)
             otOut << __FUNCTION__
@@ -5764,18 +5764,17 @@ OTPurse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
 }
 
 // Caller must delete.
-OTPurse* OT_API::Purse_Empty(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& ASSET_TYPE_ID,
-                             const OTString& THE_PURSE,
-                             const OTString* pstrDisplay)
+Purse* OT_API::Purse_Empty(const OTIdentifier& SERVER_ID,
+                           const OTIdentifier& ASSET_TYPE_ID,
+                           const OTString& THE_PURSE,
+                           const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason((nullptr == pstrDisplay)
                                  ? "Making an empty copy of a cash purse."
                                  : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    OTPurse* pPurse =
-        OTPurse::PurseFactory(THE_PURSE, SERVER_ID, ASSET_TYPE_ID);
+    Purse* pPurse = Purse::PurseFactory(THE_PURSE, SERVER_ID, ASSET_TYPE_ID);
 
     if (nullptr == pPurse) {
         otOut << __FUNCTION__
@@ -5800,16 +5799,17 @@ OTPurse* OT_API::Purse_Empty(const OTIdentifier& SERVER_ID,
 ///
 /// returns nullptr if failure.
 ///
-OTPurse* OT_API::Purse_Push(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
-    const OTString& THE_PURSE, const OTString& THE_TOKEN,
-    const OTIdentifier* pOWNER_ID, // This can be nullptr, **IF** purse
-                                   // is password-protected. (It's
-                                   // just ignored in that case.)
-                                   // Otherwise MUST contain the NymID
-                                   // for the Purse owner (necessary
-                                   // to encrypt the token.)
-    const OTString* pstrDisplay)
+Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
+                          const OTIdentifier& ASSET_TYPE_ID,
+                          const OTString& THE_PURSE, const OTString& THE_TOKEN,
+                          const OTIdentifier* pOWNER_ID, // This can be nullptr,
+                                                         // **IF** purse
+                          // is password-protected. (It's
+                          // just ignored in that case.)
+                          // Otherwise MUST contain the NymID
+                          // for the Purse owner (necessary
+                          // to encrypt the token.)
+                          const OTString* pstrDisplay)
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -5830,8 +5830,8 @@ OTPurse* OT_API::Purse_Push(
         return nullptr;
     }
     OTString strToken(THE_TOKEN);
-    OTToken* pToken = OTToken::TokenFactory(strToken, SERVER_ID, ASSET_TYPE_ID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(strToken, SERVER_ID, ASSET_TYPE_ID);
+    OTCleanup<Token> theTokenAngel(pToken);
 
     if (nullptr == pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -5840,11 +5840,11 @@ OTPurse* OT_API::Purse_Push(
               << THE_TOKEN << "\n\n";
         return nullptr;
     }
-    OTPurse* pPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+    Purse* pPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
     OT_ASSERT(nullptr != pPurse);
-    OTCleanup<OTPurse> thePurseAngel(pPurse); // We'll unset this in success
-                                              // case, so it doesn't delete the
-                                              // purse we're returning.
+    OTCleanup<Purse> thePurseAngel(pPurse); // We'll unset this in success
+                                            // case, so it doesn't delete the
+                                            // purse we're returning.
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5873,7 +5873,7 @@ OTPurse* OT_API::Purse_Push(
     OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
-    OTPurse* pReturnPurse = nullptr;
+    Purse* pReturnPurse = nullptr;
 
     const bool bPushed = pPurse->Push(*pOwner, *pToken);
 
@@ -5920,9 +5920,9 @@ bool OT_API::Wallet_ImportPurse(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTPurse* pNewPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+    Purse* pNewPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
     OT_ASSERT(nullptr != pNewPurse);
-    OTCleanup<OTPurse> theNewPurseAngel(pNewPurse);
+    OTCleanup<Purse> theNewPurseAngel(pNewPurse);
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
     // symmetric
@@ -5956,13 +5956,13 @@ bool OT_API::Wallet_ImportPurse(
     OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pNewOwner);
     if (nullptr == pNewOwner)
         return false; // This already logs, no need for more logs.
-    OTPurse* pOldPurse = LoadPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
-    OTCleanup<OTPurse> theOldPurseAngel(pOldPurse);
+    Purse* pOldPurse = LoadPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
+    OTCleanup<Purse> theOldPurseAngel(pOldPurse);
 
     if (nullptr == pOldPurse) // apparently there's not already a purse of this
                               // type, let's create it.
     {
-        pOldPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
+        pOldPurse = new Purse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
         OT_ASSERT(nullptr != pOldPurse);
         theOldPurseAngel.SetCleanupTarget(*pOldPurse);
     }
@@ -6038,7 +6038,7 @@ bool OT_API::Wallet_ImportPurse(
 //
 // Caller must delete!
 //
-OTToken* OT_API::Token_ChangeOwner(
+Token* OT_API::Token_ChangeOwner(
     const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
     const OTString& THE_TOKEN, const OTIdentifier& SIGNER_NYM_ID,
     const OTString& OLD_OWNER, // Pass a NymID here, or a purse.
@@ -6067,12 +6067,12 @@ OTToken* OT_API::Token_ChangeOwner(
     // a corresponding master key.)
     OTIdentifier oldOwnerNymID,
         newOwnerNymID; // if either owner is a Nym, the ID goes here.
-    OTCleanup<OTPurse> theOldPurseAngel;
+    OTCleanup<Purse> theOldPurseAngel;
     OTPassword theOldPassword; // Only used in the case of password-protected
                                // purses.
     OTNym_or_SymmetricKey* pOldOwner = nullptr;
     OTCleanup<OTNym_or_SymmetricKey> theOldOwnerAngel;
-    OTCleanup<OTPurse> theNewPurseAngel;
+    OTCleanup<Purse> theNewPurseAngel;
     OTPassword theNewPassword; // Only used in the case of password-protected
                                // purses.
     OTNym_or_SymmetricKey* pNewOwner = nullptr;
@@ -6098,7 +6098,7 @@ OTToken* OT_API::Token_ChangeOwner(
     {
         // if the old owner is a Purse (symmetric+master key), the entire
         // purse is loaded.
-        OTPurse* pOldPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+        Purse* pOldPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pOldPurse);
         theOldPurseAngel.SetCleanupTargetPointer(pOldPurse);
         pOldOwner = LoadPurseAndOwnerForMerge(
@@ -6138,7 +6138,7 @@ OTToken* OT_API::Token_ChangeOwner(
     {
         // if the new owner is a Purse (symmetric+master key), the entire purse
         // is loaded.
-        OTPurse* pNewPurse = new OTPurse(SERVER_ID, ASSET_TYPE_ID);
+        Purse* pNewPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pNewPurse);
         theNewPurseAngel.SetCleanupTargetPointer(pNewPurse);
         pNewOwner = LoadPurseAndOwnerForMerge(
@@ -6169,9 +6169,8 @@ OTToken* OT_API::Token_ChangeOwner(
     //
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
-    OTToken* pToken =
-        OTToken::TokenFactory(THE_TOKEN, SERVER_ID, ASSET_TYPE_ID);
-    OTCleanup<OTToken> theTokenAngel(pToken);
+    Token* pToken = Token::TokenFactory(THE_TOKEN, SERVER_ID, ASSET_TYPE_ID);
+    OTCleanup<Token> theTokenAngel(pToken);
     OT_ASSERT(nullptr != pToken);
     if (false ==
         pToken->ReassignOwnership(*pOldOwner,  // must be private, if a Nym.
@@ -6201,8 +6200,8 @@ OTToken* OT_API::Token_ChangeOwner(
 // Returns an OTMint pointer, or nullptr.
 // (Caller responsible to delete.)
 //
-OTMint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID)
+Mint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
+                       const OTIdentifier& ASSET_ID)
 {
     const OTString strServerID(SERVER_ID);
     const OTString strAssetTypeID(ASSET_ID);
@@ -6215,7 +6214,7 @@ OTMint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
               << strServerID << " \n";
         return nullptr;
     }
-    OTMint* pMint = OTMint::MintFactory(strServerID, strAssetTypeID);
+    Mint* pMint = Mint::MintFactory(strServerID, strAssetTypeID);
     OT_ASSERT_MSG(nullptr != pMint,
                   "OT_API::LoadMint: Error allocating memory in the OT API");
     // responsible to delete or return pMint below this point.
@@ -9380,9 +9379,9 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
               << OTLog::PathSeparator() << strContractID << "\n";
         return -1;
     }
-    OTMint* pMint =
-        OTMint::MintFactory(strServerID, strContractID); // <=================
-    OTCleanup<OTMint> theMintAngel(pMint);
+    Mint* pMint =
+        Mint::MintFactory(strServerID, strContractID); // <=================
+    OTCleanup<Mint> theMintAngel(pMint);
     OT_ASSERT(nullptr != pMint);
     OTMessage theMessage;
 
@@ -9435,8 +9434,8 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
         pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
         int64_t lRequestNumber = 0;
-        OTPurse* pPurse = new OTPurse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
-        OTPurse* pPurseMyCopy = new OTPurse(SERVER_ID, CONTRACT_ID, USER_ID);
+        Purse* pPurse = new Purse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
+        Purse* pPurseMyCopy = new Purse(SERVER_ID, CONTRACT_ID, USER_ID);
 
         // Create all the necessary tokens for the withdrawal amount.
         // Push copies of each token into a purse to be sent to the server,
@@ -9453,9 +9452,9 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
             // constructor
             // just uses it to copy some IDs, since they must match.
             //
-            OTToken* pToken = OTToken::InstantiateAndGenerateTokenRequest(
+            Token* pToken = Token::InstantiateAndGenerateTokenRequest(
                 *pPurse, *pNym, *pMint, lTokenAmount);
-            OTCleanup<OTToken> theTokenAngel(pToken);
+            OTCleanup<Token> theTokenAngel(pToken);
             OT_ASSERT(nullptr != pToken);
 
             // Sign it and save it.
@@ -9636,7 +9635,7 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 
     const OTPseudonym* pServerNym = pServer->GetContractPublicNym();
     const OTIdentifier SERVER_USER_ID(*pServerNym);
-    OTPurse thePurse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
+    Purse thePurse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
@@ -9695,7 +9694,7 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     // since they can use pOwner either way.)
     //
     OTPassword thePassword;
-    OTPurse theSourcePurse(thePurse);
+    Purse theSourcePurse(thePurse);
 
     OTNym_or_SymmetricKey* pPurseOwner = LoadPurseAndOwnerForMerge(
         THE_PURSE, theSourcePurse, thePassword,
@@ -9713,7 +9712,7 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
         OTNym_or_SymmetricKey theServerNymAsOwner(*pServerNym);
 
         while (!theSourcePurse.IsEmpty()) {
-            OTToken* pToken = theSourcePurse.Pop(*pPurseOwner);
+            Token* pToken = theSourcePurse.Pop(*pPurseOwner);
 
             if (nullptr != pToken) {
                 // TODO need 2-recipient envelopes. My request to the server is

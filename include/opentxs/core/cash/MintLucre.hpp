@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTTokenLucre.hpp
+ *  MintLucre.hpp
  *
  */
 
@@ -130,94 +130,52 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_TOKEN_LUCRE_HPP__
-#define __OT_TOKEN_LUCRE_HPP__
+#ifndef __MINT_LUCRE_HPP__
+#define __MINT_LUCRE_HPP__
 
-#include "OTToken.hpp"
+#include "cash/Mint.hpp"
 
 namespace opentxs
 {
 
-class OTIdentifier;
-class OTMint;
-class OTPseudonym;
-class OTPurse;
+class Token;
 
-/*
- Here's a rough sketch of the protocol:
+// SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
- Client requests Mint for withdrawal of 100 ithica work hours.
-
-1) Client blinds and sends N tokens to the server, each worth 100 hours. Client
-retains the keys.
-2) Server responds with a single index, the one the server has chosen for
-signing.
-3) Client replies with 99 keys.
-4) Server unblinds 99 tokens (or some randomly-chosen % of those) and verifies
-them.
-   He signs the last one and returns it.
-5) Client receives signed token, unblinds it, stores it for later.
-6) When token is redeemed, it has already been unblinded. So Server simply
-verifies it.
-
- LAST NAGGING QUESTION:  Should the server sign the other 99 tokens before
-unblinding them and verifying?
-                        In fact, what is it verifying at all?? Certainly not the
-amount, which is not even in
-                        the Lucre token. If all it does is verify its signature,
-then why sign it just to
-                        verify it?  Why exactly am I sending 99 tokens? What is
-the server unblinding them
-                        to look for??  Just to make sure all the IDs are random?
-That they aren't spent
-                        already?
-                        I think that's it.  The client has assurance he chose
-his own random IDs, the server
-                        verifies they are random and not spent already, and the
-ID portion is the only part
-                        that has to be randomized.
-
- UPDATE:
- Ben Laurie has confirmed that the Chaumian 99 token requirement does not exist
-with Lucre. All I have to
- do is send a single blinded token. The server signs it and sends it back, and
-the client unblinds it. Only the
- ID itself is blinded -- the server can clearly see the amount and only the Mint
-key for that denomination will work.
- */
-
-// SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 #if defined(OT_CASH_USING_MAGIC_MONEY)
 // Todo:  Someday...
 #endif // Magic Money
 
 #if defined(OT_CASH_USING_LUCRE)
 
-class OTToken_Lucre : public OTToken
+class MintLucre : public Mint
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTToken ot_super;
-    friend class OTToken; // for the factory.
-
+    typedef Mint ot_super;
+    friend class Mint; // for the factory.
 protected:
-    EXPORT OTToken_Lucre();
-    EXPORT OTToken_Lucre(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID);
-    EXPORT OTToken_Lucre(const OTPurse& thePurse);
-
-    EXPORT virtual bool GenerateTokenRequest(
-        const OTPseudonym& theNym, OTMint& theMint, int64_t lDenomination,
-        int32_t nTokenCount = OTToken::GetMinimumPrototokenCount());
+    MintLucre();
+    EXPORT MintLucre(const OTString& strServerID,
+                     const OTString& strAssetTypeID);
+    EXPORT MintLucre(const OTString& strServerID,
+                     const OTString& strServerNymID,
+                     const OTString& strAssetTypeID);
 
 public:
-    EXPORT virtual bool ProcessToken(const OTPseudonym& theNym, OTMint& theMint,
-                                     OTToken& theRequest);
+    virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+                                 int32_t nPrimeLength = 1024);
 
-    EXPORT virtual ~OTToken_Lucre();
+    EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
+                                  OTString& theOutput, int32_t nTokenIndex);
+    EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
+                                    OTString& theCleartextToken,
+                                    int64_t lDenomination);
+
+    EXPORT virtual ~MintLucre();
 };
 
 #endif // Lucre
 
 } // namespace opentxs
 
-#endif // __OT_TOKEN_LUCRE_HPP__
+#endif // __MINT_LUCRE_HPP__

@@ -148,11 +148,10 @@
 #include <OTMessage.hpp>
 #include <OTPaths.hpp>
 #include <OTPseudonym.hpp>
-#include <OTPurse.hpp>
 #include <OTServerContract.hpp>
 #include <OTVariable.hpp>
 #include <OTWallet.hpp>
-
+#include <cash/Purse.hpp>
 #include <iterator>
 
 #ifdef __APPLE__
@@ -1666,9 +1665,9 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "\n ACCT BALANCE (server-side): "
                   << pMyAccount->GetBalance() << "\n\n";
 
-            OTPurse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
+            Purse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
                 theServerID, thePurseAssetTypeID, MY_NYM_ID);
-            OTCleanup<OTPurse> thePurseAngel(pPurse);
+            OTCleanup<Purse> thePurseAngel(pPurse);
             if (nullptr != pPurse)
                 otOut << " CASH PURSE (client-side): "
                       << pPurse->GetTotalValue() << "\n";

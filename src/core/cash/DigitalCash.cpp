@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTDigitalCash.cpp
+ *  DigitalCash.cpp
  *
  */
 
@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTDigitalCash.hpp"
+#include "cash/DigitalCash.hpp"
 
 #include "OTDataFolder.hpp"
 #include "OTPaths.hpp"
@@ -183,7 +183,7 @@ void SetDumper(const char* filepathexact)
 #ifdef OT_CASH_USING_LUCRE
 
 // We don't need this for release builds
-_OT_Lucre_Dumper::_OT_Lucre_Dumper()
+LucreDumper::LucreDumper()
 {
 #ifdef _WIN32
 #ifdef _DEBUG
@@ -192,11 +192,11 @@ _OT_Lucre_Dumper::_OT_Lucre_Dumper()
                      // info to file AT ALL.
     bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
     OT_ASSERT_MSG(bGetDataFolderSuccess,
-                  "_OT_Lucre_Dumper(): Failed to Get Data Path");
+                  "_OT_LucreDumper(): Failed to Get Data Path");
     bool bRelativeToCanonicalSuccess = OTPaths::RelativeToCanonical(
         strOpenSSLDumpFilePath, strDataPath, strOpenSSLDumpFilename);
     OT_ASSERT_MSG(bRelativeToCanonicalSuccess,
-                  "_OT_Lucre_Dumper(): Unable To Build Full Path");
+                  "_OT_LucreDumper(): Unable To Build Full Path");
 
     strOpenSSLDumpFilename.Set("");
     strDataPath.Set("");
@@ -216,7 +216,7 @@ _OT_Lucre_Dumper::_OT_Lucre_Dumper()
 #endif
 }
 
-_OT_Lucre_Dumper::~_OT_Lucre_Dumper()
+LucreDumper::~LucreDumper()
 {
 #ifdef _WIN32
 #ifdef _DEBUG

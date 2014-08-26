@@ -146,7 +146,7 @@ namespace opentxs
 class OTCheque;
 class OTNumList;
 class OTPaymentPlan;
-class OTPurse;
+class Purse;
 class OTSmartContract;
 class OTTrackable;
 
@@ -314,12 +314,12 @@ public:
     }
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const OTString& strPayment);
-    EXPORT OTPurse* InstantiatePurse() const;
+    EXPORT Purse* InstantiatePurse() const;
     //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID) const;
     //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const
     // OTIdentifier & ASSET_ID) const;
 
-    EXPORT OTPurse* InstantiatePurse(const OTString& strPayment);
+    EXPORT Purse* InstantiatePurse(const OTString& strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID,
     //                                   const OTString & strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const
@@ -344,7 +344,7 @@ public:
     EXPORT bool SetTempValuesFromCheque(const OTCheque& theInput);
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
-    EXPORT bool SetTempValuesFromPurse(const OTPurse& theInput);
+    EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
     // Once you "Instantiate" the first time, then these values are
     // set, if available, and can be queried thereafter from *this.
     // Otherwise, these functions will return false.

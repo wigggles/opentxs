@@ -1,6 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 add_subdirectory(otprotob)
+add_subdirectory(cash)
 
 set(cxx-sources
   Timer.cpp
@@ -32,7 +33,6 @@ set(cxx-sources
   OTData.cpp
   OTDataCheck.cpp
   OTDataFolder.cpp
-  OTDigitalCash.cpp
   OTEnvelope.cpp
   OTFolders.cpp
   OTIdentifier.cpp
@@ -49,8 +49,6 @@ set(cxx-sources
   OTMessage.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
-  OTMint.cpp
-  OTMintLucre.cpp
   OTNumList.cpp
   OTNymOrSymmetricKey.cpp
   OTOffer.cpp
@@ -63,7 +61,6 @@ set(cxx-sources
   OTPayment.cpp
   OTPaymentPlan.cpp
   OTPseudonym.cpp
-  OTPurse.cpp
   OTScript.cpp
   OTScriptable.cpp
   OTScriptChai.cpp
@@ -81,8 +78,6 @@ set(cxx-sources
   OTSubcredential.cpp
   OTSubkey.cpp
   OTSymmetricKey.cpp
-  OTToken.cpp
-  OTTokenLucre.cpp
   OTTrackable.cpp
   OTTrade.cpp
   OTTransaction.cpp
@@ -146,7 +141,7 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(opentxs-core otprotob bigint irrxml lucre ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core otprotob opentxs-cash bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD

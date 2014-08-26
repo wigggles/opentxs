@@ -1,7 +1,8 @@
 /************************************************************
  *
- *  OTMintLucre.hpp
+ *  DigitalCash.hpp
  *
+ *  This header is for info shared between OTMint and OTToken.
  */
 
 /************************************************************
@@ -130,52 +131,52 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_MINT_LUCRE_HPP__
-#define __OT_MINT_LUCRE_HPP__
+#ifndef __DIGITAL_CASH_HPP__
+#define __DIGITAL_CASH_HPP__
 
-#include "OTMint.hpp"
+#include "OTCommon.hpp"
+
+#ifdef OT_CASH_USING_LUCRE
+#include "lucre/bank.h" // Lucre
+#endif
+
+#ifdef OT_CASH_USING_MAGIC_MONEY
+#include... // someday
+#endif
+
+// WHICH DIGITAL CASH LIBRARY?
+//
+// Many algorithms may come available. We are currently using Lucre, by Ben
+// Laurie,
+// which is an implementation of Wagner, which is a variant of Chaum.
+//
+// We plan to have alternatives such as "Magic Money" by Pr0duct Cypher.
+//
+// Implementations for Chaum and Brands are circulating online. They could all
+// be easily added here as options for Open-Transactions.
 
 namespace opentxs
 {
 
-class OTToken;
+#ifdef OT_CASH_USING_LUCRE
 
-// SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
-
-#if defined(OT_CASH_USING_MAGIC_MONEY)
-// Todo:  Someday...
-#endif // Magic Money
-
-#if defined(OT_CASH_USING_LUCRE)
-
-class OTMint_Lucre : public OTMint
+class LucreDumper
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTMint ot_super;
-    friend class OTMint; // for the factory.
-protected:
-    OTMint_Lucre();
-    EXPORT OTMint_Lucre(const OTString& strServerID,
-                        const OTString& strAssetTypeID);
-    EXPORT OTMint_Lucre(const OTString& strServerID,
-                        const OTString& strServerNymID,
-                        const OTString& strAssetTypeID);
+    std::string m_str_dumpfile;
 
 public:
-    virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
-                                 int32_t nPrimeLength = 1024);
-
-    EXPORT virtual bool SignToken(OTPseudonym& theNotary, OTToken& theToken,
-                                  OTString& theOutput, int32_t nTokenIndex);
-    EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
-                                    OTString& theCleartextToken,
-                                    int64_t lDenomination);
-
-    EXPORT virtual ~OTMint_Lucre();
+    LucreDumper();
+    ~LucreDumper();
 };
 
-#endif // Lucre
+#endif
+
+#ifdef OT_CASH_USING_MAGIC_MONEY
+
+// Todo:  Someday...
+
+#endif
 
 } // namespace opentxs
 
-#endif // __OT_MINT_LUCRE_HPP__
+#endif // __DIGITAL_CASH_HPP__
