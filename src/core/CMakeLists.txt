@@ -126,7 +126,7 @@ if(WIN32)
   add_library(opentxs-core
     ${cxx-sources}
     ${cxx-headers}
-    OTWindowsRegistryTools.cpp
+    util/OTWindowsRegistryTools.cpp
   )
 else()
   add_library(opentxs-core

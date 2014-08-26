@@ -134,7 +134,7 @@
 
 #ifdef _WIN32
 
-#include "OTWindowsRegistryTools.hpp"
+#include "util/OTWindowsRegistryTools.hpp"
 
 LONG WindowsRegistryTools::GetDWORDRegKey(HKEY hKey,
                                           const std::wstring& strValueName,
