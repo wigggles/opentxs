@@ -4,7 +4,7 @@ add_subdirectory(otprotob)
 add_subdirectory(cash)
 
 set(cxx-sources
-  Timer.cpp
+  util/Timer.cpp
   tinythread.cpp
   mkcert.cpp
   OTAccount.cpp
