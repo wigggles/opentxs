@@ -133,7 +133,7 @@
 #ifndef __OT_UTILITY_OT_HPP__
 #define __OT_UTILITY_OT_HPP__
 
-#include <OTCommon.hpp>
+#include <opentxs/core/util/OTCommon.hpp>
 
 #include <array>
 

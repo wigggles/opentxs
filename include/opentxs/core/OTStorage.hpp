@@ -133,7 +133,7 @@
 #ifndef __OT_STORAGE_HPP__
 #define __OT_STORAGE_HPP__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 // we now include this file in swig
 // we need to tell swig what parts to skip over.

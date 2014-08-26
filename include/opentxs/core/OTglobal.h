@@ -133,7 +133,7 @@
 #ifndef __OT_GLOBAL_H__
 #define __OT_GLOBAL_H__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 #ifdef __cplusplus
 extern "C" {

@@ -133,8 +133,7 @@
 #ifndef __OT_CACHED_KEY_HPP__
 #define __OT_CACHED_KEY_HPP__
 
-#include "OTCommon.hpp"
-
+#include "util/OTCommon.hpp"
 #include "util/tinythread.hpp"
 
 #include <map>

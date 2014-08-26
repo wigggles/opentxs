@@ -1,9 +1,4 @@
-// OTLIB
-// Open Transactions Pre-Compiled Headers File
-
 #pragma once
-
-#include "OTCommon.hpp"
 
 #include "OTglobal.h"
 

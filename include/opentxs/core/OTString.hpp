@@ -133,7 +133,7 @@
 #ifndef __OT_STRING_HPP__
 #define __OT_STRING_HPP__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 #ifdef _WIN32
 #include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring

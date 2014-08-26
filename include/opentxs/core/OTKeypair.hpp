@@ -133,7 +133,7 @@
 #ifndef __OT_KEYPAIR_HPP__
 #define __OT_KEYPAIR_HPP__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 #include <list>
 

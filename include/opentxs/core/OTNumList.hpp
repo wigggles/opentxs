@@ -133,7 +133,7 @@
 #ifndef __OT_NUM_LIST_HPP__
 #define __OT_NUM_LIST_HPP__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 #include <set>
 

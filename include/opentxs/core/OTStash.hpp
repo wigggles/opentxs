@@ -133,7 +133,7 @@
 #ifndef __OT_STASH_HPP__
 #define __OT_STASH_HPP__
 
-#include "OTCommon.hpp"
+#include "util/OTCommon.hpp"
 
 #include <map>
 
