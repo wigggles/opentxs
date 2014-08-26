@@ -134,7 +134,7 @@
 #define __OT_LOG_HPP__
 
 #include "OTString.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 #include <deque>
 #include <ostream>
@@ -216,7 +216,7 @@ private:
     // For things that represent internal inconsistency in the code.
     // Normally should NEVER happen even with bad input from user.
     // (Don't call this directly. Use the above #defined macro instead.)
-    static OTAssert::fpt_Assert_sz_n_sz(logAssert);
+    static Assert::fpt_Assert_sz_n_sz(logAssert);
 
     static bool CheckLogger(OTLog* pLogger);
 

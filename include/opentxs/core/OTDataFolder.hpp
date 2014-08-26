@@ -134,7 +134,7 @@
 #define __OT_DATA_FOLDER_HPP__
 
 #include "OTString.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 namespace opentxs
 {

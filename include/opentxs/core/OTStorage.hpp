@@ -138,7 +138,7 @@
 
 #ifndef SWIG
 
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 // credit:stlplus library.
 #include "containers/simple_ptr.hpp"

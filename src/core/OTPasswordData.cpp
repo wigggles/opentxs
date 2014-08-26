@@ -134,7 +134,7 @@
 
 #include "OTPasswordData.hpp"
 #include "OTString.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 // For SecureZeroMemory
 #ifdef _WIN32
