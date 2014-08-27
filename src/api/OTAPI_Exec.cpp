@@ -141,7 +141,6 @@
 #include <OTAmount.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
-#include <OTBasket.hpp>
 #include <script/OTBylaw.hpp>
 #include <OTCheque.hpp>
 #include <script/OTClause.hpp>
@@ -161,6 +160,7 @@
 #include <OTServerContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTWallet.hpp>
+#include <basket/OTBasket.hpp>
 #include <cash/Mint.hpp>
 #include <cash/Purse.hpp>
 #include <cash/Token.hpp>

@@ -134,7 +134,6 @@
 
 #include "OTTransaction.hpp"
 #include "OTCleanup.hpp"
-#include "OTBasket.hpp"
 #include "OTCheque.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
@@ -145,6 +144,7 @@
 #include "script/OTSmartContract.hpp"
 #include "OTStorage.hpp"
 #include "OTTrade.hpp"
+#include "basket/OTBasket.hpp"
 
 #include <irrxml/irrXML.hpp>
 
