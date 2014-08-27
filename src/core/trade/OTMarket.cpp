@@ -132,15 +132,15 @@
 
 #include "stdafx.hpp"
 
-#include "OTMarket.hpp"
+#include "trade/OTMarket.hpp"
+#include "trade/OTOffer.hpp"
+#include "trade/OTTrade.hpp"
 #include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
-#include "OTOffer.hpp"
 #include "OTPseudonym.hpp"
-#include "OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
 

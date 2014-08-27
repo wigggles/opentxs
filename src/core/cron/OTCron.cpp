@@ -138,7 +138,7 @@
 #include "cron/OTCronItem.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTMarket.hpp"
+#include "trade/OTMarket.hpp"
 #include "util/Timer.hpp"
 
 #include <irrxml/irrXML.hpp>

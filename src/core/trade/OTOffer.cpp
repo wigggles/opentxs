@@ -132,8 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTOffer.hpp"
-
+#include "trade/OTOffer.hpp"
 #include "OTLog.hpp"
 
 #include <irrxml/irrXML.hpp>

@@ -3,6 +3,7 @@
 add_subdirectory(otprotob)
 add_subdirectory(basket)
 add_subdirectory(cash)
+add_subdirectory(trade)
 add_subdirectory(cron)
 add_subdirectory(script)
 
@@ -41,14 +42,12 @@ set(cxx-sources
   OTLedger.cpp
   OTLog.cpp
   OTLowLevelKeyData.cpp
-  OTMarket.cpp
   OTMasterkey.cpp
   OTMessage.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
   OTNumList.cpp
   OTNymOrSymmetricKey.cpp
-  OTOffer.cpp
   OTPassword.cpp
   OTPasswordData.cpp
   OTPaths.cpp
@@ -69,7 +68,6 @@ set(cxx-sources
   OTSubkey.cpp
   OTSymmetricKey.cpp
   OTTrackable.cpp
-  OTTrade.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
 )
@@ -128,7 +126,7 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(opentxs-core otprotob opentxs-basket opentxs-cron opentxs-cash opentxs-script bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade opentxs-cash opentxs-basket bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD

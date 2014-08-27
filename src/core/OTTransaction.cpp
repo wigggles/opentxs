@@ -141,10 +141,10 @@
 #include "OTMessage.hpp"
 #include "OTPseudonym.hpp"
 #include "OTPaymentPlan.hpp"
-#include "script/OTSmartContract.hpp"
 #include "OTStorage.hpp"
-#include "OTTrade.hpp"
 #include "basket/OTBasket.hpp"
+#include "script/OTSmartContract.hpp"
+#include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
 

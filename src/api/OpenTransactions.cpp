@@ -153,7 +153,7 @@
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
 #include <OTNymOrSymmetricKey.hpp>
-#include <OTOffer.hpp>
+#include <trade/OTOffer.hpp>
 #include <script/OTParty.hpp>
 #include <script/OTPartyAccount.hpp>
 #include <OTPassword.hpp>
@@ -166,7 +166,7 @@
 #include <script/OTSmartContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTStorage.hpp>
-#include <OTTrade.hpp>
+#include <trade/OTTrade.hpp>
 #include <OTWallet.hpp>
 #include <basket/OTBasket.hpp>
 #include <cash/Mint.hpp>
