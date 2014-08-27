@@ -15,6 +15,7 @@ set(cxx-sources
   OTRecord.cpp
   OTRecordList.cpp
   OTServerConnection.cpp
+  OTWallet.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp")

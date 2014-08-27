@@ -72,7 +72,6 @@ set(cxx-sources
   OTTrade.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
-  OTWallet.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp")
