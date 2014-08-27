@@ -132,10 +132,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTCron.hpp"
+#include "cron/OTCron.hpp"
 #include "OTCleanup.hpp"
 #include "OTASCIIArmor.hpp"
-#include "OTCronItem.hpp"
+#include "cron/OTCronItem.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMarket.hpp"

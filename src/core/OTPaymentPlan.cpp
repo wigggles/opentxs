@@ -135,7 +135,7 @@
 #include "OTPaymentPlan.hpp"
 #include "OTCleanup.hpp"
 #include "OTAccount.hpp"
-#include "OTCron.hpp"
+#include "cron/OTCron.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"

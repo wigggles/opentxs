@@ -137,7 +137,7 @@
 #define __OT_SMART_CONTRACT_HPP__
 
 #include "OTAcctList.hpp"
-#include "OTCronItem.hpp"
+#include "cron/OTCronItem.hpp"
 
 namespace opentxs
 {
