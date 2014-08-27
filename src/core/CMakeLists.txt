@@ -1,6 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 add_subdirectory(otprotob)
+add_subdirectory(basket)
 add_subdirectory(cash)
 add_subdirectory(script)
 
@@ -18,8 +19,6 @@ set(cxx-sources
   OTAsymmetricKey.cpp
   OTAsymmetricKeyOpenSSL.cpp
   OTAsymmetricKeyOpenSSLPrivdp.cpp
-  OTBasket.cpp
-  OTBasketItem.cpp
   OTCachedKey.cpp
   OTCallback.cpp
   OTCaller.cpp
@@ -131,7 +130,7 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(opentxs-core otprotob opentxs-cash opentxs-script bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core otprotob opentxs-basket opentxs-cash opentxs-script bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD

@@ -137,10 +137,10 @@
 #include "OTAccount.hpp"
 #include "OTAcctFunctor.hpp"
 #include "OTAmount.hpp"
-#include "OTBasket.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
+#include "basket/OTBasket.hpp"
 
 #include <irrxml/irrXML.hpp>
 
