@@ -137,22 +137,22 @@
 #include "OpenTransactions.hpp"
 
 #include <OTAccount.hpp>
-#include <OTAgent.hpp>
+#include <script/OTAgent.hpp>
 #include <OTAmount.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
 #include <OTBasket.hpp>
-#include <OTBylaw.hpp>
+#include <script/OTBylaw.hpp>
 #include <OTCheque.hpp>
-#include <OTClause.hpp>
+#include <script/OTClause.hpp>
 #include <OTCleanup.hpp>
 #include <OTCredential.hpp>
 #include <OTEnvelope.hpp>
 #include <OTLedger.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
-#include <OTParty.hpp>
-#include <OTPartyAccount.hpp>
+#include <script/OTParty.hpp>
+#include <script/OTPartyAccount.hpp>
 #include <OTPasswordData.hpp>
 #include <OTPaths.hpp>
 #include <OTPayment.hpp>

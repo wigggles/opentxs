@@ -149,7 +149,7 @@
 #include "OTServerContract.hpp"
 #include "OTSignature.hpp"
 #include "OTSignedFile.hpp"
-#include "OTSmartContract.hpp"
+#include "script/OTSmartContract.hpp"
 #include "OTStorage.hpp"
 #include "OTTrade.hpp"
 #include "cash/Mint.hpp"

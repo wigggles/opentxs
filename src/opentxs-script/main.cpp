@@ -149,7 +149,7 @@
 #include <OTPaths.hpp>
 #include <OTPseudonym.hpp>
 #include <OTServerContract.hpp>
-#include <OTVariable.hpp>
+#include <script/OTVariable.hpp>
 #include <OTWallet.hpp>
 #include <cash/Purse.hpp>
 #include <iterator>

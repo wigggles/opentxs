@@ -135,7 +135,6 @@
 #include "OTLog.hpp"
 #include "OTParty.hpp"
 #include "OTPartyAccount.hpp"
-#include "OTStorage.hpp"
 #include "OTVariable.hpp"
 
 #ifdef OT_USE_SCRIPT_CHAI

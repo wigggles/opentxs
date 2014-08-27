@@ -138,11 +138,11 @@
 #include "OTClient.hpp"
 #include "OTServerConnection.hpp"
 
-#include <OTAgent.hpp>
+#include <script/OTAgent.hpp>
 #include <OTAssetContract.hpp>
 #include <OTAsymmetricKey.hpp>
 #include <OTBasket.hpp>
-#include <OTBylaw.hpp>
+#include <script/OTBylaw.hpp>
 #include <OTCachedKey.hpp>
 #include <OTCheque.hpp>
 #include <OTCleanup.hpp>
@@ -155,8 +155,8 @@
 #include <OTMessage.hpp>
 #include <OTNymOrSymmetricKey.hpp>
 #include <OTOffer.hpp>
-#include <OTParty.hpp>
-#include <OTPartyAccount.hpp>
+#include <script/OTParty.hpp>
+#include <script/OTPartyAccount.hpp>
 #include <OTPassword.hpp>
 #include <OTPasswordData.hpp>
 #include <OTPaths.hpp>
@@ -164,7 +164,7 @@
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTServerContract.hpp>
-#include <OTSmartContract.hpp>
+#include <script/OTSmartContract.hpp>
 #include <OTSymmetricKey.hpp>
 #include <OTStorage.hpp>
 #include <OTTrade.hpp>

@@ -137,7 +137,7 @@
 #include "ot_utility_ot.hpp"
 
 #include <OTLog.hpp>
-#include <OTVariable.hpp>
+#include <script/OTVariable.hpp>
 
 using namespace opentxs;
 

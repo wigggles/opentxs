@@ -2,6 +2,7 @@
 
 add_subdirectory(otprotob)
 add_subdirectory(cash)
+add_subdirectory(script)
 
 set(cxx-sources
   util/Timer.cpp
@@ -11,7 +12,6 @@ set(cxx-sources
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp
-  OTAgent.cpp
   OTAgreement.cpp
   OTASCIIArmor.cpp
   OTAssetContract.cpp
@@ -20,12 +20,10 @@ set(cxx-sources
   OTAsymmetricKeyOpenSSLPrivdp.cpp
   OTBasket.cpp
   OTBasketItem.cpp
-  OTBylaw.cpp
   OTCachedKey.cpp
   OTCallback.cpp
   OTCaller.cpp
   OTCheque.cpp
-  OTClause.cpp
   OTContract.cpp
   OTCredential.cpp
   OTCron.cpp
@@ -53,8 +51,6 @@ set(cxx-sources
   OTNumList.cpp
   OTNymOrSymmetricKey.cpp
   OTOffer.cpp
-  OTParty.cpp
-  OTPartyAccount.cpp
   OTPassword.cpp
   OTPasswordData.cpp
   OTPaths.cpp
@@ -62,14 +58,10 @@ set(cxx-sources
   OTPayment.cpp
   OTPaymentPlan.cpp
   OTPseudonym.cpp
-  OTScript.cpp
-  OTScriptable.cpp
-  OTScriptChai.cpp
   OTServerContract.cpp
   OTSettings.cpp
   OTSignatureMetadata.cpp
   OTSignedFile.cpp
-  OTSmartContract.cpp
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
@@ -82,7 +74,6 @@ set(cxx-sources
   OTTrade.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
-  OTVariable.cpp
   OTWallet.cpp
 )
 
@@ -95,7 +86,6 @@ set(dependency_include_dir
 include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/bigint/
-  ${dependency_include_dir}/ChaiScript/include/
   ${dependency_include_dir}/irrxml/
   ${dependency_include_dir}/lucre/include/
   ${dependency_include_dir}/simpleini/
@@ -141,7 +131,7 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(opentxs-core otprotob opentxs-cash bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core otprotob opentxs-cash opentxs-script bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD
