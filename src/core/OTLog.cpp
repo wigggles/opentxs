@@ -353,8 +353,8 @@ bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
         pLogger->m_bInitialized = true;
 
         // Set the new log-assert function pointer.
-        OTAssert* pLogAssert = new OTAssert(OTLog::logAssert);
-        std::swap(pLogAssert, OTAssert::s_pOTAssert);
+        Assert* pLogAssert = new Assert(OTLog::logAssert);
+        std::swap(pLogAssert, Assert::s_pAssert);
         delete pLogAssert;
         pLogAssert = nullptr;
 

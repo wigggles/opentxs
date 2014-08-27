@@ -134,7 +134,7 @@
 #define __OT_FOLDERS_HPP__
 
 #include "OTSettings.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 // This class is for storing the names of the folders.  A instance of it must be
 // made.

@@ -12,8 +12,8 @@
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#ifndef OPENTXS_CORE_TIMER_HPP
+#define OPENTXS_CORE_TIMER_HPP
 
 #include <cinttypes>
 
@@ -61,4 +61,4 @@ private:
 #endif
 };
 
-#endif // __TIMER_HPP__
+#endif // OPENTXS_CORE_TIMER_HPP

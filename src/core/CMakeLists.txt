@@ -6,7 +6,7 @@ add_subdirectory(cash)
 set(cxx-sources
   util/Timer.cpp
   util/tinythread.cpp
-  util/OTAssert.cpp
+  util/Assert.cpp
   util/StringUtils.cpp
   mkcert.cpp
   OTAccount.cpp

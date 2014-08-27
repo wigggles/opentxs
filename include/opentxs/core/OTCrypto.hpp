@@ -137,7 +137,7 @@
 // initialization
 #include "OTPayload.hpp"
 #include "OTString.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 #include "util/tinythread.hpp"
 
 #include <set>

@@ -138,7 +138,7 @@
 
 #include "OTContract.hpp"
 #include "util/StringUtils.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 namespace opentxs
 {

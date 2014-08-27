@@ -36,9 +36,7 @@
 
 #pragma once
 
-#include "OTCommon.hpp"
-
-//                              INCLUDES
+#include "Common.hpp"
 
 #include <stdexcept> // std::runtime_error
 #include <string>    // STL string classes

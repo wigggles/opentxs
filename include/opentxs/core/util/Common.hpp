@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  StringUtils.hpp
+ *  Common.hpp
  *
  */
 
@@ -130,146 +130,115 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_STRINGUTILS_HPP
-#define OPENTXS_CORE_STRINGUTILS_HPP
+#ifndef OPENTXS_CORE_COMMON_HPP
+#define OPENTXS_CORE_COMMON_HPP
+
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
 
 #include <cinttypes>
+#include <memory>
+
+#ifdef _WIN32
+#include <time.h>
+#else
+#include <sys/time.h>
+#endif
+
 #include <string>
-#include <sstream>
-#include <string.h>
+#include <cstdlib>
 
-namespace opentxs
+// forward decleration.  (need to match what is in the irr source code). Cam.
+namespace irr
 {
+namespace io
+{
+template <class char_type, class super_class>
+class IIrrXMLReader;
+class IFileReadCallBack;
+class IXMLBase;
 
-// from: http://www.cplusplus.com/faq/sequences/strings/split/
-//
-struct split
+typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+}
+}
+
+#define OT_ERROR_AMOUNT INT64_MIN
+
+#define OT_TIME_YEAR_IN_SECONDS                                                \
+    OTTimeGetTimeFromSeconds(31536000) // 60 * 60 * 24 * 365
+#define OT_TIME_SIX_MONTHS_IN_SECONDS                                          \
+    OTTimeGetTimeFromSeconds(15552000) // 60 * 60 * 24 * 180
+#define OT_TIME_THREE_MONTHS_IN_SECONDS                                        \
+    OTTimeGetTimeFromSeconds(7776000) // 60 * 60 * 24 * 90
+#define OT_TIME_MONTH_IN_SECONDS                                               \
+    OTTimeGetTimeFromSeconds(2592000) // 60 * 60 * 24 * 30
+#define OT_TIME_DAY_IN_SECONDS OTTimeGetTimeFromSeconds(86400) // 60 * 60 * 24
+#define OT_TIME_HOUR_IN_SECONDS OTTimeGetTimeFromSeconds(3600) // 60 * 60
+#define OT_TIME_MINUTE_IN_SECONDS OTTimeGetTimeFromSeconds(60) // 60
+
+#define OT_TIME_ZERO OTTimeGetTimeFromSeconds((int64_t)0)
+
+//#define FORCE_COMPILE_ERRORS_TO_FIND_USAGE  // uncomment this line to find
+// non-localized time64_t usage
+#ifdef FORCE_COMPILE_ERRORS_TO_FIND_USAGE
+class time64_t
 {
-    enum empties_t {
-        empties_ok,
-        no_empties
-    };
+public:
+    int operator<(const time64_t& rhs) const;
+    int operator>(const time64_t& rhs) const;
+    int operator<=(const time64_t& rhs) const;
+    int operator>=(const time64_t& rhs) const;
+    int operator==(const time64_t& rhs) const;
+    int operator!=(const time64_t& rhs) const;
 };
+std::stringstream& operator<<(const std::stringstream& str, const time64_t& t);
 
-template <typename Container>
-static Container& split_byChar(Container& result,
-                               const typename Container::value_type& s,
-                               const typename Container::value_type& delimiters,
-                               split::empties_t empties)
+EXPORT time64_t OTTimeGetCurrentTime(); // { return time(nullptr); }
+EXPORT time64_t
+OTTimeGetTimeFromSeconds(int64_t seconds); // { return seconds; }
+EXPORT time64_t
+OTTimeGetTimeFromSeconds(const char* pSeconds); // { return std::stol(pSeconds);
+                                                // }
+EXPORT int64_t OTTimeGetSecondsFromTime(time64_t time); // { return time; }
+EXPORT int64_t
+OTTimeGetTimeInterval(time64_t lhs, time64_t rhs); // { return lhs - rhs; }
+EXPORT time64_t
+OTTimeAddTimeInterval(time64_t lhs, int64_t rhs); // { return lhs + rhs; }
+#else
+typedef int64_t time64_t;
+
+inline time64_t OTTimeGetCurrentTime()
 {
-    result.clear();
-    int64_t next = -1;
-    do {
-        if (empties == split::no_empties) {
-            next = s.find_first_not_of(delimiters,
-                                       static_cast<uint32_t>(next) + 1);
-            if (static_cast<size_t>(next) == Container::value_type::npos) {
-                break;
-            }
-            next -= 1;
-        }
-        size_t current = static_cast<size_t>(next + 1);
-        next = s.find_first_of(delimiters, current);
-        result.push_back(
-            s.substr(current, static_cast<uint32_t>(next) - current));
-    } while (static_cast<size_t>(next) != Container::value_type::npos);
-    return result;
+    return time(nullptr);
 }
-
-// If you've already strlen'd the string,
-// you can pass the length to str_hsh or str_dup
-// and save it the trouble.
-//
-char* str_dup1(const char* str);
-char* str_dup2(const char* str, uint32_t length);
-int32_t len_cmp(char* s1, char* s2);
-
-template <typename T>
-inline std::string to_string(const T& t)
+inline time64_t OTTimeGetTimeFromSeconds(int64_t seconds)
 {
-    std::stringstream ss;
-    ss << t;
-    return ss.str();
+    return seconds;
 }
-
-/*
- * strlcpy and strlcat
- *
- * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/*
- * Copy src to string dst of size siz.  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz == 0).
- * Returns strlen(src); if retval >= siz, truncation occurred.
- */
-inline size_t strlcpy(char* dst, const char* src, size_t siz)
+#if defined(OT_USE_CXX11) && !defined(ANDROID)
+inline time64_t OTTimeGetTimeFromSeconds(const char* pSeconds)
 {
-    char* d = dst;
-    const char* s = src;
-    size_t n = siz;
-
-    /* Copy as many bytes as will fit */
-    if (n != 0) {
-        while (--n != 0) {
-            if ((*d++ = *s++) == '\0') break;
-        }
-    }
-
-    /* Not enough room in dst, add NUL and traverse rest of src */
-    if (n == 0) {
-        if (siz != 0) *d = '\0'; /* NUL-terminate dst */
-        while (*s++)
-            ;
-    }
-
-    return (s - src - 1); /* count does not include NUL */
+    return std::stol(pSeconds);
 }
-/*
- * Appends src to string dst of size siz (unlike strncat, siz is the
- * full size of dst, not space left).  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
- * Returns strlen(src) + MIN(siz, strlen(initial dst)).
- * If retval >= siz, truncation occurred.
- */
-inline size_t strlcat(char* dst, const char* src, size_t siz)
+#else
+inline time64_t OTTimeGetTimeFromSeconds(const char* pSeconds)
 {
-    char* d = dst;
-    const char* s = src;
-    size_t n = siz;
-    size_t dlen;
-
-    /* Find the end of dst and adjust bytes left but don't go past end */
-    while (n-- != 0 && *d != '\0') d++;
-    dlen = d - dst;
-    n = siz - dlen;
-
-    if (n == 0) return (dlen + strlen(s));
-    while (*s != '\0') {
-        if (n != 1) {
-            *d++ = *s;
-            n--;
-        }
-        s++;
-    }
-    *d = '\0';
-
-    return (dlen + (s - src)); /* count does not include NUL */
+    return std::atol(pSeconds);
 }
-// (End of the Todd Miller code.)
+#endif
+inline int64_t OTTimeGetSecondsFromTime(time64_t time)
+{
+    return time;
+}
+inline int64_t OTTimeGetTimeInterval(time64_t lhs, time64_t rhs)
+{
+    return lhs - rhs;
+}
+inline time64_t OTTimeAddTimeInterval(time64_t lhs, int64_t rhs)
+{
+    return lhs + rhs;
+}
+#endif
 
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_STRINGUTILS_HPP
+#endif // OPENTXS_CORE_COMMON_HPP

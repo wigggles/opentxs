@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTDataCheck.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 
 namespace opentxs
 {

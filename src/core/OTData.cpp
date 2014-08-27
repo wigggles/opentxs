@@ -135,7 +135,7 @@
 #include "OTData.hpp"
 #include "OTASCIIArmor.hpp"
 #include "OTPassword.hpp"
-#include "util/OTAssert.hpp"
+#include "util/Assert.hpp"
 #include <utility>
 #include <cstring>
 
