@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTBasketItem.hpp"
+#include "basket/OTBasketItem.hpp"
 
 namespace opentxs
 {

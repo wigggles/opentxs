@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTBasket.hpp"
+#include "basket/OTBasket.hpp"
 
 #include "OTPseudonym.hpp"
 #include "OTLog.hpp"
