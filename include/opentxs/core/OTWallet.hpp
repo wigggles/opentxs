@@ -135,7 +135,10 @@
 
 #include "OTString.hpp"
 
+#include <map>
+#include <memory>
 #include <set>
+#include <string>
 
 namespace opentxs
 {

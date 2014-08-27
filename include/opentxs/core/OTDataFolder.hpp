@@ -1,11 +1,8 @@
 /************************************************************
-*
-* OTDataFolder.hpp
-* This Class Maintins where stuff should go;
-* You must create one and only one contex for
-* every instance of OT_API.
-*
-*/
+ *
+ *  OTDataFolder.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -136,10 +133,8 @@
 #ifndef __OT_DATA_FOLDER_HPP__
 #define __OT_DATA_FOLDER_HPP__
 
-#include "OTAssert.hpp"
 #include "OTString.hpp"
-
-// Thread local.
+#include "util/OTAssert.hpp"
 
 namespace opentxs
 {
@@ -148,9 +143,6 @@ namespace opentxs
 class OTDataFolder
 {
 private:
-#ifndef thread_local
-#define thread_local
-#endif
     static OTDataFolder* pDataFolder;
 
     bool m_bInitialized;

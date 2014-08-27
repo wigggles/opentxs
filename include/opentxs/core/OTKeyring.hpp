@@ -137,7 +137,7 @@
 #ifndef __OT_KEYRING_HPP__
 #define __OT_KEYRING_HPP__
 
-#include "OTCommon.hpp"
+#include <string>
 
 // It's better to turn-on one of these, by using the Makefile,
 // instead of hardcoding it here, which is entirely unnecessary.

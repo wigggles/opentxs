@@ -1,11 +1,8 @@
 /************************************************************
-*
-* OTFolders.hpp
-* This Class Maintins where stuff should go;
-* You must create one and only one contex for
-* every instance of OT_API.
-*
-*/
+ *
+ *  OTFolders.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -136,8 +133,8 @@
 #ifndef __OT_FOLDERS_HPP__
 #define __OT_FOLDERS_HPP__
 
-#include "OTAssert.hpp"
 #include "OTSettings.hpp"
+#include "util/OTAssert.hpp"
 
 // This class is for storing the names of the folders.  A instance of it must be
 // made.
@@ -235,8 +232,7 @@ public:
     EXPORT static const OTString& SmartContracts();
     EXPORT static const OTString& Spent();
     EXPORT static const OTString& UserAcct();
-
-}; // class OTFolders
+};
 
 } // namespace opentxs
 

@@ -133,8 +133,6 @@
 #ifndef __OT_NYM_OR_SYMMETRIC_KEY_HPP__
 #define __OT_NYM_OR_SYMMETRIC_KEY_HPP__
 
-#include "OTCommon.hpp"
-
 namespace opentxs
 {
 

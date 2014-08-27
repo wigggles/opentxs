@@ -138,7 +138,6 @@
 #include "stdafx.hpp"
 
 #include "OTCrypto.hpp"
-
 #include "OTLog.hpp"
 #include "OTPassword.hpp"
 #include "OTPasswordData.hpp"
@@ -146,10 +145,9 @@
 #include "OTPseudonym.hpp"
 #include "OTSignature.hpp"
 #include "OTStorage.hpp"
+#include "util/stacktrace.h"
 
 #include <bigint/BigIntegerLibrary.hh>
-
-#include "stacktrace.h"
 
 extern "C" {
 #ifdef _WIN32

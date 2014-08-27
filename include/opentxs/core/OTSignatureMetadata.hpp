@@ -133,8 +133,6 @@
 #ifndef __OT_SIGNATURE_METADATA_HPP__
 #define __OT_SIGNATURE_METADATA_HPP__
 
-#include "OTCommon.hpp"
-
 namespace opentxs
 {
 

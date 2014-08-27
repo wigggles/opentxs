@@ -133,11 +133,9 @@
 #include "stdafx.hpp"
 
 #include "OTSocket.hpp"
-
 #include "OTLog.hpp"
 #include "OTSettings.hpp"
-
-#include <tinythread.hpp>
+#include "util/tinythread.hpp"
 
 #define KEY_LATENCY_SEND_MS "latency_send_ms"
 #define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"

@@ -1,12 +1,11 @@
 #ifndef _H_OT_COMMANDS_OT
 #define _H_OT_COMMANDS_OT
 
-#include "OTCommon.hpp"
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/OTCommon.hpp>
 
 #include <map>
 #include <vector>
-
-#include <OTStorage.hpp>
 
 namespace opentxs
 {

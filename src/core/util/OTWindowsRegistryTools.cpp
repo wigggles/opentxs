@@ -1,8 +1,8 @@
 /************************************************************
- *
- *  OTAssert.hpp
- *
- */
+*
+*  OTWindowsRegistryTools.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,50 +130,56 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASSERT_HPP__
-#define __OT_ASSERT_HPP__
+#include "stdafx.hpp"
 
-#include <exception>
+#ifdef _WIN32
 
-#define OT_FAIL                                                                \
-    {                                                                          \
-        OTAssert::Assert(__FILE__, __LINE__, nullptr);                         \
-        std::terminate();                                                      \
-    };
-#define OT_FAIL_MSG(s)                                                         \
-    {                                                                          \
-        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
-        std::terminate();                                                      \
-    };
+#include "util/OTWindowsRegistryTools.hpp"
 
-#define OT_ASSERT(x)                                                           \
-    if (false == (x)) {                                                        \
-        OTAssert::Assert(__FILE__, __LINE__, nullptr);                         \
-        std::terminate();                                                      \
-    };
-#define OT_ASSERT_MSG(x, s)                                                    \
-    if (false == (x)) {                                                        \
-        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
-        std::terminate();                                                      \
-    };
-
-class OTAssert
+LONG WindowsRegistryTools::GetDWORDRegKey(HKEY hKey,
+                                          const std::wstring& strValueName,
+                                          DWORD& nValue, DWORD nDefaultValue)
 {
-public:
-    typedef size_t(fpt_Assert_sz_n_sz)(const char*, size_t, const char*);
+    nValue = nDefaultValue;
+    DWORD dwBufferSize(sizeof(DWORD));
+    DWORD nResult(0);
+    LONG nError =
+        ::RegQueryValueExW(hKey, strValueName.c_str(), 0, nullptr,
+                           reinterpret_cast<LPBYTE>(&nResult), &dwBufferSize);
+    if (ERROR_SUCCESS == nError) {
+        nValue = nResult;
+    }
+    return nError;
+}
 
-private:
-    fpt_Assert_sz_n_sz* m_fpt_Assert;
+LONG WindowsRegistryTools::GetBoolRegKey(HKEY hKey,
+                                         const std::wstring& strValueName,
+                                         bool& bValue, bool bDefaultValue)
+{
+    DWORD nDefValue((bDefaultValue) ? 1 : 0);
+    DWORD nResult(nDefValue);
+    LONG nError = GetDWORDRegKey(hKey, strValueName, nResult, nDefValue);
+    if (ERROR_SUCCESS == nError) {
+        bValue = (nResult != 0) ? true : false;
+    }
+    return nError;
+}
 
-    fpt_Assert_sz_n_sz(m_AssertDefault);
+LONG WindowsRegistryTools::GetStringRegKey(HKEY hKey,
+                                           const std::wstring& strValueName,
+                                           std::wstring& strValue,
+                                           const std::wstring& strDefaultValue)
+{
+    strValue = strDefaultValue;
+    WCHAR szBuffer[512];
+    DWORD dwBufferSize = sizeof(szBuffer);
+    ULONG nError;
+    nError = RegQueryValueExW(hKey, strValueName.c_str(), 0, nullptr,
+                              (LPBYTE)szBuffer, &dwBufferSize);
+    if (ERROR_SUCCESS == nError) {
+        strValue = szBuffer;
+    }
+    return nError;
+}
 
-public:
-    // if not null, must be deleted before changed.
-    static OTAssert* s_pOTAssert;
-
-    EXPORT OTAssert(fpt_Assert_sz_n_sz& fp1);
-
-    EXPORT static fpt_Assert_sz_n_sz(Assert); // assert
-};
-
-#endif // __OT_ASSERT_HPP__
+#endif

@@ -4,15 +4,16 @@ add_subdirectory(otprotob)
 add_subdirectory(cash)
 
 set(cxx-sources
-  Timer.cpp
-  tinythread.cpp
+  util/Timer.cpp
+  util/tinythread.cpp
+  util/OTAssert.cpp
+  util/StringUtils.cpp
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp
   OTAgent.cpp
   OTAgreement.cpp
   OTASCIIArmor.cpp
-  OTAssert.cpp
   OTAssetContract.cpp
   OTAsymmetricKey.cpp
   OTAsymmetricKeyOpenSSL.cpp
@@ -72,7 +73,6 @@ set(cxx-sources
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
-  StringUtils.cpp
   OTString.cpp
   OTStringXML.cpp
   OTSubcredential.cpp
@@ -126,7 +126,7 @@ if(WIN32)
   add_library(opentxs-core
     ${cxx-sources}
     ${cxx-headers}
-    OTWindowsRegistryTools.cpp
+    util/OTWindowsRegistryTools.cpp
   )
 else()
   add_library(opentxs-core

@@ -133,8 +133,7 @@
 #ifndef __OT_ASYMMETRIC_KEY_HPP__
 #define __OT_ASYMMETRIC_KEY_HPP__
 
-#include "Timer.hpp"
-
+#include "util/Timer.hpp"
 #include <list>
 
 namespace opentxs

@@ -133,8 +133,6 @@
 #ifndef __OT_CALLBACK_HPP__
 #define __OT_CALLBACK_HPP__
 
-#include "OTCommon.hpp"
-
 namespace opentxs
 {
 

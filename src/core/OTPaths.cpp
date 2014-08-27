@@ -133,11 +133,11 @@
 #include "stdafx.hpp"
 
 #include "OTPaths.hpp"
-#include "StringUtils.hpp"
 #include "OTLog.hpp"
 #ifdef _WIN32
-#include "OTWindowsRegistryTools.hpp"
+#include "util/OTWindowsRegistryTools.hpp"
 #endif
+#include "util/StringUtils.hpp"
 
 #include <cerrno>
 #include <vector>

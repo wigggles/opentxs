@@ -133,10 +133,10 @@
 #ifndef __OT_CACHED_KEY_HPP__
 #define __OT_CACHED_KEY_HPP__
 
-#include "OTCommon.hpp"
+#include "util/tinythread.hpp"
 
-#include "tinythread.hpp"
-
+#include <string>
+#include <memory>
 #include <map>
 
 namespace opentxs

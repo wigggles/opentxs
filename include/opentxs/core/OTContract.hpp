@@ -135,6 +135,20 @@
 
 #include "OTIdentifier.hpp"
 #include "OTStringXML.hpp"
+#include "util/OTCommon.hpp" // TODO: remove this when feasible
+
+namespace irr
+{
+namespace io
+{
+template <class char_type, class super_class>
+class IIrrXMLReader;
+class IFileReadCallBack;
+class IXMLBase;
+
+typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+} // namespace io
+} // namespace irr
 
 namespace opentxs
 {

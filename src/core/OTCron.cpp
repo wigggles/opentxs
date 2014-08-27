@@ -139,10 +139,9 @@
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMarket.hpp"
+#include "util/Timer.hpp"
 
 #include <irrxml/irrXML.hpp>
-
-#include <Timer.hpp>
 
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.

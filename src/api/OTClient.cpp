@@ -161,7 +161,7 @@
 #include <cash/Purse.hpp>
 #include <cash/Token.hpp>
 
-#include <StringUtils.hpp>
+#include "util/StringUtils.hpp"
 
 #include <cstdio>
 

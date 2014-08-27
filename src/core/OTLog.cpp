@@ -133,18 +133,15 @@
 #include "stdafx.hpp"
 
 #include "OTLog.hpp"
-
 #include "OTPaths.hpp"
-
-#include "tinythread.hpp"
+#include "util/stacktrace.h"
+#include "util/tinythread.hpp"
 
 #ifndef _WIN32
 #include <cerrno>
 #endif
 #include <fstream>
 #include <iostream>
-
-#include <stacktrace.h>
 
 #ifdef _WIN32
 #include <Shlobj.h>
@@ -246,10 +243,6 @@ typedef struct ucontext
 
 //  OTLog Static Variables and Constants.
 
-#ifndef thread_local
-#define thread_local
-#endif
-
 namespace opentxs
 {
 
@@ -298,9 +291,6 @@ int OTLogStream::overflow(int c)
     OTLog::Output(logLevel, pBuffer);
     return 0;
 }
-
-// Global, thread local.
-// static thread_local OTLog * OTLog::pLogger;
 
 //  OTLog Init, must run this befor useing any OTLog function.
 

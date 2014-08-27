@@ -1,13 +1,13 @@
 /************************************************************
- *    
- *  OTglobal.h
- *  
- */
+*
+*  OTAssert.cpp
+*
+*/
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
  Hash: SHA1
- 
+
  *                 OPEN TRANSACTIONS
  *
  *       Financial Cryptography and Digital Cash
@@ -110,10 +110,10 @@
  *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  *   PURPOSE.  See the GNU Affero General Public License for
  *   more details.
- 
+
  -----BEGIN PGP SIGNATURE-----
  Version: GnuPG v1.4.9 (Darwin)
- 
+
  iQIcBAEBAgAGBQJRSsfJAAoJEAMIAO35UbuOQT8P/RJbka8etf7wbxdHQNAY+2cC
  vDf8J3X8VI+pwMqv6wgTVy17venMZJa4I4ikXD/MRyWV1XbTG0mBXk/7AZk7Rexk
  KTvL/U1kWiez6+8XXLye+k2JNM6v7eej8xMrqEcO0ZArh/DsLoIn1y8p8qjBI7+m
@@ -130,41 +130,40 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_GLOBAL_H__
-#define __OT_GLOBAL_H__
+#include "stdafx.hpp"
 
-#include "OTCommon.hpp"
+#include "util/OTAssert.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <iostream>
+#include <cstring>
 
-#define TYPE_1_CMD_1	1
-#define TYPE_1_CMD_2	2
-#define TYPE_1_CMD_3	3
-#define TYPE_1_CMD_4	4
+OTAssert* OTAssert::s_pOTAssert = new OTAssert(OTAssert::Assert);
 
-#define CMD_TYPE_1		1
-
-#define OT_CMD_HEADER_SIZE  9
-
-    typedef uint8_t BYTE;
-    typedef uint16_t USHORT;
-
-    union u_header
-    {
-        BYTE buf[OT_CMD_HEADER_SIZE];
-        struct {
-            BYTE     type_id;    // 1 byte
-            BYTE     command_id; // 1 byte
-            BYTE     filler[2];  // 2 bytes padding
-            uint32_t size;       // 4 bytes
-            BYTE     checksum;   // 1 byte
-        } fields;                // 9 bytes total
-    };
-
-#ifdef __cplusplus
+OTAssert::OTAssert(fpt_Assert_sz_n_sz& fp1) : m_fpt_Assert(fp1)
+{
 }
-#endif
 
-#endif // __OT_GLOBAL_H__
+size_t OTAssert::m_AssertDefault(const char* filename, size_t linenumber,
+                                 const char* message)
+{
+    if (message) {
+        if (std::strcmp(message, "") != 0) {
+            std::cerr << message << "\n";
+            std::cerr.flush();
+        }
+    }
+
+    const char* file = filename ? filename : "nullptr";
+
+    std::cerr << "OT_ASSERT in " << file << " at line " << linenumber << "\n";
+    std::cerr.flush();
+
+    return 0; // since we are not logging.
+}
+
+size_t OTAssert::Assert(const char* filename, size_t linenumber,
+                        const char* message)
+{
+    if (OTAssert::s_pOTAssert == nullptr) std::terminate();
+    return OTAssert::s_pOTAssert->m_fpt_Assert(filename, linenumber, message);
+}

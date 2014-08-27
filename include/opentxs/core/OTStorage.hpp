@@ -133,21 +133,22 @@
 #ifndef __OT_STORAGE_HPP__
 #define __OT_STORAGE_HPP__
 
-#include "OTCommon.hpp"
-
 // we now include this file in swig
 // we need to tell swig what parts to skip over.
 
 #ifndef SWIG
 
-#include "OTAssert.hpp"
+#include "util/OTAssert.hpp"
+
+// credit:stlplus library.
+#include "containers/simple_ptr.hpp"
 
 #include <deque>
 #include <iostream>
 #include <vector>
-
-// credit:stlplus library.
-#include "containers/simple_ptr.hpp"
+#include <map>
+#include <string>
+#include <cstdint>
 
 // Which storage mechanism are we building?
 // (Option is for both...)

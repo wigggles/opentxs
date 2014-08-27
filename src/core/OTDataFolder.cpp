@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTDataFolder.cpp
-*
-*/
+ *
+ *  OTDataFolder.cpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTDataFolder.hpp"
-
 #include "OTLog.hpp"
 #include "OTPaths.hpp"
 
@@ -159,10 +158,6 @@
 #define CONFIG_FILE_EXT ".cfg"
 #define DATA_FOLDER_EXT "_data"
 #define OT_CONFIG_ISRELATIVE "_is_relative"
-
-#ifndef thread_local
-#define thread_local
-#endif
 
 namespace opentxs
 {

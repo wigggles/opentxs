@@ -133,8 +133,8 @@
 #ifndef __OT_LOG_HPP__
 #define __OT_LOG_HPP__
 
-#include "OTAssert.hpp"
 #include "OTString.hpp"
+#include "util/OTAssert.hpp"
 
 #include <deque>
 #include <ostream>

@@ -133,12 +133,12 @@
 #include "stdafx.hpp"
 
 #include "OTString.hpp"
-#include "StringUtils.hpp"
 #include "OTContract.hpp"
 #include "OTLog.hpp"
 #include "OTPassword.hpp"
 #include "OTPseudonym.hpp"
 #include "OTSignature.hpp"
+#include "util/StringUtils.hpp"
 
 #if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))
 #include <wordexp.h>

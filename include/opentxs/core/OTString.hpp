@@ -133,18 +133,16 @@
 #ifndef __OT_STRING_HPP__
 #define __OT_STRING_HPP__
 
-#include "OTCommon.hpp"
-
 #ifdef _WIN32
-#include "win32_utf8conv.hpp" // support for changing between std::string and std::wstring
+#include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
-#include <cstdarg>
-#include <cstring>
 #include <iostream>
 #include <list>
 #include <map>
 #include <sstream>
+#include <cstdarg>
+#include <cstring>
 
 #define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
 

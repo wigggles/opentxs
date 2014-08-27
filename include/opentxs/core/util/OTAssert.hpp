@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTAssert.cpp
-*
-*/
+ *
+ *  OTAssert.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,40 +130,51 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#ifndef __OT_ASSERT_HPP__
+#define __OT_ASSERT_HPP__
 
-#include "OTAssert.hpp"
+#include <cstddef>
+#include <exception>
 
-#include <iostream>
-#include <cstring>
+#define OT_FAIL                                                                \
+    {                                                                          \
+        OTAssert::Assert(__FILE__, __LINE__, nullptr);                         \
+        std::terminate();                                                      \
+    };
+#define OT_FAIL_MSG(s)                                                         \
+    {                                                                          \
+        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
+        std::terminate();                                                      \
+    };
 
-OTAssert* OTAssert::s_pOTAssert = new OTAssert(OTAssert::Assert);
+#define OT_ASSERT(x)                                                           \
+    if (false == (x)) {                                                        \
+        OTAssert::Assert(__FILE__, __LINE__, nullptr);                         \
+        std::terminate();                                                      \
+    };
+#define OT_ASSERT_MSG(x, s)                                                    \
+    if (false == (x)) {                                                        \
+        OTAssert::Assert(__FILE__, __LINE__, (s));                             \
+        std::terminate();                                                      \
+    };
 
-OTAssert::OTAssert(fpt_Assert_sz_n_sz& fp1) : m_fpt_Assert(fp1)
+class OTAssert
 {
-}
+public:
+    typedef size_t(fpt_Assert_sz_n_sz)(const char*, size_t, const char*);
 
-size_t OTAssert::m_AssertDefault(const char* filename, size_t linenumber,
-                                 const char* message)
-{
-    if (message) {
-        if (std::strcmp(message, "") != 0) {
-            std::cerr << message << "\n";
-            std::cerr.flush();
-        }
-    }
+private:
+    fpt_Assert_sz_n_sz* m_fpt_Assert;
 
-    const char* file = filename ? filename : "nullptr";
+    fpt_Assert_sz_n_sz(m_AssertDefault);
 
-    std::cerr << "OT_ASSERT in " << file << " at line " << linenumber << "\n";
-    std::cerr.flush();
+public:
+    // if not null, must be deleted before changed.
+    static OTAssert* s_pOTAssert;
 
-    return 0; // since we are not logging.
-}
+    EXPORT OTAssert(fpt_Assert_sz_n_sz& fp1);
 
-size_t OTAssert::Assert(const char* filename, size_t linenumber,
-                        const char* message)
-{
-    if (OTAssert::s_pOTAssert == nullptr) std::terminate();
-    return OTAssert::s_pOTAssert->m_fpt_Assert(filename, linenumber, message);
-}
+    EXPORT static fpt_Assert_sz_n_sz(Assert); // assert
+};
+
+#endif // __OT_ASSERT_HPP__

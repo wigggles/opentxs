@@ -136,11 +136,9 @@
 // only included because it needs constructor for default parameter
 // initialization
 #include "OTPayload.hpp"
-
-#include "OTAssert.hpp"
 #include "OTString.hpp"
-
-#include "tinythread.hpp"
+#include "util/OTAssert.hpp"
+#include "util/tinythread.hpp"
 
 #include <set>
 

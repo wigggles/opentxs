@@ -133,7 +133,8 @@
 #ifndef __OT_PASSWORD_DATA_HPP__
 #define __OT_PASSWORD_DATA_HPP__
 
-#include "OTCommon.hpp"
+#include <string>
+#include <memory>
 
 namespace opentxs
 {

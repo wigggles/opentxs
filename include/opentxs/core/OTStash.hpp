@@ -133,9 +133,20 @@
 #ifndef __OT_STASH_HPP__
 #define __OT_STASH_HPP__
 
-#include "OTCommon.hpp"
-
 #include <map>
+#include <string>
+#include <cstdint>
+
+namespace irr
+{
+namespace io
+{
+template <class char_type, class super_class>
+class IIrrXMLReader;
+class IXMLBase;
+typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+} // namespace io
+} // namespace irr
 
 namespace opentxs
 {
