@@ -139,6 +139,7 @@
 #include "OTPaymentPlan.hpp"
 #include "cash/Purse.hpp"
 #include "script/OTSmartContract.hpp"
+#include "InstantiateContract.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -1268,7 +1269,7 @@ OTTrackable* OTPayment::Instantiate() const
     case CHEQUE:
     case VOUCHER:
     case INVOICE:
-        pContract = OTContract::InstantiateContract(m_strPayment);
+        pContract = ::InstantiateContract(m_strPayment);
 
         if (nullptr != pContract) {
             pCheque = dynamic_cast<OTCheque*>(pContract);
@@ -1289,7 +1290,7 @@ OTTrackable* OTPayment::Instantiate() const
         break;
 
     case PAYMENT_PLAN:
-        pContract = OTContract::InstantiateContract(m_strPayment);
+        pContract = ::InstantiateContract(m_strPayment);
 
         if (nullptr != pContract) {
             pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pContract);
@@ -1311,7 +1312,7 @@ OTTrackable* OTPayment::Instantiate() const
         break;
 
     case SMART_CONTRACT:
-        pContract = OTContract::InstantiateContract(m_strPayment);
+        pContract = ::InstantiateContract(m_strPayment);
 
         if (nullptr != pContract) {
             pSmartContract = dynamic_cast<OTSmartContract*>(pContract);

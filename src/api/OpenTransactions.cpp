@@ -172,6 +172,7 @@
 #include <cash/Mint.hpp>
 #include <cash/Purse.hpp>
 #include <cash/Token.hpp>
+#include <InstantiateContract.hpp>
 
 #if defined(OT_KEYRING_FLATFILE)
 #include <OTKeyring.hpp>
@@ -3330,8 +3331,7 @@ bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
     if (nullptr == pContract)
         pContract = OTScriptable::InstantiateScriptable(strContract);
 
-    if (nullptr == pContract)
-        pContract = OTContract::InstantiateContract(strContract);
+    if (nullptr == pContract) pContract = ::InstantiateContract(strContract);
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": I tried my best. "
@@ -3388,8 +3388,7 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
     if (nullptr == pContract)
         pContract = OTScriptable::InstantiateScriptable(strContract);
 
-    if (nullptr == pContract)
-        pContract = OTContract::InstantiateContract(strContract);
+    if (nullptr == pContract) pContract = ::InstantiateContract(strContract);
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
@@ -3452,8 +3451,7 @@ bool OT_API::VerifySignature(const OTString& strContract,
     if (nullptr == pContract)
         pContract = OTScriptable::InstantiateScriptable(strContract);
 
-    if (nullptr == pContract)
-        pContract = OTContract::InstantiateContract(strContract);
+    if (nullptr == pContract) pContract = ::InstantiateContract(strContract);
 
     if (nullptr == pContract) {
         otOut << "OT_API::VerifySignature: I tried my best. Unable to "
