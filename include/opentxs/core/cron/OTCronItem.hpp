@@ -155,6 +155,8 @@ private: // Private prevents erroneous use by other classes.
 
 private:
     OTCron* m_pCron;
+    OTPseudonym* serverNym_;
+    OTIdentifier* serverId_;
     time64_t m_CREATION_DATE;     // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE; // The last time this item was processed.
@@ -228,10 +230,9 @@ public:
                                                               // virtual.
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
-    void HookRemovalFromCron(OTPseudonym* pRemover); // This calls
-                                                     // onFinalReceipt, then
-                                                     // onRemovalFromCron. Both
-                                                     // are virtual.
+    // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
+    void HookRemovalFromCron(OTPseudonym* pRemover, int64_t newTransactionNo);
+
     inline bool IsFlaggedForRemoval() const
     {
         return m_bRemovalFlag;
@@ -290,6 +291,14 @@ public:
     inline OTCron* GetCron()
     {
         return m_pCron;
+    }
+    void setServerNym(OTPseudonym* serverNym)
+    {
+        serverNym_ = serverNym;
+    }
+    void setServerId(OTIdentifier* serverId)
+    {
+        serverId_ = serverId;
     }
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.

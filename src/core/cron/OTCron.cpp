@@ -714,7 +714,7 @@ void OTCron::ProcessCronItems()
             it++;
             continue;
         }
-        pItem->HookRemovalFromCron(nullptr);
+        pItem->HookRemovalFromCron(nullptr, GetNextTransactionNumber());
         otOut << "OTCron::" << __FUNCTION__
               << ": Removing cron item: " << pItem->GetTransactionNum() << "\n";
         it = m_multimapCronItems.erase(it);
@@ -780,8 +780,9 @@ bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
             m_multimapCronItems.upper_bound(tDateAdded),
             std::pair<time64_t, OTCronItem*>(tDateAdded, &theItem));
 
-        theItem.SetCronPointer(
-            *this); // This way every CronItem has a pointer to momma.
+        theItem.SetCronPointer(*this);
+        theItem.setServerNym(m_pServerNym);
+        theItem.setServerId(&m_SERVER_ID);
 
         bool bSuccess = true;
 
@@ -865,8 +866,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
         OT_ASSERT(m_multimapCronItems.end() !=
                   it_multimap); // If found on map, MUST be on multimap also.
 
-        pItem->HookRemovalFromCron(
-            &theRemover); // We give the hook a chance to do its thing.
+        pItem->HookRemovalFromCron(&theRemover, GetNextTransactionNumber());
 
         m_mapCronItems.erase(it_map);           // Remove from MAP.
         m_multimapCronItems.erase(it_multimap); // Remove from MULTIMAP.
