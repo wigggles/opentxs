@@ -879,76 +879,29 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
 
         pScript->chai->add(
             fun<OT_SM_RetBool_ThrStr>(&OTSmartContract::MoveAcctFundsStr, this),
-            "move_funds"); // bool MoveAcctFunds(const std::string
-                           // from_acct_name, const std::string to_acct_name,
-                           // const std::string str_Amount); // calls
-                           // OTCronItem::MoveFunds()
-                           //        pScript->chai->add(fun<OT_SM_RetBool_TwoStr_OneL>(&OTSmartContract::MoveAcctFundsL,
-        // this), "move_funds_L");        // static bool s_MoveAcctFunds(const
-        // std::string from_acct_name, const std::string to_acct_name, const
-        // int64_t& lAmount); // calls OTCronItem::MoveFunds()
-        //        pScript->chai->add(fun<OT_SM_RetBool_ThrStr>(&OTSmartContract::MoveAcctFundsStr,
-        // this), "move_funds_Str");    // static bool s_MoveAcctFunds(const
-        // std::string from_acct_name, const std::string to_acct_name, const
-        // std::string str_Amount); // calls OTCronItem::MoveFunds()
-        //        pScript->chai->add(fun<OT_SM_RetBool_TwoStr_OneL>(&g_MoveAcctFundsL,
-        // this), "move_funds_L");        // global bool s_MoveAcctFunds(const
-        // std::string from_acct_name, const std::string to_acct_name, const
-        // int64_t& lAmount); // calls OTCronItem::MoveFunds()
-        //        pScript->chai->add(fun<OT_SM_RetBool_ThrStr>(&g_MoveAcctFundsStr,
-        // this), "move_funds_Str");    // global bool s_MoveAcctFunds(const
-        // std::string from_acct_name, const std::string to_acct_name, const
-        // std::string str_Amount); // calls OTCronItem::MoveFunds()
+            "move_funds");
 
         pScript->chai->add(fun(&OTSmartContract::StashAcctFunds, this),
-                           "stash_funds"); // bool StashAcctFunds(const
-                                           // std::string from_acct_name, const
-                                           // std::string to_stash_name, const
-                                           // std::string str_Amount); // calls
-                                           // StashFunds()
+                           "stash_funds");
         pScript->chai->add(fun(&OTSmartContract::UnstashAcctFunds, this),
-                           "unstash_funds"); // bool UnstashAcctFunds(const
-                                             // std::string to_acct_name, const
-                                             // std::string from_stash_name,
-                                             // const std::string str_Amount);
-                                             // // calls StashFunds( lAmount *
-                                             // (-1) )
-
+                           "unstash_funds");
         pScript->chai->add(fun(&OTSmartContract::GetAcctBalance, this),
-                           "get_acct_balance"); // std::string
-                                                // GetAcctBalance(const
-                                                // std::string acct_name);
+                           "get_acct_balance");
         pScript->chai->add(fun(&OTSmartContract::GetAssetTypeIDofAcct, this),
-                           "get_acct_asset_type_id"); // std::string
-        // OTSmartContract::GetAssetTypeIDofAcct(const
-        // std::string from_acct_name)
+                           "get_acct_asset_type_id");
         pScript->chai->add(fun(&OTSmartContract::GetStashBalance, this),
-                           "get_stash_balance"); // std::string
-                                                 // GetStashBalance(const
-                                                 // std::string stash_name,
-                                                 // const std::string
-                                                 // asset_type_id);
-
+                           "get_stash_balance");
         pScript->chai->add(fun(&OTSmartContract::SendNoticeToParty, this),
-                           "send_notice"); // bool SendNoticeToParty(const
-                                           // std::string party_name);
-        pScript->chai->add(
-            fun(&OTSmartContract::SendANoticeToAllParties, this),
-            "send_notice_to_parties"); // bool SendANoticeToAllParties();
+                           "send_notice");
+        pScript->chai->add(fun(&OTSmartContract::SendANoticeToAllParties, this),
+                           "send_notice_to_parties");
+        pScript->chai->add(fun(&OTSmartContract::SetRemainingTimer, this),
+                           "set_seconds_until_timer");
+        pScript->chai->add(fun(&OTSmartContract::GetRemainingTimer, this),
+                           "get_remaining_timer");
 
-        pScript->chai->add(
-            fun(&OTSmartContract::SetRemainingTimer, this),
-            "set_seconds_until_timer"); // void SetNextProcessTime(const
-                                        // std::string str_seconds_from_now) //
-                                        // if this is <=0, then it sets next
-                                        // process date to 0.
-        pScript->chai->add(
-            fun(&OTSmartContract::GetRemainingTimer, this),
-            "get_remaining_timer"); // std::string GetRemainingTimer() const
-
-        pScript->chai->add(
-            fun(&OTSmartContract::DeactivateSmartContract, this),
-            "deactivate_contract"); // void DeactivateSmartContract();
+        pScript->chai->add(fun(&OTSmartContract::DeactivateSmartContract, this),
+                           "deactivate_contract");
 
         // CALLBACKS
         // (Called by OT at key moments) todo security: What if these are
@@ -1004,10 +957,6 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
         // FYI:    #define SMARTCONTRACT_HOOK_ON_ACTIVATE        "cron_activate"
         // // Done. This is called when the contract is first activated.
     }
-    //    else if (nullptr != (pScript =
-    // dynamic_cast<OTScriptSomeOtherScriptingLanguageSubClass_GOES_HERE *>
-    // (&theScript)) )
-    //    { }
     else
 #endif // OT_USE_SCRIPT_CHAI
     {
@@ -1017,10 +966,6 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
 
 } // void function
 
-// Done.  Can be called from inside script.
-// pScript->chai->add(fun(&(OTSmartContract::DeactivateSmartContract),
-// (*this)), "deactivate_smart_contract");    // void DeactivateSmartContract();
-//
 void OTSmartContract::DeactivateSmartContract() // Called from within script.
 {
     // WARNING: If a party has the right to execute a clause that calls
@@ -1233,12 +1178,6 @@ void OTSmartContract::onActivate()
     }
 }
 
-// Done:
-//
-// pScript->chai->add(fun(&(OTSmartContract::GetAcctBalance),    (*this)),
-// "get_acct_balance");    // int64_t GetAcctBalance(const std::string
-// acct_name);
-//
 std::string OTSmartContract::GetAcctBalance(const std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
@@ -1669,12 +1608,6 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(
     return str_return_value;
 }
 
-// done
-//
-// pScript->chai->add(fun(&(OTSmartContract::GetStashBalance),    (*this)),
-// "get_stash_balance");    // int64_t GetStashBalance(const std::string
-// stash_name);
-//
 std::string OTSmartContract::GetStashBalance(const std::string from_stash_name,
                                              const std::string asset_type_id)
 {
@@ -1723,10 +1656,6 @@ std::string OTSmartContract::GetStashBalance(const std::string from_stash_name,
     return strBalance.Get();
 }
 
-// done
-// pScript->chai->add(fun(&(OTSmartContract::SendANoticeToAllParties),
-// (*this)), "send_notice_to_parties");    // bool SendANoticeToAllParties();
-//
 bool OTSmartContract::SendANoticeToAllParties()
 {
     OTCron* pCron = GetCron();
@@ -1770,11 +1699,6 @@ bool OTSmartContract::SendANoticeToAllParties()
     return bDroppedNotice;
 }
 
-// Done:
-// pScript->chai->add(fun(&(OTSmartContract::SendNoticeToParty),
-// (*this)), "send_notice");    // bool SendNoticeToParty(const std::string
-// party_name);
-//
 bool OTSmartContract::SendNoticeToParty(const std::string party_name)
 {
     OTCron* pCron = GetCron();
@@ -1843,23 +1767,6 @@ bool OTSmartContract::SendNoticeToParty(const std::string party_name)
     //  not again after. (For example, it disallows stashes, which cannot exist
     // prior to activation.)
     //
-    //    const OTString strServerID(GetServerID());
-    //
-    //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-    //
-    //    bool bVerifiedAuthorization =
-    //        VerifyPartyAuthorization(*pParty, *pServerNym, strServerID,
-    // &map_Nyms_Already_Loaded);
-    //
-    //    if (!bVerifiedAuthorization)
-    //    {
-    //        otOut << "OTSmartContract::SendNoticeToParty: Unable to verify
-    // this party: %s\n",
-    //                       party_name.c_str());
-    //        return false;
-    //    }
-
     bool bDroppedNotice = false;
     const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
 
@@ -2051,15 +1958,6 @@ bool OTSmartContract::StashAcctFunds(const std::string from_acct_name,
     // only created after activation, by
     // the server itself, at the behest of the scripts.)
 
-    //    if (false == VerifyPartyAuthorization(*pFromParty, *pServerNym,
-    // strServerID, &map_Nyms_Already_Loaded))
-    //    {
-    //        otErr << "OTSmartContract::StashAcctFunds: error: 'From' Party
-    // (%s) not authorized for this contract.\n",
-    //                      pFromParty->GetPartyName().c_str());
-    //        return false;
-    //    }
-
     // A party might have many agents who are only voting groups, and cannot
     // actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym --
@@ -2140,9 +2038,6 @@ bool OTSmartContract::StashAcctFunds(const std::string from_acct_name,
 
     mapOfNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
-
-    //    otErr << "OTSmartContract::StashAcctFunds: DEBUGGING: lAmount is
-    // %lld.\n", lAmount);
 
     bool bMoved = StashFunds(map_Nyms_Already_Loaded, lAmount, theFromAcctID,
                              theFromAgentID, *pStash);
@@ -2293,21 +2188,6 @@ bool OTSmartContract::UnstashAcctFunds(const std::string to_acct_name,
     //
     // FINAL DECISION: Redundant, removed. See comments in StashAcctFunds().
     //
-    //    const OTString strServerID(GetServerID());
-    //
-    //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-    //
-    //
-    //    if (false == VerifyPartyAuthorization(*pToParty, *pServerNym,
-    // strServerID, &map_Nyms_Already_Loaded))
-    //    {
-    //        otErr << "OTSmartContract::UnstashAcctFunds: error: 'To' Party
-    // (%s) not authorized for this contract.\n",
-    //                      pToParty->GetPartyName().c_str());
-    //        return false;
-    //    }
-
     // A party might have many agents who are only voting groups, and cannot
     // actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym --
@@ -2375,10 +2255,6 @@ bool OTSmartContract::UnstashAcctFunds(const std::string to_acct_name,
     //
     ReleaseLastSenderRecipientIDs();
 
-    //    theFromAgentID.GetString(m_strLastSenderUser);    // This is the last
-    // User ID of a party who SENT money.
-    //    theFromAcctID.GetString(m_strLastSenderAcct);    // This is the last
-    // Acct ID of a party who SENT money.
     theToAgentID.GetString(m_strLastRecipientUser); // This is the last User ID
                                                     // of a party who RECEIVED
                                                     // money.
@@ -2392,9 +2268,6 @@ bool OTSmartContract::UnstashAcctFunds(const std::string to_acct_name,
 
     mapOfNyms map_Nyms_Already_Loaded;
     RetrieveNymPointers(map_Nyms_Already_Loaded);
-
-    //    otErr << "OTSmartContract::UnstashAcctFunds: DEBUGGING: lAmount is
-    // %lld.\n", lNegativeAmount);
 
     bool bMoved = StashFunds(map_Nyms_Already_Loaded, lNegativeAmount,
                              theToAcctID, theToAgentID, *pStash);
@@ -3191,18 +3064,6 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             //
             pTransParty->SaveBoxReceipt(thePartyInbox);
 
-            // temp remove todo
-            //            OTString strTempDebug(PARTY_ACCT_ID),
-            // strTempDebug2(PARTY_USER_ID), strTempDebug3(thePartyInbox);
-            //            otErr << "OTSmartContract::StashFunds: Finished saving
-            // Inbox with new receipt %lld (re: trans %lld by way of %lld) in
-            // it, for account: %s, user: %s. Status: %s\n"
-            //                          "INBOX CONTENTS: \n\n%s\n\n",
-            //                          lNewTransactionNumber,
-            // GetTransactionNum(), lPartyTransRefNo, strTempDebug.Get(),
-            // strTempDebug2.Get(), bSuccess ? "SUCCESS" : "FAILURE",
-            //                          strTempDebug3.Get());
-
             // If success, save the accounts with new balance. (Save inboxes
             // with receipts either way,
             // and the receipts will contain a rejection or acknowledgment
@@ -3263,45 +3124,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 // this smart contract.)
 //
 
-// global (debugging)
-// bool g_MoveAcctFundsL(OTSmartContract * pContract,
-//                      const std::string from_acct_name,
-//                      const std::string to_acct_name,
-//                      const int64_t lAmount)
-//{
-//    OT_ASSERT(nullptr != pContract);
-//
-//    return pContract->MoveAcctFundsL(from_acct_name, to_acct_name, lAmount);
-//}
-//
-//
-//
-////global (debugging)
-// bool g_MoveAcctFundsStr(OTSmartContract * pContract,
-//                        const std::string from_acct_name,
-//                        const std::string to_acct_name,
-//                        const std::string str_Amount)
-//{
-//    OT_ASSERT(nullptr != pContract);
-//
-//    if (str_Amount.size() < 1)
-//    {
-//        otOut << "OTSmartContract::g_MoveAcctFundsStr: Error: empty
-// amount.\n";
-//        return false;
-//    }
-//
-//    const int64_t lAmount =  atol(str_Amount.c_str());
-//
-//    return pContract->MoveAcctFundsL(from_acct_name, to_acct_name, lAmount);
-//}
-
 bool OTSmartContract::MoveAcctFundsStr(const std::string from_acct_name,
                                        const std::string to_acct_name,
                                        const std::string str_Amount)
-// bool OTSmartContract::MoveAcctFundsL(const std::string from_acct_name, const
-// std::string to_acct_name, const int64_t lAmount) // int64_t was the problem.
-// Switching to string.
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3446,31 +3271,6 @@ bool OTSmartContract::MoveAcctFundsStr(const std::string from_acct_name,
     // FINAL DECISION: Redundant.  See comment in
     // OTSmartContract::StashAcctFunds()
     //
-    //    const OTString strServerID(GetServerID());
-    //
-    //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-    //
-    //
-    //    if (false == VerifyPartyAuthorization(*pFromParty, *pServerNym,
-    // strServerID, &map_Nyms_Already_Loaded))
-    //    {
-    //        otErr << "OTSmartContract::MoveAcctFunds: error: 'From' Party (%s)
-    // not authorized for this contract.\n",
-    //                     pFromParty->GetPartyName().c_str());
-    //        return false;
-    //    }
-    //
-    //
-    //    if (false == VerifyPartyAuthorization(*pToParty, *pServerNym,
-    // strServerID, &map_Nyms_Already_Loaded))
-    //    {
-    //        otErr << "OTSmartContract::MoveAcctFunds: error: 'To' Party (%s)
-    // not authorized for this contract.\n",
-    //                     pToParty->GetPartyName().c_str());
-    //        return false;
-    //    }
-
     // A party might have many agents who are only voting groups, and cannot
     // actually sign for things
     // the way that nyms can. But at least ONE of those agents IS a Nym --
@@ -3545,19 +3345,6 @@ bool OTSmartContract::MoveAcctFundsStr(const std::string from_acct_name,
     //
     // BELOW THIS POINT, theFromAcctID, theFromAgentID, theToAcctID, and
     // theToAgentID are all available.
-
-    //     bool OTCronItem::MoveFunds(
-    //                                const mapOfNyms        &
-    // map_NymsAlreadyLoaded,
-    //                                const int64_t            &    lAmount,
-    //                                const OTIdentifier &    SOURCE_ACCT_ID,
-    // // GetSenderAcctID();
-    //                                const OTIdentifier &    SENDER_USER_ID,
-    // // GetSenderUserID();
-    //                                const OTIdentifier &    RECIPIENT_ACCT_ID,
-    // // GetRecipientAcctID();
-    //                                const OTIdentifier &    RECIPIENT_USER_ID)
-    // // GetRecipientUserID();
 
     // WE SET THESE HERE SO THE RECEIPT SHOWS, SUCCESS OR FAIL,
     // WHO THE INTENDED SENDER / RECIPIENT ARE FOR THAT RECEIPT.
@@ -4123,13 +3910,6 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
             //          after that flag is set.  Todo security: revisit this
             // just in case.
             //
-            //            // Check this after each script.
-            //            //
-            //            if (IsFlaggedForRemoval())
-            //            {
-            //                otLog3 << "OTSmartContract::ExecuteClauses:
-            // Flagged for removal by script.\n");
-            //            }
         }
         else {
             otErr << "OTSmartContract::ExecuteClauses: Error instantiating "
@@ -4176,8 +3956,6 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
             bool bDroppedNotice = SendNoticeToAllParties(
                 true, // bSuccessMsg=true
                 *pServerNym, GetServerID(), lNewTransactionNumber,
-                // GetTransactionNum(), // each party has its own opening trans
-                // #.
                 strReference); // pstrNote and pstrAttachment aren't used in
                                // this case.
 
@@ -4265,23 +4043,6 @@ bool OTSmartContract::CanCancelContract(const std::string str_party_name)
     //
     //    FINAL DECISION: Redundant. See comment in
     // OTSmartContract::StashAcctFunds()
-    //
-    //    const OTString strServerID(GetServerID());
-    //
-    //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-    //
-    //    bool bVerifiedAuthorization =
-    //        VerifyPartyAuthorization(*pParty, *pServerNym, strServerID,
-    // &map_Nyms_Already_Loaded);
-    //
-    //    if (!bVerifiedAuthorization)
-    //    {
-    //        otOut << "OTSmartContract::CanCancelContract: Unable to verify
-    // this party: %s\n",
-    //                       str_party_name.c_str());
-    //        return false;
-    //    }
     //
 
     // IF NO CALLBACK IS PROVIDED, The default answer to this function is:
@@ -4474,120 +4235,6 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 
     return bReturnValue;
 }
-
-// TODO:
-
-// OTContract::VerifySignature(OTPseudonym & theNym)    <=====  already exists.
-//
-// Next:
-//
-// Verify ALL parties signatures, using the map of signers passed in.
-// Client-side could technically do this, as long as he had all the public keys
-// available for the various parties. For now, I need this on server side.
-//
-// bool OTSmartContract::VerifyAllPartiesSignatures(std::map<std::string,
-// OTPseudonym *> & map_SignersByNymID)
-//{
-//    /*
-//    // Verify sender's signature on this.
-//    if (!VerifySignature(SENDER_NYM))
-//    {
-//        otOut << "OTSmartContract::VerifyAgreement: Sender's signature failed
-// to verify.\n";
-//        return false;
-//    }
-//
-//    // Verify recipient's signature on merchant's copy.
-//
-//    if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM))
-//    {
-//        otOut << "OTSmartContract::VerifyAgreement: Recipient's signature
-// failed to verify on internal merchant copy of agreement.\n";
-//        return false;
-//    }
-//
-//    */
-//
-//
-//    return false;
-//}
-
-// Server side. Make sure that ALL parties have valid opening transaction #s.
-//
-// bool OTSmartContract::VerifyAllPartiesOpeningTransNos()
-//{
-//    // Loop through all parties.
-//    // For each, load the appropriate Nym and verify opening number on
-// appropriate Nym for each party.
-//
-//    /*
-//
-//    const OTString strServerID(GetServerID());
-//
-//    // Verify Transaction Num and Closing Nums against SENDER's issued list
-//    if ((GetCountClosingNumbers() < 1) ||
-// !SENDER_NYM.VerifyIssuedNum(strServerID, GetTransactionNum()))
-//    {
-//        otErr << "OTSmartContract::VerifyAgreement: Transaction number isn't
-// on sender's issued list, "
-//                     "or there weren't enough closing numbers.\n");
-//        return false;
-//    }
-//    for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
-//        if (!SENDER_NYM.VerifyIssuedNum(strServerID,
-// GetClosingTransactionNoAt(i)))
-//        {
-//            otErr << "OTSmartContract::VerifyAgreement: Closing transaction
-// number isn't on sender's issued list.\n";
-//            return false;
-//        }
-//
-//     */
-//
-//    return false;
-//}
-//
-
-// Server side. Make sure that ALL parties have valid closing transaction #s for
-// each of their asset accounts.
-//
-// bool OTSmartContract::VerifyAllPartiesClosingTransNos()
-//{
-//    // Loop through all parties.
-//    // For each, loop through their accounts.
-//    //
-//    // Load the appropriate Nym and verify closing numbers on appropriate Nym
-// for each Account.
-//    //
-//    /*
-//    const OTString strServerID(GetServerID());
-//
-//    // Verify Transaction Num and Closing Nums against SENDER's issued list
-//    if ((GetCountClosingNumbers() < 1) ||
-// !SENDER_NYM.VerifyIssuedNum(strServerID, GetTransactionNum()))
-//    {
-//        otErr << "OTSmartContract::VerifyAgreement: Transaction number isn't
-// on sender's issued list, "
-//                     "or there weren't enough closing numbers.\n");
-//        return false;
-//    }
-//    for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
-//        if (!SENDER_NYM.VerifyIssuedNum(strServerID,
-// GetClosingTransactionNoAt(i)))
-//        {
-//            otErr << "OTSmartContract::VerifyAgreement: Closing transaction
-// number isn't on sender's issued list.\n";
-//            return false;
-//        }
-//     */
-//
-//
-//
-//
-//
-//
-//    return false;
-//}
 
 // Server-side, need to verify ALL parties upon activation.
 // Client-side, need to verify CURRENT list of parties before "the next party"
@@ -4950,15 +4597,6 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
             // the client GUI code.
         }
     }
-
-    // (MOVED TO FARTHER BELOW.)
-    //
-    //    if (bAreAnyInvalidParties)
-    //    {
-    //        otOut << "OTSmartContract::VerifySmartContract: Failure. There are
-    // invalid parties on this contract.\n";
-    //        return false;
-    //    }
 
     // NEXT: THE ACCOUNTS
     //
@@ -5846,36 +5484,14 @@ bool OTSmartContract::Compare(OTScriptable& rhs)
             return false;
         }
 
-        if (
-                //            (   GetTransactionNum()  ==
-                // pSmartContract->GetTransactionNum()   ) && // Parties
-                // wouldn't/shouldn't have to predict the transaction # used by
-                // other parties.
-                //            (   GetSenderUserID()    ==
-                // pSmartContract->GetSenderUserID()     ) && // Same here -- we
-                // should allow parties to leave these blank. (THIS IS ACTIVATOR
-                // USER ID.)
-                (GetServerID() == pSmartContract->GetServerID()) &&
-                //            (   GetCreationDate()    ==
-                // pSmartContract->GetCreationDate()     ) && // This gets reset
-                // each time a party confirms it. Thus, none of them will match.
-                (GetValidFrom() == pSmartContract->GetValidFrom()) &&
-                (GetValidTo() == pSmartContract->GetValidTo()) // These
-                                                               // definitely
-                                                               // need to match.
-                )
+        if ((GetServerID() == pSmartContract->GetServerID()) &&
+            (GetValidFrom() == pSmartContract->GetValidFrom()) &&
+            (GetValidTo() == pSmartContract->GetValidTo()))
             return true;
     }
 
     return false;
 }
-
-// from OTScriptable:
-//
-// bool    m_bCalculatingID; // NOT serialized. Used during ID calculation.
-//
-// bool    m_bSpecifyAssetID;    // Serialized.
-// bool    m_bSpecifyParties;    // Serialized.
 
 void OTSmartContract::UpdateContents()
 {
@@ -5956,7 +5572,6 @@ void OTSmartContract::UpdateContents()
     // *** OT SCRIPTABLE ***
     //
     UpdateContentsToString(m_xmlUnsigned); // FYI: this is: void
-    // OTScriptable::UpdateContentsToString(OTString &)
 
     if (!m_bCalculatingID) {
 
@@ -6337,10 +5952,6 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const OTString strNodeName(xml->getNodeName());
 
-    //    otErr << "-- CALLING SUPER CLASS -- OTSmartContract::ProcessXMLNode.
-    // strNodeName: %s \n",
-    //                  strNodeName.Get());
-
     int32_t nReturnVal = 0;
 
     // Here we call the parent class first.
@@ -6356,15 +5967,8 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     nReturnVal = ot_super::ProcessXMLNode(xml);
 
     if (0 != (nReturnVal)) {
-        //        if ((-1) == nReturnVal)
-        //            otErr << "**** ERROR**** in superclass...\n ";
-
         return nReturnVal;
     }
-
-    //    otErr << "-- FINISHED CALLING SUPER CLASS --
-    // OTSmartContract::ProcessXMLNode:  strNodeName: %s \n",
-    // strNodeName.Get());
 
     if (strNodeName.Compare("smartContract")) {
         m_strVersion = xml->getAttributeValue("version");
@@ -6493,10 +6097,6 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             nReturnVal = 1;
         }
     }
-
-    //    otErr << "-- FINALLY -- OTSmartContract::ProcessXMLNode:  nReturnVal:
-    // %d  strNodeName: %s \n",
-    //                  nReturnVal, strNodeName.Get());
 
     return nReturnVal;
 }

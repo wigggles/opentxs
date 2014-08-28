@@ -384,26 +384,14 @@ bool OTBylaw::Compare(OTBylaw& rhs)
             // sure that we got them both via the same
             // name, and that the counts are the same (as already verified
             // above) and that should actually be good enough.
-            // For now though, I'm leaving this verification commented out.
-            //            else if (!pCallbackClause->Compare(*pCallbackClause2))
-            //            {
-            //                otOut << "OTBylaw::Compare: Failed comparison
-            // between 2 callback (%s) clauses (%s) on bylaws both named %s.\n",
-            //                               str_callback_name.c_str(),
-            // str_clause_name.c_str(), rhs.GetName().Get());
-            //                return false;
-            //            }
         }
 
-        // typedef std::multimap    <std::string, std::string> mapOfHooks;
         std::set<std::string> theHookSet;
 
         // There might be MANY entries with the SAME HOOK NAME. So we add them
         // all to a SET in order to get unique keys.
         for (const auto& it : m_mapHooks) {
             const std::string& str_hook_name = it.first;
-            //            const std::string & str_clause_name    = it->second;
-
             theHookSet.insert(str_hook_name);
         }
         // Now we loop through all the unique hook names, and get
@@ -451,16 +439,6 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 // make sure that we got them both via the same
                 // name, and that the counts are the same (as already verified
                 // above) and that should actually be good enough.
-                //                OTClause * pClause2 = it_rhs->second;
-                //                OT_ASSERT(nullptr != pClause2);
-                //
-                //                if (!pClause->Compare(*pClause2))
-                //                {
-                //                    otOut << "OTBylaw::Compare: Failed
-                // comparison between 2 hook clauses named %s.\n",
-                //                                   str_clause_name.c_str());
-                //                    return false;
-                //                }
             }
         }
 

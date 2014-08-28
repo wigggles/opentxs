@@ -150,19 +150,6 @@ class OTStash;
 typedef std::map<std::string, OTAccount*> mapOfAccounts;
 typedef std::map<std::string, OTStash*> mapOfStashes;
 
-// global with int64_t parameter
-// bool g_MoveAcctFundsL(OTSmartContract * pContract,
-//                     const std::string from_acct_name,
-//                     const std::string to_acct_name,
-//                     const int64_t lAmount);
-//
-//
-//// global with string parameter
-// bool g_MoveAcctFundsStr(OTSmartContract * pContract,
-//                     const std::string from_acct_name,
-//                     const std::string to_acct_name,
-//                     const std::string str_Amount);
-
 class OTSmartContract : public OTCronItem
 {
 private: // Private prevents erroneous use by other classes.
@@ -271,13 +258,6 @@ public:
     }
     int32_t GetCountStashes() const;
     int32_t GetCountStashAccts() const;
-    // FROM PAYMENT PLAN:
-    //  bool    SetProposal(OTPseudonym & MERCHANT_NYM, const OTString &
-    // strConsideration,
-    //                      const time64_t & VALID_FROM=0,    const time64_t &
-    // VALID_TO=0);
-    //  bool    Confirm(OTPseudonym & PAYER_NYM, OTPseudonym *
-    // pMERCHANT_NYM, OTIdentifier * p_id_MERCHANT_NYM);  //
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
     // These notes are from OTAgreement/OTPaymentPlan but they are still
@@ -305,13 +285,6 @@ public:
     //
     virtual bool Compare(OTScriptable& rhs);
     // From OTCronItem (parent class of this)
-    /*
-     inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
-
-     inline void SetCreationDate(const time64_t & CREATION_DATE) {
-     m_CREATION_DATE = CREATION_DATE; }
-     inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
-     */
     virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
 
     virtual void HarvestOpeningNumber(OTPseudonym& theNym);  // Used on
@@ -337,56 +310,9 @@ public:
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
-    // From OTTrackable (parent class of OTCronItem, parent class of this)
-    /*
-     inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
-     inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum
-     = lTransactionNum; }
-
-     inline const OTIdentifier &    GetSenderAcctID()               { return
-     m_SENDER_ACCT_ID; }
-     inline const OTIdentifier &    GetSenderUserID()               { return
-     m_SENDER_USER_ID; }
-     inline void  SetSenderAcctID(const OTIdentifier & ACCT_ID)        {
-     m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void  SetSenderUserID(const OTIdentifier & USER_ID)        {
-     m_SENDER_USER_ID = USER_ID; }
-     */
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
     virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
-
-    // From OTInstrument (parent class of OTTrackable, parent class of
-    // OTCronItem, parent class of this)
-    /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
-     : OTContract()
-
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
-
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
-     ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
-     SERVER_ID; }
-
-     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t GetValidTo()        const { return m_VALID_TO; }
-
-     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    =
-     TIME_FROM; }
-     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
-     }
-
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
-     / TO dates.
-     */
-
-    /*
-     OTScriptable is above OTInstrument, and then finally OTContract.
-
-     virtual bool SignContract (const OTPseudonym & theNym);
-     */
 
     virtual bool AddParty(OTParty& theParty); // Takes ownership. Overrides from
                                               // OTScriptable.
@@ -473,12 +399,6 @@ public:
                                                                     // either.)
     std::string GetRemainingTimer() const; // returns seconds left on the timer,
                                            // in string format, or "0".
-    // class member, with int64_t parameter
-    //    bool MoveAcctFundsL(const std::string from_acct_name,
-    //                       const std::string to_acct_name,
-    //                       const int64_t lAmount); // calls
-    // OTCronItem::MoveFunds()
-
     // class member, with string parameter
     bool MoveAcctFundsStr(
         const std::string from_acct_name, const std::string to_acct_name,

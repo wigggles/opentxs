@@ -230,14 +230,10 @@ OTPartyAccount::~OTPartyAccount()
 bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
 {
     if (!m_strAcctID.Exists()) {
-        //        otErr << "OTPartyAccount::IsAccountByID: Error: Empty
-        // m_strAcctID.\n";
         return false;
     }
 
     if (!m_strAssetTypeID.Exists()) {
-        //        otErr << "OTPartyAccount::IsAccountByID: Error: Empty
-        // m_strAssetTypeID.\n";
         return false;
     }
 
@@ -295,9 +291,6 @@ bool OTPartyAccount::IsAccount(OTAccount& theAccount)
 // I will ask him to verify whether he actually owns it.
 bool OTPartyAccount::VerifyOwnership() const
 {
-    //    OTParty        * m_pForParty;
-    //    OTAccount    * m_pAccount;
-
     if (nullptr == m_pForParty) {
         otErr << "OTPartyAccount::VerifyOwnership: Error: nullptr pointer to "
                  "owner party. \n";
@@ -449,8 +442,6 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
 void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
                                bool bSpecifyAssetID)
 {
-    //    strAppend.Concatenate("<assetAccount>\n\n");
-
     strAppend.Concatenate(
         "<assetAccount\n name=\"%s\"\n"
         " acctID=\"%s\"\n"
@@ -461,15 +452,11 @@ void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
         (bCalculatingID && !bSpecifyAssetID) ? "" : m_strAssetTypeID.Get(),
         bCalculatingID ? "" : m_strAgentName.Get(),
         bCalculatingID ? 0 : m_lClosingTransNo);
-
-    //    strAppend.Concatenate("</assetAccount>\n");
 }
 
 void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 {
     const std::string str_acct_name = m_strName.Get();
-    //    const std::string str_acct_id    = m_strAcctID.Get();
-
     theScript.AddAccount(str_acct_name, *this);
 }
 

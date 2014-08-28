@@ -215,8 +215,6 @@ int32_t OTParty::GetAccountCount(const std::string str_agent_name) const
 // A party may also have multiple agents.
 //
 
-// std::string * m_pstr_party_name;
-
 OTParty::OTParty()
     : m_pstr_party_name(nullptr)
     , m_bPartyIsNym(false)
@@ -274,19 +272,6 @@ OTParty::OTParty(const std::string str_PartyName,
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
     m_str_owner_id = strNymID.Get();
-
-    //    std::string            m_str_authorizing_agent;    // Empty until
-    // contract is confirmed. Contains the name of the authorizing agent (the
-    // one who supplied the opening Trans#)
-    //    int64_t                m_lOpeningTransNo;            // Empty until
-    // contract is confirmed. Each party (to a smart contract anyway) must
-    // provide an opening transaction #.
-    //    OTString            m_strMySignedCopy;            // Empty until
-    // contract is confirmed.
-    //    mapOfAgents            m_mapAgents;                // (Often) empty
-    // until contract is confirmed. These are owned.
-    //    mapOfPartyAccounts    m_mapPartyAccounts;            // These are
-    // owned. Each contains a Closing Transaction#.
 
     OTAgent* pAgent =
         new OTAgent(str_agent_name, theNym); // (The third arg, bRepresentsSelf,
@@ -446,22 +431,6 @@ int64_t OTParty::GetClosingTransNo(const std::string str_for_acct_name) const
 
     return pPartyAccount->GetClosingTransNo();
 }
-
-// OTParty::OTParty(const OTParty & rhs)
-//{
-//    SetPartyName(rhs.GetPartyName());
-//    m_bPartyIsNym = rhs.m_bPartyIsNym;
-//    m_pAccount = rhs.m_pAccount;
-//}
-//
-// OTParty& OTParty::operator= (const OTParty & rhs)
-//{
-//    SetPartyName(rhs.GetPartyName());
-//    m_bPartyIsNym = rhs.m_bPartyIsNym;
-//    m_pAccount = rhs.m_pAccount;
-//
-//    return *this;
-//}
 
 void OTParty::CleanupAgents()
 {
@@ -1082,13 +1051,12 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
     return bSuccess;
 }
 
-bool OTParty::SendNoticeToParty(
-    bool bSuccessMsg, OTPseudonym& theServerNym,
-    const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-    //                                const int64_t & lInReferenceTo, // todo
-    // Maybe have each party just use their own opening trans# here. Maybe not.
-    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
-    OTPseudonym* pActualNym)
+bool OTParty::SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
+                                const OTIdentifier& theServerID,
+                                const int64_t& lNewTransactionNumber,
+                                const OTString& strReference,
+                                OTString* pstrNote, OTString* pstrAttachment,
+                                OTPseudonym* pActualNym)
 {
     bool bSuccess =
         false; // Success is defined as "at least one agent was notified"
@@ -1837,13 +1805,6 @@ bool OTParty::Compare(const OTParty& rhs) const
     // agent or that agent.  That information is important and is stored, but is
     // not relevant
     // for a Compare().
-    //    if (IsNym() != rhs.IsNym())
-    //    {
-    //        otOut << "OTParty::Compare: One of these parties is a Nym and the
-    // other is not:  %s  /  %s \n",
-    //                       GetPartyName().c_str(), str_party_name.c_str());
-    //        return false;
-    //    }
 
     if ((GetOpeningTransNo() > 0) && (rhs.GetOpeningTransNo() > 0) &&
         (GetOpeningTransNo() != rhs.GetOpeningTransNo())) {
