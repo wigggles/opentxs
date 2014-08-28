@@ -3428,116 +3428,6 @@ bool OTTransaction::VerifyBalanceReceipt(
     return true;
 }
 
-// static
-bool OTTransaction::SetupBoxReceiptFilename(
-    const int64_t lLedgerType, const OTString& strUserOrAcctID,
-    const OTString& strServerID, const int64_t& lTransactionNum,
-    const char* szCaller, OTString& strFolder1name, OTString& strFolder2name,
-    OTString& strFolder3name, OTString& strFilename)
-{
-    OT_ASSERT(nullptr != szCaller);
-
-    const char* pszFolder = nullptr; // "nymbox" (or "inbox" or "outbox")
-    switch (lLedgerType) {
-    case 0:
-        pszFolder = OTFolders::Nymbox().Get();
-        break;
-    case 1:
-        pszFolder = OTFolders::Inbox().Get();
-        break;
-    case 2:
-        pszFolder = OTFolders::Outbox().Get();
-        break;
-    //      case 3: (message ledger.)
-    case 4:
-        pszFolder = OTFolders::PaymentInbox().Get();
-        break;
-    case 5:
-        pszFolder = OTFolders::RecordBox().Get();
-        break;
-    case 6:
-        pszFolder = OTFolders::ExpiredBox().Get();
-        break;
-    default:
-        otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller
-              << ": Error: unknown box type: " << lLedgerType
-              << ". (This should never happen.)\n";
-        return false;
-    }
-
-    strFolder1name.Set(pszFolder);   // "nymbox" (or "inbox" or "outbox")
-    strFolder2name.Set(strServerID); // "SERVER_ID"
-    strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "USER_ID.r"
-
-    strFilename.Format("%lld.rct", lTransactionNum); // "TRANSACTION_ID.rct"
-    // todo hardcoding of file extension. Need to standardize extensions.
-
-    // Finished product: "nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"
-
-    return true;
-}
-
-// Just used locally here to prevent some code duplication.
-//
-// static
-bool OTTransaction::SetupBoxReceiptFilename(
-    const int64_t lLedgerType, OTTransaction& theTransaction,
-    const char* szCaller, OTString& strFolder1name, OTString& strFolder2name,
-    OTString& strFolder3name, OTString& strFilename)
-{
-    OTString strUserOrAcctID;
-    theTransaction.GetIdentifier(strUserOrAcctID);
-
-    const OTString strServerID(theTransaction.GetRealServerID());
-
-    return OTTransaction::SetupBoxReceiptFilename(
-        lLedgerType, strUserOrAcctID, strServerID,
-        theTransaction.GetTransactionNum(), szCaller, strFolder1name,
-        strFolder2name, strFolder3name, strFilename);
-}
-
-// Just used locally here to prevent some code duplication.
-//
-// static
-bool OTTransaction::SetupBoxReceiptFilename(
-    OTLedger& theLedger, OTTransaction& theTransaction, const char* szCaller,
-    OTString& strFolder1name, OTString& strFolder2name,
-    OTString& strFolder3name, OTString& strFilename)
-{
-    int64_t lLedgerType = 0;
-
-    switch (theLedger.GetType()) {
-    case OTLedger::nymbox:
-        lLedgerType = 0;
-        break;
-    case OTLedger::inbox:
-        lLedgerType = 1;
-        break;
-    case OTLedger::outbox:
-        lLedgerType = 2;
-        break;
-    //        case OTLedger::message:         lLedgerType = 3;    break;
-    case OTLedger::paymentInbox:
-        lLedgerType = 4;
-        break;
-    case OTLedger::recordBox:
-        lLedgerType = 5;
-        break;
-    case OTLedger::expiredBox:
-        lLedgerType = 6;
-        break;
-    default:
-        otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller
-              << ": Error: unknown box type. "
-                 "(This should never happen.)\n";
-        return false;
-    }
-
-    return OTTransaction::SetupBoxReceiptFilename(
-        lLedgerType, theTransaction, szCaller, strFolder1name, strFolder2name,
-        strFolder3name, strFilename);
-}
-
 // This doesn't actually delete the box receipt, per se.
 // Instead, it adds the string "MARKED_FOR_DELETION" to the bottom
 // of the file, so the sysadmin can delete later, at his leisure.
@@ -3546,10 +3436,10 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
 {
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == OTTransaction::SetupBoxReceiptFilename(
-                     theLedger, *this, "OTTransaction::DeleteBoxReceipt",
-                     strFolder1name, strFolder2name, strFolder3name,
-                     strFilename))
+    if (false == SetupBoxReceiptFilename(theLedger, *this,
+                                         "OTTransaction::DeleteBoxReceipt",
+                                         strFolder1name, strFolder2name,
+                                         strFolder3name, strFilename))
         return false; // This already logs -- no need to log twice, here.
 
     // See if the box receipt exists before trying to save over it...
@@ -3629,10 +3519,10 @@ bool OTTransaction::SaveBoxReceipt(const int64_t lLedgerType)
 
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == OTTransaction::SetupBoxReceiptFilename(
-                     lLedgerType, *this, "OTTransaction::SaveBoxReceipt",
-                     strFolder1name, strFolder2name, strFolder3name,
-                     strFilename))
+    if (false == SetupBoxReceiptFilename(lLedgerType, *this,
+                                         "OTTransaction::SaveBoxReceipt",
+                                         strFolder1name, strFolder2name,
+                                         strFolder3name, strFilename))
         return false; // This already logs -- no need to log twice, here.
 
     // See if the box receipt exists before trying to save over it...
@@ -3712,7 +3602,7 @@ OTTransaction* OTTransaction::LoadBoxReceipt(OTTransaction& theAbbrev,
 
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == OTTransaction::SetupBoxReceiptFilename(
+    if (false == SetupBoxReceiptFilename(
                      lLedgerType, theAbbrev,
                      __FUNCTION__, // "OTTransaction::LoadBoxReceipt",
                      strFolder1name, strFolder2name, strFolder3name,
@@ -3881,7 +3771,7 @@ bool OTTransaction::VerifyBoxReceiptExists(
     // --------------------------------------------------------------------
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == OTTransaction::SetupBoxReceiptFilename(
+    if (false == SetupBoxReceiptFilename(
                      lLedgerType, // nBoxType is lLedgerType
                      strUserOrAcctID, strServerID, lTransactionNum,
                      "OTTransaction::VerifyBoxReceiptExists", strFolder1name,

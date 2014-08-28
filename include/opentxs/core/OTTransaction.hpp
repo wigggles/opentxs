@@ -845,26 +845,6 @@ public:
                                         // pass USER_ID in this field also.
         const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum);
-    static bool SetupBoxReceiptFilename(const int64_t lLedgerType,
-                                        OTTransaction& theTransaction,
-                                        const char* szCaller,
-                                        OTString& strFolder1name,
-                                        OTString& strFolder2name,
-                                        OTString& strFolder3name,
-                                        OTString& strFilename);
-    static bool SetupBoxReceiptFilename(OTLedger& theLedger,
-                                        OTTransaction& theTransaction,
-                                        const char* szCaller,
-                                        OTString& strFolder1name,
-                                        OTString& strFolder2name,
-                                        OTString& strFolder3name,
-                                        OTString& strFilename);
-    static bool SetupBoxReceiptFilename(
-        const int64_t lLedgerType, const OTString& strUserOrAcctID,
-        const OTString& strServerID, const int64_t& lTransactionNum,
-        const char* szCaller, OTString& strFolder1name,
-        OTString& strFolder2name, OTString& strFolder3name,
-        OTString& strFilename);
 
     // Balance receipts are used in transactions that change an account balance.
     EXPORT static bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,

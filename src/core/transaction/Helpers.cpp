@@ -130,6 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
+#include "OTTransaction.hpp"
+#include "OTLedger.hpp"
+#include "OTString.hpp"
+#include "OTFolders.hpp"
+#include "OTLog.hpp"
+
 namespace
 {
 
@@ -201,6 +207,112 @@ namespace opentxs
 const char* GetTransactionTypeString(int transactionNumber)
 {
     return TypeStrings[transactionNumber];
+}
+
+bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+                             const OTString& strUserOrAcctID,
+                             const OTString& strServerID,
+                             const int64_t& lTransactionNum,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename)
+{
+    OT_ASSERT(nullptr != szCaller);
+
+    const char* pszFolder = nullptr; // "nymbox" (or "inbox" or "outbox")
+    switch (lLedgerType) {
+    case 0:
+        pszFolder = OTFolders::Nymbox().Get();
+        break;
+    case 1:
+        pszFolder = OTFolders::Inbox().Get();
+        break;
+    case 2:
+        pszFolder = OTFolders::Outbox().Get();
+        break;
+    //      case 3: (message ledger.)
+    case 4:
+        pszFolder = OTFolders::PaymentInbox().Get();
+        break;
+    case 5:
+        pszFolder = OTFolders::RecordBox().Get();
+        break;
+    case 6:
+        pszFolder = OTFolders::ExpiredBox().Get();
+        break;
+    default:
+        otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller
+              << ": Error: unknown box type: " << lLedgerType
+              << ". (This should never happen.)\n";
+        return false;
+    }
+
+    strFolder1name.Set(pszFolder);   // "nymbox" (or "inbox" or "outbox")
+    strFolder2name.Set(strServerID); // "SERVER_ID"
+    strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "USER_ID.r"
+
+    strFilename.Format("%lld.rct", lTransactionNum); // "TRANSACTION_ID.rct"
+    // todo hardcoding of file extension. Need to standardize extensions.
+
+    // Finished product: "nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"
+
+    return true;
+}
+
+bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+                             OTTransaction& theTransaction,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename)
+{
+    OTString strUserOrAcctID;
+    theTransaction.GetIdentifier(strUserOrAcctID);
+
+    const OTString strServerID(theTransaction.GetRealServerID());
+
+    return SetupBoxReceiptFilename(lLedgerType, strUserOrAcctID, strServerID,
+                                   theTransaction.GetTransactionNum(), szCaller,
+                                   strFolder1name, strFolder2name,
+                                   strFolder3name, strFilename);
+}
+
+bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename)
+{
+    int64_t lLedgerType = 0;
+
+    switch (theLedger.GetType()) {
+    case OTLedger::nymbox:
+        lLedgerType = 0;
+        break;
+    case OTLedger::inbox:
+        lLedgerType = 1;
+        break;
+    case OTLedger::outbox:
+        lLedgerType = 2;
+        break;
+    //        case OTLedger::message:         lLedgerType = 3;    break;
+    case OTLedger::paymentInbox:
+        lLedgerType = 4;
+        break;
+    case OTLedger::recordBox:
+        lLedgerType = 5;
+        break;
+    case OTLedger::expiredBox:
+        lLedgerType = 6;
+        break;
+    default:
+        otErr << "OTTransaction::" << __FUNCTION__ << " " << szCaller
+              << ": Error: unknown box type. "
+                 "(This should never happen.)\n";
+        return false;
+    }
+
+    return SetupBoxReceiptFilename(lLedgerType, theTransaction, szCaller,
+                                   strFolder1name, strFolder2name,
+                                   strFolder3name, strFilename);
 }
 
 } // namespace opentxs

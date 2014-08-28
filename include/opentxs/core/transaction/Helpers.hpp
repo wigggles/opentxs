@@ -134,11 +134,35 @@
 #define OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 
 #include "../OTTransaction.hpp"
+#include <cstdint>
 
 namespace opentxs
 {
 
+class OTString;
+class OTTransaction;
+class OTLedger;
+
 const char* GetTransactionTypeString(int transactionNumber);
+
+bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+                             OTTransaction& theTransaction,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename);
+
+bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename);
+
+bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+                             const OTString& strUserOrAcctID,
+                             const OTString& strServerID,
+                             const int64_t& lTransactionNum,
+                             const char* szCaller, OTString& strFolder1name,
+                             OTString& strFolder2name, OTString& strFolder3name,
+                             OTString& strFilename);
 
 } // namespace opentxs
 
