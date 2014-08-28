@@ -1127,35 +1127,6 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     return false;
 }
 
-bool OTCron::RemoveMarket(const OTIdentifier& MARKET_ID) // if false, market
-                                                         // wasn't found.
-{
-    OTString str_MARKET_ID(MARKET_ID);
-    std::string std_MARKET_ID = str_MARKET_ID.Get();
-
-    // See if there's something there with that transaction number.
-    mapOfMarkets::iterator ii = m_mapMarkets.find(std_MARKET_ID);
-
-    // If it's not already on the list, then there's nothing to remove.
-    if (ii == m_mapMarkets.end()) {
-        otErr << "Attempt to remove non-existent Market from OTCron:\n"
-              << std_MARKET_ID << "\n";
-        return false;
-    }
-    // Otherwise, if it WAS already there, remove it properly.
-    else {
-        OTMarket* pMarket = ii->second;
-
-        OT_ASSERT(nullptr != pMarket);
-
-        m_mapMarkets.erase(ii);
-        delete pMarket;
-
-        // A market has been removed from Cron. SAVE.
-        return SaveCron();
-    }
-}
-
 // Create it if it's not there.
 OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
                                     const OTIdentifier& CURRENCY_ID,
