@@ -642,10 +642,7 @@ bool OTCronItem::MoveFunds(
     const OTIdentifier& RECIPIENT_ACCT_ID, // GetRecipientAcctID();
     const OTIdentifier& RECIPIENT_USER_ID) // GetRecipientUserID();
 {
-    const OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     if (lAmount <= 0) {
@@ -656,7 +653,7 @@ bool OTCronItem::MoveFunds(
 
     bool bSuccess = false; // The return value.
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
+    const OTIdentifier SERVER_ID(*serverId_);
     const OTIdentifier SERVER_USER_ID(*pServerNym);
 
     OTString strSenderUserID(SENDER_USER_ID),
@@ -1694,12 +1691,6 @@ bool OTCronItem::ProcessCron()
 void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
                                       bool bForTheFirstTime)
 {
-    OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
-    OT_ASSERT(nullptr != pServerNym);
-
     // Put anything else in here, that needs to be done in the
     // cron item base class, upon activation. (This executes
     // no matter what, even if onActivate() is overridden.)
@@ -1718,15 +1709,12 @@ void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
 void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes
                                                             // nullptr.
 {
-    OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
     //
-    const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
+    const int64_t lNewTransactionNumber = GetCron()->GetNextTransactionNumber();
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
@@ -1903,10 +1891,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                                                        // theOriginator... or
                                                        // someone else...
 {
-    OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
@@ -2075,10 +2060,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const OTString& strOrigCronItem, OTString* pstrNote,
     OTString* pstrAttachment, OTAccount* pActualAcct)
 {
-    OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
@@ -2269,10 +2251,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                           OTString* pstrAttachment,
                                           OTPseudonym* pActualNym)
 {
-    OTCron* pCron = GetCron();
-    OT_ASSERT(nullptr != pCron);
-
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc =
@@ -2596,6 +2575,8 @@ void OTCronItem::HarvestClosingNumbers(OTPseudonym& theNym)
 OTCronItem::OTCronItem()
     : ot_super()
     , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , serverId_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -2611,6 +2592,8 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , serverId_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -2627,6 +2610,8 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID)
     : ot_super(SERVER_ID, ASSET_ID, ACCT_ID, USER_ID)
     , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , serverId_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
