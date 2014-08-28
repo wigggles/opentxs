@@ -841,12 +841,6 @@ public:
         const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum);
 
-    // Balance receipts are used in transactions that change an account balance.
-    EXPORT static bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,
-                                            OTPseudonym& THE_NYM,
-                                            const OTIdentifier& SERVER_ID,
-                                            const OTIdentifier& ACCT_ID);
-
     bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM);
     // Transaction receipts are used where you don't need to change an account
     // balance,
