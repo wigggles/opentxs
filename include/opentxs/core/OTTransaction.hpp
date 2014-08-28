@@ -843,15 +843,8 @@ public:
 
     bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM);
     // Transaction receipts are used where you don't need to change an account
-    // balance,
-    // but you still need to have an agreement about which transaction numbers
-    // are
-    // signed out.
-    //
-    static bool VerifyTransactionReceipt(OTPseudonym& SERVER_NYM,
-                                         OTPseudonym& THE_NYM,
-                                         OTIdentifier& SERVER_ID);
-
+    // balance, but you still need to have an agreement about which transaction
+    // numbers are signed out.
     bool VerifyTransactionReceipt(OTPseudonym& SERVER_NYM,
                                   OTPseudonym& THE_NYM);
     // First VerifyContractID() is performed already on all the items when
