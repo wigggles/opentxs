@@ -656,34 +656,19 @@ void OTCron::ProcessCronItems()
 
     if (!m_bIsActivated) {
         otErr << "OTCron::ProcessCronItems: Not activated yet. (Skipping.)\n";
-        return; // No Cron processing until Cron is activated.
+        return;
     }
 
-    static const int64_t lMsBetweenCronBeats =
-        OTCron::GetCronMsBetweenProcess(); // Default: 10 seconds aka 10000
-
     // CRON RUNS ON A TIMER...
-    static Timer tCron(true); // bStart=true.
-    static double cron_tick1 =
-        tCron.getElapsedTimeInMilliSec(); // This initially occurs the first
-                                          // time function is called.
-    double cron_tick2 = tCron.getElapsedTimeInMilliSec(); // This occurs EVERY
-                                                          // time this function
-                                                          // is called.
-    const int64_t cron_elapsed =
-        static_cast<int64_t>(cron_tick2 - cron_tick1); // This calculates every
-                                                       // time this function is
-                                                       // called.
+    static Timer tCron(true);
+    static double cron_tick1 = tCron.getElapsedTimeInMilliSec();
+    double cron_tick2 = tCron.getElapsedTimeInMilliSec();
+    const int64_t cron_elapsed = static_cast<int64_t>(cron_tick2 - cron_tick1);
 
-    // If it's been at least ten seconds...
-    //
-    if (cron_elapsed > lMsBetweenCronBeats)
-        // Reset the timer -- we're executing!
-        cron_tick1 = tCron.getElapsedTimeInMilliSec(); // cron_tick1 only
-                                                       // changes here, every X
-                                                       // ms.
-    else
-        return; // (it's not our time yet.)
+    if (cron_elapsed <= OTCron::GetCronMsBetweenProcess()) {
+        return;
+    }
+    cron_tick1 = tCron.getElapsedTimeInMilliSec();
 
     const int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
     if (GetTransactionCount() <= nTwentyPercent) {
@@ -699,24 +684,13 @@ void OTCron::ProcessCronItems()
                  "ROUND!!!\n\n";
         return;
     }
-
     bool bNeedToSave = false;
 
     // loop through the cron items and tell each one to ProcessCron().
     // If the item returns true, that means leave it on the list. Otherwise,
     // if it returns false, that means "it's done: remove it."
-
-    for (multimapOfCronItems::iterator // Iterating through the multimap means
-                                       // we process the cronitems
-         it = m_multimapCronItems.begin(); // in the same order that they were
-                                           // originally added to Cron.
-         it != m_multimapCronItems.end();  // (This is necessary for market
-                                           // orders to process properly.)
-                                           /* NOTICE THIS THIRD SPOT IS EMPTY*/
-         ) {
-        const int32_t nTwentyPercent2 = OTCron::GetCronRefillAmount() / 5;
-
-        if (GetTransactionCount() <= nTwentyPercent2) {
+    for (auto it = m_multimapCronItems.begin(); it != m_mapCronItems.end();) {
+        if (GetTransactionCount() <= nTwentyPercent) {
             otErr << "WARNING: Cron has fewer than 20 percent of its normal "
                      "transaction "
                      "number count available since the previous cron item "
@@ -730,58 +704,29 @@ void OTCron::ProcessCronItems()
                      "SCHEDULED FOR THIS ROUND!!!\n\n";
             break;
         }
-
         OTCronItem* pItem = it->second;
         OT_ASSERT(nullptr != pItem);
-
         otInfo << "OTCron::" << __FUNCTION__
                << ": Processing item number: " << pItem->GetTransactionNum()
                << " \n";
 
-        bool bProcessCron = pItem->ProcessCron();
-
-        // false means "remove it".
-        // ProcessCron returns true if should stay on the list.
-        //
-        if (false == bProcessCron) pItem->HookRemovalFromCron(nullptr);
-
-        // Remove it from the list.
-        //
-        if (false == bProcessCron) {
-            otOut << "OTCron::" << __FUNCTION__
-                  << ": Removing cron item: " << pItem->GetTransactionNum()
-                  << "\n";
-
-            // Remove from MultiMap
-            //
-            multimapOfCronItems::iterator it_delete = it;
-            ++it;
-            m_multimapCronItems.erase(it_delete);
-
-            // Remove from Map
-            //
-            mapOfCronItems::iterator it_map =
-                FindItemOnMap(pItem->GetTransactionNum());
-            OT_ASSERT(m_mapCronItems.end() != it_map); // If it's on the
-                                                       // multimap, then it
-                                                       // should also ALWAYS be
-                                                       // on the map.
-            m_mapCronItems.erase(it_map);
-
-            delete pItem;
-            pItem = nullptr;
-
-            bNeedToSave = true; // We'll save to file at the bottom if anything
-                                // was removed.
+        if (pItem->ProcessCron()) {
+            it++;
+            continue;
         }
-        else // the special i++ and ++i arrangement here allows me to erase an
-               // item
-        {      // from the list WHILE iterating through it  :-)   (Supposedly.)
-            ++it;
-        }
-    } // for
+        pItem->HookRemovalFromCron(nullptr);
+        otOut << "OTCron::" << __FUNCTION__
+              << ": Removing cron item: " << pItem->GetTransactionNum() << "\n";
+        it = m_multimapCronItems.erase(it);
+        auto it_map = FindItemOnMap(pItem->GetTransactionNum());
+        OT_ASSERT(m_mapCronItems.end() != it_map);
+        m_mapCronItems.erase(it_map);
 
-    // Items were removed from Cron -- Save to storage!
+        delete pItem;
+        pItem = nullptr;
+
+        bNeedToSave = true;
+    }
     if (bNeedToSave) SaveCron();
 }
 
