@@ -428,12 +428,12 @@ bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
     //  otOut << "DEBUGGING:  OTLedger::LoadBoxReceipt: ledger type: %s \n",
     // GetTypeString());
 
-    // OTTransaction::LoadBoxReceipt already checks pTransaction to see if it's
+    // LoadBoxReceipt already checks pTransaction to see if it's
     // abbreviated
     // (which it must be.) So I don't bother checking twice.
     //
     OTTransaction* pBoxReceipt =
-        OTTransaction::LoadBoxReceipt(*pTransaction, *this);
+        ::opentxs::LoadBoxReceipt(*pTransaction, *this);
 
     // success
     if (nullptr != pBoxReceipt) {

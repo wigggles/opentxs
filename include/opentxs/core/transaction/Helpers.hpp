@@ -145,6 +145,11 @@ class OTLedger;
 
 const char* GetTransactionTypeString(int transactionNumber);
 
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger);
+
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
+                              const int64_t lLedgerType);
+
 bool SetupBoxReceiptFilename(const int64_t lLedgerType,
                              OTTransaction& theTransaction,
                              const char* szCaller, OTString& strFolder1name,

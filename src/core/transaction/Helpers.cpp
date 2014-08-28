@@ -135,6 +135,8 @@
 #include "OTString.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
+#include "OTStorage.hpp"
+#include <string>
 
 namespace
 {
@@ -207,6 +209,150 @@ namespace opentxs
 const char* GetTransactionTypeString(int transactionNumber)
 {
     return TypeStrings[transactionNumber];
+}
+
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger)
+{
+    const int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
+    return LoadBoxReceipt(theAbbrev, lLedgerType);
+}
+
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
+                              const int64_t lLedgerType)
+{
+    // See if the appropriate file exists, and load it up from
+    // local storage, into a string.
+    // Then, try to load the transaction from that string and see if successful.
+    // If it verifies, then return it. Otherwise return nullptr.
+
+    // Can only load abbreviated transactions (so they'll become their full
+    // form.)
+    //
+    if (false == theAbbrev.IsAbbreviated()) {
+        otOut << __FUNCTION__ << ": Unable to load box receipt "
+              << theAbbrev.GetTransactionNum()
+              << ": "
+                 "(Because argument 'theAbbrev' wasn't abbreviated.)\n";
+        return nullptr;
+    }
+
+    // Next, see if the appropriate file exists, and load it up from
+    // local storage, into a string.
+
+    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
+
+    if (false == SetupBoxReceiptFilename(
+                     lLedgerType, theAbbrev,
+                     __FUNCTION__, // "OTTransaction::LoadBoxReceipt",
+                     strFolder1name, strFolder2name, strFolder3name,
+                     strFilename))
+        return nullptr; // This already logs -- no need to log twice, here.
+
+    // See if the box receipt exists before trying to load it...
+    //
+    if (false == OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
+                              strFolder3name.Get(), strFilename.Get())) {
+        otWarn << __FUNCTION__
+               << ": Box receipt does not exist: " << strFolder1name
+               << OTLog::PathSeparator() << strFolder2name
+               << OTLog::PathSeparator() << strFolder3name
+               << OTLog::PathSeparator() << strFilename << "\n";
+        return nullptr;
+    }
+
+    // Try to load the box receipt from local storage.
+    //
+    std::string strFileContents(OTDB::QueryPlainString(
+        strFolder1name.Get(), // <=== LOADING FROM DATA STORE.
+        strFolder2name.Get(), strFolder3name.Get(), strFilename.Get()));
+    if (strFileContents.length() < 2) {
+        otErr << __FUNCTION__ << ": Error reading file: " << strFolder1name
+              << OTLog::PathSeparator() << strFolder2name
+              << OTLog::PathSeparator() << strFolder3name
+              << OTLog::PathSeparator() << strFilename << "\n";
+        return nullptr;
+    }
+
+    OTString strRawFile(strFileContents.c_str());
+
+    if (false == strRawFile.Exists()) {
+        otErr << __FUNCTION__ << ": Error reading file (resulting output "
+                                 "string is empty): " << strFolder1name
+              << OTLog::PathSeparator() << strFolder2name
+              << OTLog::PathSeparator() << strFolder3name
+              << OTLog::PathSeparator() << strFilename << "\n";
+        return nullptr;
+    }
+
+    // Finally, try to load the transaction from that string and see if
+    // successful.
+    //
+    OTTransactionType* pTransType =
+        OTTransactionType::TransactionFactory(strRawFile);
+
+    if (nullptr == pTransType) {
+        otErr << __FUNCTION__ << ": Error instantiating transaction "
+                                 "type based on strRawFile: " << strFolder1name
+              << OTLog::PathSeparator() << strFolder2name
+              << OTLog::PathSeparator() << strFolder3name
+              << OTLog::PathSeparator() << strFilename << "\n";
+        return nullptr;
+    }
+
+    OTTransaction* pBoxReceipt = dynamic_cast<OTTransaction*>(pTransType);
+
+    if (nullptr == pBoxReceipt) {
+        otErr << __FUNCTION__
+              << ": Error dynamic_cast from transaction "
+                 "type to transaction, based on strRawFile: " << strFolder1name
+              << OTLog::PathSeparator() << strFolder2name
+              << OTLog::PathSeparator() << strFolder3name
+              << OTLog::PathSeparator() << strFilename << "\n";
+        delete pTransType;
+        pTransType = nullptr; // cleanup!
+        return nullptr;
+    }
+
+    // BELOW THIS POINT, pBoxReceipt exists, and is an OTTransaction pointer,
+    // and is loaded,
+    // and basically is ready to be compared to theAbbrev, which is its
+    // abbreviated version.
+    // It MUST either be returned or deleted.
+
+    bool bSuccess = theAbbrev.VerifyBoxReceipt(*pBoxReceipt);
+
+    if (false == bSuccess) {
+        otErr << __FUNCTION__ << ": Failed verifying Box Receipt:\n"
+              << strFolder1name << OTLog::PathSeparator() << strFolder2name
+              << OTLog::PathSeparator() << strFolder3name
+              << OTLog::PathSeparator() << strFilename << "\n";
+
+        delete pBoxReceipt;
+        pBoxReceipt = nullptr;
+        return nullptr;
+    }
+    else
+        otInfo << __FUNCTION__ << ": Successfully loaded Box Receipt in:\n"
+               << strFolder1name << OTLog::PathSeparator() << strFolder2name
+               << OTLog::PathSeparator() << strFolder3name
+               << OTLog::PathSeparator() << strFilename << "\n";
+
+    // Todo: security analysis. By this point we've verified the hash of the
+    // transaction against the stored
+    // hash inside the abbreviated version. (VerifyBoxReceipt) We've also
+    // verified a few other values like transaction
+    // number, and the "in ref to" display number. We're then assuming based on
+    // those, that the adjustment and display
+    // amount are correct. (The hash is actually a zero knowledge proof of this
+    // already.) This is good for speedier
+    // optimization but may be worth revisiting in case any security holes.
+    // UPDATE: We'll save this for optimization needs in the future.
+    //  pBoxReceipt->SetAbbrevAdjustment(       theAbbrev.GetAbbrevAdjustment()
+    // );
+    //  pBoxReceipt->SetAbbrevDisplayAmount(
+    // theAbbrev.GetAbbrevDisplayAmount() );
+
+    return pBoxReceipt;
 }
 
 bool SetupBoxReceiptFilename(const int64_t lLedgerType,

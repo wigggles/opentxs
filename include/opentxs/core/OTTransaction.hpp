@@ -831,11 +831,6 @@ public:
     EXPORT bool SaveBoxReceipt(const int64_t lLedgerType);
     EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
     EXPORT bool DeleteBoxReceipt(OTLedger& theLedger);
-    // Caller IS responsible to delete.
-    static OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                                         OTLedger& theLedger);
-    EXPORT static OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                                                const int64_t lLedgerType);
 
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
