@@ -734,34 +734,16 @@ void OTCron::ProcessCronItems()
         OTCronItem* pItem = it->second;
         OT_ASSERT(nullptr != pItem);
 
-        bool bProcessCron = false;
+        otInfo << "OTCron::" << __FUNCTION__
+               << ": Processing item number: " << pItem->GetTransactionNum()
+               << " \n";
 
-        //  We already verify and sign the cron item when FIRST ADDING it to
-        // Cron.
-        //  We also verify the signature on the cron item whenever loading it up
-        //  from storage.
-        //  THEREFORE, FOR NOW, I'VE DECIDED THAT VERIFYING THE SIGNATURE AGAIN
-        //  (HERE) IS OVERKILL, SO IT's COMMENTED OUT.
+        bool bProcessCron = pItem->ProcessCron();
+
+        // false means "remove it".
+        // ProcessCron returns true if should stay on the list.
         //
-        //      bool bVerifySig = pItem->VerifySignature(*m_pServerNym);
-        //      if (bVerifySig)
-        {
-            otInfo << "OTCron::" << __FUNCTION__
-                   << ": Processing item number: " << pItem->GetTransactionNum()
-                   << " \n";
-
-            bProcessCron = pItem->ProcessCron();
-
-            // false means "remove it".
-            // ProcessCron returns true if should stay on the list.
-            //
-            if (false == bProcessCron)
-                pItem->HookRemovalFromCron(
-                    nullptr); // We give the hook a chance to do its thing.
-        }
-        //      else
-        //          otErr << "OTCron::ProcessCronItems: Signature failed to
-        // verify on cron item!\n";
+        if (false == bProcessCron) pItem->HookRemovalFromCron(nullptr);
 
         // Remove it from the list.
         //
@@ -1298,10 +1280,6 @@ void OTCron::Release()
     Release_Cron();
 
     ot_super::Release();
-
-    // Then I call this to re-initialize everything for myself.
-    //
-    //    InitCron();
 }
 
 void OTCron::Release_Cron()
