@@ -222,11 +222,6 @@ OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
         OT_ASSERT(nullptr != pItem);
     }
 
-    // Coming soon.
-    //    else if (strFirstLine.Contains("-----BEGIN SIGNED ENTITY-----"))  //
-    // this string is 29 chars long.
-    //    {    pItem = new OTEntity();            OT_ASSERT(nullptr != pItem); }
-
     // The string didn't match any of the options in the factory.
     if (nullptr == pItem) return nullptr;
 
@@ -292,13 +287,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript(OTScript& theScript)
 
         pScript->chai->add(fun(&OTScriptable::CanExecuteClause, this),
                            "party_may_execute_clause");
-        //        pScript->chai.add(fun(&OTScriptable::CanExecuteClause,
-        // (*this)), "party_may_execute_clause");
     }
-    //    else if (nullptr != (pScript =
-    // dynamic_cast<OTScriptSomeOtherScriptingLanguageSubClass_GOES_HERE *>
-    // (&theScript)) )
-    //    { }
     else
 #endif // OT_USE_SCRIPT_CHAI
     {
@@ -332,12 +321,6 @@ std::string OTScriptable::GetTime() // Returns a string, containing seconds as
 bool OTScriptable::CanExecuteClause(const std::string str_party_name,
                                     const std::string str_clause_name)
 {
-    //  OTCron * pCron  = GetCron();
-    //  OT_ASSERT(nullptr != pCron);
-
-    //  OTPseudonym * pServerNym = pCron->GetServerNym();
-    //  OT_ASSERT(nullptr != pServerNym);
-
     OTParty* pParty = GetParty(str_party_name);
     OTClause* pClause = GetClause(str_clause_name);
 
@@ -396,23 +379,6 @@ bool OTScriptable::CanExecuteClause(const std::string str_party_name,
     // various OT platforms. That should
     // be another great performance boost!
     //
-    //    const OTString strServerID(GetServerID());
-    //
-    //    mapOfNyms    map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-    //
-    //    bool bVerifiedAuthorization =
-    //        VerifyPartyAuthorization(*pParty, *pServerNym, strServerID,
-    // &map_Nyms_Already_Loaded);
-    //
-    //    if (!bVerifiedAuthorization)
-    //    {
-    //        otOut << "OTScriptable::CanExecuteClause: Unable to verify
-    // authorization for party: %s\n",
-    //                       str_party_name.c_str());
-    //        return false;
-    //    }
-
     // NOTE (Above):  When it came time to compile, I realized that OTScriptable
     // has no pointer to Cron,
     // nor access to any ServerNym (unless you pass it in).  But I want this
@@ -861,29 +827,6 @@ OTPartyAccount* OTScriptable::GetPartyAccountByID(const OTIdentifier& theAcctID)
     return nullptr;
 }
 
-/*
- bool HasAgent(OTPseudonym & theNym, OTAgent ** ppAgent=nullptr) const; // If
- Nym
- is agent for Party, set agent's pointer to Nym and return true.
- bool HasAgentByNymID(OTIdentifier & theNymID, OTAgent ** ppAgent=nullptr)
- const;
-
- bool HasAuthorizingAgent(OTPseudonym & theNym, OTAgent ** ppAgent=nullptr)
- const;
- bool HasAuthorizingAgentByNymID(OTIdentifier & theNymID, OTAgent **
- ppAgent=nullptr) const; // ppAgent lets you get the agent ptr if it was there.
-
- */
-
-/*
-OTParty * FindPartyBasedOnNymIDAsAgent(const OTIdentifier & theNymID, OTAgent **
-ppAgent=nullptr);
-OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier & theNymID,
-OTAgent ** ppAgent=nullptr);
-OTParty * FindPartyBasedOnAccountID(const OTIdentifier & theAcctID,
-OTPartyAccount ** ppPartyAccount=nullptr);
-*/
-
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
     const OTIdentifier& theNymID, OTAgent** ppAgent) const
 {
@@ -1281,8 +1224,6 @@ bool OTScriptable::VerifyPartyAuthorization(
 
     const bool bSigVerified =
         pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
-    //    const bool bSigVerified =
-    // pPartySignedCopy->VerifySignature(*pAuthAgentsNym);
     bool bContentsVerified = false;
 
     if (bSigVerified) {
@@ -1697,23 +1638,6 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
                                               OTAccount& theAccount)
 {
 
-    // Lookup the party via the NYM.
-    // NOTE: I think without this, the agent never gets its pointer set to Nym.
-    // FYI.
-    // OTAgent * pAgent = nullptr;
-    //    const    OTParty * pNymParty =
-    // FindPartyBasedOnNymAsAgent(theNym, &pAgent);
-    //
-    //    if (nullptr == pNymParty)
-    //    {
-    //        OT_ASSERT(nullptr != pAgent);
-    //        otOut << "OTScriptable::VerifyNymAsAgentForAccount: Unable to find
-    // party based on Nym as agent.\n";
-    //        return false;
-    //    }
-    // Below this point, pAgent is a good pointer.
-    //
-
     // Lookup the party via the ACCOUNT.
     //
     OTPartyAccount* pPartyAcct = nullptr;
@@ -1971,12 +1895,6 @@ OTBylaw* OTScriptable::GetBylaw(const std::string str_bylaw_name)
 
     if (m_mapBylaws.end() == iii) // Did NOT find it.
     {
-        // People call this function sometimes just to SEE if one is there.
-        // So it's not an error if it's not there...
-        //
-        //        otOut << "OTScriptable::GetBylaw: Strange: bylaw not found:
-        // %s. Bylaw count is: %d \n",
-        //                       str_bylaw_name.c_str(), m_mapBylaws.size());
         return nullptr;
     }
 
@@ -1998,12 +1916,6 @@ OTParty* OTScriptable::GetParty(const std::string str_party_name)
 
     if (m_mapParties.end() == it) // Did NOT find it.
     {
-        // GetParty() is often called to SEE if a party is there.
-        // (So if the party ain't there, it's not necessarily an error.)
-        //
-        //        otOut << "OTScriptable::GetParty: Strange: party not found:
-        // %s\n",
-        //                       str_party_name.c_str());
         return nullptr;
     }
 
@@ -2379,11 +2291,6 @@ void OTScriptable::CalculateContractID(OTIdentifier& newID)
     m_xmlUnsigned = strContents; // Here we just set it back again.
 }
 
-// bool    m_bCalculatingID; // NOT serialized. Used during ID calculation.
-//
-// bool    m_bSpecifyAssetID;    // Serialized.
-// bool    m_bSpecifyParties;    // Serialized.
-
 void OTScriptable::UpdateContentsToString(OTString& strAppend)
 {
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
@@ -2690,8 +2597,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              : 0;
                     if (nAcctCount > 0) {
                         while (nAcctCount-- > 0) {
-                            //                          xml->read(); //
-                            // <==================
                             if (false == OTContract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for party "
@@ -2740,13 +2645,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 //
                                 if (!strAcctName.Exists() ||
                                     (m_bSpecifyAssetID &&
-                                     !strAssetTypeID.Exists()))
-                                    //                              if
-                                    // (!strAcctName.Exists() ||
-                                    // !strAcctID.Exists() ||
-                                    // !strAgentName.Exists() ||
-                                    // !strAssetTypeID.Exists())
-                                {
+                                     !strAssetTypeID.Exists())) {
                                     otErr << szFunc << ": Expected missing "
                                                        "AcctID or AssetTypeID "
                                                        "or Name or AgentName "
@@ -2795,9 +2694,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     return (-1);
                                 }
 
-                                //                              xml->read(); //
-                                // <==================
-
                                 // MIGHT need to add "skip after field" call
                                 // here.
 
@@ -2832,17 +2728,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         pParty->SetMySignedCopy(strTextExpected);
                     }
 
-                    //                    if (false ==
-                    // SkipAfterLoadingField(xml))  // </party>
-                    //                    {
-                    //                        otOut << "*** %s: Bad data?
-                    // Expected EXN_ELEMENT_END here, but "
-                    //                                       "didn't get it.
-                    // Failure.\n", szFunc);
-                    //                        delete pParty; pParty=nullptr;
-                    //                        return (-1);
-                    //                    }
-
                     if (AddParty(*pParty))
                         otInfo << szFunc
                                << ": Loaded Party: " << pParty->GetPartyName()
@@ -2868,15 +2753,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
         if (nBylawCount > 0) {
             while (nBylawCount-- > 0) {
-                //                xml->read(); // <==================
                 if (false == SkipToElement(xml)) {
                     otOut << szFunc << ": Failure: Unable to find expected "
                                        "element for bylaw. \n";
                     return (-1);
                 }
-
-                //                otOut << "%s: Looping to load bylaws:
-                // currently on: %s \n", szFunc, xml->getNodeName());
 
                 if (!strcmp("bylaw", xml->getNodeName())) {
                     OTString strName =
@@ -2906,8 +2787,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                          : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
-                            //                          xml->read(); //
-                            // <==================
                             if (false == OTContract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for "
@@ -3112,24 +2991,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     return (-1);
                                 }
 
-                                //                    xml->read(); //
-                                // <==================
-
-                                // MIGHT NEED TO HAVE "SKIP AFTER" HERE...
-                                // Update: Nope.
-
-                                //                    if (false ==
-                                // SkipAfterLoadingField(xml))
-                                //                    {
-                                //                        otOut << "***
-                                // OTScriptable::ProcessXMLNode: Bad data?
-                                // Expected EXN_ELEMENT_END here, but "
-                                //                                    "didn't
-                                // get it. Failure.\n");
-                                //                        delete pBylaw;
-                                // pBylaw=nullptr;
-                                //                        return (-1);
-                                //                    }
                             }
                             else {
                                 otErr << szFunc << ": Expected variable "
@@ -3147,21 +3008,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         strNumClauses.Exists() ? atoi(strNumClauses.Get()) : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
-                            // OTContract::LoadEncodedTextFieldByName() (below)
-                            // does this stuff already. Commented out.
-                            //
-                            //                xml->read(); //
-                            // <==================
-                            //                if (false ==
-                            // OTContract::SkipToElement(xml))
-                            //                {
-                            //                    otErr <<
-                            // "OTScriptable::ProcessXMLNode: Error finding
-                            // expected next element for variable.\n";
-                            //                    delete pBylaw; pBylaw=nullptr;
-                            //                    return (-1);
-                            //                }
-
                             const char* pElementExpected = "clause";
                             OTString strTextExpected; // clause's script code
                                                       // will go here.
@@ -3178,20 +3024,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             temp_MapAttributes.insert(
                                 std::pair<std::string, std::string>("name",
                                                                     ""));
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));   // Grab the others
-                            // this way as well.
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));
-                            //                temp_MapAttributes.insert(std::pair<std::string,
-                            // std::string>("name", ""));
-
                             if (false == OTContract::LoadEncodedTextFieldByName(
                                              xml, strTextExpected,
                                              pElementExpected,
@@ -3222,20 +3054,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 if (str_name.size() > 0) // SUCCESS
                                 {
-
-                                    //                        if (false ==
-                                    // SkipAfterLoadingField(xml))  // NOt sure
-                                    // yet about this block....
-                                    //                        {
-                                    //                            otOut << "***
-                                    // OTScriptable::ProcessXMLNode: Bad data?
-                                    // Expected EXN_ELEMENT_END here, but "
-                                    //                                          "didn't
-                                    // get it. Failure.\n");
-                                    //                            delete pBylaw;
-                                    // pBylaw=nullptr;
-                                    //                            return (-1);
-                                    //                        }
 
                                     // See if the same-named clause already
                                     // exists on ANY of the OTHER BYLAWS
@@ -3334,9 +3152,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     pBylaw = nullptr;
                                     return (-1);
                                 }
-
-                                //                              xml->read(); //
-                                // <==================  NO NEED FOR THIS HERE.
                             }
                             else {
                                 otErr << szFunc
@@ -3427,9 +3242,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     pBylaw = nullptr;
                                     return (-1);
                                 }
-
-                                //                              xml->read(); //
-                                // <==================    NO NEED FOR THIS HERE.
                             }
                             else {
                                 otErr << szFunc << ": Expected callback "
@@ -3440,17 +3252,6 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
                         } // while
                     }
-
-                    //                  if (false == SkipAfterLoadingField(xml))
-                    // // </bylaw>
-                    //                  {
-                    //                      otOut << "*** %s: Bad data? Expected
-                    // EXN_ELEMENT_END here, but "
-                    //                                     "didn't get it.
-                    // Failure.\n", szFunc);
-                    //                      delete pBylaw; pBylaw=nullptr;
-                    //                      return (-1);
-                    //                  }
 
                     if (AddBylaw(*pBylaw)) {
                         otInfo << szFunc

@@ -657,20 +657,10 @@ bool OTAgent::GetGroupName(OTString& strGroupName)
     return false;
 }
 
-//    bool DoesRepresentHimself();
-//    bool DoesRepresentAnEntity();
-//
-//    bool IsIndividual();
-//    bool IsGroup();
-
 // PARTY is either a NYM or an ENTITY. This returns ID for that Nym or Entity.
 //
 bool OTAgent::GetPartyID(OTIdentifier& theOutput) const
 {
-    // If DoesRepresentHimself() then return GetNymID()
-    // else (thus DoesRepresentAnEntity()) so return GetEntityID()
-    //
-
     if (DoesRepresentHimself()) return GetNymID(theOutput);
 
     return GetEntityID(theOutput);

@@ -221,8 +221,6 @@ public:
     void CleanupAgents();
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
-    //  OTParty(const OTParty & rhs);
-    //  OTParty& operator= (const OTParty & rhs);
     void Serialize(OTString& strAppend, bool bCalculatingID = false,
                    bool bSpecifyAssetID = false, bool bSpecifyParties = false);
 
@@ -399,14 +397,6 @@ public:
     EXPORT bool AddAccount(const OTString& strAgentName, const char* szAcctName,
                            OTAccount& theAccount,
                            const int64_t lClosingTransNo);
-
-    //    bool AddAccount(const std::string    str_PartyName,
-    //                    OTPseudonym &        theNym, // Nym is BOTH owner AND
-    // agent, when using this constructor.
-    //                    const std::string    str_agent_name,
-    //                    OTAccount *            pAccount=nullptr,
-    //                    const std::string *    pstr_account_name=nullptr,
-    //                    const int64_t            lClosingTransNo=0);
 
     int32_t GetAccountCount() const
     {
