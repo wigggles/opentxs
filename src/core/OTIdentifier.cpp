@@ -133,13 +133,12 @@
 #include "stdafx.hpp"
 
 #include "OTIdentifier.hpp"
-
 #include "OTCachedKey.hpp"
 #include "OTCrypto.hpp"
-#include "OTMarket.hpp"
-#include "OTOffer.hpp"
 #include "OTPseudonym.hpp"
 #include "OTSymmetricKey.hpp"
+#include "trade/OTMarket.hpp"
+#include "trade/OTOffer.hpp"
 
 namespace opentxs
 {

@@ -147,19 +147,19 @@
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
 #include <OTNymOrSymmetricKey.hpp>
-#include <OTOffer.hpp>
 #include <OTPayload.hpp>
 #include <OTPayment.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTServerContract.hpp>
 #include <OTStorage.hpp>
-#include <OTTrade.hpp>
 #include <OTWallet.hpp>
 #include <basket/OTBasket.hpp>
 #include <cash/Mint.hpp>
 #include <cash/Purse.hpp>
 #include <cash/Token.hpp>
+#include <trade/OTOffer.hpp>
+#include <trade/OTTrade.hpp>
 
 #include "util/StringUtils.hpp"
 

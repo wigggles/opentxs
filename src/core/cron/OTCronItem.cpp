@@ -140,9 +140,9 @@
 #include "OTLog.hpp"
 #include "OTPaymentPlan.hpp"
 #include "OTPseudonym.hpp"
-#include "script/OTSmartContract.hpp"
 #include "OTStorage.hpp"
-#include "OTTrade.hpp"
+#include "script/OTSmartContract.hpp"
+#include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
 
