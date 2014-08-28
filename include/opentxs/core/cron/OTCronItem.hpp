@@ -312,43 +312,6 @@ public:
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
                                 // From OTTrackable (parent class of this)
-                                /*
-inline int64_t GetTransactionNum() const { return m_lTransactionNum; }
-inline const OTIdentifier & GetSenderAcctID() const    { return
-m_SENDER_ACCT_ID; }
-inline const OTIdentifier & GetSenderUserID() const    { return
-m_SENDER_USER_ID; }
-*/
-
-    // From OTInstrument (parent class of OTTrackable, parent class of this)
-    /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
-     : OTContract()
-
-     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t GetValidTo()        const { return m_VALID_TO; }
-
-     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    =
-     TIME_FROM; }
-     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
-     }
-
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
-
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
-     ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
-     SERVER_ID; }
-
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
-     / TO dates.
-     bool IsExpired(); // Only tells if if it's past the "valid to" date.
-     */
-
-    // From OTScriptable:
-    //
-    // virtual void RegisterOTNativeCallsWithScript(OTScript & theScript);
     virtual ~OTCronItem();
 
     void InitCronItem();

@@ -202,10 +202,6 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
     // By this point we know already that it's not escaped.
     // BUT it might still be ARMORED!
 
-    //    if (strFirstLine.Contains("-----BEGIN SIGNED AGREEMENT-----"))  //
-    // this string is 32 chars long.
-    //    {    pItem = new OTAgreement();        OT_ASSERT(nullptr != pItem); }
-
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) // this
                                                                       // string
                                                                       // is 35
@@ -1198,24 +1194,6 @@ bool OTCronItem::MoveFunds(
             pItemSend->SetStatus(OTItem::rejection);  // the default.
             pItemRecip->SetStatus(OTItem::rejection); // the default.
 
-            /* (from above)
-            OTString    strSenderUserID(SENDER_USER_ID),
-            strRecipientUserID(RECIPIENT_USER_ID),
-                        strSourceAcctID(SOURCE_ACCT_ID),
-            strRecipientAcctID(RECIPIENT_ACCT_ID),
-                        strServerNymID(SERVER_USER_ID);
-
-
-             // (from OTCronItem.h)
-             virtual int64_t GetOpeningNumber(OTIdentifier    & theNymID) const;
-             virtual int64_t GetClosingNumber(OTIdentifier    & theAcctID)
-            const;
-             // ------------------------------------------------------ */
-            //
-            //            const int64_t lTransSendRefNo    =
-            // GetTransactionNum();
-            //            const int64_t lTransRecipRefNo    =
-            // GetTransactionNum();
             const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_USER_ID);
             const int64_t lTransRecipRefNo =
                 GetOpeningNumber(RECIPIENT_USER_ID);
@@ -2091,15 +2069,6 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 // "Final Receipts" are used by Cron Items, as the last receipt for a given
 // transaction number.
 //
-/*
- bool DropFinalReceiptToInbox(const OTIdentifier & USER_ID,
-            const OTIdentifier & ACCOUNT_ID,
-            const int64_t & lNewTransactionNumber,
-            const int64_t & lClosingNumber,
-            OTString & strOrigCronItem,
-            OTString * pstrNote=nullptr,
-            OTString * pstrAttachment=nullptr);
- */
 bool OTCronItem::DropFinalReceiptToInbox(
     const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
@@ -2352,10 +2321,6 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
 
         pItem1->SetStatus(OTItem::acknowledgement);
 
-        //
-        //      const int64_t lOpeningNumber = GetTransactionNum(); // Notice
-        // I'm actually putting the opening # here...
-        //
         const int64_t lOpeningNumber = GetOpeningNumber(USER_ID);
 
         // Here I make sure that the receipt (the nymbox notice) references the
@@ -2366,10 +2331,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // (All Cron items require a transaction from the user to add them to
         // Cron in the
         // first place.)
-        //
-        //      pItem1->SetReferenceToNum(lOpeningNumber);    // Notice this
-        // same number is set twice (again just below), so might be an
-        // opportunity to store something else in one of them.
+
         pTransaction->SetReferenceToNum(
             lOpeningNumber); // Notice this same number is set twice (again just
                              // below), so might be an opportunity to store
@@ -2390,10 +2352,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // and balance statements, since the number is now gone.
         // Otherwise the Nym wouldn't know any better, and he'd keep signing for
         // it, and therefore his balance agreements would start to fail.
-        //
-        //        pItem1->SetClosingNum(lOpeningNumber); // This transaction is
-        // the finalReceipt for GetTransactionNum(). (Which is also the original
-        // transaction number.)
+
         pTransaction->SetClosingNum(lOpeningNumber); // This transaction is the
                                                      // finalReceipt for
                                                      // GetTransactionNum().
@@ -2792,19 +2751,5 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     return nReturnVal;
 }
-
-/*
-
-void OTCronItem::UpdateContents()
-{
-
-}
-
-
-bool OTCronItem::SaveContractWallet(std::ofstream & ofs)
-{
-    return true;
-}
-*/
 
 } // namespace opentxs

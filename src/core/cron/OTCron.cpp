@@ -734,34 +734,16 @@ void OTCron::ProcessCronItems()
         OTCronItem* pItem = it->second;
         OT_ASSERT(nullptr != pItem);
 
-        bool bProcessCron = false;
+        otInfo << "OTCron::" << __FUNCTION__
+               << ": Processing item number: " << pItem->GetTransactionNum()
+               << " \n";
 
-        //  We already verify and sign the cron item when FIRST ADDING it to
-        // Cron.
-        //  We also verify the signature on the cron item whenever loading it up
-        //  from storage.
-        //  THEREFORE, FOR NOW, I'VE DECIDED THAT VERIFYING THE SIGNATURE AGAIN
-        //  (HERE) IS OVERKILL, SO IT's COMMENTED OUT.
+        bool bProcessCron = pItem->ProcessCron();
+
+        // false means "remove it".
+        // ProcessCron returns true if should stay on the list.
         //
-        //      bool bVerifySig = pItem->VerifySignature(*m_pServerNym);
-        //      if (bVerifySig)
-        {
-            otInfo << "OTCron::" << __FUNCTION__
-                   << ": Processing item number: " << pItem->GetTransactionNum()
-                   << " \n";
-
-            bProcessCron = pItem->ProcessCron();
-
-            // false means "remove it".
-            // ProcessCron returns true if should stay on the list.
-            //
-            if (false == bProcessCron)
-                pItem->HookRemovalFromCron(
-                    nullptr); // We give the hook a chance to do its thing.
-        }
-        //      else
-        //          otErr << "OTCron::ProcessCronItems: Signature failed to
-        // verify on cron item!\n";
+        if (false == bProcessCron) pItem->HookRemovalFromCron(nullptr);
 
         // Remove it from the list.
         //
@@ -1145,35 +1127,6 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     return false;
 }
 
-bool OTCron::RemoveMarket(const OTIdentifier& MARKET_ID) // if false, market
-                                                         // wasn't found.
-{
-    OTString str_MARKET_ID(MARKET_ID);
-    std::string std_MARKET_ID = str_MARKET_ID.Get();
-
-    // See if there's something there with that transaction number.
-    mapOfMarkets::iterator ii = m_mapMarkets.find(std_MARKET_ID);
-
-    // If it's not already on the list, then there's nothing to remove.
-    if (ii == m_mapMarkets.end()) {
-        otErr << "Attempt to remove non-existent Market from OTCron:\n"
-              << std_MARKET_ID << "\n";
-        return false;
-    }
-    // Otherwise, if it WAS already there, remove it properly.
-    else {
-        OTMarket* pMarket = ii->second;
-
-        OT_ASSERT(nullptr != pMarket);
-
-        m_mapMarkets.erase(ii);
-        delete pMarket;
-
-        // A market has been removed from Cron. SAVE.
-        return SaveCron();
-    }
-}
-
 // Create it if it's not there.
 OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
                                     const OTIdentifier& CURRENCY_ID,
@@ -1298,10 +1251,6 @@ void OTCron::Release()
     Release_Cron();
 
     ot_super::Release();
-
-    // Then I call this to re-initialize everything for myself.
-    //
-    //    InitCron();
 }
 
 void OTCron::Release_Cron()
