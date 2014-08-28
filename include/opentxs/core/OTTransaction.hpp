@@ -134,6 +134,7 @@
 #define __OT_TRANSACTION_HPP__
 
 #include "OTItem.hpp"
+#include "transaction/Helpers.hpp"
 
 namespace opentxs
 {
@@ -934,11 +935,10 @@ public:
     void ProduceInboxReportItem(OTItem& theBalanceItem);
     void ProduceOutboxReportItem(OTItem& theBalanceItem);
     static transactionType GetTypeFromString(const OTString& strType);
-    EXPORT static const char* _GetTypeString(transactionType theType);
 
     const char* GetTypeString() const
     {
-        return _GetTypeString(m_Type);
+        return GetTransactionTypeString(static_cast<int>(m_Type));
     }
     // These functions are fairly smart about which transaction types are
     // harvestable,
