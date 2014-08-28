@@ -3395,48 +3395,6 @@ bool OTTransaction::SaveBoxReceipt(OTLedger& theLedger)
     return SaveBoxReceipt(lLedgerType);
 }
 
-// static
-bool OTTransaction::VerifyBoxReceiptExists(
-    const OTIdentifier& SERVER_ID,
-    const OTIdentifier& USER_ID, // Unused here for now, but still convention.
-    const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                    // USER_ID in this field also.
-    const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum)
-{
-    const int64_t lLedgerType = static_cast<int64_t>(nBoxType);
-
-    const OTString strServerID(SERVER_ID),
-        strUserOrAcctID(0 == lLedgerType ? USER_ID : ACCOUNT_ID); // (For Nymbox
-                                                                  // aka type 0,
-                                                                  // the UserID
-                                                                  // will be
-                                                                  // here.)
-    // --------------------------------------------------------------------
-    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
-
-    if (false == SetupBoxReceiptFilename(
-                     lLedgerType, // nBoxType is lLedgerType
-                     strUserOrAcctID, strServerID, lTransactionNum,
-                     "OTTransaction::VerifyBoxReceiptExists", strFolder1name,
-                     strFolder2name, strFolder3name, strFilename))
-        return false; // This already logs -- no need to log twice, here.
-    // --------------------------------------------------------------------
-    // See if the box receipt exists before trying to save over it...
-    //
-    const bool bExists =
-        OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
-                     strFolder3name.Get(), strFilename.Get());
-
-    otWarn << "OTTransaction::" << (bExists ? "(Already have this one)"
-                                            : "(Need to download this one)")
-           << ": " << __FUNCTION__ << ": " << strFolder1name
-           << OTLog::PathSeparator() << strFolder2name << OTLog::PathSeparator()
-           << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
-
-    return bExists;
-}
-
 bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 {
     if (!m_bIsAbbreviated || theFullVersion.IsAbbreviated()) {

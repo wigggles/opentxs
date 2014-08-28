@@ -13362,7 +13362,7 @@ bool OT_API::DoesBoxReceiptExist(
     const int64_t& lTransactionNum)
 {
     // static
-    return OTTransaction::VerifyBoxReceiptExists(
+    return VerifyBoxReceiptExists(
         SERVER_ID, USER_ID, // Unused here for now, but still convention.
         ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID in this
                     // field also.

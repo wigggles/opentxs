@@ -2632,7 +2632,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     const int32_t nBoxType = static_cast<int32_t>(GetType());
 
                     const bool bBoxReceiptAlreadyExists =
-                        OTTransaction::VerifyBoxReceiptExists(
+                        VerifyBoxReceiptExists(
                             pTransaction->GetRealServerID(),
                             pTransaction->GetUserID(),
                             pTransaction->GetRealAccountID(), // If Nymbox (vs

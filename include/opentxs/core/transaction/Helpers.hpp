@@ -142,8 +142,16 @@ namespace opentxs
 class OTString;
 class OTTransaction;
 class OTLedger;
+class OTIdentifier;
 
 const char* GetTransactionTypeString(int transactionNumber);
+
+bool VerifyBoxReceiptExists(
+    const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
+    const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
+    // pass USER_ID in this field also.
+    const int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
+    const int64_t& lTransactionNum);
 
 OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger);
 
