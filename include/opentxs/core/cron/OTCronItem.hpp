@@ -230,10 +230,9 @@ public:
                                                               // virtual.
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
-    void HookRemovalFromCron(OTPseudonym* pRemover); // This calls
-                                                     // onFinalReceipt, then
-                                                     // onRemovalFromCron. Both
-                                                     // are virtual.
+    // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
+    void HookRemovalFromCron(OTPseudonym* pRemover, int64_t newTransactionNo);
+
     inline bool IsFlaggedForRemoval() const
     {
         return m_bRemovalFlag;

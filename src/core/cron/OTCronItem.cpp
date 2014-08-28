@@ -1706,15 +1706,15 @@ void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
 // This gives each item a chance to drop a final receipt,
 // and clean up any memory, before being destroyed.
 //
-void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover) // sometimes
-                                                            // nullptr.
+void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
+                                     int64_t newTransactionNo)
 {
     OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
     //
-    const int64_t lNewTransactionNumber = GetCron()->GetNextTransactionNumber();
+    const int64_t lNewTransactionNumber = newTransactionNo;
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
     if (0 == lNewTransactionNumber) {
