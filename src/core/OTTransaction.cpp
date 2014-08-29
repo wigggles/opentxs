@@ -4395,10 +4395,9 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
 int32_t OTTransaction::LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml, int64_t& lNumberOfOrigin,
     int64_t& lTransactionNum, int64_t& lInRefTo, int64_t& lInRefDisplay,
-    time64_t& the_DATE_SIGNED, OTTransaction::transactionType& theType,
-    OTString& strHash, int64_t& lAdjustment, int64_t& lDisplayValue,
-    int64_t& lClosingNum, int64_t& lRequestNum, bool& bReplyTransSuccess,
-    OTNumList* pNumList)
+    time64_t& the_DATE_SIGNED, int& theType, OTString& strHash,
+    int64_t& lAdjustment, int64_t& lDisplayValue, int64_t& lClosingNum,
+    int64_t& lRequestNum, bool& bReplyTransSuccess, OTNumList* pNumList)
 {
 
     const OTString strOrigin = xml->getAttributeValue("numberOfOrigin");
@@ -4568,8 +4567,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         int64_t lInRefDisplay = 0;
 
         time64_t the_DATE_SIGNED = OT_TIME_ZERO;
-        OTTransaction::transactionType theType =
-            OTTransaction::error_state; // default
+        int theType = OTTransaction::error_state; // default
         OTString strHash;
 
         int64_t lAdjustment = 0;
@@ -4602,7 +4600,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_lAbbrevAmount = lAdjustment;
         m_lDisplayAmount = lDisplayValue;
         m_DATE_SIGNED = the_DATE_SIGNED;
-        m_Type = theType;
+        m_Type = static_cast<OTTransaction::transactionType>(theType);
 
         if (strHash.Exists())
             m_Hash.SetString(strHash);

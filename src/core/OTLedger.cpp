@@ -2335,8 +2335,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     int64_t lInRefDisplay = 0;
 
                     time64_t the_DATE_SIGNED = OT_TIME_ZERO;
-                    OTTransaction::transactionType theType =
-                        OTTransaction::error_state; // default
+                    int theType = OTTransaction::error_state; // default
                     OTString strHash;
 
                     int64_t lAdjustment = 0;
@@ -2384,9 +2383,10 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     OTTransaction* pTransaction = new OTTransaction(
                         USER_ID, ACCOUNT_ID, SERVER_ID, lNumberOfOrigin,
                         lTransactionNum, lInRefTo, // lInRefTo
-                        lInRefDisplay, the_DATE_SIGNED, theType, strHash,
-                        lAdjustment, lDisplayValue, lClosingNum, lRequestNum,
-                        bReplyTransSuccess,
+                        lInRefDisplay, the_DATE_SIGNED,
+                        static_cast<OTTransaction::transactionType>(theType),
+                        strHash, lAdjustment, lDisplayValue, lClosingNum,
+                        lRequestNum, bReplyTransSuccess,
                         pNumList); // This is for "OTTransaction::blank" and
                                    // "OTTransaction::successNotice", otherwise
                                    // nullptr.
