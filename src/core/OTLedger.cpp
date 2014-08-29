@@ -143,6 +143,7 @@
 #include "OTPayment.hpp"
 #include "OTPseudonym.hpp"
 #include "OTStorage.hpp"
+#include "transaction/Helpers.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -2344,15 +2345,14 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     int64_t lRequestNum = 0;
                     bool bReplyTransSuccess = false;
 
-                    int32_t nAbbrevRetVal =
-                        OTTransaction::LoadAbbreviatedRecord(
-                            xml, lNumberOfOrigin, lTransactionNum, lInRefTo,
-                            lInRefDisplay, the_DATE_SIGNED, theType, strHash,
-                            lAdjustment, lDisplayValue, lClosingNum,
-                            lRequestNum, bReplyTransSuccess,
-                            pNumList); // This is for "OTTransaction::blank" and
-                                       // "OTTransaction::successNotice",
-                                       // otherwise nullptr.
+                    int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
+                        xml, lNumberOfOrigin, lTransactionNum, lInRefTo,
+                        lInRefDisplay, the_DATE_SIGNED, theType, strHash,
+                        lAdjustment, lDisplayValue, lClosingNum, lRequestNum,
+                        bReplyTransSuccess,
+                        pNumList); // This is for "OTTransaction::blank" and
+                                   // "OTTransaction::successNotice",
+                                   // otherwise nullptr.
                     if ((-1) == nAbbrevRetVal)
                         return (-1); // The function already logs appropriately.
 
