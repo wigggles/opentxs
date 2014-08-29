@@ -134,7 +134,7 @@
 
 #include "OTClause.hpp"
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTLog.hpp"
 
 // ------------- OPERATIONS -------------

@@ -132,9 +132,9 @@
 
 #include "stdafx.hpp"
 
-#include "OTSignedFile.hpp"
+#include "crypto/OTSignedFile.hpp"
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 

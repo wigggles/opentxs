@@ -132,10 +132,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTCleanup.hpp"
-#include "OTCrypto.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTCrypto.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 

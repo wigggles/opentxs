@@ -132,17 +132,17 @@
 
 #include "stdafx.hpp"
 
-#include "OTCachedKey.hpp"
+#include "crypto/OTCachedKey.hpp"
 #include "OTCleanup.hpp"
-#include "OTASCIIArmor.hpp"
-#include "OTAsymmetricKey.hpp"
-#include "OTCrypto.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTIdentifier.hpp"
-#include "OTKeyring.hpp"
+#include "crypto/OTKeyring.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTPassword.hpp"
+#include "crypto/OTPasswordData.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 extern "C" {

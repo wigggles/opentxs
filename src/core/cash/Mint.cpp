@@ -135,7 +135,7 @@
 #include "cash/Mint.hpp"
 
 #include "OTAccount.hpp"
-#include "OTAsymmetricKey.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"

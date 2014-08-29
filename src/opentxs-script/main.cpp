@@ -143,7 +143,7 @@
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
 #include <OTCleanup.hpp>
-#include <OTEnvelope.hpp>
+#include <crypto/OTEnvelope.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
 #include <OTPaths.hpp>

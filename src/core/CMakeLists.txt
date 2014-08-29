@@ -17,40 +17,40 @@ set(cxx-sources
   OTAccount.cpp
   OTAcctList.cpp
   OTAgreement.cpp
-  OTASCIIArmor.cpp
+  crypto/OTASCIIArmor.cpp
   OTAssetContract.cpp
-  OTAsymmetricKey.cpp
-  OTAsymmetricKeyOpenSSL.cpp
-  OTAsymmetricKeyOpenSSLPrivdp.cpp
-  OTCachedKey.cpp
+  crypto/OTAsymmetricKey.cpp
+  crypto/OTAsymmetricKeyOpenSSL.cpp
+  crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
+  crypto/OTCachedKey.cpp
   OTCallback.cpp
   OTCaller.cpp
   OTCheque.cpp
   OTContract.cpp
-  OTCredential.cpp
-  OTCrypto.cpp
+  crypto/OTCredential.cpp
+  crypto/OTCrypto.cpp
   OTData.cpp
   OTDataCheck.cpp
   OTDataFolder.cpp
-  OTEnvelope.cpp
+  crypto/OTEnvelope.cpp
   OTFolders.cpp
   OTIdentifier.cpp
   OTInstrument.cpp
   OTItem.cpp
-  OTKeyCredential.cpp
-  OTKeypair.cpp
-  OTKeyring.cpp
+  crypto/OTKeyCredential.cpp
+  crypto/OTKeypair.cpp
+  crypto/OTKeyring.cpp
   OTLedger.cpp
   OTLog.cpp
-  OTLowLevelKeyData.cpp
-  OTMasterkey.cpp
+  crypto/OTLowLevelKeyData.cpp
+  crypto/OTMasterkey.cpp
   OTMessage.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
   OTNumList.cpp
-  OTNymOrSymmetricKey.cpp
-  OTPassword.cpp
-  OTPasswordData.cpp
+  crypto/OTNymOrSymmetricKey.cpp
+  crypto/OTPassword.cpp
+  crypto/OTPasswordData.cpp
   OTPaths.cpp
   OTPayload.cpp
   OTPayment.cpp
@@ -58,16 +58,16 @@ set(cxx-sources
   OTPseudonym.cpp
   OTServerContract.cpp
   OTSettings.cpp
-  OTSignatureMetadata.cpp
-  OTSignedFile.cpp
+  crypto/OTSignatureMetadata.cpp
+  crypto/OTSignedFile.cpp
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
   OTString.cpp
   OTStringXML.cpp
-  OTSubcredential.cpp
-  OTSubkey.cpp
-  OTSymmetricKey.cpp
+  crypto/OTSubcredential.cpp
+  crypto/OTSubkey.cpp
+  crypto/OTSymmetricKey.cpp
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp

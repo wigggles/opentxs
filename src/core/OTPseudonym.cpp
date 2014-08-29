@@ -134,18 +134,18 @@
 
 #include "OTPseudonym.hpp"
 #include "OTCleanup.hpp"
-#include "OTCredential.hpp"
+#include "crypto/OTCredential.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPassword.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTPayment.hpp"
-#include "OTSignedFile.hpp"
+#include "crypto/OTSignedFile.hpp"
 #include "OTStorage.hpp"
-#include "OTSubkey.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSubkey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 
 #include <irrxml/irrXML.hpp>
 

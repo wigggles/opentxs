@@ -138,15 +138,15 @@
 
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
-#include <OTAsymmetricKey.hpp>
+#include <crypto/OTAsymmetricKey.hpp>
 #include <OTCheque.hpp>
 #include <OTCleanup.hpp>
-#include <OTEnvelope.hpp>
+#include <crypto/OTEnvelope.hpp>
 #include <OTFolders.hpp>
 #include <OTLedger.hpp>
 #include <OTLog.hpp>
 #include <OTMessage.hpp>
-#include <OTNymOrSymmetricKey.hpp>
+#include <crypto/OTNymOrSymmetricKey.hpp>
 #include <OTPayload.hpp>
 #include <OTPayment.hpp>
 #include <OTPaymentPlan.hpp>

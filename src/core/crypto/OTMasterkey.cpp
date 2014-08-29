@@ -146,10 +146,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTMasterkey.hpp"
+#include "crypto/OTMasterkey.hpp"
 
-#include "OTASCIIArmor.hpp"
-#include "OTCredential.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTCredential.hpp"
 #include "OTLog.hpp"
 
 #include <irrxml/irrXML.hpp>

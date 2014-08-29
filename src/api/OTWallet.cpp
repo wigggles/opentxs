@@ -136,16 +136,16 @@
 
 #include "OTAccount.hpp"
 #include "OTAssetContract.hpp"
-#include "OTCachedKey.hpp"
+#include "crypto/OTCachedKey.hpp"
 #include "OTDataFolder.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPassword.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTPseudonym.hpp"
 #include "OTServerContract.hpp"
 #include "OTStorage.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 #include "cash/Purse.hpp"
 
 #include <irrxml/irrXML.hpp>

@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTPasswordData.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTString.hpp"
 #include "util/Assert.hpp"
 

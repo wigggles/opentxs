@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTSignature.cpp
+ *  OTSignature.hpp
  *
  */
 
@@ -130,74 +130,54 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#ifndef __OT_SIGNATURE_HPP__
+#define __OT_SIGNATURE_HPP__
 
-#include "OTSignatureMetadata.hpp"
-#include "OTCrypto.hpp"
-#include "OTLog.hpp"
-#include <string>
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTSignatureMetadata.hpp"
 
 namespace opentxs
 {
 
-bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
-                                      char metaMasterCredID, char metaSubCredID)
+class OTString;
+
+class OTSignature : public OTASCIIArmor
 {
-    switch (metaKeyType) {
-    // authentication (used for signing transmissions and stored files.)
-    case 'A':
-    // encryption (unusual BTW, to see this in a signature. Should
-    // never actually happen, or at least should be rare and strange
-    // when it does.)
-    case 'E':
-    // signing (a "legal signature.")
-    case 'S':
-        break;
-    default:
-        otErr << __FUNCTION__
-              << ": Expected key type of A, E, or S, but instead found: "
-              << metaKeyType << " (bad data or error)\n";
-        return false;
+public:
+    OTSignature() : OTASCIIArmor()
+    {
     }
 
-    std::string str_verify_base62;
-
-    str_verify_base62 += metaNymID;
-    str_verify_base62 += metaMasterCredID;
-    str_verify_base62 += metaSubCredID;
-
-    if (!OTCrypto::It()->IsBase62(str_verify_base62)) {
-        otErr << __FUNCTION__
-              << ": Metadata for signature failed base62 validation: "
-              << str_verify_base62 << "\n";
-        return false;
+    virtual ~OTSignature()
+    {
     }
 
-    metaKeyType_ = metaKeyType;
-    metaNymID_ = metaNymID;
-    metaMasterCredID_ = metaMasterCredID;
-    metaSubCredID_ = metaSubCredID;
-    hasMetadata_ = true;
+    OTSignature(const OTString& value) : OTASCIIArmor(value)
+    {
+    }
 
-    return true;
-}
+    OTSignature(const OTASCIIArmor& value) : OTASCIIArmor(value)
+    {
+    }
 
-OTSignatureMetadata::OTSignatureMetadata()
-    : hasMetadata_(false)
-    , metaKeyType_(0)
-    , metaNymID_(0)
-    , metaMasterCredID_(0)
-    , metaSubCredID_(0)
-{
-}
+    OTSignature(const char* value) : OTASCIIArmor(value)
+    {
+    }
 
-bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
-{
-    return ((HasMetadata() == rhs.HasMetadata()) &&
-            (GetKeyType() == rhs.GetKeyType()) &&
-            (FirstCharNymID() == rhs.FirstCharNymID()) &&
-            (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
-            (FirstCharSubCredID() == rhs.FirstCharSubCredID()));
-}
+    OTSignatureMetadata& getMetaData()
+    {
+        return metadata_;
+    }
+
+    const OTSignatureMetadata& getMetaData() const
+    {
+        return metadata_;
+    }
+
+private:
+    OTSignatureMetadata metadata_;
+};
 
 } // namespace opentxs
+
+#endif // __OT_SIGNATURE_HPP__

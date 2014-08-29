@@ -134,10 +134,10 @@
 
 #include "cash/Token.hpp"
 
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTNymOrSymmetricKey.hpp"
+#include "crypto/OTNymOrSymmetricKey.hpp"
 #include "OTStorage.hpp"
 #include "cash/Mint.hpp"
 #include "cash/Purse.hpp"

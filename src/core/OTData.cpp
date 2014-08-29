@@ -133,8 +133,8 @@
 #include "stdafx.hpp"
 
 #include "OTData.hpp"
-#include "OTASCIIArmor.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTPassword.hpp"
 #include "util/Assert.hpp"
 #include <utility>
 #include <cstring>

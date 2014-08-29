@@ -135,13 +135,13 @@
 
 #include "OTContract.hpp"
 #include "OTCleanup.hpp"
-#include "OTAsymmetricKey.hpp"
-#include "OTCrypto.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTPseudonym.hpp"
-#include "OTSignature.hpp"
+#include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>

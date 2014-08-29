@@ -135,9 +135,9 @@
 #include "OTString.hpp"
 #include "OTContract.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTPassword.hpp"
 #include "OTPseudonym.hpp"
-#include "OTSignature.hpp"
+#include "crypto/OTSignature.hpp"
 #include "util/StringUtils.hpp"
 
 #if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))

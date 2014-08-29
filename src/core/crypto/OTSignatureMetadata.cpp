@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAsymmetricKeyOpenSSL.hpp
+ *  OTSignature.cpp
  *
  */
 
@@ -130,122 +130,74 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASYMMETRIC_KEY_OPEN_SSL_HPP__
-#define __OT_ASYMMETRIC_KEY_OPEN_SSL_HPP__
+#include "stdafx.hpp"
 
-#include "OTAsymmetricKey.hpp"
+#include "crypto/OTSignatureMetadata.hpp"
+#include "crypto/OTCrypto.hpp"
+#include "OTLog.hpp"
+#include <string>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
-class OTCaller;
-class OTPassword;
-class OTString;
-
-// Todo:
-// 1. Add this value to the config file so it becomes merely a default value
-// here.
-// 2. This timer solution isn't the full solution but only a stopgap measure.
-//    See notes in ReleaseKeyLowLevel for more -- ultimate solution will involve
-//    the callback itself, and some kind of encrypted storage of hashed
-// passwords,
-//    using session keys, as well as an option to use ssh-agent and other
-// standard
-//    APIs for protected memory.
-//
-// UPDATE: Am in the process now of adding the actual Master key. Therefore
-// OT_MASTER_KEY_TIMEOUT
-// was added for the actual mechanism, while OT_KEY_TIMER (a stopgap measure)
-// was set to 0, which
-// makes it of no effect. Probably OT_KEY_TIMER will be removed entirely (we'll
-// see.)
-//
-#ifndef OT_KEY_TIMER
-
-#define OT_KEY_TIMER 30
-
-// TODO: Next release, as users get converted to file format 2.0 (master key)
-// then reduce this timer from 30 to 0. (30 is just to help them convert.)
-
-//#define OT_KEY_TIMER 0
-
-//#define OT_MASTER_KEY_TIMEOUT 300  // This is in OTEnvelope.h
-
-// FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
-#endif // OT_KEY_TIMER
-
-// This is the only part of the API that actually accepts objects as parameters,
-// since the above objects have SWIG C++ wrappers.
-//
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller); // Caller must
-                                                              // have Callback
-                                                              // attached
-                                                              // already.
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
-
-class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
+bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
+                                      char metaMasterCredID, char metaSubCredID)
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTAsymmetricKey ot_super;
-    friend class OTAsymmetricKey;   // For the factory.
-    friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
-                                    // are otherwise private.
-    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
-                                    // access OpenSSL-specific methods.
-public:
-    // Load Private Key From Cert String
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
-    virtual bool LoadPrivateKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr);
-    // Load Public Key from Cert String
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr); // DOES handle bookends, AND
-                                                // escapes.
+    switch (metaKeyType) {
+    // authentication (used for signing transmissions and stored files.)
+    case 'A':
+    // encryption (unusual BTW, to see this in a signature. Should
+    // never actually happen, or at least should be rare and strange
+    // when it does.)
+    case 'E':
+    // signing (a "legal signature.")
+    case 'S':
+        break;
+    default:
+        otErr << __FUNCTION__
+              << ": Expected key type of A, E, or S, but instead found: "
+              << metaKeyType << " (bad data or error)\n";
+        return false;
+    }
 
-    virtual bool SaveCertToString(OTString& strOutput,
-                                  const OTString* pstrReason = nullptr,
-                                  OTPassword* pImportPassword = nullptr);
-    virtual bool SavePrivateKeyToString(OTString& strOutput,
-                                        const OTString* pstrReason = nullptr,
-                                        OTPassword* pImportPassword = nullptr);
+    std::string str_verify_base62;
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey); // does NOT handle bookends.
+    str_verify_base62 += metaNymID;
+    str_verify_base62 += metaMasterCredID;
+    str_verify_base62 += metaSubCredID;
 
-    virtual bool ReEncryptPrivateKey(OTPassword& theExportPassword,
-                                     bool bImporting);
+    if (!OTCrypto::It()->IsBase62(str_verify_base62)) {
+        otErr << __FUNCTION__
+              << ": Metadata for signature failed base62 validation: "
+              << str_verify_base62 << "\n";
+        return false;
+    }
 
-    class OTAsymmetricKey_OpenSSLPrivdp;
-    OTAsymmetricKey_OpenSSLPrivdp* dp;
+    metaKeyType_ = metaKeyType;
+    metaNymID_ = metaNymID;
+    metaMasterCredID_ = metaMasterCredID;
+    metaSubCredID_ = metaSubCredID;
+    hasMetadata_ = true;
 
-protected: // CONSTRUCTOR
-    OTAsymmetricKey_OpenSSL();
+    return true;
+}
 
-public: // DERSTRUCTION
-    virtual ~OTAsymmetricKey_OpenSSL();
-    virtual void Release();
-    void Release_AsymmetricKey_OpenSSL();
+OTSignatureMetadata::OTSignatureMetadata()
+    : hasMetadata_(false)
+    , metaKeyType_(0)
+    , metaNymID_(0)
+    , metaMasterCredID_(0)
+    , metaSubCredID_(0)
+{
+}
 
-protected:
-    virtual void ReleaseKeyLowLevel_Hook();
-};
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else // NO CRYPTO ENGINE DEFINED?
-
-#endif
+bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
+{
+    return ((HasMetadata() == rhs.HasMetadata()) &&
+            (GetKeyType() == rhs.GetKeyType()) &&
+            (FirstCharNymID() == rhs.FirstCharNymID()) &&
+            (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
+            (FirstCharSubCredID() == rhs.FirstCharSubCredID()));
+}
 
 } // namespace opentxs
-
-#endif // __OT_ASYMMETRIC_KEY_OPEN_SSL_HPP__

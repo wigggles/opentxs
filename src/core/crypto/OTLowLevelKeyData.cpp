@@ -132,14 +132,14 @@
 
 #include "stdafx.hpp"
 
-#include "OTLowLevelKeyData.hpp"
+#include "crypto/OTLowLevelKeyData.hpp"
 
-#include "OTKeypair.hpp"
+#include "crypto/OTKeypair.hpp"
 #include "OTLog.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-#include "OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
 namespace opentxs
 {

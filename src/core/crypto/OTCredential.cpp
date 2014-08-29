@@ -146,13 +146,13 @@
 
 #include "stdafx.hpp"
 
-#include "OTCredential.hpp"
+#include "crypto/OTCredential.hpp"
 #include "OTCleanup.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTStorage.hpp"
-#include "OTSubkey.hpp"
+#include "crypto/OTSubkey.hpp"
 
 #include <algorithm>
 

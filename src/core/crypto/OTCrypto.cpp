@@ -137,13 +137,13 @@
 
 #include "stdafx.hpp"
 
-#include "OTCrypto.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPassword.hpp"
+#include "crypto/OTPasswordData.hpp"
 #include "OTPaths.hpp"
 #include "OTPseudonym.hpp"
-#include "OTSignature.hpp"
+#include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"
 #include "util/stacktrace.h"
 
@@ -184,8 +184,8 @@ extern "C" {
 #endif
 }
 
-#include "OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "OpenSSL_BIO.hpp"
+#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include "crypto/OpenSSL_BIO.hpp"
 
 #elif defined(OT_CRYPTO_USING_GPG)
 

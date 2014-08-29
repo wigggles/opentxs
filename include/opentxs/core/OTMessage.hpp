@@ -133,7 +133,7 @@
 #ifndef __OT_MESSAGE_HPP__
 #define __OT_MESSAGE_HPP__
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTContract.hpp"
 #include "OTNumList.hpp"
 

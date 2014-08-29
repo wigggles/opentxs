@@ -133,7 +133,7 @@
 #ifndef __OT_CREDENTIAL_HPP__
 #define __OT_CREDENTIAL_HPP__
 
-#include "OTMasterkey.hpp"
+#include "crypto/OTMasterkey.hpp"
 #include "OTString.hpp"
 
 // A nym contains a list of master credentials, via OTCredential.
