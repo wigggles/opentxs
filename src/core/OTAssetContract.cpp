@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTAssetContract.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTAcctFunctor.hpp"
 #include "OTAmount.hpp"
@@ -145,6 +144,7 @@
 #include <irrxml/irrXML.hpp>
 
 #include <fstream>
+#include <memory>
 #include <iomanip>
 
 using namespace irr;
@@ -592,14 +592,14 @@ bool OTAssetContract::ForEachAccountRecord(
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
-    OTDB::Storable* pStorable =
-        OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
-                          OTFolders::Contract().Get(), strAcctRecordFile.Get());
-    OTCleanup<OTDB::Storable> theAngel(
-        pStorable); // It will definitely be cleaned up.
-    OTDB::StringMap* pMap = (nullptr == pStorable)
-                                ? nullptr
-                                : dynamic_cast<OTDB::StringMap*>(pStorable);
+    std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
+        OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(),
+        strAcctRecordFile.Get()));
+
+    OTDB::StringMap* pMap =
+        (nullptr == pStorable)
+            ? nullptr
+            : dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     // There was definitely a StringMap loaded from local storage.
     // (Even an empty one, possibly.) This is the only block that matters in
@@ -633,7 +633,7 @@ bool OTAssetContract::ForEachAccountRecord(
             }
             else {
                 OTAccount* pAccount = nullptr;
-                OTCleanup<OTAccount> theAcctAngel;
+                std::unique_ptr<OTAccount> theAcctAngel;
 
                 const OTIdentifier theAccountID(str_acct_id.c_str());
 
@@ -670,7 +670,7 @@ bool OTAssetContract::ForEachAccountRecord(
                 if (nullptr == pAccount) {
                     pAccount = OTAccount::LoadExistingAccount(theAccountID,
                                                               *pServerID);
-                    theAcctAngel.SetCleanupTargetPointer(pAccount);
+                    theAcctAngel.reset(pAccount);
                 }
 
                 const bool bSuccessLoadingAccount =
@@ -727,7 +727,7 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
     OTDB::Storable* pStorable = nullptr;
-    OTCleanup<OTDB::Storable> theAngel;
+    std::unique_ptr<OTDB::Storable> theAngel;
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(OTFolders::Contract().Get(),
@@ -740,8 +740,7 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
         pStorable = OTDB::CreateObject(
             OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
 
-    theAngel.SetCleanupTargetPointer(
-        pStorable); // It will definitely be cleaned up.
+    theAngel.reset(pStorable);
     pMap = (nullptr == pStorable) ? nullptr
                                   : dynamic_cast<OTDB::StringMap*>(pStorable);
 
@@ -827,7 +826,7 @@ bool OTAssetContract::EraseAccountRecord(
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
     OTDB::Storable* pStorable = nullptr;
-    OTCleanup<OTDB::Storable> theAngel;
+    std::unique_ptr<OTDB::Storable> theAngel;
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(OTFolders::Contract().Get(),
@@ -840,8 +839,7 @@ bool OTAssetContract::EraseAccountRecord(
         pStorable = OTDB::CreateObject(
             OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
 
-    theAngel.SetCleanupTargetPointer(
-        pStorable); // It will definitely be cleaned up.
+    theAngel.reset(pStorable);
     pMap = (nullptr == pStorable) ? nullptr
                                   : dynamic_cast<OTDB::StringMap*>(pStorable);
 
