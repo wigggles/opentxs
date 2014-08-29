@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTLedger.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTCheque.hpp"
 #include "crypto/OTEnvelope.hpp"
@@ -146,6 +145,8 @@
 #include "transaction/Helpers.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 namespace opentxs
 {
@@ -1051,10 +1052,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
     if ((OTLedger::inbox == theType) || (OTLedger::outbox == theType)) {
         // Have to look up the UserID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        OTAccount* pAccount =
-            OTAccount::LoadExistingAccount(theAcctID, theServerID);
-        OTCleanup<OTAccount> theAccountGuardian(
-            pAccount); // No worries about having to clean it up.
+        std::unique_ptr<OTAccount> pAccount(
+            OTAccount::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount)
             SetUserID(pAccount->GetUserID());
@@ -1068,10 +1067,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         // RecordBox COULD be by NymID OR AcctID.
         // So we TRY to lookup the acct.
         //
-        OTAccount* pAccount =
-            OTAccount::LoadExistingAccount(theAcctID, theServerID);
-        OTCleanup<OTAccount> theAccountGuardian(
-            pAccount); // No worries about having to clean it up.
+        std::unique_ptr<OTAccount> pAccount(
+            OTAccount::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount) // Found it!
             SetUserID(pAccount->GetUserID());
@@ -1342,11 +1339,10 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
             OTString strReference;
             pTransaction->GetReferenceString(strReference);
 
-            OTItem* pOriginalItem = OTItem::CreateItemFromString(
+            std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
                 strReference, pTransaction->GetPurportedServerID(),
-                pTransaction->GetReferenceToNum());
+                pTransaction->GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
-            OTCleanup<OTItem> theItemAngel(*pOriginalItem);
 
             if (pOriginalItem->GetType() != OTItem::acceptPending) {
                 otErr << "OTLedger::" << __FUNCTION__
@@ -1422,10 +1418,9 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
         OTString strDepositChequeMsg;
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
-        OTItem* pOriginalItem = OTItem::CreateItemFromString(
+        std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
             strDepositChequeMsg, GetPurportedServerID(),
-            pCurrentReceipt->GetReferenceToNum());
-        OTCleanup<OTItem> theItemAngel(pOriginalItem);
+            pCurrentReceipt->GetReferenceToNum()));
 
         if (nullptr == pOriginalItem) {
             otErr << __FUNCTION__
@@ -1450,7 +1445,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
 
             OTCheque* pCheque = new OTCheque;
             OT_ASSERT(nullptr != pCheque);
-            OTCleanup<OTCheque> theChequeAngel(pCheque);
+            std::unique_ptr<OTCheque> theChequeAngel(pCheque);
 
             if (false == ((strCheque.GetLength() > 2) &&
                           pCheque->LoadContractFromString(strCheque))) {
@@ -1485,8 +1480,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
                     {
                         (*ppChequeOut) =
                             pCheque; // now caller is responsible to delete.
-                        theChequeAngel.SetCleanupTargetPointer(
-                            nullptr); // we will no longer clean it up.
+                        theChequeAngel.release();
                     }
 
                     return pCurrentReceipt;
@@ -1834,8 +1828,6 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
     //    }
 
     OTTransaction* pTransaction = GetTransactionByIndex(nIndex);
-    //    OTCleanup<OTTransaction> theAngel(pTransaction); // THE LEDGER CLEANS
-    // THIS ALREADY.
 
     if (nullptr == pTransaction) {
         otErr << __FUNCTION__
@@ -1918,13 +1910,12 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
             return nullptr;
         }
 
-        OTMessage* pMsg = new OTMessage;
+        std::unique_ptr<OTMessage> pMsg(new OTMessage);
         if (nullptr == pMsg) {
             otErr << __FUNCTION__ << ": Null:  Assert while allocating memory "
                                      "for an OTMessage!\n";
             OT_FAIL;
         }
-        OTCleanup<OTMessage> theMsgAngel(*pMsg); // cleanup memory.
 
         if (false == pMsg->LoadContractFromString(strMsg)) {
             otOut << __FUNCTION__
@@ -1964,13 +1955,12 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                   << ": Failed: after decryption, cleartext is empty. From:\n"
                   << strMsg << "\n\n";
         else {
-            OTPayment* pPayment =
-                new OTPayment(strEnvelopeContents); // strEnvelopeContents
-                                                    // contains a PURSE or
-                                                    // CHEQUE (etc) and not
-                                                    // specifically a PAYMENT.
+            std::unique_ptr<OTPayment> pPayment(
+                new OTPayment(strEnvelopeContents)); // strEnvelopeContents
+                                                     // contains a PURSE or
+                                                     // CHEQUE (etc) and not
+                                                     // specifically a PAYMENT.
             OT_ASSERT(nullptr != pPayment);
-            OTCleanup<OTPayment> thePaymentAngel(pPayment);
 
             if (!pPayment->IsValid())
                 otOut << __FUNCTION__
@@ -1978,8 +1968,7 @@ OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
                          "Contents:\n\n" << strEnvelopeContents << "\n\n";
             else // success.
             {
-                thePaymentAngel.SetCleanupTargetPointer(nullptr);
-                return pPayment; // Caller responsible to delete.
+                return pPayment.release(); // Caller responsible to delete.
             }
         }
     }
