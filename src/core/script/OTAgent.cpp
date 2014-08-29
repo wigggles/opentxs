@@ -133,13 +133,14 @@
 #include "stdafx.hpp"
 
 #include "OTAgent.hpp"
-#include "OTCleanup.hpp"
 #include "OTAgreement.hpp"
 #include "OTLog.hpp"
 #include "OTParty.hpp"
 #include "OTPartyAccount.hpp"
 #include "OTPseudonym.hpp"
 #include "OTSmartContract.hpp"
+
+#include <memory>
 
 // Have the agent try to verify his own signature against any contract.
 //
@@ -735,7 +736,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     if (true == bNymID) // therefore IsAnIndividual() is definitely true.
     {
         OTPseudonym* pNym = nullptr;
-        OTCleanup<OTPseudonym> theNymAngel;
+        std::unique_ptr<OTPseudonym> theNymAngel;
 
         // If a list of pre-loaded Nyms was passed in, see if one of them is
         // ours.
@@ -771,7 +772,7 @@ bool OTAgent::DropFinalReceiptToInbox(
             if (nullptr == (pNym = LoadNym(theServerNym)))
                 otErr << szFunc << ": Failed loading Nym.\n";
             else
-                theNymAngel.SetCleanupTarget(*pNym); // CLEANUP  :-)
+                theNymAngel.reset(pNym); // CLEANUP  :-)
         }
 
         // I call this because LoadNym sets my internal Nym pointer to pNym, and
