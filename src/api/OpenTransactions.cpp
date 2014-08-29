@@ -160,6 +160,8 @@
 #include <OTPasswordData.hpp>
 #include <OTPaths.hpp>
 #include <OTPayment.hpp>
+#include <OTPseudonym.hpp>
+#include <OTIdentifier.hpp>
 #include <OTPaymentPlan.hpp>
 #include <OTPseudonym.hpp>
 #include <OTServerContract.hpp>
@@ -211,6 +213,109 @@ extern "C" {
 
 namespace opentxs
 {
+
+namespace
+{
+
+bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
+                          const OTIdentifier& SERVER_ID,
+                          const OTIdentifier& ACCT_ID)
+{
+    OTIdentifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
+    OTString strServerID(SERVER_ID), strReceiptID(ACCT_ID);
+
+    // Load the last successful BALANCE STATEMENT...
+
+    OTTransaction tranOut(SERVER_USER_ID, ACCT_ID, SERVER_ID);
+
+    OTString strFilename;
+    strFilename.Format("%s.success", strReceiptID.Get());
+
+    const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
+    const char* szFolder2name = strServerID.Get(); // receipts/SERVER_ID
+    const char* szFilename =
+        strFilename.Get(); // receipts/SERVER_ID/ACCT_ID.success
+
+    if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+        otWarn << "Receipt file doesn't exist in "
+                  "OTTransaction::VerifyBalanceReceipt.\n";
+        return false;
+    }
+
+    std::string strFileContents(
+        OTDB::QueryPlainString(szFolder1name, szFolder2name,
+                               szFilename)); // <=== LOADING FROM DATA STORE.
+
+    if (strFileContents.length() < 2) {
+        otErr << "OTTransaction::VerifyBalanceReceipt: Error reading file: "
+              << szFolder1name << OTLog::PathSeparator() << szFolder2name
+              << OTLog::PathSeparator() << szFilename << "\n";
+        return false;
+    }
+
+    OTString strTransaction(strFileContents.c_str());
+
+    if (!tranOut.LoadContractFromString(strTransaction)) {
+        otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load balance "
+                 "statement:\n " << szFolder1name << OTLog::PathSeparator()
+              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+        return false;
+    }
+
+    OTTransaction* pTransaction = nullptr;
+    OTCleanup<OTTransaction> theTransAngel;
+
+    if (tranOut.IsAbbreviated()) // should never happen
+    {
+        int64_t lBoxType = 0;
+
+        if (tranOut.Contains("nymboxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+        else if (tranOut.Contains("inboxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+        else if (tranOut.Contains("outboxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+        else if (tranOut.Contains("paymentInboxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+        else if (tranOut.Contains("recordBoxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+        else if (tranOut.Contains("expiredBoxRecord"))
+            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+        else {
+            otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from "
+                     "abbreviated transaction: "
+                     "unknown ledger type. (probably message but who knows.)\n";
+            return false;
+        }
+
+        pTransaction = LoadBoxReceipt(tranOut, lBoxType);
+        if (nullptr == pTransaction) {
+            otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from "
+                     "abbreviated transaction: "
+                     "failed loading box receipt.";
+            return false;
+        }
+
+        theTransAngel.SetCleanupTargetPointer(pTransaction);
+    }
+    else
+        pTransaction = &tranOut;
+
+    if (!pTransaction->VerifySignature(SERVER_NYM)) {
+        otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify "
+                 "SERVER_NYM signature on balance statement:\n "
+              << szFolder1name << OTLog::PathSeparator() << szFolder2name
+              << OTLog::PathSeparator() << szFilename << "\n";
+        return false;
+    }
+
+    // At this point, pTransaction is successfully loaded and verified,
+    // containing the last balance receipt.
+
+    return pTransaction->VerifyBalanceReceipt(SERVER_NYM, THE_NYM);
+}
+
+} // namespace
 
 // static
 bool OT_API::bInitOTApp = false;
@@ -3556,8 +3661,7 @@ bool OT_API::VerifyAccountReceipt(const OTIdentifier& SERVER_ID,
                  "pServerNym is nullptr.\n";
         return false;
     }
-    return OTTransaction::VerifyBalanceReceipt(*pServerNym, *pNym, SERVER_ID,
-                                               ACCOUNT_ID);
+    return VerifyBalanceReceipt(*pServerNym, *pNym, SERVER_ID, ACCOUNT_ID);
 }
 
 bool OT_API::Create_SmartContract(
@@ -13258,7 +13362,7 @@ bool OT_API::DoesBoxReceiptExist(
     const int64_t& lTransactionNum)
 {
     // static
-    return OTTransaction::VerifyBoxReceiptExists(
+    return VerifyBoxReceiptExists(
         SERVER_ID, USER_ID, // Unused here for now, but still convention.
         ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID in this
                     // field also.

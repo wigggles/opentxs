@@ -12,6 +12,7 @@ set(cxx-sources
   util/tinythread.cpp
   util/Assert.cpp
   util/StringUtils.cpp
+  transaction/Helpers.cpp
   mkcert.cpp
   OTAccount.cpp
   OTAcctList.cpp

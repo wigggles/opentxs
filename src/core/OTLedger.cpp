@@ -428,12 +428,12 @@ bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
     //  otOut << "DEBUGGING:  OTLedger::LoadBoxReceipt: ledger type: %s \n",
     // GetTypeString());
 
-    // OTTransaction::LoadBoxReceipt already checks pTransaction to see if it's
+    // LoadBoxReceipt already checks pTransaction to see if it's
     // abbreviated
     // (which it must be.) So I don't bother checking twice.
     //
     OTTransaction* pBoxReceipt =
-        OTTransaction::LoadBoxReceipt(*pTransaction, *this);
+        ::opentxs::LoadBoxReceipt(*pTransaction, *this);
 
     // success
     if (nullptr != pBoxReceipt) {
@@ -2632,7 +2632,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     const int32_t nBoxType = static_cast<int32_t>(GetType());
 
                     const bool bBoxReceiptAlreadyExists =
-                        OTTransaction::VerifyBoxReceiptExists(
+                        VerifyBoxReceiptExists(
                             pTransaction->GetRealServerID(),
                             pTransaction->GetUserID(),
                             pTransaction->GetRealAccountID(), // If Nymbox (vs

@@ -9795,8 +9795,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     OTCleanup<OTTransaction> theTransAngel;
 
     if (theTransaction.IsAbbreviated()) {
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(OTLedger::inbox));
+        pTransaction = LoadBoxReceipt(theTransaction,
+                                      static_cast<int64_t>(OTLedger::inbox));
 
         if (nullptr == pTransaction) {
             OTString strAcctID(theAcctID);
@@ -10982,8 +10982,8 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
                                      "transaction: unknown ledger type.\n";
             return "";
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "
@@ -11077,8 +11077,8 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt.";
@@ -11189,8 +11189,8 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
                                      "transaction: unknown ledger type.\n";
             return "";
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11285,8 +11285,8 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "
@@ -11387,8 +11387,8 @@ std::string OTAPI_Exec::Pending_GetNote(const std::string& SERVER_ID,
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11507,8 +11507,8 @@ int64_t OTAPI_Exec::Transaction_GetAmount(const std::string& SERVER_ID,
                                      "transaction: unknown ledger type. \n";
             return -1;
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11815,8 +11815,8 @@ OT_BOOL OTAPI_Exec::Transaction_GetSuccess(const std::string& SERVER_ID,
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11921,8 +11921,8 @@ OT_BOOL OTAPI_Exec::Transaction_IsCanceled(const std::string& SERVER_ID,
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -12013,8 +12013,8 @@ OT_BOOL OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction = OTTransaction::LoadBoxReceipt(
-            theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "

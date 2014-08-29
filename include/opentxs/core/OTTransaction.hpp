@@ -130,10 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_TRANSACTION_HPP__
-#define __OT_TRANSACTION_HPP__
+#ifndef OPENTXS_CORE_TRANSACTION_HPP
+#define OPENTXS_CORE_TRANSACTION_HPP
 
 #include "OTItem.hpp"
+#include "transaction/Helpers.hpp"
 
 namespace opentxs
 {
@@ -438,7 +439,7 @@ class OTLedger;
 
 class OTTransaction : public OTTransactionType
 {
-private: // Private prevents erroneous use by other classes.
+private:
     typedef OTTransactionType ot_super;
 
     friend OTTransactionType* OTTransactionType::TransactionFactory(
@@ -449,7 +450,6 @@ public:
     // or pending (in the inbox/outbox)
     // or it can be a "process inbox" transaction
     // might also be in the nymbox.
-    //
     enum transactionType {
         // ***** INBOX / OUTBOX / NYMBOX
 
@@ -524,22 +524,9 @@ public:
     }; // If you add any types to this list, update the list of strings at the
        // top of the .CPP file.
 
-    /*
-     You have to read pointer declarations right-to-left.
-
-        Fred const* p    means "p points to a constant Fred": the Fred object
-     can't be changed via p.
-        Fred* const p    means "p is a const pointer to a Fred": you can't
-     change the pointer p, but you can change the Fred object via p.
-        Fred const* const p    means "p is a constant pointer to a constant
-     Fred": you can't change the pointer p itself, nor can you change the Fred
-     object via p.
-     */
-
 protected:
     // Usually a transaction object is inside a ledger object.
     // If this is not nullptr, then you can reference that object.
-    //
     const OTLedger* m_pParent;
 
     // Transactions can be loaded in abbreviated form from a ledger, but they
@@ -580,14 +567,12 @@ protected:
     // current process of loading
     // transaction items from a string every time we need to check the amount,
     // can be time-consuming, CPU-wise.)
-    //
     int64_t m_lDisplayAmount;
 
     // The value of GetReferenceNumForDisplay() is saved when saving an
     // abbreviated record of this transaction,
     // and then loaded into THIS member variable when loading the abbreviated
     // record.
-    //
     int64_t m_lInRefDisplay;
 
     // This hash is not stored inside the box receipt itself (a transaction that
@@ -605,7 +590,6 @@ protected:
     // longer care about this variable at all, and do not save it again, since
     // it can be re-calculated the next time we
     // save again in abbreviated form.
-    //
     OTIdentifier m_Hash; // todo: make this const and force it to be set during
                          // construction.
 
@@ -627,7 +611,6 @@ protected:
     // have added a special variable here for request numbers, so that
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
-    //
     int64_t m_lRequestNumber;  // Unused except by "replyNotice" in Nymbox.
     bool m_bReplyTransSuccess; // Used only by replyNotice
     // Unused except for @notarizeTransactions, specifically for @paymentPlan
@@ -657,12 +640,7 @@ protected:
     // failed attempt marked as "rejected", versus a successful cancellation
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
-
     bool m_bCancelled;
-
-    // Compares m_AcctID in the xml portion of the transaction
-    // with m_ID (supposedly the same number.)
-    //    bool VerifyContractID();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
@@ -671,22 +649,25 @@ protected:
                                    // contents
 
     OTTransaction(); // only the factory gets to use this one.
+
 public:
     EXPORT bool IsCancelled()
     {
         return m_bCancelled;
     }
+
     EXPORT void SetAsCancelled()
     {
         m_bCancelled = true;
     }
+
     void SetParent(const OTLedger& theParent)
     {
         m_pParent = &theParent;
-    } // a pointer of convenience.
-      // For "OTTransaction::blank" and "OTTransaction::successNotice"
-      //
+    }
+
     EXPORT bool AddNumbersToTransaction(const OTNumList& theAddition);
+
     static int32_t LoadAbbreviatedRecord(
         irr::io::IrrXMLReader*& xml, int64_t& lNumberOfOrigin,
         int64_t& lTransactionNum, int64_t& lInRefTo, int64_t& lInRefDisplay,
@@ -704,6 +685,7 @@ public:
     {
         return m_lAbbrevAmount;
     }
+
     void SetAbbrevAdjustment(const int64_t lAmount)
     {
         m_lAbbrevAmount = lAmount;
@@ -713,6 +695,7 @@ public:
     {
         return m_lDisplayAmount;
     }
+
     void SetAbbrevDisplayAmount(const int64_t lAmount)
     {
         m_lDisplayAmount = lAmount;
@@ -722,17 +705,19 @@ public:
     {
         return m_lInRefDisplay;
     }
+
     void SetAbbrevInRefDisplay(const int64_t lAmount)
     {
         m_lInRefDisplay = lAmount;
     }
+
     // These are used exclusively by replyNotice (so you can tell
     // which reply message it's a notice of.)
-    //
     const int64_t& GetRequestNum() const
     {
         return m_lRequestNumber;
     }
+
     void SetRequestNum(const int64_t& lNum)
     {
         m_lRequestNumber = lNum;
@@ -742,10 +727,12 @@ public:
     {
         return m_bReplyTransSuccess;
     }
+
     void SetReplyTransSuccess(const bool bVal)
     {
         m_bReplyTransSuccess = bVal;
     }
+
     // These are used for finalReceipt and basketReceipt
     EXPORT int64_t GetClosingNum() const;
     EXPORT void SetClosingNum(const int64_t lClosingNum);
@@ -766,19 +753,24 @@ public:
     EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theReturnID);
     EXPORT bool GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID);
     EXPORT bool GetMemo(OTString& strMemo);
+
     inline time64_t GetDateSigned() const
     {
         return m_DATE_SIGNED;
     }
+
     EXPORT bool GetSuccess(); // Tries to determine, based on items within,
                               // whether it was a success or fail.
+
     EXPORT int64_t GetReceiptAmount(); // Tries to determine IF there is an
                                        // amount (depending on type) and return
                                        // it.
     OTTransaction(const OTLedger& theOwner);
+
     EXPORT OTTransaction(const OTIdentifier& theUserID,
                          const OTIdentifier& theAccountID,
                          const OTIdentifier& theServerID);
+
     OTTransaction(const OTIdentifier& theUserID,
                   const OTIdentifier& theAccountID,
                   const OTIdentifier& theServerID, int64_t lTransactionNum);
@@ -787,7 +779,6 @@ public:
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
-    //
     OTTransaction(const OTIdentifier& theUserID,
                   const OTIdentifier& theAccountID,
                   const OTIdentifier& theServerID,
@@ -800,6 +791,7 @@ public:
                   bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
+
     bool GenerateTransaction(const OTIdentifier& theAccountID,
                              const OTIdentifier& theServerID,
                              int64_t lTransactionNum);
@@ -808,80 +800,46 @@ public:
         const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
         const OTIdentifier& theServerID, transactionType theType,
         int64_t lTransactionNum = 0);
+
     EXPORT static OTTransaction* GenerateTransaction(const OTLedger& theOwner,
                                                      transactionType theType,
                                                      int64_t lTransactionNum =
                                                          0);
     void InitTransaction();
+
     void ReleaseItems();
+
     virtual void Release();
+
     void Release_Transaction();
+
     inline transactionType GetType() const
     {
         return m_Type;
     }
+
     inline void SetType(const transactionType theType)
     {
         m_Type = theType;
     }
+
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
     // reading from.
     EXPORT bool SaveBoxReceipt(const int64_t lLedgerType);
+
     EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
+
     EXPORT bool DeleteBoxReceipt(OTLedger& theLedger);
-    // Caller IS responsible to delete.
-    static OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                                         OTLedger& theLedger);
-    EXPORT static OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                                                const int64_t lLedgerType);
 
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
-    EXPORT static bool VerifyBoxReceiptExists(
-        const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
-        const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
-                                        // pass USER_ID in this field also.
-        const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& lTransactionNum);
-    static bool SetupBoxReceiptFilename(const int64_t lLedgerType,
-                                        OTTransaction& theTransaction,
-                                        const char* szCaller,
-                                        OTString& strFolder1name,
-                                        OTString& strFolder2name,
-                                        OTString& strFolder3name,
-                                        OTString& strFilename);
-    static bool SetupBoxReceiptFilename(OTLedger& theLedger,
-                                        OTTransaction& theTransaction,
-                                        const char* szCaller,
-                                        OTString& strFolder1name,
-                                        OTString& strFolder2name,
-                                        OTString& strFolder3name,
-                                        OTString& strFilename);
-    static bool SetupBoxReceiptFilename(
-        const int64_t lLedgerType, const OTString& strUserOrAcctID,
-        const OTString& strServerID, const int64_t& lTransactionNum,
-        const char* szCaller, OTString& strFolder1name,
-        OTString& strFolder2name, OTString& strFolder3name,
-        OTString& strFilename);
-
-    // Balance receipts are used in transactions that change an account balance.
-    EXPORT static bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,
-                                            OTPseudonym& THE_NYM,
-                                            const OTIdentifier& SERVER_ID,
-                                            const OTIdentifier& ACCT_ID);
 
     bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM);
-    // Transaction receipts are used where you don't need to change an account
-    // balance,
-    // but you still need to have an agreement about which transaction numbers
-    // are
-    // signed out.
-    //
-    static bool VerifyTransactionReceipt(OTPseudonym& SERVER_NYM,
-                                         OTPseudonym& THE_NYM,
-                                         OTIdentifier& SERVER_ID);
 
+    // Transaction receipts are used where you don't need to change an account
+    // balance, but you still need to have an agreement about which transaction
+    // numbers are signed out.
     bool VerifyTransactionReceipt(OTPseudonym& SERVER_NYM,
                                   OTPseudonym& THE_NYM);
     // First VerifyContractID() is performed already on all the items when
@@ -889,16 +847,17 @@ public:
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
     EXPORT bool VerifyItems(OTPseudonym& theNym);
+
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
     virtual bool VerifyAccount(OTPseudonym& theNym); // This overrides
-    // OTTransactionType::VerifyAccount()
 
     inline int32_t GetItemCount() const
     {
         return static_cast<int32_t>(m_listItems.size());
     }
+
     int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number
                                                            // of items that are
                                                            // IN REFERENCE TO
@@ -907,6 +866,7 @@ public:
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
     EXPORT OTItem* GetItem(const OTItem::itemType theType);
+
     EXPORT OTItem* GetItemInRefTo(const int64_t lReference);
 
     EXPORT void AddItem(OTItem& theItem); // You have to allocate the item on
@@ -919,12 +879,12 @@ public:
     {
         return m_listItems;
     }
-    //    virtual bool SaveContractWallet(FILE * fl);
+
     virtual bool SaveContractWallet(std::ofstream& ofs);
+
     // Because all of the actual receipts cannot fit into the single inbox
     // file, you must put their hash, and then store the receipt itself
     // separately...
-    //
     void SaveAbbreviatedNymboxRecord(OTString& strOutput);
     void SaveAbbreviatedOutboxRecord(OTString& strOutput);
     void SaveAbbreviatedInboxRecord(OTString& strOutput);
@@ -933,13 +893,14 @@ public:
     void SaveAbbrevExpiredBoxRecord(OTString& strOutput);
     void ProduceInboxReportItem(OTItem& theBalanceItem);
     void ProduceOutboxReportItem(OTItem& theBalanceItem);
+
     static transactionType GetTypeFromString(const OTString& strType);
-    EXPORT static const char* _GetTypeString(transactionType theType);
 
     const char* GetTypeString() const
     {
-        return _GetTypeString(m_Type);
+        return GetTransactionTypeString(static_cast<int>(m_Type));
     }
+
     // These functions are fairly smart about which transaction types are
     // harvestable,
     // in which situations (based on the bools.) As long as you use the bools
@@ -949,7 +910,6 @@ public:
     // to harvest it, based on its type and the circumstances. Just make sure
     // you are accurate
     // when you tell it the circumstances (bools!)
-    //
     bool HarvestOpeningNumber(
         OTPseudonym& theNym,
         const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
@@ -963,15 +923,11 @@ public:
         const bool bTransactionWasFailure); // false until positively asserted.
 
     // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
-    // TRANSACTION, and
-    // not the other way around!
+    // TRANSACTION, and not the other way around!
 
     // Normally do this if your transaction ran--and failed--so you can get most
-    // of
-    // your transaction numbers back. (The opening number is already gone, but
-    // any
-    // others are still salvageable.)
-    //
+    // of your transaction numbers back. (The opening number is already gone,
+    // but any others are still salvageable.)
     bool HarvestClosingNumbers(
         OTPseudonym& theNym,
         const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
@@ -987,4 +943,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_TRANSACTION_HPP__
+#endif // OPENTXS_CORE_TRANSACTION_HPP
