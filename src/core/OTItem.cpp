@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTItem.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTCheque.hpp"
 #include "OTLedger.hpp"
@@ -142,6 +141,8 @@
 #include "OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 // Server-side.
 //
@@ -1283,10 +1284,9 @@ void OTItem::CalculateNumberOfOrigin()
         // contains the number
         // of origin as its transaction number.
         //
-        OTItem* pOriginalItem = OTItem::CreateItemFromString(
-            strReference, GetPurportedServerID(), GetReferenceToNum());
+        std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
+            strReference, GetPurportedServerID(), GetReferenceToNum()));
         OT_ASSERT(nullptr != pOriginalItem);
-        OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
         if (((m_Type == atDepositCheque) &&
              (OTItem::depositCheque != pOriginalItem->GetType())) ||
