@@ -2899,11 +2899,9 @@ bool OTTransaction::VerifyBalanceReceipt(
                 pInbox->GetFinalReceipt(pTransaction->GetReferenceToNum());
 
             if (nullptr != pFinalReceiptTransaction) // FINAL RECEIPT WAS FOUND
-                lIssuedNum = pFinalReceiptTransaction
-                                 ->GetClosingNum(); // <===============
-            else                                    // NOT found...
-                lIssuedNum =
-                    pTransaction->GetReferenceToNum(); // <===============
+                lIssuedNum = pFinalReceiptTransaction->GetClosingNum();
+            else // NOT found...
+                lIssuedNum = pTransaction->GetReferenceToNum();
 
             // If marketReceipt #15 is IN REFERENCE TO original market offer
             // #10,
@@ -3514,7 +3512,7 @@ transfer, deposit, withdrawal, trade, etc.
 // private and hopefully not needed
 //
 OTTransaction::OTTransaction()
-    : ot_super()
+    : OTTransactionType()
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3538,8 +3536,8 @@ OTTransaction::OTTransaction()
 // the inbox itself (which you presumably just read from a file or socket.)
 //
 OTTransaction::OTTransaction(const OTLedger& theOwner)
-    : ot_super(theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
-               theOwner.GetPurportedServerID())
+    : OTTransactionType(theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
+                        theOwner.GetPurportedServerID())
     , m_pParent(&theOwner)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3568,7 +3566,7 @@ OTTransaction::OTTransaction(const OTLedger& theOwner)
 OTTransaction::OTTransaction(const OTIdentifier& theUserID,
                              const OTIdentifier& theAccountID,
                              const OTIdentifier& theServerID)
-    : ot_super(theUserID, theAccountID, theServerID)
+    : OTTransactionType(theUserID, theAccountID, theServerID)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3593,7 +3591,7 @@ OTTransaction::OTTransaction(const OTIdentifier& theUserID,
                              const OTIdentifier& theAccountID,
                              const OTIdentifier& theServerID,
                              int64_t lTransactionNum)
-    : ot_super(theUserID, theAccountID, theServerID, lTransactionNum)
+    : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3645,7 +3643,7 @@ OTTransaction::OTTransaction(
     const int64_t& lAdjustment, const int64_t& lDisplayValue,
     const int64_t& lClosingNum, const int64_t& lRequestNum,
     const bool bReplyTransSuccess, OTNumList* pNumList)
-    : ot_super(theUserID, theAccountID, theServerID, lTransactionNum)
+    : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
     , m_lAbbrevAmount(lAdjustment)
@@ -3833,7 +3831,7 @@ void OTTransaction::Release()
         delete pItem;
     }
 
-    ot_super::Release();
+    OTTransactionType::Release();
 }
 
 // You have to allocate the item on the heap and then pass it in as a reference.
@@ -4375,27 +4373,11 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
         theType = OTTransaction::payDividend;
     else if (strType.Compare("atPayDividend"))
         theType = OTTransaction::atPayDividend;
-    // --------------------------------------------------------------
     else
         theType = OTTransaction::error_state;
 
     return theType;
 }
-
-/*
- bool                m_bIsAbbreviated;
- int64_t                m_lAbbrevAmount; // adjustment.
- int64_t                m_lDisplayAmount; // a $50 receipt, is +50 adjustment in
- the outbox, and -50 adjustment in the inbox, but 50 in the display.
- int64_t                m_lInRefDisplay;  // The "In Ref For Display" value
- OTIdentifier        m_Hash;            // todo: make this const and force it to
- be set during construction.
- time64_t                m_DATE_SIGNED;    // The date, in seconds, when the
- instrument was last signed.
- transactionType    m_Type;            // blank, pending, processInbox,
- transfer, deposit, withdrawal, trade, payDividend, etc.
- int64_t                m_lClosingTransactionNo;    // used by finalReceipt
- */
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
@@ -4431,14 +4413,12 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
             xml, lNumberOfOrigin, lTransactionNum, lInRefTo, lInRefDisplay,
             the_DATE_SIGNED, theType, strHash, lAdjustment, lDisplayValue,
-            lClosingNum, lRequestNumber, bReplyTransSuccess,
-            pNumList); // for "OTTransaction::blank" and
-                       // "OTTransaction::successNotice" (Otherwise nullptr.)
+            lClosingNum, lRequestNumber, bReplyTransSuccess, pNumList);
 
         if ((-1) == nAbbrevRetVal)
             return (-1); // The function already logs appropriately.
 
-        m_bIsAbbreviated = true; // <======================
+        m_bIsAbbreviated = true;
 
         SetNumberOfOrigin(lNumberOfOrigin);
         SetTransactionNum(lTransactionNum);
@@ -4464,7 +4444,6 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
 
     // THIS PART is probably what you're looking for.
-    //
     else if (strNodeName.Compare("transaction")) // Todo:  notice how this "else
                                                  // if" uses OTString::Compare,
                                                  // where most other
@@ -4508,7 +4487,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 << ") or strUserID (" << strUserID << "). \n";
             return (-1);
         }
-        // -------------------------------------
+
         const OTString strOrigin = xml->getAttributeValue("numberOfOrigin");
         const OTString strTransNum = xml->getAttributeValue("transactionNum");
         const OTString strInRefTo = xml->getAttributeValue("inReferenceTo");
@@ -4519,7 +4498,6 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << strInRefTo << "). \n";
             return (-1);
         }
-        // -------------------------------------
 
         // a replyNotice (a copy of the server's reply to one of my messages)
         // is often dropped into my Nymbox, to make sure I see it. Usually these
@@ -4539,8 +4517,6 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_bReplyTransSuccess = strTransSuccess.Compare("true");
         }
 
-        // -------------------------------------
-
         if ((OTTransaction::blank == m_Type) ||
             (OTTransaction::successNotice == m_Type)) {
             const OTString strTotalList =
@@ -4552,10 +4528,9 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        // -------------------------------------
         OTIdentifier ACCOUNT_ID(strAcctID), SERVER_ID(strServerID),
             USER_ID(strUserID);
-        // -------------------------------------
+
         SetPurportedAccountID(
             ACCOUNT_ID); // GetPurportedAccountID() const { return m_AcctID; }
         SetPurportedServerID(SERVER_ID); // GetPurportedServerID() const {
@@ -4595,44 +4570,9 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetTransactionNum(atol(strTransNum.Get()));
         SetReferenceToNum(atol(strInRefTo.Get()));
 
-        // -------------------------------------
-        /*  From UpdateContents() (there is writing, above is reading):
-
-             OTString    strAcctID(GetPurportedAccountID()),
-                        strServerID(GetPurportedServerID()),
-                        strUserID(GetUserID());
-
-             m_xmlUnsigned.Concatenate("<transaction type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
-                              " accountID=\"%s\"\n"
-                              " userID=\"%s\"\n"
-                              " serverID=\"%s\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" >\n\n",
-                              strType.Get(), lDateSigned,
-                              strAcctID.Get(),        // GetPurportedAccountID()
-         const { return m_AcctID; }
-                              strUserID.Get(),
-                              strServerID.Get(),    // GetPurportedServerID()
-         const { return m_AcctServerID; }
-                              GetTransactionNum(),
-                              GetReferenceToNum());
-
-         From OTTransactionType.h:
-             const OTIdentifier & GetUserID() const { return m_AcctUserID; }
-            const OTIdentifier & GetRealAccountID() const { return m_ID; }
-            const OTIdentifier & GetRealServerID() const { return m_ServerID; }
-            const OTIdentifier & GetPurportedAccountID() const { return
-         m_AcctID; }
-            const OTIdentifier & GetPurportedServerID() const { return
-         m_AcctServerID; }
-
-         */
         otLog4 << "Loaded transaction " << GetTransactionNum()
                << ", in reference to: " << GetReferenceToNum()
                << " type: " << strType << "\n";
-        //                "accountID:\n%s\n serverID:\n%s\n----------\n",
-        //                strAcctID.Get(), strServerID.Get()
 
         return 1;
     }
@@ -4783,7 +4723,7 @@ void OTTransaction::UpdateContents()
     m_DATE_SIGNED = OTTimeGetCurrentTime(); // We store the timestamp of when
                                             // this transaction was signed.
     const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
-    // -----------------------------------------------------
+
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
@@ -4800,9 +4740,6 @@ void OTTransaction::UpdateContents()
                               strServerID.Get(), strRequestNum.Get(),
                               GetRawNumberOfOrigin(), GetTransactionNum(),
                               strListOfBlanks.Get(), GetReferenceToNum());
-    // -----------------------------------------------------
-    //    otErr << "IN REFERENCE TO, LENGTH: %d\n",
-    // m_ascInReferenceTo.GetLength());
 
     if (IsAbbreviated()) {
         if (nullptr != m_pParent) {
@@ -4838,23 +4775,21 @@ void OTTransaction::UpdateContents()
                          "(Error.) \n";
                 break;
             } /*switch*/
-        }     // if (nullptr != m_pParent)
+        }
         else
             otErr << "OTTransaction::" << __FUNCTION__
                   << ": Error: Unable to save abbreviated receipt here, since "
                      "m_pParent is nullptr.\n";
 
-    }    // if (IsAbbreviated())
+    }
     else // not abbreviated (full details.)
     {
-        // -----------------------------------------------------
         if ((OTTransaction::finalReceipt == m_Type) ||
             (OTTransaction::basketReceipt == m_Type)) {
             m_xmlUnsigned.Concatenate(
                 "<closingTransactionNumber value=\"%lld\"/>\n\n",
                 m_lClosingTransactionNo);
         }
-        // -----------------------------------------------------
 
         // a transaction contains a list of items, but it is also in reference
         // to some item, from someone else
@@ -4862,13 +4797,11 @@ void OTTransaction::UpdateContents()
         if (m_ascInReferenceTo.GetLength())
             m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                       m_ascInReferenceTo.Get());
-        // -----------------------------------------------------
 
         if (m_ascCancellationRequest.GetLength())
             m_xmlUnsigned.Concatenate("<cancelRequest>\n%s</cancelRequest>\n\n",
                                       m_ascCancellationRequest.Get());
 
-        // -----------------------------------------------------
         // loop through the items that make up this transaction and print them
         // out here, base64-encoded, of course.
         for (auto& it : m_listItems) {
@@ -4883,7 +4816,6 @@ void OTTransaction::UpdateContents()
 
             m_xmlUnsigned.Concatenate("<item>\n%s</item>\n\n", ascItem.Get());
         }
-        // -----------------------------------------------------
     } // not abbreviated (full details.)
 
     m_xmlUnsigned.Concatenate("</transaction>\n");
@@ -4988,7 +4920,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5014,32 +4946,6 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
                                             // inbox, for example.)
         idReceiptHash.GetString(strHash);
     }
-
-    /*
-     NOTES...
-
-     transactionType        m_Type;                // blank, pending,
-     processInbox, transfer, deposit, withdrawal, payDividend, trade, etc.
-     time64_t                    m_DATE_SIGNED;        // The date, in seconds,
-     when the instrument was last signed.
-     OTIdentifier            m_Hash;                // Created while saving
-     abbreviated record, loaded back with it, then verified against actual hash
-     when loading actual box receipt.
-     int64_t                    m_lAbbrevAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lDisplayAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lTransactionNum;    // The server issues this
-     and it must be sent with transaction request.
-     int64_t                    m_lClosingTransactionNo; // used by finalReceipt
-     int64_t                    m_lInReferenceToTransaction;
-     int64_t                    m_lInRefDisplay
-     */
-    /*    This is set upon loading in abbreviated form, and then cleared again
-        when the actual box receipt is loaded:
-     bool                m_bIsAbbreviated;    // this is set upon loading (Not
-     stored at all.)
-     */
 
     strOutput.Concatenate("<paymentInboxRecord type=\"%s\"\n"
                           " dateSigned=\"%lld\"\n"
@@ -5097,7 +5003,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5124,30 +5030,6 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    /*
-     NOTES...
-
-     transactionType        m_Type;                // instrumentNotice
-     time64_t                    m_DATE_SIGNED;        // The date, in seconds,
-     when the instrument was last signed.
-     OTIdentifier            m_Hash;                // Created while saving
-     abbreviated record, loaded back with it, then verified against actual hash
-     when loading actual box receipt.
-     int64_t                    m_lAbbrevAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lDisplayAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lTransactionNum;    // The server issues this
-     and it must be sent with transaction request.
-     int64_t                    m_lInReferenceToTransaction;
-     int64_t                    m_lInRefDisplay
-     */
-    /*    This is set upon loading in abbreviated form, and then cleared again
-        when the actual box receipt is loaded:
-     bool                m_bIsAbbreviated;    // this is set upon loading (Not
-     stored at all.)
-     */
-
     strOutput.Concatenate("<expiredBoxRecord type=\"%s\"\n"
                           " dateSigned=\"%lld\"\n"
                           " receiptHash=\"%s\"\n"
@@ -5159,91 +5041,6 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
                           lDisplayValue, GetTransactionNum(),
                           GetReferenceNumForDisplay(), GetReferenceToNum());
 }
-
-// case OTLedger::paymentInbox:
-// SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);    break;
-// case OTLedger::paymentOutbox:
-// SaveAbbrevPaymentOutboxRecord(m_xmlUnsigned);    break;
-// case OTLedger::recordBox:
-// SaveAbbrevRecordBoxRecord(m_xmlUnsigned);        break;
-
-/*
- --- paymentOutbox ledger:
-    "instrumentNotice",        // Receive these in paymentInbox, and send in
- paymentOutbox.
-    (When done, they go to recordBox or expiredBox to await deletion.)
- */
-// void OTTransaction::SaveAbbrevPaymentOutboxRecord(OTString & strOutput)
-//{
-//    int64_t lDisplayValue = 0;
-//
-//    if (IsAbbreviated())
-//    {
-//        lDisplayValue    = GetAbbrevDisplayAmount();
-//    }
-//    else
-//    {
-//        switch (m_Type)
-//        {
-//            case OTTransaction::instrumentNotice:
-//                lDisplayValue    = GetReceiptAmount();
-////                lDisplayValue    = 0;
-//                break;
-//            default: // All other types are irrelevant for payment outbox
-// reports.
-//                otErr << "OTTransaction::SaveAbbrevPaymentOutboxRecord:
-// Unexpected %s transaction "
-//                              "in payment outbox while making abbreviated
-// payment outbox record.\n",
-//                              GetTypeString());
-//                return;
-//        }
-//    }
-//
-//    // By this point, we know only the right types of receipts are being
-// saved, and
-//    // the adjustment and display value are both set correctly.
-//
-//    // TYPE
-//    OTString        strType;    // <===========
-//    const char *    pTypeStr = GetTypeString();
-//    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
-//
-//    // DATE SIGNED
-//    const int64_t lDateSigned = m_DATE_SIGNED;
-//
-//    // HASH OF THE COMPLETE "BOX RECEIPT"
-//    //
-//    OTString strHash;
-//
-//    // If this is already an abbreviated record, then save the existing hash.
-//    if (IsAbbreviated())
-//        m_Hash.GetString(strHash);
-//    // Otherwise if it's a full record, then calculate the hash and save it.
-//    else
-//    {
-//        OTIdentifier    idReceiptHash;                // a hash of the actual
-// transaction is stored with its
-//        CalculateContractID(idReceiptHash);    // abbreviated short-form
-// record (in the payment outbox, for example.)
-//        idReceiptHash.GetString(strHash);
-//    }
-//
-//    strOutput.Concatenate("<paymentOutboxRecord type=\"%s\"\n"
-//                          " dateSigned=\"%lld\"\n"
-//                          " receiptHash=\"%s\"\n"
-//                          " displayValue=\"%lld\"\n"
-//                          " transactionNum=\"%lld\"\n"
-//                          " inRefDisplay=\"%lld\"\n"
-//                          " inReferenceTo=\"%lld\" />\n\n",
-//                          strType.Get(),
-//                          lDateSigned,
-//                          strHash.Get(),
-//                          lDisplayValue,
-//                          GetTransactionNum(),
-//                          GetReferenceNumForDisplay(),
-//                          GetReferenceToNum());
-//}
 
 /*
  --- recordBox ledger:
@@ -5415,7 +5212,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5442,50 +5239,23 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    /*
-     NOTES...
-
-     transactionType        m_Type;                // pending, processInbox,
-     transfer, deposit, withdrawal, payDividend, trade, etc.
-     time64_t                    m_DATE_SIGNED;        // The date, in seconds,
-     when the instrument was last signed.
-     OTIdentifier            m_Hash;                // Created while saving
-     abbreviated record, loaded back with it, then verified against actual hash
-     when loading actual box receipt.
-     int64_t                    m_lAbbrevAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lDisplayAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lTransactionNum;    // The server issues this
-     and it must be sent with transaction request.
-     int64_t                    m_lClosingTransactionNo; // used by finalReceipt
-     int64_t                    m_lInReferenceToTransaction;
-     int64_t                    m_lInRefDisplay
-     */
-    /*    This is set upon loading in abbreviated form, and then cleared again
-        when the actual box receipt is loaded:
-     bool                m_bIsAbbreviated;    // this is set upon loading (Not
-     stored at all.)
-     */
-
     if ((OTTransaction::finalReceipt == m_Type) ||
         (OTTransaction::basketReceipt == m_Type))
 
-        strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
-                              " receiptHash=\"%s\"\n"
-                              " adjustment=\"%lld\"\n"
-                              " displayValue=\"%lld\"\n"
-                              " numberOfOrigin=\"%lld\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " closingNum=\"%lld\"\n" // <==========
-                              " inRefDisplay=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" />\n\n",
-                              strType.Get(), lDateSigned, strHash.Get(),
-                              lAdjustment, lDisplayValue,
-                              GetRawNumberOfOrigin(), GetTransactionNum(),
-                              GetClosingNum(), // <==========
-                              GetReferenceNumForDisplay(), GetReferenceToNum());
+        strOutput.Concatenate(
+            "<recordBoxRecord type=\"%s\"\n"
+            " dateSigned=\"%lld\"\n"
+            " receiptHash=\"%s\"\n"
+            " adjustment=\"%lld\"\n"
+            " displayValue=\"%lld\"\n"
+            " numberOfOrigin=\"%lld\"\n"
+            " transactionNum=\"%lld\"\n"
+            " closingNum=\"%lld\"\n"
+            " inRefDisplay=\"%lld\"\n"
+            " inReferenceTo=\"%lld\" />\n\n",
+            strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
+            lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
+            GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
                               " dateSigned=\"%lld\"\n"
@@ -5591,7 +5361,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5691,7 +5461,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5845,7 +5615,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType; // <===========
+    OTString strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5872,50 +5642,23 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    /*
-     NOTES...
-
-     transactionType        m_Type;                // blank, pending,
-     processInbox, transfer, deposit, withdrawal, payDividend, trade, etc.
-     time64_t                    m_DATE_SIGNED;        // The date, in seconds,
-     when the instrument was last signed.
-     OTIdentifier            m_Hash;                // Created while saving
-     abbreviated record, loaded back with it, then verified against actual hash
-     when loading actual box receipt.
-     int64_t                    m_lAbbrevAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lDisplayAmount;    // Saved abbreviated from
-     actual calculation, and set upon loading in abbrev mode.
-     int64_t                    m_lTransactionNum;    // The server issues this
-     and it must be sent with transaction request.
-     int64_t                    m_lClosingTransactionNo; // used by finalReceipt
-     int64_t                    m_lInReferenceToTransaction;
-     int64_t                    m_lInRefDisplay
-     */
-    /*    This is set upon loading in abbreviated form, and then cleared again
-        when the actual box receipt is loaded:
-     bool                m_bIsAbbreviated;    // this is set upon loading (Not
-     stored at all.)
-     */
-
     if ((OTTransaction::finalReceipt == m_Type) ||
         (OTTransaction::basketReceipt == m_Type))
 
-        strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
-                              " receiptHash=\"%s\"\n"
-                              " adjustment=\"%lld\"\n"
-                              " displayValue=\"%lld\"\n"
-                              " numberOfOrigin=\"%lld\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " closingNum=\"%lld\"\n" // <==========
-                              " inRefDisplay=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" />\n\n",
-                              strType.Get(), lDateSigned, strHash.Get(),
-                              lAdjustment, lDisplayValue,
-                              GetRawNumberOfOrigin(), GetTransactionNum(),
-                              GetClosingNum(), // <==========
-                              GetReferenceNumForDisplay(), GetReferenceToNum());
+        strOutput.Concatenate(
+            "<inboxRecord type=\"%s\"\n"
+            " dateSigned=\"%lld\"\n"
+            " receiptHash=\"%s\"\n"
+            " adjustment=\"%lld\"\n"
+            " displayValue=\"%lld\"\n"
+            " numberOfOrigin=\"%lld\"\n"
+            " transactionNum=\"%lld\"\n"
+            " closingNum=\"%lld\"\n"
+            " inRefDisplay=\"%lld\"\n"
+            " inReferenceTo=\"%lld\" />\n\n",
+            strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
+            lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
+            GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
                               " dateSigned=\"%lld\"\n"
@@ -6024,80 +5767,6 @@ void OTTransaction::ProduceInboxReportItem(OTItem& theBalanceItem)
     // transaction.) If he is, then
     // we don't need to add this transaction to the report.
     //
-    /*
-    if (OTTransaction::processInbox == theOwner.GetType()) // <==== IF it's a
-    process inbox !!!
-    {
-        for (auto& it : theOwner.GetItemList())
-        {
-            OTItem * pItem = it;
-            OT_ASSERT_MSG(nullptr != pItem, "Pointer should not have been
-    nullptr.");
-
-            // In this place, it means that someone is trying to PROCESS his
-    INBOX. He is looping through that inbox,
-            // creating an INBOX REPORT, so he can attach it to the balance
-    agreement for his PROCESS INBOX TRANSACTION.
-            //
-            // Well... What if, as part of processing his inbox, he is trying to
-    remove some receipts?
-            // If he tries to remove a marketReceipt, then we'd expect, in the
-    event of success, that
-            // said marketReceipt would disappear from his inbox.
-            //
-            // The purpose of the balance agreement is to have both sides SIGN
-    and AGREE what the picture looks
-            // like, after and assuming the transaction is a success. If I
-    SUCCESSFULLY remove
-
-            if ((pItem->GetType() == OTItem::acceptCronReceipt) && // <==== IF
-    AND IF, cron receipt, transaction number matches
-                (pItem->GetReferenceToNum() == GetTransactionNum()))   // that
-    means I'm DEFINITELY accepting it aka REMOVING it, right?
-            {
-                return; // We don't add THIS transaction to the balance
-    agreement item then, since
-                        // the balance agreement is actually part of a
-    transaction that is REMOVING
-                        // THIS TRANSACTION from my inbox, and therefore I don't
-    WANT it showing in
-                        // the balance agreement. (Wouldn't expect it to be
-    there, in the event of success.
-                        // The whole idea is to sign a picture of how things
-    would look IN THE EVENT OF SUCCESS.)
-            }
-
-            // Why is there not a similar if statement here for
-    acceptItemReceipt, the way there is
-            // for acceptCronReceipt? If it turns out to be an issue, this might
-    just be where I'd put it.
-
-            // AHHH:  I bet this is done in the code that CALLS this function...
-    I BET the relevant items
-            // are ALREADY removed from the Inbox, BEFORE THIS FUNCTION IS EVEN
-    CALLED... And THAT's why I don't
-            // see the other things here that I would expect to see.
-            //
-            // Therefore, the above fix really needs to be MOVED to THAT
-    LOCATION.
-            //
-            // FINAL NOTE: THAT IS CORRECT. (Done.) This function is meant to be
-    called with the inbox SET UP PRIOR,
-            // and for that Inbox to be passed in resembling the way it would in
-    the event of success. This
-            // function is NOT responsible for knowing about which kinds of
-    transactions might need which numbers
-            // removed. This function is too "Dumb" for that, at its level. It
-    must assume the CALLER sets that up
-            // in advance. Different callers set the inbox up in different ways,
-    depending on what they are trying
-            // to verify. (An "accept basket receipt" message would assume THAT
-    basket receipt would be removed from Inbox,
-            // whereas an "accept market receipt" message would assume that THAT
-    market receipt would be removed. Etc.)
-        }
-    }
-    */
 
     // the item will represent THIS TRANSACTION, and will be added to
     // theBalanceItem.
@@ -6193,12 +5862,6 @@ void OTTransaction::ProduceOutboxReportItem(OTItem& theBalanceItem)
 
         theBalanceItem.AddItem(
             *pReportItem); // Now theBalanceItem will handle cleaning it up.
-
-        // debugging remove this
-        //        otErr << "PRODUCING OUTBOX REPORT ITEM: lAmount: %lld  Trans#
-        // %lld  Ref# %lld \n", lAmount,
-        //                    pReportItem->GetTransactionNum(),
-        // pReportItem->GetReferenceToNum());
 
         // No need to sign/save pReportItem, since it is just used for in-memory
         // storage, and is
@@ -6354,8 +6017,7 @@ int64_t OTTransaction::GetReceiptAmount()
             // agreements already discount transferReceipts as having any impact
             // on the balance.
             //
-            lAdjustment =
-                (pOriginalItem->GetAmount() * (-1)); // <====================
+            lAdjustment = (pOriginalItem->GetAmount() * (-1));
         }
         break;
     case OTTransaction::pending: // amount is stored on transfer item
@@ -6449,7 +6111,6 @@ int64_t OTTransaction::GetNumberOfOrigin()
     return m_lNumberOfOrigin;
 }
 
-// virtual
 void OTTransaction::CalculateNumberOfOrigin()
 {
     OT_ASSERT(!IsAbbreviated());
@@ -6644,7 +6305,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
     default: // All other types have no amount -- return 0.
         return 0;
     }
-    // -------------------------------------------------
+
     return lReferenceNum;
 }
 
@@ -6690,127 +6351,6 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
 // 4.       pItem1->SetAttachment(strOffer);
 //
 
-/*
-
- HOW does this work? (for sendUserInstrument.)
-
- First, the original sender attaches his instrument to an OTPayment object, like
-this:
-
- void foo(const OTCheque & theCheque)
- {
-    const OTString strCheque(theCheque);
-    OTPayment thePayment(strCheque);
-    const OTString strPayment(thePayment);  // <==== BAD! nonexistent.
- }
-
- Then he creates this "sendUserInstrument" message:
-
-     theMessage.m_strCommand            = "sendUserInstrument";
-    theMessage.m_strNymID            = strNymID;
-    theMessage.m_strNymID2            = strNymID2;
-    theMessage.m_strServerID        = strServerID;
-        (theEnvelope.Seal(thePubkey, strPayment) &&
-        theEnvelope.GetAsciiArmoredData(
-    theMessage.m_ascPayload));
-
-==> The instrument itself is added to an OTPayment object (a wrapper that can
-handle multiple instrumen types.)
-    Then the OTPayment is encrypted to the recipient's public key and attached
-as the payload.
-    (The Cheque, Payment Plan, Smart Contract, etc. is added to an OTPayment,
-which is then encrypted and added
-    as the message payload.)
-
-    A similar version of this message, "outpaymentsMessage", is also saved to
-the sender's "outPayments" box:
-    pMessage->m_strCommand        = "outpaymentsMessage";
-    pMessage->m_strNymID        = strNymID;
-    pMessage->m_strNymID2        = strNymID2;
-    pMessage->m_strServerID        = strServerID;
-    pMessage->m_strRequestNum.Format("%lld", lRequestNumber);
-
- // NOTICE: this time it's NOT encrypted:
-
-    pMessage->m_ascPayload.SetString(strPayment);
-
- // You still have a choice to encrypt your local storage, but the "outPayments"
-box, which is
- // client-side-only, is not encrypted by default.
-
-
-
-    When the SERVER receives the "sendUserInstrument" message, it adds a new
-instrumentNotice transaction
-    to the recipient's nymbox, in order to inform him, like this:
-
-    OTTransaction * pTransaction = OTTransaction::GenerateTransaction(theLedger,
-OTTransaction::instrumentNotice, lTransNum);
-
-    if (nullptr != pTransaction) // The above has an OT_ASSERT within, but I
-just
-like to check my pointers.
-    {
-        pTransaction->    SetReferenceToNum(lTransNum);        // <======
-Recipient RECEIVES entire incoming message as string here, which includes the
-sender user ID,
-        pTransaction->    SetReferenceString(strInMessage);    // and has an
-OTEnvelope in the payload. Message is signed by sender, and envelope is
-encrypted to recipient.
-
-        pTransaction->    SignContract(m_nymServer);
-        pTransaction->    SaveContract();
-
-        theLedger.AddTransaction(*pTransaction); // Add the message transaction
-to the nymbox.
-
-        theLedger.ReleaseSignatures();
-        theLedger.SignContract(m_nymServer);
-        theLedger.SaveContract();
-        theLedger.SaveNymbox(); // We don't grab the Nymbox hash here, since
-nothing important changed (just a message was sent.)
-
-        // Any inbox/nymbox/outbox ledger will only itself contain
-        // abbreviated versions of the receipts, including their hashes.
-        //
-        // The rest is stored separately, in the box receipt, which is created
-        // whenever a receipt is added to a box, and deleted after a receipt
-        // is removed from a box.
-        //
-        pTransaction->SaveBoxReceipt(theLedger);
-
-        msgOut.m_bSuccess = true;
-    }
-
-
-// NOTICE that the original message (from the sender) is attached to the new
-transaction
-// as a "reference string" and the reference number points to itself. (Since a
-message has
-// no transaction number that it could refer to.)
-
- Therefore, if I am looping through my Nymbox, iterating through transactions,
-and one of them
- is an instrumentNotice, then I should expect a GetReferenceString() to load up
-an OTMessage of
- type "sendUserInstrument", and I should expect the PAYLOAD of that message to
-contain an encrypted
- OTEnvelope, decrypted by Msg.m_strNymID2's key, which contains the OTPayment,
-from which is derived
- the INSTRUMENT.
-
- The INSTRUMENT can be of these types:
-    - CHEQUE, INVOICE, VOUCHER (these are all forms of cheque)
-    - PAYMENT PLAN, SMART CONTRACT (these are cron items)
-    - PURSE (containing cash)
-
- It's almost better to deal with those types using OTPayment, since it provides
-a consistent interface
- for all of them. Then only deal with the lower-level objects when you have to
-:P
-
-
- */
 bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
@@ -6828,7 +6368,6 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
     if (strReference.GetLength() < 2) return false;
 
     switch (GetType()) {
-    //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt
         : // for paymentPlans AND smartcontracts. (If the smart contract does a
           // payment, it leaves a paymentReceipt...)
@@ -6915,13 +6454,6 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
             // todo security need to consider security implications of that and
             // maybe improve it a bit.
             // (But I do NOT want to get into the messaging business.)
-            //
-            //              theSentMsg.m_strCommand        =
-            // "sendUserInstrument";
-            //              theSentMsg.m_strNymID        = strNymID;     //
-            // ===> sender <===
-            //              theSentMsg.m_strNymID2        = strNymID2;    //
-            // ===> recipient <===
 
             if (theSentMsg.m_strNymID.Exists()) {
                 theReturnID.SetString(theSentMsg.m_strNymID);
@@ -6946,7 +6478,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
     default: // All other types are irrelevant here.
         return false;
     }
-    // --------------------------------------------------
+
     if (nullptr == pOriginalItem) {
         otErr << "OTTransaction::GetSenderUserIDForDisplay: original item not "
                  "found. Should never happen.\n";
@@ -7026,7 +6558,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
     GetReferenceString(strReference);
 
     switch (GetType()) {
-    //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt
         : // Used for paymentPlans AND for smart contracts...
     {
@@ -7098,8 +6629,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
          (In this block we don't need to go any farther than step 1 above.)
          -------------------------------------------------------------------
          */
-        //          OTString strReference;              // (Already done above.)
-        //          GetReferenceString(strReference);   // (Already done above.)
 
         OTMessage theSentMsg;
 
@@ -7114,13 +6643,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
             // todo security need to consider security implications of that and
             // maybe improve it a bit.
             // (But I do NOT want to get into the messaging business.)
-            //
-            //              theSentMsg.m_strCommand        =
-            // "sendUserInstrument";
-            //              theSentMsg.m_strNymID        = strNymID;     //
-            // ===> sender <===
-            //              theSentMsg.m_strNymID2        = strNymID2;    //
-            // ===> recipient <===
 
             if (theSentMsg.m_strNymID2.Exists()) {
                 theReturnID.SetString(theSentMsg.m_strNymID2);
@@ -7128,10 +6650,8 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
             }
         }
         return false;
-    } // case OTTransaction::instrumentNotice:
-    break;
+    } break;
 
-    //
     case OTTransaction::transferReceipt:
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt: {
@@ -7235,7 +6755,6 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
     if (strReference.GetLength() < 2) return false;
 
     switch (GetType()) {
-    //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt: {
         OTString strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
@@ -7372,7 +6891,6 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     GetReferenceString(strReference);
 
     switch (GetType()) {
-    //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt: {
         OTString strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
@@ -7429,7 +6947,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     default: // All other types have no amount -- return 0.
         return false;
     }
-    // -------------------------------------------------
+
     if (nullptr == pOriginalItem)
         return false; // Should never happen, since we always expect one based
                       // on the transaction type.
@@ -7504,7 +7022,6 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     GetReferenceString(strReference);
 
     switch (GetType()) {
-    //        case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt: {
         OTString strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
@@ -7606,7 +7123,6 @@ bool OTTransaction::GetMemo(OTString& strMemo)
             }
 
             // Success loading the cheque.
-            //
             strMemo = theCheque.GetMemo();
             bSuccess = strMemo.Exists();
         }

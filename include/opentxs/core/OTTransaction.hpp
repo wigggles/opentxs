@@ -439,8 +439,6 @@ class OTLedger;
 
 class OTTransaction : public OTTransactionType
 {
-    typedef OTTransactionType ot_super;
-
     friend OTTransactionType* OTTransactionType::TransactionFactory(
         OTString strInput);
 
