@@ -6272,8 +6272,6 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
 
     int64_t lReferenceNum = 0;
 
-    OTCleanup<OTItem> theItemAngel;
-
     switch (GetType()) {
     // "in ref to #" is stored on me: GetReferenceToNum()
     case OTTransaction::pending:
