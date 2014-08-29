@@ -563,8 +563,6 @@ public:
     virtual bool SaveContractWallet(std::ofstream& ofs);
 
     void InitTransaction();
-    void ReleaseItems();
-    void Release_Transaction();
 
     EXPORT bool IsCancelled()
     {

@@ -3818,11 +3818,6 @@ bool OTTransaction::SaveContractWallet(std::ofstream&)
 
 OTTransaction::~OTTransaction()
 {
-    Release_Transaction();
-}
-
-void OTTransaction::ReleaseItems()
-{
     while (!m_listItems.empty()) {
         OTItem* pItem = m_listItems.front();
         m_listItems.pop_front();
@@ -3832,16 +3827,13 @@ void OTTransaction::ReleaseItems()
 
 void OTTransaction::Release()
 {
-    Release_Transaction();
+    while (!m_listItems.empty()) {
+        OTItem* pItem = m_listItems.front();
+        m_listItems.pop_front();
+        delete pItem;
+    }
 
     ot_super::Release();
-}
-
-void OTTransaction::Release_Transaction()
-{
-    // (Any other dynamically allocated memory is freed here.)
-
-    ReleaseItems();
 }
 
 // You have to allocate the item on the heap and then pass it in as a reference.
