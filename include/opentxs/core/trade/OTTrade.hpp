@@ -136,7 +136,7 @@
 #ifndef __OT_TRADE_HPP__
 #define __OT_TRADE_HPP__
 
-#include "cron/OTCronItem.hpp"
+#include "../cron/OTCronItem.hpp"
 
 namespace opentxs
 {
