@@ -666,9 +666,6 @@ public:
     EXPORT int64_t GetReceiptAmount(); // Tries to determine IF there is an
                                        // amount (depending on type) and return
                                        // it.
-    bool GenerateTransaction(const OTIdentifier& theAccountID,
-                             const OTIdentifier& theServerID,
-                             int64_t lTransactionNum);
 
     EXPORT static OTTransaction* GenerateTransaction(
         const OTIdentifier& theUserID, const OTIdentifier& theAccountID,

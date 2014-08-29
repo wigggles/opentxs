@@ -3620,37 +3620,6 @@ OTTransaction* OTTransaction::GenerateTransaction(
     return pTransaction;
 }
 
-// the constructors set the real IDs (account and server) but they do not set
-// the
-// IDs that are internal to this object, m_AcctID and m_AcctServerID. These, it
-// is assumed,
-// will match the real IDs, but they must be checked when they are loaded.
-// If you wish to create a transaction object, but SET the internal members (you
-// KNOW
-// they are correct or you want to generate them here) then use this function or
-// make one like it.
-//
-bool OTTransaction::GenerateTransaction(const OTIdentifier& theAccountID,
-                                        const OTIdentifier& theServerID,
-                                        int64_t lTransactionNum)
-{
-    // Presumably the constructor was just called, so m_ID and m_ServerID are
-    // already set properly.
-    // I might make a class factory in order to enforce this. Sounds like an
-    // appropriate situation.
-    // m_ID
-    // m_ServerID
-
-    SetPurportedAccountID(theAccountID);
-    SetPurportedServerID(theServerID);
-
-    SetTransactionNum(lTransactionNum);
-
-    // Make sure these match with the ones that were passed into the
-    // constructor.
-    return VerifyContractID();
-}
-
 bool OTTransaction::SaveContractWallet(std::ofstream&)
 {
     return true;
