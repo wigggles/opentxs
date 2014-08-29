@@ -133,8 +133,8 @@
 #ifndef __OT_SIGNATURE_HPP__
 #define __OT_SIGNATURE_HPP__
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "crypto/OTSignatureMetadata.hpp"
+#include "OTASCIIArmor.hpp"
+#include "OTSignatureMetadata.hpp"
 
 namespace opentxs
 {

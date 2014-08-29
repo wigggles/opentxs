@@ -133,7 +133,7 @@
 #ifndef __OT_SYMMETRIC_KEY_HPP__
 #define __OT_SYMMETRIC_KEY_HPP__
 
-#include "OTPayload.hpp"
+#include "../OTPayload.hpp"
 
 namespace opentxs
 {

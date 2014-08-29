@@ -133,7 +133,7 @@
 #ifndef __OT_CALLER_HPP__
 #define __OT_CALLER_HPP__
 
-#include "crypto/OTPassword.hpp"
+#include "OTPassword.hpp"
 
 namespace opentxs
 {

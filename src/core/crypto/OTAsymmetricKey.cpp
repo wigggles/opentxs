@@ -133,10 +133,9 @@
 #include "stdafx.hpp"
 
 #include "crypto/OTAsymmetricKey.hpp"
-
 #include "crypto/OTASCIIArmor.hpp"
 #include "crypto/OTCachedKey.hpp"
-#include "OTCaller.hpp"
+#include "crypto/OTCaller.hpp"
 #include "crypto/OTCrypto.hpp"
 #include "OTIdentifier.hpp"
 #include "OTLog.hpp"

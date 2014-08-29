@@ -133,7 +133,7 @@
 #ifndef __OT_SIGNED_FILE_HPP__
 #define __OT_SIGNED_FILE_HPP__
 
-#include "OTContract.hpp"
+#include "../OTContract.hpp"
 
 namespace opentxs
 {
