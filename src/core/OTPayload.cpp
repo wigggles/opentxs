@@ -135,7 +135,7 @@
 #include "OTPayload.hpp"
 
 #include "OTDataCheck.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 

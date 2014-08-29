@@ -132,9 +132,9 @@
 
 #include "stdafx.hpp"
 
-#include "OTPassword.hpp"
+#include "crypto/OTPassword.hpp"
 
-#include "OTCrypto.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTLog.hpp"
 
 // For SecureZeroMemory

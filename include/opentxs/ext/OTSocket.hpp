@@ -133,7 +133,7 @@
 #ifndef __OT_SOCKET_HPP__
 #define __OT_SOCKET_HPP__
 
-#include "opentxs/core/OTASCIIArmor.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/OTString.hpp"
 
 namespace tthread

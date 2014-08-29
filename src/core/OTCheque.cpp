@@ -134,7 +134,7 @@
 
 #include "OTCheque.hpp"
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTLog.hpp"
 
 #include <irrxml/irrXML.hpp>

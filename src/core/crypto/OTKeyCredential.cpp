@@ -146,11 +146,11 @@
 
 #include "stdafx.hpp"
 
-#include "OTKeyCredential.hpp"
+#include "crypto/OTKeyCredential.hpp"
 
-#include "OTCredential.hpp"
+#include "crypto/OTCredential.hpp"
 #include "OTLog.hpp"
-#include "OTSignature.hpp"
+#include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"
 
 namespace opentxs

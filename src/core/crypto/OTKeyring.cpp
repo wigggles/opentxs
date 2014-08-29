@@ -136,12 +136,12 @@
 
 #include "stdafx.hpp"
 
-#include "OTKeyring.hpp"
+#include "crypto/OTKeyring.hpp"
 
-#include "OTASCIIArmor.hpp"
-#include "OTCachedKey.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTCachedKey.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTPassword.hpp"
 #include "OTPaths.hpp"
 #include "OTPayload.hpp"
 #include "OTStorage.hpp"

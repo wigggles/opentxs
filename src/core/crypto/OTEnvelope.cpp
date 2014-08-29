@@ -132,14 +132,14 @@
 
 #include "stdafx.hpp"
 
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 
-#include "OTCrypto.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTPassword.hpp"
 #include "OTPseudonym.hpp"
 #include "OTStorage.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 
 extern "C" {
 #ifdef _WIN32

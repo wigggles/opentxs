@@ -132,8 +132,8 @@
 
 #include "stdafx.hpp"
 
-#include "OTSignatureMetadata.hpp"
-#include "OTCrypto.hpp"
+#include "crypto/OTSignatureMetadata.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTLog.hpp"
 #include <string>
 

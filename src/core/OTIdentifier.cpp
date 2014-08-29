@@ -133,10 +133,10 @@
 #include "stdafx.hpp"
 
 #include "OTIdentifier.hpp"
-#include "OTCachedKey.hpp"
-#include "OTCrypto.hpp"
+#include "crypto/OTCachedKey.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTPseudonym.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 #include "trade/OTMarket.hpp"
 #include "trade/OTOffer.hpp"
 

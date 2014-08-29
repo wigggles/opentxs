@@ -146,14 +146,14 @@
 
 #include "stdafx.hpp"
 
-#include "OTKeypair.hpp"
+#include "crypto/OTKeypair.hpp"
 
-#include "OTAsymmetricKey.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
 #include "OTContract.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTLowLevelKeyData.hpp"
-#include "OTSignature.hpp"
+#include "crypto/OTLowLevelKeyData.hpp"
+#include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"
 
 // DONE: Add OTKeypair member for m_pMetadata.

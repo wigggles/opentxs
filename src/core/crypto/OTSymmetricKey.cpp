@@ -132,16 +132,16 @@
 
 #include "stdafx.hpp"
 
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 #include "OTCleanup.hpp"
-#include "OTASCIIArmor.hpp"
-#include "OTAsymmetricKey.hpp"
-#include "OTCrypto.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
+#include "crypto/OTCrypto.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTIdentifier.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
-#include "OTPasswordData.hpp"
+#include "crypto/OTPassword.hpp"
+#include "crypto/OTPasswordData.hpp"
 
 extern "C" {
 #ifdef _WIN32

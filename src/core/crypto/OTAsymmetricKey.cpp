@@ -132,20 +132,20 @@
 
 #include "stdafx.hpp"
 
-#include "OTAsymmetricKey.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
 
-#include "OTASCIIArmor.hpp"
-#include "OTCachedKey.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTCachedKey.hpp"
 #include "OTCaller.hpp"
-#include "OTCrypto.hpp"
+#include "crypto/OTCrypto.hpp"
 #include "OTIdentifier.hpp"
 #include "OTLog.hpp"
-#include "OTPasswordData.hpp"
-#include "OTSignatureMetadata.hpp"
+#include "crypto/OTPasswordData.hpp"
+#include "crypto/OTSignatureMetadata.hpp"
 #include "OTStorage.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include "OTAsymmetricKeyOpenSSL.hpp"
+#include "crypto/OTAsymmetricKeyOpenSSL.hpp"
 #endif
 
 namespace opentxs

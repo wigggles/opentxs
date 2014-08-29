@@ -132,13 +132,13 @@
 
 #include "stdafx.hpp"
 
-#include "OTNymOrSymmetricKey.hpp"
+#include "crypto/OTNymOrSymmetricKey.hpp"
 
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTLog.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTPassword.hpp"
 #include "OTPseudonym.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 
 extern "C" {
 #if defined(OPENTXS_HAVE_NETINET_IN_H)

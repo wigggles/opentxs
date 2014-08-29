@@ -134,7 +134,7 @@
 
 #include "cron/OTCron.hpp"
 #include "OTCleanup.hpp"
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "cron/OTCronItem.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"

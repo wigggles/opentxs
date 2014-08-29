@@ -133,7 +133,7 @@
 #ifndef __OT_PSEUDONYM_HPP__
 #define __OT_PSEUDONYM_HPP__
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTIdentifier.hpp"
 
 #include <deque>

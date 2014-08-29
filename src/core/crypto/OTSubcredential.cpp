@@ -146,10 +146,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTSubcredential.hpp"
+#include "crypto/OTSubcredential.hpp"
 
-#include "OTASCIIArmor.hpp"
-#include "OTCredential.hpp"
+#include "crypto/OTASCIIArmor.hpp"
+#include "crypto/OTCredential.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 
