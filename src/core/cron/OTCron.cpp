@@ -687,7 +687,8 @@ void OTCron::ProcessCronItems()
     // loop through the cron items and tell each one to ProcessCron().
     // If the item returns true, that means leave it on the list. Otherwise,
     // if it returns false, that means "it's done: remove it."
-    for (auto it = m_multimapCronItems.begin(); it != m_mapCronItems.end();) {
+    for (auto it = m_multimapCronItems.begin();
+         it != m_multimapCronItems.end();) {
         if (GetTransactionCount() <= nTwentyPercent) {
             otErr << "WARNING: Cron has fewer than 20 percent of its normal "
                      "transaction "
