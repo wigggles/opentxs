@@ -698,7 +698,8 @@ public:
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM);
+    EXPORT bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,
+                                     OTPseudonym& THE_NYM);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. ServerID and AccountID have been verified.

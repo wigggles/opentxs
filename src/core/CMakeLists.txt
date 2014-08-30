@@ -105,8 +105,8 @@ if(WIN32)
   # suppress warnings about strcpy being unsafe in anyoption.cpp
   add_definitions(/wd4996)
 
-  # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
-  add_definitions(/bigobj)
+  # suppress linker warnings about locallly defined imported symbols
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
   # we have an extra Windows-specific file to compile
   add_library(opentxs-core

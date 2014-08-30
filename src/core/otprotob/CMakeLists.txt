@@ -4,7 +4,7 @@ PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER Generics.proto Bitcoin.proto Market
 
 if (WIN32)
   # suppress std::_Copy_impl being unsafe warnings 
-  add_Definitions("/wd4996")
+  add_definitions("/wd4996")
 endif()
 
 include_directories(SYSTEM ${PROTOBUF_INCLUDE_DIR})
