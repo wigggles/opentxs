@@ -1,6 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/anyoption/anyoption.cpp
   opentxs.cpp
   main.cpp
 )
