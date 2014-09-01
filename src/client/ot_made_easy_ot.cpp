@@ -1255,12 +1255,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
     // now, so
     // let's import it into the wallet.
     //
-    isSuccess =
-        OTAPI_Wrap::Wallet_ImportPurse(serverID, assetID, nymID, userInput) == 1
-            ? true
-            : false;
-
-    return isSuccess;
+    return 1 ==
+           OTAPI_Wrap::Wallet_ImportPurse(serverID, assetID, nymID, userInput);
 }
 
 // processCashPurse pops the selected tokens off of oldPurse, changes their

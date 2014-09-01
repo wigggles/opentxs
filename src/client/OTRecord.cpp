@@ -922,23 +922,13 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
         const std::string str_indices(strIndices.Get());
 
         OT_ME madeEasy;
-        int32_t nReturn =
-            madeEasy.accept_from_paymentbox(str_into_acct, str_indices, "ANY");
-
-        switch (nReturn) {
-        case 0:
-            otOut << __FUNCTION__ << ": This instrument was expired, so it was "
-                                     "moved to the record box.\n";
-            return true;
-
-        case 1: // success
-            break;
-        default:
+        if (!madeEasy.accept_from_paymentbox(str_into_acct, str_indices,
+                                             "ANY")) {
             otErr << __FUNCTION__
                   << ": Error while trying to accept this instrument.\n";
             return false;
-        } // switch
-    }     // case: instrument
+        }
+    } // case: instrument
     break;
     default:
         otErr << __FUNCTION__ << ": Unexpected type: " << GetInstrumentType()

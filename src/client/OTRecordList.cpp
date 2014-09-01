@@ -795,25 +795,12 @@ bool OTRecordList::PerformAutoAccept()
                                 const std::string str_indices(strIndices.Get());
 
                                 OT_ME madeEasy;
-                                int32_t nReturn =
-                                    madeEasy.accept_from_paymentbox(
-                                        str_account_id, str_indices, "ANY");
-
-                                switch (nReturn) {
-                                case 0:
-                                    otOut << __FUNCTION__
-                                          << ": This instrument was "
-                                             "expired, so it was "
-                                             "moved to the record "
-                                             "box.\n";
-                                case 1: // success
-                                    break;
-                                default:
+                                if (!madeEasy.accept_from_paymentbox(
+                                         str_account_id, str_indices, "ANY")) {
                                     otErr << __FUNCTION__
                                           << ": Error while trying to "
                                              "accept this instrument.\n";
-                                    break;
-                                } // switch
+                                }
                                 break;
                             }
                         } // loop through accounts to find one to deposit cheque

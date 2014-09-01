@@ -310,9 +310,9 @@ public:
                                          const std::string& ACCOUNT_ID,
                                          const std::string& INDICES);
 
-    EXPORT int32_t accept_from_paymentbox(const std::string& ACCOUNT_ID,
-                                          const std::string& INDICES,
-                                          const std::string& PAYMENT_TYPE);
+    EXPORT bool accept_from_paymentbox(const std::string& ACCOUNT_ID,
+                                       const std::string& INDICES,
+                                       const std::string& PAYMENT_TYPE);
 
     EXPORT std::string load_public_encryption_key(const std::string& NYM_ID);
 
@@ -423,8 +423,8 @@ public:
                                      const std::string& ACCT_ID,
                                      const int64_t AMOUNT);
 
-    EXPORT int32_t
-    easy_withdraw_cash(const std::string& ACCT_ID, const int64_t AMOUNT);
+    EXPORT bool easy_withdraw_cash(const std::string& ACCT_ID,
+                                   const int64_t AMOUNT);
 
     EXPORT std::string export_cash(const std::string& SERVER_ID,
                                    const std::string& FROM_NYM_ID,
@@ -453,14 +453,15 @@ public:
                                       const std::string& ACCT_ID,
                                       const std::string& STR_CHEQUE);
 
-    EXPORT int32_t
-    deposit_cash(const std::string& SERVER_ID, const std::string& NYM_ID,
-                 const std::string& ACCT_ID, const std::string& STR_PURSE);
+    EXPORT bool deposit_cash(const std::string& SERVER_ID,
+                             const std::string& NYM_ID,
+                             const std::string& ACCT_ID,
+                             const std::string& STR_PURSE);
 
-    EXPORT int32_t deposit_local_purse(const std::string& SERVER_ID,
-                                       const std::string& NYM_ID,
-                                       const std::string& ACCT_ID,
-                                       const std::string& STR_INDICES);
+    EXPORT bool deposit_local_purse(const std::string& SERVER_ID,
+                                    const std::string& NYM_ID,
+                                    const std::string& ACCT_ID,
+                                    const std::string& STR_INDICES);
 
     EXPORT std::string get_market_list(const std::string& SERVER_ID,
                                        const std::string& NYM_ID);
