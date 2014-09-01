@@ -7,10 +7,10 @@
 #include <map>
 #include <vector>
 
+#define OT_COMMANDS_OT
+
 namespace opentxs
 {
-
-#define OT_COMMANDS_OT
 
 class OT_Command
 {

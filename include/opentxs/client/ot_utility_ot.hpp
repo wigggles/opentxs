@@ -137,10 +137,10 @@
 
 #include <array>
 
+#define OT_UTILITY_OT
+
 namespace opentxs
 {
-
-#define OT_UTILITY_OT
 
 inline OT_UTILITY_OT bool VerifyStringVal(const std::string& nValue)
 {

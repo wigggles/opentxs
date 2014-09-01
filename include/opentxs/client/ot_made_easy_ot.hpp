@@ -137,10 +137,10 @@
 
 #include <vector>
 
+#define OT_MADE_EASY_OT
+
 namespace opentxs
 {
-
-#define OT_MADE_EASY_OT
 
 class MadeEasy
 {
