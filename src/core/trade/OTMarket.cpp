@@ -135,7 +135,6 @@
 #include "trade/OTMarket.hpp"
 #include "trade/OTOffer.hpp"
 #include "trade/OTTrade.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
@@ -143,6 +142,8 @@
 #include "OTPseudonym.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 
@@ -331,9 +332,9 @@ bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
         // Below this point, I KNOW pTrade and pOffer are both good pointers.
         // with no need to cleanup. I also know they are for the right Nym.
 
-        OTDB::OfferDataNym* pOfferData = dynamic_cast<OTDB::OfferDataNym*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_DATA_NYM));
-        OTCleanup<OTDB::OfferDataNym> theDataAngel(*pOfferData);
+        std::unique_ptr<OTDB::OfferDataNym> pOfferData(
+            dynamic_cast<OTDB::OfferDataNym*>(
+                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_DATA_NYM)));
 
         const int64_t& lTransactionNum = pOffer->GetTransactionNum();
         const int64_t& lPriceLimit = pOffer->GetPriceLimit();
@@ -438,19 +439,14 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer = pPacker->Pack(
-            *m_pTradeList); // Now we PACK our market's recent trades list.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->Pack(
+            *m_pTradeList)); // Now we PACK our market's recent trades list.
 
         if (nullptr == pBuffer) {
             otErr << "Failed packing pTradeList in OTCron::GetRecentTradeList. "
                      "\n";
             return false;
         }
-
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure memory is cleaned up.
-
-        // --------------------------------------------------------
 
         // Now we need to translate pBuffer into strOutput.
 
@@ -489,9 +485,9 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
     // Loop through the offers, up to some maximum depth, and then add each
     // as a data member to an offer list, then pack it into ascOutput.
 
-    OTDB::OfferListMarket* pOfferList = dynamic_cast<OTDB::OfferListMarket*>(
-        OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET));
-    OTCleanup<OTDB::OfferListMarket> theListAngel(*pOfferList);
+    std::unique_ptr<OTDB::OfferListMarket> pOfferList(
+        dynamic_cast<OTDB::OfferListMarket*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
 
     //    mapOfOffers            m_mapBids;        // The buyers, ordered by
     // price limit
@@ -512,9 +508,8 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
             continue;
 
         // OfferDataMarket
-        OTDB::BidData* pOfferData = dynamic_cast<OTDB::BidData*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_BID_DATA));
-        OTCleanup<OTDB::BidData> theDataAngel(*pOfferData);
+        std::unique_ptr<OTDB::BidData> pOfferData(dynamic_cast<OTDB::BidData*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_BID_DATA)));
 
         const int64_t& lTransactionNum = pOffer->GetTransactionNum();
         const int64_t lAvailableAssets = pOffer->GetAmountAvailable();
@@ -544,9 +539,8 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
         OT_ASSERT(nullptr != pOffer);
 
         // OfferDataMarket
-        OTDB::AskData* pOfferData = dynamic_cast<OTDB::AskData*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_ASK_DATA));
-        OTCleanup<OTDB::AskData> theDataAngel(*pOfferData);
+        std::unique_ptr<OTDB::AskData> pOfferData(dynamic_cast<OTDB::AskData*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_ASK_DATA)));
 
         const int64_t& lTransactionNum = pOffer->GetTransactionNum();
         const int64_t& lPriceLimit = pOffer->GetPriceLimit();
@@ -582,16 +576,13 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->Pack(*pOfferList); // Now we PACK our market's offer list.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(
+            pPacker->Pack(*pOfferList)); // Now we PACK our market's offer list.
 
         if (nullptr == pBuffer) {
             otErr << "Failed packing pOfferList in OTCron::GetOfferList. \n";
             return false;
         }
-
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure memory is cleaned up.
 
         // Now we need to translate pBuffer into strOutput.
 
@@ -1893,10 +1884,9 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                                 OTDB::STORED_OBJ_TRADE_LIST_MARKET));
                     }
 
-                    OTDB::TradeDataMarket* pTradeData =
+                    std::unique_ptr<OTDB::TradeDataMarket> pTradeData(
                         dynamic_cast<OTDB::TradeDataMarket*>(OTDB::CreateObject(
-                            OTDB::STORED_OBJ_TRADE_DATA_MARKET));
-                    OTCleanup<OTDB::TradeDataMarket> theDataAngel(*pTradeData);
+                            OTDB::STORED_OBJ_TRADE_DATA_MARKET)));
 
                     const int64_t& lTransactionNum =
                         theOffer.GetTransactionNum();
