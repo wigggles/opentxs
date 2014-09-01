@@ -135,12 +135,13 @@
 #include "trade/OTTrade.hpp"
 #include "trade/OTMarket.hpp"
 #include "trade/OTOffer.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 namespace opentxs
 {
@@ -737,12 +738,7 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        OTOffer* offer = nullptr;
-        OTCleanup<OTOffer> theOfferAngel;
-
-        offer = new OTOffer();
-        OT_ASSERT(offer != nullptr);
-        theOfferAngel.SetCleanupTarget(*offer);
+        std::unique_ptr<OTOffer> offer(new OTOffer());
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer
