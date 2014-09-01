@@ -36,11 +36,7 @@ option(JAVA    "Build with Java binding" OFF)
 option(PERL    "Build with Perl binding" OFF)
 option(PHP     "Build with PHP binding" OFF)
 option(PYTHON  "Build with Python binding" OFF)
-option(RUBY    "Build with Ruby binding" OFF)
-option(TCL     "Build with TCL binding" OFF)
-option(CSHARP  "Build with C# binding" OFF)
-option(D       "Build with D binding" OFF)
-option(GO      "Build with Go binding" OFF)
+
 
 if(BUILD_VERBOSE)
   set(CMAKE_VERBOSE_MAKEFILE true)
@@ -78,11 +74,6 @@ message(STATUS "Java binding:           ${JAVA}")
 message(STATUS "Perl binding:           ${PERL}")
 message(STATUS "PHP binding:            ${PHP}")
 message(STATUS "Python binding:         ${PYTHON}")
-message(STATUS "Ruby binding:           ${RUBY}")
-message(STATUS "TCL binding:            ${TCL}")
-message(STATUS "C# binding:             ${CSHARP}")
-message(STATUS "D binding:              ${D}")
-message(STATUS "Go binding:             ${GO}")
 
 
 #-----------------------------------------------------------------------------
@@ -302,6 +293,7 @@ add_subdirectory(deps)
 add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(wrappers)
+
 
 #-----------------------------------------------------------------------------
 # Produce a pkg-config file
