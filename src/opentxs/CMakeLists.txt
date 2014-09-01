@@ -18,12 +18,12 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
 )
 
 add_executable(opentxs ${cxx-sources})
 
-target_link_libraries(opentxs opentxs-api)
+target_link_libraries(opentxs opentxs-client)
 
 if(WIN32)
   add_custom_command(TARGET opentxs POST_BUILD

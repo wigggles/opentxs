@@ -18,7 +18,7 @@ set(cxx-sources
   OTWallet.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp")
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp")
 
 if(MSVC)
   # suppress "decorated name length exceeded, name was truncated" warnings 
@@ -39,31 +39,31 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
 )
 
-add_library(opentxs-api
+add_library(opentxs-client
   ${cxx-sources}
   ${cxx-headers}
 )
 
-target_link_libraries(opentxs-api opentxs-ext opentxs-core)
+target_link_libraries(opentxs-client opentxs-ext opentxs-core)
 
 if(WIN32)
-  add_custom_command(TARGET opentxs-api POST_BUILD
+  add_custom_command(TARGET opentxs-client POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-api.dll"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-api.dll")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.dll"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.dll")
 
-  add_custom_command(TARGET opentxs-api POST_BUILD
+  add_custom_command(TARGET opentxs-client POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-api.pdb"
-    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-api.pdb")
+    "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-client.pdb"
+    "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-client.pdb")
 endif()
 
 if(NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS opentxs-api
+  install(TARGETS opentxs-client
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           COMPONENT)
 endif()
