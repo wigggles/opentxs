@@ -137,6 +137,7 @@
 #include "OTAPI.hpp"
 #include "OTClient.hpp"
 #include "OTServerConnection.hpp"
+#include "Helpers.hpp"
 
 #include <script/OTAgent.hpp>
 #include <OTAssetContract.hpp>
@@ -7224,7 +7225,7 @@ bool OT_API::RecordPayment(
                      "based on index " << nIndex << ".\n";
             return false;
         }
-        OTPayment* pPayment = pPaymentInbox->GetInstrument(*pNym, nIndex);
+        OTPayment* pPayment = GetInstrument(*pNym, nIndex, *pPaymentInbox);
         OTCleanup<OTPayment> thePaymentAngel(pPayment);
         OT_ASSERT(nullptr != pPayment);
 

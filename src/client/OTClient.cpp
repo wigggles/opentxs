@@ -135,6 +135,7 @@
 #include "OTClient.hpp"
 
 #include "OTServerConnection.hpp"
+#include "Helpers.hpp"
 
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
@@ -2773,8 +2774,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                        // things.
                                             {
                                                 OTPayment* pPayment =
-                                                    thePmntInbox.GetInstrument(
-                                                        *pNym, ii);
+                                                    GetInstrument(*pNym, ii,
+                                                                  thePmntInbox);
                                                 OTCleanup<OTPayment>
                                                 thePaymentAngel(pPayment);
 
@@ -3404,7 +3405,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                            // one thing, but still...)
                                 {
                                     OTPayment* pPayment =
-                                        pLedger->GetInstrument(*pNym, ii);
+                                        GetInstrument(*pNym, ii, *pLedger);
                                     OTCleanup<OTPayment> thePaymentAngel(
                                         pPayment);
 
@@ -7063,10 +7064,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         {
                                                             OTPayment*
                                                             pPayment =
-                                                                thePmntInbox
-                                                                    .GetInstrument(
-                                                                         *pNym,
-                                                                         ii);
+                                                                GetInstrument(
+                                                                    *pNym, ii,
+                                                                    thePmntInbox);
                                                             OTCleanup<OTPayment>
                                                             thePaymentAngel(
                                                                 pPayment);

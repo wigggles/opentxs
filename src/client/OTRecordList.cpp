@@ -138,6 +138,7 @@
 #include "OT_ME.hpp"
 #include "OTAPI.hpp"
 #include "OTAPI_Exec.hpp"
+#include "Helpers.hpp"
 
 #include <OTAccount.hpp>
 #include <OTAssetContract.hpp>
@@ -597,9 +598,9 @@ bool OTRecordList::PerformAutoAccept()
                         const std::string* p_str_asset_name =
                             &OTRecordList::s_blank; // asset type display name.
                         std::string str_type;       // Instrument type.
-                        OTPayment* pPayment = pInbox->GetInstrument(
-                            *pNym, nIndex); // ===> Returns financial instrument
-                                            // by index.
+                        OTPayment* pPayment =
+                            GetInstrument(*pNym, nIndex, *pInbox);
+                        // ===> Returns financial instrument by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
@@ -1630,9 +1631,9 @@ bool OTRecordList::Populate()
                     else // NOT abbreviated. (Full box receipt is already
                            // loaded.)
                     {
-                        OTPayment* pPayment = pInbox->GetInstrument(
-                            *pNym, nIndex); // ===> Returns financial instrument
-                                            // by index.
+                        OTPayment* pPayment =
+                            GetInstrument(*pNym, nIndex, *pInbox);
+                        // ===> Returns financial instrument by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
@@ -1987,9 +1988,10 @@ bool OTRecordList::Populate()
                     else // NOT abbreviated. (Full box receipt is already
                            // loaded.)
                     {
-                        OTPayment* pPayment = pRecordbox->GetInstrument(
-                            *pNym, nIndex); // ===> Returns financial instrument
-                                            // by index.
+                        OTPayment* pPayment = GetInstrument(
+                            *pNym, nIndex,
+                            *pRecordbox); // ===> Returns financial instrument
+                                          // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
@@ -2417,9 +2419,10 @@ bool OTRecordList::Populate()
                     else // NOT abbreviated. (Full box receipt is already
                            // loaded.)
                     {
-                        OTPayment* pPayment = pExpiredbox->GetInstrument(
-                            *pNym, nIndex); // ===> Returns financial instrument
-                                            // by index.
+                        OTPayment* pPayment = GetInstrument(
+                            *pNym, nIndex,
+                            *pExpiredbox); //===> Returns financial instrument
+                                           // by index.
                         OTCleanup<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
