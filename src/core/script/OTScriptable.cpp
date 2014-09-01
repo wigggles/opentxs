@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTScriptable.hpp"
-#include "OTCleanup.hpp"
 #include "OTAgent.hpp"
 #include "OTBylaw.hpp"
 #include "OTClause.hpp"
@@ -152,6 +151,8 @@
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
 #endif
+
+#include <memory>
 
 // CALLBACKS
 //
@@ -1008,9 +1009,8 @@ bool OTScriptable::VerifyPartyAuthorization(
     //
     OTAgent* pAuthorizingAgent = nullptr;
     OTPseudonym* pAuthAgentsNym = nullptr;
-    OTCleanup<OTPseudonym> theAgentNymAngel; // In case I have to load it
-                                             // myself, I want it cleaned up
-                                             // properly.
+    // In case I have to load it myself, I want it cleaned up properly.
+    std::unique_ptr<OTPseudonym> theAgentNymAngel;
 
     // Some nyms are *already* loaded. If any were passed in, let's see if any
     // of them are
@@ -1076,7 +1076,7 @@ bool OTScriptable::VerifyPartyAuthorization(
             // where the CALLER can clean it up.
             //
             if (bNeedToCleanup)
-                theAgentNymAngel.SetCleanupTarget(*pAuthAgentsNym); // CLEANUP!!
+                theAgentNymAngel.reset(pAuthAgentsNym); // CLEANUP!!
             else {
                 const std::string str_agent_name =
                     pAuthorizingAgent->GetName().Get();
@@ -1209,7 +1209,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 
     OTScriptable* pPartySignedCopy =
         OTScriptable::InstantiateScriptable(theParty.GetMySignedCopy());
-    OTCleanup<OTScriptable> theCopyAngel;
+    std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
         otErr << __FUNCTION__ << ": Error loading party's signed copy of "
@@ -1219,7 +1219,7 @@ bool OTScriptable::VerifyPartyAuthorization(
         return false;
     }
     else {
-        theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
+        theCopyAngel.reset(pPartySignedCopy);
     }
 
     const bool bSigVerified =
@@ -1335,7 +1335,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
     //
     OTAgent* pAuthorizingAgent = nullptr;
     OTPseudonym* pAuthAgentsNym = nullptr;
-    OTCleanup<OTPseudonym> theAgentNymAngel;
+    std::unique_ptr<OTPseudonym> theAgentNymAngel;
 
     // See if theNym is the authorizing agent.
     //
@@ -1380,7 +1380,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
                    << pParty->GetPartyName()
                    << "), so I guess it wasn't already available "
                       "on the list of Nyms that were already loaded.\n";
-            theAgentNymAngel.SetCleanupTarget(*pAuthAgentsNym); // CLEANUP!!
+            theAgentNymAngel.reset(pAuthAgentsNym); // CLEANUP!!
         }
         else {
             otErr << "OTScriptable::VerifyNymAsAgent: Error: Strange, unable "
@@ -1424,7 +1424,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
 
     OTScriptable* pPartySignedCopy =
         OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy());
-    OTCleanup<OTScriptable> theCopyAngel;
+    std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
         otErr << "OTScriptable::VerifyNymAsAgent: Error loading party's ("
@@ -1434,7 +1434,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
         return false;
     }
     else
-        theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
+        theCopyAngel.reset(pPartySignedCopy);
 
     const bool bSigVerified =
         pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
@@ -1988,7 +1988,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
         if (pParty->GetMySignedCopy().Exists()) {
             OTScriptable* pPartySignedCopy =
                 OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy());
-            OTCleanup<OTScriptable> theCopyAngel;
+            std::unique_ptr<OTScriptable> theCopyAngel;
 
             if (nullptr == pPartySignedCopy) {
                 otErr << __FUNCTION__ << ": Error loading party's ("
@@ -1997,7 +1997,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
                 return false;
             }
             else
-                theCopyAngel.SetCleanupTarget(*pPartySignedCopy);
+                theCopyAngel.reset(pPartySignedCopy);
 
             if (!Compare(*pPartySignedCopy)) // <==== For all signed
                                              // copies, we compare them to
