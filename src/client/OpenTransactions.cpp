@@ -133,7 +133,6 @@
 #include <stdafx.hpp>
 
 #include "OpenTransactions.hpp"
-
 #include "OTAPI.hpp"
 #include "OTClient.hpp"
 #include "OTServerConnection.hpp"
@@ -13904,7 +13903,7 @@ int32_t OT_API::sendUserInstrument(
         bool bGotTransNum =
             THE_INSTRUMENT.GetOpeningNum(lTempTransNum, USER_ID);
         int32_t lOutpaymentsIndex =
-            bGotTransNum ? pNym->GetOutpaymentsIndexByTransNum(lTempTransNum)
+            bGotTransNum ? GetOutpaymentsIndexByTransNum(*pNym, lTempTransNum)
                          : (-1);
 
         if (lOutpaymentsIndex > (-1)) // found something that matches...

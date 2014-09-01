@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CLIENT_HELPERS_HPP
 #define OPENTXS_CLIENT_HELPERS_HPP
 
+#include <cstdint>
+
 namespace opentxs
 {
 
@@ -144,6 +146,9 @@ class OTPayment;
 // returns financial instrument by index. (Cheque, Purse, etc.)
 EXPORT OTPayment* GetInstrument(OTPseudonym& theNym, const int32_t& nIndex,
                                 OTLedger& ledger);
+
+EXPORT int32_t
+GetOutpaymentsIndexByTransNum(OTPseudonym& nym, const int64_t lTransNum);
 
 } // namespace opentxs
 

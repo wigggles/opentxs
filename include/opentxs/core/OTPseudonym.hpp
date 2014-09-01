@@ -1055,9 +1055,6 @@ public:
 
     EXPORT void ClearOutpayments(); // called by the destructor. (Not intended
                                     // to erase messages from local storage.)
-    EXPORT int32_t
-    GetOutpaymentsIndexByTransNum(const int64_t lTransNum); // Returns -1 on
-                                                            // failure.
     void ClearCredentials();
     void ClearAll();
     EXPORT void DisplayStatistics(OTString& strOutput);

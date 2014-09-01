@@ -133,7 +133,6 @@
 #include <stdafx.hpp>
 
 #include "OTClient.hpp"
-
 #include "OTServerConnection.hpp"
 #include "Helpers.hpp"
 
@@ -2499,8 +2498,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     OTNumList numlistOutpayment(
                                         lNymOpeningNumber);
                                     const int32_t nOutpaymentIndex =
-                                        pNym->GetOutpaymentsIndexByTransNum(
-                                            lNymOpeningNumber);
+                                        GetOutpaymentsIndexByTransNum(
+                                            *pNym, lNymOpeningNumber);
                                     OTCleanup<OTMessage> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
@@ -5251,7 +5250,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 record box. */
 
                                                 int32_t lOutpaymentsIndex =
-                                                    pNym->GetOutpaymentsIndexByTransNum(
+                                                    GetOutpaymentsIndexByTransNum(
+                                                        *pNym,
                                                         theCheque
                                                             .GetTransactionNum());
 
@@ -6664,7 +6664,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 // copy of it
                                                 // here.
                                                 const int32_t nOutpaymentIndex =
-                                                    pNym->GetOutpaymentsIndexByTransNum(
+                                                    GetOutpaymentsIndexByTransNum(
+                                                        *pNym,
                                                         lNymOpeningNumber);
                                                 OTCleanup<OTMessage>
                                                 theMessageAngel;

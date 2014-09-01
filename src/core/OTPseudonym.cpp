@@ -141,7 +141,6 @@
 #include "OTMessage.hpp"
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
-#include "OTPayment.hpp"
 #include "crypto/OTSignedFile.hpp"
 #include "OTStorage.hpp"
 #include "crypto/OTSubkey.hpp"
@@ -1221,40 +1220,6 @@ OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex)
         return nullptr;
 
     return m_dequeOutpayments.at(nIndex);
-}
-
-int32_t OTPseudonym::GetOutpaymentsIndexByTransNum(const int64_t lTransNum)
-{
-    int32_t lOutpaymentsCount = GetOutpaymentsCount();
-
-    for (int32_t lOutpaymentsIndex = 0; lOutpaymentsIndex < lOutpaymentsCount;
-         ++lOutpaymentsIndex) {
-        OTMessage* pOutpaymentMsg = GetOutpaymentsByIndex(lOutpaymentsIndex);
-        if (nullptr != pOutpaymentMsg) {
-            OTString strPayment;
-
-            // There isn't any encrypted envelope this time, since it's my
-            // outPayments box.
-            //
-            if (pOutpaymentMsg->m_ascPayload.Exists() &&
-                pOutpaymentMsg->m_ascPayload.GetString(strPayment) &&
-                strPayment.Exists()) {
-                OTPayment thePayment(strPayment);
-
-                // Let's see if it's the cheque we're looking for...
-                //
-                if (thePayment.IsValid()) {
-                    if (thePayment.SetTempValues()) {
-                        if (thePayment.HasTransactionNum(lTransNum)) {
-                            return static_cast<int32_t>(lOutpaymentsIndex);
-                        }
-                    }
-                }
-            }
-        }
-    } // for
-
-    return (-1);
 }
 
 // if this function returns false, outpayments index was bad.
