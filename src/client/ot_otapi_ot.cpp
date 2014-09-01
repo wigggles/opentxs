@@ -417,7 +417,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
     else if (theType == GET_BOX_RECEIPT) {
         accountID = p_nymID2; // accountID (inbox/outbox) or NymID (nymbox) is
                               // passed here.;
-        nData = to_int(p_strData);
+        nData = std::stol(p_strData);
         strData = p_strData2; // transaction number passed here as string;
     }
     else {
@@ -701,7 +701,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
     case ACTIVATE_SMART_CONTRACT:
         return OTAPI_Wrap::activateSmartContract(serverID, nymID, strData2);
     case TRIGGER_CLAUSE:
-        return OTAPI_Wrap::triggerClause(serverID, nymID, to_long(strData),
+        return OTAPI_Wrap::triggerClause(serverID, nymID, std::stoll(strData),
                                          strData2, strData3);
     case EXCHANGE_BASKET:
         return OTAPI_Wrap::exchangeBasket(serverID, nymID, assetID, basket,
@@ -720,13 +720,13 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
         return OTAPI_Wrap::exchangePurse(serverID, assetID, nymID, strData);
     case KILL_MARKET_OFFER:
         return OTAPI_Wrap::killMarketOffer(serverID, nymID, accountID,
-                                           to_long(strData));
+                                           std::stoll(strData));
     case KILL_PAYMENT_PLAN:
         return OTAPI_Wrap::killPaymentPlan(serverID, nymID, accountID,
-                                           to_long(strData));
+                                           std::stoll(strData));
     case GET_BOX_RECEIPT:
         return OTAPI_Wrap::getBoxReceipt(serverID, nymID, accountID, nData,
-                                         to_long(strData));
+                                         std::stoll(strData));
     case PROCESS_INBOX:
         return OTAPI_Wrap::processInbox(serverID, nymID, accountID, strData);
     case DEPOSIT_CASH:
@@ -755,12 +755,12 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
         return OTAPI_Wrap::getMarketRecentTrades(serverID, nymID, strData);
     case CREATE_MARKET_OFFER:
         return OTAPI_Wrap::issueMarketOffer(
-            accountID, accountID2, to_long(strData), to_long(strData2),
-            to_long(strData3), to_long(strData4), bBool, tData, strData5,
+            accountID, accountID2, std::stoll(strData), std::stoll(strData2),
+            std::stoll(strData3), std::stoll(strData4), bBool, tData, strData5,
             lData);
     case ADJUST_USAGE_CREDITS:
         return OTAPI_Wrap::usageCredits(serverID, nymID, nymID2,
-                                        to_long(strData));
+                                        std::stoll(strData));
     default:
         break;
     }
@@ -775,8 +775,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
                                                     const string& IN_FUNCTION)
 {
     Utility MsgUtil;
-    string strLocation =
-        concat("OTAPI_Func::SendRequestLowLevel: ", IN_FUNCTION);
+    string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
 
     OTAPI_Wrap::FlushMessageBuffer();
 
@@ -841,7 +840,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
                                                const int32_t nTotalRetries)
 {
     Utility MsgUtil;
-    string strLocation = concat("OTAPI_Func::SendTransaction: ", IN_FUNCTION);
+    string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
 
     if (!MsgUtil.getIntermediaryFiles(theFunction.serverID, theFunction.nymID,
                                       theFunction.accountID,
@@ -1017,7 +1016,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                                                bool& bCanRetryAfterThis)
 {
     Utility MsgUtil;
-    string strLocation = concat("OTAPI_Func::SendRequestOnce: ", IN_FUNCTION);
+    string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
 
     bCanRetryAfterThis = false;
 
@@ -1486,8 +1485,9 @@ output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
     string strCurrencyTypeID = offer_data.currency_type_id;
     string strSellStatus = offer_data.selling ? "SELL" : "BUY";
     string strTransactionID = offer_data.transaction_id;
-    string strAvailableAssets = to_string(to_long(offer_data.total_assets) -
-                                          to_long(offer_data.finished_so_far));
+    string strAvailableAssets =
+        std::to_string(std::stoll(offer_data.total_assets) -
+                       std::stoll(offer_data.finished_so_far));
 
     if (0 == nIndex) // first iteration! (Output a header.)
     {
@@ -1500,9 +1500,9 @@ output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
     //
     // Okay, we have the offer_data, so let's output it!
     //
-    print(to_string(nIndex) + "\t" + offer_data.transaction_id + "\t" +
-          strSellStatus + "\t" + offer_data.price_per_scale + "\t" +
-          strAvailableAssets);
+    std::cout << (nIndex) << "\t" << offer_data.transaction_id << "\t"
+              << strSellStatus << "\t" << offer_data.price_per_scale << "\t"
+              << strAvailableAssets << "\n";
 
     return 1;
 }
@@ -1614,8 +1614,8 @@ find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
         // (Because I don't want to buy-high, sell low.)
         //
         if (!extra_vals.bSelling && offer_data.selling &&
-            (to_long(offer_data.price_per_scale) <
-             to_long(extra_vals.the_price))) {
+            (std::stoll(offer_data.price_per_scale) <
+             std::stoll(extra_vals.the_price))) {
             extra_vals.the_vector.push_back(offer_data.transaction_id);
         }
         // Similarly, when placing a sell offer, check all the other offers I
@@ -1625,8 +1625,8 @@ find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
         // sell offer, then cancel that buy offer from the market.
         //
         else if (extra_vals.bSelling && !offer_data.selling &&
-                 (to_long(offer_data.price_per_scale) >
-                  to_long(extra_vals.the_price))) {
+                 (std::stoll(offer_data.price_per_scale) >
+                  std::stoll(extra_vals.the_price))) {
             extra_vals.the_vector.push_back(offer_data.transaction_id);
         }
     }

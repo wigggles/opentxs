@@ -635,8 +635,8 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
-                 "public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "public encryption key for recipient: " << RECIPIENT_NYM_ID
+              << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -661,8 +661,8 @@ MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
-                 "retrieve public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -687,8 +687,8 @@ MadeEasy::send_user_cash(const string& SERVER_ID, const string& NYM_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
-                 "retrieve public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -758,7 +758,7 @@ MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(GET_BOX_RECEIPT, SERVER_ID, NYM_ID, ACCT_ID,
-                          to_string(nBoxType), STR_TRANS_NUM);
+                          std::to_string(nBoxType), STR_TRANS_NUM);
     string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT");
 
     return strResponse;
@@ -893,7 +893,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     //
     if (VerifyStringVal(strLifespanInSeconds)) {
         theRequest.tData =
-            OTTimeGetTimeFromSeconds(to_long(strLifespanInSeconds));
+            OTTimeGetTimeFromSeconds(std::stoll(strLifespanInSeconds));
     }
 
     if (VerifyStringVal(strStopSign)) {
@@ -901,7 +901,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     }
 
     if (VerifyStringVal(strActivationPrice)) {
-        theRequest.lData = to_long(strActivationPrice);
+        theRequest.lData = std::stoll(strActivationPrice);
     }
 
     string strResponse =
@@ -1900,7 +1900,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                          "must copy the purse NOW and save it to a safe place! "
                          "\n";
 
-                print(newPurse);
+                std::cout << newPurse << "\n";
 
                 otOut << "AGAIN: Be sure to copy the above purse "
                          "to a safe place, since it FAILED to "
@@ -1913,7 +1913,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                      "Therefore YOU must copy the purse NOW and "
                      "save it to a safe place! \n";
 
-            print(newPurse);
+            std::cout << newPurse << "\n";
 
             otOut << "AGAIN: Be sure to copy the above purse to a "
                      "safe place, since it FAILED to deposit. \n";

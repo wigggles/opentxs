@@ -854,7 +854,7 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
 // bForceDownload, nRequestNumber, bFoundNymboxItem, bHarvestingForRetry,
 // bMsgFoursome)
 //{
-//    print("Here's the dead version!\n")
+//    cout << "Here's the dead version!\n";
 //}
 
 // var nGetAndProcessNymbox = getAndProcessNymbox_8(serverID, nymID,
