@@ -143,8 +143,19 @@ class OTString;
 class OTTransaction;
 class OTLedger;
 class OTIdentifier;
+class OTNumList;
 
 const char* GetTransactionTypeString(int transactionNumber);
+
+int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
+                              int64_t& lNumberOfOrigin,
+                              int64_t& lTransactionNum, int64_t& lInRefTo,
+                              int64_t& lInRefDisplay, time64_t& the_DATE_SIGNED,
+                              int& theType, OTString& strHash,
+                              int64_t& lAdjustment, int64_t& lDisplayValue,
+                              int64_t& lClosingNum, int64_t& lRequestNum,
+                              bool& bReplyTransSuccess,
+                              OTNumList* pNumList = nullptr);
 
 bool VerifyBoxReceiptExists(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,

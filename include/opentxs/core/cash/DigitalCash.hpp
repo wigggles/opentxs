@@ -134,7 +134,7 @@
 #define __DIGITAL_CASH_HPP__
 
 #ifdef OT_CASH_USING_LUCRE
-#include "lucre/bank.h" // Lucre
+#include <lucre/bank.h> // Lucre
 #endif
 
 #ifdef OT_CASH_USING_MAGIC_MONEY

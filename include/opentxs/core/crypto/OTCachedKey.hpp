@@ -133,7 +133,7 @@
 #ifndef __OT_CACHED_KEY_HPP__
 #define __OT_CACHED_KEY_HPP__
 
-#include "util/tinythread.hpp"
+#include "../util/tinythread.hpp"
 
 #include <string>
 #include <memory>

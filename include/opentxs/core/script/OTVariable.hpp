@@ -133,7 +133,7 @@
 #ifndef __OT_VARIABLE_HPP__
 #define __OT_VARIABLE_HPP__
 
-#include "OTString.hpp"
+#include "../OTString.hpp"
 
 namespace opentxs
 {

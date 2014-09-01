@@ -23,8 +23,8 @@ set(cxx-sources
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
   crypto/OTCachedKey.cpp
-  OTCallback.cpp
-  OTCaller.cpp
+  crypto/OTCallback.cpp
+  crypto/OTCaller.cpp
   OTCheque.cpp
   OTContract.cpp
   crypto/OTCredential.cpp

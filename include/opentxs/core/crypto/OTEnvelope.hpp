@@ -133,7 +133,7 @@
 #ifndef __OT_ENVELOPE_HPP__
 #define __OT_ENVELOPE_HPP__
 
-#include "OTData.hpp"
+#include "../OTData.hpp"
 
 #include <map>
 #include <set>

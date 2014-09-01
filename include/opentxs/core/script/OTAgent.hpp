@@ -133,8 +133,7 @@
 #ifndef __OT_AGENT_HPP__
 #define __OT_AGENT_HPP__
 
-#include "OTString.hpp"
-
+#include "../OTString.hpp"
 #include <map>
 
 namespace opentxs

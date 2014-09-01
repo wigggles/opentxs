@@ -130,8 +130,6 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
-
 #include "cron/OTCron.hpp"
 #include "OTCleanup.hpp"
 #include "crypto/OTASCIIArmor.hpp"

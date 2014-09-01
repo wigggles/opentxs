@@ -136,7 +136,7 @@
 #ifndef __OT_OFFER_HPP__
 #define __OT_OFFER_HPP__
 
-#include "OTInstrument.hpp"
+#include "../OTInstrument.hpp"
 
 namespace opentxs
 {

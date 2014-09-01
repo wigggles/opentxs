@@ -135,10 +135,10 @@
 
 // only included because it needs constructor for default parameter
 // initialization
-#include "OTPayload.hpp"
-#include "OTString.hpp"
-#include "util/Assert.hpp"
-#include "util/tinythread.hpp"
+#include "../OTPayload.hpp"
+#include "../OTString.hpp"
+#include "../util/Assert.hpp"
+#include "../util/tinythread.hpp"
 
 #include <set>
 

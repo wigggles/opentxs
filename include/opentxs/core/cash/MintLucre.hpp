@@ -133,7 +133,7 @@
 #ifndef __MINT_LUCRE_HPP__
 #define __MINT_LUCRE_HPP__
 
-#include "cash/Mint.hpp"
+#include "Mint.hpp"
 
 namespace opentxs
 {

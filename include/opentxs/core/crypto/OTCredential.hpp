@@ -133,8 +133,8 @@
 #ifndef __OT_CREDENTIAL_HPP__
 #define __OT_CREDENTIAL_HPP__
 
-#include "crypto/OTMasterkey.hpp"
-#include "OTString.hpp"
+#include "OTMasterkey.hpp"
+#include "../OTString.hpp"
 
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have

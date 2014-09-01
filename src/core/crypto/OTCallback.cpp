@@ -132,8 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTCallback.hpp"
-
+#include "crypto/OTCallback.hpp"
 #include "OTLog.hpp"
 
 // For SecureZeroMemory
