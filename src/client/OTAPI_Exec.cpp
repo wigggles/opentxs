@@ -135,6 +135,7 @@
 #include "OTAPI_Exec.hpp"
 
 #include "OpenTransactions.hpp"
+#include "Helpers.hpp"
 
 #include <OTAccount.hpp>
 #include <script/OTAgent.hpp>
@@ -9451,8 +9452,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
     }
     // At this point, I know theLedger loaded successfully.
     //
-    OTPayment* pPayment = theLedger.GetInstrument(
-        *pNym, nIndex); // caller is responsible to delete.
+    OTPayment* pPayment = GetInstrument(
+        *pNym, nIndex, theLedger); // caller is responsible to delete.
     OTCleanup<OTPayment> thePaymentAngel(pPayment);
 
     if ((nullptr == pPayment) || !pPayment->IsValid()) {
