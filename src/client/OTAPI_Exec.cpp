@@ -130,41 +130,40 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "../core/stdafx.hpp"
 
 #include "OTAPI_Exec.hpp"
-
 #include "OpenTransactions.hpp"
+#include "OTWallet.hpp"
 #include "Helpers.hpp"
 
-#include <OTAccount.hpp>
-#include <script/OTAgent.hpp>
-#include <OTAmount.hpp>
-#include <OTAssetContract.hpp>
-#include <crypto/OTAsymmetricKey.hpp>
-#include <script/OTBylaw.hpp>
-#include <OTCheque.hpp>
-#include <script/OTClause.hpp>
-#include <OTCleanup.hpp>
-#include <crypto/OTCredential.hpp>
-#include <crypto/OTEnvelope.hpp>
-#include <OTLedger.hpp>
-#include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <script/OTParty.hpp>
-#include <script/OTPartyAccount.hpp>
-#include <crypto/OTPasswordData.hpp>
-#include <OTPaths.hpp>
-#include <OTPayment.hpp>
-#include <OTPaymentPlan.hpp>
-#include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
-#include <crypto/OTSymmetricKey.hpp>
-#include <OTWallet.hpp>
-#include <basket/OTBasket.hpp>
-#include <cash/Mint.hpp>
-#include <cash/Purse.hpp>
-#include <cash/Token.hpp>
+#include "../core/OTAccount.hpp"
+#include "../core/script/OTAgent.hpp"
+#include "../core/OTAmount.hpp"
+#include "../core/OTAssetContract.hpp"
+#include "../core/crypto/OTAsymmetricKey.hpp"
+#include "../core/script/OTBylaw.hpp"
+#include "../core/OTCheque.hpp"
+#include "../core/script/OTClause.hpp"
+#include "../core/OTCleanup.hpp"
+#include "../core/crypto/OTCredential.hpp"
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/OTLedger.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/script/OTParty.hpp"
+#include "../core/script/OTPartyAccount.hpp"
+#include "../core/crypto/OTPasswordData.hpp"
+#include "../core/OTPaths.hpp"
+#include "../core/OTPayment.hpp"
+#include "../core/OTPaymentPlan.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTServerContract.hpp"
+#include "../core/crypto/OTSymmetricKey.hpp"
+#include "../core/basket/OTBasket.hpp"
+#include "../core/cash/Mint.hpp"
+#include "../core/cash/Purse.hpp"
+#include "../core/cash/Token.hpp"
 
 namespace opentxs
 {

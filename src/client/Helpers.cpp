@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLedger.hpp>
-#include <opentxs/core/OTTransaction.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
-#include <opentxs/core/OTMessage.hpp>
-#include <opentxs/core/OTString.hpp>
-#include <opentxs/core/OTPayment.hpp>
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/OTLedger.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTString.hpp"
+#include "../core/OTPayment.hpp"
+#include "../core/OTLog.hpp"
 
 namespace opentxs
 {

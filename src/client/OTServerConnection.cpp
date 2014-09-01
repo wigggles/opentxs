@@ -130,22 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "../core/stdafx.hpp"
 
 #include "OTServerConnection.hpp"
-
 #include "OpenTransactions.hpp"
+#include "OTClient.hpp"
+#include "OTWallet.hpp"
 
-#include <OTAssetContract.hpp>
-#include <OTClient.hpp>
-#include <OTDataCheck.hpp>
-#include <crypto/OTEnvelope.hpp>
-#include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <OTPayload.hpp>
-#include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
-#include <OTWallet.hpp>
+#include "../core/OTAssetContract.hpp"
+#include "../core/OTDataCheck.hpp"
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTPayload.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTServerContract.hpp"
 
 extern "C" {
 #ifdef _WIN32

@@ -133,7 +133,7 @@
 #ifndef __OT_MADE_EASY_OT_HPP__
 #define __OT_MADE_EASY_OT_HPP__
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
 
 #include <vector>
 

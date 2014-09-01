@@ -133,7 +133,7 @@
 #ifndef __OPEN_TRANSACTIONS_HPP__
 #define __OPEN_TRANSACTIONS_HPP__
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
 
 #ifndef SWIG
 #ifndef NOT_SWIG

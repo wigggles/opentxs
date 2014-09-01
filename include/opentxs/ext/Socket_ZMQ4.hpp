@@ -133,7 +133,7 @@
 #ifndef __SOCKET_ZMQ4_HPP__
 #define __SOCKET_ZMQ4_HPP__
 
-#include "OTSocket.hpp"
+#include "opentxs/ext/OTSocket.hpp"
 
 namespace tthread
 {

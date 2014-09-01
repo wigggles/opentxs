@@ -133,7 +133,7 @@
 #ifndef __OT_ME_CPP_HPP__
 #define __OT_ME_CPP_HPP__
 
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/util/Common.hpp"
 
 namespace opentxs
 {

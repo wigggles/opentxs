@@ -130,13 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
-
+#include "../core/stdafx.hpp"
 #include "Socket_ZMQ4.hpp"
+#include "../core/OTLog.hpp"
 
-#include "OTLog.hpp"
-
-#include <zmq.hpp>
+#include <cppzmq/zmq.hpp>
 
 namespace opentxs
 {
