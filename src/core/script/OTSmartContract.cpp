@@ -593,7 +593,6 @@ various sequence numbers. Hm.
 #include "stdafx.hpp"
 
 #include "OTSmartContract.hpp"
-#include "OTCleanup.hpp"
 #include "OTAgent.hpp"
 #include "OTBylaw.hpp"
 #include "OTClause.hpp"
@@ -617,6 +616,8 @@ various sequence numbers. Hm.
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
 #endif
+
+#include <memory>
 
 #ifndef SMART_CONTRACT_PROCESS_INTERVAL
 #define SMART_CONTRACT_PROCESS_INTERVAL                                        \
@@ -1382,7 +1383,7 @@ std::string OTSmartContract::GetAcctBalance(const std::string from_acct_name)
         return 0;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theSourceAcctSmrtPtr(*pPartyAssetAcct);
+    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     OTString strBalance;
     strBalance.Format("%lld", pPartyAssetAcct->GetBalance());
@@ -1600,7 +1601,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(
         return str_return_value;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theSourceAcctSmrtPtr(*pPartyAssetAcct);
+    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     const OTString strAssetTypeID(pPartyAssetAcct->GetAssetTypeID());
     str_return_value = strAssetTypeID.Get();
@@ -2336,7 +2337,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theSourceAcctSmrtPtr(*pPartyAssetAcct);
+    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     //
     // There could be many stashes, each with a name. (One was passed in
@@ -2496,22 +2497,17 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // Will need to verify the party's signature, as well as attach a copy of it
     // to the receipt.
 
-    OTCronItem* pOrigCronItem = nullptr;
-
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    pOrigCronItem = OTCronItem::LoadCronReceipt(GetTransactionNum());
+    std::unique_ptr<OTCronItem> pOrigCronItem(
+        OTCronItem::LoadCronReceipt(GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem); // How am I processing it now if the
                                          // receipt wasn't saved in the first
                                          // place??
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
-
-    // When theOrigPlanGuardian goes out of scope, pOrigCronItem gets deleted
-    // automatically.
-    OTCleanup<OTCronItem> theOrigPlanGuardian(*pOrigCronItem);
 
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original smart contract activation request...
@@ -3471,7 +3467,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // just points to *pActingNym also.
         //
         OTPseudonym* pPartyNym = nullptr;
-        OTCleanup<OTPseudonym> thePartyNymAngel; // In case we have to allocate.
+        std::unique_ptr<OTPseudonym> thePartyNymAngel;
 
         // See if the serverNym is an agent on this party.
         //
@@ -3513,9 +3509,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             // Todo.
             //
             pPartyNym = pParty->LoadAuthorizingAgentNym(*pServerNym);
-
-            if (nullptr != pPartyNym)
-                thePartyNymAngel.SetCleanupTarget(*pPartyNym);
+            thePartyNymAngel.reset(pPartyNym);
         }
 
         // Every party SHOULD have an authorizing agent (otherwise how did that
@@ -3803,7 +3797,7 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
         std::shared_ptr<OTScript> pScript =
             OTScriptFactory(str_language, str_code);
 
-        OTCleanup<OTVariable> theVarAngel;
+        std::unique_ptr<OTVariable> theVarAngel;
 
         //
         // SET UP THE NATIVE CALLS, REGISTER THE PARTIES, REGISTER THE
@@ -3866,7 +3860,7 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
                 OTVariable* pVar = new OTVariable(str_Name, str_Value,
                                                   OTVariable::Var_Constant);
                 OT_ASSERT(nullptr != pVar);
-                theVarAngel.SetCleanupTarget(*pVar);
+                theVarAngel.reset(pVar);
 
                 pVar->RegisterForExecution(*pScript); // This causes pVar to
                                                       // keep a pointer to the
@@ -5665,7 +5659,7 @@ bool OTSmartContract::LoadEditable(const OTString& strName)
 
 bool OTSmartContract::SaveEditable(const OTString& strName)
 {
-    OTDB::StringMap* pList = nullptr;
+    std::unique_ptr<OTDB::StringMap> pList;
 
     if (!strName.Exists()) {
         otErr << "OTSmartContract::SaveEditable: Empty name passed in. "
@@ -5681,18 +5675,17 @@ bool OTSmartContract::SaveEditable(const OTString& strName)
                      "editing", // todo hardcoding. The folder where smart
                                 // contracts are edited.
                      "list.dat"))
-        pList = dynamic_cast<OTDB::StringMap*>(OTDB::QueryObject(
+        pList.reset(dynamic_cast<OTDB::StringMap*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP, OTFolders::SmartContracts().Get(),
             strServerID.Get(), "editing", // todo stop hardcoding.
-            "list.dat"));
+            "list.dat")));
     if (nullptr == pList) {
         otInfo << "OTSmartContract::SaveEditable: Creating storage list of "
                   "editable smart contracts.\n";
-        pList = dynamic_cast<OTDB::StringMap*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
+        pList.reset(dynamic_cast<OTDB::StringMap*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP)));
     }
     OT_ASSERT(nullptr != pList);
-    OTCleanup<OTDB::StringMap> theListAngel(*pList);
 
     const std::string str_asc_name(ascName.Get()),
         str_name(strName.Get()); // encoded name and normal name.
