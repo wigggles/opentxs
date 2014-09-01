@@ -133,7 +133,7 @@
 #ifndef __OT_RECORD_LIST__
 #define __OT_RECORD_LIST__
 
-#include <opentxs/api/OTRecord.hpp>
+#include <opentxs/client/OTRecord.hpp>
 
 #include <list>
 #include <map>

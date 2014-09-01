@@ -735,10 +735,10 @@ WARN_LOGFILE           =
 
 INPUT                  = README.md \
                          deps/lucre/include/lucre \
-                         include/opentxs/api \
+                         include/opentxs/client \
                          include/opentxs/extensions \
                          include/opentxs/core \
-                         src/api \
+                         src/client \
                          src/extensions \
                          src/core \
                          src/opentxs
