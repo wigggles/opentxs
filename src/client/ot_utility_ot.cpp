@@ -139,6 +139,8 @@
 namespace opentxs
 {
 
+using namespace std;
+
 OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr)
 {
     return VerifyExists(theObjectNameAsStr, true);
@@ -150,9 +152,9 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
     if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
         if (bDisplayError) {
             otOut << "Missing parameter: --";
-            std::locale loc;
+            locale loc;
             for (auto elem : theObjectNameAsStr) {
-                otOut << std::tolower(elem, loc);
+                otOut << tolower(elem, loc);
             }
             otOut << "\n";
         }
@@ -2352,19 +2354,19 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 }
 
 /*
-static void getBoxReceipt(  const std::string SERVER_ID,
-const std::string USER_ID,
-const std::string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
+static void getBoxReceipt(  const string SERVER_ID,
+const string USER_ID,
+const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
 const int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
-const std::string TRANSACTION_NUMBER);
+const string TRANSACTION_NUMBER);
 
-static bool DoesBoxReceiptExist(const std::string SERVER_ID,
-const std::string USER_ID,
-const std::string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
+static bool DoesBoxReceiptExist(const string SERVER_ID,
+const string USER_ID,
+const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
 const int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
-const std::string TRANSACTION_NUMBER);
+const string TRANSACTION_NUMBER);
 */
 // If the transaction number requests fail, this function will try to resync
 // the request number. But you still have to call getRequest() yourself if

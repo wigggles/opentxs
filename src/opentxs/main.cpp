@@ -132,6 +132,8 @@ kamH0Y/n11lCvo1oQxM+
 
 #include "opentxs.hpp"
 
+using namespace opentxs;
+
 int main(int argc, char* argv[])
 {
     Opentxs opentxsCLI;

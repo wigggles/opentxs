@@ -31,10 +31,9 @@
 #include "OT_ME.hpp"
 #include "../core/OTLog.hpp"
 
-using std::cout;
-
 namespace opentxs
 {
+using namespace std;
 
 OT_COMMANDS_OT int32_t OT_Command::mainRevokeCredential()
 {

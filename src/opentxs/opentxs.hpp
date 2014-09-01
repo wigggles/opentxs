@@ -138,7 +138,8 @@
 
 class AnyOption;
 
-using namespace opentxs;
+namespace opentxs
+{
 
 class Opentxs
 {
@@ -195,5 +196,7 @@ private:
     std::string argMyPurse;
     std::string argServer;
 };
+
+} // namespace opentxs
 
 #endif // __OPENTXS_HPP__

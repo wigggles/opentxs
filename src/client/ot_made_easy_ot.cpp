@@ -145,8 +145,8 @@
 // somehow.
 //
 
-namespace opentxs
-{
+using namespace opentxs;
+using namespace std;
 
 OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
                                                   const string& strMyServerID,
@@ -758,7 +758,7 @@ MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(GET_BOX_RECEIPT, SERVER_ID, NYM_ID, ACCT_ID,
-                          std::to_string(nBoxType), STR_TRANS_NUM);
+                          to_string(nBoxType), STR_TRANS_NUM);
     string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT");
 
     return strResponse;
@@ -893,7 +893,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     //
     if (VerifyStringVal(strLifespanInSeconds)) {
         theRequest.tData =
-            OTTimeGetTimeFromSeconds(std::stoll(strLifespanInSeconds));
+            OTTimeGetTimeFromSeconds(stoll(strLifespanInSeconds));
     }
 
     if (VerifyStringVal(strStopSign)) {
@@ -901,7 +901,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     }
 
     if (VerifyStringVal(strActivationPrice)) {
-        theRequest.lData = std::stoll(strActivationPrice);
+        theRequest.lData = stoll(strActivationPrice);
     }
 
     string strResponse =
@@ -1601,11 +1601,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // At this point, we check TokenID (identifying the current token)
             // to see if it's on the SELECTED LIST.
             //
-            if (std::find(selectedTokens.begin(), selectedTokens.end(),
-                          tokenID) != selectedTokens.end()) // We ARE exporting
-                                                            // this token. (Its
-                                                            // ID was on the
-                                                            // list.)
+            if (find(selectedTokens.begin(), selectedTokens.end(), tokenID) !=
+                selectedTokens.end()) // We ARE exporting
+                                      // this token. (Its
+                                      // ID was on the
+                                      // list.)
             {
                 // CHANGE OWNER from NYM to RECIPIENT
                 // "token" will now contain the EXPORTED TOKEN, with the NEW
@@ -1900,7 +1900,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                          "must copy the purse NOW and save it to a safe place! "
                          "\n";
 
-                std::cout << newPurse << "\n";
+                cout << newPurse << "\n";
 
                 otOut << "AGAIN: Be sure to copy the above purse "
                          "to a safe place, since it FAILED to "
@@ -1913,7 +1913,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                      "Therefore YOU must copy the purse NOW and "
                      "save it to a safe place! \n";
 
-            std::cout << newPurse << "\n";
+            cout << newPurse << "\n";
 
             otOut << "AGAIN: Be sure to copy the above purse to a "
                      "safe place, since it FAILED to deposit. \n";
@@ -2112,5 +2112,3 @@ strData, strData2, strData3, strData4, bBool);
 }
 
 */
-
-} // namespace opentxs
