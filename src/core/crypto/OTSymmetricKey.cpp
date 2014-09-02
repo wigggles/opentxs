@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "crypto/OTSymmetricKey.hpp"
-#include "OTCleanup.hpp"
 #include "crypto/OTASCIIArmor.hpp"
 #include "crypto/OTAsymmetricKey.hpp"
 #include "crypto/OTCrypto.hpp"
@@ -142,6 +141,8 @@
 #include "OTLog.hpp"
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
+
+#include <memory>
 
 extern "C" {
 #ifdef _WIN32
@@ -225,10 +226,9 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 
     // Generate the new derived key from the new passphrase.
     //
-    OTCleanup<OTPassword> theDerivedAngel;
-    OTPassword* pNewDerivedKey =
-        CalculateNewDerivedKeyFromPassphrase(newPassphrase); // asserts already.
-    theDerivedAngel.SetCleanupTarget(*pNewDerivedKey);
+    std::unique_ptr<OTPassword> pNewDerivedKey(
+        CalculateNewDerivedKeyFromPassphrase(newPassphrase)); // asserts
+                                                              // already.
 
     // Below this point, pNewDerivedKey is NOT null. (And will be cleaned up
     // automatically.)
@@ -325,21 +325,20 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
 
     // Generate derived key from passphrase.
     //
-    OTCleanup<OTPassword> theDerivedAngel;
-
-    OTPassword* pDerivedKey =
-        CalculateNewDerivedKeyFromPassphrase(thePassphrase); // asserts already.
+    std::unique_ptr<OTPassword> pDerivedKey(
+        CalculateNewDerivedKeyFromPassphrase(thePassphrase)); // asserts
+                                                              // already.
 
     if (nullptr !=
         ppDerivedKey) // A pointerpointer was passed in... (caller will
                       // be responsible then, to delete.)
     {
-        *ppDerivedKey = pDerivedKey;
+        *ppDerivedKey = pDerivedKey.get();
     }
     else // We only clean it up in this case, where the caller didn't want the
            // pointer passed back.
     {
-        theDerivedAngel.SetCleanupTarget(*pDerivedKey);
+        pDerivedKey.reset();
     }
     // Below this point, pDerivedKey is NOT null. (And we only clean it up later
     // if we created it.)
@@ -542,7 +541,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
     OT_ASSERT(m_bIsGenerated);
     //  OT_ASSERT(thePassphrase.isPassword());
 
-    OTCleanup<OTPassword> theDerivedAngel;
+    std::unique_ptr<OTPassword> theDerivedAngel;
 
     if (nullptr == pDerivedKey) {
         // todo, security: Do we have to create all these OTPassword objects on
@@ -554,7 +553,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
         pDerivedKey = CalculateDerivedKeyFromPassphrase(
             thePassphrase, false); // asserts already.
 
-        theDerivedAngel.SetCleanupTarget(*pDerivedKey);
+        theDerivedAngel.reset(pDerivedKey);
     }
     // Below this point, pDerivedKey is NOT null. And we only clean it up if we
     // created it.
@@ -672,20 +671,18 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
                                   const OTString* pstrDisplay,
                                   const OTPassword* pAlreadyHavePW)
 {
-    OTPassword* pPassUserInput = nullptr;
-    OTCleanup<OTPassword> thePWAngel;
+    std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Creating new symmetric key.";
         const OTString strDisplay(
             (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay, true); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
+        pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
+            &strDisplay, true)); // bAskTwice=false by default.
     }
     else
-        pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
+        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
 
     bool bSuccess = false;
 
@@ -760,20 +757,18 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 
     // By this point, we know we have a plaintext and a symmetric Key.
     //
-    OTPassword* pPassUserInput = nullptr;
-    OTCleanup<OTPassword> thePWAngel;
+    std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Password-protecting a plaintext.";
         const OTString strDisplay(
             (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
+        pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
+            &strDisplay)); // bAskTwice=false by default.
     }
     else
-        pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
+        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
 
     OTASCIIArmor ascOutput;
     bool bSuccess = false;
@@ -862,20 +857,18 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
 
     // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
-    OTPassword* pPassUserInput = nullptr;
-    OTCleanup<OTPassword> thePWAngel;
+    std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Decrypting a password-protected ciphertext.";
         const OTString strDisplay(
             (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
 
-        pPassUserInput = OTSymmetricKey::GetPassphraseFromUser(
-            &strDisplay); // bAskTwice=false by default.
-        thePWAngel.SetCleanupTargetPointer(pPassUserInput); // may be nullptr.
+        pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
+            &strDisplay)); // bAskTwice=false by default.
     }
     else
-        pPassUserInput = const_cast<OTPassword*>(pAlreadyHavePW);
+        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
 
     bool bSuccess = false;
 
