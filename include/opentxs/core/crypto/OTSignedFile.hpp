@@ -180,7 +180,7 @@ public:
     // These assume SetFilename() was already called,
     // or at least one of the constructors that uses it.
     //
-    OTSignedFile();
+    EXPORT OTSignedFile();
     OTSignedFile(const OTString& LOCAL_SUBDIR, const OTString& FILE_NAME);
     OTSignedFile(const char* LOCAL_SUBDIR, const OTString& FILE_NAME);
     EXPORT OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME);

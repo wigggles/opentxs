@@ -29,6 +29,14 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/
 )
 
+if (WIN32)
+  # suppress "decorated name length exceeded, name was truncated" warnings 
+  add_definitions(/wd4503)
+
+  # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
+  add_definitions(/bigobj)
+endif()
+
 add_library(opentxs-script
   STATIC
   ${cxx-sources}

@@ -21,9 +21,9 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp")
 
-if(MSVC)
+if(WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings 
-  add_Definitions("/wd4503")
+  add_definitions("/wd4503")
 endif()
 
 set(dependency_include_dir

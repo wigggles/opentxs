@@ -145,7 +145,7 @@ class OTLedger;
 class OTIdentifier;
 class OTNumList;
 
-const char* GetTransactionTypeString(int transactionNumber);
+EXPORT const char* GetTransactionTypeString(int transactionNumber);
 
 int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
@@ -157,7 +157,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               bool& bReplyTransSuccess,
                               OTNumList* pNumList = nullptr);
 
-bool VerifyBoxReceiptExists(
+EXPORT bool VerifyBoxReceiptExists(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
     const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
     // pass USER_ID in this field also.
@@ -166,8 +166,8 @@ bool VerifyBoxReceiptExists(
 
 OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger);
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                              const int64_t lLedgerType);
+EXPORT OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
+                                     const int64_t lLedgerType);
 
 bool SetupBoxReceiptFilename(const int64_t lLedgerType,
                              OTTransaction& theTransaction,

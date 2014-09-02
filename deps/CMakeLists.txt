@@ -14,7 +14,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/)
 
 if(WIN32)
   # suppress sscanf/sprintf being unsafe warnings 
-  add_Definitions("/wd4996")
+  add_definitions("/wd4996")
 
   add_library(lucre
     STATIC
