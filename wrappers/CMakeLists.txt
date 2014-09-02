@@ -5,8 +5,9 @@ set(SWIG_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/core
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/core/crypto
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/ext
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/api
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/client
 )
 
 if(PYTHON)
