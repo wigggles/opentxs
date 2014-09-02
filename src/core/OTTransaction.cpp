@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTTransaction.hpp"
-#include "OTCleanup.hpp"
 #include "OTCheque.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
@@ -147,6 +146,8 @@
 #include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 namespace opentxs
 {
@@ -1642,9 +1643,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     OTString strTransaction(strFileContents.c_str());
 
     //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealServerID());
-    OTTransactionType* pContents =
-        OTTransactionType::TransactionFactory(strTransaction);
-    OTCleanup<OTTransactionType> theAngel(pContents);
+    std::unique_ptr<OTTransactionType> pContents(
+        OTTransactionType::TransactionFactory(strTransaction));
 
     if (nullptr == pContents) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load "
@@ -1663,7 +1663,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // At this point, pContents is successfully loaded and verified, containing
     // the last transaction receipt.
-    OTTransaction* pTrans = dynamic_cast<OTTransaction*>(pContents);
+    OTTransaction* pTrans = dynamic_cast<OTTransaction*>(pContents.get());
 
     if (nullptr == pTrans) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Was expecting an "
@@ -1795,12 +1795,10 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD INBOX AND OUTBOX
 
-    OTLedger* pInbox = THE_ACCOUNT.LoadInbox(
-        THE_NYM); // OTAccount::Load also calls VerifyAccount() already
-    OTLedger* pOutbox = THE_ACCOUNT.LoadOutbox(
-        THE_NYM); // OTAccount::Load also calls VerifyAccount() already
-    OTCleanup<OTLedger> theInboxAngel(pInbox);
-    OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+    std::unique_ptr<OTLedger> pInbox(THE_ACCOUNT.LoadInbox(
+        THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
+    std::unique_ptr<OTLedger> pOutbox(THE_ACCOUNT.LoadOutbox(
+        THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
 
     if ((nullptr == pInbox) || (nullptr == pOutbox)) {
         // error, return.
@@ -2034,7 +2032,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             nInboxItemCount++;
             //                otErr << "RECEIPT: nInboxItemCount: %d
             // nOutboxItemCount: %d\n", nInboxItemCount, nOutboxItemCount);
-            pLedger = pInbox;
+            pLedger = pInbox.get();
             pszLedgerType = szInbox;
 
         // DROPS THROUGH HERE...
@@ -2067,14 +2065,14 @@ bool OTTransaction::VerifyBalanceReceipt(
                 // ITEM: nInboxItemCount: %d  nOutboxItemCount: %d\n",
                 // nInboxItemCount, nOutboxItemCount);
 
-                pLedger = pOutbox;
+                pLedger = pOutbox.get();
                 pszLedgerType = szOutbox;
             }
             else {
                 lReceiptAmountMultiplier =
                     1; // transfers in always increase your balance.
                 nInboxItemCount++;
-                pLedger = pInbox;
+                pLedger = pInbox.get();
                 pszLedgerType = szInbox;
 
                 //                    otErr << "GetAmount() POSITIVE, INBOX
@@ -2113,8 +2111,9 @@ bool OTTransaction::VerifyBalanceReceipt(
         // the server, upon success, will actually put a real pending transfer
         // into his outbox, and
         // issue a number for it (like "34").
-        if ((pOutbox == pLedger) && // Thus it's understood that whenever the
-                                    // balanceStatement
+        if ((pOutbox.get() ==
+             pLedger) && // Thus it's understood that whenever the
+                         // balanceStatement
             // has a "1" in the outbox, I should find a corresponding "34" (or
             // whatever # the
             (pSubItem->GetTransactionNum() ==
@@ -2169,7 +2168,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         //
         // Therefore the code has to specifically allow for this case, for
         // outbox items...
-        if ((nullptr == pTransaction) && (pOutbox == pLedger)) {
+        if ((nullptr == pTransaction) && (pOutbox.get() == pLedger)) {
             otLog4 << "OTTransaction::" << __FUNCTION__
                    << ": Outbox pending found as inbox transferReceipt. "
                       "(Normal.)\n";
@@ -2242,7 +2241,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                 // nInboxItemCount: %d  nOutboxItemCount: %d\n",
                 // nInboxItemCount, nOutboxItemCount);
 
-                pLedger = pInbox;
+                pLedger = pInbox.get();
                 pszLedgerType = szInbox;
 
                 bSwitchedBoxes =
@@ -2317,9 +2316,9 @@ bool OTTransaction::VerifyBalanceReceipt(
         if ((pSubItem->GetType() == OTItem::transfer) &&
             (((bSwitchedBoxes == true) &&
               (pTransaction->GetType() != OTTransaction::transferReceipt)) ||
-             ((pLedger == pOutbox) &&
+             ((pLedger == pOutbox.get()) &&
               (pTransaction->GetType() != OTTransaction::pending)) ||
-             ((pLedger == pInbox) &&
+             ((pLedger == pInbox.get()) &&
               (pTransaction->GetType() != OTTransaction::pending) &&
               (pTransaction->GetType() != OTTransaction::transferReceipt)))) {
             otOut << "OTTransaction::" << __FUNCTION__ << ": " << pszLedgerType
@@ -5698,7 +5697,7 @@ int64_t OTTransaction::GetReceiptAmount()
     int64_t lAdjustment = 0;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
 
     switch (GetType()) { // These are the types that have an amount (somehow)
     case OTTransaction::marketReceipt
@@ -5733,8 +5732,7 @@ int64_t OTTransaction::GetReceiptAmount()
             pOriginalItem = OTItem::CreateItemFromString(
                 strReference, GetPurportedServerID(), GetReferenceToNum());
 
-            if (nullptr != pOriginalItem)
-                theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+            if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
             break;
         }
@@ -5986,10 +5984,9 @@ void OTTransaction::CalculateNumberOfOrigin()
             // number of origin
             // as its transaction number.
             //
-            OTItem* pOriginalItem = OTItem::CreateItemFromString(
-                strReference, GetPurportedServerID(), GetReferenceToNum());
+            std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
+                strReference, GetPurportedServerID(), GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
-            OTCleanup<OTItem> theItemAngel(pOriginalItem);
 
             if (OTItem::depositCheque != pOriginalItem->GetType()) {
                 otErr << __FUNCTION__ << ": ERROR: Wrong item type attached to "
@@ -6167,9 +6164,9 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
     bool bSuccess = false;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
     OTCronItem* pCronItem = nullptr;
-    OTCleanup<OTCronItem> theCronItemAngel;
+    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6192,7 +6189,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                          "paymentReceipt transaction.\n";
 
             pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-            theCronItemAngel.SetCleanupTargetPointer(pCronItem);
+            theCronItemAngel.reset(pCronItem);
 
             OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
 
@@ -6278,8 +6275,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
         pOriginalItem = OTItem::CreateItemFromString(
             strReference, GetPurportedServerID(), GetReferenceToNum());
 
-        if (nullptr != pOriginalItem)
-            theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+        if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
         break;
     }
@@ -6360,8 +6356,8 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
     bool bSuccess = false;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
-    OTCleanup<OTCronItem> theCronItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
+    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6381,7 +6377,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                      "paymentReceipt transaction.\n";
 
         OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.SetCleanupTargetPointer(pCronItem);
+        theCronItemAngel.reset(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
         OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
@@ -6467,8 +6463,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
         pOriginalItem = OTItem::CreateItemFromString(
             strReference, GetPurportedServerID(), GetReferenceToNum());
 
-        if (nullptr != pOriginalItem)
-            theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+        if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
         break;
     }
@@ -6554,9 +6549,9 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
     bool bSuccess = false;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
     OTCronItem* pCronItem = nullptr;
-    OTCleanup<OTCronItem> theCronItemAngel;
+    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6576,7 +6571,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                      "paymentReceipt transaction.\n";
 
         pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.SetCleanupTargetPointer(pCronItem);
+        theCronItemAngel.reset(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
 
@@ -6612,8 +6607,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
             pOriginalItem = OTItem::CreateItemFromString(
                 strReference, GetPurportedServerID(), GetReferenceToNum());
 
-            if (nullptr != pOriginalItem)
-                theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+            if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
             break;
         }
@@ -6693,8 +6687,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     bool bSuccess = false;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
-    OTCleanup<OTCronItem> theCronItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
+    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6712,7 +6706,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
                      "paymentReceipt transaction.\n";
 
         OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.SetCleanupTargetPointer(pCronItem);
+        theCronItemAngel.reset(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
         OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
@@ -6748,8 +6742,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
         pOriginalItem = OTItem::CreateItemFromString(
             strReference, GetPurportedServerID(), GetReferenceToNum());
 
-        if (nullptr != pOriginalItem)
-            theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+        if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
         break;
     }
@@ -6824,8 +6817,8 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     bool bSuccess = false;
 
     OTItem* pOriginalItem = nullptr;
-    OTCleanup<OTItem> theItemAngel;
-    OTCleanup<OTCronItem> theCronItemAngel;
+    std::unique_ptr<OTItem> theItemAngel;
+    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6843,7 +6836,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
                      "paymentReceipt transaction.\n";
 
         OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.SetCleanupTargetPointer(pCronItem);
+        theCronItemAngel.reset(pCronItem);
 
         OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
         OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
@@ -6880,8 +6873,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
         pOriginalItem = OTItem::CreateItemFromString(
             strReference, GetPurportedServerID(), GetReferenceToNum());
 
-        if (nullptr != pOriginalItem)
-            theItemAngel.SetCleanupTargetPointer(pOriginalItem);
+        if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
         break;
     }
