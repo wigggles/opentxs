@@ -141,7 +141,6 @@
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/OTCheque.hpp"
-#include "../core/OTCleanup.hpp"
 #include "../core/crypto/OTEnvelope.hpp"
 #include "../core/OTFolders.hpp"
 #include "../core/OTLedger.hpp"
@@ -163,6 +162,7 @@
 #include "../core/util/StringUtils.hpp"
 
 #include <cstdio>
+#include <memory>
 
 namespace opentxs
 {
@@ -1161,9 +1161,8 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
     OTPseudonym* pNym = &theNym;
     OTIdentifier theAccountID(theInbox);
     OTAccount* pAccount = &theAccount;
-    OTLedger* pOutbox = pAccount->LoadOutbox(
-        *pNym); // Need this for balance agreement (outbox hash)
-    OTCleanup<OTLedger> theOutboxAngel(pOutbox); // auto cleanup.
+    // Need this for balance agreement (outbox hash)
+    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
     if (nullptr == pOutbox) {
         otOut << "OTClient::AcceptEntireInbox: Failed loading outbox!\n";
         return false;
@@ -1473,9 +1472,10 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
             // PENDING (incoming transfer)
             //
             else if ((OTTransaction::pending == pTransaction->GetType())) {
-                OTItem* pOriginalItem = OTItem::CreateItemFromString(
-                    strRespTo, theServerID, pTransaction->GetReferenceToNum());
-                OTCleanup<OTItem> theAngel(pOriginalItem);
+                std::unique_ptr<OTItem> pOriginalItem(
+                    OTItem::CreateItemFromString(
+                        strRespTo, theServerID,
+                        pTransaction->GetReferenceToNum()));
 
                 // This item was attached as the "in reference to" item. Perhaps
                 // Bob sent it to me.
@@ -1584,9 +1584,10 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
                       pTransaction->GetType()) ||
                      (OTTransaction::chequeReceipt ==
                       pTransaction->GetType())) {
-                OTItem* pOriginalItem = OTItem::CreateItemFromString(
-                    strRespTo, theServerID, pTransaction->GetReferenceToNum());
-                OTCleanup<OTItem> theAngel(pOriginalItem);
+                std::unique_ptr<OTItem> pOriginalItem(
+                    OTItem::CreateItemFromString(
+                        strRespTo, theServerID,
+                        pTransaction->GetReferenceToNum()));
 
                 // This item was attached as the "in reference to" item. Perhaps
                 // Bob sent it to me.
@@ -2212,11 +2213,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        OTItem* pOriginalItem =
+                        std::unique_ptr<OTItem> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType);
-                        OTCleanup<OTItem> theItemAngel(pOriginalItem);
+                                : dynamic_cast<OTItem*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             OTString strBasket;
@@ -2275,11 +2275,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        OTItem* pOriginalItem =
+                        std::unique_ptr<OTItem> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType);
-                        OTCleanup<OTItem> theItemAngel(pOriginalItem);
+                                : dynamic_cast<OTItem*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             if (false == pNym->RemoveIssuedNum(
@@ -2372,11 +2371,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        OTItem* pOriginalItem =
+                        std::unique_ptr<OTItem> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType);
-                        OTCleanup<OTItem> theItemAngel(pOriginalItem);
+                                : dynamic_cast<OTItem*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             OTString strCronItem;
@@ -2401,11 +2399,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             // would want to get notified, and to whom the
                             // notice is send.
                             //
-                            OTCronItem* pCronItem =
-                                (strCronItem.Exists()
-                                     ? OTCronItem::NewCronItem(strCronItem)
-                                     : nullptr);
-                            OTCleanup<OTCronItem> theCronItemAngel(pCronItem);
+                            std::unique_ptr<OTCronItem> pCronItem(
+                                strCronItem.Exists()
+                                    ? OTCronItem::NewCronItem(strCronItem)
+                                    : nullptr);
 
                             if (nullptr != pCronItem) // the original smart
                                 // contract or payment plan
@@ -2499,7 +2496,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     const int32_t nOutpaymentIndex =
                                         GetOutpaymentsIndexByTransNum(
                                             *pNym, lNymOpeningNumber);
-                                    OTCleanup<OTMessage> theMessageAngel;
+                                    std::unique_ptr<OTMessage> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
                                         OTMessage* pMsg =
@@ -2520,22 +2517,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     false); // bDeleteIt=false
                                                             // (deleted later
                                                             // on.)
-                                            theMessageAngel
-                                                .SetCleanupTargetPointer(
-                                                     pMsg); // Since we chose to
-                                                            // keep pMsg alive
-                                                            // and undeleted,
-                                                            // after removing it
-                                                            // from the
-                                                            // outpayments box,
-                                                            // we set the angel
-                                                            // here to make sure
-                                                            // it gets cleaned
-                                                            // up later,
-                                                            // whenever we
-                                                            // return out of
-                                                            // this godforsaken
-                                                            // function.
+                                            theMessageAngel.reset(pMsg);
                                             if (bRemovedOutpayment)
                                                 pNym->SaveSignedNymfile(*pNym);
                                             else
@@ -2771,11 +2753,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                        // we are removing
                                                        // things.
                                             {
-                                                OTPayment* pPayment =
-                                                    GetInstrument(*pNym, ii,
-                                                                  thePmntInbox);
-                                                OTCleanup<OTPayment>
-                                                thePaymentAngel(pPayment);
+                                                std::unique_ptr<OTPayment>
+                                                pPayment(GetInstrument(
+                                                    *pNym, ii, thePmntInbox));
 
                                                 if (nullptr == pPayment) {
                                                     otOut
@@ -2999,7 +2979,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                         theRecordBox, // recordbox.
                                                         OTTransaction::notice,
                                                         lNymOpeningNumber);
-                                                OTCleanup<OTTransaction>
+                                                std::unique_ptr<OTTransaction>
                                                 theTransactionAngel(
                                                     pNewTransaction);
 
@@ -3060,28 +3040,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     }
                                                     else {
                                                         theTransactionAngel
-                                                            .SetCleanupTargetPointer(
-                                                                 nullptr); // If
-                                                        // successfully
-                                                        // added
-                                                        // to
-                                                        // the
-                                                        // record
-                                                        // box,
-                                                        // then
-                                                        // no
-                                                        // need
-                                                        // anymore
-                                                        // to
-                                                        // clean
-                                                        // it up
-                                                        // ourselves.
-                                                        // The
-                                                        // record
-                                                        // box
-                                                        // owns
-                                                        // it
-                                                        // now.
+                                                            .release();
 
                                                         theRecordBox
                                                             .ReleaseSignatures();
@@ -3346,9 +3305,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                     // and if that cheque is found inside the Payments Inbox,
                     // ==> move it to the record box.
                     //
-                    OTLedger* pLedger = OTLedger::GenerateLedger(
-                        USER_ID, USER_ID, SERVER_ID, OTLedger::paymentInbox);
-                    OTCleanup<OTLedger> theLedgerAngel(pLedger);
+                    std::unique_ptr<OTLedger> pLedger(OTLedger::GenerateLedger(
+                        USER_ID, USER_ID, SERVER_ID, OTLedger::paymentInbox));
                     // Beyond this point, I know that pLedger will need to be
                     // deleted or returned.
                     if ((nullptr != pLedger) && pLedger->LoadPaymentInbox() &&
@@ -3365,14 +3323,13 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         OTItem* pOriginalItem = nullptr;
                         pReplyItem->GetReferenceString(strOriginalDepositItem);
 
-                        OTTransactionType* pTransType =
+                        std::unique_ptr<OTTransactionType> pTransType(
                             OTTransactionType::TransactionFactory(
-                                strOriginalDepositItem);
-                        OTCleanup<OTTransactionType> theTransTypeAngel(
-                            pTransType);
+                                strOriginalDepositItem));
 
                         if (nullptr != pTransType) {
-                            pOriginalItem = dynamic_cast<OTItem*>(pTransType);
+                            pOriginalItem =
+                                dynamic_cast<OTItem*>(pTransType.get());
                         }
                         if (nullptr != pOriginalItem) {
                             OTString strCheque;
@@ -3402,10 +3359,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                            // deleting something. (Probably only
                                            // one thing, but still...)
                                 {
-                                    OTPayment* pPayment =
-                                        GetInstrument(*pNym, ii, *pLedger);
-                                    OTCleanup<OTPayment> thePaymentAngel(
-                                        pPayment);
+                                    std::unique_ptr<OTPayment> pPayment(
+                                        GetInstrument(*pNym, ii, *pLedger));
 
                                     int64_t lPaymentTransNum = 0;
 
@@ -3662,8 +3617,8 @@ void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                 Purse* pRequestPurse = pWallet->GetPendingWithdrawal();
 
                 OTString strAssetID(thePurse.GetAssetID());
-                Mint* pMint = Mint::MintFactory(strServerID, strAssetID);
-                OTCleanup<Mint> theMintAngel(pMint);
+                std::unique_ptr<Mint> pMint(
+                    Mint::MintFactory(strServerID, strAssetID));
                 OT_ASSERT(nullptr != pMint);
                 // Unlike the purse which we read out of a message,
                 // now we try to open a purse as a file on the client side,
@@ -4057,14 +4012,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             ascArmor.GetString(strCredentialList);
 
             if (strCredentialList.Exists()) {
-                OTDB::Storable* pStorable = OTDB::DecodeObject(
-                    OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get());
-                OTCleanup<OTDB::Storable> theStorableAngel(
-                    pStorable); // It will definitely be cleaned up.
+                std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
+                    OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
                 OTDB::StringMap* pMap =
-                    (nullptr == pStorable)
-                        ? nullptr
-                        : dynamic_cast<OTDB::StringMap*>(pStorable);
+                    dynamic_cast<OTDB::StringMap*>(pStorable.get());
                 if (nullptr == pMap)
                     otOut << __FUNCTION__ << ": Failed decoding StringMap "
                                              "object in @checkUser.\n";
@@ -4389,13 +4340,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             // base64-Decode the server reply's payload into strTransaction
             //
             const OTString strTransType(theReply.m_ascPayload);
-            OTTransactionType* pTransType = nullptr;
+            std::unique_ptr<OTTransactionType> pTransType;
 
             if (strTransType.Exists())
-                pTransType =
-                    OTTransactionType::TransactionFactory(strTransType);
-            OTCleanup<OTTransactionType> theTransTypeAngel(
-                pTransType); // Still works if nullptr argument. (Does nothing.)
+                pTransType.reset(
+                    OTTransactionType::TransactionFactory(strTransType));
 
             if (nullptr == pTransType)
                 otErr << __FUNCTION__
@@ -4404,7 +4353,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                       << strTransType << "\n";
             else {
                 OTTransaction* pBoxReceipt =
-                    dynamic_cast<OTTransaction*>(pTransType);
+                    dynamic_cast<OTTransaction*>(pTransType.get());
 
                 if (nullptr == pBoxReceipt)
                     otErr << __FUNCTION__
@@ -4985,14 +4934,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                 pReplyItem->GetReferenceString(
                                     strProcessInboxItem);
 
-                                OTItem* pProcessInboxItem =
+                                std::unique_ptr<OTItem> pProcessInboxItem(
                                     OTItem::CreateItemFromString(
                                         strProcessInboxItem, SERVER_ID,
-                                        pReplyItem->GetReferenceToNum());
-                                OTCleanup<OTItem> theProcessInboxItemGuardian(
-                                    pProcessInboxItem); // So I don't have to
-                                                        // clean it up later. No
-                                                        // memory leaks.
+                                        pReplyItem->GetReferenceToNum()));
 
                                 // pProcessInboxItem is already a copy of the
                                 // correct processInbox item that I need. But
@@ -5151,15 +5096,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                     pServerTransaction->GetReferenceString(
                                         strOriginalItem);
 
-                                    OTItem* pOriginalItem =
+                                    std::unique_ptr<OTItem> pOriginalItem(
                                         OTItem::CreateItemFromString(
                                             strOriginalItem, SERVER_ID,
                                             pServerTransaction
-                                                ->GetReferenceToNum());
-                                    OTCleanup<OTItem> theOrigItemGuardian(
-                                        pOriginalItem); // So I don't have to
-                                                        // clean it up later. No
-                                                        // memory leaks.
+                                                ->GetReferenceToNum()));
 
                                     if (nullptr != pOriginalItem) {
                                         // If pOriginalItem is acceptPending,
@@ -5376,15 +5317,13 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 strTrade);
                                         if (bLoadOfferFromString &&
                                             bLoadTradeFromString) {
-                                            OTDB::TradeDataNym*
-                                            pData = dynamic_cast<
-                                                OTDB::TradeDataNym*>(
-                                                OTDB::CreateObject(
-                                                    OTDB::
-                                                        STORED_OBJ_TRADE_DATA_NYM));
+                                            std::unique_ptr<OTDB::TradeDataNym>
+                                            pData(dynamic_cast<
+                                                OTDB::
+                                                    TradeDataNym*>(OTDB::CreateObject(
+                                                OTDB::
+                                                    STORED_OBJ_TRADE_DATA_NYM)));
                                             OT_ASSERT(nullptr != pData);
-                                            OTCleanup<OTDB::TradeDataNym>
-                                            theDataAngel(*pData);
 
                                             /*
                                             std::stringstream ss;
@@ -5411,11 +5350,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 to_string<int32_t>(
                                                     theTrade
                                                         .GetCompletedCount());
-                                            OTAccount* pAccount =
+                                            std::unique_ptr<OTAccount> pAccount(
                                                 OTAccount::LoadExistingAccount(
-                                                    ACCOUNT_ID, SERVER_ID);
-                                            OTCleanup<OTAccount> theAngel(
-                                                pAccount);
+                                                    ACCOUNT_ID, SERVER_ID));
 
                                             bool bIsAsset =
                                                 (theTrade.GetAssetID() ==
@@ -5480,7 +5417,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                             //
                                             OTString strUserID(USER_ID);
 
-                                            OTDB::TradeListNym* pList = nullptr;
+                                            std::unique_ptr<OTDB::TradeListNym>
+                                            pList;
 
                                             if (OTDB::Exists(
                                                     OTFolders::Nym().Get(),
@@ -5488,7 +5426,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                               // hardcoding.
                                                     strServerID.Get(),
                                                     strUserID.Get()))
-                                                pList = dynamic_cast<
+                                                pList.reset(dynamic_cast<
                                                     OTDB::TradeListNym*>(
                                                     OTDB::QueryObject(
                                                         OTDB::
@@ -5497,22 +5435,20 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         "trades", // todo stop
                                                                   // hardcoding.
                                                         strServerID.Get(),
-                                                        strUserID.Get()));
+                                                        strUserID.Get())));
                                             if (nullptr == pList) {
                                                 otInfo
                                                     << "Creating storage list "
                                                        "of trade receipts for "
                                                        "Nym: " << strUserID
                                                     << "\n";
-                                                pList = dynamic_cast<
-                                                    OTDB::TradeListNym*>(
-                                                    OTDB::CreateObject(
-                                                        OTDB::
-                                                            STORED_OBJ_TRADE_LIST_NYM));
+                                                pList.reset(dynamic_cast<
+                                                    OTDB::
+                                                        TradeListNym*>(OTDB::CreateObject(
+                                                    OTDB::
+                                                        STORED_OBJ_TRADE_LIST_NYM)));
                                             }
                                             OT_ASSERT(nullptr != pList);
-                                            OTCleanup<OTDB::TradeListNym>
-                                            theListAngel(*pList);
                                             // Loop through and see if we can
                                             // find one that's ALREADY there.
                                             // We can match the asset receipt
@@ -5789,18 +5725,15 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                             *pServerTransaction);
                                         OTTransaction* pNewTransaction =
                                             nullptr;
-                                        OTTransactionType* pTransType =
+                                        std::unique_ptr<OTTransactionType>
+                                        pTransType(
                                             OTTransactionType::
                                                 TransactionFactory(
-                                                    strServerTransaction);
-                                        OTCleanup<OTTransactionType>
-                                        theTransTypeAngel(pTransType);
+                                                    strServerTransaction));
 
-                                        if (nullptr != pTransType) {
-                                            pNewTransaction =
-                                                dynamic_cast<OTTransaction*>(
-                                                    pTransType);
-                                        }
+                                        pNewTransaction =
+                                            dynamic_cast<OTTransaction*>(
+                                                pTransType.get());
                                         if (nullptr != pNewTransaction) {
                                             const bool bAdded =
                                                 theRecordBox.AddTransaction(
@@ -5822,19 +5755,12 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                    // record box (let's save
                                                    // it.)
                                             {
-                                                theTransTypeAngel
-                                                    .SetCleanupTargetPointer(
-                                                         nullptr); // If
-                                                // successfully
-                                                // added to the
-                                                // record box,
-                                                // then no need
-                                                // anymore to
-                                                // clean it up
-                                                // ourselves.
-                                                // The record
-                                                // box owns it
-                                                // now.
+                                                // If successfully added to the
+                                                // record box, then no need
+                                                // anymore to clean it up
+                                                // ourselves. The record box
+                                                // owns it now.
+                                                pTransType.release();
 
                                                 theRecordBox
                                                     .ReleaseSignatures();
@@ -6183,17 +6109,12 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             pReplyItem->GetReferenceString(
                                 strProcessNymboxItem);
 
-                            OTItem*
-                            pProcessNymboxItem = OTItem::CreateItemFromString(
+                            std::unique_ptr<OTItem>
+                            pProcessNymboxItem(OTItem::CreateItemFromString(
                                 strProcessNymboxItem, SERVER_ID,
-                                0 /* 0 is the "transaction number"*/); // todo
-                                                                       // stop
+                                0 /* 0 is the "transaction number"*/)); // todo
+                                                                        // stop
                             // hardcoding.
-
-                            OTCleanup<OTItem> theProcessNymboxItemGuardian(
-                                pProcessNymboxItem); // So I don't have to clean
-                                                     // it up later. No memory
-                                                     // leaks.
 
                             // pProcessNymboxItem is already a copy of the
                             // correct processNymbox item that I need.
@@ -6468,13 +6389,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                         // would want to get notified, and to
                                         // whom the notice is send.
                                         //
-                                        OTCronItem* pCronItem =
+                                        std::unique_ptr<OTCronItem> pCronItem(
                                             (strCronItem.Exists()
                                                  ? OTCronItem::NewCronItem(
                                                        strCronItem)
-                                                 : nullptr);
-                                        OTCleanup<OTCronItem> theCronItemAngel(
-                                            pCronItem);
+                                                 : nullptr));
 
                                         if (nullptr !=
                                             pCronItem) // the original
@@ -6666,7 +6585,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                     GetOutpaymentsIndexByTransNum(
                                                         *pNym,
                                                         lNymOpeningNumber);
-                                                OTCleanup<OTMessage>
+                                                std::unique_ptr<OTMessage>
                                                 theMessageAngel;
 
                                                 if (nOutpaymentIndex >= 0) {
@@ -6694,10 +6613,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         // (deleted
                                                         // later
                                                         // on.)
-                                                        theMessageAngel
-                                                            .SetCleanupTargetPointer(
-                                                                 pMsg); // Since
-                                                                        // we
+                                                        theMessageAngel.reset(
+                                                            pMsg);
+                                                        // Since we
                                                         // chose to
                                                         // keep pMsg
                                                         // alive and
@@ -7062,14 +6980,11 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                    // removing
                                                                    // things.
                                                         {
-                                                            OTPayment*
-                                                            pPayment =
-                                                                GetInstrument(
-                                                                    *pNym, ii,
-                                                                    thePmntInbox);
-                                                            OTCleanup<OTPayment>
-                                                            thePaymentAngel(
-                                                                pPayment);
+                                                            std::unique_ptr<
+                                                                OTPayment>
+                                                            pPayment(GetInstrument(
+                                                                *pNym, ii,
+                                                                thePmntInbox));
 
                                                             if (nullptr ==
                                                                 pPayment) {
@@ -7452,7 +7367,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                     OTTransaction::
                                                                         notice,
                                                                     lNymOpeningNumber);
-                                                            OTCleanup<
+                                                            std::unique_ptr<
                                                                 OTTransaction>
                                                             theTransactionAngel(
                                                                 pNewTransaction);
@@ -7529,8 +7444,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                                 }
                                                                 else
                                                                     theTransactionAngel
-                                                                        .SetCleanupTargetPointer(
-                                                                             nullptr); // If successfully added to the record box, then no need anymore to clean it up ourselves. The record box owns it now.
+                                                                        .release(); // If successfully added to the record box, then no need anymore to clean it up ourselves. The record box owns it now.
 
                                                                 theRecordBox
                                                                     .ReleaseSignatures();
@@ -7903,14 +7817,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                         // outbox.
         const bool bHasFiles = ascArmor.Exists();
         if (bHasFiles) {
-            OTDB::Storable* pStorable =
-                OTDB::DecodeObject(OTDB::STORED_OBJ_STRING_MAP, ascArmor.Get());
-            OTCleanup<OTDB::Storable> theStorableAngel(
-                pStorable); // It will definitely be cleaned up.
+            std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
+                OTDB::STORED_OBJ_STRING_MAP, ascArmor.Get()));
             OTDB::StringMap* pMap =
-                (nullptr == pStorable)
-                    ? nullptr
-                    : dynamic_cast<OTDB::StringMap*>(pStorable);
+                dynamic_cast<OTDB::StringMap*>(pStorable.get());
             if (nullptr == pMap)
                 otOut << __FUNCTION__ << ": Failed decoding StringMap object "
                                          "in @getAccountFiles.\n";
@@ -7930,9 +7840,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     strOutbox = it_outbox->second.c_str();
                 if (strAccount.Exists()) {
                     // Load the account object from that string.
-                    OTAccount* pAccount =
-                        new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
-                    OTCleanup<OTAccount> theAngel(pAccount);
+                    std::unique_ptr<OTAccount> pAccount(
+                        new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID));
 
                     if (pAccount &&
                         pAccount->LoadContractFromString(strAccount) &&
@@ -7957,12 +7866,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                         OTWallet* pWallet = theConnection.GetWallet();
 
                         if (nullptr != pWallet) {
-                            pWallet->AddAccount(*pAccount);
+                            pWallet->AddAccount(*(pAccount.release()));
                             pWallet->SaveWallet();
-                            theAngel.SetCleanupTargetPointer(
-                                nullptr); // Success. The wallet "owns" it now,
-                                          // no
-                                          // need to clean it up.
                         }
                     }
                 }
@@ -8169,8 +8074,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         OTString strAccount(theReply.m_ascPayload);
 
         // Load the account object from that string.
-        OTAccount* pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
-        OTCleanup<OTAccount> theAngel(pAccount);
+        std::unique_ptr<OTAccount> pAccount(
+            new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID));
 
         if (pAccount && pAccount->LoadContractFromString(strAccount) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -8192,12 +8097,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             OTWallet* pWallet = theConnection.GetWallet();
 
             if (nullptr != pWallet) {
-                pWallet->AddAccount(*pAccount);
+                pWallet->AddAccount(*(pAccount.release()));
                 pWallet->SaveWallet();
-                theAngel.SetCleanupTargetPointer(
-                    nullptr); // Success. The wallet
-                              // "owns" it now, no
-                              // need to clean it up.
             }
         }
         return true;
@@ -8456,9 +8357,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         // base64-Decode the server reply's payload into strMint
         OTString strMint(theReply.m_ascPayload);
         // Load the mint object from that string...
-        Mint* pMint =
-            Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID);
-        OTCleanup<Mint> theMintAngel(pMint);
+        std::unique_ptr<Mint> pMint(
+            Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID));
         OT_ASSERT(nullptr != pMint);
         // TODO check the server signature on the mint here...
         if (pMint->LoadContractFromString(strMint)) {
@@ -8511,19 +8411,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->CreateBuffer(); // Need to clean this up.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(
             static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
             thePayload.GetSize());
 
-        OTDB::MarketList* pMarketList = dynamic_cast<OTDB::MarketList*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST));
-        OTCleanup<OTDB::MarketList> theListAngel(*pMarketList);
+        std::unique_ptr<OTDB::MarketList> pMarketList(
+            dynamic_cast<OTDB::MarketList*>(
+                OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
 
@@ -8593,20 +8490,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->CreateBuffer(); // Need to clean this up.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(
             static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
             thePayload.GetSize());
 
-        OTDB::OfferListMarket* pOfferList =
+        std::unique_ptr<OTDB::OfferListMarket> pOfferList(
             dynamic_cast<OTDB::OfferListMarket*>(
-                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET));
-        OTCleanup<OTDB::OfferListMarket> theListAngel(*pOfferList);
+                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
 
@@ -8679,20 +8572,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->CreateBuffer(); // Need to clean this up.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(
             static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
             thePayload.GetSize());
 
-        OTDB::TradeListMarket* pTradeList =
+        std::unique_ptr<OTDB::TradeListMarket> pTradeList(
             dynamic_cast<OTDB::TradeListMarket*>(
-                OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_MARKET));
-        OTCleanup<OTDB::TradeListMarket> theListAngel(*pTradeList);
+                OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_MARKET)));
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pTradeList);
 
@@ -8760,19 +8649,16 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->CreateBuffer(); // Need to clean this up.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure buffer is deleted.
 
         pBuffer->SetData(
             static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
             thePayload.GetSize());
 
-        OTDB::OfferListNym* pOfferList = dynamic_cast<OTDB::OfferListNym*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM));
-        OTCleanup<OTDB::OfferListNym> theListAngel(*pOfferList);
+        std::unique_ptr<OTDB::OfferListNym> pOfferList(
+            dynamic_cast<OTDB::OfferListNym*>(
+                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
 
@@ -9083,16 +8969,9 @@ int32_t OTClient::ProcessUserCommand(
     case(OTClient::createUserAccount) : {
         // Create a new OTDB::StringMap object.
         //
-        OTDB::Storable* pStorable = nullptr;
-        OTCleanup<OTDB::Storable> theAngel;
-        OTDB::StringMap* pMap = nullptr;
-        pStorable = OTDB::CreateObject(
-            OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
-        theAngel.SetCleanupTargetPointer(
-            pStorable); // It will definitely be cleaned up.
-        pMap = (nullptr == pStorable)
-                   ? nullptr
-                   : dynamic_cast<OTDB::StringMap*>(pStorable);
+        std::unique_ptr<OTDB::Storable> pStorable(OTDB::CreateObject(
+            OTDB::STORED_OBJ_STRING_MAP)); // this asserts already, on failure.
+        OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
         if (nullptr == pMap)
             otErr << __FUNCTION__ << ": Error: failed trying to load or create "
                                      "a STORED_OBJ_STRING_MAP.\n";
@@ -9334,9 +9213,8 @@ int32_t OTClient::ProcessUserCommand(
                                                // already set. (It uses it.)
 
         OTEnvelope theEnvelope;
-        OTAsymmetricKey* pPubkey = OTAsymmetricKey::KeyFactory();
+        std::unique_ptr<OTAsymmetricKey> pPubkey(OTAsymmetricKey::KeyFactory());
         OT_ASSERT(nullptr != pPubkey);
-        OTCleanup<OTAsymmetricKey> theKeyAngel(pPubkey);
 
         if (theArmoredText.Exists() && !pPubkey->SetPublicKey(theArmoredText)) {
             otOut << "Failed setting public key.\n";
@@ -9593,11 +9471,10 @@ int32_t OTClient::ProcessUserCommand(
         // load up the asset contract
         OTString strFoldername(OTFolders::Contract().Get());
         OTString strContractPath(str_BASKET_CONTRACT_ID.Get());
-        OTAssetContract* pContract =
+        std::unique_ptr<OTAssetContract> pContract(
             new OTAssetContract(str_BASKET_CONTRACT_ID, strFoldername,
-                                strContractPath, str_BASKET_CONTRACT_ID);
+                                strContractPath, str_BASKET_CONTRACT_ID));
         OT_ASSERT(nullptr != pContract);
-        OTCleanup<OTAssetContract> theAssetContractAngel(*pContract);
 
         if (pContract->LoadContract() && pContract->VerifyContract()) {
             // Next load the OTBasket object out of that contract.
@@ -9655,11 +9532,10 @@ int32_t OTClient::ProcessUserCommand(
                         OT_ASSERT(nullptr != pMainAccount); // todo. better than
                                                             // nothing for now.
 
-                        OTLedger* pInbox = pMainAccount->LoadInbox(theNym);
-                        OTLedger* pOutbox = pMainAccount->LoadOutbox(theNym);
-
-                        OTCleanup<OTLedger> theInboxAngel(pInbox);
-                        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+                        std::unique_ptr<OTLedger> pInbox(
+                            pMainAccount->LoadInbox(theNym));
+                        std::unique_ptr<OTLedger> pOutbox(
+                            pMainAccount->LoadOutbox(theNym));
 
                         if (nullptr == pInbox) {
                             otOut << "Failed loading inbox!\n";
@@ -10170,11 +10046,8 @@ int32_t OTClient::ProcessUserCommand(
                                            // cleanup the item. It "owns" it
                                            // now.
 
-            OTLedger* pInbox = pAccount->LoadInbox(theNym);
-            OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-            OTCleanup<OTLedger> theInboxAngel(pInbox);
-            OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+            std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+            std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
             if (nullptr == pInbox) {
                 otOut << "Failed loading inbox!\n";
@@ -11161,11 +11034,8 @@ int32_t OTClient::ProcessUserCommand(
         int64_t lStoredTransactionNumber = 0;
         bool bGotTransNum = false;
 
-        OTLedger* pInbox = pAccount->LoadInbox(theNym);
-        OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
         if (nullptr == pInbox) {
             otOut << "Failed loading inbox!\n";
@@ -11244,8 +11114,8 @@ int32_t OTClient::ProcessUserCommand(
             // the purse does NOT own the token at this point. the token's
             // constructor
             // just uses it to copy some IDs, since they must match.
-            Token* pToken = Token::TokenFactory(strToken, thePurse);
-            OTCleanup<Token> theTokenAngel(pToken);
+            std::unique_ptr<Token> pToken(
+                Token::TokenFactory(strToken, thePurse));
             OT_ASSERT(nullptr != pToken);
 
             if (nullptr != pToken) // TODO verify the token contract
@@ -11560,11 +11430,8 @@ int32_t OTClient::ProcessUserCommand(
         int64_t lStoredTransactionNumber = 0;
         bool bGotTransNum = false;
 
-        OTLedger* pInbox = pAccount->LoadInbox(theNym);
-        OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
         if (nullptr == pInbox) {
             otOut << "Failed loading inbox!\n";
@@ -11612,8 +11479,7 @@ int32_t OTClient::ProcessUserCommand(
             theServerNymAsOwner(*pServerNym);
 
         while (!theSourcePurse.IsEmpty()) {
-            Token* pToken = theSourcePurse.Pop(theNym);
-            OTCleanup<Token> theTokenAngel(pToken);
+            std::unique_ptr<Token> pToken(theSourcePurse.Pop(theNym));
 
             if (pToken) {
                 // TODO need 2-recipient envelopes. My request to the server is
@@ -11905,11 +11771,8 @@ int32_t OTClient::ProcessUserCommand(
                                                // will cleanup the item. It
                                                // "owns" it now.
 
-                OTLedger* pInbox = pAccount->LoadInbox(theNym);
-                OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-                OTCleanup<OTLedger> theInboxAngel(pInbox);
-                OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+                std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+                std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
                 if (nullptr == pInbox) {
                     otOut << "Failed loading inbox!\n";
@@ -12150,11 +12013,8 @@ int32_t OTClient::ProcessUserCommand(
                 ACCOUNT_ID, MY_NYM_ID, strChequeMemo,
                 (strRecipientNym.GetLength() > 2) ? &(HIS_NYM_ID) : nullptr);
 
-            OTLedger* pInbox = pAccount->LoadInbox(theNym);
-            OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-            OTCleanup<OTLedger> theInboxAngel(pInbox);
-            OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+            std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+            std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
             if (nullptr == pInbox) {
                 otOut << "Failed loading inbox!\n";
@@ -12377,11 +12237,8 @@ int32_t OTClient::ProcessUserCommand(
         int64_t lStoredTransactionNumber = 0;
         bool bGotTransNum = false;
 
-        OTLedger* pInbox = pAccount->LoadInbox(theNym);
-        OTLedger* pOutbox = pAccount->LoadOutbox(theNym);
-
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(theNym));
+        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(theNym));
 
         if (nullptr == pInbox) {
             otOut << "Failed loading inbox!\n";
@@ -12414,8 +12271,8 @@ int32_t OTClient::ProcessUserCommand(
         pItem->SetNote(strNote);
 
         const OTPseudonym* pServerNym = theServer.GetContractPublicNym();
-        Mint* pMint = Mint::MintFactory(strServerID, strContractID);
-        OTCleanup<Mint> theMintAngel(pMint);
+        std::unique_ptr<Mint> pMint(
+            Mint::MintFactory(strServerID, strContractID));
         OT_ASSERT(nullptr != pMint);
         if (pServerNym && pMint->LoadMint() &&
             pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
@@ -12437,9 +12294,9 @@ int32_t OTClient::ProcessUserCommand(
                 // the purse does NOT own the token at this point. the token's
                 // constructor
                 // just uses it to copy some IDs, since they must match.
-                Token* pToken = Token::InstantiateAndGenerateTokenRequest(
-                    *pPurse, theNym, *pMint, lTokenAmount);
-                OTCleanup<Token> theTokenAngel(pToken);
+                std::unique_ptr<Token> pToken(
+                    Token::InstantiateAndGenerateTokenRequest(
+                        *pPurse, theNym, *pMint, lTokenAmount));
                 OT_ASSERT(nullptr != pToken);
 
                 // GENERATE new token, sign it and save it.
