@@ -139,6 +139,8 @@
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/ot_otapi_ot.hpp"
 
+#include "opentxs/cash/Purse.hpp"
+
 #include "opentxs/core/OTAccount.hpp"
 #include "opentxs/core/OTAssetContract.hpp"
 #include "opentxs/core/OTCleanup.hpp"
@@ -149,7 +151,6 @@
 #include "opentxs/core/OTPseudonym.hpp"
 #include "opentxs/core/OTServerContract.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/cash/Purse.hpp"
 
 #include <anyoption/anyoption.hpp>
 

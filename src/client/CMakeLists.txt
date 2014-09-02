@@ -35,7 +35,7 @@ add_library(opentxs-client
   ${cxx-headers}
 )
 
-target_link_libraries(opentxs-client opentxs-ext opentxs-core)
+target_link_libraries(opentxs-client opentxs-ext opentxs-cash opentxs-core)
 
 if(WIN32)
   add_custom_command(TARGET opentxs-client POST_BUILD

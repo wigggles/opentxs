@@ -133,7 +133,7 @@
 #ifndef _MINT_HPP__
 #define _MINT_HPP__
 
-#include "../OTContract.hpp"
+#include "opentxs/core/OTContract.hpp"
 #include <map>
 #include <cstdint>
 #include <ctime>

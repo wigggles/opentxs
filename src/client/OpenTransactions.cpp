@@ -139,7 +139,14 @@
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
 
+#include "../ext/InstantiateContract.hpp"
+#include "../ext/OTPayment.hpp"
 #include "../ext/Socket_ZMQ4.hpp"
+
+#include "../cash/Mint.hpp"
+#include "../cash/Purse.hpp"
+#include "../cash/Token.hpp"
+
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
 #include "../core/script/OTParty.hpp"
@@ -148,9 +155,6 @@
 #include "../core/trade/OTTrade.hpp"
 #include "../core/trade/OTOffer.hpp"
 #include "../core/basket/OTBasket.hpp"
-#include "../core/cash/Mint.hpp"
-#include "../core/cash/Purse.hpp"
-#include "../core/cash/Token.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/crypto/OTCachedKey.hpp"
 #include "../core/crypto/OTCrypto.hpp"
@@ -168,14 +172,12 @@
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/OTPaths.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTIdentifier.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
-#include "../core/InstantiateContract.hpp"
 
 #if defined(OT_KEYRING_FLATFILE)
 #include "../core/OTKeyring.hpp"

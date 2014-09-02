@@ -137,6 +137,12 @@
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
 
+#include "../ext/OTPayment.hpp"
+
+#include "../cash/Mint.hpp"
+#include "../cash/Purse.hpp"
+#include "../cash/Token.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
@@ -148,15 +154,11 @@
 #include "../core/OTMessage.hpp"
 #include "../core/crypto/OTNymOrSymmetricKey.hpp"
 #include "../core/OTPayload.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
 #include "../core/basket/OTBasket.hpp"
-#include "../core/cash/Mint.hpp"
-#include "../core/cash/Purse.hpp"
-#include "../core/cash/Token.hpp"
 #include "../core/trade/OTOffer.hpp"
 #include "../core/trade/OTTrade.hpp"
 #include "../core/util/StringUtils.hpp"

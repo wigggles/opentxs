@@ -140,13 +140,14 @@
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
 
+#include "../ext/OTPayment.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/OTCleanup.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPseudonym.hpp"
 
 #include <algorithm>

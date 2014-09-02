@@ -138,7 +138,7 @@
 #ifndef __OT_PAYMENT_HPP__
 #define __OT_PAYMENT_HPP__
 
-#include "OTContract.hpp"
+#include "opentxs/core/OTContract.hpp"
 
 namespace opentxs
 {

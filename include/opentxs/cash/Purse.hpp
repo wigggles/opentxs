@@ -133,7 +133,7 @@
 #ifndef __PURSE_HPP__
 #define __PURSE_HPP__
 
-#include "../OTContract.hpp"
+#include "opentxs/core/OTContract.hpp"
 
 #include <deque>
 
