@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTPseudonym.hpp"
-#include "OTCleanup.hpp"
 #include "crypto/OTCredential.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
@@ -150,6 +149,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <memory>
 
 // static
 
@@ -4096,7 +4096,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
     OTPasswordData* pPWData, OTPassword* pImportPassword)
 {
     OTPassword* pExportPassphrase = nullptr;
-    OTCleanup<OTPassword> thePasswordAngel;
+    std::unique_ptr<OTPassword> thePasswordAngel;
 
     if (nullptr == pImportPassword) {
 
@@ -4114,7 +4114,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
             &strDisplay, !bImporting); // bAskTwice is true when exporting
                                        // (since the export passphrase is being
                                        // created at that time.)
-        thePasswordAngel.SetCleanupTargetPointer(pExportPassphrase);
+        thePasswordAngel.reset(pExportPassphrase);
 
         if (nullptr == pExportPassphrase) {
             otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
@@ -4957,7 +4957,7 @@ bool OTPseudonym::LoadFromString(
     OTStringXML strNymXML(strNym); // todo optimize
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
-    OTCleanup<irr::io::IrrXMLReader> theCleanup(*xml);
+    std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
 
     // parse the file until end reached
     while (xml && xml->read()) {
