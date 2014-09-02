@@ -137,6 +137,8 @@
 #include "OTWallet.hpp"
 #include "Helpers.hpp"
 
+#include "../ext/OTPayment.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/script/OTAgent.hpp"
 #include "../core/OTAmount.hpp"
@@ -155,7 +157,6 @@
 #include "../core/script/OTPartyAccount.hpp"
 #include "../core/crypto/OTPasswordData.hpp"
 #include "../core/OTPaths.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"

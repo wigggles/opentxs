@@ -53,7 +53,6 @@ set(cxx-sources
   crypto/OTPasswordData.cpp
   OTPaths.cpp
   OTPayload.cpp
-  OTPayment.cpp
   OTPaymentPlan.cpp
   OTPseudonym.cpp
   OTServerContract.cpp

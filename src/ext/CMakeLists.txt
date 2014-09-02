@@ -3,6 +3,7 @@
 set(cxx-sources
   OTSocket.cpp
   Socket_ZMQ4.cpp
+  OTPayment.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext/*.hpp")

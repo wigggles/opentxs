@@ -138,10 +138,11 @@
 #include "OTAPI.hpp"
 #include "OTAPI_Exec.hpp"
 
+#include "../ext/OTPayment.hpp"
+
 #include "../core/OTCleanup.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPaymentPlan.hpp"
 
 #include <algorithm>

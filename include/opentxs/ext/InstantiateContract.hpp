@@ -7,18 +7,20 @@
 //
 // CALLER IS RESPONSIBLE to cleanup!
 
-#include "OTContract.hpp"
-#include "OTAssetContract.hpp"
-#include "OTCheque.hpp"
-#include "OTMessage.hpp"
-#include "OTPaymentPlan.hpp"
-#include "OTServerContract.hpp"
-#include "crypto/OTSignedFile.hpp"
-#include "script/OTSmartContract.hpp"
-#include "trade/OTOffer.hpp"
-#include "trade/OTTrade.hpp"
-#include "cash/Mint.hpp"
-#include "cash/Token.hpp"
+#include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/core/cash/Mint.hpp"
+#include "opentxs/core/cash/Token.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/OTLog.hpp"
+#include "opentxs/core/OTContract.hpp"
+#include "opentxs/core/OTAssetContract.hpp"
+#include "opentxs/core/OTCheque.hpp"
+#include "opentxs/core/OTMessage.hpp"
+#include "opentxs/core/OTPaymentPlan.hpp"
+#include "opentxs/core/OTServerContract.hpp"
 
 namespace
 {

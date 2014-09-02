@@ -137,6 +137,8 @@
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
 
+#include "../ext/OTPayment.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
@@ -148,7 +150,6 @@
 #include "../core/OTMessage.hpp"
 #include "../core/crypto/OTNymOrSymmetricKey.hpp"
 #include "../core/OTPayload.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"

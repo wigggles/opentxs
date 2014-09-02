@@ -139,7 +139,10 @@
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
 
+#include "../ext/InstantiateContract.hpp"
+#include "../ext/OTPayment.hpp"
 #include "../ext/Socket_ZMQ4.hpp"
+
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
 #include "../core/script/OTParty.hpp"
@@ -168,14 +171,12 @@
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/OTPaths.hpp"
-#include "../core/OTPayment.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTIdentifier.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
-#include "../core/InstantiateContract.hpp"
 
 #if defined(OT_KEYRING_FLATFILE)
 #include "../core/OTKeyring.hpp"
