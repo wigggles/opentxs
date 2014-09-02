@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "OTPaymentPlan.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "cron/OTCron.hpp"
 #include "OTLedger.hpp"
@@ -141,6 +140,8 @@
 #include "OTPseudonym.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 
@@ -700,12 +701,11 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // Will need to verify those signatures as well as attach a copy of it to
     // the receipt.
 
-    OTCronItem* pOrigCronItem = nullptr;
-
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    pOrigCronItem = OTCronItem::LoadCronReceipt(GetTransactionNum());
+    std::unique_ptr<OTCronItem> pOrigCronItem(
+        OTCronItem::LoadCronReceipt(GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem); // How am I processing it now if the
                                          // receipt wasn't saved in the first
@@ -713,21 +713,10 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
 
-    // When theOrigPlanGuardian goes out of scope, pOrigCronItem gets deleted
-    // automatically.
-    OTCleanup<OTCronItem> theOrigPlanGuardian(*pOrigCronItem);
-
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original Payment Plan request...
     OTString strOrigPlan(*pOrigCronItem); // <====== Farther down in the code, I
                                           // attach this string to the receipts.
-
-    // Make sure to clean these up.
-    //    delete pOrigCronItem;        // theOrigPlanGuardian will handle this
-    // now, whenever it goes out of scope.
-    //    pOrigCronItem = nullptr;        // So I don't need to worry about
-    // deleting this anymore. I can keep it around and
-    // use it all I want, and return anytime, and it won't leak.
 
     // -------------- Make sure have both nyms loaded and checked out.
     // --------------------------------------------------
@@ -864,8 +853,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // deleting it, either.)
     // I know for a fact they have both signed pOrigCronItem...
 
-    OTAccount* pSourceAcct =
-        OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
+    std::unique_ptr<OTAccount> pSourceAcct(
+        OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID));
 
     if (nullptr == pSourceAcct) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -873,11 +862,9 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
-    // Past this point we know pSourceAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theSourceAcctSmrtPtr(*pSourceAcct);
 
-    OTAccount* pRecipientAcct =
-        OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
+    std::unique_ptr<OTAccount> pRecipientAcct(
+        OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID));
 
     if (nullptr == pRecipientAcct) {
         otOut << "ERROR verifying existence of recipient account during "
@@ -885,8 +872,6 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
-    // Past this point we know pRecipientAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theRecipAcctSmrtPtr(*pRecipientAcct);
 
     // BY THIS POINT, both accounts are successfully loaded, and I don't have to
     // worry about
