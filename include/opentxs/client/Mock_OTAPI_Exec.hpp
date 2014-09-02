@@ -162,9 +162,9 @@ kamH0Y/n11lCvo1oQxM+
 #ifndef __Mock_OTAPI_Exec_H__
 #define __Mock_OTAPI_Exec_H__
 
-#include "gmock/gmock.h"
+#include "opentxs/client/OTAPI_Exec.hpp"
 
-#include "OTAPI_Exec.hpp"
+#include <gmock/gmock.h>
 
 namespace opentxs
 {

@@ -133,7 +133,7 @@
 #ifndef __OT_WALLET_HPP__
 #define __OT_WALLET_HPP__
 
-#include "OTString.hpp"
+#include "opentxs/core/OTString.hpp"
 
 #include <map>
 #include <memory>

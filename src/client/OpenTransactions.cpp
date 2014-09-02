@@ -130,60 +130,58 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "../core/stdafx.hpp"
 
 #include "OpenTransactions.hpp"
-
 #include "OTAPI.hpp"
 #include "OTClient.hpp"
 #include "OTServerConnection.hpp"
 #include "Helpers.hpp"
+#include "OTWallet.hpp"
 
-#include <script/OTAgent.hpp>
-#include <OTAssetContract.hpp>
-#include <crypto/OTAsymmetricKey.hpp>
-#include <script/OTBylaw.hpp>
-#include <crypto/OTCachedKey.hpp>
-#include <OTCheque.hpp>
-#include <OTCleanup.hpp>
-#include <crypto/OTCrypto.hpp>
-#include <OTDataFolder.hpp>
-#include <crypto/OTEnvelope.hpp>
-#include <OTFolders.hpp>
-#include <OTLedger.hpp>
-#include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <crypto/OTNymOrSymmetricKey.hpp>
-#include <trade/OTOffer.hpp>
-#include <script/OTParty.hpp>
-#include <script/OTPartyAccount.hpp>
-#include <crypto/OTPassword.hpp>
-#include <crypto/OTPasswordData.hpp>
-#include <OTPaths.hpp>
-#include <OTPayment.hpp>
-#include <OTPseudonym.hpp>
-#include <OTIdentifier.hpp>
-#include <OTPaymentPlan.hpp>
-#include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
-#include <script/OTSmartContract.hpp>
-#include <crypto/OTSymmetricKey.hpp>
-#include <OTStorage.hpp>
-#include <trade/OTTrade.hpp>
-#include <OTWallet.hpp>
-#include <basket/OTBasket.hpp>
-#include <cash/Mint.hpp>
-#include <cash/Purse.hpp>
-#include <cash/Token.hpp>
-#include <InstantiateContract.hpp>
+#include "../ext/Socket_ZMQ4.hpp"
+#include "../core/script/OTAgent.hpp"
+#include "../core/script/OTBylaw.hpp"
+#include "../core/script/OTParty.hpp"
+#include "../core/script/OTPartyAccount.hpp"
+#include "../core/script/OTSmartContract.hpp"
+#include "../core/trade/OTTrade.hpp"
+#include "../core/trade/OTOffer.hpp"
+#include "../core/basket/OTBasket.hpp"
+#include "../core/cash/Mint.hpp"
+#include "../core/cash/Purse.hpp"
+#include "../core/cash/Token.hpp"
+#include "../core/crypto/OTAsymmetricKey.hpp"
+#include "../core/crypto/OTCachedKey.hpp"
+#include "../core/crypto/OTCrypto.hpp"
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/crypto/OTNymOrSymmetricKey.hpp"
+#include "../core/crypto/OTPassword.hpp"
+#include "../core/crypto/OTPasswordData.hpp"
+#include "../core/crypto/OTSymmetricKey.hpp"
+#include "../core/OTAssetContract.hpp"
+#include "../core/OTCheque.hpp"
+#include "../core/OTCleanup.hpp"
+#include "../core/OTDataFolder.hpp"
+#include "../core/OTFolders.hpp"
+#include "../core/OTLedger.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTPaths.hpp"
+#include "../core/OTPayment.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTIdentifier.hpp"
+#include "../core/OTPaymentPlan.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTServerContract.hpp"
+#include "../core/OTStorage.hpp"
+#include "../core/InstantiateContract.hpp"
 
 #if defined(OT_KEYRING_FLATFILE)
-#include <OTKeyring.hpp>
+#include "../core/OTKeyring.hpp"
 #endif
 
-#include <Socket_ZMQ4.hpp>
-
-#include "util/tinythread.hpp"
+#include "../core/util/tinythread.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -13904,7 +13902,7 @@ int32_t OT_API::sendUserInstrument(
         bool bGotTransNum =
             THE_INSTRUMENT.GetOpeningNum(lTempTransNum, USER_ID);
         int32_t lOutpaymentsIndex =
-            bGotTransNum ? pNym->GetOutpaymentsIndexByTransNum(lTempTransNum)
+            bGotTransNum ? GetOutpaymentsIndexByTransNum(*pNym, lTempTransNum)
                          : (-1);
 
         if (lOutpaymentsIndex > (-1)) // found something that matches...

@@ -75,18 +75,6 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp")
 
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/bigint/
-  ${dependency_include_dir}/irrxml/
-  ${dependency_include_dir}/lucre/include/
-  ${dependency_include_dir}/simpleini/
-)
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
   ${CMAKE_BINARY_DIR}/src/core/otprotob

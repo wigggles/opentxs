@@ -130,39 +130,37 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "../core/stdafx.hpp"
 
 #include "OTClient.hpp"
-
 #include "OTServerConnection.hpp"
 #include "Helpers.hpp"
+#include "OTWallet.hpp"
 
-#include <OTAccount.hpp>
-#include <OTAssetContract.hpp>
-#include <crypto/OTAsymmetricKey.hpp>
-#include <OTCheque.hpp>
-#include <OTCleanup.hpp>
-#include <crypto/OTEnvelope.hpp>
-#include <OTFolders.hpp>
-#include <OTLedger.hpp>
-#include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <crypto/OTNymOrSymmetricKey.hpp>
-#include <OTPayload.hpp>
-#include <OTPayment.hpp>
-#include <OTPaymentPlan.hpp>
-#include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
-#include <OTStorage.hpp>
-#include <OTWallet.hpp>
-#include <basket/OTBasket.hpp>
-#include <cash/Mint.hpp>
-#include <cash/Purse.hpp>
-#include <cash/Token.hpp>
-#include <trade/OTOffer.hpp>
-#include <trade/OTTrade.hpp>
-
-#include "util/StringUtils.hpp"
+#include "../core/OTAccount.hpp"
+#include "../core/OTAssetContract.hpp"
+#include "../core/crypto/OTAsymmetricKey.hpp"
+#include "../core/OTCheque.hpp"
+#include "../core/OTCleanup.hpp"
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/OTFolders.hpp"
+#include "../core/OTLedger.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/crypto/OTNymOrSymmetricKey.hpp"
+#include "../core/OTPayload.hpp"
+#include "../core/OTPayment.hpp"
+#include "../core/OTPaymentPlan.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTServerContract.hpp"
+#include "../core/OTStorage.hpp"
+#include "../core/basket/OTBasket.hpp"
+#include "../core/cash/Mint.hpp"
+#include "../core/cash/Purse.hpp"
+#include "../core/cash/Token.hpp"
+#include "../core/trade/OTOffer.hpp"
+#include "../core/trade/OTTrade.hpp"
+#include "../core/util/StringUtils.hpp"
 
 #include <cstdio>
 
@@ -2499,8 +2497,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     OTNumList numlistOutpayment(
                                         lNymOpeningNumber);
                                     const int32_t nOutpaymentIndex =
-                                        pNym->GetOutpaymentsIndexByTransNum(
-                                            lNymOpeningNumber);
+                                        GetOutpaymentsIndexByTransNum(
+                                            *pNym, lNymOpeningNumber);
                                     OTCleanup<OTMessage> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
@@ -5251,7 +5249,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 record box. */
 
                                                 int32_t lOutpaymentsIndex =
-                                                    pNym->GetOutpaymentsIndexByTransNum(
+                                                    GetOutpaymentsIndexByTransNum(
+                                                        *pNym,
                                                         theCheque
                                                             .GetTransactionNum());
 
@@ -6664,7 +6663,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                 // copy of it
                                                 // here.
                                                 const int32_t nOutpaymentIndex =
-                                                    pNym->GetOutpaymentsIndexByTransNum(
+                                                    GetOutpaymentsIndexByTransNum(
+                                                        *pNym,
                                                         lNymOpeningNumber);
                                                 OTCleanup<OTMessage>
                                                 theMessageAngel;

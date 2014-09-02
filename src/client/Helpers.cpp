@@ -130,14 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <crypto/OTEnvelope.hpp>
-#include <OTMessage.hpp>
-#include <OTLedger.hpp>
-#include <OTPayment.hpp>
-#include <OTPseudonym.hpp>
-#include <OTString.hpp>
-#include <OTTransaction.hpp>
-#include <OTLog.hpp>
+#include "../core/crypto/OTEnvelope.hpp"
+#include "../core/OTLedger.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTString.hpp"
+#include "../core/OTPayment.hpp"
+#include "../core/OTLog.hpp"
 
 namespace opentxs
 {
@@ -319,6 +318,41 @@ OTPayment* GetInstrument(OTPseudonym& theNym, const int32_t& nIndex,
                                  "!!! Not yet supported !!!\n";
 
     return nullptr;
+}
+
+int32_t GetOutpaymentsIndexByTransNum(OTPseudonym& nym, const int64_t lTransNum)
+{
+    int32_t lOutpaymentsCount = nym.GetOutpaymentsCount();
+
+    for (int32_t lOutpaymentsIndex = 0; lOutpaymentsIndex < lOutpaymentsCount;
+         ++lOutpaymentsIndex) {
+        OTMessage* pOutpaymentMsg =
+            nym.GetOutpaymentsByIndex(lOutpaymentsIndex);
+        if (nullptr != pOutpaymentMsg) {
+            OTString strPayment;
+
+            // There isn't any encrypted envelope this time, since it's my
+            // outPayments box.
+            //
+            if (pOutpaymentMsg->m_ascPayload.Exists() &&
+                pOutpaymentMsg->m_ascPayload.GetString(strPayment) &&
+                strPayment.Exists()) {
+                OTPayment thePayment(strPayment);
+
+                // Let's see if it's the cheque we're looking for...
+                //
+                if (thePayment.IsValid()) {
+                    if (thePayment.SetTempValues()) {
+                        if (thePayment.HasTransactionNum(lTransNum)) {
+                            return static_cast<int32_t>(lOutpaymentsIndex);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return -1;
 }
 
 } // namespace opentxs

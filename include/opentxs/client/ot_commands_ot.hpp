@@ -1,8 +1,8 @@
 #ifndef _H_OT_COMMANDS_OT
 #define _H_OT_COMMANDS_OT
 
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/util/Common.hpp>
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/util/Common.hpp"
 
 #include <map>
 #include <vector>

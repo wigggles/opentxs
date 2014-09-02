@@ -21,27 +21,14 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp")
 
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
+)
+
 if(WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings 
   add_definitions("/wd4503")
 endif()
-
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/ChaiScript/include
-)
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
-)
 
 add_library(opentxs-client
   ${cxx-sources}

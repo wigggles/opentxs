@@ -133,10 +133,9 @@
 #ifndef __OT_OTAPI_OT_HPP__
 #define __OT_OTAPI_OT_HPP__
 
-#include "OTAPI.hpp"
-#include "OT_ME.hpp"
-
-#include <OTStorage.hpp>
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #ifndef OT_USE_CXX11
 #include <cstdlib>
@@ -178,11 +177,11 @@ inline int64_t to_long(const string& strValue)
 #else
 inline string to_string(const int32_t nValue)
 {
-    return OTAPI_Wrap::LongToString(nValue);
+    return opentxs::OTAPI_Wrap::LongToString(nValue);
 }
 inline string to_string(const int64_t nValue)
 {
-    return OTAPI_Wrap::LongToString(nValue);
+    return opentxs::OTAPI_Wrap::LongToString(nValue);
 }
 inline int32_t to_int(const string& strValue)
 {
@@ -190,7 +189,7 @@ inline int32_t to_int(const string& strValue)
 }
 inline int64_t to_long(const string& strValue)
 {
-    return OTAPI_Wrap::StringToLong(strValue);
+    return opentxs::OTAPI_Wrap::StringToLong(strValue);
 }
 #endif
 

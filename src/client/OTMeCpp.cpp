@@ -130,10 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "../core/stdafx.hpp"
 
 #include "OTMeCpp.hpp"
-
 #include "ot_commands_ot.hpp"
 #include "ot_made_easy_ot.hpp"
 #include "ot_otapi_ot.hpp"

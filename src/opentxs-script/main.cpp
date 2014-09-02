@@ -130,28 +130,29 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
+#include "opentxs/core/stdafx.hpp"
+
+#include "opentxs/client/OTAPI.hpp"
+#include "opentxs/client/OpenTransactions.hpp"
+#include "opentxs/client/OT_ME.hpp"
+#include "opentxs/client/OTClient.hpp"
+#include "opentxs/client/OTWallet.hpp"
+#include "opentxs/client/ot_otapi_ot.hpp"
+
+#include "opentxs/core/OTAccount.hpp"
+#include "opentxs/core/OTAssetContract.hpp"
+#include "opentxs/core/OTCleanup.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/OTLog.hpp"
+#include "opentxs/core/OTMessage.hpp"
+#include "opentxs/core/OTPaths.hpp"
+#include "opentxs/core/OTPseudonym.hpp"
+#include "opentxs/core/OTServerContract.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/cash/Purse.hpp"
 
 #include <anyoption/anyoption.hpp>
 
-#include <OTAPI.hpp>
-#include <OpenTransactions.hpp>
-#include <OT_ME.hpp>
-#include <ot_otapi_ot.hpp>
-#include <OTClient.hpp>
-
-#include <OTAccount.hpp>
-#include <OTAssetContract.hpp>
-#include <OTCleanup.hpp>
-#include <crypto/OTEnvelope.hpp>
-#include <OTLog.hpp>
-#include <OTMessage.hpp>
-#include <OTPaths.hpp>
-#include <OTPseudonym.hpp>
-#include <OTServerContract.hpp>
-#include <script/OTVariable.hpp>
-#include <OTWallet.hpp>
-#include <cash/Purse.hpp>
 #include <iterator>
 
 #ifdef __APPLE__

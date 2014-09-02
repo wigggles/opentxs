@@ -130,15 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <stdafx.hpp>
-
 #include "ot_made_easy_ot.hpp"
-
 #include "ot_commands_ot.hpp"
 #include "ot_otapi_ot.hpp"
 #include "ot_utility_ot.hpp"
-
-#include <OTLog.hpp>
+#include "../core/OTLog.hpp"
 
 #include <algorithm>
 
