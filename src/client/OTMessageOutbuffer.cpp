@@ -131,15 +131,15 @@
  **************************************************************/
 
 #include "OTMessageOutbuffer.hpp"
-#include "OTDataFolder.hpp"
-#include "OTPaths.hpp"
-#include "OTStorage.hpp"
-#include "OTMessage.hpp"
-#include "OTTransaction.hpp"
-#include "OTPseudonym.hpp"
-#include "OTLog.hpp"
-#include "OTFolders.hpp"
-#include "OTCleanup.hpp"
+#include "../core/OTDataFolder.hpp"
+#include "../core/OTPaths.hpp"
+#include "../core/OTStorage.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTTransaction.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTFolders.hpp"
+#include "../core/OTCleanup.hpp"
 
 namespace opentxs
 {

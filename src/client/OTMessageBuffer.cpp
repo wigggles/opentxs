@@ -130,18 +130,18 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include "../core/stdafx.hpp"
 
 #include "OTMessageBuffer.hpp"
-#include "OTCleanup.hpp"
-#include "OTDataFolder.hpp"
-#include "OTFolders.hpp"
-#include "OTLog.hpp"
-#include "OTMessage.hpp"
-#include "OTPaths.hpp"
-#include "OTPseudonym.hpp"
-#include "OTStorage.hpp"
-#include "OTTransaction.hpp"
+#include "../core/OTCleanup.hpp"
+#include "../core/OTDataFolder.hpp"
+#include "../core/OTFolders.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTPaths.hpp"
+#include "../core/OTPseudonym.hpp"
+#include "../core/OTStorage.hpp"
+#include "../core/OTTransaction.hpp"
 
 namespace opentxs
 {

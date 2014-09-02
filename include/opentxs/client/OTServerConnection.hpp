@@ -133,7 +133,7 @@
 #ifndef __OT_SERVER_CONNECTION_HPP__
 #define __OT_SERVER_CONNECTION_HPP__
 
-#include "opentxs/core/OTMessageBuffer.hpp"
+#include "opentxs/client/OTMessageBuffer.hpp"
 
 namespace opentxs
 {
