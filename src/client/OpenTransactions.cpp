@@ -143,6 +143,10 @@
 #include "../ext/OTPayment.hpp"
 #include "../ext/Socket_ZMQ4.hpp"
 
+#include "../cash/Mint.hpp"
+#include "../cash/Purse.hpp"
+#include "../cash/Token.hpp"
+
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
 #include "../core/script/OTParty.hpp"
@@ -151,9 +155,6 @@
 #include "../core/trade/OTTrade.hpp"
 #include "../core/trade/OTOffer.hpp"
 #include "../core/basket/OTBasket.hpp"
-#include "../core/cash/Mint.hpp"
-#include "../core/cash/Purse.hpp"
-#include "../core/cash/Token.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/crypto/OTCachedKey.hpp"
 #include "../core/crypto/OTCrypto.hpp"

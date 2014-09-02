@@ -21,7 +21,7 @@ add_library(opentxs-ext
   ${cxx-headers}
 )
 
-target_link_libraries(opentxs-ext opentxs-core ${ZMQ_LIBRARY})
+target_link_libraries(opentxs-ext opentxs-cash opentxs-core ${ZMQ_LIBRARY})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-ext POST_BUILD

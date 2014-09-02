@@ -130,19 +130,20 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include "../core/stdafx.hpp"
 
-#include "cash/TokenLucre.hpp"
+#include "TokenLucre.hpp"
+#include "DigitalCash.hpp"
+#include "Mint.hpp"
+#include "Token.hpp"
 
-#include "crypto/OTEnvelope.hpp"
-#include "OTLog.hpp"
-#include "cash/DigitalCash.hpp"
-#include "cash/Mint.hpp"
-#include "cash/Token.hpp"
+#include "../core/crypto/OTEnvelope.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
-#include "crypto/OpenSSL_BIO.hpp"
+#include "../core/crypto/OpenSSL_BIO.hpp"
 #endif
+
+#include "../core/OTLog.hpp"
 
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 

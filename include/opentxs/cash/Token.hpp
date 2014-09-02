@@ -133,8 +133,8 @@
 #ifndef __TOKEN_HPP__
 #define __TOKEN_HPP__
 
-#include "../crypto/OTASCIIArmor.hpp"
-#include "../OTInstrument.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/OTInstrument.hpp"
 
 namespace opentxs
 {

@@ -139,6 +139,10 @@
 
 #include "../ext/OTPayment.hpp"
 
+#include "../cash/Mint.hpp"
+#include "../cash/Purse.hpp"
+#include "../cash/Token.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/script/OTAgent.hpp"
 #include "../core/OTAmount.hpp"
@@ -162,9 +166,6 @@
 #include "../core/OTServerContract.hpp"
 #include "../core/crypto/OTSymmetricKey.hpp"
 #include "../core/basket/OTBasket.hpp"
-#include "../core/cash/Mint.hpp"
-#include "../core/cash/Purse.hpp"
-#include "../core/cash/Token.hpp"
 
 namespace opentxs
 {

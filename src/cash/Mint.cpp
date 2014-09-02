@@ -130,22 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include "../core/stdafx.hpp"
 
-#include "cash/Mint.hpp"
+#include "Mint.hpp"
+#include "MintLucre.hpp"
 
-#include "OTAccount.hpp"
-#include "crypto/OTAsymmetricKey.hpp"
-#include "OTFolders.hpp"
-#include "OTLog.hpp"
-#include "OTMessage.hpp"
-#include "OTStorage.hpp"
-#include "cash/MintLucre.hpp"
+#include "../core/crypto/OTAsymmetricKey.hpp"
+#include "../core/OTAccount.hpp"
+#include "../core/OTFolders.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTMessage.hpp"
+#include "../core/OTStorage.hpp"
 
 #include <irrxml/irrXML.hpp>
 
 #if defined(OT_CASH_USING_LUCRE)
-//#include "OpenSSL_BIO.hpp"
 #endif
 
 namespace opentxs

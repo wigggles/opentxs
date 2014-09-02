@@ -133,6 +133,9 @@
 #include "../core/stdafx.hpp"
 
 #include "OTWallet.hpp"
+
+#include "../cash/Purse.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTCachedKey.hpp"
@@ -145,7 +148,6 @@
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
 #include "../core/crypto/OTSymmetricKey.hpp"
-#include "../core/cash/Purse.hpp"
 
 #include <irrxml/irrXML.hpp>
 
