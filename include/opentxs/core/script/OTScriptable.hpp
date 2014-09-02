@@ -134,7 +134,7 @@
 #ifndef __OT_SCRIPTABLE_HPP__
 #define __OT_SCRIPTABLE_HPP__
 
-#include "OTContract.hpp"
+#include "../OTContract.hpp"
 
 namespace opentxs
 {

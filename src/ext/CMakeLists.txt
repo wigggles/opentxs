@@ -7,20 +7,11 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext/*.hpp")
 
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
-)
-
 include_directories(SYSTEM
   ${ZMQ_INCLUDE_DIR}
-  ${dependency_include_dir}
-  ${dependency_include_dir}/cppzmq
 )
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
 )
 

@@ -133,7 +133,7 @@
 #ifndef __TOKEN_LUCRE_HPP__
 #define __TOKEN_LUCRE_HPP__
 
-#include "cash/Token.hpp"
+#include "Token.hpp"
 
 namespace opentxs
 {

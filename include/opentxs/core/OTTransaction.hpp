@@ -439,9 +439,6 @@ class OTLedger;
 
 class OTTransaction : public OTTransactionType
 {
-private:
-    typedef OTTransactionType ot_super;
-
     friend OTTransactionType* OTTransactionType::TransactionFactory(
         OTString strInput);
 
@@ -523,6 +520,287 @@ public:
         error_state
     }; // If you add any types to this list, update the list of strings at the
        // top of the .CPP file.
+
+public:
+    OTTransaction(const OTLedger& theOwner);
+
+    EXPORT OTTransaction(const OTIdentifier& theUserID,
+                         const OTIdentifier& theAccountID,
+                         const OTIdentifier& theServerID);
+
+    OTTransaction(const OTIdentifier& theUserID,
+                  const OTIdentifier& theAccountID,
+                  const OTIdentifier& theServerID, int64_t lTransactionNum);
+
+    // THIS constructor only used when loading an abbreviated box receipt
+    // (inbox, nymbox, or outbox receipt).
+    // The full receipt is loaded only after the abbreviated ones are loaded,
+    // and verified against them.
+    OTTransaction(const OTIdentifier& theUserID,
+                  const OTIdentifier& theAccountID,
+                  const OTIdentifier& theServerID,
+                  const int64_t& lNumberOfOrigin,
+                  const int64_t& lTransactionNum, const int64_t& lInRefTo,
+                  const int64_t& lInRefDisplay, const time64_t the_DATE_SIGNED,
+                  const transactionType theType, const OTString& strHash,
+                  const int64_t& lAdjustment, const int64_t& lDisplayValue,
+                  const int64_t& lClosingNum, const int64_t& lRequestNum,
+                  bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
+
+    EXPORT virtual ~OTTransaction();
+
+    virtual void Release();
+    EXPORT virtual int64_t GetNumberOfOrigin();
+    EXPORT virtual void CalculateNumberOfOrigin();
+
+    // This calls VerifyContractID() as well as VerifySignature()
+    // Use this instead of OTContract::VerifyContract, which expects/uses a
+    // pubkey from inside the contract.
+    virtual bool VerifyAccount(OTPseudonym& theNym);
+
+    virtual bool SaveContractWallet(std::ofstream& ofs);
+
+    void InitTransaction();
+
+    EXPORT bool IsCancelled()
+    {
+        return m_bCancelled;
+    }
+
+    EXPORT void SetAsCancelled()
+    {
+        m_bCancelled = true;
+    }
+
+    void SetParent(const OTLedger& theParent)
+    {
+        m_pParent = &theParent;
+    }
+
+    EXPORT bool AddNumbersToTransaction(const OTNumList& theAddition);
+
+    bool IsAbbreviated() const
+    {
+        return m_bIsAbbreviated;
+    }
+
+    int64_t GetAbbrevAdjustment() const
+    {
+        return m_lAbbrevAmount;
+    }
+
+    void SetAbbrevAdjustment(const int64_t lAmount)
+    {
+        m_lAbbrevAmount = lAmount;
+    }
+
+    int64_t GetAbbrevDisplayAmount() const
+    {
+        return m_lDisplayAmount;
+    }
+
+    void SetAbbrevDisplayAmount(const int64_t lAmount)
+    {
+        m_lDisplayAmount = lAmount;
+    }
+
+    int64_t GetAbbrevInRefDisplay() const
+    {
+        return m_lInRefDisplay;
+    }
+
+    void SetAbbrevInRefDisplay(const int64_t lAmount)
+    {
+        m_lInRefDisplay = lAmount;
+    }
+
+    // These are used exclusively by replyNotice (so you can tell
+    // which reply message it's a notice of.)
+    const int64_t& GetRequestNum() const
+    {
+        return m_lRequestNumber;
+    }
+
+    void SetRequestNum(const int64_t& lNum)
+    {
+        m_lRequestNumber = lNum;
+    }
+
+    bool GetReplyTransSuccess()
+    {
+        return m_bReplyTransSuccess;
+    }
+
+    void SetReplyTransSuccess(const bool bVal)
+    {
+        m_bReplyTransSuccess = bVal;
+    }
+
+    // These are used for finalReceipt and basketReceipt
+    EXPORT int64_t GetClosingNum() const;
+    EXPORT void SetClosingNum(const int64_t lClosingNum);
+    EXPORT int64_t GetReferenceNumForDisplay(); /// For display purposes. The
+                                                /// "ref #" you actually display
+                                                /// (versus the one you use
+                                                /// internally) might change
+                                                /// based on transaction type.
+                                                /// (Like with a cheque receipt
+                                                /// you actually have to load up
+                                                /// the original cheque.)
+
+    EXPORT bool GetSenderUserIDForDisplay(OTIdentifier& theReturnID);
+    EXPORT bool GetRecipientUserIDForDisplay(OTIdentifier& theReturnID);
+
+    EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theReturnID);
+    EXPORT bool GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID);
+    EXPORT bool GetMemo(OTString& strMemo);
+
+    inline time64_t GetDateSigned() const
+    {
+        return m_DATE_SIGNED;
+    }
+
+    EXPORT bool GetSuccess(); // Tries to determine, based on items within,
+                              // whether it was a success or fail.
+
+    EXPORT int64_t GetReceiptAmount(); // Tries to determine IF there is an
+                                       // amount (depending on type) and return
+                                       // it.
+
+    EXPORT static OTTransaction* GenerateTransaction(
+        const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
+        const OTIdentifier& theServerID, transactionType theType,
+        int64_t lTransactionNum = 0);
+
+    EXPORT static OTTransaction* GenerateTransaction(const OTLedger& theOwner,
+                                                     transactionType theType,
+                                                     int64_t lTransactionNum =
+                                                         0);
+    inline transactionType GetType() const
+    {
+        return m_Type;
+    }
+
+    inline void SetType(const transactionType theType)
+    {
+        m_Type = theType;
+    }
+
+    // This function assumes that theLedger is the owner of this transaction.
+    // We pass the ledger in so we can determine the proper directory we're
+    // reading from.
+    EXPORT bool SaveBoxReceipt(const int64_t lLedgerType);
+
+    EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
+
+    EXPORT bool DeleteBoxReceipt(OTLedger& theLedger);
+
+    // Call on abbreviated version, and pass in the purported full version.
+    bool VerifyBoxReceipt(OTTransaction& theFullVersion);
+
+    EXPORT bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,
+                                     OTPseudonym& THE_NYM);
+
+    // First VerifyContractID() is performed already on all the items when
+    // they are first loaded up. ServerID and AccountID have been verified.
+    // Now we check ownership, and signatures, and transaction #s, etc.
+    // (We go deeper.)
+    EXPORT bool VerifyItems(OTPseudonym& theNym);
+
+    inline int32_t GetItemCount() const
+    {
+        return static_cast<int32_t>(m_listItems.size());
+    }
+
+    int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number
+                                                           // of items that are
+                                                           // IN REFERENCE TO
+                                                           // some transaction#.
+
+    // While processing a transaction, you may wish to query it for items of a
+    // certain type.
+    EXPORT OTItem* GetItem(const OTItem::itemType theType);
+
+    EXPORT OTItem* GetItemInRefTo(const int64_t lReference);
+
+    EXPORT void AddItem(OTItem& theItem); // You have to allocate the item on
+                                          // the heap and then pass it in as a
+                                          // reference.
+    // OTTransaction will take care of it from there and will delete it in
+    // destructor.
+    // used for looping through the items in a few places.
+    inline listOfItems& GetItemList()
+    {
+        return m_listItems;
+    }
+
+    // Because all of the actual receipts cannot fit into the single inbox
+    // file, you must put their hash, and then store the receipt itself
+    // separately...
+    void SaveAbbreviatedNymboxRecord(OTString& strOutput);
+    void SaveAbbreviatedOutboxRecord(OTString& strOutput);
+    void SaveAbbreviatedInboxRecord(OTString& strOutput);
+    void SaveAbbrevPaymentInboxRecord(OTString& strOutput);
+    void SaveAbbrevRecordBoxRecord(OTString& strOutput);
+    void SaveAbbrevExpiredBoxRecord(OTString& strOutput);
+    void ProduceInboxReportItem(OTItem& theBalanceItem);
+    void ProduceOutboxReportItem(OTItem& theBalanceItem);
+
+    static transactionType GetTypeFromString(const OTString& strType);
+
+    const char* GetTypeString() const
+    {
+        return GetTransactionTypeString(static_cast<int>(m_Type));
+    }
+
+    // These functions are fairly smart about which transaction types are
+    // harvestable,
+    // in which situations (based on the bools.) As long as you use the bools
+    // correctly,
+    // you aren't likely to accidentally harvest an opening number unless you
+    // are SUPPOSED
+    // to harvest it, based on its type and the circumstances. Just make sure
+    // you are accurate
+    // when you tell it the circumstances (bools!)
+    bool HarvestOpeningNumber(
+        OTPseudonym& theNym,
+        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
+                                        // clawback the opening # because it
+                                        // will be using another opening # the
+                                        // next time OT_API_exchangeBasket() is
+                                        // called.
+        const bool bReplyWasSuccess,    // false until positively asserted.
+        const bool bReplyWasFailure,    // false until positively asserted.
+        const bool bTransactionWasSuccess,  // false until positively asserted.
+        const bool bTransactionWasFailure); // false until positively asserted.
+
+    // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
+    // TRANSACTION, and not the other way around!
+
+    // Normally do this if your transaction ran--and failed--so you can get most
+    // of your transaction numbers back. (The opening number is already gone,
+    // but any others are still salvageable.)
+    bool HarvestClosingNumbers(
+        OTPseudonym& theNym,
+        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
+                                        // clawback the opening # because it
+                                        // will be using another opening # the
+                                        // next time OT_API_exchangeBasket() is
+                                        // called.
+        const bool bReplyWasSuccess,    // false until positively asserted.
+        const bool bReplyWasFailure,    // false until positively asserted.
+        const bool bTransactionWasSuccess,  // false until positively asserted.
+        const bool bTransactionWasFailure); // false until positively asserted.
+
+protected:
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+    virtual void UpdateContents(); // Before transmission or serialization, this
+                                   // is where the transaction saves its
+                                   // contents
+
+    OTTransaction(); // only the factory gets to use this one.
 
 protected:
     // Usually a transaction object is inside a ledger object.
@@ -641,304 +919,6 @@ protected:
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
     bool m_bCancelled;
-
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
-                                   // is where the transaction saves its
-                                   // contents
-
-    OTTransaction(); // only the factory gets to use this one.
-
-public:
-    EXPORT bool IsCancelled()
-    {
-        return m_bCancelled;
-    }
-
-    EXPORT void SetAsCancelled()
-    {
-        m_bCancelled = true;
-    }
-
-    void SetParent(const OTLedger& theParent)
-    {
-        m_pParent = &theParent;
-    }
-
-    EXPORT bool AddNumbersToTransaction(const OTNumList& theAddition);
-
-    static int32_t LoadAbbreviatedRecord(
-        irr::io::IrrXMLReader*& xml, int64_t& lNumberOfOrigin,
-        int64_t& lTransactionNum, int64_t& lInRefTo, int64_t& lInRefDisplay,
-        time64_t& the_DATE_SIGNED, OTTransaction::transactionType& theType,
-        OTString& strHash, int64_t& lAdjustment, int64_t& lDisplayValue,
-        int64_t& lClosingNum, int64_t& lRequestNum, bool& bReplyTransSuccess,
-        OTNumList* pNumList = nullptr);
-
-    bool IsAbbreviated() const
-    {
-        return m_bIsAbbreviated;
-    }
-
-    int64_t GetAbbrevAdjustment() const
-    {
-        return m_lAbbrevAmount;
-    }
-
-    void SetAbbrevAdjustment(const int64_t lAmount)
-    {
-        m_lAbbrevAmount = lAmount;
-    }
-
-    int64_t GetAbbrevDisplayAmount() const
-    {
-        return m_lDisplayAmount;
-    }
-
-    void SetAbbrevDisplayAmount(const int64_t lAmount)
-    {
-        m_lDisplayAmount = lAmount;
-    }
-
-    int64_t GetAbbrevInRefDisplay() const
-    {
-        return m_lInRefDisplay;
-    }
-
-    void SetAbbrevInRefDisplay(const int64_t lAmount)
-    {
-        m_lInRefDisplay = lAmount;
-    }
-
-    // These are used exclusively by replyNotice (so you can tell
-    // which reply message it's a notice of.)
-    const int64_t& GetRequestNum() const
-    {
-        return m_lRequestNumber;
-    }
-
-    void SetRequestNum(const int64_t& lNum)
-    {
-        m_lRequestNumber = lNum;
-    }
-
-    bool GetReplyTransSuccess()
-    {
-        return m_bReplyTransSuccess;
-    }
-
-    void SetReplyTransSuccess(const bool bVal)
-    {
-        m_bReplyTransSuccess = bVal;
-    }
-
-    // These are used for finalReceipt and basketReceipt
-    EXPORT int64_t GetClosingNum() const;
-    EXPORT void SetClosingNum(const int64_t lClosingNum);
-    EXPORT virtual int64_t GetNumberOfOrigin(); // Calculates if necessary.
-    EXPORT virtual void CalculateNumberOfOrigin();
-    EXPORT int64_t GetReferenceNumForDisplay(); /// For display purposes. The
-                                                /// "ref #" you actually display
-                                                /// (versus the one you use
-                                                /// internally) might change
-                                                /// based on transaction type.
-                                                /// (Like with a cheque receipt
-                                                /// you actually have to load up
-                                                /// the original cheque.)
-
-    EXPORT bool GetSenderUserIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetRecipientUserIDForDisplay(OTIdentifier& theReturnID);
-
-    EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetMemo(OTString& strMemo);
-
-    inline time64_t GetDateSigned() const
-    {
-        return m_DATE_SIGNED;
-    }
-
-    EXPORT bool GetSuccess(); // Tries to determine, based on items within,
-                              // whether it was a success or fail.
-
-    EXPORT int64_t GetReceiptAmount(); // Tries to determine IF there is an
-                                       // amount (depending on type) and return
-                                       // it.
-    OTTransaction(const OTLedger& theOwner);
-
-    EXPORT OTTransaction(const OTIdentifier& theUserID,
-                         const OTIdentifier& theAccountID,
-                         const OTIdentifier& theServerID);
-
-    OTTransaction(const OTIdentifier& theUserID,
-                  const OTIdentifier& theAccountID,
-                  const OTIdentifier& theServerID, int64_t lTransactionNum);
-
-    // THIS constructor only used when loading an abbreviated box receipt
-    // (inbox, nymbox, or outbox receipt).
-    // The full receipt is loaded only after the abbreviated ones are loaded,
-    // and verified against them.
-    OTTransaction(const OTIdentifier& theUserID,
-                  const OTIdentifier& theAccountID,
-                  const OTIdentifier& theServerID,
-                  const int64_t& lNumberOfOrigin,
-                  const int64_t& lTransactionNum, const int64_t& lInRefTo,
-                  const int64_t& lInRefDisplay, const time64_t the_DATE_SIGNED,
-                  const transactionType theType, const OTString& strHash,
-                  const int64_t& lAdjustment, const int64_t& lDisplayValue,
-                  const int64_t& lClosingNum, const int64_t& lRequestNum,
-                  bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
-
-    EXPORT virtual ~OTTransaction();
-
-    bool GenerateTransaction(const OTIdentifier& theAccountID,
-                             const OTIdentifier& theServerID,
-                             int64_t lTransactionNum);
-
-    EXPORT static OTTransaction* GenerateTransaction(
-        const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
-        const OTIdentifier& theServerID, transactionType theType,
-        int64_t lTransactionNum = 0);
-
-    EXPORT static OTTransaction* GenerateTransaction(const OTLedger& theOwner,
-                                                     transactionType theType,
-                                                     int64_t lTransactionNum =
-                                                         0);
-    void InitTransaction();
-
-    void ReleaseItems();
-
-    virtual void Release();
-
-    void Release_Transaction();
-
-    inline transactionType GetType() const
-    {
-        return m_Type;
-    }
-
-    inline void SetType(const transactionType theType)
-    {
-        m_Type = theType;
-    }
-
-    // This function assumes that theLedger is the owner of this transaction.
-    // We pass the ledger in so we can determine the proper directory we're
-    // reading from.
-    EXPORT bool SaveBoxReceipt(const int64_t lLedgerType);
-
-    EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
-
-    EXPORT bool DeleteBoxReceipt(OTLedger& theLedger);
-
-    // Call on abbreviated version, and pass in the purported full version.
-    bool VerifyBoxReceipt(OTTransaction& theFullVersion);
-
-    bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM);
-
-    // Transaction receipts are used where you don't need to change an account
-    // balance, but you still need to have an agreement about which transaction
-    // numbers are signed out.
-    bool VerifyTransactionReceipt(OTPseudonym& SERVER_NYM,
-                                  OTPseudonym& THE_NYM);
-    // First VerifyContractID() is performed already on all the items when
-    // they are first loaded up. ServerID and AccountID have been verified.
-    // Now we check ownership, and signatures, and transaction #s, etc.
-    // (We go deeper.)
-    EXPORT bool VerifyItems(OTPseudonym& theNym);
-
-    // This calls VerifyContractID() as well as VerifySignature()
-    // Use this instead of OTContract::VerifyContract, which expects/uses a
-    // pubkey from inside the contract.
-    virtual bool VerifyAccount(OTPseudonym& theNym); // This overrides
-
-    inline int32_t GetItemCount() const
-    {
-        return static_cast<int32_t>(m_listItems.size());
-    }
-
-    int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number
-                                                           // of items that are
-                                                           // IN REFERENCE TO
-                                                           // some transaction#.
-
-    // While processing a transaction, you may wish to query it for items of a
-    // certain type.
-    EXPORT OTItem* GetItem(const OTItem::itemType theType);
-
-    EXPORT OTItem* GetItemInRefTo(const int64_t lReference);
-
-    EXPORT void AddItem(OTItem& theItem); // You have to allocate the item on
-                                          // the heap and then pass it in as a
-                                          // reference.
-    // OTTransaction will take care of it from there and will delete it in
-    // destructor.
-    // used for looping through the items in a few places.
-    inline listOfItems& GetItemList()
-    {
-        return m_listItems;
-    }
-
-    virtual bool SaveContractWallet(std::ofstream& ofs);
-
-    // Because all of the actual receipts cannot fit into the single inbox
-    // file, you must put their hash, and then store the receipt itself
-    // separately...
-    void SaveAbbreviatedNymboxRecord(OTString& strOutput);
-    void SaveAbbreviatedOutboxRecord(OTString& strOutput);
-    void SaveAbbreviatedInboxRecord(OTString& strOutput);
-    void SaveAbbrevPaymentInboxRecord(OTString& strOutput);
-    void SaveAbbrevRecordBoxRecord(OTString& strOutput);
-    void SaveAbbrevExpiredBoxRecord(OTString& strOutput);
-    void ProduceInboxReportItem(OTItem& theBalanceItem);
-    void ProduceOutboxReportItem(OTItem& theBalanceItem);
-
-    static transactionType GetTypeFromString(const OTString& strType);
-
-    const char* GetTypeString() const
-    {
-        return GetTransactionTypeString(static_cast<int>(m_Type));
-    }
-
-    // These functions are fairly smart about which transaction types are
-    // harvestable,
-    // in which situations (based on the bools.) As long as you use the bools
-    // correctly,
-    // you aren't likely to accidentally harvest an opening number unless you
-    // are SUPPOSED
-    // to harvest it, based on its type and the circumstances. Just make sure
-    // you are accurate
-    // when you tell it the circumstances (bools!)
-    bool HarvestOpeningNumber(
-        OTPseudonym& theNym,
-        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
-                                        // clawback the opening # because it
-                                        // will be using another opening # the
-                                        // next time OT_API_exchangeBasket() is
-                                        // called.
-        const bool bReplyWasSuccess,    // false until positively asserted.
-        const bool bReplyWasFailure,    // false until positively asserted.
-        const bool bTransactionWasSuccess,  // false until positively asserted.
-        const bool bTransactionWasFailure); // false until positively asserted.
-
-    // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
-    // TRANSACTION, and not the other way around!
-
-    // Normally do this if your transaction ran--and failed--so you can get most
-    // of your transaction numbers back. (The opening number is already gone,
-    // but any others are still salvageable.)
-    bool HarvestClosingNumbers(
-        OTPseudonym& theNym,
-        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
-                                        // clawback the opening # because it
-                                        // will be using another opening # the
-                                        // next time OT_API_exchangeBasket() is
-                                        // called.
-        const bool bReplyWasSuccess,    // false until positively asserted.
-        const bool bReplyWasFailure,    // false until positively asserted.
-        const bool bTransactionWasSuccess,  // false until positively asserted.
-        const bool bTransactionWasFailure); // false until positively asserted.
 };
 
 } // namespace opentxs

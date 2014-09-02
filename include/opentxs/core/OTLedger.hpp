@@ -142,7 +142,6 @@ class OTAccount;
 class OTCheque;
 class OTIdentifier;
 class OTItem;
-class OTPayment;
 class OTPseudonym;
 class OTString;
 
@@ -252,11 +251,6 @@ public:
     EXPORT OTTransaction* GetTransaction(int64_t lTransactionNum);
     EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex);
     EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
-    EXPORT OTTransaction* GetPaymentReceipt(int64_t lReferenceNum,
-                                            OTPayment** ppPaymentOut =
-                                                nullptr); // CALLER RESPONSIBLE
-                                                          // TO
-                                                          // DELETE.
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
     EXPORT OTTransaction* GetChequeReceipt(const int64_t lChequeNum,
                                            OTCheque** ppChequeOut =
@@ -266,13 +260,7 @@ public:
     EXPORT int32_t
     GetTransactionIndex(int64_t lTransactionNum); // if not found, returns -1
     EXPORT OTTransaction* GetReplyNotice(const int64_t& lRequestNum);
-    // Caller is responsible to delete.
-    //
-    EXPORT OTPayment* GetInstrument(OTPseudonym& theNym,
-                                    const int32_t& nIndex); // returns financial
-                                                            // instrument by
-                                                            // index. (Cheque,
-                                                            // Purse, etc.)
+
     // This calls OTTransactionType::VerifyAccount(), which calls
     // VerifyContractID() as well as VerifySignature().
     //

@@ -13,7 +13,7 @@
 #include "OTMessage.hpp"
 #include "OTPaymentPlan.hpp"
 #include "OTServerContract.hpp"
-#include "OTSignedFile.hpp"
+#include "crypto/OTSignedFile.hpp"
 #include "script/OTSmartContract.hpp"
 #include "trade/OTOffer.hpp"
 #include "trade/OTTrade.hpp"

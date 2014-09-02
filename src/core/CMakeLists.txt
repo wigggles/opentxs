@@ -17,40 +17,40 @@ set(cxx-sources
   OTAccount.cpp
   OTAcctList.cpp
   OTAgreement.cpp
-  OTASCIIArmor.cpp
+  crypto/OTASCIIArmor.cpp
   OTAssetContract.cpp
-  OTAsymmetricKey.cpp
-  OTAsymmetricKeyOpenSSL.cpp
-  OTAsymmetricKeyOpenSSLPrivdp.cpp
-  OTCachedKey.cpp
-  OTCallback.cpp
-  OTCaller.cpp
+  crypto/OTAsymmetricKey.cpp
+  crypto/OTAsymmetricKeyOpenSSL.cpp
+  crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
+  crypto/OTCachedKey.cpp
+  crypto/OTCallback.cpp
+  crypto/OTCaller.cpp
   OTCheque.cpp
   OTContract.cpp
-  OTCredential.cpp
-  OTCrypto.cpp
+  crypto/OTCredential.cpp
+  crypto/OTCrypto.cpp
   OTData.cpp
   OTDataCheck.cpp
   OTDataFolder.cpp
-  OTEnvelope.cpp
+  crypto/OTEnvelope.cpp
   OTFolders.cpp
   OTIdentifier.cpp
   OTInstrument.cpp
   OTItem.cpp
-  OTKeyCredential.cpp
-  OTKeypair.cpp
-  OTKeyring.cpp
+  crypto/OTKeyCredential.cpp
+  crypto/OTKeypair.cpp
+  crypto/OTKeyring.cpp
   OTLedger.cpp
   OTLog.cpp
-  OTLowLevelKeyData.cpp
-  OTMasterkey.cpp
+  crypto/OTLowLevelKeyData.cpp
+  crypto/OTMasterkey.cpp
   OTMessage.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
   OTNumList.cpp
-  OTNymOrSymmetricKey.cpp
-  OTPassword.cpp
-  OTPasswordData.cpp
+  crypto/OTNymOrSymmetricKey.cpp
+  crypto/OTPassword.cpp
+  crypto/OTPasswordData.cpp
   OTPaths.cpp
   OTPayload.cpp
   OTPayment.cpp
@@ -58,34 +58,22 @@ set(cxx-sources
   OTPseudonym.cpp
   OTServerContract.cpp
   OTSettings.cpp
-  OTSignatureMetadata.cpp
-  OTSignedFile.cpp
+  crypto/OTSignatureMetadata.cpp
+  crypto/OTSignedFile.cpp
   OTStash.cpp
   OTStashItem.cpp
   OTStorage.cpp
   OTString.cpp
   OTStringXML.cpp
-  OTSubcredential.cpp
-  OTSubkey.cpp
-  OTSymmetricKey.cpp
+  crypto/OTSubcredential.cpp
+  crypto/OTSubkey.cpp
+  crypto/OTSymmetricKey.cpp
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp")
-
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/bigint/
-  ${dependency_include_dir}/irrxml/
-  ${dependency_include_dir}/lucre/include/
-  ${dependency_include_dir}/simpleini/
-)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
@@ -105,8 +93,8 @@ if(WIN32)
   # suppress warnings about strcpy being unsafe in anyoption.cpp
   add_definitions(/wd4996)
 
-  # OTScriptChai needs this flag to avoid error C1128: number of sections exceeded object file format limit
-  add_definitions(/bigobj)
+  # suppress linker warnings about locallly defined imported symbols
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
   # we have an extra Windows-specific file to compile
   add_library(opentxs-core

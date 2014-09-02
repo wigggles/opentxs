@@ -133,18 +133,19 @@
 #include "stdafx.hpp"
 
 #include "OTLedger.hpp"
-#include "OTCleanup.hpp"
 #include "OTAccount.hpp"
 #include "OTCheque.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
-#include "OTPayment.hpp"
 #include "OTPseudonym.hpp"
 #include "OTStorage.hpp"
+#include "transaction/Helpers.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 namespace opentxs
 {
@@ -1050,10 +1051,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
     if ((OTLedger::inbox == theType) || (OTLedger::outbox == theType)) {
         // Have to look up the UserID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        OTAccount* pAccount =
-            OTAccount::LoadExistingAccount(theAcctID, theServerID);
-        OTCleanup<OTAccount> theAccountGuardian(
-            pAccount); // No worries about having to clean it up.
+        std::unique_ptr<OTAccount> pAccount(
+            OTAccount::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount)
             SetUserID(pAccount->GetUserID());
@@ -1067,10 +1066,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         // RecordBox COULD be by NymID OR AcctID.
         // So we TRY to lookup the acct.
         //
-        OTAccount* pAccount =
-            OTAccount::LoadExistingAccount(theAcctID, theServerID);
-        OTCleanup<OTAccount> theAccountGuardian(
-            pAccount); // No worries about having to clean it up.
+        std::unique_ptr<OTAccount> pAccount(
+            OTAccount::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount) // Found it!
             SetUserID(pAccount->GetUserID());
@@ -1341,11 +1338,10 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
             OTString strReference;
             pTransaction->GetReferenceString(strReference);
 
-            OTItem* pOriginalItem = OTItem::CreateItemFromString(
+            std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
                 strReference, pTransaction->GetPurportedServerID(),
-                pTransaction->GetReferenceToNum());
+                pTransaction->GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
-            OTCleanup<OTItem> theItemAngel(*pOriginalItem);
 
             if (pOriginalItem->GetType() != OTItem::acceptPending) {
                 otErr << "OTLedger::" << __FUNCTION__
@@ -1421,10 +1417,9 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
         OTString strDepositChequeMsg;
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
-        OTItem* pOriginalItem = OTItem::CreateItemFromString(
+        std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
             strDepositChequeMsg, GetPurportedServerID(),
-            pCurrentReceipt->GetReferenceToNum());
-        OTCleanup<OTItem> theItemAngel(pOriginalItem);
+            pCurrentReceipt->GetReferenceToNum()));
 
         if (nullptr == pOriginalItem) {
             otErr << __FUNCTION__
@@ -1449,7 +1444,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
 
             OTCheque* pCheque = new OTCheque;
             OT_ASSERT(nullptr != pCheque);
-            OTCleanup<OTCheque> theChequeAngel(pCheque);
+            std::unique_ptr<OTCheque> theChequeAngel(pCheque);
 
             if (false == ((strCheque.GetLength() > 2) &&
                           pCheque->LoadContractFromString(strCheque))) {
@@ -1484,8 +1479,7 @@ OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
                     {
                         (*ppChequeOut) =
                             pCheque; // now caller is responsible to delete.
-                        theChequeAngel.SetCleanupTargetPointer(
-                            nullptr); // we will no longer clean it up.
+                        theChequeAngel.release();
                     }
 
                     return pCurrentReceipt;
@@ -1523,60 +1517,6 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum)
             return pTransaction;
-    }
-
-    return nullptr;
-}
-
-// There may be multiple matching receipts... this just returns the first one.
-// It's used to verify that any are even there. The pointer is returned only for
-// convenience.
-//
-OTTransaction* OTLedger::GetPaymentReceipt(
-    int64_t lReferenceNum, // pass in the opening number for the cron item that
-                           // this is a receipt for.
-    OTPayment** ppPaymentOut) // CALLER RESPONSIBLE TO DELETE.
-{
-    // loop through the transactions that make up this ledger.
-    for (auto& it : m_mapTransactions) {
-        OTTransaction* pTransaction = it.second;
-        OT_ASSERT(nullptr != pTransaction);
-
-        if (OTTransaction::paymentReceipt !=
-            pTransaction->GetType()) // <=======
-            continue;
-
-        if (pTransaction->GetReferenceToNum() == lReferenceNum) {
-            if (nullptr !=
-                ppPaymentOut) // The caller might want a copy of this.
-            {
-                OTString strPayment;
-                pTransaction->GetReferenceString(strPayment);
-
-                if (!strPayment.Exists()) {
-                    OTPayment* pPayment = new OTPayment(strPayment);
-                    OT_ASSERT(nullptr != pPayment);
-
-                    if (pPayment->IsValid() && pPayment->SetTempValues())
-                        *ppPaymentOut =
-                            pPayment; // CALLER RESPONSIBLE TO DELETE.
-                    else {
-                        otErr << __FUNCTION__ << ": Error: Failed loading up "
-                                                 "payment instrument from "
-                                                 "paymentReceipt.\n";
-                        delete pPayment;
-                        pPayment = nullptr;
-                        *ppPaymentOut = nullptr;
-                    }
-                }
-                else
-                    otErr << __FUNCTION__ << ": Error: Unexpected: payment "
-                                             "instrument was empty string, on "
-                                             "a paymentReceipt.\n";
-            }
-
-            return pTransaction;
-        }
     }
 
     return nullptr;
@@ -1804,190 +1744,6 @@ void OTLedger::ProduceOutboxReport(OTItem& theBalanceItem)
             theBalanceItem); // <======= This function adds a pending transfer
                              // sub-item to theBalanceItem, where appropriate.
     }
-}
-
-// For payments inbox and possibly recordbox / expired box. (Starting to write
-// it now...)
-//
-// Caller responsible to delete.
-//
-OTPayment* OTLedger::GetInstrument(OTPseudonym& theNym,
-                                   const int32_t& nIndex) // Returns financial
-                                                          // instrument by
-                                                          // index.
-{
-    if ((0 > nIndex) || (nIndex >= GetTransactionCount())) {
-        otErr << __FUNCTION__
-              << ": nIndex is out of bounds (it's in the negative.)\n";
-        OT_FAIL;
-    }
-
-    //    if (nIndex >= GetTransactionCount())
-    //    {
-    //        otErr << "%s: out of bounds: %d\n", __FUNCTION__, nIndex);
-    //        return nullptr; // out of bounds. I'm saving from an
-    // OT_ASSERT_MSG()
-    // happening here. (Maybe I shouldn't.)
-    //                   // ^^^ That's right you shouldn't! That's the client
-    // developer's problem, not yours.
-    //    }
-
-    OTTransaction* pTransaction = GetTransactionByIndex(nIndex);
-    //    OTCleanup<OTTransaction> theAngel(pTransaction); // THE LEDGER CLEANS
-    // THIS ALREADY.
-
-    if (nullptr == pTransaction) {
-        otErr << __FUNCTION__
-              << ": good index but uncovered nullptr pointer: " << nIndex
-              << "\n";
-        return nullptr; // Weird.
-    }
-
-    const int64_t lTransactionNum = pTransaction->GetTransactionNum();
-
-    // Update: for transactions in ABBREVIATED form, the string is empty, since
-    // it has never actually
-    // been signed (in fact the whole point32_t with abbreviated transactions in
-    // a ledger is that they
-    // take up very little room, and have no signature of their own, but exist
-    // merely as XML tags on
-    // their parent ledger.)
-    //
-    // THEREFORE I must check to see if this transaction is abbreviated and if
-    // so, sign it in order to
-    // force the UpdateContents() call, so the programmatic user of this API
-    // will be able to load it up.
-    //
-    if (pTransaction->IsAbbreviated()) {
-        LoadBoxReceipt(static_cast<int64_t>(
-            lTransactionNum)); // I don't check return val here because I still
-                               // want it to send the abbreviated form, if this
-                               // fails.
-        pTransaction = GetTransaction(static_cast<int64_t>(lTransactionNum));
-
-        if (nullptr == pTransaction) {
-            otErr << __FUNCTION__
-                  << ": good index but uncovered nullptr "
-                     "pointer after trying to load full version of receipt "
-                     "(from abbreviated) at index: " << nIndex << "\n";
-            return nullptr; // Weird. Clearly I need the full box receipt, if
-                            // I'm
-                            // to get the instrument out of it.
-        }
-    }
-
-    /*
-    TO EXTRACT INSTRUMENT FROM PAYMENTS INBOX:
-    -- Iterate through the transactions in the payments inbox.
-    -- (They should all be "instrumentNotice" transactions.)
-    -- Each transaction contains (1) OTMessage in "in ref to" field, which in
-    turn contains an encrypted
-    OTPayment in the payload field, which contains the actual financial
-    instrument.
-    -- *** Therefore, this function, based purely on ledger index (as we
-    iterate):
-    1. extracts the OTMessage from the Transaction "in ref to" field (for the
-    transaction at that index),
-    2. then decrypts the payload on that message, producing an OTPayment object,
-    3. ...which contains the actual instrument.
-    */
-
-    if ((OTTransaction::instrumentNotice != pTransaction->GetType()) &&
-        (OTTransaction::payDividend != pTransaction->GetType()) &&
-        (OTTransaction::notice != pTransaction->GetType())) {
-        otOut << __FUNCTION__
-              << ": Failure: Expected OTTransaction::instrumentNotice, "
-                 "::payDividend or ::notice, "
-                 "but found: OTTransaction::" << pTransaction->GetTypeString()
-              << "\n";
-        return nullptr;
-    }
-
-    if ((OTTransaction::instrumentNotice ==
-         pTransaction->GetType()) || // It's encrypted.
-        (OTTransaction::payDividend == pTransaction->GetType())) {
-        OTString strMsg;
-        pTransaction->GetReferenceString(strMsg);
-
-        if (!strMsg.Exists()) {
-            otOut << __FUNCTION__
-                  << ": Failure: Expected OTTransaction::instrumentNotice to "
-                     "contain an 'in reference to' string, but it was empty. "
-                     "(Returning \"\".)\n";
-            return nullptr;
-        }
-
-        OTMessage* pMsg = new OTMessage;
-        if (nullptr == pMsg) {
-            otErr << __FUNCTION__ << ": Null:  Assert while allocating memory "
-                                     "for an OTMessage!\n";
-            OT_FAIL;
-        }
-        OTCleanup<OTMessage> theMsgAngel(*pMsg); // cleanup memory.
-
-        if (false == pMsg->LoadContractFromString(strMsg)) {
-            otOut << __FUNCTION__
-                  << ": Failed trying to load OTMessage from string:\n\n"
-                  << strMsg << "\n\n";
-            return nullptr;
-        }
-
-        // By this point, the original OTMessage has been loaded from string
-        // successfully.
-        // Now we need to decrypt the payment on that message (which contains
-        // the instrument
-        // itself that we need to return.) We decrypt it the same way as we do
-        // in
-        // OTAPI_Wrap::GetNym_MailContentsByIndex():
-        //
-
-        // SENDER:     pMsg->m_strNymID
-        // RECIPIENT:  pMsg->m_strNymID2
-        // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
-        //
-        OTEnvelope theEnvelope;
-        OTString strEnvelopeContents;
-
-        // Decrypt the Envelope.
-        if (!theEnvelope.SetAsciiArmoredData(pMsg->m_ascPayload))
-            otOut << __FUNCTION__
-                  << ": Failed trying to set ASCII-armored data for envelope:\n"
-                  << strMsg << "\n\n";
-        else if (!theEnvelope.Open(theNym, strEnvelopeContents))
-            otOut << __FUNCTION__
-                  << ": Failed trying to decrypt the financial instrument "
-                     "that was supposedly attached as a payload to this "
-                     "payment message:\n" << strMsg << "\n\n";
-        else if (!strEnvelopeContents.Exists())
-            otOut << __FUNCTION__
-                  << ": Failed: after decryption, cleartext is empty. From:\n"
-                  << strMsg << "\n\n";
-        else {
-            OTPayment* pPayment =
-                new OTPayment(strEnvelopeContents); // strEnvelopeContents
-                                                    // contains a PURSE or
-                                                    // CHEQUE (etc) and not
-                                                    // specifically a PAYMENT.
-            OT_ASSERT(nullptr != pPayment);
-            OTCleanup<OTPayment> thePaymentAngel(pPayment);
-
-            if (!pPayment->IsValid())
-                otOut << __FUNCTION__
-                      << ": Failed: after decryption, payment is invalid. "
-                         "Contents:\n\n" << strEnvelopeContents << "\n\n";
-            else // success.
-            {
-                thePaymentAngel.SetCleanupTargetPointer(nullptr);
-                return pPayment; // Caller responsible to delete.
-            }
-        }
-    }
-    else
-        otErr << __FUNCTION__ << ": This must be a notice (vs an "
-                                 "instrumentNotice or payDividend). "
-                                 "!!! Not yet supported !!!\n";
-
-    return nullptr;
 }
 
 // Auto-detects ledger type. (message/nymbox/inbox/outbox)
@@ -2335,8 +2091,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     int64_t lInRefDisplay = 0;
 
                     time64_t the_DATE_SIGNED = OT_TIME_ZERO;
-                    OTTransaction::transactionType theType =
-                        OTTransaction::error_state; // default
+                    int theType = OTTransaction::error_state; // default
                     OTString strHash;
 
                     int64_t lAdjustment = 0;
@@ -2345,15 +2100,14 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     int64_t lRequestNum = 0;
                     bool bReplyTransSuccess = false;
 
-                    int32_t nAbbrevRetVal =
-                        OTTransaction::LoadAbbreviatedRecord(
-                            xml, lNumberOfOrigin, lTransactionNum, lInRefTo,
-                            lInRefDisplay, the_DATE_SIGNED, theType, strHash,
-                            lAdjustment, lDisplayValue, lClosingNum,
-                            lRequestNum, bReplyTransSuccess,
-                            pNumList); // This is for "OTTransaction::blank" and
-                                       // "OTTransaction::successNotice",
-                                       // otherwise nullptr.
+                    int32_t nAbbrevRetVal = LoadAbbreviatedRecord(
+                        xml, lNumberOfOrigin, lTransactionNum, lInRefTo,
+                        lInRefDisplay, the_DATE_SIGNED, theType, strHash,
+                        lAdjustment, lDisplayValue, lClosingNum, lRequestNum,
+                        bReplyTransSuccess,
+                        pNumList); // This is for "OTTransaction::blank" and
+                                   // "OTTransaction::successNotice",
+                                   // otherwise nullptr.
                     if ((-1) == nAbbrevRetVal)
                         return (-1); // The function already logs appropriately.
 
@@ -2384,9 +2138,10 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     OTTransaction* pTransaction = new OTTransaction(
                         USER_ID, ACCOUNT_ID, SERVER_ID, lNumberOfOrigin,
                         lTransactionNum, lInRefTo, // lInRefTo
-                        lInRefDisplay, the_DATE_SIGNED, theType, strHash,
-                        lAdjustment, lDisplayValue, lClosingNum, lRequestNum,
-                        bReplyTransSuccess,
+                        lInRefDisplay, the_DATE_SIGNED,
+                        static_cast<OTTransaction::transactionType>(theType),
+                        strHash, lAdjustment, lDisplayValue, lClosingNum,
+                        lRequestNum, bReplyTransSuccess,
                         pNumList); // This is for "OTTransaction::blank" and
                                    // "OTTransaction::successNotice", otherwise
                                    // nullptr.

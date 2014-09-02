@@ -134,14 +134,14 @@
 
 #include "cash/TokenLucre.hpp"
 
-#include "OTEnvelope.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTLog.hpp"
 #include "cash/DigitalCash.hpp"
 #include "cash/Mint.hpp"
 #include "cash/Token.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
-#include "OpenSSL_BIO.hpp"
+#include "crypto/OpenSSL_BIO.hpp"
 #endif
 
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.

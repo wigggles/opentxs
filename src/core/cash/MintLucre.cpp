@@ -134,15 +134,15 @@
 
 #include "cash/MintLucre.hpp"
 
-#include "OTAsymmetricKey.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTAsymmetricKey.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"
 #include "cash/DigitalCash.hpp"
 #include "cash/Token.hpp"
 
 #if defined(OT_CASH_USING_LUCRE)
-#include "OpenSSL_BIO.hpp"
+#include "crypto/OpenSSL_BIO.hpp"
 #endif
 
 namespace opentxs

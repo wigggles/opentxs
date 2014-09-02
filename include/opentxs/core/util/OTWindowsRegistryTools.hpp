@@ -145,6 +145,8 @@
 #include <windows.h>
 #endif
 
+#include <xstring>
+
 class WindowsRegistryTools
 {
 public:

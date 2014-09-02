@@ -136,9 +136,9 @@
 #ifndef __OT_CRON_HPP__
 #define __OT_CRON_HPP__
 
-#include "OTContract.hpp"
-#include "util/StringUtils.hpp"
-#include "util/Assert.hpp"
+#include "../OTContract.hpp"
+#include "../util/StringUtils.hpp"
+#include "../util/Assert.hpp"
 
 namespace opentxs
 {

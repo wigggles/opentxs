@@ -134,7 +134,7 @@
 
 #include "OTStorage.hpp"
 
-#include "OTASCIIArmor.hpp"
+#include "crypto/OTASCIIArmor.hpp"
 #include "OTDataFolder.hpp"
 #include "OTLog.hpp"
 #include "OTPaths.hpp"

@@ -236,8 +236,9 @@ public:
     // On success, bool is returned, and strFirstLine contains the first line
     // from strOutput.
     //
-    static bool DearmorAndTrim(const OTString& strInput, OTString& strOutput,
-                               OTString& strFirstLine);
+    EXPORT static bool DearmorAndTrim(const OTString& strInput,
+                                      OTString& strOutput,
+                                      OTString& strFirstLine);
 
     // The Method "RewriteContract" calls this. I put the meat into a static
     // method so I could use it from outside OTContract as well.
@@ -410,7 +411,7 @@ public:
     // Separating these into two steps allows us to load contracts
     // from other sources besides files.
 
-    bool SaveToContractFolder(); // data_folder/contracts/Contract-ID
+    EXPORT bool SaveToContractFolder(); // data_folder/contracts/Contract-ID
 
     EXPORT bool SaveContractRaw(OTString& strOutput) const; // Saves the raw
                                                             // (pre-existing)

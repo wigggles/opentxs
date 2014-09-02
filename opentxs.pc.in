@@ -11,6 +11,6 @@ instruments, markets, basket currencies, unforgeable account balances, cheques, 
 cash, Ricardian contracts, smart contracts (with scriptable clauses), and more.
 Version: @VERSION@
 
-Libs: -L${libdir} -llibopentxs-api -llibopentxs-core -llibopentxs-ext
+Libs: -L${libdir} -llibopentxs-client -llibopentxs-core -llibopentxs-ext
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}

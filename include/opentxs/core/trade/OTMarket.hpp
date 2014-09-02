@@ -137,8 +137,8 @@
 #ifndef __OT_MARKET_HPP__
 #define __OT_MARKET_HPP__
 
-#include "cron/OTCron.hpp"
-#include "OTStorage.hpp"
+#include "../cron/OTCron.hpp"
+#include "../OTStorage.hpp"
 
 namespace opentxs
 {

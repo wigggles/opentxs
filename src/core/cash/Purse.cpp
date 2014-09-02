@@ -134,14 +134,14 @@
 
 #include "cash/Purse.hpp"
 
-#include "OTCachedKey.hpp"
-#include "OTEnvelope.hpp"
+#include "crypto/OTCachedKey.hpp"
+#include "crypto/OTEnvelope.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
-#include "OTNymOrSymmetricKey.hpp"
-#include "OTPassword.hpp"
+#include "crypto/OTNymOrSymmetricKey.hpp"
+#include "crypto/OTPassword.hpp"
 #include "OTStorage.hpp"
-#include "OTSymmetricKey.hpp"
+#include "crypto/OTSymmetricKey.hpp"
 #include "cash/Token.hpp"
 
 #include <irrxml/irrXML.hpp>

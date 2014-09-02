@@ -51,7 +51,9 @@ do
 		echo "==> cppcheck successfull"
 		exit 0
 	fi
+	echo "[$(date +%X)] starting cppcheck"
 	output=$(scripts/travis/cppcheck_wrapper.sh -j8 $exist_files 2>&1)
+	echo "[$(date +%X)] done cppcheck"
 	error_code=$?
 	filter_string="(information) Cppcheck cannot find all the include files"
 	filter_string="$filter_string (use --check-config for details)"

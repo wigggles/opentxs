@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include "../core/stdafx.hpp"
 
 #include "OTSocket.hpp"
-#include "OTLog.hpp"
-#include "OTSettings.hpp"
-#include "util/tinythread.hpp"
+#include "../core/OTLog.hpp"
+#include "../core/OTSettings.hpp"
+#include "../core/util/tinythread.hpp"
 
 #define KEY_LATENCY_SEND_MS "latency_send_ms"
 #define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"
