@@ -134,7 +134,7 @@
 #define __OT_CLIENT_HPP__
 
 #include "opentxs/client/OTMessageBuffer.hpp"
-#include "opentxs/core/OTMessageOutbuffer.hpp"
+#include "opentxs/client/OTMessageOutbuffer.hpp"
 
 namespace opentxs
 {
