@@ -1,16 +1,18 @@
 #ifndef _H_OT_COMMANDS_OT
 #define _H_OT_COMMANDS_OT
 
-#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/util/Common.hpp"
-
-#include <map>
-#include <vector>
 
 #define OT_COMMANDS_OT
 
 namespace opentxs
 {
+
+namespace OTDB
+{
+class MarketList;
+class OfferListMarket;
+}
 
 class OT_Command
 {

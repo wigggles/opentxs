@@ -131,7 +131,6 @@
  **************************************************************/
 
 #include "ot_made_easy_ot.hpp"
-#include "ot_commands_ot.hpp"
 #include "ot_otapi_ot.hpp"
 #include "ot_utility_ot.hpp"
 #include "../core/OTLog.hpp"
@@ -167,11 +166,10 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
 
         MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
 
-        bool bForceDownload = false;
-        bool bRefresh = OT_Command::details_refresh_nym(
-            strMyServerID, strMyNymID, bForceDownload);
-
-        if (!bRefresh) {
+        bool msgWasSent = false;
+        if (0 > MadeEasy::retrieve_nym(strMyServerID, strMyNymID, msgWasSent,
+                                       false)) {
+            otOut << "Error: cannot retrieve nym.\n";
             return false;
         }
 
@@ -1208,8 +1206,6 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
                                                string& userInput,
                                                const bool isPurse)
 {
-    bool isSuccess = true;
-
     //  otOut << "OT_ME_importCashPurse, serverID:" << serverID << "
     // nymID:" << nymID << " assetID:" << assetID);
     //  otOut << "OT_ME_importCashPurse, userInput purse:" <<
