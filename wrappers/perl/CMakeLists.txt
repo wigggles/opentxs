@@ -24,7 +24,7 @@ swig_link_libraries(${OTX_WRAPPER_NAME} ${PERL_LIBRARIES})
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
-target_link_libraries(${MOD_NAME} opentxs-client)
+target_link_libraries(${MOD_NAME} ${OTX_LINK_LIBS})
 set_target_properties(${MOD_NAME}
   PROPERTIES OUTPUT_NAME ${OTX_WRAPPER_NAME})
 install(TARGETS ${MOD_NAME}
