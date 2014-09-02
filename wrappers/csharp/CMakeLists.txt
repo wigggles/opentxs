@@ -25,7 +25,7 @@ set(CMAKE_SWIG_OUTDIR ${CSHARP_BINARY_DIRECTORY})
 
 
 # -dllimport = native/glue lib
-set(CMAKE_SWIG_FLAGS "-namespace Opentxs -dllimport opentxs-api -outdir ${CMAKE_SWIG_OUTDIR}" )
+set(CMAKE_SWIG_FLAGS "-namespace Opentxs -dllimport opentxs-client -outdir ${CMAKE_SWIG_OUTDIR}" )
 separate_arguments(CMAKE_SWIG_FLAGS)
 
 # so file
@@ -34,12 +34,12 @@ set_source_files_properties(OTX_.i PROPERTIES CPLUSPLUS on)
 
 
 swig_add_module(${OTX_WRAPPER_NAME} csharp OTX_.i)
-swig_link_libraries(${OTX_WRAPPER_NAME} opentxs-api)
+swig_link_libraries(${OTX_WRAPPER_NAME} opentxs-client)
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
-# add_library(Opentxs-sharp opentxs-api)
-target_link_libraries(${MOD_NAME} opentxs-api)
+# add_library(Opentxs-sharp opentxs-client)
+target_link_libraries(${MOD_NAME} opentxs-client)
 set_target_properties(${MOD_NAME}
                       PROPERTIES OUTPUT_NAME ${OTX_WRAPPER_NAME})
 

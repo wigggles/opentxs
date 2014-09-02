@@ -27,7 +27,7 @@ swig_link_libraries(${OTX_WRAPPER_NAME} ${PHP_LIBRARIES})
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
-target_link_libraries(${MOD_NAME} opentxs-api)
+target_link_libraries(${MOD_NAME} opentxs-client)
 set_target_properties(${MOD_NAME}
   PROPERTIES OUTPUT_NAME ${OTX_WRAPPER_NAME})
 install(TARGETS ${MOD_NAME}

@@ -22,7 +22,7 @@ swig_link_libraries(${OTX_WRAPPER_NAME} ${PYTHON_LIBRARIES})
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
-target_link_libraries(${MOD_NAME} opentxs-api)
+target_link_libraries(${MOD_NAME} opentxs-client)
 set_target_properties(${MOD_NAME}
                       PROPERTIES OUTPUT_NAME _opentxs)
 string(REGEX REPLACE "\\.[0-9]+$" "" PYTHON_VERSION "${PYTHONLIBS_VERSION_STRING}")
