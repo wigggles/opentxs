@@ -440,7 +440,7 @@ namespace io
 	 \return Returns a pointer to the created xml parser. This pointer should be 
 	 deleted using 'delete' after no longer needed. Returns 0 if an error occured
 	 and the file could not be opened. */
-	IrrXMLReader* createIrrXMLReader(IFileReadCallBack* callback);
+    EXPORT IrrXMLReader* createIrrXMLReader(IFileReadCallBack* callback);
 
 	//! Creates an instance of an UFT-16 xml parser. 
 	/** This means that
