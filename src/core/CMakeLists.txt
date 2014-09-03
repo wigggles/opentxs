@@ -56,8 +56,6 @@ set(cxx-sources
   OTSettings.cpp
   crypto/OTSignatureMetadata.cpp
   crypto/OTSignedFile.cpp
-  OTStash.cpp
-  OTStashItem.cpp
   OTStorage.cpp
   OTString.cpp
   OTStringXML.cpp
