@@ -137,13 +137,14 @@
 
 #include "../cash/Purse.hpp"
 
-#include "../core/OTCleanup.hpp"
 #include "../core/OTCheque.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTPaymentPlan.hpp"
 #include "../core/script/OTSmartContract.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 namespace opentxs
 {
@@ -207,8 +208,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
                   << "\n\n";
             return false;
         }
-        OTCleanup<Purse> thePurseAngel(
-            *pPurse); // (This automates the deletion.)
+        std::unique_ptr<Purse> thePurseAngel(pPurse);
 
         return SetTempValuesFromPurse(*pPurse);
     }
@@ -221,8 +221,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
             return false;
         }
         // BELOW THIS POINT, MUST DELETE pTrackable!
-        OTCleanup<OTTrackable> theTrackableAngel(
-            *pTrackable); // (This automates the deletion.)
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
         OTCheque* pCheque = nullptr;
         OTPaymentPlan* pPaymentPlan = nullptr;
@@ -551,9 +550,8 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
                   << ": Failed instantiating OTPayment containing:\n"
                   << m_strPayment << "\n";
             return false;
-        } // BELOW THIS POINT, MUST DELETE pTrackable!
-        OTCleanup<OTTrackable> theTrackableAngel(
-            *pTrackable); // (This automates the DELETION.)
+        } // Below THIS POINT, MUST DELETE pTrackable!
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
         OTPaymentPlan* pPlan = nullptr;
         OTSmartContract* pSmartContract = nullptr;
@@ -628,8 +626,7 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
                   << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
-        OTCleanup<OTTrackable> theTrackableAngel(
-            *pTrackable); // (This automates the DELETION.)
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
         OTPaymentPlan* pPlan = nullptr;
         OTSmartContract* pSmartContract = nullptr;
@@ -698,8 +695,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
                   << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
-        OTCleanup<OTTrackable> theTrackableAngel(
-            *pTrackable); // (This automates the DELETION.)
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
         OTSmartContract* pSmartContract = nullptr;
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
@@ -764,8 +760,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
                   << m_strPayment << "\n";
             return false;
         } // BELOW THIS POINT, MUST DELETE pTrackable!
-        OTCleanup<OTTrackable> theTrackableAngel(
-            *pTrackable); // (This automates the DELETION.)
+        std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
         OTSmartContract* pSmartContract = nullptr;
         pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
