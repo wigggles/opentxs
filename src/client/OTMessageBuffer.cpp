@@ -133,7 +133,6 @@
 #include "../core/stdafx.hpp"
 
 #include "OTMessageBuffer.hpp"
-#include "../core/OTCleanup.hpp"
 #include "../core/OTDataFolder.hpp"
 #include "../core/OTFolders.hpp"
 #include "../core/OTLog.hpp"
