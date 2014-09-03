@@ -140,11 +140,11 @@
 
 #include "../ext/OTPayment.hpp"
 
-#include "../core/OTCleanup.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTPaymentPlan.hpp"
 
+#include <memory>
 #include <algorithm>
 
 namespace opentxs
@@ -766,7 +766,7 @@ bool OTRecord::DeleteRecord()
 
     OTLedger* pRecordbox =
         OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID, theAcctID);
-    OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
+    std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
               << m_str_server_id << ") nymID "
@@ -830,7 +830,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
         // Open the Nym's asset account inbox.
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID, theAcctID);
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load asset account inbox for "
@@ -896,7 +896,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server "
@@ -973,7 +973,7 @@ bool OTRecord::DiscardIncoming()
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server id ("
