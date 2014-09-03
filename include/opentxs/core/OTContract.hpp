@@ -274,11 +274,11 @@ public:
     {
         m_ID = theID;
     }
-    OTContract();
-    OTContract(const OTString& name, const OTString& foldername,
-               const OTString& filename, const OTString& strID);
-    OTContract(const OTString& strID);
-    OTContract(const OTIdentifier& theID);
+    EXPORT OTContract();
+    EXPORT OTContract(const OTString& name, const OTString& foldername,
+                      const OTString& filename, const OTString& strID);
+    EXPORT OTContract(const OTString& strID);
+    EXPORT OTContract(const OTIdentifier& theID);
     void Initialize();
 
     // TODO: a contract needs to have certain required fields in order to be
@@ -332,8 +332,8 @@ public:
     // sort of protocol
     // becomes necessary.)
 
-    virtual ~OTContract();
-    virtual void Release();
+    EXPORT virtual ~OTContract();
+    EXPORT virtual void Release();
     void Release_Contract();
     EXPORT void ReleaseSignatures();
 
@@ -377,13 +377,14 @@ public:
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
     // supported, but soon contracts will also support x509 certs.
-    virtual bool VerifyContract();
+    EXPORT virtual bool VerifyContract();
 
     // Only overriden in OTOffer so far.
     //
-    virtual void GetIdentifier(OTIdentifier& theIdentifier); // You can get it
-                                                             // in string or
-                                                             // binary form.
+    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier); // You can
+                                                                    // get it
+    // in string or
+    // binary form.
     EXPORT virtual void GetIdentifier(OTString& theIdentifier); // The Contract
                                                                 // ID is a hash
                                                                 // of the
@@ -396,8 +397,8 @@ public:
     // assumes m_strFilename is already set. Then it reads that file into a
     // string.
     // Then it parses that string into the object.
-    virtual bool LoadContract();
-    bool LoadContract(const char* szFoldername, const char* szFilename);
+    EXPORT virtual bool LoadContract();
+    EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
 
     EXPORT bool LoadContractFromString(const OTString& theStr); // Just like it
                                                                 // says. If you
@@ -436,28 +437,29 @@ public:
                                                       // specific filename
 
     // Update the internal unsigned contents based on the member variables
-    virtual void UpdateContents(); // default behavior does nothing.
-    virtual void CreateContents(); // Only used when first generating an asset
-                                   // or server contract. Meant for contracts
-                                   // which never change after that point.
-                                   // Otherwise does the same thing as
-                                   // UpdateContents. (But meant for a different
-                                   // purpose.)
+    virtual void UpdateContents();        // default behavior does nothing.
+    EXPORT virtual void CreateContents(); // Only used when first generating an
+                                          // asset
+    // or server contract. Meant for contracts
+    // which never change after that point.
+    // Otherwise does the same thing as
+    // UpdateContents. (But meant for a different
+    // purpose.)
 
     void CreateInnerContents(); // Overrides of CreateContents call this in
                                 // order to add some common internals.
 
     // Save the internal contents (m_xmlUnsigned) to an already-open file
-    virtual bool SaveContents(std::ofstream& ofs) const;
+    EXPORT virtual bool SaveContents(std::ofstream& ofs) const;
 
     // Saves the entire contract to a file that's already open (like a wallet).
     virtual bool SaveContractWallet(std::ofstream& ofs) = 0;
-    virtual bool SaveContractWallet(OTString& strContents) const;
+    EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
 
-    virtual bool DisplayStatistics(OTString& strContents) const;
+    EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
 
     // Save m_xmlUnsigned to a string that's passed in
-    virtual bool SaveContents(OTString& strContents) const;
+    EXPORT virtual bool SaveContents(OTString& strContents) const;
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
                                      OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
@@ -501,7 +503,7 @@ public:
     // copies of the account file and wallet file are the only records of that
     // account ID
     // which is a giant int64_t number.
-    virtual bool VerifyContractID();
+    EXPORT virtual bool VerifyContractID();
     EXPORT virtual void CalculateContractID(OTIdentifier& newID);
 
     // So far not overridden anywhere (used to be OTTrade.)

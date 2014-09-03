@@ -109,7 +109,7 @@ include_directories(SYSTEM
   ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade opentxs-basket bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core PRIVATE otprotob opentxs-cron opentxs-script opentxs-trade opentxs-basket bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD

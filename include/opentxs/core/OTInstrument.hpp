@@ -141,11 +141,12 @@ namespace opentxs
 class OTInstrument : public OTScriptable
 {
 public:
-    OTInstrument();
-    OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    virtual ~OTInstrument();
+    EXPORT OTInstrument();
+    EXPORT OTInstrument(const OTIdentifier& SERVER_ID,
+                        const OTIdentifier& ASSET_ID);
+    EXPORT virtual ~OTInstrument();
 
-    virtual void Release();
+    EXPORT virtual void Release();
     virtual bool SaveContractWallet(std::ofstream& ofs);
 
     void Release_Instrument();

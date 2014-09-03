@@ -245,7 +245,7 @@ protected:
                          // smart contract would normally want to log its
                          // transaction #, not just the clause name.)
 public:
-    virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
+    EXPORT virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     int32_t GetPartyCount() const
     {
         return static_cast<int32_t>(m_mapParties.size());
@@ -254,9 +254,9 @@ public:
     {
         return static_cast<int32_t>(m_mapBylaws.size());
     }
-    virtual bool AddParty(OTParty& theParty);     // Takes ownership.
-    virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
-    virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
+    EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
+    EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
+    EXPORT virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
     EXPORT OTParty* GetParty(const std::string str_party_name);
     EXPORT OTBylaw* GetBylaw(const std::string str_bylaw_name);
     EXPORT OTClause* GetClause(const std::string str_clause_name);
@@ -295,9 +295,9 @@ public:
     // and in that case, that theNym is listed as an agent for that party.)
     // Basically this means that the agreement's owner approves of theNym.
     //
-    virtual bool VerifyNymAsAgent(OTPseudonym& theNym,
-                                  OTPseudonym& theSignerNym,
-                                  mapOfNyms* pmap_ALREADY_LOADED = nullptr);
+    EXPORT virtual bool VerifyNymAsAgent(
+        OTPseudonym& theNym, OTPseudonym& theSignerNym,
+        mapOfNyms* pmap_ALREADY_LOADED = nullptr);
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -306,8 +306,8 @@ public:
     // Also verifies that theNym is an agent for theAccount, according to the
     // ACCOUNT.
     //
-    virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                            OTAccount& theAccount);
+    EXPORT virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+                                                   OTAccount& theAccount);
     bool VerifyPartyAuthorization(
         OTParty& theParty, // The party that supposedly is authorized for this
                            // supposedly executed agreement.
@@ -420,8 +420,8 @@ public:
                          mapOfVariables& theParameters,
                          OTVariable& varReturnVal);
 
-    virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
-    virtual bool Compare(OTScriptable& rhs);
+    EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
+    EXPORT virtual bool Compare(OTScriptable& rhs);
     EXPORT static OTScriptable* InstantiateScriptable(const OTString& strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'
@@ -437,7 +437,7 @@ public:
     virtual ~OTScriptable();
 
     void UpdateContentsToString(OTString& strAppend);
-    virtual void CalculateContractID(OTIdentifier& newID);
+    EXPORT virtual void CalculateContractID(OTIdentifier& newID);
 
     virtual void Release();
     void Release_Scriptable();
