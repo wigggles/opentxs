@@ -143,7 +143,6 @@
 
 #include "opentxs/core/OTAccount.hpp"
 #include "opentxs/core/OTAssetContract.hpp"
-#include "opentxs/core/OTCleanup.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/OTLog.hpp"
 #include "opentxs/core/OTMessage.hpp"
@@ -154,6 +153,7 @@
 
 #include <anyoption/anyoption.hpp>
 
+#include <memory>
 #include <iterator>
 
 #ifdef __APPLE__
@@ -296,7 +296,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     /* 1. CREATE AN OBJECT */
     //    AnyOption *opt = new AnyOption();
     //    OT_ASSERT(nullptr != opt);
-    //    OTCleanup<AnyOption> theOptionAngel(opt);
+    //    std::unique_ptr<AnyOption> theOptionAngel(opt);
 
     /* 2. SET PREFERENCES  */
     // opt->noPOSIX(); /* do not check for POSIX style character options */
@@ -658,7 +658,7 @@ int32_t main(int32_t argc, char* argv[])
     //
     AnyOption* opt = new AnyOption();
     OT_ASSERT(nullptr != opt);
-    OTCleanup<AnyOption> theOptionAngel(opt);
+    std::unique_ptr<AnyOption> theOptionAngel(opt);
 
     // Process the command line args
     //
@@ -1191,22 +1191,15 @@ int32_t main(int32_t argc, char* argv[])
             std::string results = buffer.str();
             OT_ME madeEasy;
 
-            OTCleanup<OTVariable> angelArgs; // For user-defined arguments that
-                                             // may
-                                             // have been passed in.
+            std::unique_ptr<OTVariable> angelArgs;
 
-            //   OTParty  * pPartyMyNym = nullptr;
-            //   OTParty  * pPartyHisNym = nullptr;
-            //
-            //   OTCleanup<OTParty> angelMyNym;
-            //   OTCleanup<OTParty> angelHisNym;
-            OTCleanup<OTVariable> angelMyNymVar;
-            OTCleanup<OTVariable> angelHisNymVar;
-            OTCleanup<OTVariable> angelServer;
-            OTCleanup<OTVariable> angelMyAcct;
-            OTCleanup<OTVariable> angelHisAcct;
-            OTCleanup<OTVariable> angelMyPurse;
-            OTCleanup<OTVariable> angelHisPurse;
+            std::unique_ptr<OTVariable> angelMyNymVar;
+            std::unique_ptr<OTVariable> angelHisNymVar;
+            std::unique_ptr<OTVariable> angelServer;
+            std::unique_ptr<OTVariable> angelMyAcct;
+            std::unique_ptr<OTVariable> angelHisAcct;
+            std::unique_ptr<OTVariable> angelMyPurse;
+            std::unique_ptr<OTVariable> angelHisPurse;
 
             if ((str_Args.size() > 0) || (opt->getArgc() > 1)) {
                 const std::string str_var_name("Args");
@@ -1234,7 +1227,7 @@ int32_t main(int32_t argc, char* argv[])
                                    OTVariable::Var_Constant); // constant,
                                                               // persistent, or
                                                               // important.
-                angelArgs.SetCleanupTargetPointer(pVar);
+                angelArgs.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1255,7 +1248,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelServer.SetCleanupTargetPointer(pVar);
+                angelServer.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1274,7 +1267,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_MyNym,      // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelMyNymVar.SetCleanupTargetPointer(pVar);
+                angelMyNymVar.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
@@ -1298,7 +1291,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_HisNym,     // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelHisNymVar.SetCleanupTargetPointer(pVar);
+                angelHisNymVar.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_party_name, *pVar);
             }
@@ -1320,7 +1313,7 @@ int32_t main(int32_t argc, char* argv[])
 
                       pPartyMyNym = new OTParty (str_party_name, *pMyNym,
             str_agent_name, pMyAccount, &str_acct_name);
-                      angelMyNym.SetCleanupTargetPointer(pPartyMyNym);
+                      angelMyNym.reset(pPartyMyNym);
                       OT_ASSERT(nullptr != pPartyMyNym);
                       pScript-> AddParty("MyNym", *pPartyMyNym);
                   }
@@ -1335,7 +1328,7 @@ int32_t main(int32_t argc, char* argv[])
 
                       pPartyHisNym = new OTParty (str_party_name, *pHisNym,
             str_agent_name, pHisAccount, &str_acct_name);
-                      angelHisNym.SetCleanupTargetPointer(pPartyHisNym);
+                      angelHisNym.reset(pPartyHisNym);
                       OT_ASSERT(nullptr != pPartyHisNym);
                       pScript-> AddParty("HisNym", *pPartyHisNym);
                   }
@@ -1357,7 +1350,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelMyAcct.SetCleanupTargetPointer(pVar);
+                angelMyAcct.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1377,7 +1370,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelMyPurse.SetCleanupTargetPointer(pVar);
+                angelMyPurse.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1397,7 +1390,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelHisAcct.SetCleanupTargetPointer(pVar);
+                angelHisAcct.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1417,7 +1410,7 @@ int32_t main(int32_t argc, char* argv[])
                     str_var_value, // "lkjsdf09834lk5j34lidf09" (Whatever)
                     OTVariable::Var_Constant); // constant, persistent, or
                                                // important.
-                angelHisPurse.SetCleanupTargetPointer(pVar);
+                angelHisPurse.reset(pVar);
                 OT_ASSERT(nullptr != pVar);
                 madeEasy.AddVariable(str_var_name, *pVar);
             }
@@ -1669,7 +1662,7 @@ int32_t main(int32_t argc, char* argv[])
 
             Purse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
                 theServerID, thePurseAssetTypeID, MY_NYM_ID);
-            OTCleanup<Purse> thePurseAngel(pPurse);
+            std::unique_ptr<Purse> thePurseAngel(pPurse);
             if (nullptr != pPurse)
                 otOut << " CASH PURSE (client-side): "
                       << pPurse->GetTotalValue() << "\n";
