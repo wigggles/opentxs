@@ -165,7 +165,6 @@
 #include "../core/crypto/OTSymmetricKey.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/OTCheque.hpp"
-#include "../core/OTCleanup.hpp"
 #include "../core/OTDataFolder.hpp"
 #include "../core/OTFolders.hpp"
 #include "../core/OTLedger.hpp"
@@ -187,6 +186,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <memory>
 
 #include <time.h>
 
@@ -319,7 +319,7 @@ bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
     }
 
     OTTransaction* pTransaction = nullptr;
-    OTCleanup<OTTransaction> theTransAngel;
+    std::unique_ptr<OTTransaction> theTransAngel;
 
     if (tranOut.IsAbbreviated()) // should never happen
     {
@@ -352,7 +352,7 @@ bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
             return false;
         }
 
-        theTransAngel.SetCleanupTargetPointer(pTransaction);
+        theTransAngel.reset(pTransaction);
     }
     else
         pTransaction = &tranOut;
@@ -2393,16 +2393,10 @@ bool OT_API::Wallet_CanRemoveAccount(const OTIdentifier& ACCOUNT_ID)
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    OTLedger* pInbox =
-        OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theUserID, ACCOUNT_ID);
-    OTLedger* pOutbox =
-        OTAPI_Wrap::OTAPI()->LoadOutbox(theServerID, theUserID, ACCOUNT_ID);
-
-    // Make sure it gets cleaned up pInbox this goes out of scope.
-    OTCleanup<OTLedger> theInboxAngel(
-        pInbox); // I pass the pointer, in case it's nullptr.
-    OTCleanup<OTLedger> theOutboxAngel(
-        pOutbox); // I pass the pointer, in case it's nullptr.
+    std::unique_ptr<OTLedger> pInbox(
+        OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theUserID, ACCOUNT_ID));
+    std::unique_ptr<OTLedger> pOutbox(
+        OTAPI_Wrap::OTAPI()->LoadOutbox(theServerID, theUserID, ACCOUNT_ID));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__
@@ -2624,19 +2618,12 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
             &thePWDataSave); // Handles OTCachedKey already.
         if (bReEncrypted) {
             // Create a new OTDB::StringMap object.
-            //
-            OTDB::Storable* pStorable = nullptr;
-            OTCleanup<OTDB::Storable> theAngel;
-            OTDB::StringMap* pMap = nullptr;
-            pStorable =
-                OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP); // this asserts
-                                                                 // already, on
-                                                                 // failure.
-            theAngel.SetCleanupTargetPointer(
-                pStorable); // It will definitely be cleaned up.
-            pMap = (nullptr == pStorable)
-                       ? nullptr
-                       : dynamic_cast<OTDB::StringMap*>(pStorable);
+
+            // this asserts already, on failure.
+            std::unique_ptr<OTDB::Storable> pStorable(
+                OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
+            OTDB::StringMap* pMap =
+                dynamic_cast<OTDB::StringMap*>(pStorable.get());
             if (nullptr == pMap)
                 otErr << __FUNCTION__
                       << ": Error: failed trying to load or create a "
@@ -2692,16 +2679,11 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
     // in code it
     // appears as a map of strings: name, id, [certfile|credlist credentials],
     // and nymfile.)
-    //
-    OTDB::Storable* pStorable = nullptr;
-    OTCleanup<OTDB::Storable> theAngel;
-    OTDB::StringMap* pMap = nullptr;
-    pStorable = OTDB::CreateObject(
-        OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
-    theAngel.SetCleanupTargetPointer(
-        pStorable); // It will definitely be cleaned up.
-    pMap = (nullptr == pStorable) ? nullptr
-                                  : dynamic_cast<OTDB::StringMap*>(pStorable);
+
+    // this asserts already, on failure.
+    std::unique_ptr<OTDB::Storable> pStorable(
+        OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
+    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
     // It exists.
     //
     if (nullptr == pMap) {
@@ -2762,13 +2744,9 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
               << FILE_CONTENTS << "\n\n";
         return false;
     }
-    OTDB::Storable* pStorable =
-        OTDB::DecodeObject(OTDB::STORED_OBJ_STRING_MAP, ascArmor.Get());
-    OTCleanup<OTDB::Storable> theStorableAngel(
-        pStorable); // It will definitely be cleaned up.
-    OTDB::StringMap* pMap = (nullptr == pStorable)
-                                ? nullptr
-                                : dynamic_cast<OTDB::StringMap*>(pStorable);
+    std::unique_ptr<OTDB::Storable> pStorable(
+        OTDB::DecodeObject(OTDB::STORED_OBJ_STRING_MAP, ascArmor.Get()));
+    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     if (nullptr == pMap) {
         otOut << __FUNCTION__
@@ -2839,22 +2817,21 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
     }
     // MAKE SURE IT'S NOT ALREADY IN THE WALLET.
     //
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
-        theNymID, true, __FUNCTION__); // This logs and ASSERTs already.
+    std::unique_ptr<OTPseudonym> pNym(GetOrLoadPrivateNym(
+        theNymID, true, __FUNCTION__)); // This logs and ASSERTs already.
 
     if (nullptr != pNym) // already there.
     {
         otOut << __FUNCTION__
               << ": Tried to import a Nym that's already in wallet: "
               << theMap["id"] << "\n";
+        pNym.release();
         return false;
     }
     // Create a new Nym object.
     //
     const OTString strNymID(theNymID);
-    pNym = new OTPseudonym(theNymID);
-    OT_ASSERT(nullptr != pNym);
-    OTCleanup<OTPseudonym> theAngel(*pNym); // will be cleaned up automatically.
+    pNym.reset(new OTPseudonym(theNymID));
 
     pNym->SetNymName(strNymName);
 
@@ -2871,13 +2848,12 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
     OTString strDisplay("Enter passphrase for the Nym being imported.");
 
     // Circumvents the cached key.
-    OTPassword* pExportPassphrase = OTSymmetricKey::GetPassphraseFromUser(
-        &strDisplay, false); // bAskTwice is true when exporting (since the
-                             // export passphrase is being created at that
-                             // time.) But here during importing, we just ask
-                             // once, since the passphrase is being used, not
-                             // created.
-    OTCleanup<OTPassword> thePasswordAngel(pExportPassphrase);
+
+    // bAskTwice is true when exporting (since the export passphrase is being
+    // created at that time.) But here during importing, we just ask once,
+    // since the passphrase is being used, not created.
+    std::unique_ptr<OTPassword> pExportPassphrase(
+        OTSymmetricKey::GetPassphraseFromUser(&strDisplay, false));
 
     if (nullptr == pExportPassphrase) {
         otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
@@ -2926,14 +2902,11 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
             OTASCIIArmor ascCredentials;
             if (it_credentials->second.size() > 0) {
                 ascCredentials.Set(it_credentials->second.c_str());
-                OTDB::Storable* pPrivateStorable = OTDB::DecodeObject(
-                    OTDB::STORED_OBJ_STRING_MAP, ascCredentials.Get());
-                OTCleanup<OTDB::Storable> thePrivStorableAngel(
-                    pPrivateStorable); // It will definitely be cleaned up.
+                std::unique_ptr<OTDB::Storable> pPrivateStorable(
+                    OTDB::DecodeObject(OTDB::STORED_OBJ_STRING_MAP,
+                                       ascCredentials.Get()));
                 OTDB::StringMap* pPrivateMap =
-                    (nullptr == pPrivateStorable)
-                        ? nullptr
-                        : dynamic_cast<OTDB::StringMap*>(pPrivateStorable);
+                    dynamic_cast<OTDB::StringMap*>(pPrivateStorable.get());
                 if (nullptr == pPrivateMap) {
                     otOut << __FUNCTION__
                           << ": Failed decoding StringMap object.\n";
@@ -2946,8 +2919,7 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
                     if (false ==
                         pNym->LoadFromString(strCredList, &thePrivateMap,
                                              &strReasonToLoad,
-                                             pExportPassphrase)) // <===========
-                    {
+                                             pExportPassphrase.get())) {
                         otErr << __FUNCTION__ << ": Failure loading nym "
                               << strNymID << " from credential string.\n";
                         return false;
@@ -2965,7 +2937,7 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
     else if (theMap.end() != theMap.find("certfile")) {
         const OTString strCert(theMap["certfile"]);
         bIfNymLoadKeys = pNym->Loadx509CertAndPrivateKeyFromString(
-            strCert, &thePWDataLoad, pExportPassphrase); // <============
+            strCert, &thePWDataLoad, pExportPassphrase.get());
     }
     // Unpause the OTCachedKey (wallet master key.)
     // Now that we've loaded up the "outsider" using its own key,
@@ -2983,12 +2955,10 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
         // this Nym we're
         // importing isn't already in the wallet.
 
-        if (bHasCredentials && !pNym->ReEncryptPrivateCredentials(
-                                    true /*bImporting*/, &thePWDataLoad,
-                                    pExportPassphrase)) // Handles OTCachedKey
-                                                        // internally, no need
-                                                        // for pausing for this
-                                                        // call.
+        if (bHasCredentials &&
+            !pNym->ReEncryptPrivateCredentials(true, &thePWDataLoad,
+                                               pExportPassphrase.get()))
+            // Handles OTCachedKey internally, no need for pausing for this call
         {
             otErr
                 << __FUNCTION__
@@ -3014,12 +2984,8 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
         // If success: Add to Wallet including name.
         //
         if (bLoaded) {
-            pWallet->AddNym(*pNym); // Insert to wallet's list of Nyms.
-            theAngel.SetCleanupTargetPointer(
-                nullptr); // Since adding to wallet,
-                          // no need to cleanup, so we
-                          // set this back to nullptr.
-
+            // Insert to wallet's list of Nyms.
+            pWallet->AddNym(*(pNym.release()));
             if (!pWallet->ConvertNymToCachedKey(
                      *pNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
                              // (Or saves credentials, too, whichever is
@@ -3095,9 +3061,7 @@ bool OT_API::Wallet_ImportCert(const OTString& DISPLAY_NAME,
     // false.
     // Create a new Nym object.
     //
-    OTPseudonym* pNym = new OTPseudonym;
-    OT_ASSERT(nullptr != pNym);
-    OTCleanup<OTPseudonym> theAngel(*pNym); // will be cleaned up automatically.
+    std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
 
     if (DISPLAY_NAME.Exists()) pNym->SetNymName(DISPLAY_NAME);
     // Pause the master key, since this Nym is coming from outside
@@ -3134,10 +3098,7 @@ bool OT_API::Wallet_ImportCert(const OTString& DISPLAY_NAME,
         }
         // If success: Add to Wallet including name.
         //
-        pWallet->AddNym(*pNym); // Insert to wallet's list of Nyms.
-        theAngel.SetCleanupTargetPointer(nullptr); // In this case, no need to
-        // cleanup, so we set this back
-        // to nullptr.
+        pWallet->AddNym(*(pNym.release())); // Insert to wallet's list of Nyms.
 
         const bool bConverted = pWallet->ConvertNymToCachedKey(*pNym);
 
@@ -3484,15 +3445,14 @@ bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
         return false;
     }
     //
-    OTContract* pContract = nullptr;
+    std::unique_ptr<OTContract> pContract(
+        OTTransactionType::TransactionFactory(strContract));
 
     if (nullptr == pContract)
-        pContract = OTTransactionType::TransactionFactory(strContract);
+        pContract.reset(OTScriptable::InstantiateScriptable(strContract));
 
     if (nullptr == pContract)
-        pContract = OTScriptable::InstantiateScriptable(strContract);
-
-    if (nullptr == pContract) pContract = ::InstantiateContract(strContract);
+        pContract.reset(::InstantiateContract(strContract));
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": I tried my best. "
@@ -3500,8 +3460,6 @@ bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
               << strContract << "\n\n";
         return false;
     }
-
-    OTCleanup<OTContract> theAngel(*pContract);
 
     pContract->ReleaseSignatures();
     pContract->SignContract(*pNym);
@@ -3541,15 +3499,14 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
         return false;
     }
     //
-    OTContract* pContract = nullptr;
+    std::unique_ptr<OTContract> pContract(
+        OTTransactionType::TransactionFactory(strContract));
 
     if (nullptr == pContract)
-        pContract = OTTransactionType::TransactionFactory(strContract);
+        pContract.reset(OTScriptable::InstantiateScriptable(strContract));
 
     if (nullptr == pContract)
-        pContract = OTScriptable::InstantiateScriptable(strContract);
-
-    if (nullptr == pContract) pContract = ::InstantiateContract(strContract);
+        pContract.reset(::InstantiateContract(strContract));
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
@@ -3557,8 +3514,6 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
                  "passed in:\n\n" << strContract << "\n\n";
         return false;
     }
-
-    OTCleanup<OTContract> theAngel(*pContract);
 
     //    pContract->ReleaseSignatures();        // Other than this line, this
     // function is identical to
@@ -3604,7 +3559,7 @@ bool OT_API::VerifySignature(const OTString& strContract,
     }
     //
     OTContract* pContract = nullptr;
-    OTCleanup<OTContract> theAngel;
+    std::unique_ptr<OTContract> theAngel;
 
     if (nullptr == pContract)
         pContract = OTTransactionType::TransactionFactory(strContract);
@@ -3627,7 +3582,7 @@ bool OT_API::VerifySignature(const OTString& strContract,
     if (nullptr != ppContract) *ppContract = pContract;
     // Else, we will clean it up ourselves...
     else
-        theAngel.SetCleanupTargetPointer(pContract);
+        theAngel.reset(pContract);
     //    if (false == pContract->VerifyContractID())
     ////    if (false == pContract->VerifyContract())    // This calls
     /// VerifyContractID(), then GetContractPublicNym(), then VerifySignature()
@@ -3679,7 +3634,7 @@ bool OT_API::VerifyAndRetrieveXMLContents(const OTString& strContract,
     // object
     // will clean it up after we leave the scope of this block.
     //
-    OTCleanup<OTContract> theAngel(pContract);
+    std::unique_ptr<OTContract> theAngel(pContract);
     strOutput.Release();
 
     if (nullptr !=
@@ -3767,15 +3722,13 @@ bool OT_API::SmartContract_AddParty(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_party_name(PARTY_NAME.Get()),
         str_agent_name(AGENT_NAME.Get());
 
@@ -3828,15 +3781,13 @@ bool OT_API::SmartContract_AddAccount(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddAccount: Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_party_name(PARTY_NAME.Get());
 
     OTParty* pParty = pContract->GetParty(str_party_name);
@@ -3884,16 +3835,14 @@ int32_t OT_API::SmartContract_CountNumsNeeded(
 {
     int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
 
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_CountNumsNeeded: Error loading "
                  "smart contract. \n";
         return nReturnValue;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     // -- nReturnValue starts as 0.
     // -- If agent is authorizing agent for a party, nReturnValue++. (Opening
     // number.)
@@ -3921,17 +3870,15 @@ bool OT_API::SmartContract_ConfirmAccount(
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTScriptable* pScriptable =
-        OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pScriptable(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pScriptable) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pScriptable); // Auto-cleanup.
-    OTSmartContract* pContract = dynamic_cast<OTSmartContract*>(pScriptable);
+    OTSmartContract* pContract =
+        dynamic_cast<OTSmartContract*>(pScriptable.get());
     if (nullptr == pContract) {
         otOut << __FUNCTION__
               << ": Failure casting to Smart Contract. "
@@ -4079,16 +4026,14 @@ bool OT_API::SmartContract_ConfirmParty(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
               << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_party_name(PARTY_NAME.Get());
 
     OTParty* pParty = pContract->GetParty(str_party_name);
@@ -4180,15 +4125,13 @@ bool OT_API::SmartContract_AddBylaw(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddBylaw: Error loading smart "
                  "contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_bylaw_name(BYLAW_NAME.Get()),
         str_language(BYLAW_LANGUAGE);
 
@@ -4241,15 +4184,13 @@ bool OT_API::SmartContract_AddHook(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddHook: Error loading smart "
                  "contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_bylaw_name(BYLAW_NAME.Get());
 
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
@@ -4296,15 +4237,13 @@ bool OT_API::SmartContract_AddCallback(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddCallback: Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_bylaw_name(BYLAW_NAME.Get());
 
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
@@ -4357,15 +4296,13 @@ bool OT_API::SmartContract_AddClause(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddClause: Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_bylaw_name(BYLAW_NAME.Get());
 
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
@@ -4425,15 +4362,13 @@ bool OT_API::SmartContract_AddVariable(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTScriptable* pContract = OTScriptable::InstantiateScriptable(THE_CONTRACT);
-    OTCleanup<OTScriptable> theContractAngel;
+    std::unique_ptr<OTScriptable> pContract(
+        OTScriptable::InstantiateScriptable(THE_CONTRACT));
     if (nullptr == pContract) {
         otOut << "OT_API::SmartContract_AddVariable: Error loading "
                  "smart contract:\n\n" << THE_CONTRACT << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pContract); // Auto-cleanup.
     const std::string str_bylaw_name(BYLAW_NAME.Get());
 
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
@@ -4774,8 +4709,8 @@ bool OT_API::HarvestClosingNumbers(const OTIdentifier&,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTCronItem* pCronItem = OTCronItem::NewCronItem(THE_CRON_ITEM);
-    OTCleanup<OTCronItem> theContractAngel;
+    std::unique_ptr<OTCronItem> pCronItem(
+        OTCronItem::NewCronItem(THE_CRON_ITEM));
     if (nullptr == pCronItem) {
         otOut << __FUNCTION__
               << ": Error loading the cron item (a cron item is a "
@@ -4784,8 +4719,6 @@ bool OT_API::HarvestClosingNumbers(const OTIdentifier&,
               << THE_CRON_ITEM << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pCronItem); // Auto-cleanup.
     pCronItem->HarvestClosingNumbers(*pNym); // <==== the Nym is actually
                                              // harvesting the numbers from the
                                              // Cron Item, and not the other way
@@ -4820,8 +4753,8 @@ bool OT_API::HarvestAllNumbers(const OTIdentifier&, const OTIdentifier& NYM_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTCronItem* pCronItem = OTCronItem::NewCronItem(THE_CRON_ITEM);
-    OTCleanup<OTCronItem> theContractAngel;
+    std::unique_ptr<OTCronItem> pCronItem(
+        OTCronItem::NewCronItem(THE_CRON_ITEM));
     if (nullptr == pCronItem) {
         otOut << __FUNCTION__
               << ": Error loading the cron item (a cron item is a "
@@ -4830,8 +4763,6 @@ bool OT_API::HarvestAllNumbers(const OTIdentifier&, const OTIdentifier& NYM_ID,
                  "Contents:\n\n" << THE_CRON_ITEM << "\n\n";
         return false;
     }
-    else
-        theContractAngel.SetCleanupTarget(*pCronItem); // Auto-cleanup.
     pCronItem->HarvestOpeningNumber(*pNym);  // <==== the Nym is actually
                                              // harvesting the numbers from the
                                              // Cron Item, and not the other way
@@ -5274,8 +5205,8 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTPseudonym* pMerchantNym = LoadPublicNym(RECIPIENT_USER_ID, __FUNCTION__);
-    OTCleanup<OTPseudonym> theNymAngel(pMerchantNym);
+    std::unique_ptr<OTPseudonym> pMerchantNym(
+        LoadPublicNym(RECIPIENT_USER_ID, __FUNCTION__));
 
     //  if (nullptr == pMerchantNym) // We don't have this Nym in our storage
     // already.
@@ -5289,7 +5220,8 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
     //
     // The "Creation Date" of the agreement is re-set here.
     //
-    bool bConfirmed = thePlan.Confirm(*pNym, pMerchantNym, &RECIPIENT_USER_ID);
+    bool bConfirmed =
+        thePlan.Confirm(*pNym, pMerchantNym.get(), &RECIPIENT_USER_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from pNym!
     // If you don't end up actually USING this payment plan, then you need to
@@ -5801,11 +5733,10 @@ Token* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
     // operations will care,
     // since they can use pOwner either way.)
     //
-    OTNym_or_SymmetricKey* pOwner = LoadPurseAndOwnerFromString(
+    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
         SERVER_ID, ASSET_TYPE_ID, THE_PURSE, thePurse, thePassword,
         false, // bForEncrypting=true by default. (Peek needs to decrypt.)
-        pOWNER_ID, &strReason1, &strReason2);
-    OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
+        pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
     Token* pToken = nullptr;
@@ -5862,11 +5793,8 @@ Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
             ? "Enter the passphrase for this purse. (Purse_Pop)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    Purse* pPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
-    OT_ASSERT(nullptr != pPurse);
-    OTCleanup<Purse> thePurseAngel(pPurse); // We'll unset this in success
-                                            // case, so it doesn't delete the
-                                            // purse we're returning.
+    std::unique_ptr<Purse> pPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
+
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5888,11 +5816,10 @@ Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
     // operations will care,
     // since they can use pOwner either way.)
     //
-    OTNym_or_SymmetricKey* pOwner = LoadPurseAndOwnerFromString(
+    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
         SERVER_ID, ASSET_TYPE_ID, THE_PURSE, *pPurse, thePassword,
         false, // bForEncrypting=true by default, but Pop needs to decrypt.
-        pOWNER_ID, &strReason1, &strReason2);
-    OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
+        pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
     Purse* pReturnPurse = nullptr;
@@ -5900,19 +5827,14 @@ Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
     if (pPurse->IsEmpty())
         otOut << __FUNCTION__ << ": Failed attempt to pop; purse is empty.\n";
     else {
-        Token* pToken = pPurse->Pop(*pOwner);
-        OTCleanup<Token> theTokenAngel(pToken);
+        std::unique_ptr<Token> pToken(pPurse->Pop(*pOwner));
 
         if (nullptr == pToken)
             otOut << __FUNCTION__
                   << ": Failed popping a token from a "
                      "purse that supposedly had tokens on it...\n";
         else {
-            pReturnPurse = pPurse;
-            thePurseAngel.SetCleanupTargetPointer(nullptr); // We don't clean up
-                                                            // the purse in the
-                                                            // case where we're
-                                                            // returning it.
+            pReturnPurse = pPurse.release();
         }
     }
     return pReturnPurse;
@@ -5988,8 +5910,8 @@ Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
         return nullptr;
     }
     OTString strToken(THE_TOKEN);
-    Token* pToken = Token::TokenFactory(strToken, SERVER_ID, ASSET_TYPE_ID);
-    OTCleanup<Token> theTokenAngel(pToken);
+    std::unique_ptr<Token> pToken(
+        Token::TokenFactory(strToken, SERVER_ID, ASSET_TYPE_ID));
 
     if (nullptr == pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -5998,11 +5920,7 @@ Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
               << THE_TOKEN << "\n\n";
         return nullptr;
     }
-    Purse* pPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
-    OT_ASSERT(nullptr != pPurse);
-    OTCleanup<Purse> thePurseAngel(pPurse); // We'll unset this in success
-                                            // case, so it doesn't delete the
-                                            // purse we're returning.
+    std::unique_ptr<Purse> pPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -6024,11 +5942,10 @@ Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
     // operations will care,
     // since they can use pOwner either way.)
     //
-    OTNym_or_SymmetricKey* pOwner = LoadPurseAndOwnerFromString(
+    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
         SERVER_ID, ASSET_TYPE_ID, THE_PURSE, *pPurse, thePassword,
         true, // bForEncrypting=true by default.
-        pOWNER_ID, &strReason1, &strReason2);
-    OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pOwner);
+        pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
         return nullptr; // This already logs, no need for more logs.
     Purse* pReturnPurse = nullptr;
@@ -6038,10 +5955,7 @@ Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
     if (!bPushed)
         otOut << __FUNCTION__ << ": Failed pushing a token onto a purse.\n";
     else {
-        pReturnPurse = pPurse;
-        thePurseAngel.SetCleanupTargetPointer(nullptr); // We don't clean up the
-        // purse in the case where
-        // we're returning it.
+        pReturnPurse = pPurse.release();
     }
     return pReturnPurse;
 
@@ -6078,9 +5992,7 @@ bool OT_API::Wallet_ImportPurse(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    Purse* pNewPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
-    OT_ASSERT(nullptr != pNewPurse);
-    OTCleanup<Purse> theNewPurseAngel(pNewPurse);
+    std::unique_ptr<Purse> pNewPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
     // symmetric
@@ -6100,7 +6012,7 @@ bool OT_API::Wallet_ImportPurse(
     // operations will care,
     // since they can use pOwner either way.)
     //
-    OTNym_or_SymmetricKey* pNewOwner = LoadPurseAndOwnerForMerge(
+    std::unique_ptr<OTNym_or_SymmetricKey> pNewOwner(LoadPurseAndOwnerForMerge(
         THE_PURSE, *pNewPurse, thePassword,
         false, // bCanBePublic=false by default. (Private Nym must be loaded, if
                // a nym is the owner.)
@@ -6110,19 +6022,16 @@ bool OT_API::Wallet_ImportPurse(
                     // which is what LoadPurseAndOwnerForMerge will try first.
                     // If not (it's optional), then SIGNER_ID is the ID it will
                     // try next, before failing altogether.
-        &strPurseReason);
-    OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pNewOwner);
+        &strPurseReason));
     if (nullptr == pNewOwner)
         return false; // This already logs, no need for more logs.
-    Purse* pOldPurse = LoadPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
-    OTCleanup<Purse> theOldPurseAngel(pOldPurse);
+    std::unique_ptr<Purse> pOldPurse(
+        LoadPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID));
 
     if (nullptr == pOldPurse) // apparently there's not already a purse of this
                               // type, let's create it.
     {
-        pOldPurse = new Purse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
-        OT_ASSERT(nullptr != pOldPurse);
-        theOldPurseAngel.SetCleanupTarget(*pOldPurse);
+        pOldPurse.reset(new Purse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID));
     }
     else if (!pOldPurse->VerifySignature(*pNym)) {
         otErr
@@ -6225,16 +6134,16 @@ Token* OT_API::Token_ChangeOwner(
     // a corresponding master key.)
     OTIdentifier oldOwnerNymID,
         newOwnerNymID; // if either owner is a Nym, the ID goes here.
-    OTCleanup<Purse> theOldPurseAngel;
+    std::unique_ptr<Purse> theOldPurseAngel;
     OTPassword theOldPassword; // Only used in the case of password-protected
                                // purses.
     OTNym_or_SymmetricKey* pOldOwner = nullptr;
-    OTCleanup<OTNym_or_SymmetricKey> theOldOwnerAngel;
-    OTCleanup<Purse> theNewPurseAngel;
+    std::unique_ptr<OTNym_or_SymmetricKey> theOldOwnerAngel;
+    std::unique_ptr<Purse> theNewPurseAngel;
     OTPassword theNewPassword; // Only used in the case of password-protected
                                // purses.
     OTNym_or_SymmetricKey* pNewOwner = nullptr;
-    OTCleanup<OTNym_or_SymmetricKey> theNewOwnerAngel;
+    std::unique_ptr<OTNym_or_SymmetricKey> theNewOwnerAngel;
     const bool bOldOwnerIsPurse = OLD_OWNER.Contains("PURSE");
     const bool bNewOwnerIsPurse = NEW_OWNER.Contains("PURSE");
     if (!bOldOwnerIsPurse) // The old owner is a NYM (public/private keys.)
@@ -6249,7 +6158,7 @@ Token* OT_API::Token_ChangeOwner(
         if (nullptr == pOldNym) return nullptr;
         pOldOwner = new OTNym_or_SymmetricKey(*pOldNym, &strWalletReason);
         OT_ASSERT(nullptr != pOldOwner);
-        theOldOwnerAngel.SetCleanupTargetPointer(pOldOwner);
+        theOldOwnerAngel.reset(pOldOwner);
     }
     else // The old owner is a PURSE (Symmetric/master keys, internal to that
            // purse.)
@@ -6258,7 +6167,7 @@ Token* OT_API::Token_ChangeOwner(
         // purse is loaded.
         Purse* pOldPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pOldPurse);
-        theOldPurseAngel.SetCleanupTargetPointer(pOldPurse);
+        theOldPurseAngel.reset(pOldPurse);
         pOldOwner = LoadPurseAndOwnerForMerge(
             OLD_OWNER, *pOldPurse, theOldPassword,
             false, // bCanBePublic=false by default. In this case, it definitely
@@ -6277,7 +6186,7 @@ Token* OT_API::Token_ChangeOwner(
                             // a Nym, then we would have passed a NymID in here,
                             // instead of a purse, in the first place.
             &strPurseReason);
-        theOldOwnerAngel.SetCleanupTargetPointer(pOldOwner);
+        theOldOwnerAngel.reset(pOldOwner);
         if (nullptr == pOldOwner)
             return nullptr; // This already logs, no need for more logs.
     }
@@ -6290,7 +6199,7 @@ Token* OT_API::Token_ChangeOwner(
         if (nullptr == pNewNym) return nullptr;
         pNewOwner = new OTNym_or_SymmetricKey(*pNewNym, &strWalletReason);
         OT_ASSERT(nullptr != pNewOwner);
-        theNewOwnerAngel.SetCleanupTargetPointer(pNewOwner);
+        theNewOwnerAngel.reset(pNewOwner);
     }
     else // The new owner is a PURSE
     {
@@ -6298,7 +6207,7 @@ Token* OT_API::Token_ChangeOwner(
         // is loaded.
         Purse* pNewPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
         OT_ASSERT(nullptr != pNewPurse);
-        theNewPurseAngel.SetCleanupTargetPointer(pNewPurse);
+        theNewPurseAngel.reset(pNewPurse);
         pNewOwner = LoadPurseAndOwnerForMerge(
             NEW_OWNER, *pNewPurse, theNewPassword,
             true, // bCanBePublic=false by default, but set TRUE here, since you
@@ -6320,15 +6229,15 @@ Token* OT_API::Token_ChangeOwner(
                             // a Nym, then we would have passed a NymID in here,
                             // instead of a purse, in the first place.
             &strPurseReason);
-        theNewOwnerAngel.SetCleanupTargetPointer(pNewOwner);
+        theNewOwnerAngel.reset(pNewOwner);
         if (nullptr == pNewOwner)
             return nullptr; // This already logs, no need for more logs.
     }
     //
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
-    Token* pToken = Token::TokenFactory(THE_TOKEN, SERVER_ID, ASSET_TYPE_ID);
-    OTCleanup<Token> theTokenAngel(pToken);
+    std::unique_ptr<Token> pToken(
+        Token::TokenFactory(THE_TOKEN, SERVER_ID, ASSET_TYPE_ID));
     OT_ASSERT(nullptr != pToken);
     if (false ==
         pToken->ReassignOwnership(*pOldOwner,  // must be private, if a Nym.
@@ -6344,10 +6253,7 @@ Token* OT_API::Token_ChangeOwner(
         pToken->SignContract(*pSignerNym);
         pToken->SaveContract();
 
-        theTokenAngel.SetCleanupTargetPointer(nullptr); // so pToken doesn't get
-                                                        // deleted, since we're
-                                                        // returning it here.
-        return pToken;
+        return pToken.release();
     }
 
     return nullptr;
@@ -6879,10 +6785,10 @@ bool OT_API::ClearExpired(const OTIdentifier& SERVER_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pExpiredBox = LoadExpiredBox(SERVER_ID, USER_ID);
+    std::unique_ptr<OTLedger> pExpiredBox(LoadExpiredBox(SERVER_ID, USER_ID));
     if (nullptr == pExpiredBox) {
-        pExpiredBox = OTLedger::GenerateLedger(USER_ID, USER_ID, SERVER_ID,
-                                               OTLedger::expiredBox, true);
+        pExpiredBox.reset(OTLedger::GenerateLedger(USER_ID, USER_ID, SERVER_ID,
+                                                   OTLedger::expiredBox, true));
 
         if (nullptr == pExpiredBox) {
             otErr << __FUNCTION__
@@ -6891,7 +6797,6 @@ bool OT_API::ClearExpired(const OTIdentifier& SERVER_ID,
             return false;
         }
     }
-    OTCleanup<OTLedger> theExpiredBoxAngel(pExpiredBox);
     if (bClearAll) {
         pExpiredBox->ReleaseTransactions();
         pExpiredBox->ReleaseSignatures();
@@ -7157,13 +7062,13 @@ bool OT_API::RecordPayment(
     OTLedger* pExpiredBox = nullptr;
     OTLedger* pActualBox =
         nullptr; // This points to either pRecordBox or pExpiredBox.
-    OTCleanup<OTLedger> theRecordBoxAngel;
-    OTCleanup<OTLedger> theExpiredBoxAngel;
+    std::unique_ptr<OTLedger> theRecordBoxAngel;
+    std::unique_ptr<OTLedger> theExpiredBoxAngel;
     if (bSaveCopy) {
         pRecordBox = LoadRecordBox(SERVER_ID, USER_ID, USER_ID);
         pExpiredBox = LoadExpiredBox(SERVER_ID, USER_ID);
-        theRecordBoxAngel.SetCleanupTargetPointer(pRecordBox);
-        theExpiredBoxAngel.SetCleanupTargetPointer(pExpiredBox);
+        theRecordBoxAngel.reset(pRecordBox);
+        theExpiredBoxAngel.reset(pExpiredBox);
         if (nullptr == pRecordBox) {
             pRecordBox = OTLedger::GenerateLedger(USER_ID, USER_ID, SERVER_ID,
                                                   OTLedger::recordBox, true);
@@ -7173,7 +7078,7 @@ bool OT_API::RecordPayment(
                          "(and thus unable to do anything with it.)\n";
                 return false;
             }
-            theRecordBoxAngel.SetCleanupTargetPointer(pRecordBox);
+            theRecordBoxAngel.reset(pRecordBox);
         }
         if (nullptr == pExpiredBox) {
             pExpiredBox = OTLedger::GenerateLedger(USER_ID, USER_ID, SERVER_ID,
@@ -7184,27 +7089,27 @@ bool OT_API::RecordPayment(
                          "(and thus unable to do anything with it.)\n";
                 return false;
             }
-            theExpiredBoxAngel.SetCleanupTargetPointer(pExpiredBox);
+            theExpiredBoxAngel.reset(pExpiredBox);
         }
     }
     pActualBox = pRecordBox;
     OTLedger* pPaymentInbox = nullptr;
-    OTCleanup<OTLedger> thePaymentBoxAngel;
+    std::unique_ptr<OTLedger> thePaymentBoxAngel;
 
     bool bIsExpired = false;
 
     // first block:
     OTTransaction* pTransaction = nullptr;
-    OTCleanup<OTTransaction> theTransactionAngel;
+    std::unique_ptr<OTTransaction> theTransactionAngel;
 
     // second block:
-    OTCleanup<OTMessage> theMessageAngel;
+    std::unique_ptr<OTMessage> theMessageAngel;
 
     bool bRemoved = false, bNeedToSaveTheNym = false;
 
     if (bIsInbox) {
         pPaymentInbox = LoadPaymentInbox(SERVER_ID, USER_ID);
-        thePaymentBoxAngel.SetCleanupTargetPointer(pPaymentInbox);
+        thePaymentBoxAngel.reset(pPaymentInbox);
         if (nullptr == pPaymentInbox) {
             otErr << __FUNCTION__
                   << ": Unable to load payment inbox "
@@ -7225,9 +7130,8 @@ bool OT_API::RecordPayment(
                      "based on index " << nIndex << ".\n";
             return false;
         }
-        OTPayment* pPayment = GetInstrument(*pNym, nIndex, *pPaymentInbox);
-        OTCleanup<OTPayment> thePaymentAngel(pPayment);
-        OT_ASSERT(nullptr != pPayment);
+        std::unique_ptr<OTPayment> pPayment(
+            GetInstrument(*pNym, nIndex, *pPaymentInbox));
 
         pPayment->IsExpired(bIsExpired);
 
@@ -7248,7 +7152,7 @@ bool OT_API::RecordPayment(
                                      // Note that we still need to save
                                      // pPaymentInbox somewhere below, assuming
                                      // it's all successful.
-        theTransactionAngel.SetCleanupTargetPointer(
+        theTransactionAngel.reset(
             pTransaction); // If below we put pTransaction onto the Record Box,
                            // then we have to set this to nullptr.
 
@@ -7886,7 +7790,6 @@ bool OT_API::RecordPayment(
                 bool bFoundReceiptInInbox = false;
                 OTSmartContract* pSmartContract = nullptr;
                 OTPaymentPlan* pPlan = nullptr;
-                OTCleanup<OTTrackable> theTrackableAngel;
                 //
                 // In certain cases (logic above) it is determined that we have
                 // to load the
@@ -7898,7 +7801,8 @@ bool OT_API::RecordPayment(
                     (bFromAcctIsAvailable || bIsRecurring)) {
                     bool bIsSmartContract = false;
                     if (bIsRecurring) {
-                        OTTrackable* pTrackable = thePayment.Instantiate();
+                        std::unique_ptr<OTTrackable> pTrackable(
+                            thePayment.Instantiate());
                         if (nullptr == pTrackable) {
                             OTString strPaymentContents;
                             thePayment.GetPaymentContents(strPaymentContents);
@@ -7907,12 +7811,10 @@ bool OT_API::RecordPayment(
                                      "containing:\n" << strPaymentContents
                                   << "\n";
                             return false;
-                        } // BELOW THIS POINT, MUST DELETE pTrackable!
-                        theTrackableAngel.SetCleanupTarget(
-                            *pTrackable); // (This automates the DELETION.)
+                        }
                         pSmartContract =
-                            dynamic_cast<OTSmartContract*>(pTrackable);
-                        pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
+                            dynamic_cast<OTSmartContract*>(pTrackable.get());
+                        pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable.get());
                         if (nullptr != pSmartContract) {
                             bIsSmartContract = true; // In this case we have to
                                                      // loop through all the
@@ -8209,7 +8111,7 @@ bool OT_API::RecordPayment(
                     pNewTransaction->SaveContract();
                     pTransaction = pNewTransaction;
 
-                    theTransactionAngel.SetCleanupTargetPointer(pTransaction);
+                    theTransactionAngel.reset(pTransaction);
                 }
                 else // should never happen
                 {
@@ -8228,7 +8130,7 @@ bool OT_API::RecordPayment(
         //
         bRemoved = pNym->RemoveOutpaymentsByIndex(
             nIndex, false); // bDeleteIt=true by default
-        theMessageAngel.SetCleanupTargetPointer(
+        theMessageAngel.reset(
             pMessage); // Since we chose to keep pMessage alive after removing
                        // it from the outpayments, we set the angel here to make
                        // sure it gets cleaned up later whenever we return out
@@ -8259,11 +8161,11 @@ bool OT_API::RecordPayment(
                       << ", an action that is now canceled.)\n";
                 return false;
             }
-            else
-                theTransactionAngel.SetCleanupTargetPointer(
-                    nullptr); // If successfully added to the record box, then
-                              // no
-                              // need anymore to clean it up ourselves.
+            else {
+                // If successfully added to the record box, then no need
+                // anymore to clean it up ourselves.
+                theTransactionAngel.release();
+            }
 
             pActualBox->ReleaseSignatures();
             pActualBox->SignContract(*pNym);
@@ -8322,10 +8224,11 @@ bool OT_API::ClearRecord(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pRecordBox = LoadRecordBox(SERVER_ID, USER_ID, ACCOUNT_ID);
+    std::unique_ptr<OTLedger> pRecordBox(
+        LoadRecordBox(SERVER_ID, USER_ID, ACCOUNT_ID));
     if (nullptr == pRecordBox) {
-        pRecordBox = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, SERVER_ID,
-                                              OTLedger::recordBox, true);
+        pRecordBox.reset(OTLedger::GenerateLedger(
+            USER_ID, ACCOUNT_ID, SERVER_ID, OTLedger::recordBox, true));
 
         if (nullptr == pRecordBox) {
             otErr << __FUNCTION__
@@ -8334,7 +8237,6 @@ bool OT_API::ClearRecord(
             return false;
         }
     }
-    OTCleanup<OTLedger> theRecordBoxAngel(pRecordBox);
     if (bClearAll) {
         pRecordBox->ReleaseTransactions();
         pRecordBox->ReleaseSignatures();
@@ -9280,11 +9182,8 @@ int32_t OT_API::exchangeBasket(
             if (bGotTransNum) {
                 // LOAD the INBOX for the MAIN ACCOUNT
                 //
-                OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-                OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
-
-                OTCleanup<OTLedger> theInboxAngel(pInbox);
-                OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+                std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+                std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
                 if (nullptr == pInbox) {
                     otOut << "OT_API::exchangeBasket: Failed loading inbox!\n";
@@ -9540,9 +9439,7 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
               << OTLog::PathSeparator() << strContractID << "\n";
         return -1;
     }
-    Mint* pMint =
-        Mint::MintFactory(strServerID, strContractID); // <=================
-    OTCleanup<Mint> theMintAngel(pMint);
+    std::unique_ptr<Mint> pMint(Mint::MintFactory(strServerID, strContractID));
     OT_ASSERT(nullptr != pMint);
     OTMessage theMessage;
 
@@ -9553,11 +9450,8 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
-    OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-    OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
-
-    OTCleanup<OTLedger> theInboxAngel(pInbox);
-    OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__ << ": Error: Failed loading inbox!\n";
@@ -9613,9 +9507,9 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
             // constructor
             // just uses it to copy some IDs, since they must match.
             //
-            Token* pToken = Token::InstantiateAndGenerateTokenRequest(
-                *pPurse, *pNym, *pMint, lTokenAmount);
-            OTCleanup<Token> theTokenAngel(pToken);
+            std::unique_ptr<Token> pToken(
+                Token::InstantiateAndGenerateTokenRequest(
+                    *pPurse, *pNym, *pMint, lTokenAmount));
             OT_ASSERT(nullptr != pToken);
 
             // Sign it and save it.
@@ -9800,11 +9694,8 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
-    OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-    OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
-
-    OTCleanup<OTLedger> theInboxAngel(pInbox);
-    OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__ << ": Error: Failed loading inbox!\n";
@@ -9857,18 +9748,17 @@ int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     OTPassword thePassword;
     Purse theSourcePurse(thePurse);
 
-    OTNym_or_SymmetricKey* pPurseOwner = LoadPurseAndOwnerForMerge(
-        THE_PURSE, theSourcePurse, thePassword,
-        false,    // bCanBePublic=false by default. MUST be private, if a nym.
-        &USER_ID, // This can be nullptr, **IF** purse is password-protected.
-                  // (It's
-                  // just ignored in that case.) Otherwise if it's
-                  // Nym-protected, the purse will have a NymID on it already,
-                  // which is what LoadPurseAndOwnerForMerge will try first. If
-                  // not (it's optional), then USER_ID is the ID it will try
-                  // next, before failing altogether.
-        &strPurseReason);
-    OTCleanup<OTNym_or_SymmetricKey> theOwnerAngel(pPurseOwner);
+    std::unique_ptr<OTNym_or_SymmetricKey> pPurseOwner(
+        LoadPurseAndOwnerForMerge(
+            THE_PURSE, theSourcePurse, thePassword,
+            false,    // MUST be private, if a nym.
+            &USER_ID, // This can be nullptr, *IF* purse is password-protected.
+                      // (It's just ignored in that case.) Otherwise if it's
+                      // Nym-protected, the purse will have a NymID on it
+                      // already, which is what LoadPurseAndOwnerForMerge will
+                      // try first. If not (it's optional), then USER_ID is the
+                      // ID it will try next, before failing altogether.
+            &strPurseReason));
     if (nullptr != pPurseOwner) {
         OTNym_or_SymmetricKey theServerNymAsOwner(*pServerNym);
 
@@ -10189,11 +10079,10 @@ int32_t OT_API::payDividend(
          we set that as the "from" account on the request voucher (again, just
          as a way of transmitting it.)
          */
-        OTLedger* pInbox = pDividendSourceAccount->LoadInbox(*pNym);
-        OTLedger* pOutbox = pDividendSourceAccount->LoadOutbox(*pNym);
-
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pInbox(
+            pDividendSourceAccount->LoadInbox(*pNym));
+        std::unique_ptr<OTLedger> pOutbox(
+            pDividendSourceAccount->LoadOutbox(*pNym));
 
         if (nullptr == pInbox) {
             otOut << __FUNCTION__ << ": Failed loading inbox for acct "
@@ -10436,11 +10325,9 @@ int32_t OT_API::withdrawVoucher(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
         lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, USER_ID,
         strChequeMemo,
         (strRecipientUserID.GetLength() > 2) ? &(RECIPIENT_USER_ID) : nullptr);
-    OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-    OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
+    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
-    OTCleanup<OTLedger> theInboxAngel(pInbox);
-    OTCleanup<OTLedger> theOutboxAngel(pOutbox);
     if (nullptr == pInbox) {
         otOut << "OT_API::" << __FUNCTION__
               << ": Failed loading inbox for acct " << strFromAcct << "\n";
@@ -10761,8 +10648,7 @@ int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                 true); // bSave=true
     }
     else {
-        OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
 
         if (nullptr == pInbox) {
             otOut << __FUNCTION__ << ": Failed loading inbox for acct "
@@ -10862,10 +10748,10 @@ int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                            // signer.
         }                                  // cancelling cheque
         // Create a transaction
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, ACCT_ID, SERVER_ID, OTTransaction::deposit,
-            lStoredTransactionNumber);
-        OTCleanup<OTTransaction> theTransactionAngel(pTransaction);
+        std::unique_ptr<OTTransaction> pTransaction(
+            OTTransaction::GenerateTransaction(USER_ID, ACCT_ID, SERVER_ID,
+                                               OTTransaction::deposit,
+                                               lStoredTransactionNumber));
 
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -10890,8 +10776,7 @@ int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
         // the Transaction "owns" the item now and will handle cleaning it up.
         pTransaction->AddItem(*pItem); // the Transaction's destructor will
                                        // cleanup the item. It "owns" it now.
-        OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
         if (nullptr == pOutbox) {
             otOut << "OT_API::depositCheque: Failed loading outbox for acct "
@@ -10933,8 +10818,7 @@ int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
             theLedger.AddTransaction(*pTransaction); // now the ledger "owns"
                                                      // and will handle cleaning
                                                      // up the transaction.
-            theTransactionAngel.SetCleanupTargetPointer(
-                nullptr); // No more need to cleanup pTransaction.
+            pTransaction.release();
 
             // sign the ledger
             theLedger.SignContract(*pNym);
@@ -12469,11 +12353,8 @@ int32_t OT_API::notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 
         pTransaction->AddItem(*pItem); // the Transaction's destructor will
                                        // cleanup the item. It "owns" it now.
-        OTLedger* pInbox = pAccount->LoadInbox(*pNym);
-        OTLedger* pOutbox = pAccount->LoadOutbox(*pNym);
-
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
         if (nullptr == pInbox) {
             otOut << "OT_API::notarizeTransfer: Failed loading inbox for acct: "
@@ -13780,9 +13661,8 @@ int32_t OT_API::sendUserMessage(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                           // set. (It uses it.)
 
     OTEnvelope theEnvelope;
-    OTAsymmetricKey* pPubkey = OTAsymmetricKey::KeyFactory();
+    std::unique_ptr<OTAsymmetricKey> pPubkey(OTAsymmetricKey::KeyFactory());
     OT_ASSERT(nullptr != pPubkey);
-    OTCleanup<OTAsymmetricKey> theKeyAngel(pPubkey);
 
     int32_t nReturnValue = -1;
 
@@ -13934,9 +13814,7 @@ int32_t OT_API::sendUserInstrument(
                      "since I couldn't find it in there.\n";
     }
     // OUTPAYMENT COPY:
-    OTMessage* pMessage = new OTMessage;
-    OTCleanup<OTMessage> theOutMsgAngel(pMessage);
-    OT_ASSERT(nullptr != pMessage);
+    std::unique_ptr<OTMessage> pMessage(new OTMessage);
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
@@ -13966,9 +13844,7 @@ int32_t OT_API::sendUserInstrument(
                                               // already set. (It uses it.)
 
         OTEnvelope theEnvelope;
-        OTAsymmetricKey* pPubkey = OTAsymmetricKey::KeyFactory();
-        OT_ASSERT(nullptr != pPubkey);
-        OTCleanup<OTAsymmetricKey> theKeyAngel(pPubkey);
+        std::unique_ptr<OTAsymmetricKey> pPubkey(OTAsymmetricKey::KeyFactory());
         if (!pPubkey->SetPublicKey(RECIPIENT_PUBKEY)) {
             otOut << __FUNCTION__
                   << ": Failed setting public key from string ===>"
@@ -13998,10 +13874,7 @@ int32_t OT_API::sendUserInstrument(
             pMessage->SignContract(*pNym);
             pMessage->SaveContract();
 
-            theOutMsgAngel.SetCleanupTargetPointer(nullptr);
-            pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to
-                                             // delete it. It's in his
-                                             // "outpayments".
+            pNym->AddOutpayments(*(pMessage.release()));
             OTPseudonym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym); // <==== SAVED.
             // (Send it)
@@ -14041,9 +13914,7 @@ int32_t OT_API::sendUserInstrument(
         pMessage->SignContract(*pNym);
         pMessage->SaveContract();
 
-        theOutMsgAngel.SetCleanupTargetPointer(nullptr);
-        pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to delete
-                                         // it. It's in his "outpayments".
+        pNym->AddOutpayments(*(pMessage.release()));
         OTPseudonym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym); // <==== SAVED.
         nReturnValue = 0; // 0 means, nothing was sent, but no error occurred.
