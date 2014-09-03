@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "cron/OTCronItem.hpp"
-#include "OTCleanup.hpp"
 #include "cron/OTCron.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
@@ -145,6 +144,8 @@
 #include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 // Base class for OTTrade and OTAgreement and OTPaymentPlan.
 // OTCron contains lists of these for regular processing.
@@ -697,7 +698,7 @@ bool OTCronItem::MoveFunds(
 
     // When theOrigPlanGuardian goes out of scope, pOrigCronItem gets deleted
     // automatically.
-    OTCleanup<OTCronItem> theOrigPlanGuardian(*pOrigCronItem);
+    std::unique_ptr<OTCronItem> theOrigPlanGuardian(pOrigCronItem);
 
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original Payment Plan request...
@@ -1042,7 +1043,7 @@ bool OTCronItem::MoveFunds(
         return false;
     }
     // Past this point we know pSourceAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theSourceAcctSmrtPtr(*pSourceAcct);
+    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pSourceAcct);
 
     OTAccount* pRecipientAcct =
         OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
@@ -1054,7 +1055,7 @@ bool OTCronItem::MoveFunds(
         return false;
     }
     // Past this point we know pRecipientAcct is good and will clean itself up.
-    OTCleanup<OTAccount> theRecipAcctSmrtPtr(*pRecipientAcct);
+    std::unique_ptr<OTAccount> theRecipAcctSmrtPtr(pRecipientAcct);
 
     // BY THIS POINT, both accounts are successfully loaded, and I don't have to
     // worry about
@@ -1761,7 +1762,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
         OT_ASSERT(nullptr != pOrigCronItem);
-        OTCleanup<OTCronItem> theCronItemAngel(*pOrigCronItem);
+        std::unique_ptr<OTCronItem> theCronItemAngel(pOrigCronItem);
 
         // Note: elsewhere, we verify the Nym's signature. But in this place, we
         // verify the SERVER's
@@ -2065,8 +2066,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
-    OTCleanup<OTAccount> theDestAcctGuardian; // used in cases where we have to
-                                              // load pActualAcct ourselves.
+    std::unique_ptr<OTAccount> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
     OTLedger theInbox(USER_ID, ACCOUNT_ID, GetServerID());
@@ -2191,10 +2191,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         {
             pActualAcct =
                 OTAccount::LoadExistingAccount(ACCOUNT_ID, GetServerID());
-            theDestAcctGuardian.SetCleanupTargetPointer(
-                pActualAcct); // This is safe in cases where nullptr is
-                              // returned.
-                              // No need to cleanup pActualAcct.
+            theDestAcctGuardian.reset(pActualAcct);
         }
 
         // Save inbox to storage. (File, DB, wherever it goes.)
