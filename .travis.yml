@@ -22,9 +22,9 @@ branches:
 before_deploy: ./scripts/travis/build_tar.sh "${TRAVIS_OS_NAME}"
 deploy:
   provider: s3
-  access_key_id: AKIAIR7XPKSU5OIGJ5IA
+  access_key_id: AKIAJGVCHWI7HKTMAKWA
   secret_access_key:
-    secure: LCR1Bk98M/t7Rf6hKmXIPxjKmAXziqbggtdZZvI7p7gjwwDixU0ga0gbZRZbixAFkNuPFQZ/trKTpScwc9vChG4dGvd0AZsKaDncaYherdTY45OZMPjDCk4nfmanUxI9pTNw2FFKdiV/PCETsfc4ynoBQ0Blo6TSqti1NQWPZpM=
+    secure: Mq8x7SI8u+E7gym0ZQfyoa7o8g4oePzfd5NDo9XwC6YdzEs7+38WTMtU972EdZud5bgHHSJA06jkuKm6XD5syHVn+YBgOptSupPpaDkylhh/VG45yxjJ7WpuDDFFoI4PUTde00LDH3qdYtsMdbOKVzDR8vcNwsAgVOTShtMjZsw=
   bucket: monetas-builds
   skip_cleanup: true
   local-dir: s3
