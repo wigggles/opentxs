@@ -1,6 +1,8 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
+  OTStash.cpp
+  OTStashItem.cpp
   OTAgent.cpp
   OTBylaw.cpp
   OTClause.cpp
