@@ -147,13 +147,13 @@
 #include "stdafx.hpp"
 
 #include "crypto/OTCredential.hpp"
-#include "OTCleanup.hpp"
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "crypto/OTPasswordData.hpp"
 #include "OTStorage.hpp"
 #include "crypto/OTSubkey.hpp"
 
+#include <memory>
 #include <algorithm>
 
 // '0' for cKeyType means, theSignature MUST have metadata in order for ANY keys
@@ -352,7 +352,7 @@ OTCredential* OTCredential::LoadMaster(
     const OTString& strMasterCredID, OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
-    OTCleanup<OTCredential> theCredentialAngel(pCredential);
+    std::unique_ptr<OTCredential> theCredentialAngel(pCredential);
     OT_ASSERT(nullptr != pCredential);
 
     OTPasswordData thePWData("Loading master credential. (static 1.)");
@@ -364,9 +364,7 @@ OTCredential* OTCredential::LoadMaster(
         return nullptr;
     }
 
-    theCredentialAngel.SetCleanupTargetPointer(
-        nullptr); // so pCredential doesn't get cleaned up.
-    return pCredential;
+    return theCredentialAngel.release();
 }
 
 // static  (Caller is responsible to delete.)
@@ -378,7 +376,7 @@ OTCredential* OTCredential::LoadMasterFromString(
     OTPassword* pImportPassword)
 {
     OTCredential* pCredential = new OTCredential;
-    OTCleanup<OTCredential> theCredentialAngel(pCredential);
+    std::unique_ptr<OTCredential> theCredentialAngel(pCredential);
     OT_ASSERT(nullptr != pCredential);
 
     OTPasswordData thePWData(nullptr == pImportPassword
@@ -393,9 +391,7 @@ OTCredential* OTCredential::LoadMasterFromString(
         return nullptr;
     }
 
-    theCredentialAngel.SetCleanupTargetPointer(
-        nullptr); // so pCredential doesn't get cleaned up.
-    return pCredential;
+    return theCredentialAngel.release();
 }
 
 // called by OTCredential::CreateMaster
@@ -868,7 +864,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
     }
 
     OTSubkey* pSub = new OTSubkey(*this);
-    OTCleanup<OTSubkey> theSubAngel(pSub);
+    std::unique_ptr<OTSubkey> theSubAngel(pSub);
     OT_ASSERT(nullptr != pSub);
 
     pSub->SetIdentifier(strSubID);
@@ -893,9 +889,9 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
 
     pSub->SetMetadata();
 
-    m_mapSubcredentials.insert(
-        std::pair<std::string, OTSubcredential*>(strSubID.Get(), pSub));
-    theSubAngel.SetCleanupTargetPointer(nullptr);
+    m_mapSubcredentials.insert(std::pair<std::string, OTSubcredential*>(
+        strSubID.Get(), theSubAngel.release()));
+
     return true;
 }
 
@@ -956,7 +952,7 @@ bool OTCredential::LoadSubcredentialFromString(const OTString& strInput,
     }
 
     OTSubcredential* pSub = new OTSubcredential(*this);
-    OTCleanup<OTSubcredential> theSubAngel(pSub);
+    std::unique_ptr<OTSubcredential> theSubAngel(pSub);
     OT_ASSERT(nullptr != pSub);
 
     pSub->SetIdentifier(strSubID);
@@ -980,9 +976,9 @@ bool OTCredential::LoadSubcredentialFromString(const OTString& strInput,
                                 // LoadContractFromString to use it. (Then
                                 // back to nullptr.)
 
-    m_mapSubcredentials.insert(
-        std::pair<std::string, OTSubcredential*>(strSubID.Get(), pSub));
-    theSubAngel.SetCleanupTargetPointer(nullptr);
+    m_mapSubcredentials.insert(std::pair<std::string, OTSubcredential*>(
+        strSubID.Get(), theSubAngel.release()));
+
     return true;
 }
 
