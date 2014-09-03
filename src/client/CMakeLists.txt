@@ -27,15 +27,29 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
 )
 
+set(MODULE_NAME opentxs-client)
 if(WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings 
   add_definitions("/wd4503")
-endif()
 
-add_library(opentxs-client
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
+    @ONLY
+  )
+
+  # we have an extra Windows-specific file to compile
+  add_library(${MODULE_NAME}
   ${cxx-sources}
   ${cxx-headers}
-)
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
+  )
+else()
+  add_library(${MODULE_NAME}
+    ${cxx-sources}
+    ${cxx-headers}
+  )
+endif()
 
 target_link_libraries(opentxs-client opentxs-ext opentxs-cash opentxs-core)
 

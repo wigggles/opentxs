@@ -80,6 +80,13 @@ if(KEYRING_GNOME)
   set(keyring libgnome-keyring.so)
 endif()
 
+include_directories(SYSTEM
+  ${OPENSSL_INCLUDE_DIR}
+  ${PROTOBUF_INCLUDE_DIR}
+  ${ZLIB_INCLUDE_DIRS}
+)
+
+set(MODULE_NAME opentxs-core)
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -90,24 +97,25 @@ if(WIN32)
   # suppress linker warnings about locallly defined imported symbols
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
+    @ONLY
+  )
+
   # we have an extra Windows-specific file to compile
-  add_library(opentxs-core
+  add_library(${MODULE_NAME}
     ${cxx-sources}
     ${cxx-headers}
     util/OTWindowsRegistryTools.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
-  add_library(opentxs-core
+  add_library(${MODULE_NAME}
     ${cxx-sources}
     ${cxx-headers}
   )
 endif()
-
-include_directories(SYSTEM
-  ${OPENSSL_INCLUDE_DIR}
-  ${PROTOBUF_INCLUDE_DIR}
-  ${ZLIB_INCLUDE_DIRS}
-)
 
 target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade opentxs-basket bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
