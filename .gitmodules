@@ -1,6 +1,6 @@
 [submodule "deps/lucre"]
 	path = deps/lucre
-	url = https://github.com/monetas/lucre.git
+	url = https://github.com/Open-Transactions/lucre.git
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
@@ -25,4 +25,3 @@
 [submodule "deps/secp256k1"]
 	path = deps/secp256k1
 	url = https://github.com/Open-Transactions/secp256k1.git
-
