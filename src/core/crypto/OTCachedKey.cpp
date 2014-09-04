@@ -156,13 +156,13 @@ extern "C" {
 namespace opentxs
 {
 
-tthread::mutex OTCachedKey::s_mutexThreadTimeout;
-tthread::mutex OTCachedKey::s_mutexCachedKeys;
+std::mutex OTCachedKey::s_mutexThreadTimeout;
+std::mutex OTCachedKey::s_mutexCachedKeys;
 mapOfCachedKeys OTCachedKey::s_mapCachedKeys;
 
 bool OTCachedKey::IsGenerated()
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     bool bReturnVal = false;
 
@@ -175,7 +175,7 @@ bool OTCachedKey::IsGenerated()
 
 bool OTCachedKey::HasHashCheck()
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     bool bReturnVal = false;
 
@@ -209,7 +209,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTIdentifier* pIdentifier)
     // But at least by this point we know FOR SURE that pIdentifier is NOT
     // nullptr.
     //
-    tthread::lock_guard<tthread::mutex> lock(OTCachedKey::s_mutexCachedKeys);
+    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
 
     const OTString strIdentifier(*pIdentifier);
     const std::string str_identifier(strIdentifier.Get());
@@ -260,7 +260,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTIdentifier* pIdentifier)
 // static
 std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 {
-    //    tthread::lock_guard<tthread::mutex> lock(*(theSourceKey.GetMutex()));
+    //    std::lock_guard<std::mutex> lock(*(theSourceKey.GetMutex()));
 
     // There is no chance of failure since he passed the master key itself,
     // since even if it's not already on the map, we'll just create a copy and
@@ -278,8 +278,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
         return std::shared_ptr<OTCachedKey>();
     }
 
-    tthread::lock_guard<tthread::mutex> lock_keys(
-        OTCachedKey::s_mutexCachedKeys);
+    std::lock_guard<std::mutex> lock_keys(OTCachedKey::s_mutexCachedKeys);
 
     const OTIdentifier theSourceID(theSourceKey);
 
@@ -334,7 +333,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 // static
 void OTCachedKey::Cleanup()
 {
-    tthread::lock_guard<tthread::mutex> lock(OTCachedKey::s_mutexCachedKeys);
+    std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexCachedKeys);
 
     s_mapCachedKeys.clear();
 
@@ -388,7 +387,7 @@ OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
 //
 bool OTCachedKey::isPaused()
 {
-    //  tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    //  std::lock_guard<std::mutex> lock(m_Mutex);
 
     return m_bPaused;
 }
@@ -402,7 +401,7 @@ bool OTCachedKey::isPaused()
 //
 bool OTCachedKey::Pause()
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     if (!m_bPaused) {
         m_bPaused = true;
@@ -413,7 +412,7 @@ bool OTCachedKey::Pause()
 
 bool OTCachedKey::Unpause()
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     if (m_bPaused) {
         m_bPaused = false;
@@ -446,7 +445,7 @@ void OTCachedKey::LowLevelReleaseThread()
 
 OTCachedKey::~OTCachedKey()
 {
-    tthread::lock_guard<tthread::mutex> lock(
+    std::lock_guard<std::mutex> lock(
         m_Mutex); // I figured this would cause some kind of problem but how
                   // else can I mess with the members unless I lock this?
 
@@ -478,8 +477,7 @@ OTCachedKey::~OTCachedKey()
 
 int32_t OTCachedKey::GetTimeoutSeconds()
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     const int32_t nTimeout = m_nTimeoutSeconds;
 
@@ -490,8 +488,7 @@ void OTCachedKey::SetTimeoutSeconds(int32_t nTimeoutSeconds) // So we can load
                                                              // from the config
                                                              // file.
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     OT_ASSERT_MSG(nTimeoutSeconds >= (-1), "OTCachedKey::SetTimeoutSeconds: "
                                            "ASSERT: nTimeoutSeconds must be >= "
@@ -504,8 +501,7 @@ void OTCachedKey::SetTimeoutSeconds(int32_t nTimeoutSeconds) // So we can load
 //
 void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     OT_ASSERT(ascCachedKey.Exists());
 
@@ -540,7 +536,7 @@ void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 //
 bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     if (nullptr == m_pSymmetricKey) return false;
 
@@ -549,7 +545,7 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 
 bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 {
-    tthread::lock_guard<tthread::mutex> lock(m_Mutex);
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     if (nullptr == m_pSymmetricKey) return false;
 
@@ -562,8 +558,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 //
 bool OTCachedKey::GetIdentifier(OTIdentifier& theIdentifier) const
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        (const_cast<OTCachedKey*>(this))->m_Mutex);
+    std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
 
     if ((nullptr == m_pSymmetricKey) || !m_pSymmetricKey->IsGenerated())
         return false;
@@ -574,8 +569,7 @@ bool OTCachedKey::GetIdentifier(OTIdentifier& theIdentifier) const
 
 bool OTCachedKey::GetIdentifier(OTString& strIdentifier) const
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        (const_cast<OTCachedKey*>(this))->m_Mutex);
+    std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
 
     if ((nullptr == m_pSymmetricKey) || !m_pSymmetricKey->IsGenerated())
         return false;
@@ -632,8 +626,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                                     OTPassword& theOutput,
                                     const char* szDisplay, bool bVerifyTwice)
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     std::string str_display(
         nullptr != szDisplay ? szDisplay : "(Display string was blank.)");
@@ -1204,14 +1197,12 @@ void OTCachedKey::ThreadTimeout(void* pArg)
                     "that activated this thread.\n");
     }
 
-    //    tthread::lock_guard<tthread::mutex> lock(*(pMyself->GetMutex())); //
-    // Multiple threads can't get inside here at the same time.
+    //    std::lock_guard<std::mutex> lock(*(pMyself->GetMutex()));
 
     int32_t nTimeoutSeconds = 0;
 
     {
-        tthread::lock_guard<tthread::mutex> lock(
-            OTCachedKey::s_mutexThreadTimeout);
+        std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexThreadTimeout);
 
         if (pMyself) {
             nTimeoutSeconds =
@@ -1226,8 +1217,7 @@ void OTCachedKey::ThreadTimeout(void* pArg)
     }
 
     {
-        tthread::lock_guard<tthread::mutex> lock(
-            OTCachedKey::s_mutexThreadTimeout);
+        std::lock_guard<std::mutex> lock(OTCachedKey::s_mutexThreadTimeout);
 
         if (pMyself && (nTimeoutSeconds != (-1))) {
             pMyself->DestroyMasterPassword(); // locks mutex internally.
@@ -1245,8 +1235,7 @@ void OTCachedKey::ThreadTimeout(void* pArg)
 //
 void OTCachedKey::DestroyMasterPassword()
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
     //
     if (m_nTimeoutSeconds != (-1)) {
         // (m_pSymmetricKey stays.
@@ -1303,8 +1292,7 @@ void OTCachedKey::DestroyMasterPassword()
 
 void OTCachedKey::ResetMasterPassword()
 {
-    tthread::lock_guard<tthread::mutex> lock(
-        m_Mutex); // Multiple threads can't get inside here at the same time.
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
     LowLevelReleaseThread();
 

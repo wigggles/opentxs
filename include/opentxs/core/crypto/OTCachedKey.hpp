@@ -138,6 +138,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <mutex>
 
 namespace opentxs
 {
@@ -329,13 +330,13 @@ private:
 
     OTSymmetricKey* m_pSymmetricKey; // Encrypted form of the master key.
                                      // Serialized by OTWallet or OTServer.
-    tthread::mutex m_Mutex; // Mutex used for serializing access to this
-                            // instance.
+    std::mutex m_Mutex; // Mutex used for serializing access to this
+                        // instance.
     bool m_bPaused; // If you want to force the old system, PAUSE the master key
                     // (REMEMBER to Unpause when done!)
     OTCachedKey(int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
-    static tthread::mutex s_mutexThreadTimeout;
-    static tthread::mutex s_mutexCachedKeys;
+    static std::mutex s_mutexThreadTimeout;
+    static std::mutex s_mutexCachedKeys;
     static mapOfCachedKeys s_mapCachedKeys; // Now we have many "master keys,"
                                             // mapped by their symmetric key ID.
                                             // These are actually temps, just so
@@ -357,7 +358,7 @@ private:
     // arguments) to get a pointer to
     // the global Master Key (for Nyms.)
 public:
-    tthread::mutex* GetMutex()
+    std::mutex* GetMutex()
     {
         return &m_Mutex;
     } // So static functions using this CachedKey can also lock its mutex.
