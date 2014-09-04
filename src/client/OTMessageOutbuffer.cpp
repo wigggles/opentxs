@@ -139,7 +139,8 @@
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTFolders.hpp"
-#include "../core/OTCleanup.hpp"
+
+#include <memory>
 
 namespace opentxs
 {
@@ -367,16 +368,15 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 
             OTMessage* pMsg = new OTMessage;
             OT_ASSERT(nullptr != pMsg);
-            OTCleanup<OTMessage> theMsgAngel(pMsg);
+            std::unique_ptr<OTMessage> theMsgAngel(pMsg);
 
             if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
                 pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
-                messagesMap_.insert(
-                    std::pair<int64_t, OTMessage*>(lRequestNum, pMsg));
-                theMsgAngel.SetCleanupTargetPointer(nullptr);
+                messagesMap_.insert(std::pair<int64_t, OTMessage*>(
+                    lRequestNum, theMsgAngel.release()));
                 return pMsg;
             }
         }
@@ -675,7 +675,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                 //
                 OTMessage* pMsg = new OTMessage;
                 OT_ASSERT(nullptr != pMsg);
-                OTCleanup<OTMessage> theMsgAngel(pMsg);
+                std::unique_ptr<OTMessage> theMsgAngel(pMsg);
 
                 if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
                     pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
@@ -806,7 +806,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     //
     OTMessage* pMsg = new OTMessage;
     OT_ASSERT(nullptr != pMsg);
-    OTCleanup<OTMessage> theMsgAngel(pMsg);
+    std::unique_ptr<OTMessage> theMsgAngel(pMsg);
 
     if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {

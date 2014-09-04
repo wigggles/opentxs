@@ -144,12 +144,12 @@
 
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
-#include "../core/OTCleanup.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/OTPseudonym.hpp"
 
+#include <memory>
 #include <algorithm>
 
 namespace opentxs
@@ -582,7 +582,7 @@ bool OTRecordList::PerformAutoAccept()
                                      theServerID, theNymID)
                                : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(
                                      theServerID, theNymID);
-                OTCleanup<OTLedger> theInboxAngel(pInbox);
+                std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
                 // It loaded up, so let's loop through it.
                 if (nullptr != pInbox) {
@@ -601,7 +601,7 @@ bool OTRecordList::PerformAutoAccept()
                         OTPayment* pPayment =
                             GetInstrument(*pNym, nIndex, *pInbox);
                         // ===> Returns financial instrument by index.
-                        OTCleanup<OTPayment> thePaymentAngel(pPayment);
+                        std::unique_ptr<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
@@ -687,12 +687,8 @@ bool OTRecordList::PerformAutoAccept()
                                          "list: pending incoming "
                                       << str_type.c_str() << ".\n";
                                 thePaymentMap.insert(
-                                    std::pair<int32_t, OTPayment*>(nIndex,
-                                                                   pPayment));
-                                thePaymentAngel.SetCleanupTargetPointer(
-                                    nullptr); // Now we HAVE to cleanup,
-                                              // below...
-                                              // Otherwise pPayment will leak.
+                                    std::pair<int32_t, OTPayment*>(
+                                        nIndex, thePaymentAngel.release()));
                             }
                             else
                                 otOut << __FUNCTION__
@@ -907,7 +903,7 @@ bool OTRecordList::PerformAutoAccept()
                                          theServerID, theNymID, theAccountID)
                                    : OTAPI_Wrap::OTAPI()->LoadInbox(
                                          theServerID, theNymID, theAccountID);
-            OTCleanup<OTLedger> theInboxAngel(pInbox);
+            std::unique_ptr<OTLedger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otOut << __FUNCTION__ << ": Skipping an account ("
                       << str_account_id.c_str()
@@ -1550,7 +1546,7 @@ bool OTRecordList::Populate()
                                  theServerID, theNymID)
                            : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
                                                                    theNymID);
-            OTCleanup<OTLedger> theInboxAngel(pInbox);
+            std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
             // It loaded up, so let's loop through it.
@@ -1634,7 +1630,7 @@ bool OTRecordList::Populate()
                         OTPayment* pPayment =
                             GetInstrument(*pNym, nIndex, *pInbox);
                         // ===> Returns financial instrument by index.
-                        OTCleanup<OTPayment> thePaymentAngel(pPayment);
+                        std::unique_ptr<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
@@ -1804,7 +1800,7 @@ bool OTRecordList::Populate()
                            : // twice.
                     OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID,
                                                        theNymID);
-            OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
+            std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
 
             // It loaded up, so let's loop through it.
             if (nullptr != pRecordbox) {
@@ -1992,7 +1988,7 @@ bool OTRecordList::Populate()
                             *pNym, nIndex,
                             *pRecordbox); // ===> Returns financial instrument
                                           // by index.
-                        OTCleanup<OTPayment> thePaymentAngel(pPayment);
+                        std::unique_ptr<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
@@ -2234,7 +2230,7 @@ bool OTRecordList::Populate()
                                  theServerID, theNymID)
                            : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theServerID,
                                                                  theNymID);
-            OTCleanup<OTLedger> theExpiredBoxAngel(pExpiredbox);
+            std::unique_ptr<OTLedger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
             if (nullptr != pExpiredbox) {
@@ -2423,7 +2419,7 @@ bool OTRecordList::Populate()
                             *pNym, nIndex,
                             *pExpiredbox); //===> Returns financial instrument
                                            // by index.
-                        OTCleanup<OTPayment> thePaymentAngel(pPayment);
+                        std::unique_ptr<OTPayment> thePaymentAngel(pPayment);
                         if (nullptr ==
                             pPayment) // then we treat it like it's abbreviated.
                         {
@@ -2736,7 +2732,7 @@ bool OTRecordList::Populate()
                              theServerID, theNymID, theAccountID)
                        : OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID,
                                                         theAccountID);
-        OTCleanup<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pInbox) {
@@ -2998,7 +2994,7 @@ bool OTRecordList::Populate()
                              theServerID, theNymID, theAccountID)
                        : OTAPI_Wrap::OTAPI()->LoadOutbox(theServerID, theNymID,
                                                          theAccountID);
-        OTCleanup<OTLedger> theOutboxAngel(pOutbox);
+        std::unique_ptr<OTLedger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pOutbox) {
@@ -3170,7 +3166,7 @@ bool OTRecordList::Populate()
                                          theServerID, theNymID, theAccountID)
                                    : OTAPI_Wrap::OTAPI()->LoadRecordBox(
                                          theServerID, theNymID, theAccountID);
-        OTCleanup<OTLedger> theRecordBoxAngel(pRecordbox);
+        std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pRecordbox) {
