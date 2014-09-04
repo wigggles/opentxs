@@ -131,7 +131,6 @@
  **************************************************************/
 
 #include "cron/OTCron.hpp"
-#include "OTCleanup.hpp"
 #include "crypto/OTASCIIArmor.hpp"
 #include "cron/OTCronItem.hpp"
 #include "OTFolders.hpp"
@@ -140,6 +139,8 @@
 #include "util/Timer.hpp"
 
 #include <irrxml/irrXML.hpp>
+
+#include <memory>
 
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
@@ -205,9 +206,9 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput,
 {
     nOfferCount = 0; // Outputs the number of offers on this nym.
 
-    OTDB::OfferListNym* pOfferList = dynamic_cast<OTDB::OfferListNym*>(
-        OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM));
-    OTCleanup<OTDB::OfferListNym> theListAngel(*pOfferList);
+    std::unique_ptr<OTDB::OfferListNym> pOfferList(
+        dynamic_cast<OTDB::OfferListNym*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
 
     for (auto& it : m_mapMarkets) {
         OTMarket* pMarket = it.second;
@@ -241,17 +242,14 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput,
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->Pack(*pOfferList); // Now we PACK our nym's offer list.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(
+            pPacker->Pack(*pOfferList)); // Now we PACK our nym's offer list.
 
         if (nullptr == pBuffer) {
             otErr
                 << "Failed packing pOfferList in OTCron::GetNym_OfferList. \n";
             return false;
         }
-
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure memory is cleaned up.
 
         // Now we need to translate pBuffer into strOutput.
 
@@ -286,17 +284,17 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
     OTMarket* pMarket = nullptr;
 
-    OTDB::MarketList* pMarketList = dynamic_cast<OTDB::MarketList*>(
-        OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST));
-    OTCleanup<OTDB::MarketList> theListAngel(*pMarketList);
+    std::unique_ptr<OTDB::MarketList> pMarketList(
+        dynamic_cast<OTDB::MarketList*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
 
     for (auto& it : m_mapMarkets) {
         pMarket = it.second;
         OT_ASSERT(nullptr != pMarket);
 
-        OTDB::MarketData* pMarketData = dynamic_cast<OTDB::MarketData*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_DATA));
-        OTCleanup<OTDB::MarketData> theDataAngel(*pMarketData);
+        std::unique_ptr<OTDB::MarketData> pMarketData(
+            dynamic_cast<OTDB::MarketData*>(
+                OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_DATA)));
 
         const OTIdentifier MARKET_ID(*pMarket);
         const OTString str_MARKET_ID(MARKET_ID);
@@ -369,16 +367,13 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
                                    // already ASSERTS. No need to cleanup
                                    // either.
 
-        OTDB::PackedBuffer* pBuffer =
-            pPacker->Pack(*pMarketList); // Now we PACK our market list.
+        std::unique_ptr<OTDB::PackedBuffer> pBuffer(
+            pPacker->Pack(*pMarketList)); // Now we PACK our market list.
 
         if (nullptr == pBuffer) {
             otErr << "Failed packing pMarketList in OTCron::GetMarketList. \n";
             return false;
         }
-
-        OTCleanup<OTDB::PackedBuffer> theBufferAngel(
-            *pBuffer); // make sure memory is cleaned up.
 
         // --------------------------------------------------------
 
