@@ -16,10 +16,26 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
 )
 
-add_library(opentxs-ext
-  ${cxx-sources}
-  ${cxx-headers}
-)
+set(MODULE_NAME opentxs-ext)
+if(WIN32)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
+    @ONLY
+  )
+
+  # we have an extra Windows-specific file to compile
+  add_library(${MODULE_NAME}
+    ${cxx-sources}
+    ${cxx-headers}
+    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
+  )
+else()
+  add_library(${MODULE_NAME}
+    ${cxx-sources}
+    ${cxx-headers}
+  )
+endif()
 
 target_link_libraries(opentxs-ext opentxs-cash opentxs-core ${ZMQ_LIBRARY})
 
