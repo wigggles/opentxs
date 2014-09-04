@@ -134,7 +134,6 @@
 #include "stdafx.hpp"
 
 #include "OTContract.hpp"
-#include "OTCleanup.hpp"
 #include "crypto/OTAsymmetricKey.hpp"
 #include "crypto/OTCrypto.hpp"
 #include "OTFolders.hpp"
@@ -147,6 +146,7 @@
 #include <irrxml/irrXML.hpp>
 
 #include <fstream>
+#include <memory>
 
 using namespace irr;
 using namespace io;
@@ -1642,7 +1642,7 @@ bool OTContract::LoadContractXML()
     IrrXMLReader* xml = irr::io::createIrrXMLReader(m_xmlUnsigned);
     OT_ASSERT_MSG(nullptr != xml, "Memory allocation issue with xml reader in "
                                   "OTContract::LoadContractXML()\n");
-    OTCleanup<IrrXMLReader> xmlAngel(*xml);
+    std::unique_ptr<IrrXMLReader> xmlAngel(xml);
 
     // parse the file until end reached
     while (xml->read()) {
@@ -2141,10 +2141,7 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                 theSigner.GetIdentifier(strSignerNymID);
                 theSigner.GetPublicCredentials(strCredList, &mapCredFiles);
 
-                OTPseudonym* pNym = new OTPseudonym;
-                OT_ASSERT(nullptr != pNym);
-                OTCleanup<OTPseudonym> theNymAngel(
-                    pNym); // pNym will be automatically cleaned up.
+                std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
 
                 pNym->SetIdentifier(strSignerNymID);
                 pNym->SetNymIDSource(theSigner.GetNymIDSource());
@@ -2169,11 +2166,9 @@ bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
                 else // Okay, we loaded the Nym up from the credentials, AND
                 {      // verified the Nym (including the credentials.)
                     // So let's add it to the contract...
-                    //
-                    theNymAngel.SetCleanupTargetPointer(
-                        nullptr);               // so pNym won't be cleaned up.
-                    m_mapNyms["signer"] = pNym; // Add pNym to the contract's
-                                                // internal list of nyms.
+                    // Add pNym to the contract's
+                    m_mapNyms["signer"] = pNym.release();
+                    // internal list of nyms.
                 }
             }
         }
@@ -2311,18 +2306,14 @@ void OTContract::CreateInnerContents()
 
                     // Create a new OTDB::StringMap object.
                     //
-                    OTDB::Storable* pStorable = nullptr;
-                    OTCleanup<OTDB::Storable> theAngel;
+                    std::unique_ptr<OTDB::Storable> pStorable(
+                        OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
                     OTDB::StringMap* pMap = nullptr;
 
-                    pStorable = OTDB::CreateObject(
-                        OTDB::STORED_OBJ_STRING_MAP); // this asserts already,
-                                                      // on failure.
-                    theAngel.SetCleanupTargetPointer(
-                        pStorable); // It will definitely be cleaned up.
-                    pMap = (nullptr == pStorable)
-                               ? nullptr
-                               : dynamic_cast<OTDB::StringMap*>(pStorable);
+                    pMap =
+                        (nullptr == pStorable)
+                            ? nullptr
+                            : dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
                     if (nullptr == pMap)
                         otErr << __FUNCTION__ << ": Error: failed trying to "
@@ -2575,14 +2566,12 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
             ascArmor.GetString(strCredentialList);
 
             if (strCredentialList.Exists()) {
-                OTDB::Storable* pStorable = OTDB::DecodeObject(
-                    OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get());
-                OTCleanup<OTDB::Storable> theStorableAngel(
-                    pStorable); // It will definitely be cleaned up.
+                std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
+                    OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
                 OTDB::StringMap* pMap =
                     (nullptr == pStorable)
                         ? nullptr
-                        : dynamic_cast<OTDB::StringMap*>(pStorable);
+                        : dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
                 if (nullptr == pMap)
                     otOut << __FUNCTION__
@@ -2592,10 +2581,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                 {
                     OTString::Map& theMap = pMap->the_map;
 
-                    OTPseudonym* pNym = new OTPseudonym;
-                    OT_ASSERT(nullptr != pNym);
-                    OTCleanup<OTPseudonym> theNymAngel(
-                        pNym); // pNym will be automatically cleaned up.
+                    std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
                     pNym->SetIdentifier(strSignerNymID);
 
                     if (false ==
@@ -2622,11 +2608,9 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                         // So let's add it to the contract...
                         //
 
-                        theNymAngel.SetCleanupTargetPointer(
-                            nullptr); // so pNym won't be cleaned up.
                         m_mapNyms[strNodeName.Get() /*"signer"*/] =
-                            pNym; // Add pNym to the contract's internal list of
-                                  // nyms.
+                            pNym.release();
+                        // Add pNym to the contract's internal list of nyms.
 
                         return 1; // <==== Success!
                     }

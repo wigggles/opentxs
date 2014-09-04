@@ -135,6 +135,8 @@
 
 #include "../OTString.hpp"
 
+#include <memory>
+
 namespace opentxs
 {
 
@@ -169,7 +171,6 @@ class OTASCIIArmor : public OTString
 {
 public:
     static OTDB::OTPacker* GetPacker();
-    static OTDB::OTPacker* s_pPacker;
 
     EXPORT OTASCIIArmor();
     EXPORT OTASCIIArmor(const char* szValue);
@@ -277,6 +278,9 @@ public:
     EXPORT bool SetAndPackStringMap(
         const std::map<std::string, std::string>& the_map,
         bool bLineBreaks = true);
+
+private:
+    static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 };
 
 } // namespace opentxs

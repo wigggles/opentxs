@@ -133,7 +133,6 @@
 #include "stdafx.hpp"
 
 #include "crypto/OTCachedKey.hpp"
-#include "OTCleanup.hpp"
 #include "crypto/OTASCIIArmor.hpp"
 #include "crypto/OTAsymmetricKey.hpp"
 #include "crypto/OTCrypto.hpp"
@@ -143,6 +142,8 @@
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
 #include "crypto/OTSymmetricKey.hpp"
+
+#include <memory>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 extern "C" {
@@ -724,7 +725,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
     // it, in order to get the ID for lookups on the keychain.
     //
     OTPassword* pDerivedKey = nullptr;
-    OTCleanup<OTPassword> theDerivedAngel;
+    std::unique_ptr<OTPassword> theDerivedAngel;
 
     if (nullptr == m_pSymmetricKey) {
         m_pSymmetricKey = new OTSymmetricKey;
@@ -824,8 +825,8 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                                     "m_pSymmetricKey->GetRawKeyFromDerivedKey "
                                     "(Success.)\n";
                 theOutput = *m_pMasterPassword; // Return it to the caller.
-                theDerivedAngel.SetCleanupTarget(
-                    *pDerivedKey); // Set our own copy to be destroyed later. It
+                theDerivedAngel.reset(
+                    pDerivedKey);  // Set our own copy to be destroyed later. It
                                    // continues below as "NOT nullptr".
                 bReturnVal = true; // Success.
             }
@@ -927,7 +928,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
             // check it for nullptr, and delete it if there's something there!
             //
             if (nullptr != pDerivedKey)
-                theDerivedAngel.SetCleanupTarget(*pDerivedKey);
+                theDerivedAngel.reset(pDerivedKey);
             else
                 otErr << __FUNCTION__ << ": FYI: Derived key is still nullptr "
                                          "after calling "
@@ -1003,7 +1004,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                         passUserInput); // asserts already.
                 OT_ASSERT(nullptr != pDerivedKey);
             }
-            theDerivedAngel.SetCleanupTarget(*pDerivedKey);
+            theDerivedAngel.reset(pDerivedKey);
 
             otWarn << szFunc << ": FYI, symmetric key was already generated. "
                                 "Proceeding to try and use it...\n";
