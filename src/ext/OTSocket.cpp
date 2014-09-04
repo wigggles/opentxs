@@ -135,7 +135,6 @@
 #include "OTSocket.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTSettings.hpp"
-#include "../core/util/tinythread.hpp"
 
 #define KEY_LATENCY_SEND_MS "latency_send_ms"
 #define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"
@@ -179,7 +178,7 @@ OTSocket::Defaults::Defaults(int64_t lLatencySendMs,
 {
 }
 
-OTSocket::Mutex::Mutex() : m_pMutex(new tthread::mutex)
+OTSocket::Mutex::Mutex() : m_pMutex(new std::mutex)
 {
 }
 
@@ -189,12 +188,12 @@ OTSocket::Mutex::~Mutex()
     m_pMutex = nullptr;
 }
 
-tthread::mutex* OTSocket::Mutex::Get()
+std::mutex* OTSocket::Mutex::Get()
 {
     return m_pMutex;
 }
 
-tthread::mutex* OTSocket::GetMutex()
+std::mutex* OTSocket::GetMutex()
 {
     return m_Mutex.Get();
 }

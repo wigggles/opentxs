@@ -182,13 +182,12 @@
 #include "../core/OTKeyring.hpp"
 #endif
 
-#include "../core/util/tinythread.hpp"
-
 #include <cassert>
 #include <fstream>
 #include <memory>
 
 #include <time.h>
+#include <unistd.h>
 
 #if defined(OPENTXS_HAVE_NETINET_IN_H)
 extern "C" {
@@ -1202,7 +1201,7 @@ bool OT_API::TransportFunction(OTServerContract& theServerContract,
         otErr << __FUNCTION__ << ": Error: m_Socket is not Initialized!\n";
         OT_FAIL;
     }
-    tthread::lock_guard<tthread::mutex> lock(*m_pSocket->GetMutex());
+    std::lock_guard<std::mutex> lock(*m_pSocket->GetMutex());
     int32_t nServerPort = 0;
     OTString strServerHostname;
 

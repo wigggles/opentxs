@@ -136,10 +136,7 @@
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/OTString.hpp"
 
-namespace tthread
-{
-class mutex;
-}
+#include <mutex>
 
 namespace opentxs
 {
@@ -172,13 +169,13 @@ private:
     private:
         Mutex(const Mutex&);
         Mutex& operator=(const Mutex&);
-        tthread::mutex* m_pMutex;
+        std::mutex* m_pMutex;
 
     public:
         EXPORT Mutex();
         EXPORT ~Mutex();
 
-        EXPORT tthread::mutex* Get();
+        EXPORT std::mutex* Get();
     };
 
     Mutex m_Mutex;
@@ -210,7 +207,7 @@ protected:
 public:
     virtual ~OTSocket() {};
 
-    EXPORT tthread::mutex* GetMutex();
+    EXPORT std::mutex* GetMutex();
 
     EXPORT bool Init(const Defaults& defaults);
     EXPORT bool Init(const Defaults& defaults, OTSettings* pSettings);
