@@ -178,7 +178,7 @@ public:
     EXPORT OT_UTILITY_OT Utility();
     EXPORT OT_UTILITY_OT ~Utility();
 
-    EXPORT OT_UTILITY_OT void delay();
+    EXPORT OT_UTILITY_OT void delay() const;
     EXPORT OT_UTILITY_OT int32_t
     getAndProcessNymbox_3(const std::string& serverID, const std::string& nymID,
                           bool& bWasMsgSent);
@@ -232,8 +232,8 @@ public:
     EXPORT OT_UTILITY_OT bool getIntermediaryFiles_old(
         const std::string& serverID, const std::string& nymID,
         const std::string& accountID, const bool bForceDownload);
-    EXPORT OT_UTILITY_OT std::string getLastReplyReceived();
-    EXPORT OT_UTILITY_OT int32_t getNbrTransactionCount();
+    EXPORT OT_UTILITY_OT std::string getLastReplyReceived() const;
+    EXPORT OT_UTILITY_OT int32_t getNbrTransactionCount() const;
     EXPORT OT_UTILITY_OT int32_t
     getNymbox(const std::string& serverID, const std::string& nymID);
     EXPORT OT_UTILITY_OT int32_t getNymbox(const std::string& serverID,
@@ -271,7 +271,7 @@ public:
         const std::string& serverID, const std::string& nymID,
         const std::string& accountID, const int32_t nBoxType,
         const int32_t nRequestSeeking, bool& bFoundIt);
-    EXPORT OT_UTILITY_OT void longDelay();
+    EXPORT OT_UTILITY_OT void longDelay() const;
     EXPORT OT_UTILITY_OT int32_t
     processNymbox(const std::string& serverID, const std::string& nymID,
                   bool& bWasMsgSent, int32_t& nMsgSentRequestNumOut,
@@ -287,7 +287,7 @@ public:
                                 const std::string& IN_FUNCTION);
     EXPORT OT_UTILITY_OT int32_t
     sendProcessNymboxLowLevel(const std::string& serverID,
-                              const std::string& nymID);
+                              const std::string& nymID) const;
     EXPORT OT_UTILITY_OT void setLastReplyReceived(const std::string& strReply);
     EXPORT OT_UTILITY_OT void setNbrTransactionCount(int32_t new_trans_dl);
 };

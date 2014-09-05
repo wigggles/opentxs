@@ -169,7 +169,7 @@ const std::string& OTRecord_GetTypeString(int theType)
 {
     return Instrument_TypeStrings[theType];
 }
-bool OTRecord::FormatAmount(std::string& str_output)
+bool OTRecord::FormatAmount(std::string& str_output) const
 {
     if (m_str_amount.empty() ||
         m_str_asset_id.empty()) // Need these to do the formatting.
@@ -183,7 +183,7 @@ bool OTRecord::FormatAmount(std::string& str_output)
         m_str_asset_id, OTAPI_Wrap::It()->StringToLong(m_str_amount));
     return (!str_output.empty());
 }
-bool OTRecord::FormatMailSubject(std::string& str_output)
+bool OTRecord::FormatMailSubject(std::string& str_output) const
 {
     str_output.clear();
     if (IsMail()) {
@@ -214,7 +214,7 @@ bool OTRecord::FormatMailSubject(std::string& str_output)
     }
     return (!str_output.empty());
 }
-bool OTRecord::FormatShortMailDescription(std::string& str_output)
+bool OTRecord::FormatShortMailDescription(std::string& str_output) const
 {
     OTString strDescription;
 
@@ -251,7 +251,7 @@ bool OTRecord::FormatShortMailDescription(std::string& str_output)
     str_output = strDescription.Get();
     return (!str_output.empty());
 }
-bool OTRecord::FormatDescription(std::string& str_output)
+bool OTRecord::FormatDescription(std::string& str_output) const
 {
     OTString strDescription, strStatus, strKind;
 
@@ -447,7 +447,7 @@ bool OTRecord::FormatDescription(std::string& str_output)
     str_output = strDescription.Get();
     return (!str_output.empty());
 }
-bool OTRecord::HasInitialPayment()
+bool OTRecord::HasInitialPayment() const
 {
     if (!IsPaymentPlan()) return false;
 
@@ -459,7 +459,7 @@ bool OTRecord::HasInitialPayment()
     return false;
 }
 
-bool OTRecord::HasPaymentPlan()
+bool OTRecord::HasPaymentPlan() const
 {
     if (!IsPaymentPlan()) return false;
 
@@ -471,7 +471,7 @@ bool OTRecord::HasPaymentPlan()
     return false;
 }
 
-time64_t OTRecord::GetInitialPaymentDate()
+time64_t OTRecord::GetInitialPaymentDate() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
@@ -483,7 +483,7 @@ time64_t OTRecord::GetInitialPaymentDate()
     return OT_TIME_ZERO;
 }
 
-int64_t OTRecord::GetInitialPaymentAmount()
+int64_t OTRecord::GetInitialPaymentAmount() const
 {
     if (!IsPaymentPlan()) return 0;
 
@@ -495,7 +495,7 @@ int64_t OTRecord::GetInitialPaymentAmount()
     return 0;
 }
 
-time64_t OTRecord::GetPaymentPlanStartDate()
+time64_t OTRecord::GetPaymentPlanStartDate() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
@@ -507,7 +507,7 @@ time64_t OTRecord::GetPaymentPlanStartDate()
     return OT_TIME_ZERO;
 }
 
-time64_t OTRecord::GetTimeBetweenPayments()
+time64_t OTRecord::GetTimeBetweenPayments() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
@@ -519,7 +519,7 @@ time64_t OTRecord::GetTimeBetweenPayments()
     return OT_TIME_ZERO;
 }
 
-int64_t OTRecord::GetPaymentPlanAmount()
+int64_t OTRecord::GetPaymentPlanAmount() const
 {
     if (!IsPaymentPlan()) return 0;
 
@@ -531,7 +531,7 @@ int64_t OTRecord::GetPaymentPlanAmount()
     return 0;
 }
 
-int32_t OTRecord::GetMaximumNoPayments()
+int32_t OTRecord::GetMaximumNoPayments() const
 {
     if (!IsPaymentPlan()) return 0;
 
@@ -662,7 +662,7 @@ bool OTRecord::CanCancelOutgoing() const
     return true;
 }
 
-bool OTRecord::DiscardOutgoingCash()
+bool OTRecord::DiscardOutgoingCash() const
 {
     if (!CanDiscardOutgoingCash()) return false;
     return OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex(m_str_nym_id,
@@ -671,7 +671,7 @@ bool OTRecord::DiscardOutgoingCash()
 
 // For completed records (not pending.)
 //
-bool OTRecord::DeleteRecord()
+bool OTRecord::DeleteRecord() const
 {
     if (!CanDeleteRecord()) return false;
     if (!m_bIsSpecialMail &&
@@ -792,15 +792,15 @@ bool OTRecord::DeleteRecord()
         m_str_server_id, m_str_nym_id, str_using_account, nIndex,
         false); // clear all = false. We're only clearing one record.
 }
-bool OTRecord::AcceptIncomingTransfer()
+bool OTRecord::AcceptIncomingTransfer() const
 {
     return AcceptIncomingTransferOrReceipt();
 } // For incoming, pending (not-yet-accepted) transfers.
-bool OTRecord::AcceptIncomingReceipt()
+bool OTRecord::AcceptIncomingReceipt() const
 {
     return AcceptIncomingTransferOrReceipt();
 } // For incoming, (not-yet-accepted) receipts.
-bool OTRecord::AcceptIncomingTransferOrReceipt()
+bool OTRecord::AcceptIncomingTransferOrReceipt() const
 {
     if (!CanAcceptIncoming()) return false;
 
@@ -870,7 +870,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt()
 }
 // For incoming, pending (not-yet-accepted) instruments.
 //
-bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
+bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 {
     if (!CanAcceptIncoming()) return false;
 
@@ -940,7 +940,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct)
 }
 // For incoming, pending (not-yet-accepted) instruments.
 //
-bool OTRecord::DiscardIncoming()
+bool OTRecord::DiscardIncoming() const
 {
     if (!CanDiscardIncoming()) return false;
 
@@ -1032,9 +1032,10 @@ bool OTRecord::IsPaymentPlan() const
 }
 // For outgoing, pending (not-yet-accepted) instruments.
 //
-bool OTRecord::CancelOutgoing(const std::string str_via_acct) // This can be
-                                                              // blank if it's a
-                                                              // cheque.
+bool OTRecord::CancelOutgoing(const std::string str_via_acct) const // This can
+                                                                    // be
+// blank if it's a
+// cheque.
 {
     if (!CanCancelOutgoing()) return false;
 
@@ -1383,11 +1384,11 @@ void OTRecord::SetContents(const std::string& str_contents)
         }
     }
 }
-time64_t OTRecord::GetValidFrom()
+time64_t OTRecord::GetValidFrom() const
 {
     return m_ValidFrom;
 }
-time64_t OTRecord::GetValidTo()
+time64_t OTRecord::GetValidTo() const
 {
     return m_ValidTo;
 }

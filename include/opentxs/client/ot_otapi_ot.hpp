@@ -314,21 +314,22 @@ public:
 
     EXPORT OT_OTAPI_OT static void CopyVariables();
     OT_OTAPI_OT void InitCustom();
-    OT_OTAPI_OT int32_t Run();
+    OT_OTAPI_OT int32_t Run() const;
     OT_OTAPI_OT std::string SendRequest(OTAPI_Func& theFunction,
-                                        const std::string& IN_FUNCTION);
-    OT_OTAPI_OT int32_t SendRequestLowLevel(OTAPI_Func& theFunction,
-                                            const std::string& IN_FUNCTION);
+                                        const std::string& IN_FUNCTION) const;
+    OT_OTAPI_OT int32_t
+    SendRequestLowLevel(OTAPI_Func& theFunction,
+                        const std::string& IN_FUNCTION) const;
     OT_OTAPI_OT std::string SendRequestOnce(OTAPI_Func& theFunction,
                                             const std::string& IN_FUNCTION,
                                             const bool bIsTransaction,
                                             const bool bWillRetryAfterThis,
-                                            bool& bCanRetryAfterThis);
+                                            bool& bCanRetryAfterThis) const;
     OT_OTAPI_OT std::string SendTransaction(OTAPI_Func& theFunction,
                                             const std::string& IN_FUNCTION);
     OT_OTAPI_OT std::string SendTransaction(OTAPI_Func& theFunction,
                                             const std::string& IN_FUNCTION,
-                                            const int32_t nTotalRetries);
+                                            const int32_t nTotalRetries) const;
 };
 
 #endif // OPENTXS_CLIENT_OT_OTAPI_OT_HPP

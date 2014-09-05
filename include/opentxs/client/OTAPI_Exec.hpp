@@ -153,15 +153,15 @@ public:
     EXPORT OTAPI_Exec();
     EXPORT virtual ~OTAPI_Exec();
 
-    EXPORT OT_API* OTAPI();
+    EXPORT OT_API* OTAPI() const;
 
     //    EXPORT virtual bool & Cleanup();
 
-    EXPORT virtual int64_t StringToLong(const std::string& strNumber);
-    EXPORT virtual std::string LongToString(const int64_t& lNumber);
+    EXPORT virtual int64_t StringToLong(const std::string& strNumber) const;
+    EXPORT virtual std::string LongToString(const int64_t& lNumber) const;
 
-    EXPORT virtual uint64_t StringToUlong(const std::string& strNumber);
-    EXPORT virtual std::string UlongToString(const uint64_t& lNumber);
+    EXPORT virtual uint64_t StringToUlong(const std::string& strNumber) const;
+    EXPORT virtual std::string UlongToString(const uint64_t& lNumber) const;
 
     /**
     INITIALIZE the OTAPI library
@@ -186,7 +186,7 @@ public:
     // as /usr/local, the scripts folder will be res/raw
     //
     //
-    EXPORT virtual void SetAppBinaryFolder(const std::string& strFolder);
+    EXPORT virtual void SetAppBinaryFolder(const std::string& strFolder) const;
 
     // SetHomeFolder
     // OPTIONAL. Used in Android.
@@ -204,7 +204,7 @@ public:
     // "/data/app/packagename/res/raw",
     // and you would SetHomeFolder to "/data/data/[app package]/files/"
     //
-    EXPORT virtual void SetHomeFolder(const std::string& strFolder);
+    EXPORT virtual void SetHomeFolder(const std::string& strFolder) const;
     // Then:
 
     /**
@@ -231,7 +231,7 @@ public:
     e.g. SetWallet("wallet2.xml");
 
     */
-    EXPORT virtual bool SetWallet(const std::string& strWalletFilename);
+    EXPORT virtual bool SetWallet(const std::string& strWalletFilename) const;
 
     /**
     WALLET EXISTS
@@ -241,7 +241,7 @@ public:
     WalletExists();
 
     */
-    EXPORT virtual bool WalletExists();
+    EXPORT virtual bool WalletExists() const;
 
     /**
     LOAD WALLET
@@ -255,7 +255,7 @@ public:
     LoadWallet();
 
     */
-    EXPORT virtual bool LoadWallet();
+    EXPORT virtual bool LoadWallet() const;
 
     /**
     SWITCH WALLET (experimental)
@@ -265,14 +265,14 @@ public:
     Then call this function to switch to the new wallet.
 
     */
-    EXPORT virtual bool SwitchWallet();
+    EXPORT virtual bool SwitchWallet() const;
 
     /** Output to the screen (stderr.)
     (This is so stdout can be left clean for the ACTUAL output.)
     Log level is 0 (least verbose) to 5 (most verbose.)
     */
     EXPORT virtual void Output(const int32_t& nLogLevel,
-                               const std::string& strOutput);
+                               const std::string& strOutput) const;
 
     /** TIME (in seconds)
 
@@ -283,7 +283,7 @@ public:
     so the smart contracts can see what time it is.
 
     */
-    EXPORT virtual time64_t GetTime();
+    EXPORT virtual time64_t GetTime() const;
 
     /**
     These 2 functions aren't in the OT_API proper, but are only available inside
@@ -305,16 +305,16 @@ public:
     // (It's useful.)
     //
     EXPORT virtual std::string NumList_Add(const std::string& strNumList,
-                                           const std::string& strNumbers);
-    EXPORT virtual std::string NumList_Remove(const std::string& strNumList,
-                                              const std::string& strNumbers);
-    EXPORT virtual bool NumList_VerifyQuery(
-        const std::string& strNumList,
-        const std::string& strNumbers); // returns OT_BOOL
-    EXPORT virtual bool NumList_VerifyAll(
-        const std::string& strNumList,
-        const std::string& strNumbers); // returns OT_BOOL
-    EXPORT virtual int32_t NumList_Count(const std::string& strNumList);
+                                           const std::string& strNumbers) const;
+    EXPORT virtual std::string NumList_Remove(
+        const std::string& strNumList, const std::string& strNumbers) const;
+    EXPORT virtual bool NumList_VerifyQuery(const std::string& strNumList,
+                                            const std::string& strNumbers)
+        const; // returns OT_BOOL
+    EXPORT virtual bool NumList_VerifyAll(const std::string& strNumList,
+                                          const std::string& strNumbers)
+        const; // returns OT_BOOL
+    EXPORT virtual int32_t NumList_Count(const std::string& strNumList) const;
 
     /** OT-encode a plainext string.
 
@@ -328,8 +328,9 @@ public:
     return    ascEncoded.Get();    // We return it.
     */
     EXPORT virtual std::string Encode(const std::string& strPlaintext,
-                                      const bool& bLineBreaks); // bLineBreaks
-                                                                // is OT_BOOL
+                                      const bool& bLineBreaks)
+        const; // bLineBreaks
+               // is OT_BOOL
 
     /** Decode an OT-encoded string (back to plainext.)
 
@@ -345,8 +346,9 @@ public:
     return    strPlain.Get();    // We return it.
     */
     EXPORT virtual std::string Decode(const std::string& strEncoded,
-                                      const bool& bLineBreaks); // bLineBreaks
-                                                                // is OT_BOOL
+                                      const bool& bLineBreaks)
+        const; // bLineBreaks
+               // is OT_BOOL
 
     /** OT-ENCRYPT a plainext string. (ASYMMETRIC)
 
@@ -368,7 +370,7 @@ public:
 
     */
     EXPORT virtual std::string Encrypt(const std::string& RECIPIENT_NYM_ID,
-                                       const std::string& strPlaintext);
+                                       const std::string& strPlaintext) const;
 
     /** OT-DECRYPT an OT-encrypted string back to plainext. (ASYMMETRIC)
 
@@ -396,18 +398,18 @@ public:
     }
     */
     EXPORT virtual std::string Decrypt(const std::string& RECIPIENT_NYM_ID,
-                                       const std::string& strCiphertext);
+                                       const std::string& strCiphertext) const;
 
     // Generates a new symmetric key, based on a passphrase,
     // and returns it (or nullptr.)
     //
-    EXPORT virtual std::string CreateSymmetricKey();
+    EXPORT virtual std::string CreateSymmetricKey() const;
 
     EXPORT virtual std::string SymmetricEncrypt(
-        const std::string& SYMMETRIC_KEY, const std::string& PLAintEXT);
+        const std::string& SYMMETRIC_KEY, const std::string& PLAintEXT) const;
     EXPORT virtual std::string SymmetricDecrypt(
         const std::string& SYMMETRIC_KEY,
-        const std::string& CIPHERTEXT_ENVELOPE);
+        const std::string& CIPHERTEXT_ENVELOPE) const;
 
     /** OT-Sign a CONTRACT. (First signature)
 
@@ -428,7 +430,8 @@ public:
 
     */
     EXPORT virtual std::string SignContract(const std::string& SIGNER_NYM_ID,
-                                            const std::string& THE_CONTRACT);
+                                            const std::string& THE_CONTRACT)
+        const;
 
     // Instead of signing an existing contract, this is for just signing a flat
     // message.
@@ -442,7 +445,7 @@ public:
     //
     EXPORT virtual std::string FlatSign(const std::string& SIGNER_NYM_ID,
                                         const std::string& THE_INPUT,
-                                        const std::string& CONTRACT_TYPE);
+                                        const std::string& CONTRACT_TYPE) const;
 
     /** OT-Sign a CONTRACT. (Add a signature)
 
@@ -463,7 +466,8 @@ public:
 
     */
     EXPORT virtual std::string AddSignature(const std::string& SIGNER_NYM_ID,
-                                            const std::string& THE_CONTRACT);
+                                            const std::string& THE_CONTRACT)
+        const;
 
     /** OT-Verify the signature on a CONTRACT.
 
@@ -471,7 +475,7 @@ public:
 
     */
     EXPORT virtual bool VerifySignature(const std::string& SIGNER_NYM_ID,
-                                        const std::string& THE_CONTRACT);
+                                        const std::string& THE_CONTRACT) const;
 
     /** Verify and Retrieve XML Contents.
     //
@@ -483,19 +487,19 @@ public:
     // and return the XML contents of the contract in string form. <==
     */
     EXPORT virtual std::string VerifyAndRetrieveXMLContents(
-        const std::string& THE_CONTRACT, const std::string& SIGNER_ID);
+        const std::string& THE_CONTRACT, const std::string& SIGNER_ID) const;
 
     /** The below functions are for retrieving log data programatically.
     */
-    EXPORT virtual int32_t GetMemlogSize();
+    EXPORT virtual int32_t GetMemlogSize() const;
 
-    EXPORT virtual std::string GetMemlogAtIndex(const int32_t& nIndex);
+    EXPORT virtual std::string GetMemlogAtIndex(const int32_t& nIndex) const;
 
-    EXPORT virtual std::string PeekMemlogFront();
-    EXPORT virtual std::string PeekMemlogBack();
+    EXPORT virtual std::string PeekMemlogFront() const;
+    EXPORT virtual std::string PeekMemlogBack() const;
 
-    EXPORT virtual bool PopMemlogFront();
-    EXPORT virtual bool PopMemlogBack();
+    EXPORT virtual bool PopMemlogFront() const;
+    EXPORT virtual bool PopMemlogBack() const;
 
     /** CREATE NYM -- Create new User
     //
@@ -518,48 +522,52 @@ public:
     // source is just a public key, then the only verification requirement
     // is that master credentials be signed by the corresponding private key.
     */
-    EXPORT virtual std::string CreateNym(
-        const int32_t& nKeySize, const std::string& NYM_ID_SOURCE,
-        const std::string& ALT_LOCATION); // source and location can be empty.
-                                          // (OT will generate a Nym with a
-                                          // public key as the source.)
+    EXPORT virtual std::string CreateNym(const int32_t& nKeySize,
+                                         const std::string& NYM_ID_SOURCE,
+                                         const std::string& ALT_LOCATION)
+        const; // source and location can be empty.
+               // (OT will generate a Nym with a
+               // public key as the source.)
 
     EXPORT virtual std::string GetNym_ActiveCronItemIDs(
-        const std::string& NYM_ID, const std::string& SERVER_ID);
+        const std::string& NYM_ID, const std::string& SERVER_ID) const;
     EXPORT virtual std::string GetActiveCronItem(const std::string& SERVER_ID,
-                                                 int64_t lTransNum);
+                                                 int64_t lTransNum) const;
 
-    EXPORT virtual std::string GetNym_SourceForID(const std::string& NYM_ID);
+    EXPORT virtual std::string GetNym_SourceForID(const std::string& NYM_ID)
+        const;
     EXPORT virtual std::string GetNym_AltSourceLocation(
-        const std::string& NYM_ID);
+        const std::string& NYM_ID) const;
 
-    EXPORT virtual int32_t GetNym_CredentialCount(const std::string& NYM_ID);
+    EXPORT virtual int32_t GetNym_CredentialCount(const std::string& NYM_ID)
+        const;
     EXPORT virtual std::string GetNym_CredentialID(const std::string& NYM_ID,
-                                                   const int32_t& nIndex);
+                                                   const int32_t& nIndex) const;
     EXPORT virtual std::string GetNym_CredentialContents(
-        const std::string& NYM_ID, const std::string& CREDENTIAL_ID);
+        const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const;
 
-    EXPORT virtual int32_t GetNym_RevokedCredCount(const std::string& NYM_ID);
-    EXPORT virtual std::string GetNym_RevokedCredID(const std::string& NYM_ID,
-                                                    const int32_t& nIndex);
+    EXPORT virtual int32_t GetNym_RevokedCredCount(const std::string& NYM_ID)
+        const;
+    EXPORT virtual std::string GetNym_RevokedCredID(
+        const std::string& NYM_ID, const int32_t& nIndex) const;
     EXPORT virtual std::string GetNym_RevokedCredContents(
-        const std::string& NYM_ID, const std::string& CREDENTIAL_ID);
+        const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const;
 
     EXPORT virtual int32_t GetNym_SubcredentialCount(
-        const std::string& NYM_ID, const std::string& MASTER_CRED_ID);
+        const std::string& NYM_ID, const std::string& MASTER_CRED_ID) const;
     EXPORT virtual std::string GetNym_SubCredentialID(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
-        const int32_t& nIndex);
+        const int32_t& nIndex) const;
     EXPORT virtual std::string GetNym_SubCredentialContents(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
-        const std::string& SUB_CRED_ID);
+        const std::string& SUB_CRED_ID) const;
 
     EXPORT virtual std::string AddSubcredential(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
-        const int32_t& nKeySize);
-    EXPORT virtual bool RevokeSubcredential(const std::string& NYM_ID,
-                                            const std::string& MASTER_CRED_ID,
-                                            const std::string& SUB_CRED_ID);
+        const int32_t& nKeySize) const;
+    EXPORT virtual bool RevokeSubcredential(
+        const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
+        const std::string& SUB_CRED_ID) const;
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
@@ -568,14 +576,14 @@ public:
     // Returns: the new contract ID, or nullptr if failure.
     */
     EXPORT virtual std::string CreateServerContract(
-        const std::string& NYM_ID, const std::string& strXMLcontents);
+        const std::string& NYM_ID, const std::string& strXMLcontents) const;
     EXPORT virtual std::string CreateAssetContract(
-        const std::string& NYM_ID, const std::string& strXMLcontents);
+        const std::string& NYM_ID, const std::string& strXMLcontents) const;
 
     EXPORT virtual std::string CalculateAssetContractID(
-        const std::string& str_Contract);
+        const std::string& str_Contract) const;
     EXPORT virtual std::string CalculateServerContractID(
-        const std::string& str_Contract);
+        const std::string& str_Contract) const;
 
     // Use these below functions to get the new contract ITSELF, using its ID
     // that was returned by the above two functions:
@@ -668,8 +676,8 @@ public:
     // If you have a server contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT virtual int32_t AddServerContract(
-        const std::string& strContract); // returns OT_TRUE (1) or OT_FALSE(0)
+    EXPORT virtual int32_t AddServerContract(const std::string& strContract)
+        const; // returns OT_TRUE (1) or OT_FALSE(0)
 
     /** --------------------------------------------------
     // ADD ASSET CONTRACT (to wallet)
@@ -677,8 +685,8 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT virtual int32_t AddAssetContract(
-        const std::string& strContract); // returns OT_TRUE (1) or OT_FALSE(0)
+    EXPORT virtual int32_t AddAssetContract(const std::string& strContract)
+        const; // returns OT_TRUE (1) or OT_FALSE(0)
 
     /** --------------------------------------------------
 
@@ -689,20 +697,20 @@ public:
     // These functions allow you to re-load that data so your GUI can reflect
     // the updates to those files.
     */
-    EXPORT virtual int32_t GetServerCount();
-    EXPORT virtual int32_t GetAssetTypeCount();
-    EXPORT virtual int32_t GetAccountCount();
-    EXPORT virtual int32_t GetNymCount();
+    EXPORT virtual int32_t GetServerCount() const;
+    EXPORT virtual int32_t GetAssetTypeCount() const;
+    EXPORT virtual int32_t GetAccountCount() const;
+    EXPORT virtual int32_t GetNymCount() const;
 
-    EXPORT virtual std::string GetServer_ID(
-        const int32_t& nIndex); // based on Index (above 4 functions) this
-                                // returns the Server's ID
-    EXPORT virtual std::string GetServer_Name(
-        const std::string& SERVER_ID); // Return's Server's name (based on
-                                       // server ID)
-    EXPORT virtual std::string GetServer_Contract(
-        const std::string& SERVER_ID); // Return's Server's contract (based on
-                                       // server ID)
+    EXPORT virtual std::string GetServer_ID(const int32_t& nIndex)
+        const; // based on Index (above 4 functions) this
+               // returns the Server's ID
+    EXPORT virtual std::string GetServer_Name(const std::string& SERVER_ID)
+        const; // Return's Server's name (based on
+               // server ID)
+    EXPORT virtual std::string GetServer_Contract(const std::string& SERVER_ID)
+        const; // Return's Server's contract (based on
+               // server ID)
 
     /** FormatAmount:
     // Input: currency contract, amount. (And locale, internally.)
@@ -712,7 +720,7 @@ public:
     currency contract and locale.
     */
     EXPORT virtual std::string FormatAmount(const std::string& ASSET_TYPE_ID,
-                                            const int64_t& THE_AMOUNT);
+                                            const int64_t& THE_AMOUNT) const;
 
     /** StringToAmount:
     // Input: currency contract, formatted string. (And locale, internally.)
@@ -722,18 +730,21 @@ public:
     locale.
     */
     EXPORT virtual int64_t StringToAmount(const std::string& ASSET_TYPE_ID,
-                                          const std::string& str_input);
+                                          const std::string& str_input) const;
 
-    EXPORT virtual std::string GetAssetType_ID(
-        const int32_t& nIndex); // returns Asset Type ID (based on index from
-                                // GetAssetTypeCount)
+    EXPORT virtual std::string GetAssetType_ID(const int32_t& nIndex)
+        const; // returns Asset Type ID (based on index from
+               // GetAssetTypeCount)
     EXPORT virtual std::string GetAssetType_Name(
-        const std::string& ASSET_TYPE_ID); // Returns asset type name based on
-                                           // Asset Type ID
-    EXPORT virtual std::string GetAssetType_TLA(const std::string& THE_ID);
+        const std::string& ASSET_TYPE_ID) const; // Returns asset type name
+                                                 // based on
+                                                 // Asset Type ID
+    EXPORT virtual std::string GetAssetType_TLA(const std::string& THE_ID)
+        const;
     EXPORT virtual std::string GetAssetType_Contract(
-        const std::string& ASSET_TYPE_ID); // Returns currency contract based on
-                                           // Asset Type ID
+        const std::string& ASSET_TYPE_ID) const; // Returns currency contract
+                                                 // based on
+                                                 // Asset Type ID
 
     /** You already have accounts in your wallet (without any server
     communications)
@@ -745,33 +756,40 @@ public:
     confusion with
     // a different set of similarly-named functions.
     */
-    EXPORT virtual std::string GetAccountWallet_ID(
-        const int32_t& nIndex); // returns a string containing the account ID,
-                                // based on index.
+    EXPORT virtual std::string GetAccountWallet_ID(const int32_t& nIndex)
+        const; // returns a string containing the account ID,
+               // based on index.
     EXPORT virtual std::string GetAccountWallet_Name(
-        const std::string& ACCOUNT_ID); // returns the account name, based on
-                                        // account ID.
+        const std::string& ACCOUNT_ID) const; // returns the account name, based
+                                              // on
+                                              // account ID.
     EXPORT virtual int64_t GetAccountWallet_Balance(
-        const std::string& ACCOUNT_ID); // returns the account balance, based on
-                                        // account ID.
+        const std::string& ACCOUNT_ID) const; // returns the account balance,
+                                              // based on
+                                              // account ID.
     EXPORT virtual std::string GetAccountWallet_Type(
-        const std::string& ACCOUNT_ID); // returns the account type (simple,
-                                        // issuer, etc)
+        const std::string& ACCOUNT_ID) const; // returns the account type
+                                              // (simple,
+                                              // issuer, etc)
     EXPORT virtual std::string GetAccountWallet_AssetTypeID(
-        const std::string& ACCOUNT_ID); // returns asset type ID of the account
+        const std::string& ACCOUNT_ID) const; // returns asset type ID of the
+                                              // account
     EXPORT virtual std::string GetAccountWallet_ServerID(
-        const std::string& ACCOUNT_ID); // returns Server ID of the account
+        const std::string& ACCOUNT_ID) const; // returns Server ID of the
+                                              // account
     EXPORT virtual std::string GetAccountWallet_NymID(
-        const std::string& ACCOUNT_ID); // returns Nym ID of the account
+        const std::string& ACCOUNT_ID) const; // returns Nym ID of the account
 
     EXPORT virtual std::string GetAccountWallet_InboxHash(
-        const std::string& ACCOUNT_ID); // returns latest InboxHash according to
-                                        // the account file. (Usually more
-                                        // recent than: GetNym_InboxHash)
+        const std::string& ACCOUNT_ID) const; // returns latest InboxHash
+                                              // according to
+                                              // the account file. (Usually more
+                                              // recent than: GetNym_InboxHash)
     EXPORT virtual std::string GetAccountWallet_OutboxHash(
-        const std::string& ACCOUNT_ID); // returns latest OutboxHash according
-                                        // to the account file. (Usually more
-                                        // recent than: GetNym_OutboxHash)
+        const std::string& ACCOUNT_ID) const; // returns latest OutboxHash
+                                              // according
+    // to the account file. (Usually more
+    // recent than: GetNym_OutboxHash)
 
     /** Returns OT_BOOL. Verifies any asset account (intermediary files) against
     its own last signed receipt.
@@ -780,7 +798,7 @@ public:
     */
     EXPORT virtual bool VerifyAccountReceipt(const std::string& SERVER_ID,
                                              const std::string& NYM_ID,
-                                             const std::string& ACCT_ID);
+                                             const std::string& ACCT_ID) const;
 
     /**----------------------------------------------------------
     // GET NYM TRANSACTION NUM COUNT
@@ -794,43 +812,44 @@ public:
     // or -1 for error (no nym found.)
     */
     EXPORT virtual int32_t GetNym_TransactionNumCount(
-        const std::string& SERVER_ID, const std::string& NYM_ID);
+        const std::string& SERVER_ID, const std::string& NYM_ID) const;
 
-    EXPORT virtual std::string GetNym_ID(const int32_t& nIndex); // based on
-                                                                 // Index (above
-                                                                 // 4 functions)
-                                                                 // this returns
-                                                                 // the Nym's ID
-    EXPORT virtual std::string GetNym_Name(
-        const std::string& NYM_ID); // Returns Nym Name (based on NymID)
-    EXPORT virtual std::string GetNym_Stats(
-        const std::string& NYM_ID); // Returns Nym Statistics (based on NymID)
-    EXPORT virtual std::string GetNym_NymboxHash(
-        const std::string& SERVER_ID,
-        const std::string& NYM_ID); // NymboxHash for "most recently DOWNLOADED"
-                                    // Nymbox (by ServerID)
-    EXPORT virtual std::string GetNym_RecentHash(
-        const std::string& SERVER_ID,
-        const std::string& NYM_ID); // "Most recent NymboxHash according to the
-                                    // SERVER's records" (Which is often sent as
-                                    // an 'FYI' with various server replies to
-                                    // my messages.)
+    EXPORT virtual std::string GetNym_ID(const int32_t& nIndex) const; // based
+                                                                       // on
+    // Index (above
+    // 4 functions)
+    // this returns
+    // the Nym's ID
+    EXPORT virtual std::string GetNym_Name(const std::string& NYM_ID)
+        const; // Returns Nym Name (based on NymID)
+    EXPORT virtual std::string GetNym_Stats(const std::string& NYM_ID)
+        const; // Returns Nym Statistics (based on NymID)
+    EXPORT virtual std::string GetNym_NymboxHash(const std::string& SERVER_ID,
+                                                 const std::string& NYM_ID)
+        const; // NymboxHash for "most recently DOWNLOADED"
+               // Nymbox (by ServerID)
+    EXPORT virtual std::string GetNym_RecentHash(const std::string& SERVER_ID,
+                                                 const std::string& NYM_ID)
+        const; // "Most recent NymboxHash according to the
+               // SERVER's records" (Which is often sent as
+               // an 'FYI' with various server replies to
+               // my messages.)
 
-    EXPORT virtual std::string GetNym_InboxHash(
-        const std::string& ACCOUNT_ID,
-        const std::string& NYM_ID); // InboxHash for "most recently DOWNLOADED"
-                                    // Inbox (by AccountID). Often contains
-                                    // older value than
-                                    // GetAccountWallet_InboxHash.
-    EXPORT virtual std::string GetNym_OutboxHash(
-        const std::string& ACCOUNT_ID,
-        const std::string& NYM_ID); // OutboxHash for "most recently DOWNLOADED"
-                                    // Outbox (by AccountID) Often contains
-                                    // older value than
-                                    // GetAccountWallet_OutboxHash
+    EXPORT virtual std::string GetNym_InboxHash(const std::string& ACCOUNT_ID,
+                                                const std::string& NYM_ID)
+        const; // InboxHash for "most recently DOWNLOADED"
+               // Inbox (by AccountID). Often contains
+               // older value than
+               // GetAccountWallet_InboxHash.
+    EXPORT virtual std::string GetNym_OutboxHash(const std::string& ACCOUNT_ID,
+                                                 const std::string& NYM_ID)
+        const; // OutboxHash for "most recently DOWNLOADED"
+               // Outbox (by AccountID) Often contains
+               // older value than
+               // GetAccountWallet_OutboxHash
 
-    EXPORT virtual bool IsNym_RegisteredAtServer(const std::string& NYM_ID,
-                                                 const std::string& SERVER_ID);
+    EXPORT virtual bool IsNym_RegisteredAtServer(
+        const std::string& NYM_ID, const std::string& SERVER_ID) const;
 
     /** Each Nym has mail messages, they can come from different servers.
     // This allows you to peruse the mail for a given Nym, and erase messages.
@@ -856,71 +875,72 @@ public:
 
     */
 
-    EXPORT virtual int32_t GetNym_MailCount(const std::string& NYM_ID);
+    EXPORT virtual int32_t GetNym_MailCount(const std::string& NYM_ID) const;
 
     EXPORT virtual std::string GetNym_MailContentsByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the message itself (Subject:
-                                // optionally as first line)
+        const int32_t& nIndex) const; // returns the message itself (Subject:
+                                      // optionally as first line)
 
     EXPORT virtual std::string GetNym_MailSenderIDByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the NymID of the sender.
+        const int32_t& nIndex) const; // returns the NymID of the sender.
     EXPORT virtual std::string GetNym_MailServerIDByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // returns the
-                                                           // ServerID where the
-                                                           // message came from.
+        const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
+    // ServerID where the
+    // message came from.
 
-    EXPORT virtual bool Nym_RemoveMailByIndex(const std::string& NYM_ID,
-                                              const int32_t& nIndex); // (1 or
-                                                                      // 0.)
-    EXPORT virtual bool Nym_VerifyMailByIndex(
-        const std::string& NYM_ID,
-        const int32_t& nIndex); // true if signature verifies. (Sender Nym MUST
-                                // be in my wallet for this to work.)
+    EXPORT virtual bool Nym_RemoveMailByIndex(
+        const std::string& NYM_ID, const int32_t& nIndex) const; // (1 or
+                                                                 // 0.)
+    EXPORT virtual bool Nym_VerifyMailByIndex(const std::string& NYM_ID,
+                                              const int32_t& nIndex)
+        const; // true if signature verifies. (Sender Nym MUST
+               // be in my wallet for this to work.)
 
-    EXPORT virtual int32_t GetNym_OutmailCount(const std::string& NYM_ID);
+    EXPORT virtual int32_t GetNym_OutmailCount(const std::string& NYM_ID) const;
 
     EXPORT virtual std::string GetNym_OutmailContentsByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the message itself (Subject:
-                                // optionally as first line)
+        const int32_t& nIndex) const; // returns the message itself (Subject:
+                                      // optionally as first line)
 
     EXPORT virtual std::string GetNym_OutmailRecipientIDByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the NymID of the recipient.
+        const int32_t& nIndex) const; // returns the NymID of the recipient.
     EXPORT virtual std::string GetNym_OutmailServerIDByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // returns the
-                                                           // ServerID where the
-                                                           // message came from.
+        const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
+    // ServerID where the
+    // message came from.
 
     EXPORT virtual bool Nym_RemoveOutmailByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // (1 or 0.)
-    EXPORT virtual bool Nym_VerifyOutmailByIndex(
-        const std::string& NYM_ID,
-        const int32_t& nIndex); // true if signature verifies. (Sender Nym MUST
-                                // be in my wallet for this to work.)
+        const std::string& NYM_ID, const int32_t& nIndex) const; // (1 or 0.)
+    EXPORT virtual bool Nym_VerifyOutmailByIndex(const std::string& NYM_ID,
+                                                 const int32_t& nIndex)
+        const; // true if signature verifies. (Sender Nym MUST
+               // be in my wallet for this to work.)
 
-    EXPORT virtual int32_t GetNym_OutpaymentsCount(const std::string& NYM_ID);
+    EXPORT virtual int32_t GetNym_OutpaymentsCount(const std::string& NYM_ID)
+        const;
 
     EXPORT virtual std::string GetNym_OutpaymentsContentsByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the message itself
+        const int32_t& nIndex) const; // returns the message itself
 
     EXPORT virtual std::string GetNym_OutpaymentsRecipientIDByIndex(
         const std::string& NYM_ID,
-        const int32_t& nIndex); // returns the NymID of the recipient.
+        const int32_t& nIndex) const; // returns the NymID of the recipient.
     EXPORT virtual std::string GetNym_OutpaymentsServerIDByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // returns the
-                                                           // ServerID where the
-                                                           // message came from.
+        const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
+    // ServerID where the
+    // message came from.
 
     EXPORT virtual bool Nym_RemoveOutpaymentsByIndex(
-        const std::string& NYM_ID, const int32_t& nIndex); // (1 or 0.)
-    EXPORT virtual bool Nym_VerifyOutpaymentsByIndex(
-        const std::string& NYM_ID,
-        const int32_t& nIndex); // true if signature verifies. (Sender Nym MUST
-                                // be in my wallet for this to work.)
+        const std::string& NYM_ID, const int32_t& nIndex) const; // (1 or 0.)
+    EXPORT virtual bool Nym_VerifyOutpaymentsByIndex(const std::string& NYM_ID,
+                                                     const int32_t& nIndex)
+        const; // true if signature verifies. (Sender Nym MUST
+               // be in my wallet for this to work.)
 
     /**---------------------------------------------------------
 
@@ -934,7 +954,8 @@ public:
     not. (Whether there are accounts...)
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_CanRemoveServer(const std::string& SERVER_ID);
+    EXPORT virtual bool Wallet_CanRemoveServer(const std::string& SERVER_ID)
+        const;
 
     /** Remove this server contract from my wallet!
     //
@@ -943,7 +964,7 @@ public:
     server ID.
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_RemoveServer(const std::string& SERVER_ID);
+    EXPORT virtual bool Wallet_RemoveServer(const std::string& SERVER_ID) const;
 
     /** Can I remove this asset contract from my wallet?
     //
@@ -953,7 +974,8 @@ public:
     (Whether there are accounts...)
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_CanRemoveAssetType(const std::string& ASSET_ID);
+    EXPORT virtual bool Wallet_CanRemoveAssetType(const std::string& ASSET_ID)
+        const;
 
     /** Remove this asset contract from my wallet!
     //
@@ -962,7 +984,8 @@ public:
     asset type ID.
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_RemoveAssetType(const std::string& ASSET_ID);
+    EXPORT virtual bool Wallet_RemoveAssetType(const std::string& ASSET_ID)
+        const;
 
     /** Can I remove this Nym from my wallet?
     //
@@ -972,7 +995,7 @@ public:
     there are accounts...)
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_CanRemoveNym(const std::string& NYM_ID);
+    EXPORT virtual bool Wallet_CanRemoveNym(const std::string& NYM_ID) const;
 
     /** Remove this Nym from my wallet!
     //
@@ -981,7 +1004,7 @@ public:
     server ID.
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_RemoveNym(const std::string& NYM_ID);
+    EXPORT virtual bool Wallet_RemoveNym(const std::string& NYM_ID) const;
 
     /** Can I remove this Account from my wallet?
     //
@@ -991,7 +1014,8 @@ public:
     (Whether there are transactions...)
     // returns OT_BOOL
     */
-    EXPORT virtual bool Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID);
+    EXPORT virtual bool Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID)
+        const;
 
     // See deleteAssetAccount(), a server message, for deleting asset accounts.
     // (You can't just delete them out of the wallet without first deleting them
@@ -1026,35 +1050,39 @@ public:
     saving process.
     (Make sure to save the wallet also.)
     */
-    EXPORT virtual bool Wallet_ChangePassphrase(); //  (true for success and
-                                                   // false for error.)
+    EXPORT virtual bool Wallet_ChangePassphrase() const; //  (true for success
+                                                         // and
+                                                         // false for error.)
 
     //! Returns the exported Nym, if success. (Else nullptr.)
-    EXPORT virtual std::string Wallet_ExportNym(const std::string& NYM_ID);
+    EXPORT virtual std::string Wallet_ExportNym(const std::string& NYM_ID)
+        const;
 
     //! returns NymID if success, else nullptr.
     EXPORT virtual std::string Wallet_ImportNym(
-        const std::string& FILE_CONTENTS);
+        const std::string& FILE_CONTENTS) const;
 
     //! Returns the imported cert's NymID, if successful. Else nullptr.
     EXPORT virtual std::string Wallet_ImportCert(
-        const std::string& DISPLAY_NAME, const std::string& FILE_CONTENTS);
+        const std::string& DISPLAY_NAME,
+        const std::string& FILE_CONTENTS) const;
 
     //! Returns the exported cert, if successful. Else nullptr.
-    EXPORT virtual std::string Wallet_ExportCert(const std::string& NYM_ID);
+    EXPORT virtual std::string Wallet_ExportCert(const std::string& NYM_ID)
+        const;
 
     //! Attempts to find a full ID in the wallet, based on a partial of the same
     // ID.
     //! Returns nullptr on failure, otherwise returns the full ID.
     //
     EXPORT virtual std::string Wallet_GetNymIDFromPartial(
-        const std::string& PARTIAL_ID);
+        const std::string& PARTIAL_ID) const;
     EXPORT virtual std::string Wallet_GetServerIDFromPartial(
-        const std::string& PARTIAL_ID);
+        const std::string& PARTIAL_ID) const;
     EXPORT virtual std::string Wallet_GetAssetIDFromPartial(
-        const std::string& PARTIAL_ID);
+        const std::string& PARTIAL_ID) const;
     EXPORT virtual std::string Wallet_GetAccountIDFromPartial(
-        const std::string& PARTIAL_ID);
+        const std::string& PARTIAL_ID) const;
 
     /** -----------------------------------
     // SET NYM NAME
@@ -1078,19 +1106,19 @@ public:
     */
     EXPORT virtual bool SetNym_Name(const std::string& NYM_ID,
                                     const std::string& SIGNER_NYM_ID,
-                                    const std::string& NYM_NEW_NAME);
+                                    const std::string& NYM_NEW_NAME) const;
 
     //! Returns OT_TRUE (1) or OT_FALSE (0)
     //! The asset account's name is merely a client-side label.
-    EXPORT virtual bool SetAccountWallet_Name(const std::string& ACCT_ID,
-                                              const std::string& SIGNER_NYM_ID,
-                                              const std::string& ACCT_NEW_NAME);
+    EXPORT virtual bool SetAccountWallet_Name(
+        const std::string& ACCT_ID, const std::string& SIGNER_NYM_ID,
+        const std::string& ACCT_NEW_NAME) const;
 
-    EXPORT virtual bool SetAssetType_Name(const std::string& ASSET_ID,
-                                          const std::string& STR_NEW_NAME);
+    EXPORT virtual bool SetAssetType_Name(
+        const std::string& ASSET_ID, const std::string& STR_NEW_NAME) const;
 
     EXPORT virtual bool SetServer_Name(const std::string& SERVER_ID,
-                                       const std::string& STR_NEW_NAME);
+                                       const std::string& STR_NEW_NAME) const;
 
     /** (Above) IMPORTANT: USE the above functions for setting the CLIENT-SIDE
     // display labels that you use in your UI for the
@@ -1151,7 +1179,8 @@ public:
         const std::string& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM, const time64_t& VALID_TO,
         const std::string& SENDER_ACCT_ID, const std::string& SENDER_USER_ID,
-        const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_USER_ID);
+        const std::string& CHEQUE_MEMO,
+        const std::string& RECIPIENT_USER_ID) const;
 
     /**
     DISCARD A CHEQUE -- returns OT_TRUE or OT_FALSE
@@ -1184,7 +1213,7 @@ public:
     EXPORT virtual bool DiscardCheque(const std::string& SERVER_ID,
                                       const std::string& USER_ID,
                                       const std::string& ACCT_ID,
-                                      const std::string& THE_CHEQUE);
+                                      const std::string& THE_CHEQUE) const;
 
     /**
 
@@ -1279,7 +1308,7 @@ public:
                                              // nullptr (no maximum length.)
         const int32_t& PAYMENT_PLAN_MAX_PAYMENTS // integer. Defaults to 0 or
         // nullptr (no maximum payments.)
-        );
+        ) const;
 
     // The above version has too many arguments for boost::function apparently
     // (for Chaiscript.)
@@ -1315,14 +1344,14 @@ public:
                                          // lifetime in seconds. 'number' is
         // maximum number of payments in seconds.
         // 0 or "" is unlimited (for both.)
-        );
+        ) const;
 
     // Called by Customer. Pass in the plan obtained in the above call.
     //
     EXPORT virtual std::string ConfirmPaymentPlan(
         const std::string& SERVER_ID, const std::string& SENDER_USER_ID,
         const std::string& SENDER_ACCT_ID, const std::string& RECIPIENT_USER_ID,
-        const std::string& PAYMENT_PLAN);
+        const std::string& PAYMENT_PLAN) const;
 
     // SMART CONTRACTS
 
@@ -1335,7 +1364,7 @@ public:
         const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
         const time64_t& VALID_TO // Default (0 or nullptr) == no expiry / cancel
                                  // anytime
-        );
+        ) const;
 
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
@@ -1352,7 +1381,7 @@ public:
                                           // cause a save.)
         const std::string& BYLAW_NAME // The Bylaw's NAME as referenced in the
                                       // smart contract. (And the scripts...)
-        );
+        ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT virtual std::string SmartContract_AddClause(
@@ -1367,7 +1396,7 @@ public:
                                           // the smart contract. (And the
                                           // scripts...)
         const std::string& SOURCE_CODE // The actual source code for the clause.
-        );
+        ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT virtual std::string SmartContract_AddVariable(
@@ -1388,7 +1417,7 @@ public:
         // a int64_t. If type is bool, the strings
         // "true" or "false" are expected here in
         // order to convert to a bool.
-        );
+        ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT virtual std::string SmartContract_AddCallback(
@@ -1405,7 +1434,7 @@ public:
         const std::string& CLAUSE_NAME    // The actual clause that will be
                                           // triggered by the callback. (Must
                                           // exist.)
-        );
+        ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT virtual std::string SmartContract_AddHook(
@@ -1422,7 +1451,7 @@ public:
                                        // triggered by the hook. (You can call
                                        // this multiple times, and have multiple
                                        // clauses trigger on the same hook.)
-        );
+        ) const;
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT virtual std::string SmartContract_AddParty(
@@ -1435,7 +1464,7 @@ public:
                                        // smart contract. (And the scripts...)
         const std::string& AGENT_NAME  // An AGENT will be added by default for
                                        // this party. Need Agent NAME.
-        );
+        ) const;
 
     // (FYI, that is basically the only option, until I code Entities and Roles.
     // Until then, a party can ONLY be
@@ -1457,7 +1486,7 @@ public:
         const std::string& ACCT_NAME, // The Account's name as referenced in the
                                       // smart contract
         const std::string& ASSET_TYPE_ID // Asset Type ID for the Account.
-        );
+        ) const;
 
     /** This function returns the count of how many trans#s a Nym needs in order
     to confirm as
@@ -1470,7 +1499,7 @@ public:
     EXPORT virtual int32_t SmartContract_CountNumsNeeded(
         const std::string& THE_CONTRACT, // The smart contract, about to be
                                          // queried by this function.
-        const std::string& AGENT_NAME);
+        const std::string& AGENT_NAME) const;
 
     /** ----------------------------------------
     // Used when taking a theoretical smart contract, and setting it up to use
@@ -1491,7 +1520,7 @@ public:
         const std::string& AGENT_NAME, // The agent name for this asset account.
         const std::string& ACCT_ID     // AcctID for the asset account. (For
                                        // acct_name).
-        );
+        ) const;
 
     /** ----------------------------------------
     // Called by each Party. Pass in the smart contract obtained in the above
@@ -1505,7 +1534,7 @@ public:
         const std::string& PARTY_NAME,   // Should already be on the contract.
                                          // This way we can find it.
         const std::string& NYM_ID // Nym ID for the party, the actual owner,
-        );
+        ) const;
     // ===> AS WELL AS for the default AGENT of that party.
 
     /* ----------------------------------------
@@ -1513,94 +1542,103 @@ public:
     */
 
     EXPORT virtual bool Smart_AreAllPartiesConfirmed(
-        const std::string& THE_CONTRACT); // true or false?
-    EXPORT virtual int32_t Smart_GetBylawCount(const std::string& THE_CONTRACT);
+        const std::string& THE_CONTRACT) const; // true or false?
+    EXPORT virtual int32_t Smart_GetBylawCount(const std::string& THE_CONTRACT)
+        const;
     EXPORT virtual std::string Smart_GetBylawByIndex(
         const std::string& THE_CONTRACT,
-        const int32_t& nIndex); // returns the name of the bylaw.
+        const int32_t& nIndex) const; // returns the name of the bylaw.
     EXPORT virtual std::string Bylaw_GetLanguage(
-        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME);
-    EXPORT virtual int32_t Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
-                                                const std::string& BYLAW_NAME);
+        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME) const;
+    EXPORT virtual int32_t Bylaw_GetClauseCount(
+        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME) const;
     EXPORT virtual std::string Clause_GetNameByIndex(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const int32_t& nIndex); // returns the name of the clause.
+        const int32_t& nIndex) const; // returns the name of the clause.
     EXPORT virtual std::string Clause_GetContents(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& CLAUSE_NAME); // returns the contents of the clause.
+        const std::string& CLAUSE_NAME) const; // returns the contents of the
+                                               // clause.
     EXPORT virtual int32_t Bylaw_GetVariableCount(
-        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME);
+        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME) const;
     EXPORT virtual std::string Variable_GetNameByIndex(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const int32_t& nIndex); // returns the name of the variable.
+        const int32_t& nIndex) const; // returns the name of the variable.
     EXPORT virtual std::string Variable_GetType(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& VARIABLE_NAME); // returns the type of the variable.
+        const std::string& VARIABLE_NAME) const; // returns the type of the
+                                                 // variable.
     EXPORT virtual std::string Variable_GetAccess(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& VARIABLE_NAME); // returns the access level of the
-                                           // variable.
+        const std::string& VARIABLE_NAME) const; // returns the access level of
+                                                 // the
+                                                 // variable.
     EXPORT virtual std::string Variable_GetContents(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& VARIABLE_NAME); // returns the contents of the
-                                           // variable.
-    EXPORT virtual int32_t Bylaw_GetHookCount(const std::string& THE_CONTRACT,
-                                              const std::string& BYLAW_NAME);
+        const std::string& VARIABLE_NAME) const; // returns the contents of the
+                                                 // variable.
+    EXPORT virtual int32_t Bylaw_GetHookCount(
+        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME) const;
     EXPORT virtual std::string Hook_GetNameByIndex(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const int32_t& nIndex); // returns the name of the hook.
+        const int32_t& nIndex) const; // returns the name of the hook.
     EXPORT virtual int32_t Hook_GetClauseCount(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& HOOK_NAME); // for iterating clauses on a hook.
+        const std::string& HOOK_NAME) const; // for iterating clauses on a hook.
     EXPORT virtual std::string Hook_GetClauseAtIndex(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& HOOK_NAME, const int32_t& nIndex);
+        const std::string& HOOK_NAME, const int32_t& nIndex) const;
     EXPORT virtual int32_t Bylaw_GetCallbackCount(
-        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME);
+        const std::string& THE_CONTRACT, const std::string& BYLAW_NAME) const;
     EXPORT virtual std::string Callback_GetNameByIndex(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const int32_t& nIndex); // returns the name of the callback.
+        const int32_t& nIndex) const; // returns the name of the callback.
     EXPORT virtual std::string Callback_GetClause(
         const std::string& THE_CONTRACT, const std::string& BYLAW_NAME,
-        const std::string& CALLBACK_NAME); // returns name of clause attached to
-                                           // callback.
-    EXPORT virtual int32_t Smart_GetPartyCount(const std::string& THE_CONTRACT);
+        const std::string& CALLBACK_NAME) const; // returns name of clause
+                                                 // attached to
+                                                 // callback.
+    EXPORT virtual int32_t Smart_GetPartyCount(const std::string& THE_CONTRACT)
+        const;
     EXPORT virtual std::string Smart_GetPartyByIndex(
         const std::string& THE_CONTRACT,
-        const int32_t& nIndex); // returns the name of the party.
-    EXPORT virtual bool Smart_IsPartyConfirmed(
-        const std::string& THE_CONTRACT,
-        const std::string& PARTY_NAME); // true or false?
-    EXPORT virtual std::string Party_GetID(
-        const std::string& THE_CONTRACT,
-        const std::string& PARTY_NAME); // returns either NymID or Entity ID.
-    EXPORT virtual int32_t Party_GetAcctCount(const std::string& THE_CONTRACT,
-                                              const std::string& PARTY_NAME);
+        const int32_t& nIndex) const; // returns the name of the party.
+    EXPORT virtual bool Smart_IsPartyConfirmed(const std::string& THE_CONTRACT,
+                                               const std::string& PARTY_NAME)
+        const; // true or false?
+    EXPORT virtual std::string Party_GetID(const std::string& THE_CONTRACT,
+                                           const std::string& PARTY_NAME)
+        const; // returns either NymID or Entity ID.
+    EXPORT virtual int32_t Party_GetAcctCount(
+        const std::string& THE_CONTRACT, const std::string& PARTY_NAME) const;
     EXPORT virtual std::string Party_GetAcctNameByIndex(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const int32_t& nIndex); // returns the name of the clause.
-    EXPORT virtual std::string Party_GetAcctID(
-        const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const std::string& ACCT_NAME); // returns account ID for a given acct
-                                       // name.
+        const int32_t& nIndex) const; // returns the name of the clause.
+    EXPORT virtual std::string Party_GetAcctID(const std::string& THE_CONTRACT,
+                                               const std::string& PARTY_NAME,
+                                               const std::string& ACCT_NAME)
+        const; // returns account ID for a given acct
+               // name.
     EXPORT virtual std::string Party_GetAcctAssetID(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const std::string& ACCT_NAME); // returns asset type ID for a given acct
-                                       // name.
+        const std::string& ACCT_NAME) const; // returns asset type ID for a
+                                             // given acct
+                                             // name.
     EXPORT virtual std::string Party_GetAcctAgentName(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const std::string& ACCT_NAME); // returns agent name authorized to
-                                       // administer a given named acct. (If
-                                       // it's set...)
-    EXPORT virtual int32_t Party_GetAgentCount(const std::string& THE_CONTRACT,
-                                               const std::string& PARTY_NAME);
+        const std::string& ACCT_NAME) const; // returns agent name authorized to
+    // administer a given named acct. (If
+    // it's set...)
+    EXPORT virtual int32_t Party_GetAgentCount(
+        const std::string& THE_CONTRACT, const std::string& PARTY_NAME) const;
     EXPORT virtual std::string Party_GetAgentNameByIndex(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const int32_t& nIndex); // returns the name of the agent.
-    EXPORT virtual std::string Party_GetAgentID(
-        const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const std::string& AGENT_NAME); // returns ID of the agent. (If there is
-                                        // one...)
+        const int32_t& nIndex) const; // returns the name of the agent.
+    EXPORT virtual std::string Party_GetAgentID(const std::string& THE_CONTRACT,
+                                                const std::string& PARTY_NAME,
+                                                const std::string& AGENT_NAME)
+        const; // returns ID of the agent. (If there is
+               // one...)
 
     /** --------------------------------------------------
     // ACTIVATE SMART CONTRACT
@@ -1612,7 +1650,7 @@ public:
     */
     EXPORT virtual int32_t activateSmartContract(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& THE_SMART_CONTRACT);
+        const std::string& THE_SMART_CONTRACT) const;
     /**
     // If a smart contract is already running on the server, this allows a party
     // to trigger clauses on that smart contract, by name. This is NOT a
@@ -1633,7 +1671,7 @@ public:
                                          const std::string& USER_ID,
                                          const int64_t& TRANSACTION_NUMBER,
                                          const std::string& CLAUSE_NAME,
-                                         const std::string& STR_PARAM);
+                                         const std::string& STR_PARAM) const;
 
     /*
     Msg_HarvestTransactionNumbers
@@ -1699,7 +1737,7 @@ public:
         const std::string& THE_MESSAGE, const std::string& USER_ID,
         const bool& bHarvestingForRetry, const bool& bReplyWasSuccess,
         const bool& bReplyWasFailure, const bool& bTransactionWasSuccess,
-        const bool& bTransactionWasFailure);
+        const bool& bTransactionWasFailure) const;
 
     // Returns OT_BOOL
     // int32_t HarvestClosingNumbers(const std::string & SERVER_ID,
@@ -1721,10 +1759,10 @@ public:
     // MEANT TO BE USED in cases where a private key is also available.
     */
     EXPORT virtual std::string LoadUserPubkey_Encryption(
-        const std::string& USER_ID); // returns nullptr, or a public key.
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
     EXPORT virtual std::string LoadUserPubkey_Signing(
-        const std::string& USER_ID); // returns nullptr, or a public key.
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
     /** -----------------------------------------------------------------
     // LOAD PUBLIC KEY -- from local storage
@@ -1733,11 +1771,11 @@ public:
     //
     // MEANT TO BE USED in cases where a private key is NOT available.
     */
-    EXPORT virtual std::string LoadPubkey_Encryption(
-        const std::string& USER_ID); // returns nullptr, or a public key.
+    EXPORT virtual std::string LoadPubkey_Encryption(const std::string& USER_ID)
+        const; // returns nullptr, or a public key.
 
-    EXPORT virtual std::string LoadPubkey_Signing(
-        const std::string& USER_ID); // returns nullptr, or a public key.
+    EXPORT virtual std::string LoadPubkey_Signing(const std::string& USER_ID)
+        const; // returns nullptr, or a public key.
 
     /** ------------------------------------------------------------------------
     //
@@ -1746,8 +1784,8 @@ public:
     //
     // Loads the user's private key, verifies, then returns OT_TRUE or OT_FALSE.
     */
-    EXPORT virtual bool VerifyUserPrivateKey(
-        const std::string& USER_ID); // returns OT_BOOL
+    EXPORT virtual bool VerifyUserPrivateKey(const std::string& USER_ID)
+        const; // returns OT_BOOL
 
     /** --------------------------------------------------------------
     // LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
@@ -1759,24 +1797,24 @@ public:
     */
     EXPORT virtual std::string LoadPurse(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
-        const std::string& USER_ID); // returns nullptr, or a purse.
+        const std::string& USER_ID) const; // returns nullptr, or a purse.
 
-    EXPORT virtual std::string LoadMint(
-        const std::string& SERVER_ID,
-        const std::string& ASSET_TYPE_ID); // returns nullptr, or a mint
+    EXPORT virtual std::string LoadMint(const std::string& SERVER_ID,
+                                        const std::string& ASSET_TYPE_ID)
+        const; // returns nullptr, or a mint
 
     EXPORT virtual std::string LoadAssetContract(
-        const std::string& ASSET_TYPE_ID); // returns nullptr, or an asset
-                                           // contract.
+        const std::string& ASSET_TYPE_ID) const; // returns nullptr, or an asset
+                                                 // contract.
 
-    EXPORT virtual std::string LoadServerContract(
-        const std::string& SERVER_ID); // returns nullptr, or a server contract.
+    EXPORT virtual std::string LoadServerContract(const std::string& SERVER_ID)
+        const; // returns nullptr, or a server contract.
 
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
     //
-    EXPORT virtual bool Mint_IsStillGood(const std::string& SERVER_ID,
-                                         const std::string& ASSET_TYPE_ID);
+    EXPORT virtual bool Mint_IsStillGood(
+        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID) const;
 
     /** --------------------------------------------------------------
     // IS BASKET CURRENCY ?
@@ -1784,9 +1822,9 @@ public:
     // Tells you whether or not a given asset type is actually a basket
     currency.
     */
-    EXPORT virtual bool IsBasketCurrency(
-        const std::string& ASSET_TYPE_ID); // returns OT_BOOL (OT_TRUE or
-                                           // OT_FALSE aka 1 or 0.)
+    EXPORT virtual bool IsBasketCurrency(const std::string& ASSET_TYPE_ID)
+        const; // returns OT_BOOL (OT_TRUE or
+               // OT_FALSE aka 1 or 0.)
 
     /** --------------------------------------------------------------------
     // Get Basket Count (of backing asset types.)
@@ -1795,7 +1833,7 @@ public:
     // (Or zero.)
     */
     EXPORT virtual int32_t Basket_GetMemberCount(
-        const std::string& BASKET_ASSET_TYPE_ID);
+        const std::string& BASKET_ASSET_TYPE_ID) const;
 
     /** --------------------------------------------------------------------
     // Get Asset Type of a basket's member currency, by index.
@@ -1803,7 +1841,7 @@ public:
     // (Returns a string containing Asset Type ID, or nullptr).
     */
     EXPORT virtual std::string Basket_GetMemberType(
-        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex);
+        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex) const;
 
     /** ----------------------------------------------------
     // GET BASKET MINIMUM TRANSFER AMOUNT
@@ -1817,7 +1855,7 @@ public:
     // would return a string containing "10", in that example.
     */
     EXPORT virtual int64_t Basket_GetMinimumTransferAmount(
-        const std::string& BASKET_ASSET_TYPE_ID);
+        const std::string& BASKET_ASSET_TYPE_ID) const;
 
     /** ----------------------------------------------------
     // GET BASKET MEMBER's MINIMUM TRANSFER AMOUNT
@@ -1833,7 +1871,7 @@ public:
     // currency at index 2 is 8.
     */
     EXPORT virtual int64_t Basket_GetMemberMinimumTransferAmount(
-        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex);
+        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex) const;
 
     /** --------------------------------------------------------------
     // LOAD ACCOUNT / INBOX / OUTBOX -- (from local storage)
@@ -1844,53 +1882,55 @@ public:
     */
     EXPORT virtual std::string LoadAssetAccount(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns nullptr, or an account.
+        const std::string& ACCOUNT_ID) const; // Returns nullptr, or an account.
 
     EXPORT virtual std::string LoadInbox(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
+        const std::string& ACCOUNT_ID) const; // Returns nullptr, or an inbox.
 
     EXPORT virtual std::string LoadOutbox(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
+        const std::string& ACCOUNT_ID) const; // returns nullptr, or an outbox.
 
     //! These versions don't verify the ledger, they just load it up.
     //
     EXPORT virtual std::string LoadInboxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
+        const std::string& ACCOUNT_ID) const; // Returns nullptr, or an inbox.
 
     EXPORT virtual std::string LoadOutboxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
+        const std::string& ACCOUNT_ID) const; // returns nullptr, or an outbox.
 
     // from local storage.
-    EXPORT virtual std::string LoadPaymentInbox(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or a payment inbox.
+    EXPORT virtual std::string LoadPaymentInbox(const std::string& SERVER_ID,
+                                                const std::string& USER_ID)
+        const; // Returns nullptr, or a payment inbox.
 
     EXPORT virtual std::string LoadPaymentInboxNoVerify(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or a payment inbox.
+        const std::string& SERVER_ID, const std::string& USER_ID)
+        const; // Returns nullptr, or a payment inbox.
 
     //! NOTE: Sometimes the user ID is also passed in the "account ID" field,
     // depending
     //! on what kind of record box it is.
     // from local storage.
-    EXPORT virtual std::string LoadRecordBox(
-        const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
+    EXPORT virtual std::string LoadRecordBox(const std::string& SERVER_ID,
+                                             const std::string& USER_ID,
+                                             const std::string& ACCOUNT_ID)
+        const; // Returns nullptr, or a RecordBox.
 
     EXPORT virtual std::string LoadRecordBoxNoVerify(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
+        const std::string& ACCOUNT_ID) const; // Returns nullptr, or a
+                                              // RecordBox.
 
     EXPORT virtual bool ClearRecord(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, // USER_ID can be passed here as well.
         const int32_t& nIndex,
         const bool& bClearAll // if true, nIndex is ignored.
-        );
+        ) const;
 
     // The expired box is only for incoming/outgoing payments that expired
     // before proecssing.
@@ -1913,26 +1953,26 @@ public:
     // know
     // it wasn't expired at the time that it was recorded.)
     //
-    EXPORT virtual std::string LoadExpiredBox(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or an ExpiredBox
+    EXPORT virtual std::string LoadExpiredBox(const std::string& SERVER_ID,
+                                              const std::string& USER_ID)
+        const; // Returns nullptr, or an ExpiredBox
 
     EXPORT virtual std::string LoadExpiredBoxNoVerify(
         const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or a ExpiredBox.
+        const std::string& USER_ID) const; // Returns nullptr, or a ExpiredBox.
 
     EXPORT virtual bool ClearExpired(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const int32_t& nIndex,
         const bool& bClearAll // if true, nIndex is ignored.
-        );
+        ) const;
 
     //! Find out how many pending transactions (and receipts) are in this inbox.
     EXPORT virtual int32_t Ledger_GetCount(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID,
-        const std::string& THE_LEDGER); // Returns number of transactions
-                                        // within.
+        const std::string& THE_LEDGER) const; // Returns number of transactions
+                                              // within.
 
     //! Creates a new 'response' ledger, set up with the right Server ID, etc,
     // so you can
@@ -1943,7 +1983,8 @@ public:
     //
     EXPORT virtual std::string Ledger_CreateResponse(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& ORIGINAL_LEDGER);
+        const std::string& ACCOUNT_ID,
+        const std::string& ORIGINAL_LEDGER) const;
 
     //! Lookup a transaction or its ID (from within a ledger) based on index or
     //! transaction number.
@@ -1951,24 +1992,24 @@ public:
     EXPORT virtual std::string Ledger_GetTransactionByIndex(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-        const int32_t& nIndex); // returns transaction by index.
+        const int32_t& nIndex) const; // returns transaction by index.
 
     EXPORT virtual std::string Ledger_GetTransactionByID(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-        const int64_t& TRANSACTION_NUMBER); // returns transaction by ID.
+        const int64_t& TRANSACTION_NUMBER) const; // returns transaction by ID.
 
     EXPORT virtual int64_t Ledger_GetTransactionIDByIndex(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-        const int32_t& nIndex); // returns transaction number by index.
+        const int32_t& nIndex) const; // returns transaction number by index.
 
     //! Add a transaction to a ledger.
     //
     EXPORT virtual std::string Ledger_AddTransaction(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-        const std::string& THE_TRANSACTION);
+        const std::string& THE_TRANSACTION) const;
 
     //! Create a 'response' transaction, that will be used to indicate my
     //! acceptance or rejection of another transaction. Usually an entire
@@ -1980,7 +2021,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& RESPONSE_LEDGER,      // To be sent to the server...
         const std::string& ORIGINAL_TRANSACTION, // Responding to...?
-        const bool& BOOL_DO_I_ACCEPT);
+        const bool& BOOL_DO_I_ACCEPT) const;
 
     /**
     -------------------------------------------------------------------------
@@ -2002,8 +2043,7 @@ public:
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER // 'Response' ledger be sent to the
-                                      // server...
-        );
+        ) const;                      // server...
 
     /**
     -------------------------------------------------------------------------
@@ -2049,26 +2089,29 @@ public:
     EXPORT virtual std::string Ledger_GetInstrument(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
-        const int32_t& nIndex); // returns financial instrument by index of the
-                                // transaction it's in.
+        const int32_t& nIndex) const; // returns financial instrument by index
+                                      // of the
+                                      // transaction it's in.
 
     // NOTE: If an instrument is already expired when this function is called,
     // it will be moved
     // to the expired box instead of the record box.
     EXPORT virtual bool RecordPayment(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const bool& bIsInbox,   // true == payments inbox. false == payments
-                                // outbox.
-        const int32_t& nIndex,  // removes payment instrument (from payments in
-                                // or out box) and moves to record box.
-        const bool& bSaveCopy); // If false, a copy will NOT be saved in the
-                                // record box.
+        const bool& bIsInbox,  // true == payments inbox. false == payments
+                               // outbox.
+        const int32_t& nIndex, // removes payment instrument (from payments in
+                               // or out box) and moves to record box.
+        const bool& bSaveCopy) const; // If false, a copy will NOT be saved in
+                                      // the
+                                      // record box.
 
     //! Get Transaction Type (internally uses GetTransactionTypeString().)
     //
     EXPORT virtual std::string Transaction_GetType(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     //! Transactions do not have request numbers. However, if you have a
     // replyNotice
@@ -2083,7 +2126,7 @@ public:
     //
     EXPORT virtual int64_t ReplyNotice_GetRequestNum(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& THE_TRANSACTION);
+        const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------------------------
     // Retrieve Voucher from Transaction
@@ -2117,7 +2160,8 @@ public:
     */
     EXPORT virtual std::string Transaction_GetVoucher(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------
     //
@@ -2131,11 +2175,13 @@ public:
     */
     EXPORT virtual int32_t Transaction_GetSuccess(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual int32_t Transaction_IsCanceled(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /** Gets the balance agreement success (from a transaction.)
     // returns OT_BOOL.
@@ -2145,7 +2191,8 @@ public:
     */
     EXPORT virtual int32_t Transaction_GetBalanceAgreementSuccess(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------
     //
@@ -2154,11 +2201,13 @@ public:
     */
     EXPORT virtual time64_t Transaction_GetDateSigned(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual int64_t Transaction_GetAmount(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------
     //
@@ -2172,23 +2221,28 @@ public:
     */
     EXPORT virtual std::string Pending_GetNote(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual std::string Transaction_GetSenderUserID(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual std::string Transaction_GetSenderAcctID(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual std::string Transaction_GetRecipientUserID(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     EXPORT virtual std::string Transaction_GetRecipientAcctID(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /** The pending notice in the inbox has a transaction number that
     // was issued to the server (so it could put the notice in your inbox.)
@@ -2199,7 +2253,8 @@ public:
     */
     EXPORT virtual int64_t Transaction_GetDisplayReferenceToNum(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_TRANSACTION) const;
 
     /**
     // PURSES (containing cash tokens.)
@@ -2246,40 +2301,40 @@ public:
     EXPORT virtual bool SavePurse(const std::string& SERVER_ID,
                                   const std::string& ASSET_TYPE_ID,
                                   const std::string& USER_ID,
-                                  const std::string& THE_PURSE);
+                                  const std::string& THE_PURSE) const;
 
     //
     EXPORT virtual std::string CreatePurse(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
         const std::string& OWNER_ID,
-        const std::string& SIGNER_ID); // returns nullptr, or a purse.
+        const std::string& SIGNER_ID) const; // returns nullptr, or a purse.
 
     // Creates a password-protected purse, instead of nym-protected.
     //
     EXPORT virtual std::string CreatePurse_Passphrase(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
-        const std::string& SIGNER_ID);
+        const std::string& SIGNER_ID) const;
 
     //! Get Purse Total Value (internally uses GetTotalValue().)
     //
     //! Returns the purported sum of all the tokens within.
     //
-    EXPORT virtual int64_t Purse_GetTotalValue(const std::string& SERVER_ID,
-                                               const std::string& ASSET_TYPE_ID,
-                                               const std::string& THE_PURSE);
+    EXPORT virtual int64_t Purse_GetTotalValue(
+        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& THE_PURSE) const;
 
     //! returns a count of the number of cash tokens inside this purse.
     //
     EXPORT virtual int32_t Purse_Count(const std::string& SERVER_ID,
                                        const std::string& ASSET_TYPE_ID,
-                                       const std::string& THE_PURSE);
+                                       const std::string& THE_PURSE) const;
 
     //! Some purses are encrypted to a specific Nym.
     //! Whereas other purses are encrypted to a passphrase.
     //! This function returns bool and lets you know, either way.
     //
     EXPORT virtual bool Purse_HasPassword(const std::string& SERVER_ID,
-                                          const std::string& THE_PURSE);
+                                          const std::string& THE_PURSE) const;
 
     //! Returns the TOKEN on top of the stock (LEAVING it on top of the stack,
     //! but giving you a string copy of it.)
@@ -2289,7 +2344,7 @@ public:
     EXPORT virtual std::string Purse_Peek(const std::string& SERVER_ID,
                                           const std::string& ASSET_TYPE_ID,
                                           const std::string& OWNER_ID,
-                                          const std::string& THE_PURSE);
+                                          const std::string& THE_PURSE) const;
 
     //! Removes the token from the top of the stock and DESTROYS IT,
     //! and RETURNS THE UPDATED PURSE (with the token now missing from it.)
@@ -2299,7 +2354,7 @@ public:
     EXPORT virtual std::string Purse_Pop(const std::string& SERVER_ID,
                                          const std::string& ASSET_TYPE_ID,
                                          const std::string& OWNER_OR_SIGNER_ID,
-                                         const std::string& THE_PURSE);
+                                         const std::string& THE_PURSE) const;
 
     //! Pushes a token onto the stack (of the purse.)
     //! Returns the updated purse (now including the token.)
@@ -2325,7 +2380,7 @@ public:
                                      // to encrypt the token being pushed into
                                      // the purse. (Private key NOT necessary
                                      // for owner, in this case.)
-        const std::string& THE_PURSE, const std::string& THE_TOKEN);
+        const std::string& THE_PURSE, const std::string& THE_TOKEN) const;
 
     /**
     Makes an exact copy of a purse, except with no tokens inside. (Value of
@@ -2379,7 +2434,7 @@ public:
     EXPORT virtual std::string Purse_Empty(const std::string& SERVER_ID,
                                            const std::string& ASSET_TYPE_ID,
                                            const std::string& SIGNER_ID,
-                                           const std::string& THE_PURSE);
+                                           const std::string& THE_PURSE) const;
 
     // Returns OT_BOOL
     //! Should handle duplicates. Should load, merge, and save.
@@ -2390,7 +2445,7 @@ public:
         const std::string& THE_PURSE // It should either have your User ID on
                                      // it, or the key should be inside so you
                                      // can import.
-        );
+        ) const;
 
     /** Messages the server. If failure, make sure you didn't lose that purse!!
     // If success, the new tokens will be returned shortly and saved into the
@@ -2413,7 +2468,7 @@ public:
     EXPORT virtual int32_t exchangePurse(const std::string& SERVER_ID,
                                          const std::string& ASSET_TYPE_ID,
                                          const std::string& USER_ID,
-                                         const std::string& THE_PURSE);
+                                         const std::string& THE_PURSE) const;
 
     /** Tokens are stored in an encrypted state for security reasons.
     // This function is used for exporting those tokens to another Nym,
@@ -2428,7 +2483,7 @@ public:
         const std::string& NEW_OWNER  // Pass a NymID here as a string, or a
                                       // purse. (IF symmetrically encrypted, the
                                       // relevant key is in the purse.)
-        );
+        ) const;
 
     /** Returns an encrypted form of the actual blinded token ID.
     // (There's no need to decrypt the ID until redeeming the token, when
@@ -2438,32 +2493,34 @@ public:
     */
     EXPORT virtual std::string Token_GetID(const std::string& SERVER_ID,
                                            const std::string& ASSET_TYPE_ID,
-                                           const std::string& THE_TOKEN);
+                                           const std::string& THE_TOKEN) const;
 
     //! The actual cash value of the token. Returns a int64_t.
     //
     EXPORT virtual int64_t Token_GetDenomination(
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
-        const std::string& THE_TOKEN);
+        const std::string& THE_TOKEN) const;
 
     EXPORT virtual int32_t Token_GetSeries(const std::string& SERVER_ID,
                                            const std::string& ASSET_TYPE_ID,
-                                           const std::string& THE_TOKEN);
+                                           const std::string& THE_TOKEN) const;
 
     //! the date is seconds since Jan 1970.
     //
-    EXPORT virtual time64_t Token_GetValidFrom(const std::string& SERVER_ID,
-                                               const std::string& ASSET_TYPE_ID,
-                                               const std::string& THE_TOKEN);
+    EXPORT virtual time64_t Token_GetValidFrom(
+        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& THE_TOKEN) const;
 
     // the date is seconds since Jan 1970.
     //
-    EXPORT virtual time64_t Token_GetValidTo(const std::string& SERVER_ID,
-                                             const std::string& ASSET_TYPE_ID,
-                                             const std::string& THE_TOKEN);
+    EXPORT virtual time64_t Token_GetValidTo(
+        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& THE_TOKEN) const;
 
-    EXPORT virtual std::string Token_GetAssetID(const std::string& THE_TOKEN);
-    EXPORT virtual std::string Token_GetServerID(const std::string& THE_TOKEN);
+    EXPORT virtual std::string Token_GetAssetID(const std::string& THE_TOKEN)
+        const;
+    EXPORT virtual std::string Token_GetServerID(const std::string& THE_TOKEN)
+        const;
 
     /**
     //
@@ -2480,34 +2537,34 @@ public:
     // to handle any of those types.
     //
     */
-    EXPORT virtual int64_t Instrmnt_GetAmount(
-        const std::string& THE_INSTRUMENT);
+    EXPORT virtual int64_t Instrmnt_GetAmount(const std::string& THE_INSTRUMENT)
+        const;
     EXPORT virtual int64_t Instrmnt_GetTransNum(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual time64_t Instrmnt_GetValidFrom(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual time64_t Instrmnt_GetValidTo(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetMemo(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetType(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetServerID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetAssetID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetSenderUserID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetSenderAcctID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetRemitterUserID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetRemitterAcctID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetRecipientUserID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
     EXPORT virtual std::string Instrmnt_GetRecipientAcctID(
-        const std::string& THE_INSTRUMENT);
+        const std::string& THE_INSTRUMENT) const;
 
     // *** MESSAGES BEING SENT TO THE SERVER -- BELOW!!! ***
 
@@ -2551,7 +2608,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT virtual int32_t checkServerID(const std::string& SERVER_ID,
-                                         const std::string& USER_ID);
+                                         const std::string& USER_ID) const;
 
     /**
     CREATE USER's ACCOUNT (On a specific server.)
@@ -2600,7 +2657,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT virtual int32_t createUserAccount(const std::string& SERVER_ID,
-                                             const std::string& USER_ID);
+                                             const std::string& USER_ID) const;
 
     /** This allows you to delete a Nym from any server it is
     // registered at. NOTE: This will FAIL if the Nym has any
@@ -2619,7 +2676,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT virtual int32_t deleteUserAccount(const std::string& SERVER_ID,
-                                             const std::string& USER_ID);
+                                             const std::string& USER_ID) const;
 
     /** This allows you to delete an asset account from a server,
     // provided that the balance is 0 and the inbox and outbox are
@@ -2635,9 +2692,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT virtual int32_t deleteAssetAccount(const std::string& SERVER_ID,
-                                              const std::string& USER_ID,
-                                              const std::string& ACCOUNT_ID);
+    EXPORT virtual int32_t deleteAssetAccount(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ACCOUNT_ID) const;
 
     /**
     USAGE CREDITS --- (Based on a UserID, retrieve or adjust the Usage Credits
@@ -2692,7 +2749,7 @@ public:
     EXPORT virtual int32_t usageCredits(const std::string& SERVER_ID,
                                         const std::string& USER_ID,
                                         const std::string& USER_ID_CHECK,
-                                        const int64_t& ADJUSTMENT);
+                                        const int64_t& ADJUSTMENT) const;
 
     /** IF THE_MESSAGE is of command type @usageCredits, and IF it was a
     SUCCESS,
@@ -2702,7 +2759,7 @@ public:
     // the balance AFTER the adjustment. (The current "Usage Credits" balance.)
     */
     EXPORT virtual int64_t Message_GetUsageCredits(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /**
     CHECK USER --- (Grab his public key based on his User ID.)
@@ -2733,7 +2790,7 @@ public:
     //
     EXPORT virtual int32_t checkUser(const std::string& SERVER_ID,
                                      const std::string& USER_ID,
-                                     const std::string& USER_ID_CHECK);
+                                     const std::string& USER_ID_CHECK) const;
 
     /**
     SEND USER MESSAGE --- (Send a message to another user, encrypted to his
@@ -2760,11 +2817,11 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t sendUserMessage(const std::string& SERVER_ID,
-                                           const std::string& USER_ID,
-                                           const std::string& USER_ID_RECIPIENT,
-                                           const std::string& RECIPIENT_PUBKEY,
-                                           const std::string& THE_MESSAGE);
+    EXPORT virtual int32_t sendUserMessage(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& USER_ID_RECIPIENT,
+        const std::string& RECIPIENT_PUBKEY,
+        const std::string& THE_MESSAGE) const;
     /**
     sendUserMessage does this:
     -- Puts user message as encrypted Payload on an OTMessage (1)...
@@ -2815,7 +2872,7 @@ public:
         const std::string& INSTRUMENT_FOR_SENDER // Can be empty. Optional. Only
                                                  // used in the case of cash
                                                  // purses.
-        );
+        ) const;
 
     /**
     GET REQUEST NUMBER
@@ -2849,7 +2906,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT virtual int32_t getRequest(const std::string& SERVER_ID,
-                                      const std::string& USER_ID);
+                                      const std::string& USER_ID) const;
 
     /**
     GET TRANSACTION NUMBER
@@ -2877,8 +2934,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t getTransactionNumber(const std::string& SERVER_ID,
-                                                const std::string& USER_ID);
+    EXPORT virtual int32_t getTransactionNumber(
+        const std::string& SERVER_ID, const std::string& USER_ID) const;
 
     /** --------------------------------------------------------------------
     // ISSUE ASSET TYPE -- Ask the server to issue a new asset type.
@@ -2897,9 +2954,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT virtual int32_t issueAssetType(const std::string& SERVER_ID,
-                                          const std::string& USER_ID,
-                                          const std::string& THE_CONTRACT);
+    EXPORT virtual int32_t issueAssetType(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& THE_CONTRACT) const;
 
     /** --------------------------------------------------------------------
     // GET CONTRACT -- Get server's copy of any asset contract, by asset type
@@ -2917,7 +2974,7 @@ public:
     */
     EXPORT virtual int32_t getContract(const std::string& SERVER_ID,
                                        const std::string& USER_ID,
-                                       const std::string& ASSET_ID);
+                                       const std::string& ASSET_ID) const;
 
     /**
     --------------------------------------------------------------------------
@@ -2937,7 +2994,7 @@ public:
     */
     EXPORT virtual int32_t getMint(const std::string& SERVER_ID,
                                    const std::string& USER_ID,
-                                   const std::string& ASSET_ID);
+                                   const std::string& ASSET_ID) const;
 
     /**
     ---------------------------------------------------------------------------
@@ -2954,9 +3011,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT virtual int32_t createAssetAccount(const std::string& SERVER_ID,
-                                              const std::string& USER_ID,
-                                              const std::string& ASSET_ID);
+    EXPORT virtual int32_t createAssetAccount(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ASSET_ID) const;
 
     /**
     --------------------------------------------------------------------------
@@ -2978,11 +3035,11 @@ public:
     // NOTE: Deprecated. Replaced by getAccountFiles.
     EXPORT virtual int32_t getAccount(const std::string& SERVER_ID,
                                       const std::string& USER_ID,
-                                      const std::string& ACCT_ID);
+                                      const std::string& ACCT_ID) const;
 
     EXPORT virtual int32_t getAccountFiles(const std::string& SERVER_ID,
                                            const std::string& USER_ID,
-                                           const std::string& ACCT_ID);
+                                           const std::string& ACCT_ID) const;
 
     /** ----------------------------------------------------
     // GENERATE BASKET CREATION REQUEST
@@ -2996,7 +3053,7 @@ public:
     EXPORT virtual std::string GenerateBasketCreation(
         const std::string& USER_ID,
         const int64_t& MINIMUM_TRANSFER // If basket is X=2,3,4, then this is X.
-        );
+        ) const;
 
     /** ----------------------------------------------------
     // ADD BASKET CREATION ITEM
@@ -3015,7 +3072,7 @@ public:
                                           // basket.
         const int64_t& MINIMUM_TRANSFER // If basket is 5=X,X,X then this is an
                                         // X.
-        );
+        ) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3048,7 +3105,7 @@ public:
     */
     EXPORT virtual int32_t issueBasket(const std::string& SERVER_ID,
                                        const std::string& USER_ID,
-                                       const std::string& THE_BASKET);
+                                       const std::string& THE_BASKET) const;
 
     /** ----------------------------------------------------
     // GENERATE BASKET EXCHANGE REQUEST
@@ -3063,7 +3120,7 @@ public:
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& BASKET_ASSET_TYPE_ID,
         const std::string& BASKET_ASSET_ACCT_ID,
-        const int32_t& TRANSFER_MULTIPLE);
+        const int32_t& TRANSFER_MULTIPLE) const;
 
     //! 1    2    3
     //! 5=2,3,4 OR 10=4,6,8 OR 15=6,9,12 Etc. (The MULTIPLE.)
@@ -3081,7 +3138,7 @@ public:
     EXPORT virtual std::string AddBasketExchangeItem(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& THE_BASKET, const std::string& ASSET_TYPE_ID,
-        const std::string& ASSET_ACCT_ID);
+        const std::string& ASSET_ACCT_ID) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3124,7 +3181,7 @@ public:
         const std::string& BASKET_ASSET_ID, const std::string& THE_BASKET,
         const bool& BOOL_EXCHANGE_IN_OR_OUT // exchanging in == OT_TRUE, out ==
                                             // OT_FALSE.
-        );
+        ) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3161,7 +3218,7 @@ public:
     EXPORT virtual int32_t notarizeWithdrawal(const std::string& SERVER_ID,
                                               const std::string& USER_ID,
                                               const std::string& ACCT_ID,
-                                              const int64_t& AMOUNT);
+                                              const int64_t& AMOUNT) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3184,7 +3241,7 @@ public:
     EXPORT virtual int32_t notarizeDeposit(const std::string& SERVER_ID,
                                            const std::string& USER_ID,
                                            const std::string& ACCT_ID,
-                                           const std::string& THE_PURSE);
+                                           const std::string& THE_PURSE) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3214,7 +3271,7 @@ public:
                                             const std::string& ACCT_FROM,
                                             const std::string& ACCT_TO,
                                             const int64_t& AMOUNT,
-                                            const std::string& NOTE);
+                                            const std::string& NOTE) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3296,7 +3353,7 @@ public:
     // NOTE: Deprecated. Replaced by getAccountFiles.
     EXPORT virtual int32_t getInbox(const std::string& SERVER_ID,
                                     const std::string& USER_ID,
-                                    const std::string& ACCT_ID);
+                                    const std::string& ACCT_ID) const;
 
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -3311,7 +3368,7 @@ public:
     // NOTE: Deprecated. Replaced by getAccountFiles.
     EXPORT virtual int32_t getOutbox(const std::string& SERVER_ID,
                                      const std::string& USER_ID,
-                                     const std::string& ACCT_ID);
+                                     const std::string& ACCT_ID) const;
 
     // from server (pop message buf for the response)
     // Returns int32_t:
@@ -3325,16 +3382,16 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT virtual int32_t getNymbox(const std::string& SERVER_ID,
-                                     const std::string& USER_ID);
+                                     const std::string& USER_ID) const;
 
     // from local storage.
-    EXPORT virtual std::string LoadNymbox(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or a Nymbox.
+    EXPORT virtual std::string LoadNymbox(const std::string& SERVER_ID,
+                                          const std::string& USER_ID)
+        const; // Returns nullptr, or a Nymbox.
 
-    EXPORT virtual std::string LoadNymboxNoVerify(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Returns nullptr, or a Nymbox.
+    EXPORT virtual std::string LoadNymboxNoVerify(const std::string& SERVER_ID,
+                                                  const std::string& USER_ID)
+        const; // Returns nullptr, or a Nymbox.
 
     /** Some server replies (to your messages) are so important that a notice is
     dropped
@@ -3354,8 +3411,9 @@ public:
     */
     EXPORT virtual std::string Nymbox_GetReplyNotice(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const int64_t& REQUEST_NUMBER); // returns replyNotice transaction by
-                                        // requestNumber.
+        const int64_t& REQUEST_NUMBER) const; // returns replyNotice transaction
+                                              // by
+                                              // requestNumber.
 
     /** If the client-side has ALREADY seen the server's reply to a specific
     // request number, he stores that number in a list which can be queried
@@ -3392,7 +3450,7 @@ public:
     */
     EXPORT virtual bool HaveAlreadySeenReply(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const int64_t& REQUEST_NUMBER); // returns OT_BOOL
+        const int64_t& REQUEST_NUMBER) const; // returns OT_BOOL
 
     /** The Nymbox/Inbox/Outbox only contain abbreviated receipts, with a hash
     for zero-knowledge
@@ -3424,9 +3482,8 @@ public:
         const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
                                        // pass USER_ID in this field also.
         const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& TRANSACTION_NUMBER);
+        const int64_t& TRANSACTION_NUMBER) const;
 
-    //
     EXPORT virtual bool DoesBoxReceiptExist(
         const std::string& SERVER_ID,
         const std::string& USER_ID,    // Unused here for now, but still
@@ -3434,7 +3491,7 @@ public:
         const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
                                        // pass USER_ID in this field also.
         const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
-        const int64_t& TRANSACTION_NUMBER);
+        const int64_t& TRANSACTION_NUMBER) const;
 
     /**
     PROCESS INBOX
@@ -3467,7 +3524,7 @@ public:
     EXPORT virtual int32_t processInbox(const std::string& SERVER_ID,
                                         const std::string& USER_ID,
                                         const std::string& ACCT_ID,
-                                        const std::string& ACCT_LEDGER);
+                                        const std::string& ACCT_LEDGER) const;
 
     /** I use this automatically to save the API developers the hassle (for now)
     // added here for completeness.
@@ -3484,7 +3541,7 @@ public:
     // 1 or more: Count of items in Nymbox before processing.
     */
     EXPORT virtual int32_t processNymbox(const std::string& SERVER_ID,
-                                         const std::string& USER_ID);
+                                         const std::string& USER_ID) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3512,7 +3569,7 @@ public:
                                            const std::string& ACCT_ID,
                                            const std::string& RECIPIENT_USER_ID,
                                            const std::string& CHEQUE_MEMO,
-                                           const int64_t& AMOUNT);
+                                           const int64_t& AMOUNT) const;
 
     //! PAY DIVIDEND -- to shareholders
     //
@@ -3531,7 +3588,7 @@ public:
         const int64_t& AMOUNT_PER_SHARE // number of dollars to be paid out PER
                                         // SHARE (multiplied by total number of
                                         // shares issued.)
-        );
+        ) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3557,7 +3614,7 @@ public:
     EXPORT virtual int32_t depositCheque(const std::string& SERVER_ID,
                                          const std::string& USER_ID,
                                          const std::string& ACCT_ID,
-                                         const std::string& THE_CHEQUE);
+                                         const std::string& THE_CHEQUE) const;
 
     /** --------------------------------------------------
     // DEPOSIT (ACTIVATE) PAYMENT PLAN
@@ -3577,7 +3634,7 @@ public:
 
     EXPORT virtual int32_t depositPaymentPlan(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& THE_PAYMENT_PLAN);
+        const std::string& THE_PAYMENT_PLAN) const;
 
     /** --------------------------------------------------
     // ISSUE MARKET OFFER
@@ -3609,9 +3666,10 @@ public:
                                              // 86400 seconds aka 1 day.
         const std::string& STOP_SIGN, // Must be "" (for market/limit orders) or
                                       // "<" or ">"  (for stop orders.)
-        const int64_t& ACTIVATION_PRICE); // Must be provided if STOP_SIGN is
-                                          // also set. Determines the price
-                                          // threshold for stop orders.
+        const int64_t& ACTIVATION_PRICE) const; // Must be provided if STOP_SIGN
+                                                // is
+    // also set. Determines the price
+    // threshold for stop orders.
 
     /**
 
@@ -3656,7 +3714,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT virtual int32_t getMarketList(const std::string& SERVER_ID,
-                                         const std::string& USER_ID);
+                                         const std::string& USER_ID) const;
 
     //! Gets all offers for a specific market and their details (up until
     // maximum depth)
@@ -3673,7 +3731,7 @@ public:
     EXPORT virtual int32_t getMarketOffers(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& MARKET_ID, const int64_t& MAX_DEPTH // Market Depth
-        );
+        ) const;
 
     //! Gets all recent trades (up until maximum depth)
     // Returns int32_t:
@@ -3686,9 +3744,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t getMarketRecentTrades(const std::string& SERVER_ID,
-                                                 const std::string& USER_ID,
-                                                 const std::string& MARKET_ID);
+    EXPORT virtual int32_t getMarketRecentTrades(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& MARKET_ID) const;
 
     //! This "Market Offer" data is a lot more detailed than the
     // Market_GetOffers() call, which seems similar otherwise.
@@ -3702,9 +3760,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t getNym_MarketOffers(
-        const std::string& SERVER_ID,
-        const std::string& USER_ID); // Offers this Nym has out on market.
+    EXPORT virtual int32_t getNym_MarketOffers(const std::string& SERVER_ID,
+                                               const std::string& USER_ID)
+        const; // Offers this Nym has out on market.
     // These may just be the Cron Receipts...
 
     // Returns int32_t:
@@ -3717,10 +3775,10 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t killMarketOffer(const std::string& SERVER_ID,
-                                           const std::string& USER_ID,
-                                           const std::string& ASSET_ACCT_ID,
-                                           const int64_t& TRANSACTION_NUMBER);
+    EXPORT virtual int32_t killMarketOffer(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ASSET_ACCT_ID,
+        const int64_t& TRANSACTION_NUMBER) const;
 
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -3732,10 +3790,10 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT virtual int32_t killPaymentPlan(const std::string& SERVER_ID,
-                                           const std::string& USER_ID,
-                                           const std::string& FROM_ACCT_ID,
-                                           const int64_t& TRANSACTION_NUMBER);
+    EXPORT virtual int32_t killPaymentPlan(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& FROM_ACCT_ID,
+        const int64_t& TRANSACTION_NUMBER) const;
 
     /** -----------------------------------------------------------
     // POP MESSAGE BUFFER
@@ -3764,21 +3822,21 @@ public:
     // Therefore, we do NOT want to discard THOSE replies, but put them back if
     // necessary -- only discarding the ones where the IDs match.
     */
-    EXPORT virtual std::string PopMessageBuffer(const int64_t& REQUEST_NUMBER,
-                                                const std::string& SERVER_ID,
-                                                const std::string& USER_ID);
+    EXPORT virtual std::string PopMessageBuffer(
+        const int64_t& REQUEST_NUMBER, const std::string& SERVER_ID,
+        const std::string& USER_ID) const;
 
-    EXPORT virtual void FlushMessageBuffer();
+    EXPORT virtual void FlushMessageBuffer() const;
 
     // Outgoing:
 
     EXPORT virtual std::string GetSentMessage(const int64_t& REQUEST_NUMBER,
                                               const std::string& SERVER_ID,
-                                              const std::string& USER_ID);
+                                              const std::string& USER_ID) const;
 
     EXPORT virtual bool RemoveSentMessage(const int64_t& REQUEST_NUMBER,
                                           const std::string& SERVER_ID,
-                                          const std::string& USER_ID);
+                                          const std::string& USER_ID) const;
 
     // Note: Might remove this from API. Basically, the sent messages queue must
     // store
@@ -3841,7 +3899,7 @@ public:
         const bool& bHarvestingForRetry, // bHarvestingForRetry is actually
                                          // OT_BOOL
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& THE_NYMBOX);
+        const std::string& THE_NYMBOX) const;
 
     /** SLEEP
 
@@ -3849,7 +3907,7 @@ public:
     function.
 
     */
-    EXPORT virtual void Sleep(const int64_t& MILLISECONDS);
+    EXPORT virtual void Sleep(const int64_t& MILLISECONDS) const;
 
     /* For emergency/testing use only. This call forces you to trust the server.
     You should never need to call this for any normal use, and hopefully
@@ -3866,9 +3924,9 @@ public:
     // here, so that it can read theMessageNym (to sync the transaction
     // numbers.)
     //
-    EXPORT virtual bool ResyncNymWithServer(const std::string& SERVER_ID,
-                                            const std::string& USER_ID,
-                                            const std::string& THE_MESSAGE);
+    EXPORT virtual bool ResyncNymWithServer(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE COMMAND TYPE
@@ -3879,7 +3937,7 @@ public:
     // and if you send "getMint" the reply is "@getMint", and so on.
     */
     EXPORT virtual std::string Message_GetCommand(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE SUCCESS (True or False)
@@ -3887,7 +3945,8 @@ public:
     // Returns OT_TRUE (1) for Success and OT_FALSE (0) for Failure.
     // Returns -1 for Error condition.
     */
-    EXPORT virtual int32_t Message_GetSuccess(const std::string& THE_MESSAGE);
+    EXPORT virtual int32_t Message_GetSuccess(const std::string& THE_MESSAGE)
+        const;
 
     /** -----------------------------------------------------------
     // QUERY ASSET TYPES (server message)
@@ -3905,9 +3964,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT virtual int32_t queryAssetTypes(const std::string& SERVER_ID,
-                                           const std::string& USER_ID,
-                                           const std::string& ENCODED_MAP);
+    EXPORT virtual int32_t queryAssetTypes(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ENCODED_MAP) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE PAYLOAD
@@ -3918,7 +3977,7 @@ public:
     // use the m_ascPayload field to transport it.
     */
     EXPORT virtual std::string Message_GetPayload(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE "DEPTH" (USED FOR MARKET-SPECIFIC MESSAGES.)
@@ -3948,7 +4007,8 @@ public:
     your successful
     // reply.)
     */
-    EXPORT virtual int32_t Message_GetDepth(const std::string& THE_MESSAGE);
+    EXPORT virtual int32_t Message_GetDepth(const std::string& THE_MESSAGE)
+        const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE TRANSACTION SUCCESS (True or False)
@@ -3958,11 +4018,11 @@ public:
     */
     EXPORT virtual int32_t Message_GetTransactionSuccess(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
+        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const;
 
     EXPORT virtual int32_t Message_IsTransactionCanceled(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
+        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET BALANCE AGREEMENT SUCCESS (From a MESSAGE.)
@@ -3972,7 +4032,7 @@ public:
     */
     EXPORT virtual int32_t Message_GetBalanceAgreementSuccess(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
+        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE LEDGER
@@ -3981,8 +4041,8 @@ public:
     // you want to actually iterate through the response ledger for
     // that transaction, this function will retrieve it for you.
     */
-    EXPORT virtual std::string Message_GetLedger(
-        const std::string& THE_MESSAGE);
+    EXPORT virtual std::string Message_GetLedger(const std::string& THE_MESSAGE)
+        const;
 
     /** -----------------------------------------------------------
     // GET NEW ASSET TYPE ID
@@ -3992,7 +4052,7 @@ public:
     // Otherwise how will you ever open accounts in that new type?
     */
     EXPORT virtual std::string Message_GetNewAssetTypeID(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET NEW ISSUER ACCOUNT ID
@@ -4002,7 +4062,7 @@ public:
     // Otherwise how will you ever issue anything with it?
     */
     EXPORT virtual std::string Message_GetNewIssuerAcctID(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET NEW ACCOUNT ID
@@ -4014,7 +4074,7 @@ public:
     // server reply message.
     */
     EXPORT virtual std::string Message_GetNewAcctID(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET NYMBOX HASH
@@ -4025,7 +4085,7 @@ public:
     // for syncronicity purposes.
     */
     EXPORT virtual std::string Message_GetNymboxHash(
-        const std::string& THE_MESSAGE);
+        const std::string& THE_MESSAGE) const;
 };
 
 } // namespace opentxs

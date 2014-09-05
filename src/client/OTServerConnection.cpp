@@ -340,7 +340,7 @@ bool OTServerConnection::SetFocus(OTPseudonym& theNym,
 // can do just that.
 //
 void OTServerConnection::OnServerResponseToGetRequestNumber(
-    int64_t lNewRequestNumber)
+    int64_t lNewRequestNumber) const
 {
     if (m_pNym && m_pServerContract) {
         otOut << "Received new request number from the server: "
@@ -356,7 +356,7 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
     }
 }
 
-bool OTServerConnection::GetServerID(OTIdentifier& theID)
+bool OTServerConnection::GetServerID(OTIdentifier& theID) const
 {
     if (m_pServerContract) {
         m_pServerContract->GetIdentifier(theID);
@@ -525,7 +525,7 @@ bool OTServerConnection::ProcessReply(u_header& theCMD,
 // valid message
 // from the server.  (So something should be done with it.)
 bool OTServerConnection::ProcessType1Cmd(u_header& theCMD,
-                                         OTMessage& theServerReply)
+                                         OTMessage& theServerReply) const
 {
     // At this point, the checksum has already validated.
     // Might as well get the PAYLOAD next.
@@ -701,7 +701,7 @@ bool OTServerConnection::ProcessType1Cmd(u_header& theCMD,
     }
 }
 
-bool OTServerConnection::SignAndSend(OTMessage& theMessage)
+bool OTServerConnection::SignAndSend(OTMessage& theMessage) const
 {
     if (m_pNym && m_pWallet &&
         //        (IsConnected() || IsFocused()) &&
@@ -713,7 +713,7 @@ bool OTServerConnection::SignAndSend(OTMessage& theMessage)
     return false;
 }
 
-void OTServerConnection::ProcessMessageOut(OTMessage& theMessage)
+void OTServerConnection::ProcessMessageOut(OTMessage& theMessage) const
 {
     u_header theCMD;
     OTPayload thePayload;

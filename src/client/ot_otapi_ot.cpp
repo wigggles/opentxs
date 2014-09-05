@@ -672,7 +672,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                           // each asset account, total of 3.
 }
 
-OT_OTAPI_OT int32_t OTAPI_Func::Run()
+OT_OTAPI_OT int32_t OTAPI_Func::Run() const
 {
     // -1 means error, no message was sent.
     //  0 means NO error, yet still no message was sent.
@@ -771,8 +771,9 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run()
     return -1;
 }
 
-OT_OTAPI_OT int32_t OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
-                                                    const string& IN_FUNCTION)
+OT_OTAPI_OT int32_t
+OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
+                                const string& IN_FUNCTION) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
@@ -835,9 +836,9 @@ OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION)
     return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
-                                               const string& IN_FUNCTION,
-                                               const int32_t nTotalRetries)
+OT_OTAPI_OT string
+OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION,
+                            const int32_t nTotalRetries) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
@@ -992,8 +993,8 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     return strResult;
 }
 
-OT_OTAPI_OT string
-OTAPI_Func::SendRequest(OTAPI_Func& theFunction, const string& IN_FUNCTION)
+OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func& theFunction,
+                                           const string& IN_FUNCTION) const
 {
     Utility MsgUtil;
 
@@ -1013,7 +1014,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                                                const string& IN_FUNCTION,
                                                const bool bIsTransaction,
                                                const bool bWillRetryAfterThis,
-                                               bool& bCanRetryAfterThis)
+                                               bool& bCanRetryAfterThis) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;

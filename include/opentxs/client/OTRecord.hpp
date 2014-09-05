@@ -222,7 +222,7 @@ private:
     bool m_bIsExpired;
     bool m_bIsCanceled;
     OTRecordType m_RecordType;
-    bool AcceptIncomingTransferOrReceipt();
+    bool AcceptIncomingTransferOrReceipt() const;
 
 public:
     EXPORT void SetSpecialMail(bool bIsSpecial = true);
@@ -245,8 +245,8 @@ public:
     EXPORT bool IsCanceled() const;
     EXPORT void SetExpired();
     EXPORT void SetCanceled();
-    EXPORT time64_t GetValidFrom();
-    EXPORT time64_t GetValidTo();
+    EXPORT time64_t GetValidFrom() const;
+    EXPORT time64_t GetValidTo() const;
     EXPORT void SetDateRange(time64_t tValidFrom,
                              time64_t tValidTo); // Todo: convert to time64_t
     EXPORT bool CanDeleteRecord() const; // For completed records (not pending.)
@@ -260,26 +260,30 @@ public:
                                                 // see if it's been accepted, so
                                                 // this lets you erase the
                                                 // record of sending it.)
-    EXPORT bool CancelOutgoing(const std::string str_via_acct); // For outgoing,
-                                                                // pending
+    EXPORT bool CancelOutgoing(const std::string str_via_acct)
+        const; // For outgoing,
+               // pending
     // (not-yet-accepted) instruments.
     // NOTE: str_via_acct can be blank if a
     // cheque. But if voucher, smart
     // contract, payment plan, you must
     // provide.
-    EXPORT bool AcceptIncomingInstrument(
-        const std::string& str_into_acct); // For incoming, pending
-                                           // (not-yet-accepted) instruments.
-    EXPORT bool AcceptIncomingTransfer();  // For incoming, pending
-                                           // (not-yet-accepted) transfers.
-    EXPORT bool AcceptIncomingReceipt();   // For incoming, (not-yet-accepted)
-                                           // receipts.
-    EXPORT bool DiscardIncoming(); // For incoming, pending (not-yet-accepted)
-                                   // instruments.
-    EXPORT bool DeleteRecord();    // For completed records (not pending.)
-    EXPORT bool DiscardOutgoingCash();  // For OUTgoing cash. (No way to see if
-                                        // it's been accepted, so this lets you
-                                        // erase the record of sending it.)
+    EXPORT bool AcceptIncomingInstrument(const std::string& str_into_acct)
+        const; // For incoming, pending
+               // (not-yet-accepted) instruments.
+    EXPORT bool AcceptIncomingTransfer() const; // For incoming, pending
+                                                // (not-yet-accepted) transfers.
+    EXPORT bool AcceptIncomingReceipt() const;  // For incoming,
+                                                // (not-yet-accepted)
+                                                // receipts.
+    EXPORT bool DiscardIncoming() const;        // For incoming, pending
+                                                // (not-yet-accepted)
+                                                // instruments.
+    EXPORT bool DeleteRecord() const; // For completed records (not pending.)
+    EXPORT bool DiscardOutgoingCash() const; // For OUTgoing cash. (No way to
+                                             // see if
+    // it's been accepted, so this lets you
+    // erase the record of sending it.)
     EXPORT int32_t GetBoxIndex() const; // If this is set to 3, for example, for
                                         // a payment in the payments inbox, then
                                         // index 3 in that same box refers to
@@ -338,21 +342,21 @@ public:
     // These don't work unless the record is for a pending
     // payment plan.
     //
-    EXPORT bool HasInitialPayment();
-    EXPORT bool HasPaymentPlan();
+    EXPORT bool HasInitialPayment() const;
+    EXPORT bool HasPaymentPlan() const;
 
-    EXPORT time64_t GetInitialPaymentDate();
-    EXPORT time64_t GetPaymentPlanStartDate();
-    EXPORT time64_t GetTimeBetweenPayments();
+    EXPORT time64_t GetInitialPaymentDate() const;
+    EXPORT time64_t GetPaymentPlanStartDate() const;
+    EXPORT time64_t GetTimeBetweenPayments() const;
 
-    EXPORT int64_t GetInitialPaymentAmount();
-    EXPORT int64_t GetPaymentPlanAmount();
+    EXPORT int64_t GetInitialPaymentAmount() const;
+    EXPORT int64_t GetPaymentPlanAmount() const;
 
-    EXPORT int32_t GetMaximumNoPayments();
-    EXPORT bool FormatAmount(std::string& str_output);
-    EXPORT bool FormatDescription(std::string& str_output);
-    EXPORT bool FormatShortMailDescription(std::string& str_output);
-    EXPORT bool FormatMailSubject(std::string& str_output);
+    EXPORT int32_t GetMaximumNoPayments() const;
+    EXPORT bool FormatAmount(std::string& str_output) const;
+    EXPORT bool FormatDescription(std::string& str_output) const;
+    EXPORT bool FormatShortMailDescription(std::string& str_output) const;
+    EXPORT bool FormatMailSubject(std::string& str_output) const;
     bool operator<(const OTRecord& rhs);
     OTRecord(const std::string& str_server_id, const std::string& str_asset_id,
              const std::string& str_currency_tla, const std::string& str_nym_id,

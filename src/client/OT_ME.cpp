@@ -382,7 +382,7 @@ std::string OT_CLI_ReadUntilEOF()
 
 bool OT_ME::make_sure_enough_trans_nums(const int32_t nNumberNeeded,
                                         const std::string& SERVER_ID,
-                                        const std::string& NYM_ID)
+                                        const std::string& NYM_ID) const
 {
     return m_pImplementation->make_sure_enough_trans_nums(nNumberNeeded,
                                                           SERVER_ID, NYM_ID);
@@ -391,7 +391,7 @@ bool OT_ME::make_sure_enough_trans_nums(const int32_t nNumberNeeded,
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
 //
 std::string OT_ME::register_nym(const std::string& SERVER_ID,
-                                const std::string& NYM_ID)
+                                const std::string& NYM_ID) const
 {
     return m_pImplementation->register_nym(SERVER_ID, NYM_ID);
 }
@@ -400,7 +400,7 @@ std::string OT_ME::register_nym(const std::string& SERVER_ID,
 //
 std::string OT_ME::check_user(const std::string& SERVER_ID,
                               const std::string& NYM_ID,
-                              const std::string& TARGET_NYM_ID)
+                              const std::string& TARGET_NYM_ID) const
 {
     return m_pImplementation->check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
@@ -410,7 +410,7 @@ std::string OT_ME::check_user(const std::string& SERVER_ID,
 //
 std::string OT_ME::create_pseudonym(const int32_t nKeybits,
                                     const std::string& NYM_ID_SOURCE,
-                                    const std::string& ALT_LOCATION)
+                                    const std::string& ALT_LOCATION) const
 {
     return m_pImplementation->create_pseudonym(nKeybits, NYM_ID_SOURCE,
                                                ALT_LOCATION);
@@ -420,7 +420,7 @@ std::string OT_ME::create_pseudonym(const int32_t nKeybits,
 //
 std::string OT_ME::issue_asset_type(const std::string& SERVER_ID,
                                     const std::string& NYM_ID,
-                                    const std::string& THE_CONTRACT)
+                                    const std::string& THE_CONTRACT) const
 {
     return m_pImplementation->issue_asset_type(SERVER_ID, NYM_ID, THE_CONTRACT);
 }
@@ -429,7 +429,7 @@ std::string OT_ME::issue_asset_type(const std::string& SERVER_ID,
 //
 std::string OT_ME::issue_basket_currency(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
-                                         const std::string& THE_BASKET)
+                                         const std::string& THE_BASKET) const
 {
     return m_pImplementation->issue_basket_currency(SERVER_ID, NYM_ID,
                                                     THE_BASKET);
@@ -442,7 +442,7 @@ std::string OT_ME::exchange_basket_currency(const std::string& SERVER_ID,
                                             const std::string& ASSET_TYPE_ID,
                                             const std::string& THE_BASKET,
                                             const std::string& ACCOUNT_ID,
-                                            const bool IN_OR_OUT)
+                                            const bool IN_OR_OUT) const
 {
     return m_pImplementation->exchange_basket_currency(
         SERVER_ID, NYM_ID, ASSET_TYPE_ID, THE_BASKET, ACCOUNT_ID, IN_OR_OUT);
@@ -452,16 +452,16 @@ std::string OT_ME::exchange_basket_currency(const std::string& SERVER_ID,
 //
 std::string OT_ME::retrieve_contract(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
-                                     const std::string& CONTRACT_ID)
+                                     const std::string& CONTRACT_ID) const
 {
     return m_pImplementation->retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
 }
 
 // LOAD OR RETRIEVE CONTRACT
 //
-std::string OT_ME::load_or_retrieve_contract(const std::string& SERVER_ID,
-                                             const std::string& NYM_ID,
-                                             const std::string& CONTRACT_ID)
+std::string OT_ME::load_or_retrieve_contract(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& CONTRACT_ID) const
 {
     return m_pImplementation->load_or_retrieve_contract(SERVER_ID, NYM_ID,
                                                         CONTRACT_ID);
@@ -471,13 +471,13 @@ std::string OT_ME::load_or_retrieve_contract(const std::string& SERVER_ID,
 //
 std::string OT_ME::create_asset_acct(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
-                                     const std::string& ASSET_TYPE_ID)
+                                     const std::string& ASSET_TYPE_ID) const
 {
     return m_pImplementation->create_asset_acct(SERVER_ID, NYM_ID,
                                                 ASSET_TYPE_ID);
 }
 
-std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID)
+std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
     return m_pImplementation->stat_asset_account(ACCOUNT_ID);
 }
@@ -487,14 +487,15 @@ std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID)
 bool OT_ME::retrieve_account(const std::string& SERVER_ID,
                              const std::string& NYM_ID,
                              const std::string& ACCOUNT_ID,
-                             const bool bForceDownload)
+                             const bool bForceDownload) const
 {
     return m_pImplementation->retrieve_account(SERVER_ID, NYM_ID, ACCOUNT_ID,
                                                bForceDownload);
 }
 
 bool OT_ME::retrieve_nym(const std::string& SERVER_ID,
-                         const std::string& NYM_ID, const bool bForceDownload)
+                         const std::string& NYM_ID,
+                         const bool bForceDownload) const
 {
     return m_pImplementation->retrieve_nym(SERVER_ID, NYM_ID, bForceDownload);
 }
@@ -505,7 +506,8 @@ std::string OT_ME::send_transfer(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
                                  const std::string& ACCT_FROM,
                                  const std::string& ACCT_TO,
-                                 const int64_t AMOUNT, const std::string& NOTE)
+                                 const int64_t AMOUNT,
+                                 const std::string& NOTE) const
 {
     return m_pImplementation->send_transfer(SERVER_ID, NYM_ID, ACCT_FROM,
                                             ACCT_TO, AMOUNT, NOTE);
@@ -516,14 +518,14 @@ std::string OT_ME::send_transfer(const std::string& SERVER_ID,
 std::string OT_ME::process_inbox(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
                                  const std::string& ACCOUNT_ID,
-                                 const std::string& RESPONSE_LEDGER)
+                                 const std::string& RESPONSE_LEDGER) const
 {
     return m_pImplementation->process_inbox(SERVER_ID, NYM_ID, ACCOUNT_ID,
                                             RESPONSE_LEDGER);
 }
 
 bool OT_ME::accept_inbox_items(const std::string& ACCOUNT_ID, int32_t nItemType,
-                               const std::string& INDICES)
+                               const std::string& INDICES) const
 {
     return m_pImplementation->accept_inbox_items(ACCOUNT_ID, nItemType,
                                                  INDICES);
@@ -531,7 +533,7 @@ bool OT_ME::accept_inbox_items(const std::string& ACCOUNT_ID, int32_t nItemType,
 
 bool OT_ME::discard_incoming_payments(const std::string& SERVER_ID,
                                       const std::string& NYM_ID,
-                                      const std::string& INDICES)
+                                      const std::string& INDICES) const
 {
     return m_pImplementation->discard_incoming_payments(SERVER_ID, NYM_ID,
                                                         INDICES);
@@ -539,7 +541,7 @@ bool OT_ME::discard_incoming_payments(const std::string& SERVER_ID,
 
 bool OT_ME::cancel_outgoing_payments(const std::string& NYM_ID,
                                      const std::string& ACCOUNT_ID,
-                                     const std::string& INDICES)
+                                     const std::string& INDICES) const
 {
     return m_pImplementation->cancel_outgoing_payments(NYM_ID, ACCOUNT_ID,
                                                        INDICES);
@@ -547,7 +549,7 @@ bool OT_ME::cancel_outgoing_payments(const std::string& NYM_ID,
 
 bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                    const std::string& INDICES,
-                                   const std::string& PAYMENT_TYPE)
+                                   const std::string& PAYMENT_TYPE) const
 {
     return m_pImplementation->accept_from_paymentbox(ACCOUNT_ID, INDICES,
                                                      PAYMENT_TYPE);
@@ -557,12 +559,12 @@ bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
 //
 // Load a public key from local storage, and return it (or null).
 //
-std::string OT_ME::load_public_encryption_key(const std::string& NYM_ID)
+std::string OT_ME::load_public_encryption_key(const std::string& NYM_ID) const
 {
     return m_pImplementation->load_public_encryption_key(NYM_ID);
 }
 
-std::string OT_ME::load_public_signing_key(const std::string& NYM_ID)
+std::string OT_ME::load_public_signing_key(const std::string& NYM_ID) const
 {
     return m_pImplementation->load_public_signing_key(NYM_ID);
 }
@@ -577,7 +579,7 @@ std::string OT_ME::load_public_signing_key(const std::string& NYM_ID)
 //
 std::string OT_ME::load_or_retrieve_encrypt_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID)
+    const std::string& TARGET_NYM_ID) const
 {
     return m_pImplementation->load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID,
                                                            TARGET_NYM_ID);
@@ -585,7 +587,7 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
 
 std::string OT_ME::load_or_retrieve_signing_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID)
+    const std::string& TARGET_NYM_ID) const
 {
     return m_pImplementation->load_or_retrieve_signing_key(SERVER_ID, NYM_ID,
                                                            TARGET_NYM_ID);
@@ -597,7 +599,7 @@ std::string OT_ME::send_user_msg_pubkey(const std::string& SERVER_ID,
                                         const std::string& NYM_ID,
                                         const std::string& RECIPIENT_NYM_ID,
                                         const std::string& RECIPIENT_PUBKEY,
-                                        const std::string& THE_MESSAGE)
+                                        const std::string& THE_MESSAGE) const
 {
     return m_pImplementation->send_user_msg_pubkey(
         SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_MESSAGE);
@@ -605,11 +607,10 @@ std::string OT_ME::send_user_msg_pubkey(const std::string& SERVER_ID,
 
 // SEND USER INSTRUMENT (requires recipient public key)
 //
-std::string OT_ME::send_user_pmnt_pubkey(const std::string& SERVER_ID,
-                                         const std::string& NYM_ID,
-                                         const std::string& RECIPIENT_NYM_ID,
-                                         const std::string& RECIPIENT_PUBKEY,
-                                         const std::string& THE_INSTRUMENT)
+std::string OT_ME::send_user_pmnt_pubkey(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_INSTRUMENT) const
 {
     return m_pImplementation->send_user_pmnt_pubkey(
         SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT);
@@ -620,7 +621,8 @@ std::string OT_ME::send_user_pmnt_pubkey(const std::string& SERVER_ID,
 std::string OT_ME::send_user_cash_pubkey(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
-    const std::string& THE_INSTRUMENT, const std::string& INSTRUMENT_FOR_SENDER)
+    const std::string& THE_INSTRUMENT,
+    const std::string& INSTRUMENT_FOR_SENDER) const
 {
     return m_pImplementation->send_user_cash_pubkey(
         SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT,
@@ -633,7 +635,7 @@ std::string OT_ME::send_user_cash_pubkey(
 std::string OT_ME::send_user_msg(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
                                  const std::string& RECIPIENT_NYM_ID,
-                                 const std::string& THE_MESSAGE)
+                                 const std::string& THE_MESSAGE) const
 {
     return m_pImplementation->send_user_msg(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                             THE_MESSAGE);
@@ -645,7 +647,7 @@ std::string OT_ME::send_user_msg(const std::string& SERVER_ID,
 std::string OT_ME::send_user_payment(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& RECIPIENT_NYM_ID,
-                                     const std::string& THE_PAYMENT)
+                                     const std::string& THE_PAYMENT) const
 {
     return m_pImplementation->send_user_payment(SERVER_ID, NYM_ID,
                                                 RECIPIENT_NYM_ID, THE_PAYMENT);
@@ -658,7 +660,7 @@ std::string OT_ME::send_user_cash(const std::string& SERVER_ID,
                                   const std::string& NYM_ID,
                                   const std::string& RECIPIENT_NYM_ID,
                                   const std::string& THE_PAYMENT,
-                                  const std::string& SENDERS_COPY)
+                                  const std::string& SENDERS_COPY) const
 {
     return m_pImplementation->send_user_cash(
         SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, THE_PAYMENT, SENDERS_COPY);
@@ -667,7 +669,7 @@ std::string OT_ME::send_user_cash(const std::string& SERVER_ID,
 bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
                                    const std::string& RECIPIENT_NYM_ID,
                                    const std::string& MEMO,
-                                   const int64_t AMOUNT)
+                                   const int64_t AMOUNT) const
 {
     return m_pImplementation->withdraw_and_send_cash(ACCT_ID, RECIPIENT_NYM_ID,
                                                      MEMO, AMOUNT);
@@ -675,10 +677,9 @@ bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
 
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)
 //
-std::string OT_ME::get_payment_instrument(const std::string& SERVER_ID,
-                                          const std::string& NYM_ID,
-                                          const int32_t nIndex,
-                                          const std::string& PRELOADED_INBOX)
+std::string OT_ME::get_payment_instrument(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const int32_t nIndex, const std::string& PRELOADED_INBOX) const
 {
     return m_pImplementation->get_payment_instrument(SERVER_ID, NYM_ID, nIndex,
                                                      PRELOADED_INBOX);
@@ -695,7 +696,7 @@ std::string OT_ME::get_box_receipt(const std::string& SERVER_ID,
                                    const std::string& NYM_ID,
                                    const std::string& ACCT_ID,
                                    const int32_t nBoxType,
-                                   const int64_t TRANS_NUM)
+                                   const int64_t TRANS_NUM) const
 {
     return m_pImplementation->get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID,
                                               nBoxType, TRANS_NUM);
@@ -705,7 +706,7 @@ std::string OT_ME::get_box_receipt(const std::string& SERVER_ID,
 //
 std::string OT_ME::retrieve_mint(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
-                                 const std::string& ASSET_ID)
+                                 const std::string& ASSET_ID) const
 {
     return m_pImplementation->retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 }
@@ -723,7 +724,7 @@ std::string OT_ME::retrieve_mint(const std::string& SERVER_ID,
 //
 std::string OT_ME::load_or_retrieve_mint(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
-                                         const std::string& ASSET_ID)
+                                         const std::string& ASSET_ID) const
 {
     return m_pImplementation->load_or_retrieve_mint(SERVER_ID, NYM_ID,
                                                     ASSET_ID);
@@ -735,7 +736,7 @@ std::string OT_ME::load_or_retrieve_mint(const std::string& SERVER_ID,
 //
 std::string OT_ME::query_asset_types(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
-                                     const std::string& ENCODED_MAP)
+                                     const std::string& ENCODED_MAP) const
 {
     return m_pImplementation->query_asset_types(SERVER_ID, NYM_ID, ENCODED_MAP);
 }
@@ -746,7 +747,7 @@ std::string OT_ME::create_market_offer(
     const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
     const int64_t scale, const int64_t minIncrement, const int64_t quantity,
     const int64_t price, const bool bSelling, const int64_t lLifespanInSeconds,
-    const std::string& STOP_SIGN, const int64_t ACTIVATION_PRICE)
+    const std::string& STOP_SIGN, const int64_t ACTIVATION_PRICE) const
 {
     return m_pImplementation->create_market_offer(
         ASSET_ACCT_ID, CURRENCY_ACCT_ID, scale, minIncrement, quantity, price,
@@ -758,7 +759,7 @@ std::string OT_ME::create_market_offer(
 std::string OT_ME::kill_market_offer(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& ASSET_ACCT_ID,
-                                     const int64_t TRANS_NUM)
+                                     const int64_t TRANS_NUM) const
 {
     return m_pImplementation->kill_market_offer(SERVER_ID, NYM_ID,
                                                 ASSET_ACCT_ID, TRANS_NUM);
@@ -769,7 +770,7 @@ std::string OT_ME::kill_market_offer(const std::string& SERVER_ID,
 std::string OT_ME::kill_payment_plan(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& ACCT_ID,
-                                     const int64_t TRANS_NUM)
+                                     const int64_t TRANS_NUM) const
 {
     return m_pImplementation->kill_payment_plan(SERVER_ID, NYM_ID, ACCT_ID,
                                                 TRANS_NUM);
@@ -777,9 +778,9 @@ std::string OT_ME::kill_payment_plan(const std::string& SERVER_ID,
 
 // CANCEL (NOT-YET-RUNNING) PAYMENT PLAN -- TRANSACTION
 //
-std::string OT_ME::cancel_payment_plan(const std::string& SERVER_ID,
-                                       const std::string& NYM_ID,
-                                       const std::string& THE_PAYMENT_PLAN)
+std::string OT_ME::cancel_payment_plan(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& THE_PAYMENT_PLAN) const
 {
     return m_pImplementation->cancel_payment_plan(SERVER_ID, NYM_ID,
                                                   THE_PAYMENT_PLAN);
@@ -790,7 +791,7 @@ std::string OT_ME::cancel_payment_plan(const std::string& SERVER_ID,
 std::string OT_ME::activate_smart_contract(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
-    const std::string& THE_SMART_CONTRACT)
+    const std::string& THE_SMART_CONTRACT) const
 {
     return m_pImplementation->activate_smart_contract(
         SERVER_ID, NYM_ID, ACCT_ID, AGENT_NAME, THE_SMART_CONTRACT);
@@ -802,7 +803,7 @@ std::string OT_ME::trigger_clause(const std::string& SERVER_ID,
                                   const std::string& NYM_ID,
                                   const int64_t TRANS_NUM,
                                   const std::string& CLAUSE_NAME,
-                                  const std::string& STR_PARAM)
+                                  const std::string& STR_PARAM) const
 {
     return m_pImplementation->trigger_clause(SERVER_ID, NYM_ID, TRANS_NUM,
                                              CLAUSE_NAME, STR_PARAM);
@@ -813,7 +814,7 @@ std::string OT_ME::trigger_clause(const std::string& SERVER_ID,
 std::string OT_ME::withdraw_cash(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
                                  const std::string& ACCT_ID,
-                                 const int64_t AMOUNT)
+                                 const int64_t AMOUNT) const
 {
     return m_pImplementation->withdraw_cash(SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
 }
@@ -822,7 +823,8 @@ std::string OT_ME::withdraw_cash(const std::string& SERVER_ID,
 // This one automatically retrieves the mint beforehand, if necessary,
 // and the account files afterward, if appropriate.
 //
-bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, const int64_t AMOUNT)
+bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID,
+                               const int64_t AMOUNT) const
 {
     return m_pImplementation->easy_withdraw_cash(ACCT_ID, AMOUNT);
 }
@@ -835,7 +837,7 @@ std::string OT_ME::export_cash(const std::string& SERVER_ID,
                                const std::string& TO_NYM_ID,
                                const std::string& STR_INDICES,
                                bool bPasswordProtected,
-                               std::string& STR_RETAINED_COPY)
+                               std::string& STR_RETAINED_COPY) const
 {
     return m_pImplementation->export_cash(
         SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, TO_NYM_ID, STR_INDICES,
@@ -849,7 +851,7 @@ std::string OT_ME::withdraw_voucher(const std::string& SERVER_ID,
                                     const std::string& ACCT_ID,
                                     const std::string& RECIP_NYM_ID,
                                     const std::string& STR_MEMO,
-                                    const int64_t AMOUNT)
+                                    const int64_t AMOUNT) const
 {
     return m_pImplementation->withdraw_voucher(SERVER_ID, NYM_ID, ACCT_ID,
                                                RECIP_NYM_ID, STR_MEMO, AMOUNT);
@@ -862,7 +864,7 @@ std::string OT_ME::pay_dividend(const std::string& SERVER_ID,
                                 const std::string& SOURCE_ACCT_ID,
                                 const std::string& SHARES_ASSET_ID,
                                 const std::string& STR_MEMO,
-                                const int64_t AMOUNT_PER_SHARE)
+                                const int64_t AMOUNT_PER_SHARE) const
 {
     return m_pImplementation->pay_dividend(SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
                                            SHARES_ASSET_ID, STR_MEMO,
@@ -872,7 +874,7 @@ std::string OT_ME::pay_dividend(const std::string& SERVER_ID,
 std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
                                   const std::string& NYM_ID,
                                   const std::string& ACCT_ID,
-                                  const std::string& STR_CHEQUE)
+                                  const std::string& STR_CHEQUE) const
 {
 
     return m_pImplementation->deposit_cheque(SERVER_ID, NYM_ID, ACCT_ID,
@@ -881,7 +883,7 @@ std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
 
 bool OT_ME::deposit_cash(const std::string& SERVER_ID,
                          const std::string& NYM_ID, const std::string& ACCT_ID,
-                         const std::string& STR_PURSE)
+                         const std::string& STR_PURSE) const
 {
     return m_pImplementation->deposit_cash(SERVER_ID, NYM_ID, ACCT_ID,
                                            STR_PURSE);
@@ -890,14 +892,14 @@ bool OT_ME::deposit_cash(const std::string& SERVER_ID,
 bool OT_ME::deposit_local_purse(const std::string& SERVER_ID,
                                 const std::string& NYM_ID,
                                 const std::string& ACCT_ID,
-                                const std::string& STR_INDICES)
+                                const std::string& STR_INDICES) const
 {
     return m_pImplementation->deposit_local_purse(SERVER_ID, NYM_ID, ACCT_ID,
                                                   STR_INDICES);
 }
 
 std::string OT_ME::get_market_list(const std::string& SERVER_ID,
-                                   const std::string& NYM_ID)
+                                   const std::string& NYM_ID) const
 {
     return m_pImplementation->get_market_list(SERVER_ID, NYM_ID);
 }
@@ -905,21 +907,21 @@ std::string OT_ME::get_market_list(const std::string& SERVER_ID,
 std::string OT_ME::get_market_offers(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& MARKET_ID,
-                                     const int64_t MAX_DEPTH)
+                                     const int64_t MAX_DEPTH) const
 {
     return m_pImplementation->get_market_offers(SERVER_ID, NYM_ID, MARKET_ID,
                                                 MAX_DEPTH);
 }
 
 std::string OT_ME::get_nym_market_offers(const std::string& SERVER_ID,
-                                         const std::string& NYM_ID)
+                                         const std::string& NYM_ID) const
 {
     return m_pImplementation->get_nym_market_offers(SERVER_ID, NYM_ID);
 }
 
 std::string OT_ME::get_market_recent_trades(const std::string& SERVER_ID,
                                             const std::string& NYM_ID,
-                                            const std::string& MARKET_ID)
+                                            const std::string& MARKET_ID) const
 {
     return m_pImplementation->get_market_recent_trades(SERVER_ID, NYM_ID,
                                                        MARKET_ID);
@@ -928,13 +930,13 @@ std::string OT_ME::get_market_recent_trades(const std::string& SERVER_ID,
 std::string OT_ME::adjust_usage_credits(const std::string& SERVER_ID,
                                         const std::string& USER_NYM_ID,
                                         const std::string& TARGET_NYM_ID,
-                                        const std::string& ADJUSTMENT)
+                                        const std::string& ADJUSTMENT) const
 {
     return m_pImplementation->adjust_usage_credits(SERVER_ID, USER_NYM_ID,
                                                    TARGET_NYM_ID, ADJUSTMENT);
 }
 
-int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message)
+int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
 {
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -970,10 +972,9 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message)
     return nStatus;
 }
 
-int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
-                                             const std::string& USER_ID,
-                                             const std::string& ACCOUNT_ID,
-                                             const std::string& str_Message)
+int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& ACCOUNT_ID, const std::string& str_Message) const
 {
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -1013,7 +1014,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
 int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
                                     const std::string& USER_ID,
                                     const std::string& ACCOUNT_ID,
-                                    const std::string& str_Message)
+                                    const std::string& str_Message) const
 {
     if (str_Message.size() < 10) {
         otWarn << __FUNCTION__ << ": Error str_Message is: Too Short: \n"
@@ -1054,11 +1055,10 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
 //
 // It uses the above functions.
 //
-int32_t OT_ME::InterpretTransactionMsgReply(const std::string& SERVER_ID,
-                                            const std::string& USER_ID,
-                                            const std::string& ACCOUNT_ID,
-                                            const std::string& str_Attempt,
-                                            const std::string& str_Response)
+int32_t OT_ME::InterpretTransactionMsgReply(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& ACCOUNT_ID, const std::string& str_Attempt,
+    const std::string& str_Response) const
 {
     int32_t nMessageSuccess = VerifyMessageSuccess(str_Response);
 
@@ -1295,7 +1295,7 @@ bool OT_ME::Register_Headers_With_Script()
 
 // bool OT_ME::Register_OTDB_With_Script_Lua(OTScriptLua & theScript)
 
-bool OT_ME::Register_OTDB_With_Script_Chai(OTScriptChai& theScript)
+bool OT_ME::Register_OTDB_With_Script_Chai(OTScriptChai& theScript) const
 {
     OT_ASSERT(nullptr != theScript.chai)
 
@@ -1757,7 +1757,7 @@ bool OT_ME::Register_OTDB_With_Script_Chai(OTScriptChai& theScript)
 
 // bool OT_ME::Register_CLI_With_Script_Lua(OTScriptLua & theScript)
 
-bool OT_ME::Register_CLI_With_Script_Chai(OTScriptChai& theScript)
+bool OT_ME::Register_CLI_With_Script_Chai(OTScriptChai& theScript) const
 {
     using namespace chaiscript;
     {
@@ -1798,7 +1798,7 @@ bool OT_ME::Register_CLI_With_Script_Chai(OTScriptChai& theScript)
 
 // bool OT_ME::Register_API_With_Script_Lua(OTScriptLua & theScript)
 
-bool OT_ME::Register_API_With_Script_Chai(OTScriptChai& theScript)
+bool OT_ME::Register_API_With_Script_Chai(OTScriptChai& theScript) const
 {
     using namespace chaiscript;
     {
@@ -2585,7 +2585,7 @@ bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
 // Note: Private method. Assumes theScript is m_pScript (but now as
 // a specific type, aka OTScriptChai, vs just being an OTScript.)
 //
-bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript)
+bool OT_ME::Register_Headers_With_Script_Chai(OTScriptChai& theScript) const
 {
     using namespace chaiscript;
     {

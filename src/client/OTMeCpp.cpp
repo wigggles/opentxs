@@ -150,41 +150,41 @@ OTMeCpp::~OTMeCpp()
 
 bool OTMeCpp::make_sure_enough_trans_nums(const int32_t nNumberNeeded,
                                           const std::string& SERVER_ID,
-                                          const std::string& NYM_ID)
+                                          const std::string& NYM_ID) const
 {
     return MadeEasy::insure_enough_nums(nNumberNeeded, SERVER_ID, NYM_ID);
 }
 
 std::string OTMeCpp::register_nym(const std::string& SERVER_ID,
-                                  const std::string& NYM_ID)
+                                  const std::string& NYM_ID) const
 {
     return MadeEasy::register_nym(SERVER_ID, NYM_ID);
 }
 
 std::string OTMeCpp::check_user(const std::string& SERVER_ID,
                                 const std::string& NYM_ID,
-                                const std::string& TARGET_NYM_ID)
+                                const std::string& TARGET_NYM_ID) const
 {
     return MadeEasy::check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
 
 std::string OTMeCpp::create_pseudonym(const int32_t nKeybits,
                                       const std::string& NYM_ID_SOURCE,
-                                      const std::string& ALT_LOCATION)
+                                      const std::string& ALT_LOCATION) const
 {
     return MadeEasy::create_pseudonym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
 std::string OTMeCpp::issue_asset_type(const std::string& SERVER_ID,
                                       const std::string& NYM_ID,
-                                      const std::string& THE_CONTRACT)
+                                      const std::string& THE_CONTRACT) const
 {
     return MadeEasy::issue_asset_type(SERVER_ID, NYM_ID, THE_CONTRACT);
 }
 
 std::string OTMeCpp::issue_basket_currency(const std::string& SERVER_ID,
                                            const std::string& NYM_ID,
-                                           const std::string& THE_BASKET)
+                                           const std::string& THE_BASKET) const
 {
     return MadeEasy::issue_basket_currency(SERVER_ID, NYM_ID, THE_BASKET);
 }
@@ -194,7 +194,7 @@ std::string OTMeCpp::exchange_basket_currency(const std::string& SERVER_ID,
                                               const std::string& ASSET_TYPE_ID,
                                               const std::string& THE_BASKET,
                                               const std::string& ACCOUNT_ID,
-                                              const bool IN_OR_OUT)
+                                              const bool IN_OR_OUT) const
 {
     return MadeEasy::exchange_basket_currency(
         SERVER_ID, NYM_ID, ASSET_TYPE_ID, THE_BASKET, ACCOUNT_ID, IN_OR_OUT);
@@ -202,26 +202,26 @@ std::string OTMeCpp::exchange_basket_currency(const std::string& SERVER_ID,
 
 std::string OTMeCpp::retrieve_contract(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
-                                       const std::string& CONTRACT_ID)
+                                       const std::string& CONTRACT_ID) const
 {
     return MadeEasy::retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
 }
 
-std::string OTMeCpp::load_or_retrieve_contract(const std::string& SERVER_ID,
-                                               const std::string& NYM_ID,
-                                               const std::string& CONTRACT_ID)
+std::string OTMeCpp::load_or_retrieve_contract(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& CONTRACT_ID) const
 {
     return MadeEasy::load_or_retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
 }
 
 std::string OTMeCpp::create_asset_acct(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
-                                       const std::string& ASSET_TYPE_ID)
+                                       const std::string& ASSET_TYPE_ID) const
 {
     return MadeEasy::create_asset_acct(SERVER_ID, NYM_ID, ASSET_TYPE_ID);
 }
 
-std::string OTMeCpp::stat_asset_account(const std::string& ACCOUNT_ID)
+std::string OTMeCpp::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
     return MadeEasy::stat_asset_account(ACCOUNT_ID);
 }
@@ -229,14 +229,15 @@ std::string OTMeCpp::stat_asset_account(const std::string& ACCOUNT_ID)
 bool OTMeCpp::retrieve_account(const std::string& SERVER_ID,
                                const std::string& NYM_ID,
                                const std::string& ACCOUNT_ID,
-                               const bool bForceDownload)
+                               const bool bForceDownload) const
 {
     return MadeEasy::retrieve_account(SERVER_ID, NYM_ID, ACCOUNT_ID,
                                       bForceDownload);
 }
 
 bool OTMeCpp::retrieve_nym(const std::string& SERVER_ID,
-                           const std::string& NYM_ID, const bool bForceDownload)
+                           const std::string& NYM_ID,
+                           const bool bForceDownload) const
 {
     return OT_Command::details_refresh_nym(SERVER_ID, NYM_ID, bForceDownload);
 }
@@ -246,7 +247,7 @@ std::string OTMeCpp::send_transfer(const std::string& SERVER_ID,
                                    const std::string& ACCT_FROM,
                                    const std::string& ACCT_TO,
                                    const int64_t AMOUNT,
-                                   const std::string& NOTE)
+                                   const std::string& NOTE) const
 {
     return MadeEasy::send_transfer(SERVER_ID, NYM_ID, ACCT_FROM, ACCT_TO,
                                    AMOUNT, NOTE);
@@ -255,21 +256,22 @@ std::string OTMeCpp::send_transfer(const std::string& SERVER_ID,
 std::string OTMeCpp::process_inbox(const std::string& SERVER_ID,
                                    const std::string& NYM_ID,
                                    const std::string& ACCOUNT_ID,
-                                   const std::string& RESPONSE_LEDGER)
+                                   const std::string& RESPONSE_LEDGER) const
 {
     return MadeEasy::process_inbox(SERVER_ID, NYM_ID, ACCOUNT_ID,
                                    RESPONSE_LEDGER);
 }
 
 bool OTMeCpp::accept_inbox_items(const std::string& ACCOUNT_ID,
-                                 int32_t nItemType, const std::string& INDICES)
+                                 int32_t nItemType,
+                                 const std::string& INDICES) const
 {
     return OT_Command::accept_inbox_items(ACCOUNT_ID, nItemType, INDICES) == 1;
 }
 
 bool OTMeCpp::discard_incoming_payments(const std::string& SERVER_ID,
                                         const std::string& NYM_ID,
-                                        const std::string& INDICES)
+                                        const std::string& INDICES) const
 {
     return OT_Command::details_discard_incoming(SERVER_ID, NYM_ID, INDICES) ==
            1;
@@ -277,7 +279,7 @@ bool OTMeCpp::discard_incoming_payments(const std::string& SERVER_ID,
 
 bool OTMeCpp::cancel_outgoing_payments(const std::string& NYM_ID,
                                        const std::string& ACCOUNT_ID,
-                                       const std::string& INDICES)
+                                       const std::string& INDICES) const
 {
     return OT_Command::details_cancel_outgoing(NYM_ID, ACCOUNT_ID, INDICES) ==
            1;
@@ -285,25 +287,25 @@ bool OTMeCpp::cancel_outgoing_payments(const std::string& NYM_ID,
 
 bool OTMeCpp::accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                      const std::string& INDICES,
-                                     const std::string& PAYMENT_TYPE)
+                                     const std::string& PAYMENT_TYPE) const
 {
     return 1 == OT_Command::accept_from_paymentbox(ACCOUNT_ID, INDICES,
                                                    PAYMENT_TYPE);
 }
 
-std::string OTMeCpp::load_public_encryption_key(const std::string& NYM_ID)
+std::string OTMeCpp::load_public_encryption_key(const std::string& NYM_ID) const
 {
     return MadeEasy::load_public_encryption_key(NYM_ID);
 }
 
-std::string OTMeCpp::load_public_signing_key(const std::string& NYM_ID)
+std::string OTMeCpp::load_public_signing_key(const std::string& NYM_ID) const
 {
     return MadeEasy::load_public_signing_key(NYM_ID);
 }
 
 std::string OTMeCpp::load_or_retrieve_encrypt_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID)
+    const std::string& TARGET_NYM_ID) const
 {
     return MadeEasy::load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID,
                                                   TARGET_NYM_ID);
@@ -311,7 +313,7 @@ std::string OTMeCpp::load_or_retrieve_encrypt_key(
 
 std::string OTMeCpp::load_or_retrieve_signing_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID)
+    const std::string& TARGET_NYM_ID) const
 {
     return MadeEasy::load_or_retrieve_signing_key(SERVER_ID, NYM_ID,
                                                   TARGET_NYM_ID);
@@ -321,17 +323,16 @@ std::string OTMeCpp::send_user_msg_pubkey(const std::string& SERVER_ID,
                                           const std::string& NYM_ID,
                                           const std::string& RECIPIENT_NYM_ID,
                                           const std::string& RECIPIENT_PUBKEY,
-                                          const std::string& THE_MESSAGE)
+                                          const std::string& THE_MESSAGE) const
 {
     return MadeEasy::send_user_msg_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                           RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
-std::string OTMeCpp::send_user_pmnt_pubkey(const std::string& SERVER_ID,
-                                           const std::string& NYM_ID,
-                                           const std::string& RECIPIENT_NYM_ID,
-                                           const std::string& RECIPIENT_PUBKEY,
-                                           const std::string& THE_INSTRUMENT)
+std::string OTMeCpp::send_user_pmnt_pubkey(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_INSTRUMENT) const
 {
     return MadeEasy::send_user_pmnt_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT);
@@ -340,7 +341,8 @@ std::string OTMeCpp::send_user_pmnt_pubkey(const std::string& SERVER_ID,
 std::string OTMeCpp::send_user_cash_pubkey(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
-    const std::string& THE_INSTRUMENT, const std::string& INSTRUMENT_FOR_SENDER)
+    const std::string& THE_INSTRUMENT,
+    const std::string& INSTRUMENT_FOR_SENDER) const
 {
     return MadeEasy::send_user_cash_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                            RECIPIENT_PUBKEY, THE_INSTRUMENT,
@@ -350,7 +352,7 @@ std::string OTMeCpp::send_user_cash_pubkey(
 std::string OTMeCpp::send_user_msg(const std::string& SERVER_ID,
                                    const std::string& NYM_ID,
                                    const std::string& RECIPIENT_NYM_ID,
-                                   const std::string& THE_MESSAGE)
+                                   const std::string& THE_MESSAGE) const
 {
     return MadeEasy::send_user_msg(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                    THE_MESSAGE);
@@ -359,7 +361,7 @@ std::string OTMeCpp::send_user_msg(const std::string& SERVER_ID,
 std::string OTMeCpp::send_user_payment(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
                                        const std::string& RECIPIENT_NYM_ID,
-                                       const std::string& THE_PAYMENT)
+                                       const std::string& THE_PAYMENT) const
 {
     return MadeEasy::send_user_payment(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                        THE_PAYMENT);
@@ -369,7 +371,7 @@ std::string OTMeCpp::send_user_cash(const std::string& SERVER_ID,
                                     const std::string& NYM_ID,
                                     const std::string& RECIPIENT_NYM_ID,
                                     const std::string& THE_PAYMENT,
-                                    const std::string& SENDERS_COPY)
+                                    const std::string& SENDERS_COPY) const
 {
     return MadeEasy::send_user_cash(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
                                     THE_PAYMENT, SENDERS_COPY);
@@ -378,7 +380,7 @@ std::string OTMeCpp::send_user_cash(const std::string& SERVER_ID,
 bool OTMeCpp::withdraw_and_send_cash(const std::string& ACCT_ID,
                                      const std::string& RECIPIENT_NYM_ID,
                                      const std::string& MEMO,
-                                     const int64_t AMOUNT)
+                                     const int64_t AMOUNT) const
 {
     std::string recipient_nym_id = RECIPIENT_NYM_ID;
 
@@ -386,10 +388,9 @@ bool OTMeCpp::withdraw_and_send_cash(const std::string& ACCT_ID,
                                               std::to_string(AMOUNT));
 }
 
-std::string OTMeCpp::get_payment_instrument(const std::string& SERVER_ID,
-                                            const std::string& NYM_ID,
-                                            const int32_t nIndex,
-                                            const std::string& PRELOADED_INBOX)
+std::string OTMeCpp::get_payment_instrument(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const int32_t nIndex, const std::string& PRELOADED_INBOX) const
 {
     return MadeEasy::get_payment_instrument(SERVER_ID, NYM_ID, nIndex,
                                             PRELOADED_INBOX);
@@ -399,7 +400,7 @@ std::string OTMeCpp::get_box_receipt(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& ACCT_ID,
                                      const int32_t nBoxType,
-                                     const int64_t TRANS_NUM)
+                                     const int64_t TRANS_NUM) const
 {
     return MadeEasy::get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID, nBoxType,
                                      std::to_string(TRANS_NUM));
@@ -407,21 +408,21 @@ std::string OTMeCpp::get_box_receipt(const std::string& SERVER_ID,
 
 std::string OTMeCpp::retrieve_mint(const std::string& SERVER_ID,
                                    const std::string& NYM_ID,
-                                   const std::string& ASSET_ID)
+                                   const std::string& ASSET_ID) const
 {
     return MadeEasy::retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 }
 
 std::string OTMeCpp::load_or_retrieve_mint(const std::string& SERVER_ID,
                                            const std::string& NYM_ID,
-                                           const std::string& ASSET_ID)
+                                           const std::string& ASSET_ID) const
 {
     return MadeEasy::load_or_retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 }
 
 std::string OTMeCpp::query_asset_types(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
-                                       const std::string& ENCODED_MAP)
+                                       const std::string& ENCODED_MAP) const
 {
     return MadeEasy::query_asset_types(SERVER_ID, NYM_ID, ENCODED_MAP);
 }
@@ -430,7 +431,7 @@ std::string OTMeCpp::create_market_offer(
     const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
     const int64_t scale, const int64_t minIncrement, const int64_t quantity,
     const int64_t price, const bool bSelling, const int64_t lLifespanInSeconds,
-    const std::string& STOP_SIGN, const int64_t ACTIVATION_PRICE)
+    const std::string& STOP_SIGN, const int64_t ACTIVATION_PRICE) const
 {
     return MadeEasy::create_market_offer(
         ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
@@ -442,7 +443,7 @@ std::string OTMeCpp::create_market_offer(
 std::string OTMeCpp::kill_market_offer(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
                                        const std::string& ASSET_ACCT_ID,
-                                       const int64_t TRANS_NUM)
+                                       const int64_t TRANS_NUM) const
 {
     return MadeEasy::kill_market_offer(SERVER_ID, NYM_ID, ASSET_ACCT_ID,
                                        std::to_string(TRANS_NUM));
@@ -451,15 +452,15 @@ std::string OTMeCpp::kill_market_offer(const std::string& SERVER_ID,
 std::string OTMeCpp::kill_payment_plan(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
                                        const std::string& ACCT_ID,
-                                       const int64_t TRANS_NUM)
+                                       const int64_t TRANS_NUM) const
 {
     return MadeEasy::kill_payment_plan(SERVER_ID, NYM_ID, ACCT_ID,
                                        std::to_string(TRANS_NUM));
 }
 
-std::string OTMeCpp::cancel_payment_plan(const std::string& SERVER_ID,
-                                         const std::string& NYM_ID,
-                                         const std::string& THE_PAYMENT_PLAN)
+std::string OTMeCpp::cancel_payment_plan(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& THE_PAYMENT_PLAN) const
 {
     return MadeEasy::cancel_payment_plan(SERVER_ID, NYM_ID, THE_PAYMENT_PLAN);
 }
@@ -467,7 +468,7 @@ std::string OTMeCpp::cancel_payment_plan(const std::string& SERVER_ID,
 std::string OTMeCpp::activate_smart_contract(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
-    const std::string& THE_SMART_CONTRACT)
+    const std::string& THE_SMART_CONTRACT) const
 {
     return MadeEasy::activate_smart_contract(SERVER_ID, NYM_ID, ACCT_ID,
                                              AGENT_NAME, THE_SMART_CONTRACT);
@@ -477,7 +478,7 @@ std::string OTMeCpp::trigger_clause(const std::string& SERVER_ID,
                                     const std::string& NYM_ID,
                                     const int64_t TRANS_NUM,
                                     const std::string& CLAUSE_NAME,
-                                    const std::string& STR_PARAM)
+                                    const std::string& STR_PARAM) const
 {
     return MadeEasy::trigger_clause(
         SERVER_ID, NYM_ID, std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
@@ -486,13 +487,13 @@ std::string OTMeCpp::trigger_clause(const std::string& SERVER_ID,
 std::string OTMeCpp::withdraw_cash(const std::string& SERVER_ID,
                                    const std::string& NYM_ID,
                                    const std::string& ACCT_ID,
-                                   const int64_t AMOUNT)
+                                   const int64_t AMOUNT) const
 {
     return MadeEasy::withdraw_cash(SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
 }
 
 bool OTMeCpp::easy_withdraw_cash(const std::string& ACCT_ID,
-                                 const int64_t AMOUNT)
+                                 const int64_t AMOUNT) const
 {
     return 1 == OT_Command::details_withdraw_cash(ACCT_ID, AMOUNT);
 }
@@ -503,7 +504,7 @@ std::string OTMeCpp::export_cash(const std::string& SERVER_ID,
                                  const std::string& TO_NYM_ID,
                                  const std::string& STR_INDICES,
                                  bool bPasswordProtected,
-                                 std::string& STR_RETAINED_COPY)
+                                 std::string& STR_RETAINED_COPY) const
 {
     std::string to_nym_id = TO_NYM_ID;
     return OT_Command::details_export_cash(
@@ -516,7 +517,7 @@ std::string OTMeCpp::withdraw_voucher(const std::string& SERVER_ID,
                                       const std::string& ACCT_ID,
                                       const std::string& RECIP_NYM_ID,
                                       const std::string& STR_MEMO,
-                                      const int64_t AMOUNT)
+                                      const int64_t AMOUNT) const
 {
     return MadeEasy::withdraw_voucher(SERVER_ID, NYM_ID, ACCT_ID, RECIP_NYM_ID,
                                       STR_MEMO, AMOUNT);
@@ -527,7 +528,7 @@ std::string OTMeCpp::pay_dividend(const std::string& SERVER_ID,
                                   const std::string& SOURCE_ACCT_ID,
                                   const std::string& SHARES_ASSET_ID,
                                   const std::string& STR_MEMO,
-                                  const int64_t AMOUNT_PER_SHARE)
+                                  const int64_t AMOUNT_PER_SHARE) const
 {
     return MadeEasy::pay_dividend(SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
                                   SHARES_ASSET_ID, STR_MEMO, AMOUNT_PER_SHARE);
@@ -536,7 +537,7 @@ std::string OTMeCpp::pay_dividend(const std::string& SERVER_ID,
 std::string OTMeCpp::deposit_cheque(const std::string& SERVER_ID,
                                     const std::string& NYM_ID,
                                     const std::string& ACCT_ID,
-                                    const std::string& STR_CHEQUE)
+                                    const std::string& STR_CHEQUE) const
 {
     return MadeEasy::deposit_cheque(SERVER_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
 }
@@ -544,7 +545,7 @@ std::string OTMeCpp::deposit_cheque(const std::string& SERVER_ID,
 bool OTMeCpp::deposit_cash(const std::string& SERVER_ID,
                            const std::string& NYM_ID,
                            const std::string& ACCT_ID,
-                           const std::string& STR_PURSE)
+                           const std::string& STR_PURSE) const
 {
     return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
                                                   STR_PURSE, "");
@@ -553,14 +554,14 @@ bool OTMeCpp::deposit_cash(const std::string& SERVER_ID,
 bool OTMeCpp::deposit_local_purse(const std::string& SERVER_ID,
                                   const std::string& NYM_ID,
                                   const std::string& ACCT_ID,
-                                  const std::string& STR_INDICES)
+                                  const std::string& STR_INDICES) const
 {
     return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
                                                   "", STR_INDICES);
 }
 
 std::string OTMeCpp::get_market_list(const std::string& SERVER_ID,
-                                     const std::string& NYM_ID)
+                                     const std::string& NYM_ID) const
 {
     return MadeEasy::get_market_list(SERVER_ID, NYM_ID);
 }
@@ -568,20 +569,20 @@ std::string OTMeCpp::get_market_list(const std::string& SERVER_ID,
 std::string OTMeCpp::get_market_offers(const std::string& SERVER_ID,
                                        const std::string& NYM_ID,
                                        const std::string& MARKET_ID,
-                                       const int64_t MAX_DEPTH)
+                                       const int64_t MAX_DEPTH) const
 {
     return MadeEasy::get_market_offers(SERVER_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
 }
 
 std::string OTMeCpp::get_nym_market_offers(const std::string& SERVER_ID,
-                                           const std::string& NYM_ID)
+                                           const std::string& NYM_ID) const
 {
     return MadeEasy::get_nym_market_offers(SERVER_ID, NYM_ID);
 }
 
-std::string OTMeCpp::get_market_recent_trades(const std::string& SERVER_ID,
-                                              const std::string& NYM_ID,
-                                              const std::string& MARKET_ID)
+std::string OTMeCpp::get_market_recent_trades(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& MARKET_ID) const
 {
     return MadeEasy::get_market_recent_trades(SERVER_ID, NYM_ID, MARKET_ID);
 }
@@ -589,7 +590,7 @@ std::string OTMeCpp::get_market_recent_trades(const std::string& SERVER_ID,
 std::string OTMeCpp::adjust_usage_credits(const std::string& SERVER_ID,
                                           const std::string& USER_NYM_ID,
                                           const std::string& TARGET_NYM_ID,
-                                          const std::string& ADJUSTMENT)
+                                          const std::string& ADJUSTMENT) const
 {
     return MadeEasy::adjust_usage_credits(SERVER_ID, USER_NYM_ID, TARGET_NYM_ID,
                                           ADJUSTMENT);

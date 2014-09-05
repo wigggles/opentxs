@@ -370,13 +370,13 @@ public:
     // For RPC mode
     EXPORT bool SetFocusToServerAndNym(OTServerContract& theServerContract,
                                        OTPseudonym& theNym,
-                                       TransportCallback* pCallback);
+                                       TransportCallback* pCallback) const;
 
     // For the test client in SSL / TCP mode.
     bool ConnectToTheFirstServerOnList(OTPseudonym& theNym,
                                        OTString& strCA_FILE,
                                        OTString& strKEY_FILE,
-                                       OTString& strKEY_PASSWORD);
+                                       OTString& strKEY_PASSWORD) const;
 
     // Eventually, the wallet will have a LIST of these server connections,
     // and any use of the connection will first require to look up the right one
@@ -390,9 +390,9 @@ public:
     bool InitClient(OTWallet& theWallet); // Need to call this before using.
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
-    void ProcessMessageOut(char* buf, int32_t* pnExpectReply);
+    void ProcessMessageOut(char* buf, int32_t* pnExpectReply) const;
     void ProcessMessageOut(OTMessage& theMessage);
-    bool ProcessInBuffer(OTMessage& theServerReply);
+    bool ProcessInBuffer(OTMessage& theServerReply) const;
     // These functions are for command processing:
 
     EXPORT int32_t
@@ -412,16 +412,16 @@ public:
     // that one, where appropriate, instead
     // of loading it internally.
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                     OTMessage& theReply);
+                                     OTMessage& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
                                    OTServerConnection& theConnection,
-                                   OTMessage& theReply);
+                                   OTMessage& theReply) const;
     void ProcessDepositResponse(OTTransaction& theTransaction,
                                 OTServerConnection& theConnection,
-                                OTMessage& theReply);
+                                OTMessage& theReply) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     OTServerConnection& theConnection,
-                                    OTMessage& theReply);
+                                    OTMessage& theReply) const;
 
     //  void AcceptEntireInbox (OTLedger & theInbox,  OTServerConnection &
     // theConnection);
