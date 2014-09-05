@@ -155,6 +155,7 @@
 #include <functional>
 
 using namespace opentxs;
+using namespace std;
 
 const char* categoryName[] = {
     "Category Error",           "Advanced utilities",    "The user wallet",
@@ -428,23 +429,22 @@ Opentxs::~Opentxs()
     OTAPI_Wrap::AppCleanup();
 }
 
-std::string& Opentxs::ltrim(std::string& s)
+string& Opentxs::ltrim(string& s)
 {
     s.erase(s.begin(),
-            std::find_if(s.begin(), s.end(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace))));
+            find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace))));
     return s;
 }
 
-std::string& Opentxs::rtrim(std::string& s)
+string& Opentxs::rtrim(string& s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(
-                                                   std::isspace))).base(),
-            s.end());
+    s.erase(
+        find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(),
+        s.end());
     return s;
 }
 
-std::string& Opentxs::trim(std::string& s)
+string& Opentxs::trim(string& s)
 {
     return ltrim(rtrim(s));
 }
@@ -517,8 +517,8 @@ const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
     return "";
 }
 
-OTVariable* Opentxs::setGlobalVar(OT_ME& madeEasy, const std::string& name,
-                                  const std::string& value)
+OTVariable* Opentxs::setGlobalVar(OT_ME& madeEasy, const string& name,
+                                  const string& value)
 {
     if (value.size() == 0) {
         otInfo << "Variable " << name << " isn't set\n";
@@ -698,7 +698,7 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         otOut << "Expecting a single opentxs command:\n\n";
     }
 
-    typedef std::unique_ptr<OTVariable> GlobalVar;
+    typedef unique_ptr<OTVariable> GlobalVar;
     GlobalVar varArgs(setGlobalVar(madeEasy, "Args", argArgs));
     GlobalVar varHisAcct(setGlobalVar(madeEasy, "HisAcct", argHisAcct));
     GlobalVar varHisNym(setGlobalVar(madeEasy, "HisNym", argHisNym));
@@ -789,9 +789,9 @@ int Opentxs::run(int argc, char* argv[])
 
     OTAPI_Wrap::OTAPI()->LoadWallet();
 
-    std::map<std::string, std::string> macros;
-    std::vector<int> errorLineNumbers;
-    std::vector<std::string> errorCommands;
+    map<string, string> macros;
+    vector<int> errorLineNumbers;
+    vector<string> errorCommands;
 
     OT_ME madeEasy;
 
@@ -810,13 +810,13 @@ int Opentxs::run(int argc, char* argv[])
     while (true) {
         // get next command line from input stream
         if (!noPrompt) {
-            std::cout << "\nopentxs> ";
+            cout << "\nopentxs> ";
         }
-        std::string cmd;
-        std::getline(std::cin, cmd);
+        string cmd;
+        getline(cin, cmd);
 
         // end of file stops processing commands
-        if (std::cin.eof()) {
+        if (cin.eof()) {
             break;
         }
 
@@ -825,7 +825,7 @@ int Opentxs::run(int argc, char* argv[])
         // quit/exit the command loop?
         cmd = trim(cmd);
         if (echoCommand) {
-            std::cout << cmd << std::endl;
+            cout << cmd << endl;
         }
 
         if (cmd == "quit" || cmd == "exit") {
@@ -838,7 +838,7 @@ int Opentxs::run(int argc, char* argv[])
             continue;
         }
 
-        std::string originalCmd = cmd;
+        string originalCmd = cmd;
 
         // lines starting with a dollar sign character denote the definition of
         // a macro of the form: $macroName = macroValue
@@ -859,14 +859,14 @@ int Opentxs::run(int argc, char* argv[])
             // determine the macro name
             size_t nameLength = 1;
             while (nameLength < cmd.length() &&
-                   (std::isalnum(cmd[nameLength]) || cmd[nameLength] == '_')) {
+                   (isalnum(cmd[nameLength]) || cmd[nameLength] == '_')) {
                 nameLength++;
             }
-            std::string macroName = cmd.substr(0, nameLength);
+            string macroName = cmd.substr(0, nameLength);
 
             // skip whitespace
             size_t i = nameLength;
-            while (i < cmd.length() && std::isspace(cmd[i])) {
+            while (i < cmd.length() && isspace(cmd[i])) {
                 i++;
             }
 
@@ -879,7 +879,7 @@ int Opentxs::run(int argc, char* argv[])
             }
 
             // remainder of line after trimming whitespace is macro value
-            std::string macroValue = cmd.substr(i + 1);
+            string macroValue = cmd.substr(i + 1);
             macros[macroName] = trim(macroValue);
             continue;
         }
@@ -889,7 +889,7 @@ int Opentxs::run(int argc, char* argv[])
         // execution
         // note that all macro names are 'maximum munch'
         int expansions = 0;
-        for (size_t macro = cmd.find_first_of("$"); macro != std::string::npos;
+        for (size_t macro = cmd.find_first_of("$"); macro != string::npos;
              macro = cmd.find_first_of("$", macro + 1)) {
             // first see if this is an escaped literal
             if (macro > 0 && cmd[macro - 1] == '\\') {
@@ -899,14 +899,13 @@ int Opentxs::run(int argc, char* argv[])
             // gather rest of macro name 'maximum munch'
             size_t macroEnd = macro + 1;
             while (macroEnd < cmd.length() &&
-                   (std::isalnum(cmd[macroEnd]) || cmd[macroEnd] == '_')) {
+                   (isalnum(cmd[macroEnd]) || cmd[macroEnd] == '_')) {
                 macroEnd++;
             }
 
             // has this macro been defined?
-            std::string macroName = cmd.substr(macro, macroEnd - macro);
-            std::map<std::string, std::string>::iterator found =
-                macros.find(macroName);
+            string macroName = cmd.substr(macro, macroEnd - macro);
+            map<string, string>::iterator found = macros.find(macroName);
             if (found == macros.end()) {
                 otOut << "\n\n***ERROR***\n"
                          "Macro expansion failed.\n"
@@ -917,7 +916,7 @@ int Opentxs::run(int argc, char* argv[])
                 break;
             }
 
-            std::string& macroValue = found->second;
+            string& macroValue = found->second;
 
             // limit to 100 expansions to avoid endless recusion loop
             expansions++;
@@ -948,7 +947,7 @@ int Opentxs::run(int argc, char* argv[])
         }
 
         if (echoExpand && cmd != originalCmd) {
-            otOut << cmd << std::endl;
+            otOut << cmd << endl;
         }
 
         // skip command when anything during macro expansion failed
@@ -969,7 +968,7 @@ int Opentxs::run(int argc, char* argv[])
         // All characters are taken literal except for: double quote, dollar
         // sign, and backslash
         // To take any character literal, precede it with a backslash
-        std::vector<std::string> arguments;
+        vector<string> arguments;
 
         // add original command name
         arguments.push_back(argv[0]);
@@ -982,7 +981,7 @@ int Opentxs::run(int argc, char* argv[])
         size_t i = expectFailure ? 1 : 0;
         while (i < cmd.length()) {
             // skip any whitespace
-            while (i < cmd.length() && std::isspace(cmd[i])) {
+            while (i < cmd.length() && isspace(cmd[i])) {
                 i++;
             }
             if (i == cmd.length()) {
@@ -996,7 +995,7 @@ int Opentxs::run(int argc, char* argv[])
             // unquoted argument?
             if (cmd[i] != '"') {
                 // take everything until end of line or next whitespace
-                while (i < cmd.length() && !std::isspace(cmd[i])) {
+                while (i < cmd.length() && !isspace(cmd[i])) {
                     // unescaped literal character?
                     if (cmd[i] != '\\') {
                         // yep, add to buffer and go for next
@@ -1055,7 +1054,7 @@ int Opentxs::run(int argc, char* argv[])
         AnyOption opt;
         handleCommandLineArguments(newArgc, newArgv, opt);
 
-        std::cout << "\n";
+        cout << "\n";
         if (expectFailure != (0 != processCommand(madeEasy, opt))) {
             errorLineNumbers.push_back(lineNumber);
             errorCommands.push_back(originalCmd);
@@ -1072,13 +1071,13 @@ int Opentxs::run(int argc, char* argv[])
     }
 
     int failed = errorLineNumbers.size();
-    std::cout << "\n\n" << processed << " commands were processed.\n" << failed
-              << " commands failed.\n" << std::endl;
+    cout << "\n\n" << processed << " commands were processed.\n" << failed
+         << " commands failed.\n" << endl;
 
     if (opt.getFlag("errorList") || opt.getFlag("test")) {
         for (size_t i = 0; i < errorLineNumbers.size(); i++) {
-            std::cout << "\nFailed line " << errorLineNumbers[i] << ": "
-                      << errorCommands[i] << std::endl;
+            cout << "\nFailed line " << errorLineNumbers[i] << ": "
+                 << errorCommands[i] << endl;
         }
     }
 

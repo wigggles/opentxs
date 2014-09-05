@@ -31,10 +31,9 @@
 #include "OT_ME.hpp"
 #include "../core/OTLog.hpp"
 
-using std::cout;
-
 namespace opentxs
 {
+using namespace std;
 
 OT_COMMANDS_OT int32_t OT_Command::mainRevokeCredential()
 {
@@ -89,7 +88,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
 
         // Zoom in on a specific basket currency.
         if (VerifyStringVal(strIndex)) {
-            int32_t nIndex = to_int(strIndex);
+            int32_t nIndex = std::stol(strIndex);
 
             if (nIndex < 0 || nIndex >= nAssetCount) {
                 otOut << "Error: index out of bounds.\n";
@@ -241,7 +240,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     string strBasketCount = OT_CLI_ReadLine();
 
     if (VerifyStringVal(strBasketCount)) {
-        nBasketCount = to_int(strBasketCount);
+        nBasketCount = std::stol(strBasketCount);
 
         if (nBasketCount < 2) {
             otOut << "Sorry, but a basket currency must be composed of at "
@@ -264,7 +263,7 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
     string strMinAmount = OT_CLI_ReadLine();
 
     if (VerifyStringVal(strMinAmount)) {
-        lMinimumTransAmount = to_long(strMinAmount);
+        lMinimumTransAmount = std::stoll(strMinAmount);
 
         if (lMinimumTransAmount < 1) {
             otOut << "Sorry, but this needs to be a non-zero value. Minimum is "
@@ -470,7 +469,7 @@ OT_Command::details_exchange_basket(const string& strServer,
     string strTransferMultiple = OT_CLI_ReadLine();
 
     if (VerifyStringVal(strTransferMultiple)) {
-        int32_t nTempMultiple = to_int(strTransferMultiple);
+        int32_t nTempMultiple = std::stol(strTransferMultiple);
 
         if (nTempMultiple > 1) {
             nTransferMultiple = nTempMultiple;
@@ -857,8 +856,8 @@ OT_Command::details_discard_incoming(const string& strServer,
             //   that list, then continue...
             if (!("all" == strIndices) &&
                 ((nIndicesCount > 0) &&
-                 !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                  to_string(nInboxIndex)))) {
+                 !OTAPI_Wrap::NumList_VerifyQuery(
+                      strIndices, std::to_string(nInboxIndex)))) {
                 continue;
             }
 
@@ -984,7 +983,7 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
             //   that list, then continue...
             if (!("all" == strIndices) && nIndicesCount > 0 &&
                 !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                 to_string(nIndex))) {
+                                                 std::to_string(nIndex))) {
                 continue;
             }
 
@@ -1850,7 +1849,7 @@ OT_COMMANDS_OT bool OT_Command::show_unconfirmed_parties(
         bool bIsPartyConfirmed =
             OTAPI_Wrap::Smart_IsPartyConfirmed(strSmartContract, strPartyName);
         if (!bIsPartyConfirmed) {
-            string strIndex = to_string(nCurrentParty);
+            string strIndex = std::to_string(nCurrentParty);
             otOut << strIndex << " : Unconfirmed party: " << strPartyName
                   << "\n";
             ++nUnconfirmedPartyCount;
@@ -2194,7 +2193,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
         string strPartyIndex = OT_CLI_ReadLine();
 
         if (VerifyStringVal(strPartyIndex)) {
-            int32_t nCurrentParty = to_int(strPartyIndex);
+            int32_t nCurrentParty = std::stol(strPartyIndex);
 
             if (nCurrentParty >= 0 && nCurrentParty < nPartyCount) {
                 string strPartyName = OTAPI_Wrap::Smart_GetPartyByIndex(
@@ -2252,7 +2251,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             return -1;
                         }
 
-                        int32_t nAcctIndex = to_int(strAcctIndex);
+                        int32_t nAcctIndex = std::stol(strAcctIndex);
 
                         if (nAcctIndex < 0) {
                             otOut << "Error: Bad Index: " << strAcctIndex
@@ -2398,7 +2397,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
 
                                         for (int32_t i = 0; i < nNymCount;
                                              ++i) {
-                                            string strIndex = to_string(i);
+                                            string strIndex = std::to_string(i);
                                             string strLoopNymID =
                                                 OTAPI_Wrap::GetNym_ID(i);
 
@@ -2434,7 +2433,8 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                             return -1;
                                         }
 
-                                        int32_t nNymIndex = to_int(strNymIndex);
+                                        int32_t nNymIndex =
+                                            std::stol(strNymIndex);
                                         if (nNymIndex < 0) {
                                             otOut
                                                 << "Bad index: " << strNymIndex
@@ -2583,7 +2583,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             }
 
                             int32_t nSelectedAcctIndex =
-                                to_int(strSelectedAcctIndex);
+                                std::stol(strSelectedAcctIndex);
 
                             if (nSelectedAcctIndex < 0 ||
                                 nSelectedAcctIndex >= nCountAcctsWallet) {
@@ -2672,7 +2672,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                                 }
 
                                                 int32_t nAgentIndex =
-                                                    to_int(strAgentIndex);
+                                                    std::stol(strAgentIndex);
 
                                                 if (nAgentIndex < 0) {
                                                     otOut
@@ -2920,7 +2920,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             return -1;
                         }
 
-                        int32_t nAcctIndex = to_int(strAcctIndex);
+                        int32_t nAcctIndex = std::stol(strAcctIndex);
 
                         if (nAcctIndex < 0 || nAcctIndex >= nAccountCount) {
                             otOut << "Error: Bad Index: " << strAcctIndex
@@ -3215,7 +3215,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainConfirm()
         string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
         if (VerifyStringVal(strIndex)) {
-            int32_t nTempIndex = to_int(strIndex);
+            int32_t nTempIndex = std::stol(strIndex);
 
             if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
@@ -3235,7 +3235,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainConfirm()
             string strIndex = OT_CLI_ReadLine();
 
             if (VerifyStringVal(strIndex)) {
-                int32_t nTempIndex = to_int(strIndex);
+                int32_t nTempIndex = std::stol(strIndex);
 
                 if (nTempIndex >= 0) {
                     nIndex = nTempIndex;
@@ -4177,8 +4177,9 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
                 strAmount = strNewAmount;
             }
 
-            if (VerifyStringVal(strNewLength) && (to_int(strNewLength) > 0)) {
-                nLength = to_int(strNewLength);
+            if (VerifyStringVal(strNewLength) &&
+                (std::stol(strNewLength) > 0)) {
+                nLength = std::stol(strNewLength);
             }
         }
 
@@ -4199,8 +4200,8 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
                      "is 30 days.) [" << nDefaultLength << "]: ";
             string strTemp = OT_CLI_ReadLine();
 
-            if (VerifyStringVal(strTemp) && (to_int(strTemp) > 0)) {
-                nLength = to_int(strTemp);
+            if (VerifyStringVal(strTemp) && (std::stol(strTemp) > 0)) {
+                nLength = std::stol(strTemp);
             }
         }
 
@@ -4220,10 +4221,10 @@ OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
         // Todo: use Args feature here to allow an option to override nLength.
         // If it's not used, go with the default of 30 days (above.)
 
-        string strLength = to_string(nLength);
+        string strLength = std::to_string(nLength);
 
         time64_t tFrom = OTAPI_Wrap::GetTime();
-        int64_t tLength = to_long(strLength);
+        int64_t tLength = std::stoll(strLength);
         time64_t tTo = OTTimeAddTimeInterval(tFrom, tLength);
 
         if (bIsInvoice) {
@@ -4905,23 +4906,23 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewOffer()
 
         // If the offer parameters aren't satisfied yet, then
         // ask the user to supply them at the command line.
-        if (!VerifyStringVal(strScale) || (to_int(strScale) < 1)) {
+        if (!VerifyStringVal(strScale) || (std::stol(strScale) < 1)) {
             otOut << "Enter the market scale (1, 10, 100, etc)["
                   << strDefaultScale << "]: ";
             strScale = OT_CLI_ReadLine();
         }
         if (!VerifyStringVal(strMinIncrement) ||
-            (to_int(strMinIncrement) < 1)) {
+            (std::stol(strMinIncrement) < 1)) {
             otOut << "Enter the minimum increment[" << strDefaultMinIncrement
                   << "]: ";
             strMinIncrement = OT_CLI_ReadLine();
         }
-        if (!VerifyStringVal(strQuantity) || (to_int(strQuantity) < 1)) {
+        if (!VerifyStringVal(strQuantity) || (std::stol(strQuantity) < 1)) {
             otOut << "Enter the quantity being purchased/sold["
                   << strDefaultQuantity << "]: ";
             strQuantity = OT_CLI_ReadLine();
         }
-        if (!VerifyStringVal(strPrice) || (to_int(strPrice) < 0)) {
+        if (!VerifyStringVal(strPrice) || (std::stol(strPrice) < 0)) {
             otOut << "Enter the price per scale[" << strDefaultPrice << "]: ";
             strPrice = OT_CLI_ReadLine();
         }
@@ -4931,30 +4932,30 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewOffer()
                   << "]: ";
             strType = OT_CLI_ReadLine();
         }
-        if (!VerifyStringVal(strLifespan) || (to_int(strLifespan) < 1)) {
+        if (!VerifyStringVal(strLifespan) || (std::stol(strLifespan) < 1)) {
             otOut << "(1 hour == 3600, 1 day == 86400)\n Enter the lifespan of "
                      "the offer, in seconds[" << strDefaultLifespan << "]: ";
             strLifespan = OT_CLI_ReadLine();
         }
 
-        if (!VerifyStringVal(strScale) || (to_int(strScale) < 1)) {
+        if (!VerifyStringVal(strScale) || (std::stol(strScale) < 1)) {
             strScale = strDefaultScale;
         }
         if (!VerifyStringVal(strMinIncrement) ||
-            (to_int(strMinIncrement) < 1)) {
+            (std::stol(strMinIncrement) < 1)) {
             strMinIncrement = strDefaultMinIncrement;
         }
-        if (!VerifyStringVal(strQuantity) || (to_int(strQuantity) < 1)) {
+        if (!VerifyStringVal(strQuantity) || (std::stol(strQuantity) < 1)) {
             strQuantity = strDefaultQuantity;
         }
-        if (!VerifyStringVal(strPrice) || (to_int(strPrice) < 1)) {
+        if (!VerifyStringVal(strPrice) || (std::stol(strPrice) < 1)) {
             strPrice = strDefaultPrice;
         }
         if (!VerifyStringVal(strType) ||
             ((strType != "bid") && (strType != "ask"))) {
             strType = strDefaultType;
         }
-        if (!VerifyStringVal(strLifespan) || (to_int(strLifespan) < 1)) {
+        if (!VerifyStringVal(strLifespan) || (std::stol(strLifespan) < 1)) {
             strLifespan = strDefaultLifespan;
         }
 
@@ -5303,7 +5304,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowNyms()
     int32_t nNymCount = OTAPI_Wrap::GetNymCount();
 
     for (int32_t i = 0; i < nNymCount; ++i) {
-        string strIndex = to_string(i);
+        string strIndex = std::to_string(i);
         string strID = OTAPI_Wrap::GetNym_ID(i);
         string strName = OTAPI_Wrap::GetNym_Name(strID);
 
@@ -5321,7 +5322,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowServers()
     int32_t nServerCount = OTAPI_Wrap::GetServerCount();
 
     for (int32_t i = 0; i < nServerCount; ++i) {
-        string strIndex = to_string(i);
+        string strIndex = std::to_string(i);
         string strID = OTAPI_Wrap::GetServer_ID(i);
         string strName = OTAPI_Wrap::GetServer_Name(strID);
 
@@ -5558,8 +5559,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewNym()
         string strNewSource = OT_CLI_GetValueByKey(Args, "source");
         string strNewLocation = OT_CLI_GetValueByKey(Args, "location");
 
-        if (VerifyStringVal(strKeybits) && (to_int(strKeybits) > 0)) {
-            nKeybits = to_int(strKeybits);
+        if (VerifyStringVal(strKeybits) && (std::stol(strKeybits) > 0)) {
+            nKeybits = std::stol(strKeybits);
         }
 
         if (VerifyStringVal(strNewName)) {
@@ -5766,7 +5767,7 @@ OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
                 //   that list, then continue...
                 if ((nIndicesCount > 0) &&
                     !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                     to_string(nIndex))) {
+                                                     std::to_string(nIndex))) {
                     continue;
                 }
 
@@ -6386,7 +6387,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
             }
             int32_t nBoxType = 1;
             if (VerifyStringVal(strNewType)) {
-                nBoxType = to_int(strNewType);
+                nBoxType = std::stol(strNewType);
             }
 
             if (nBoxType < 0 || nBoxType > 2) {
@@ -7092,7 +7093,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetOffers()
             strDepth = strDefaultDepth;
         }
 
-        int64_t lDepth = to_long(strDepth);
+        int64_t lDepth = std::stoll(strDepth);
         string strResponse =
             MadeEasy::get_market_offers(Server, MyNym, strMarket, lDepth);
         string strAttempt = "get_market_offers";
@@ -7155,7 +7156,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
             int64_t lNewUsageBalance =
                 OTAPI_Wrap::Message_GetUsageCredits(strResponse);
             string strNewUsageBalance =
-                lNewUsageBalance > -2 ? to_string(lNewUsageBalance) : "";
+                lNewUsageBalance > -2 ? std::to_string(lNewUsageBalance) : "";
 
             if (!VerifyStringVal(strNewUsageBalance)) {
                 strNewUsageBalance = "(Error while calling API to retrieve "
@@ -7180,7 +7181,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
             }
             else {
                 strNewUsageBalance = "Nym currently has " +
-                                     to_string(lNewUsageBalance) +
+                                     std::to_string(lNewUsageBalance) +
                                      " usage credits.";
             }
 
@@ -7730,8 +7731,8 @@ OT_Command::details_deposit_purse(const string& strServerID,
                     }
 
                     if (!("all" == strIndices) &&
-                        OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                        to_string(nIndex))) {
+                        OTAPI_Wrap::NumList_VerifyQuery(
+                            strIndices, std::to_string(nIndex))) {
                         vecSelectedTokenIDs.push_back(strTokenID);
                     }
                 }
@@ -8239,8 +8240,8 @@ OT_COMMANDS_OT string OT_Command::details_export_cash(
                     // vector of indices, then we push this one (since it was
                     // selected.)
                     if (!("all" == strIndices) &&
-                        OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                        to_string(nIndex))) {
+                        OTAPI_Wrap::NumList_VerifyQuery(
+                            strIndices, std::to_string(nIndex))) {
                         vecSelectedTokenIDs.push_back(strTokenID);
                     }
                 }
@@ -8504,10 +8505,10 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                 else if (bFindAmountFromIndices) {
                     if (VerifyStringVal(strIndices) &&
                         (("all" == strIndices) ||
-                         OTAPI_Wrap::NumList_VerifyQuery(strIndices,
-                                                         to_string(nIndex)))) {
+                         OTAPI_Wrap::NumList_VerifyQuery(
+                             strIndices, std::to_string(nIndex)))) {
                         string strTempIndices = OTAPI_Wrap::NumList_Add(
-                            strLoopIndices, to_string(nIndex));
+                            strLoopIndices, std::to_string(nIndex));
                         strLoopIndices = strTempIndices;
                         lLoopAmount += lDenomination;
                     }
@@ -8516,7 +8517,7 @@ OT_COMMANDS_OT bool OT_Command::purse_get_indices_or_amount(
                     if (lAmountRemaining > 0 &&
                         lDenomination <= lAmountRemaining) {
                         string strTempIndices = OTAPI_Wrap::NumList_Add(
-                            strLoopIndices, to_string(nIndex));
+                            strLoopIndices, std::to_string(nIndex));
                         strLoopIndices = strTempIndices;
                         lLoopAmount += lDenomination;
                         lAmountRemaining -= lDenomination;
@@ -8591,7 +8592,7 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
     int64_t lAmount = int64_t(0);
 
     if (VerifyStringVal(strAmount)) {
-        lAmount = to_long(strAmount);
+        lAmount = std::stoll(strAmount);
     }
 
     if (lAmount <= 0) {
@@ -8633,7 +8634,7 @@ OT_Command::details_send_cash(string& strResponse, const string& strServerID,
     int64_t lStartAmount = int64_t(0);
 
     if (VerifyStringVal(strAmount)) {
-        lStartAmount = to_long(strAmount);
+        lStartAmount = std::stoll(strAmount);
     }
 
     int64_t lAmount = lStartAmount;
@@ -8839,7 +8840,7 @@ OT_Command::handle_payment_index(const string& strMyAcctID,
     string strIndexErrorMsg = "";
 
     if (-1 != nIndex) {
-        strIndexErrorMsg = "at index " + to_string(nIndex) + " ";
+        strIndexErrorMsg = "at index " + std::to_string(nIndex) + " ";
     }
 
     // If there's a payment type,
@@ -9035,8 +9036,8 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
         //
         // - If NO indices are specified, accept all the ones matching MyAcct's
         // asset type.
-        if ((nIndicesCount > 0) &&
-            !OTAPI_Wrap::NumList_VerifyQuery(strIndices, to_string(nIndex))) {
+        if ((nIndicesCount > 0) && !OTAPI_Wrap::NumList_VerifyQuery(
+                                        strIndices, std::to_string(nIndex))) {
             bContinue = true;
         }
         else if (!bContinue) {
@@ -9132,7 +9133,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
         string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
         if (VerifyStringVal(strIndex)) {
-            int32_t nTempIndex = to_int(strIndex);
+            int32_t nTempIndex = std::stol(strIndex);
 
             if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
@@ -9326,7 +9327,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowActive()
         if (VerifyExists("Args", false)) {
             string strTransNum = OT_CLI_GetValueByKey(Args, "id");
             if (VerifyStringVal(strTransNum)) {
-                lTransNum = to_long(strTransNum);
+                lTransNum = std::stoll(strTransNum);
 
                 if (lTransNum > 0) {
                     bDetailMode = true;
@@ -9379,7 +9380,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowActive()
                 for (size_t nIndex = 0; nIndex < vecIDs.size(); ++nIndex) {
                     string strTransNum = vecIDs[nIndex];
                     if (VerifyStringVal(strTransNum)) {
-                        lTransNum = to_long(strTransNum);
+                        lTransNum = std::stoll(strTransNum);
 
                         if (lTransNum > 0) {
                             string strCronItem = OTAPI_Wrap::GetActiveCronItem(
@@ -9440,7 +9441,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
         }
 
         if (VerifyStringVal(strIndex)) {
-            int32_t nTempIndex = to_int(strIndex);
+            int32_t nTempIndex = std::stol(strIndex);
 
             if (nTempIndex >= 0) {
                 nIndex = nTempIndex;
@@ -9608,7 +9609,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPayment()
 
                 cout << strType << (strType.size() > 10 ? " " : "    ");
                 cout << lTransNumber
-                     << (to_string(lTransNumber).size() < 2 ? "    " : "   ");
+                     << (std::to_string(lTransNumber).size() < 2 ? "    "
+                                                                 : "   ");
                 cout << (bMemoExists ? strMemo : "") << "\n";
                 cout << strUserDenoter << strUserID << strUserDenoter2
                      << strUserName << strSeparator;
@@ -9729,7 +9731,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInpayments()
                             Server, MyNym, MyNym, strInbox, nIndex);
 
                     string strTransID = 0 <= lTransNumber
-                                            ? to_string(lTransNumber)
+                                            ? std::to_string(lTransNumber)
                                             : "UNKNOWN_TRANS_NUM";
 
                     OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
@@ -9867,14 +9869,15 @@ OT_Command::details_show_record(const string& strServerID,
     string strAmount =
         bHasAmount
             ? (bHasAsset ? OTAPI_Wrap::FormatAmount(strAssetTypeID, lAmount)
-                         : to_string(lAmount))
+                         : std::to_string(lAmount))
             : "UNKNOWN_AMOUNT";
 
     otOut << nIndex << "    ";
     otOut << strAmount << (strAmount.size() < 3 ? "    " : "   ");
     otOut << strType << (strType.size() > 10 ? " " : "    ");
-    otOut << lTransID << (to_string(lTransID).size() < 2 ? "    " : "   ");
-    otOut << lRefNum << (to_string(lRefNum).size() > 2 ? "  " : " ") << "|";
+    otOut << lTransID << (std::to_string(lTransID).size() < 2 ? "    " : "   ");
+    otOut << lRefNum << (std::to_string(lRefNum).size() > 2 ? "  " : " ")
+          << "|";
     otOut << strUserDenoter << strUserID << strSeparator << strAcctDenoter
           << strAcctID << "\n";
 
@@ -10239,14 +10242,15 @@ OT_Command::details_show_expired(const string& strServerID,
         OT_ERROR_AMOUNT != lAmount
             ? (VerifyStringVal(strAssetTypeID)
                    ? OTAPI_Wrap::FormatAmount(strAssetTypeID, lAmount)
-                   : to_string(lAmount))
+                   : std::to_string(lAmount))
             : "UNKNOWN_AMOUNT";
 
     otOut << nIndex << "    ";
     otOut << strAmount << (strAmount.size() < 3 ? "    " : "   ");
     otOut << strType << (strType.size() > 10 ? " " : "    ");
-    otOut << lTransID << (to_string(lTransID).size() < 2 ? "    " : "   ");
-    otOut << lRefNum << (to_string(lRefNum).size() > 2 ? "  " : " ") << "|";
+    otOut << lTransID << (std::to_string(lTransID).size() < 2 ? "    " : "   ");
+    otOut << lRefNum << (std::to_string(lRefNum).size() > 2 ? "  " : " ")
+          << "|";
     otOut << strUserDenoter << strUserID << strSeparator << strAcctDenoter
           << strAcctID << "\n";
 
@@ -10424,7 +10428,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
                                            ? (VerifyStringVal(strAssetTypeID)
                                                   ? OTAPI_Wrap::FormatAmount(
                                                         strAssetTypeID, lAmount)
-                                                  : to_string(lAmount))
+                                                  : std::to_string(lAmount))
                                            : "UNKNOWN_AMOUNT";
 
                     otOut << nIndex << "    ";
@@ -10433,9 +10437,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainInbox()
                     otOut << strType;
                     otOut << (strType.size() > 10 ? " " : "    ");
                     otOut << lTransID
-                          << (to_string(lTransID).size() < 2 ? "    " : "   ");
+                          << (std::to_string(lTransID).size() < 2 ? "    "
+                                                                  : "   ");
                     otOut << lRefNum
-                          << (to_string(lRefNum).size() > 2 ? "  " : " ")
+                          << (std::to_string(lRefNum).size() > 2 ? "  " : " ")
                           << "|";
                     otOut << strUserDenoter << strUserID << strSeparator
                           << strAcctDenoter << strAcctID << "\n";
@@ -10568,7 +10573,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
                                            ? (VerifyStringVal(strAssetTypeID)
                                                   ? OTAPI_Wrap::FormatAmount(
                                                         strAssetTypeID, lAmount)
-                                                  : to_string(lAmount))
+                                                  : std::to_string(lAmount))
                                            : "UNKNOWN_AMOUNT";
 
                     otOut << nIndex << "    ";
@@ -10576,9 +10581,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
                           << (strAmount.size() < 3 ? "    " : "   ");
                     otOut << strType << (strType.size() > 10 ? " " : "    ");
                     otOut << lTransID
-                          << (to_string(lTransID).size() < 2 ? "    " : "   ");
+                          << (std::to_string(lTransID).size() < 2 ? "    "
+                                                                  : "   ");
                     otOut << lRefNum
-                          << (to_string(lRefNum).size() > 2 ? "  " : " ")
+                          << (std::to_string(lRefNum).size() > 2 ? "  " : " ")
                           << "|";
                     otOut << strUserDenoter << strUserID << strSeparator
                           << strAcctDenoter << strAcctID << "\n";
@@ -10677,8 +10683,8 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
         // If we're not deleting "all" (i.e. we're deleting specific indices)...
         // and the current index doesn't appear on that specified list, then
         // continue...
-        if (!bDeleteAll &&
-            !OTAPI_Wrap::NumList_VerifyQuery(strIndices, to_string(nIndex))) {
+        if (!bDeleteAll && !OTAPI_Wrap::NumList_VerifyQuery(
+                                strIndices, std::to_string(nIndex))) {
             // We skip any indices that the user isn't trying to delete.
             //          continue   // apparently not supported by the language.
         }
@@ -10754,7 +10760,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInmail()
     if (VerifyExists("Args", false)) {
         string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
-            nIndex = to_int(strIndex);
+            nIndex = std::stol(strIndex);
             if (nIndex >= nCount) {
                 otOut << "Error: invalid message index: " << strIndex << "\n";
                 return -1;
@@ -10843,7 +10849,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutmail()
     if (VerifyExists("Args", false)) {
         string strIndex = OT_CLI_GetValueByKey(Args, "index");
         if (VerifyStringVal(strIndex)) {
-            nIndex = to_int(strIndex);
+            nIndex = std::stol(strIndex);
             if (nIndex >= nCount) {
                 otOut << "Error: invalid message index: " << strIndex << "\n";
                 return -1;
@@ -10915,8 +10921,8 @@ OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
         // If we're not deleting "all" (i.e. we're deleting specific indices)...
         // and the current index doesn't appear on that specified list, then
         // continue...
-        if (!bDeleteAll &&
-            !OTAPI_Wrap::NumList_VerifyQuery(strIndices, to_string(nIndex))) {
+        if (!bDeleteAll && !OTAPI_Wrap::NumList_VerifyQuery(
+                                strIndices, std::to_string(nIndex))) {
             // We skip any indices that the user isn't trying to delete.
             //          continue // apparently not supported by the language.
         }
@@ -10995,7 +11001,7 @@ OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
         int64_t lPaymentAmount =
             OTAPI_Wrap::Instrmnt_GetAmount(strMailContents);
         string strPaymentAmount = OT_ERROR_AMOUNT != lPaymentAmount
-                                      ? to_string(lPaymentAmount)
+                                      ? std::to_string(lPaymentAmount)
                                       : "UNKNOWN_PAYMENT_AMOUNT";
 
         string strPaymentAssetID =
@@ -11099,7 +11105,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutpayment()
         string strIndex = OT_CLI_GetValueByKey(Args, "index");
 
         if (VerifyStringVal(strIndex)) {
-            nIndex = to_int(strIndex);
+            nIndex = std::stol(strIndex);
             if (nIndex >= nCount) {
                 otOut << "Error: invalid message index: " << strIndex << "\n";
                 return 0;

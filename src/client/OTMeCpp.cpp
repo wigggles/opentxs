@@ -283,12 +283,12 @@ bool OTMeCpp::cancel_outgoing_payments(const std::string& NYM_ID,
            1;
 }
 
-int32_t OTMeCpp::accept_from_paymentbox(const std::string& ACCOUNT_ID,
-                                        const std::string& INDICES,
-                                        const std::string& PAYMENT_TYPE)
+bool OTMeCpp::accept_from_paymentbox(const std::string& ACCOUNT_ID,
+                                     const std::string& INDICES,
+                                     const std::string& PAYMENT_TYPE)
 {
-    return OT_Command::accept_from_paymentbox(ACCOUNT_ID, INDICES,
-                                              PAYMENT_TYPE);
+    return 1 == OT_Command::accept_from_paymentbox(ACCOUNT_ID, INDICES,
+                                                   PAYMENT_TYPE);
 }
 
 std::string OTMeCpp::load_public_encryption_key(const std::string& NYM_ID)
@@ -383,7 +383,7 @@ bool OTMeCpp::withdraw_and_send_cash(const std::string& ACCT_ID,
     std::string recipient_nym_id = RECIPIENT_NYM_ID;
 
     return OT_Command::withdraw_and_send_cash(ACCT_ID, recipient_nym_id, MEMO,
-                                              ::to_string(AMOUNT));
+                                              std::to_string(AMOUNT));
 }
 
 std::string OTMeCpp::get_payment_instrument(const std::string& SERVER_ID,
@@ -402,7 +402,7 @@ std::string OTMeCpp::get_box_receipt(const std::string& SERVER_ID,
                                      const int64_t TRANS_NUM)
 {
     return MadeEasy::get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID, nBoxType,
-                                     ::to_string(TRANS_NUM));
+                                     std::to_string(TRANS_NUM));
 }
 
 std::string OTMeCpp::retrieve_mint(const std::string& SERVER_ID,
@@ -433,10 +433,10 @@ std::string OTMeCpp::create_market_offer(
     const std::string& STOP_SIGN, const int64_t ACTIVATION_PRICE)
 {
     return MadeEasy::create_market_offer(
-        ASSET_ACCT_ID, CURRENCY_ACCT_ID, ::to_string(scale),
-        ::to_string(minIncrement), ::to_string(quantity), ::to_string(price),
-        bSelling, ::to_string(lLifespanInSeconds), STOP_SIGN,
-        ::to_string(ACTIVATION_PRICE));
+        ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
+        std::to_string(minIncrement), std::to_string(quantity),
+        std::to_string(price), bSelling, std::to_string(lLifespanInSeconds),
+        STOP_SIGN, std::to_string(ACTIVATION_PRICE));
 }
 
 std::string OTMeCpp::kill_market_offer(const std::string& SERVER_ID,
@@ -445,7 +445,7 @@ std::string OTMeCpp::kill_market_offer(const std::string& SERVER_ID,
                                        const int64_t TRANS_NUM)
 {
     return MadeEasy::kill_market_offer(SERVER_ID, NYM_ID, ASSET_ACCT_ID,
-                                       ::to_string(TRANS_NUM));
+                                       std::to_string(TRANS_NUM));
 }
 
 std::string OTMeCpp::kill_payment_plan(const std::string& SERVER_ID,
@@ -454,7 +454,7 @@ std::string OTMeCpp::kill_payment_plan(const std::string& SERVER_ID,
                                        const int64_t TRANS_NUM)
 {
     return MadeEasy::kill_payment_plan(SERVER_ID, NYM_ID, ACCT_ID,
-                                       ::to_string(TRANS_NUM));
+                                       std::to_string(TRANS_NUM));
 }
 
 std::string OTMeCpp::cancel_payment_plan(const std::string& SERVER_ID,
@@ -479,8 +479,8 @@ std::string OTMeCpp::trigger_clause(const std::string& SERVER_ID,
                                     const std::string& CLAUSE_NAME,
                                     const std::string& STR_PARAM)
 {
-    return MadeEasy::trigger_clause(SERVER_ID, NYM_ID, ::to_string(TRANS_NUM),
-                                    CLAUSE_NAME, STR_PARAM);
+    return MadeEasy::trigger_clause(
+        SERVER_ID, NYM_ID, std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
 }
 
 std::string OTMeCpp::withdraw_cash(const std::string& SERVER_ID,
@@ -491,10 +491,10 @@ std::string OTMeCpp::withdraw_cash(const std::string& SERVER_ID,
     return MadeEasy::withdraw_cash(SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
 }
 
-int32_t OTMeCpp::easy_withdraw_cash(const std::string& ACCT_ID,
-                                    const int64_t AMOUNT)
+bool OTMeCpp::easy_withdraw_cash(const std::string& ACCT_ID,
+                                 const int64_t AMOUNT)
 {
-    return OT_Command::details_withdraw_cash(ACCT_ID, AMOUNT);
+    return 1 == OT_Command::details_withdraw_cash(ACCT_ID, AMOUNT);
 }
 
 std::string OTMeCpp::export_cash(const std::string& SERVER_ID,
@@ -541,22 +541,22 @@ std::string OTMeCpp::deposit_cheque(const std::string& SERVER_ID,
     return MadeEasy::deposit_cheque(SERVER_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
 }
 
-int32_t OTMeCpp::deposit_cash(const std::string& SERVER_ID,
-                              const std::string& NYM_ID,
-                              const std::string& ACCT_ID,
-                              const std::string& STR_PURSE)
+bool OTMeCpp::deposit_cash(const std::string& SERVER_ID,
+                           const std::string& NYM_ID,
+                           const std::string& ACCT_ID,
+                           const std::string& STR_PURSE)
 {
-    return OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
-                                             STR_PURSE, "");
+    return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
+                                                  STR_PURSE, "");
 }
 
-int32_t OTMeCpp::deposit_local_purse(const std::string& SERVER_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ACCT_ID,
-                                     const std::string& STR_INDICES)
+bool OTMeCpp::deposit_local_purse(const std::string& SERVER_ID,
+                                  const std::string& NYM_ID,
+                                  const std::string& ACCT_ID,
+                                  const std::string& STR_INDICES)
 {
-    return OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID, "",
-                                             STR_INDICES);
+    return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
+                                                  "", STR_INDICES);
 }
 
 std::string OTMeCpp::get_market_list(const std::string& SERVER_ID,

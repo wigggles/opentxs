@@ -131,7 +131,6 @@
  **************************************************************/
 
 #include "ot_made_easy_ot.hpp"
-#include "ot_commands_ot.hpp"
 #include "ot_otapi_ot.hpp"
 #include "ot_utility_ot.hpp"
 #include "../core/OTLog.hpp"
@@ -145,8 +144,8 @@
 // somehow.
 //
 
-namespace opentxs
-{
+using namespace opentxs;
+using namespace std;
 
 OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
                                                   const string& strMyServerID,
@@ -167,11 +166,10 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
 
         MsgUtil.getTransactionNumbers(strMyServerID, strMyNymID, true);
 
-        bool bForceDownload = false;
-        bool bRefresh = OT_Command::details_refresh_nym(
-            strMyServerID, strMyNymID, bForceDownload);
-
-        if (!bRefresh) {
+        bool msgWasSent = false;
+        if (0 > MadeEasy::retrieve_nym(strMyServerID, strMyNymID, msgWasSent,
+                                       false)) {
+            otOut << "Error: cannot retrieve nym.\n";
             return false;
         }
 
@@ -635,8 +633,8 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
-                 "public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "public encryption key for recipient: " << RECIPIENT_NYM_ID
+              << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -661,8 +659,8 @@ MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
-                 "retrieve public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -687,8 +685,8 @@ MadeEasy::send_user_cash(const string& SERVER_ID, const string& NYM_ID,
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
-                 "retrieve public encryption key for recipient: ";
-        otOut << concat(RECIPIENT_NYM_ID, "\n");
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
         return strRecipientPubkey; // basically this means "return null".
     }
 
@@ -893,7 +891,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     //
     if (VerifyStringVal(strLifespanInSeconds)) {
         theRequest.tData =
-            OTTimeGetTimeFromSeconds(to_long(strLifespanInSeconds));
+            OTTimeGetTimeFromSeconds(stoll(strLifespanInSeconds));
     }
 
     if (VerifyStringVal(strStopSign)) {
@@ -901,7 +899,7 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     }
 
     if (VerifyStringVal(strActivationPrice)) {
-        theRequest.lData = to_long(strActivationPrice);
+        theRequest.lData = stoll(strActivationPrice);
     }
 
     string strResponse =
@@ -1208,8 +1206,6 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
                                                string& userInput,
                                                const bool isPurse)
 {
-    bool isSuccess = true;
-
     //  otOut << "OT_ME_importCashPurse, serverID:" << serverID << "
     // nymID:" << nymID << " assetID:" << assetID);
     //  otOut << "OT_ME_importCashPurse, userInput purse:" <<
@@ -1255,12 +1251,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
     // now, so
     // let's import it into the wallet.
     //
-    isSuccess =
-        OTAPI_Wrap::Wallet_ImportPurse(serverID, assetID, nymID, userInput) == 1
-            ? true
-            : false;
-
-    return isSuccess;
+    return 1 ==
+           OTAPI_Wrap::Wallet_ImportPurse(serverID, assetID, nymID, userInput);
 }
 
 // processCashPurse pops the selected tokens off of oldPurse, changes their
@@ -1605,11 +1597,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // At this point, we check TokenID (identifying the current token)
             // to see if it's on the SELECTED LIST.
             //
-            if (std::find(selectedTokens.begin(), selectedTokens.end(),
-                          tokenID) != selectedTokens.end()) // We ARE exporting
-                                                            // this token. (Its
-                                                            // ID was on the
-                                                            // list.)
+            if (find(selectedTokens.begin(), selectedTokens.end(), tokenID) !=
+                selectedTokens.end()) // We ARE exporting
+                                      // this token. (Its
+                                      // ID was on the
+                                      // list.)
             {
                 // CHANGE OWNER from NYM to RECIPIENT
                 // "token" will now contain the EXPORTED TOKEN, with the NEW
@@ -1904,7 +1896,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                          "must copy the purse NOW and save it to a safe place! "
                          "\n";
 
-                print(newPurse);
+                cout << newPurse << "\n";
 
                 otOut << "AGAIN: Be sure to copy the above purse "
                          "to a safe place, since it FAILED to "
@@ -1917,7 +1909,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
                      "Therefore YOU must copy the purse NOW and "
                      "save it to a safe place! \n";
 
-            print(newPurse);
+            cout << newPurse << "\n";
 
             otOut << "AGAIN: Be sure to copy the above purse to a "
                      "safe place, since it FAILED to deposit. \n";
@@ -2116,5 +2108,3 @@ strData, strData2, strData3, strData4, bBool);
 }
 
 */
-
-} // namespace opentxs

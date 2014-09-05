@@ -219,9 +219,9 @@ public:
                                           const std::string& ACCOUNT_ID,
                                           const std::string& INDICES);
 
-    virtual int32_t accept_from_paymentbox(const std::string& ACCOUNT_ID,
-                                           const std::string& INDICES,
-                                           const std::string& PAYMENT_TYPE);
+    virtual bool accept_from_paymentbox(const std::string& ACCOUNT_ID,
+                                        const std::string& INDICES,
+                                        const std::string& PAYMENT_TYPE);
 
     virtual std::string load_public_encryption_key(const std::string& NYM_ID);
 
@@ -331,8 +331,8 @@ public:
                                       const std::string& ACCT_ID,
                                       const int64_t AMOUNT);
 
-    virtual int32_t easy_withdraw_cash(const std::string& ACCT_ID,
-                                       const int64_t AMOUNT);
+    virtual bool easy_withdraw_cash(const std::string& ACCT_ID,
+                                    const int64_t AMOUNT);
 
     virtual std::string export_cash(const std::string& SERVER_ID,
                                     const std::string& FROM_NYM_ID,
@@ -361,15 +361,15 @@ public:
                                        const std::string& ACCT_ID,
                                        const std::string& STR_CHEQUE);
 
-    virtual int32_t deposit_cash(const std::string& SERVER_ID,
-                                 const std::string& NYM_ID,
-                                 const std::string& ACCT_ID,
-                                 const std::string& STR_PURSE);
+    virtual bool deposit_cash(const std::string& SERVER_ID,
+                              const std::string& NYM_ID,
+                              const std::string& ACCT_ID,
+                              const std::string& STR_PURSE);
 
-    virtual int32_t deposit_local_purse(const std::string& SERVER_ID,
-                                        const std::string& NYM_ID,
-                                        const std::string& ACCT_ID,
-                                        const std::string& STR_INDICES);
+    virtual bool deposit_local_purse(const std::string& SERVER_ID,
+                                     const std::string& NYM_ID,
+                                     const std::string& ACCT_ID,
+                                     const std::string& STR_INDICES);
 
     virtual std::string get_market_list(const std::string& SERVER_ID,
                                         const std::string& NYM_ID);

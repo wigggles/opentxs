@@ -545,9 +545,9 @@ bool OT_ME::cancel_outgoing_payments(const std::string& NYM_ID,
                                                        INDICES);
 }
 
-int32_t OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
-                                      const std::string& INDICES,
-                                      const std::string& PAYMENT_TYPE)
+bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
+                                   const std::string& INDICES,
+                                   const std::string& PAYMENT_TYPE)
 {
     return m_pImplementation->accept_from_paymentbox(ACCOUNT_ID, INDICES,
                                                      PAYMENT_TYPE);
@@ -822,8 +822,7 @@ std::string OT_ME::withdraw_cash(const std::string& SERVER_ID,
 // This one automatically retrieves the mint beforehand, if necessary,
 // and the account files afterward, if appropriate.
 //
-int32_t OT_ME::easy_withdraw_cash(const std::string& ACCT_ID,
-                                  const int64_t AMOUNT)
+bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, const int64_t AMOUNT)
 {
     return m_pImplementation->easy_withdraw_cash(ACCT_ID, AMOUNT);
 }
@@ -880,19 +879,18 @@ std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
                                              STR_CHEQUE);
 }
 
-int32_t OT_ME::deposit_cash(const std::string& SERVER_ID,
-                            const std::string& NYM_ID,
-                            const std::string& ACCT_ID,
-                            const std::string& STR_PURSE)
+bool OT_ME::deposit_cash(const std::string& SERVER_ID,
+                         const std::string& NYM_ID, const std::string& ACCT_ID,
+                         const std::string& STR_PURSE)
 {
     return m_pImplementation->deposit_cash(SERVER_ID, NYM_ID, ACCT_ID,
                                            STR_PURSE);
 }
 
-int32_t OT_ME::deposit_local_purse(const std::string& SERVER_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& ACCT_ID,
-                                   const std::string& STR_INDICES)
+bool OT_ME::deposit_local_purse(const std::string& SERVER_ID,
+                                const std::string& NYM_ID,
+                                const std::string& ACCT_ID,
+                                const std::string& STR_INDICES)
 {
     return m_pImplementation->deposit_local_purse(SERVER_ID, NYM_ID, ACCT_ID,
                                                   STR_INDICES);
