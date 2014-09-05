@@ -1069,7 +1069,7 @@ void CRYPTO_lock(int32_t mode, int32_t n, const char *file, int32_t line);
 
  */
 
-tthread::mutex* OTCrypto_OpenSSL::s_arrayMutex = nullptr;
+std::mutex* OTCrypto_OpenSSL::s_arrayMutex = nullptr;
 
 extern "C" {
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
@@ -1772,7 +1772,7 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
 
 void OTCrypto_OpenSSL::thread_setup()
 {
-    OTCrypto_OpenSSL::s_arrayMutex = new tthread::mutex[CRYPTO_num_locks()];
+    OTCrypto_OpenSSL::s_arrayMutex = new std::mutex[CRYPTO_num_locks()];
 
 // NOTE: OpenSSL supposedly has some default implementation for the thread_id,
 // so we're going to NOT set that callback here, and see what happens.
