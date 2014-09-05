@@ -133,12 +133,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
 
-#include "../util/tinythread.hpp"
-
 #include <string>
 #include <memory>
 #include <map>
 #include <mutex>
+#include <thread>
 
 namespace opentxs
 {
@@ -312,10 +311,10 @@ typedef std::map<std::string, std::shared_ptr<OTCachedKey>> mapOfCachedKeys;
 class OTCachedKey
 {
 private:
-    tthread::thread* m_pThread; // The thread used for destroying the password
-                                // after the timeout period.
-    int32_t m_nTimeoutSeconds;  // The master password will be stored internally
-                                // for X seconds, and then destroyed.
+    std::thread* m_pThread;    // The thread used for destroying the password
+                               // after the timeout period.
+    int32_t m_nTimeoutSeconds; // The master password will be stored internally
+                               // for X seconds, and then destroyed.
     OTPassword* m_pMasterPassword; // Created when password is passed in;
                                    // destroyed by Timer after X seconds.
 

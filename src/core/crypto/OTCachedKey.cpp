@@ -432,14 +432,12 @@ void OTCachedKey::LowLevelReleaseThread()
 {
     // NO NEED TO LOCK THIS ONE -- BUT ONLY CALL IT FROM A LOCKED FUNCTION.
     if (nullptr != m_pThread) {
-        tthread::thread* pThread = m_pThread;
+        std::unique_ptr<std::thread> pThread(m_pThread);
         m_pThread = nullptr;
 
         if (pThread->joinable()) {
             pThread->detach();
         }
-        delete pThread;
-        pThread = nullptr;
     }
 }
 
@@ -1106,8 +1104,8 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         std::shared_ptr<OTCachedKey>* pthreadSharedPtr =
             new std::shared_ptr<OTCachedKey>(mySharedPtr); // TODO: memory leak.
 
-        m_pThread = new tthread::thread(OTCachedKey::ThreadTimeout,
-                                        static_cast<void*>(pthreadSharedPtr));
+        m_pThread = new std::thread(OTCachedKey::ThreadTimeout,
+                                    static_cast<void*>(pthreadSharedPtr));
 
 #else
         // no thread support
@@ -1212,8 +1210,8 @@ void OTCachedKey::ThreadTimeout(void* pArg)
 
     if (nTimeoutSeconds > 0) {
         if (pMyself)
-            tthread::this_thread::sleep_for(
-                tthread::chrono::seconds(nTimeoutSeconds)); // <===== ASLEEP!
+            std::this_thread::sleep_for(
+                std::chrono::seconds(nTimeoutSeconds)); // <===== ASLEEP!
     }
 
     {
