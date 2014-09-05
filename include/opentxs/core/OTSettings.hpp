@@ -1,11 +1,6 @@
 /************************************************************
 *
 *  OTSettings.hpp
-*    This class has no static members;
-*    You must create a context.  Only one context, per
-*     configuration file should exist at the same time,
-*     it is the caller's responsibility for the
-*     mutex locks / lock files and whatnot.
 *
 */
 
@@ -135,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SETTINGS_HPP__
-#define __OT_SETTINGS_HPP__
+#ifndef OPENTXS_CORE_OTSETTINGS_HPP
+#define OPENTXS_CORE_OTSETTINGS_HPP
 
 #include "OTString.hpp"
 
@@ -235,4 +230,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SETTINGS_HPP__
+#endif // OPENTXS_CORE_OTSETTINGS_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SOCKET_HPP__
-#define __OT_SOCKET_HPP__
+#ifndef OPENTXS_EXT_OTSOCKET_HPP
+#define OPENTXS_EXT_OTSOCKET_HPP
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/OTString.hpp"
@@ -240,4 +240,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SOCKET_HPP__
+#endif // OPENTXS_EXT_OTSOCKET_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_DATA_HPP__
-#define __OT_DATA_HPP__
+#ifndef OPENTXS_CORE_OTDATA_HPP
+#define OPENTXS_CORE_OTDATA_HPP
 
 #include <cinttypes>
 
@@ -204,4 +204,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_DATA_HPP__
+#endif // OPENTXS_CORE_OTDATA_HPP

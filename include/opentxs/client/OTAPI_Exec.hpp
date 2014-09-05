@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTAPI_Exec.hpp
-*
-*/
+ *
+ *  OTAPI_Exec.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_API_EXEC_HPP__
-#define __OT_API_EXEC_HPP__
+#ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
+#define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
 #include "opentxs/core/util/Common.hpp"
 
@@ -4030,4 +4030,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_API_EXEC_HPP__
+#endif // OPENTXS_CLIENT_OTAPI_EXEC_HPP

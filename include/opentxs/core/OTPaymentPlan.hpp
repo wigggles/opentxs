@@ -130,13 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PAYMENT_PLAN_HPP__
-#define __OT_PAYMENT_PLAN_HPP__
+#ifndef OPENTXS_CORE_OT_PAYMENT_PLAN_HPP
+#define OPENTXS_CORE_OT_PAYMENT_PLAN_HPP
 
 #include "OTAgreement.hpp"
-
-//#define PLAN_PROCESS_INTERVAL        OT_TIME_HOUR_IN_SECONDS // todo put this
-// back.
 
 namespace opentxs
 {
@@ -564,4 +561,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PAYMENT_PLAN_HPP__
+#endif // OPENTXS_CORE_OT_PAYMENT_PLAN_HPP

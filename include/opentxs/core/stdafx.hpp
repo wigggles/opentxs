@@ -1,6 +1,8 @@
 #pragma once
 
-// Include the C one.
+#ifndef OPENTXS_CORE_STDAFX_HPP
+#define OPENTXS_CORE_STDAFX_HPP
+
 #include "stdafx.h"
 
 #ifdef OT_USE_CXX11
@@ -66,3 +68,5 @@
 #undef NO_OT_PCH
 #endif
 #endif
+
+#endif // OPENTXS_CORE_STDAFX_HPP

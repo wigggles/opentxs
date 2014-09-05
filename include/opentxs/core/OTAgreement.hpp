@@ -132,8 +132,8 @@
 
 // OTAgreement is derived from OTCronItem.  It handles re-occuring billing.
 
-#ifndef __OT_AGREEMENT_HPP__
-#define __OT_AGREEMENT_HPP__
+#ifndef OPENTXS_CORE_OTAGREEMENT_HPP
+#define OPENTXS_CORE_OTAGREEMENT_HPP
 
 #include "cron/OTCronItem.hpp"
 
@@ -511,4 +511,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_AGREEMENT_HPP__
+#endif // OPENTXS_CORE_OTAGREEMENT_HPP

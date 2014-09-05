@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STASH_HPP__
-#define __OT_STASH_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTSTASH_HPP
+#define OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 
 #include <map>
 #include <string>
@@ -192,4 +192,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_STASH_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTSTASH_HPP

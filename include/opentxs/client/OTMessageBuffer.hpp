@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_MESSAGE_BUFFER_HPP__
-#define __OT_MESSAGE_BUFFER_HPP__
+#ifndef OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
+#define OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 
 #include <list>
 
@@ -170,4 +170,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_MESSAGE_BUFFER_HPP__
+#endif // OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP

@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  ot_otapi_ot.hpp
-*
-*/
+ *
+ *  ot_otapi_ot.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_OTAPI_OT_HPP__
-#define __OT_OTAPI_OT_HPP__
+#ifndef OPENTXS_CLIENT_OT_OTAPI_OT_HPP
+#define OPENTXS_CLIENT_OT_OTAPI_OT_HPP
 
 #include "opentxs/client/OTAPI.hpp"
 #include "opentxs/client/OT_ME.hpp"
@@ -331,4 +331,4 @@ public:
                                             const int32_t nTotalRetries);
 };
 
-#endif // __OT_OTAPI_OT_HPP__
+#endif // OPENTXS_CLIENT_OT_OTAPI_OT_HPP

@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTStorage.hpp
-*
-*/
+ *
+ *  OTStorage.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STORAGE_HPP__
-#define __OT_STORAGE_HPP__
+#ifndef OPENTXS_CORE_OTSTORAGE_HPP
+#define OPENTXS_CORE_OTSTORAGE_HPP
 
 // we now include this file in swig
 // we need to tell swig what parts to skip over.
@@ -1946,4 +1946,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_STORAGE_HPP__
+#endif // OPENTXS_CORE_OTSTORAGE_HPP

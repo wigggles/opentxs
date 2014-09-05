@@ -2,7 +2,6 @@
  *
  *  OTScriptable.hpp
  *
- *  This is just like OTContract, except it also has "Bylaws" and "Parties".
  */
 
 /************************************************************
@@ -131,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SCRIPTABLE_HPP__
-#define __OT_SCRIPTABLE_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
+#define OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 
 #include "../OTContract.hpp"
 
@@ -447,4 +446,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SCRIPTABLE_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP

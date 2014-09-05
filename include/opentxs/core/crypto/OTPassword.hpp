@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PASSWORD_HPP__
-#define __OT_PASSWORD_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
+#define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
 namespace opentxs
 {
@@ -294,4 +294,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_PASSWORD_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP

@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __DIGITAL_CASH_HPP__
-#define __DIGITAL_CASH_HPP__
+#ifndef OPENTXS_CASH_DIGITALCASH_HPP
+#define OPENTXS_CASH_DIGITALCASH_HPP
 
 #ifdef OT_CASH_USING_LUCRE
-#include <lucre/bank.h> // Lucre
+#include <lucre/bank.h>
 #endif
 
 #ifdef OT_CASH_USING_MAGIC_MONEY
@@ -178,4 +178,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __DIGITAL_CASH_HPP__
+#endif // OPENTXS_CASH_DIGITALCASH_HPP

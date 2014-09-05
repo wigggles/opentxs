@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CALLER_HPP__
-#define __OT_CALLER_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTCALLER_HPP
+#define OPENTXS_CORE_CRYPTO_OTCALLER_HPP
 
 #include "OTPassword.hpp"
 
@@ -377,123 +377,6 @@ public:
                            // nym creation and password change.)
 };
 
-/*
- HOW TO PREVENT MEMORY FROM GOING INTO CORE DUMPS
-
-#include <sys/time.h>
-
-#include <sys/resource.h>
-
-#include <unistd.h>
-
-
-
-int32_t  main(int32_t argc, char **argv)
-
- {
-
-  struct rlimit rlim;
-
-
-
-  getrlimit(RLIMIT_CORE, &rlim);
-
-  rlim.rlim_max = rlim.rlim_cur = 0;
-
-  if(setrlimit(RLIMIT_CORE, &rlim)) {
-
-    exit(-1);
-
-  }
-
-  ...
-
-  return 0;
-
-}
-
-
-
- http://www.drdobbs.com/cpp/184401646
-
-
-
-
- MORE CODE FOR MEMLOCK:
-
- namespace Botan
- {
-
-    bool has_mlock();
-
-    bool lock_mem(void* addr, size_t length);
-
-    void unlock_mem(void* addr, size_t length);
- }
-
-
-//
-// Memory Locking Functions
-// (C) 1999-2007 Jack Lloyd
-//
-// Distributed under the terms of the Botan license
-//
-
-#include <botan/internal/mlock.h>
-
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-  #include <sys/types.h>
-  #include <sys/mman.h>
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-#ifndef _WINDOWS_
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#endif
-#endif
-
-namespace Botan {
-
-bool has_mlock()
-   {
-   byte buf[4096];
-   if(!lock_mem(&buf, sizeof(buf)))
-      return false;
-   unlock_mem(&buf, sizeof(buf));
-   return true;
-   }
-
-//
-// Lock an area of memory into RAM
-//
-bool lock_mem(void* ptr, size_t bytes)
-   {
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-   return (::mlock(static_cast<char*>(ptr), bytes) == 0);
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-   return (::VirtualLock(ptr, bytes) != 0);
-#else
-   return false;
-#endif
-   }
-
-//
-// Unlock a previously locked region of memory
-//
-void unlock_mem(void* ptr, size_t bytes)
-   {
-#if defined(BOTAN_TARGET_OS_HAS_POSIX_MLOCK)
-   ::munlock(static_cast<char*>(ptr), bytes);
-#elif defined(BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK)
-   ::VirtualUnlock(ptr, bytes);
-#endif
-   }
-
-}
-
- */
-
 } // namespace opentxs
 
-#endif // __OT_CALLER_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTCALLER_HPP

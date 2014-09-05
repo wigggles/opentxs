@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CALLBACK_HPP__
-#define __OT_CALLBACK_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
+#define OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
 
 namespace opentxs
 {
@@ -362,4 +362,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CALLBACK_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP

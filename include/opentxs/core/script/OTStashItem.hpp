@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STASH_ITEM_HPP__
-#define __OT_STASH_ITEM_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
+#define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
 #include "../OTString.hpp"
 
@@ -164,9 +164,6 @@ public:
     virtual ~OTStashItem();
 };
 
-// Each item is mapped by AssetTypeID
-//
-
 } // namespace opentxs
 
-#endif // __OT_STASH_ITEM_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP

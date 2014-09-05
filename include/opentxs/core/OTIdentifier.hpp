@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_IDENTIFIER_HPP__
-#define __OT_IDENTIFIER_HPP__
+#ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
+#define OPENTXS_CORE_OTIDENTIFIER_HPP
 
 #include "OTData.hpp"
 
@@ -216,4 +216,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_IDENTIFIER_HPP__
+#endif // OPENTXS_CORE_OTIDENTIFIER_HPP

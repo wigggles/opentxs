@@ -2,9 +2,6 @@
  *
  *  OTSmartContract.hpp
  *
- * OTSmartContract is derived from OTCronItem.
- * It handles re-occuring, (scriptable) smart contracts.
- *
  */
 
 /************************************************************
@@ -133,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SMART_CONTRACT_HPP__
-#define __OT_SMART_CONTRACT_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
+#define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
 #include "../OTAcctList.hpp"
 #include "../cron/OTCronItem.hpp"
@@ -515,4 +512,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SMART_CONTRACT_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP

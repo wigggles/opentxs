@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_KEYPAIR_HPP__
-#define __OT_KEYPAIR_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
+#define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
 #include <list>
 #include <cstdint>
@@ -317,4 +317,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_KEYPAIR_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP

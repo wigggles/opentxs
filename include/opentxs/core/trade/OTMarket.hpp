@@ -134,8 +134,8 @@
 // OTOffers for all the asks.
 // Presumably the server will have different markets for different asset types.
 
-#ifndef __OT_MARKET_HPP__
-#define __OT_MARKET_HPP__
+#ifndef OPENTXS_CORE_TRADE_OTMARKET_HPP
+#define OPENTXS_CORE_TRADE_OTMARKET_HPP
 
 #include "../cron/OTCron.hpp"
 #include "../OTStorage.hpp"
@@ -337,4 +337,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_MARKET_HPP__
+#endif // OPENTXS_CORE_TRADE_OTMARKET_HPP

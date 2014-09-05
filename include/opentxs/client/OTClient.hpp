@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTClient.hpp
-*
-*/
+ *
+ *  OTClient.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CLIENT_HPP__
-#define __OT_CLIENT_HPP__
+#ifndef OPENTXS_CLIENT_OTCLIENT_HPP
+#define OPENTXS_CLIENT_OTCLIENT_HPP
 
 #include "opentxs/client/OTMessageBuffer.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
@@ -444,4 +444,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CLIENT_HPP__
+#endif // OPENTXS_CLIENT_OTCLIENT_HPP

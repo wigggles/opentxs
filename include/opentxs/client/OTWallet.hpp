@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_WALLET_HPP__
-#define __OT_WALLET_HPP__
+#ifndef OPENTXS_CLIENT_OTWALLET_HPP
+#define OPENTXS_CLIENT_OTWALLET_HPP
 
 #include "opentxs/core/OTString.hpp"
 
@@ -360,4 +360,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_WALLET_HPP__
+#endif // OPENTXS_CLIENT_OTWALLET_HPP

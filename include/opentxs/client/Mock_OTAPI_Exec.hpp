@@ -1,37 +1,8 @@
-/************************************************************************************
-*
-* Mock_OTAPI_Exec.h --
-* This file is wrapped by ChaiScript (or any scripting engine...) for writing
-* OT Script, whereas OTAPI_Basic.h is wrapped by SWIG (Python, Ruby, PHP, Java,
-* etc.)
-*
-* da2ce7: chaiscript (since the last 2 weeks), makes use of the OTAPI.h,
-*         where the types are bool, int32_t, int64_t, std::string
-
-
-3:25:14 PM FellowTraveler: so chaiscript is using this file OTAPI.h, and the
-data types are
-int32_t for "int32_t" and int64_t for "int64_t" -- right?
-3:25:14 PM FellowTraveler: and strings are only for real strings.
-3:25:15 PM FellowTraveler: right?
-3:27:19 PM FellowTraveler: in other words, where I might pass int32_t for  −1,
-or 0, or 1 or 2,
-then chaiscript is using int32_t —— whereas where I might pass int64_t for a
-transaction #,
-then chaiscript is usingint64_t
-3:27:31 PM FellowTraveler: Also, where I might pass a currency AMOUNT,
-chaiscript is using int64_t
-3:27:32 PM FellowTraveler: right?
-3:28:32 PM da2ce7: yep... -1, 0, 1, 2 are int32_t > int32_t
-3:28:41 PM da2ce7: but in siwg are int64_t
-3:29:02 PM da2ce7: and AMOUNT int64_t > int64_t
-3:29:08 PM da2ce7: and in swig will be std::string
-3:30:32 PM FellowTraveler: why no int64_t in swig?
-3:30:35 PM FellowTraveler: doesn't work ?
-3:31:20 PM da2ce7: FellowTraveler: yep it makes this messy SWIG_TYPE_INT64_T
-and is just a mess
-
-*/
+/************************************************************
+ *
+ *  Mock_OTAPI_Exec.hpp
+ *
+ */
 
 /************************************************************
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -159,8 +130,8 @@ kamH0Y/n11lCvo1oQxM+
 -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __Mock_OTAPI_Exec_H__
-#define __Mock_OTAPI_Exec_H__
+#ifndef OPENTXS_CLIENT_MOCK_OTAPI_EXEC_HPP
+#define OPENTXS_CLIENT_MOCK_OTAPI_EXEC_HPP
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
@@ -1240,4 +1211,4 @@ public:
 
 } // namespace opentxs
 
-#endif
+#endif // OPENTXS_CLIENT_MOCK_OTAPI_EXEC_HPP

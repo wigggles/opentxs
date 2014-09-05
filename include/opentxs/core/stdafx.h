@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef OPENTXS_CORE_STDAFX_H
+#define OPENTXS_CORE_STDAFX_H
+
 #include <cstdint>
 
 #ifdef __cplusplus
@@ -40,3 +43,5 @@ extern "C" {
 //
 #define OT_THOUSANDS_SEP ","
 #define OT_DECIMAL_POINT "."
+
+#endif // OPENTXS_CORE_STDAFX_H

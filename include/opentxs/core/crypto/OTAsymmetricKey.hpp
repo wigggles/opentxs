@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASYMMETRIC_KEY_HPP__
-#define __OT_ASYMMETRIC_KEY_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
+#define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
 #include "../util/Timer.hpp"
 #include <list>
@@ -447,4 +447,4 @@ public: // DESTRUCTION
 
 } // namespace opentxs
 
-#endif // __OT_ASYMMETRIC_KEY_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP

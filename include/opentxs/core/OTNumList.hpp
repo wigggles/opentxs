@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTNumList.hpp
-*
-*/
+ *
+ *  OTNumList.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_NUM_LIST_HPP__
-#define __OT_NUM_LIST_HPP__
+#ifndef OPENTXS_CORE_OTNUMLIST_HPP
+#define OPENTXS_CORE_OTNUMLIST_HPP
 
 #include <string>
 #include <set>
@@ -232,4 +232,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_NUM_LIST_HPP__
+#endif // OPENTXS_CORE_OTNUMLIST_HPP

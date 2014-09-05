@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_LOW_LEVEL_KEY_DATA_HPP__
-#define __OT_LOW_LEVEL_KEY_DATA_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP
+#define OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP
 
 namespace opentxs
 {
@@ -212,4 +212,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_LOW_LEVEL_KEY_DATA_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP

@@ -1,11 +1,8 @@
 /************************************************************
-*
-* OTPaths.hpp
-* This Class Maintins where stuff should go;
-* You must create one and only one contex for
-* every instance of OT_API.
-*
-*/
+ *
+ * OTPaths.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -133,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PATHS_HPP__
-#define __OT_PATHS_HPP__
+#ifndef OPENTXS_CORE_OTPATHS_HPP
+#define OPENTXS_CORE_OTPATHS_HPP
 
 #include "OTSettings.hpp"
 
@@ -289,4 +286,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PATHS_HPP__
+#endif // OPENTXS_CORE_OTPATHS_HPP

@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTContract.hpp
-*
-*/
+ *
+ *  OTContract.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CONTRACT_HPP__
-#define __OT_CONTRACT_HPP__
+#ifndef OPENTXS_CORE_OTCONTRACT_HPP
+#define OPENTXS_CORE_OTCONTRACT_HPP
 
 #include "OTIdentifier.hpp"
 #include "OTStringXML.hpp"
@@ -546,4 +546,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CONTRACT_HPP__
+#endif // OPENTXS_CORE_OTCONTRACT_HPP

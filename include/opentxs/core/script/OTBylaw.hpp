@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_BYLAW_HPP__
-#define __OT_BYLAW_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
+#define OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 
 #include "OTVariable.hpp"
 
@@ -277,4 +277,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_BYLAW_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTBYLAW_HPP

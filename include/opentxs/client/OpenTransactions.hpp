@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OpenTransactions.hpp
-*
-*/
+ *
+ *  OpenTransactions.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPEN_TRANSACTIONS_HPP__
-#define __OPEN_TRANSACTIONS_HPP__
+#ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
+#define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #include "opentxs/core/util/Common.hpp"
 
@@ -1141,4 +1141,4 @@ public:
 
 #endif // NOT_SWIG
 
-#endif // __OPEN_TRANSACTIONS_HPP__
+#endif // OPENTXS_CLIENT_OPENTRANSACTIONS_HPP

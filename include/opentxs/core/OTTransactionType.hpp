@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_TRANSACTION_TYPE_HPP__
-#define __OT_TRANSACTION_TYPE_HPP__
+#ifndef OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
+#define OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
 #include "OTContract.hpp"
@@ -945,4 +945,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_TRANSACTION_TYPE_HPP__
+#endif // OPENTXS_CORE_OTTRANSACTIONTYPE_HPP

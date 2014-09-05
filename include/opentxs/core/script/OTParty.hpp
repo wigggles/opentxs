@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PARTY_HPP__
-#define __OT_PARTY_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTPARTY_HPP
+#define OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 
 #include "../OTString.hpp"
 
@@ -450,4 +450,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PARTY_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTPARTY_HPP

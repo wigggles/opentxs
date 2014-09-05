@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SYMMETRIC_KEY_HPP__
-#define __OT_SYMMETRIC_KEY_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
+#define OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
 
 #include "../OTPayload.hpp"
 
@@ -285,4 +285,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SYMMETRIC_KEY_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
