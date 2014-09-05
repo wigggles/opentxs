@@ -136,7 +136,6 @@
 #include "../OTPayload.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
-#include "../util/tinythread.hpp"
 
 #include <mutex>
 
