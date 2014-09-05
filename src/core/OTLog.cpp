@@ -135,7 +135,8 @@
 #include "OTLog.hpp"
 #include "OTPaths.hpp"
 #include "util/stacktrace.h"
-#include "util/tinythread.hpp"
+
+#include <mutex>
 
 #ifndef _WIN32
 #include <cerrno>
@@ -943,9 +944,9 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 //
 void ot_terminate()
 {
-    static tthread::mutex the_Mutex;
+    static std::mutex the_Mutex;
 
-    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    std::lock_guard<std::mutex> lock(the_Mutex);
 
     try
     {
@@ -1090,9 +1091,9 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
     int32_t size, i;
     sig_ucontext_t* uc;
 
-    static tthread::mutex the_Mutex;
+    static std::mutex the_Mutex;
 
-    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    std::lock_guard<std::mutex> lock(the_Mutex);
 
     uc = static_cast<sig_ucontext_t*>(ucontext);
 
@@ -1212,9 +1213,9 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
 void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
 {
 #ifndef ANDROID
-    static tthread::mutex the_Mutex;
+    static std::mutex the_Mutex;
 
-    tthread::lock_guard<tthread::mutex> lock(the_Mutex);
+    std::lock_guard<std::mutex> lock(the_Mutex);
 
     OT_ASSERT(nullptr != v);
 

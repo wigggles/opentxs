@@ -135,11 +135,6 @@
 
 #include "opentxs/ext/OTSocket.hpp"
 
-namespace tthread
-{
-class mutex;
-}
-
 namespace opentxs
 {
 

@@ -136,7 +136,8 @@
 #include "../OTPayload.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
-#include "../util/tinythread.hpp"
+
+#include <mutex>
 
 #include <set>
 
@@ -417,7 +418,7 @@ protected:
     OTCrypto_OpenSSLdp* dp;
 
 public:
-    static tthread::mutex* s_arrayMutex;
+    static std::mutex* s_arrayMutex;
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     virtual OTPassword* InstantiateBinarySecret() const;
     // RANDOM NUMBERS

@@ -8,7 +8,6 @@ add_subdirectory(script)
 
 set(cxx-sources
   util/Timer.cpp
-  util/tinythread.cpp
   util/Assert.cpp
   util/StringUtils.cpp
   transaction/Helpers.cpp

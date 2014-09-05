@@ -149,6 +149,8 @@
 
 #include <bigint/BigIntegerLibrary.hh>
 
+#include <thread>
+
 extern "C" {
 #ifdef _WIN32
 #else
@@ -1069,7 +1071,7 @@ void CRYPTO_lock(int32_t mode, int32_t n, const char *file, int32_t line);
 
  */
 
-tthread::mutex* OTCrypto_OpenSSL::s_arrayMutex = nullptr;
+std::mutex* OTCrypto_OpenSSL::s_arrayMutex = nullptr;
 
 extern "C" {
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
@@ -1117,7 +1119,8 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
     // for certain platforms. (OpenSSL provides functions for both.)
     //
 
-    unsigned long val = tthread::this_thread::get_raw_id();
+    unsigned long val =
+        std::hash<std::thread::id>()(std::this_thread::get_id());
 
     //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID *id, uint64_t val);
     //    void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID *id, void *ptr);
@@ -1772,7 +1775,7 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
 
 void OTCrypto_OpenSSL::thread_setup()
 {
-    OTCrypto_OpenSSL::s_arrayMutex = new tthread::mutex[CRYPTO_num_locks()];
+    OTCrypto_OpenSSL::s_arrayMutex = new std::mutex[CRYPTO_num_locks()];
 
 // NOTE: OpenSSL supposedly has some default implementation for the thread_id,
 // so we're going to NOT set that callback here, and see what happens.
