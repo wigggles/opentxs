@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_LEDGER_HPP__
-#define __OT_LEDGER_HPP__
+#ifndef OPENTXS_CORE_OTLEDGER_HPP
+#define OPENTXS_CORE_OTLEDGER_HPP
 
 #include "OTTransaction.hpp"
 
@@ -378,4 +378,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_LEDGER_HPP__
+#endif // OPENTXS_CORE_OTLEDGER_HPP

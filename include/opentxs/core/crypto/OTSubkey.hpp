@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SUBKEY_HPP__
-#define __OT_SUBKEY_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTSUBKEY_HPP
+#define OPENTXS_CORE_CRYPTO_OTSUBKEY_HPP
 
 #include "OTKeyCredential.hpp"
 
@@ -190,4 +190,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_SUBKEY_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTSUBKEY_HPP

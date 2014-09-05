@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef _MINT_HPP__
-#define _MINT_HPP__
+#ifndef OPENTXS_CASH_MINT_HPP
+#define OPENTXS_CASH_MINT_HPP
 
 #include "opentxs/core/OTContract.hpp"
 #include <map>
@@ -326,4 +326,4 @@ public:
 
 } // namespace opentxs
 
-#endif // _MINT_HPP__
+#endif // OPENTXS_CASH_MINT_HPP

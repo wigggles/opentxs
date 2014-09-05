@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTStoragePB.hpp
-*
-*/
+ *
+ *  OTStoragePB.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STORAGE_PB_HPP__
-#define __OT_STORAGE_PB_HPP__
+#ifndef OPENTXS_CORE_OTSTORAGEPB_HPP
+#define OPENTXS_CORE_OTSTORAGEPB_HPP
 
 #include "util/Assert.hpp"
 
@@ -433,4 +433,4 @@ PROPERTY_NAME_GOES_HERE    = __pb_obj.PROPERTY_NAME_GOES_HERE();
 
 #endif // defined(OTDB_PROTOCOL_BUFFERS)
 
-#endif // __OT_STORAGE_PB_HPP__
+#endif // OPENTXS_CORE_OTSTORAGEPB_HPP

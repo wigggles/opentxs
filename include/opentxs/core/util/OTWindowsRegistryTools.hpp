@@ -1,11 +1,8 @@
 /************************************************************
-*
-* OTWindowsRegistryTools.hpp
-* This Class Maintins where stuff should go;
-* You must create one and only one contex for
-* every instance of OT_API.
-*
-*/
+ *
+ * OTWindowsRegistryTools.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----

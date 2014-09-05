@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_AMOUNT_HPP__
-#define __OT_AMOUNT_HPP__
+#ifndef OPENTXS_CORE_OTAMOUNT_HPP
+#define OPENTXS_CORE_OTAMOUNT_HPP
 
 #include <utility>
 #include <stdint.h>
@@ -201,4 +201,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_AMOUNT_HPP__
+#endif // OPENTXS_CORE_OTAMOUNT_HPP

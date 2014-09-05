@@ -1,7 +1,7 @@
 /*************************************************************
  *
- * zmq4.hpp
- * OTSocket with zmq4
+ * Socket_ZMQ4.hpp
+ *
  */
 
 /************************************************************
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __SOCKET_ZMQ4_HPP__
-#define __SOCKET_ZMQ4_HPP__
+#ifndef OPENTXS_EXT_SOCKET_ZMQ4_HPP
+#define OPENTXS_EXT_SOCKET_ZMQ4_HPP
 
 #include "opentxs/ext/OTSocket.hpp"
 
@@ -180,4 +180,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __SOCKET_ZMQ4_HPP__
+#endif // OPENTXS_EXT_SOCKET_ZMQ4_HPP

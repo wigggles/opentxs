@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __PURSE_HPP__
-#define __PURSE_HPP__
+#ifndef OPENTXS_CASH_PURSE_HPP
+#define OPENTXS_CASH_PURSE_HPP
 
 #include "opentxs/core/OTContract.hpp"
 
@@ -341,9 +341,8 @@ public:
     EXPORT void ReleaseTokens();
 
     virtual bool SaveContractWallet(std::ofstream& ofs);
-    //    virtual bool SaveContractWallet(FILE * fl);
 };
 
 } // namespace opentxs
 
-#endif // __PURSE_HPP__
+#endif // OPENTXS_CASH_PURSE_HPP

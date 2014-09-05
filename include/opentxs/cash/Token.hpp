@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __TOKEN_HPP__
-#define __TOKEN_HPP__
+#ifndef OPENTXS_CASH_TOKEN_HPP
+#define OPENTXS_CASH_TOKEN_HPP
 
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/OTInstrument.hpp"
@@ -428,4 +428,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __TOKEN_HPP__
+#endif // OPENTXS_CASH_TOKEN_HPP

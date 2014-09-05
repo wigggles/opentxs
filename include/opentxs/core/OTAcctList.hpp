@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ACCT_LIST_HPP__
-#define __OT_ACCT_LIST_HPP__
+#ifndef OPENTXS_CORE_OTACCTLIST_HPP
+#define OPENTXS_CORE_OTACCTLIST_HPP
 
 #include "OTAccount.hpp" // only necessary because of OTAccount::AccountType
 #include <string>
@@ -197,4 +197,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_ACCT_LIST_HPP__
+#endif // OPENTXS_CORE_OTACCTLIST_HPP

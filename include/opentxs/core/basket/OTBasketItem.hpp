@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_BASKET_ITEM_HPP__
-#define __OT_BASKET_ITEM_HPP__
+#ifndef OPENTXS_CORE_BASKET_OTBASKETITEM_HPP
+#define OPENTXS_CORE_BASKET_OTBASKETITEM_HPP
 
 #include "../OTIdentifier.hpp"
 
@@ -170,4 +170,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_BASKET_ITEM_HPP__
+#endif // OPENTXS_CORE_BASKET_OTBASKETITEM_HPP

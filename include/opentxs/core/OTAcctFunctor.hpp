@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ACCT_FUNCTOR_HPP__
-#define __OT_ACCT_FUNCTOR_HPP__
+#ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#define OPENTXS_CORE_OTACCTFUNCTOR_HPP
 
 #include "OTIdentifier.hpp"
 #include <map>
@@ -180,4 +180,4 @@ protected:
 
 } // namespace opentxs
 
-#endif // __OT_ACCT_FUNCTOR_HPP__
+#endif // OPENTXS_CORE_OTACCTFUNCTOR_HPP

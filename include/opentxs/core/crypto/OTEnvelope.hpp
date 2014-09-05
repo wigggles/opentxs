@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ENVELOPE_HPP__
-#define __OT_ENVELOPE_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
+#define OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
 
 #include "../OTData.hpp"
 
@@ -228,4 +228,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_ENVELOPE_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP

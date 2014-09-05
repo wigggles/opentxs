@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPENSSL_BIO_HPP__
-#define __OPENSSL_BIO_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
+#define OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
 
 extern "C" {
 #include <openssl/bio.h>
@@ -162,4 +162,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OPENSSL_BIO_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP

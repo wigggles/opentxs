@@ -130,11 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CRYPTO_HPP__
-#define __OT_CRYPTO_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
-// only included because it needs constructor for default parameter
-// initialization
 #include "../OTPayload.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
@@ -586,4 +584,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CRYPTO_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

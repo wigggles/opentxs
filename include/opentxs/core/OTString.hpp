@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STRING_HPP__
-#define __OT_STRING_HPP__
+#ifndef OPENTXS_CORE_OTSTRING_HPP
+#define OPENTXS_CORE_OTSTRING_HPP
 
 #ifdef _WIN32
 #include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring
@@ -284,4 +284,4 @@ protected:
 
 } // namespace opentxs
 
-#endif // __OT_STRING_HPP__
+#endif // OPENTXS_CORE_OTSTRING_HPP

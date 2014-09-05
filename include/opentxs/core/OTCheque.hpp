@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_CHEQUE_HPP__
-#define __OT_CHEQUE_HPP__
+#ifndef OPENTXS_CORE_OTCHEQUE_HPP
+#define OPENTXS_CORE_OTCHEQUE_HPP
 
 #include "OTTrackable.hpp"
 
@@ -260,4 +260,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CHEQUE_HPP__
+#endif // OPENTXS_CORE_OTCHEQUE_HPP

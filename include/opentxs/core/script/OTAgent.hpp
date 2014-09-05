@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_AGENT_HPP__
-#define __OT_AGENT_HPP__
+#ifndef OPENTXS_CORE_SCRIPT_OTAGENT_HPP
+#define OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 
 #include "../OTString.hpp"
 #include <map>
@@ -460,4 +460,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_AGENT_HPP__
+#endif // OPENTXS_CORE_SCRIPT_OTAGENT_HPP

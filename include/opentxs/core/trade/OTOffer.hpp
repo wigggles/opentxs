@@ -133,8 +133,8 @@
 // Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
 // offers and a list of ask offers.)
 
-#ifndef __OT_OFFER_HPP__
-#define __OT_OFFER_HPP__
+#ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
+#define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
 #include "../OTInstrument.hpp"
 
@@ -368,4 +368,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_OFFER_HPP__
+#endif // OPENTXS_CORE_TRADE_OTOFFER_HPP

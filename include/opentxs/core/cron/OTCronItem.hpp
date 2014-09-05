@@ -133,8 +133,8 @@
 // Base class for OTTrade and OTAgreement.
 // OTCron contains lists of these for regular processing.
 
-#ifndef __OT_CRON_ITEM_HPP__
-#define __OT_CRON_ITEM_HPP__
+#ifndef OPENTXS_CORE_CRON_OTCRONITEM_HPP
+#define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
 #include "../OTTrackable.hpp"
 
@@ -358,4 +358,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CRON_ITEM_HPP__
+#endif // OPENTXS_CORE_CRON_OTCRONITEM_HPP

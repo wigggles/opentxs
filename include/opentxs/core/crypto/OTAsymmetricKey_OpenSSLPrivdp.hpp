@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ASYMETRIC_KEY_OPENSSL_PRIV_DP_HPP__
-#define __OT_ASYMETRIC_KEY_OPENSSL_PRIV_DP_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTASYMETRICKEY_OPENSSLPRIVDP_HPP
+#define OPENTXS_CORE_CRYPTO_OTASYMETRICKEY_OPENSSLPRIVDP_HPP
 
 #include "OTAsymmetricKeyOpenSSL.hpp"
 
@@ -215,4 +215,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_ASYMETRIC_KEY_OPENSSL_PRIV_DP_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTASYMETRICKEY_OPENSSLPRIVDP_HPP

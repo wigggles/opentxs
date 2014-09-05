@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTRecordList.hpp
-*
-*/
+ *
+ *  OTRecordList.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_RECORD_LIST__
-#define __OT_RECORD_LIST__
+#ifndef OPENTXS_CLIENT_OTRECORDLIST_HPP
+#define OPENTXS_CLIENT_OTRECORDLIST_HPP
 
 #include "opentxs/client/OTRecord.hpp"
 
@@ -348,50 +348,6 @@ public:
     EXPORT bool RemoveRecord(int32_t nIndex);
 };
 
-/*
-
- // TO USE:
-
- OTRecordList blah;
-
- blah.SetServerID("id goes here");
- blah.SetAssetID("id goes here");
- blah.SetNymID("id goes here");
- blah.SetAccountID("id goes here");
-
- blah.Populate();
-
- // THEN:
-
- int32_t nSize  = blah.size();
- int32_t nIndex = [0 .. nSize-1]
- weak_ptr_OTRecord record = blah.GetRecord(nIndex);
-
-
- // ACCESSING THE RECORD:
-
- shared_ptr_OTRecord pRecord(record);
-
- if (!sp)
- {
- // It's nullptr -- this means OTRecordList got re-populated.
- // (Which means the list control on the UI needs to get
- // re-populated with fresh pointers.)
- }
- else // Pointer is good
- {
- pRecord->GetName();  // Etc.
- }
-
-
- // THEN LATER:
-
- blah.Populate();
-
- Etc.
-
- */
-
 } // namespace opentxs
 
-#endif // __OT_RECORD_LIST__
+#endif // OPENTXS_CLIENT_OTRECORDLIST_HPP

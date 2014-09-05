@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OT_ME.hpp
-*
-*/
+ *
+ *  OT_ME.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_ME_HPP__
-#define __OT_ME_HPP__
+#ifndef OPENTXS_CLIENT_OT_ME_HPP
+#define OPENTXS_CLIENT_OT_ME_HPP
 
 #include "opentxs/core/util/Common.hpp"
 
@@ -486,4 +486,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_ME_HPP__
+#endif // OPENTXS_CLIENT_OT_ME_HPP

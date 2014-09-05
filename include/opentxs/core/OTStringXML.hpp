@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTStringXML.hpp
-*
-*/
+ *
+ *  OTStringXML.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_STRING_XML_HPP__
-#define __OT_STRING_XML_HPP__
+#ifndef OPENTXS_CORE_OTSTRINGXML_HPP
+#define OPENTXS_CORE_OTSTRINGXML_HPP
 
 #include "OTString.hpp"
 
@@ -171,4 +171,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_STRING_XML_HPP__
+#endif // OPENTXS_CORE_OTSTRINGXML_HPP

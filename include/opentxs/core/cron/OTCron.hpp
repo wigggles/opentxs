@@ -133,8 +133,8 @@
 // OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade
 // and OTAgreement.)
 
-#ifndef __OT_CRON_HPP__
-#define __OT_CRON_HPP__
+#ifndef OPENTXS_CORE_CRON_OTCRON_HPP
+#define OPENTXS_CORE_CRON_OTCRON_HPP
 
 #include "../OTContract.hpp"
 #include "../util/StringUtils.hpp"
@@ -330,4 +330,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_CRON_HPP__
+#endif // OPENTXS_CORE_CRON_OTCRON_HPP

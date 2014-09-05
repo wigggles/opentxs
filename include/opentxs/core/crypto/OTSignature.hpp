@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_SIGNATURE_HPP__
-#define __OT_SIGNATURE_HPP__
+#ifndef OPENTS_CORE_CRYPTO_OTSIGNATURE_HPP
+#define OPENTS_CORE_CRYPTO_OTSIGNATURE_HPP
 
 #include "OTASCIIArmor.hpp"
 #include "OTSignatureMetadata.hpp"
@@ -180,4 +180,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_SIGNATURE_HPP__
+#endif // OPENTS_CORE_CRYPTO_OTSIGNATURE_HPP

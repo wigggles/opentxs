@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  ot_made_easy_ot.hpp
-*
-*/
+ *
+ *  ot_made_easy_ot.hpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_MADE_EASY_OT_HPP__
-#define __OT_MADE_EASY_OT_HPP__
+#ifndef OPENTXS_CLIENT_OT_MADE_EASY_OT_HPP
+#define OPENTXS_CLIENT_OT_MADE_EASY_OT_HPP
 
 #include "opentxs/core/util/Common.hpp"
 
@@ -337,4 +337,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_MADE_EASY_OT_HPP__
+#endif // OPENTXS_CLIENT_OT_MADE_EASY_OT_HPP

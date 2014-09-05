@@ -2,11 +2,6 @@
  *
  *  OTPayment.hpp
  *
- * If you use sendUserInstrument to send an invoice / cheque /
- * voucher / payment plan / purse / smart contract to another
- * user, that object, whatever it turns out to be, should be
- * encapsulated inside one of THESE (a PAYMENT--used on the
- * PAYMENTS SCREEN of the test GUI.)
  */
 
 /************************************************************
@@ -135,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PAYMENT_HPP__
-#define __OT_PAYMENT_HPP__
+#ifndef OPENTXS_EXT_OTPAYMENT_HPP
+#define OPENTXS_EXT_OTPAYMENT_HPP
 
 #include "opentxs/core/OTContract.hpp"
 
@@ -398,4 +393,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PAYMENT_HPP__
+#endif // OPENTXS_EXT_OTPAYMENT_HPP

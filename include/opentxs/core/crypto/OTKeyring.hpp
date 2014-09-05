@@ -2,10 +2,6 @@
  *
  *  OTKeyring.hpp
  *
- *  Mac has Keychain, Windows has DPAPI, Linux has Gnome-
- *  Keyring, KWallet, etc. The purpose of this class is to
- *  provide a simple, unified, cross-platform interface to
- *  all of them.
  */
 
 /************************************************************
@@ -134,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_KEYRING_HPP__
-#define __OT_KEYRING_HPP__
+#ifndef OPENTXS_CORE_CRYPTO_OTKEYRING_HPP
+#define OPENTXS_CORE_CRYPTO_OTKEYRING_HPP
 
 #include <string>
 
@@ -292,4 +288,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_KEYRING_HPP__
+#endif // OPENTXS_CORE_CRYPTO_OTKEYRING_HPP
