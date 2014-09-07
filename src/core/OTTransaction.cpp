@@ -141,7 +141,6 @@
 #include "OTPseudonym.hpp"
 #include "OTPaymentPlan.hpp"
 #include "OTStorage.hpp"
-#include "basket/OTBasket.hpp"
 #include "script/OTSmartContract.hpp"
 #include "trade/OTTrade.hpp"
 
@@ -1031,7 +1030,6 @@ bool OTTransaction::HarvestClosingNumbers(
         }
 
         break;
-
     case OTTransaction::exchangeBasket: // Uses X transaction #s: the opener,
                                         // which is burned success-or-fail, and
                                         // Y closers
@@ -1129,7 +1127,7 @@ bool OTTransaction::HarvestClosingNumbers(
                             // numbers back now! (They are still outstanding,
                             // though. They're not gone, yet...)
                             //
-                            //                          theBasket.HarvestClosingNumbers(theNym,
+                            // theBasket.HarvestClosingNumbers(theNym,
                             // GetPurportedServerID(), true); //bSave=true
                             //                          bSuccess = true;
                         }

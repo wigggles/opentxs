@@ -147,6 +147,8 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
+#include "../basket/OTBasket.hpp"
+
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
 #include "../core/script/OTParty.hpp"
@@ -154,7 +156,6 @@
 #include "../core/script/OTSmartContract.hpp"
 #include "../core/trade/OTTrade.hpp"
 #include "../core/trade/OTOffer.hpp"
-#include "../core/basket/OTBasket.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/crypto/OTCachedKey.hpp"
 #include "../core/crypto/OTCrypto.hpp"

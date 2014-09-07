@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTBasketItem.cpp
+ *  BasketContract.hpp
  *
  */
 
@@ -130,17 +130,31 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
-#include "OTBasketItem.hpp"
+#include "opentxs/core/OTAssetContract.hpp"
+#include "opentxs/core/OTString.hpp"
 
 namespace opentxs
 {
 
-BasketItem::BasketItem()
-    : lMinimumTransferAmount(0)
-    , lClosingTransactionNo(0)
+class OTBasket;
+class OTPseudonym;
+
+class BasketContract : public OTAssetContract
 {
-}
+public:
+    BasketContract(OTBasket& basket, OTPseudonym& signer);
+    virtual ~BasketContract();
+
+    virtual void CreateContents();
+
+protected:
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+};
 
 } // namespace opentxs
+
+#endif // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP

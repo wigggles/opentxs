@@ -139,7 +139,6 @@
 #include "OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
-#include "basket/OTBasket.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -885,96 +884,54 @@ bool OTAssetContract::EraseAccountRecord(
     return true;
 }
 
-// Normally, Asset Contracts do NOT update / rewrite their contents, since their
-// primary goal is for the signature to continue to verify.  But when first
-// creating
-// a basket contract, we have to rewrite the contents, which is done here.
-bool OTAssetContract::CreateBasket(OTBasket& theBasket, OTPseudonym& theSigner)
-{
-    Release();
-
-    // Grab a string copy of the basket information.
-    theBasket.SaveContractRaw(m_strBasketInfo);
-
-    OTString strTemplate;
-    OTASCIIArmor theBasketArmor(m_strBasketInfo);
-
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
-
-    strTemplate.Concatenate("<basketContract version=\"%s\">\n\n",
-                            m_strVersion.Get());
-    strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
-                            theBasketArmor.Get());
-
-    strTemplate.Concatenate("</%s>\n", "basketContract");
-
-    return CreateContract(strTemplate, theSigner);
-}
-
 void OTAssetContract::CreateContents()
 {
-
     m_strVersion = "2.0"; // 2.0 since adding credentials.
 
     m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
-    if (m_strBasketInfo.Exists()) // Basket contract
-    {
-        OTASCIIArmor theBasketArmor(m_strBasketInfo);
+    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "digitalAssetContract",
+                              m_strVersion.Get());
 
-        m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n",
-                                  m_strVersion.Get());
-        m_xmlUnsigned.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
-                                  theBasketArmor.Get());
-    }
-    else // All other asset contracts.
-    {
+    // Entity
+    m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
+                              " longname=\"%s\"\n"
+                              " email=\"%s\"/>\n\n",
+                              m_strEntityShortName.Get(),
+                              m_strEntityLongName.Get(),
+                              m_strEntityEmail.Get());
 
-        m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n",
-                                  "digitalAssetContract", m_strVersion.Get());
+    // Issue
+    m_xmlUnsigned.Concatenate("<issue company=\"%s\"\n"
+                              " email=\"%s\"\n"
+                              " contractUrl=\"%s\"\n"
+                              " type=\"%s\"/>\n\n",
+                              m_strIssueCompany.Get(), m_strIssueEmail.Get(),
+                              m_strIssueContractURL.Get(),
+                              m_strIssueType.Get());
 
-        // Entity
-        m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
-                                  " longname=\"%s\"\n"
-                                  " email=\"%s\"/>\n\n",
-                                  m_strEntityShortName.Get(),
-                                  m_strEntityLongName.Get(),
-                                  m_strEntityEmail.Get());
-
-        // Issue
+    // [currency|shares]
+    if (m_bIsCurrency)
         m_xmlUnsigned.Concatenate(
-            "<issue company=\"%s\"\n"
-            " email=\"%s\"\n"
-            " contractUrl=\"%s\"\n"
-            " type=\"%s\"/>\n\n",
-            m_strIssueCompany.Get(), m_strIssueEmail.Get(),
-            m_strIssueContractURL.Get(), m_strIssueType.Get());
-
-        // [currency|shares]
-        if (m_bIsCurrency)
-            m_xmlUnsigned.Concatenate(
-                "<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
-                "factor=\"%s\" decimal_power=\"%s\" fraction=\"%s\" />\n\n",
-                m_strCurrencyName.Get(), m_strCurrencyTLA.Get(),
-                m_strCurrencySymbol.Get(), m_strCurrencyType.Get(),
-                m_strCurrencyFactor.Get(), m_strCurrencyDecimalPower.Get(),
-                m_strCurrencyFraction.Get());
-        else if (m_bIsShares)
-            m_xmlUnsigned.Concatenate(
-                "<shares name=\"%s\" symbol=\"%s\" type=\"%s\" "
-                "issuedate=\"%s\" />\n\n",
-                m_strCurrencyName.Get(), m_strCurrencySymbol.Get(),
-                m_strCurrencyType.Get(), m_strIssueDate.Get());
-    }
+            "<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
+            "factor=\"%s\" decimal_power=\"%s\" fraction=\"%s\" />\n\n",
+            m_strCurrencyName.Get(), m_strCurrencyTLA.Get(),
+            m_strCurrencySymbol.Get(), m_strCurrencyType.Get(),
+            m_strCurrencyFactor.Get(), m_strCurrencyDecimalPower.Get(),
+            m_strCurrencyFraction.Get());
+    else if (m_bIsShares)
+        m_xmlUnsigned.Concatenate(
+            "<shares name=\"%s\" symbol=\"%s\" type=\"%s\" "
+            "issuedate=\"%s\" />\n\n",
+            m_strCurrencyName.Get(), m_strCurrencySymbol.Get(),
+            m_strCurrencyType.Get(), m_strIssueDate.Get());
 
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
     // etc.
     CreateInnerContents();
 
-    m_xmlUnsigned.Concatenate("</%s>\n", m_strBasketInfo.Exists()
-                                             ? "basketContract"
-                                             : "digitalAssetContract");
+    m_xmlUnsigned.Concatenate("</%s>\n", "digitalAssetContract");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -1003,24 +960,6 @@ int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
                   "structures...\n\n"
                   "Digital Asset Contract: " << m_strName
                << "\nContract version: " << m_strVersion << "\n----------\n";
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("basketContract")) {
-        m_strVersion = xml->getAttributeValue("version");
-
-        otWarn << "\n"
-                  "===> Loading XML portion of basket contract into memory "
-                  "structures...\n\n"
-                  "Digital Basket Contract: " << m_strName
-               << "\nContract version: " << m_strVersion << "\n----------\n";
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("basketInfo")) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
-            otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
-                     "field without value.\n";
-            return (-1); // error condition
-        }
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("issue")) {

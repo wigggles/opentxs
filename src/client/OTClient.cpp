@@ -143,6 +143,8 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
+#include "../basket/OTBasket.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
@@ -158,7 +160,6 @@
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
-#include "../core/basket/OTBasket.hpp"
 #include "../core/trade/OTOffer.hpp"
 #include "../core/trade/OTTrade.hpp"
 #include "../core/util/StringUtils.hpp"

@@ -141,65 +141,25 @@ namespace opentxs
 class OTAccount;
 class OTAcctFunctor;
 class OTAmount;
-class OTBasket;
 class OTIdentifier;
 class OTPseudonym;
 class OTString;
 
 class OTAssetContract : public OTContract
 {
-protected:
-    // basket currencies only:
-    OTString m_strBasketInfo; // If this contract is for a basket currency, the
-                              // OTBasket object is stored here.
-
-    // currencies and shares:
-    OTString m_strIssueCompany;
-    OTString m_strIssueEmail;
-    OTString m_strIssueContractURL;
-    OTString m_strIssueType; // A vs B. Voting / non-voting...
-
-    // shares only:
-    OTString m_strIssueDate;
-
-    // currencies and shares:
-    OTString m_strCurrencyName;   //  "dollars", not cents. The name used in
-                                  // normal conversation.
-    OTString m_strCurrencyType;   //  "decimal" (Versus? Floating point? Int?)
-    OTString m_strCurrencySymbol; //  "$"
-
-    // currencies only:
-    OTString m_strCurrencyTLA; // ISO-4217. E.g., USD, AUG, PSE. Take as hint,
-                               // not as contract.
-    OTString m_strCurrencyFactor; // A dollar is 100 cents. Therefore factor ==
-                                  // 100.
-    OTString m_strCurrencyDecimalPower; // If value is 103, decimal power of 0
-                                        // displays 103 (actual value.) Whereas
-                                        // decimal power of 2 displays 1.03 and
-                                        // 4 displays .0103
-    OTString m_strCurrencyFraction;     // "cents"
-
-    bool m_bIsCurrency; // default: true.  (default.)
-    bool m_bIsShares;   // default: false. (defaults to currency, not shares.)
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-
 public:
+    EXPORT OTAssetContract();
+    EXPORT OTAssetContract(OTString& name, OTString& foldername,
+                           OTString& filename, OTString& strID);
+    EXPORT virtual ~OTAssetContract();
+
     virtual void CreateContents(); // Only used when first generating an asset
                                    // or server contract. Meant for contracts
                                    // which never change after that point.
                                    // Otherwise does the same thing as
                                    // UpdateContents. (But meant for a different
                                    // purpose.)
-    EXPORT bool CreateBasket(OTBasket& theBasket, OTPseudonym& theSigner);
-    inline const OTString& GetBasketInfo() const
-    {
-        return m_strBasketInfo;
-    }
-    EXPORT OTAssetContract();
-    EXPORT OTAssetContract(OTString& name, OTString& foldername,
-                           OTString& filename, OTString& strID);
-    EXPORT virtual ~OTAssetContract();
+
     EXPORT bool IsShares() const
     {
         return m_bIsShares;
@@ -258,6 +218,11 @@ public:
                                                               // 545,
                                                               // GetCentsOnly
                                                               // returns 45.
+    const OTString& GetBasketInfo() const
+    {
+        return m_strBasketInfo;
+    }
+
     EXPORT const OTString& GetCurrencyName() const
     {
         return m_strCurrencyName;
@@ -274,24 +239,48 @@ public:
     {
         return m_strCurrencyTLA;
     } // "USD""     (for example)
+
     virtual bool SaveContractWallet(OTString& strContents) const;
     virtual bool SaveContractWallet(std::ofstream& ofs);
     virtual bool DisplayStatistics(OTString& strContents) const;
-};
 
-// NOTE: Moved to OTServer.h and .cpp
-// Because the Trigger method needs to be able to call
-// OTServer-specific functions, and thus can't be in the otlib,
-// which doesn't know of the server.
-//
-// class OTAcctFunctor_PayDividend
-//{
-// public:
-//    OTAcctFunctor_PayDividend(const OTIdentifier & theServerID);
-//    virtual ~OTAcctFunctor_PayDividend();
-//
-//    virtual bool Trigger(OTAccount & theAccount);
-//};
+protected:
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+protected:
+    // baskets
+    OTString m_strBasketInfo;
+
+    // currencies and shares:
+    OTString m_strIssueCompany;
+    OTString m_strIssueEmail;
+    OTString m_strIssueContractURL;
+    OTString m_strIssueType; // A vs B. Voting / non-voting...
+
+    // shares only:
+    OTString m_strIssueDate;
+
+    // currencies and shares:
+    OTString m_strCurrencyName;   //  "dollars", not cents. The name used in
+                                  // normal conversation.
+    OTString m_strCurrencyType;   //  "decimal" (Versus? Floating point? Int?)
+    OTString m_strCurrencySymbol; //  "$"
+
+    // currencies only:
+    OTString m_strCurrencyTLA; // ISO-4217. E.g., USD, AUG, PSE. Take as hint,
+                               // not as contract.
+    OTString m_strCurrencyFactor; // A dollar is 100 cents. Therefore factor ==
+                                  // 100.
+    OTString m_strCurrencyDecimalPower; // If value is 103, decimal power of 0
+                                        // displays 103 (actual value.) Whereas
+                                        // decimal power of 2 displays 1.03 and
+                                        // 4 displays .0103
+    OTString m_strCurrencyFraction;     // "cents"
+
+    bool m_bIsCurrency; // default: true.  (default.)
+    bool m_bIsShares;   // default: false. (defaults to currency, not shares.)
+};
 
 } // namespace opentxs
 
