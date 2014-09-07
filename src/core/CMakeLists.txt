@@ -1,7 +1,6 @@
 # Copyright (c) Monetas AG, 2014
 
 add_subdirectory(otprotob)
-add_subdirectory(basket)
 add_subdirectory(trade)
 add_subdirectory(cron)
 add_subdirectory(script)
@@ -116,7 +115,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade opentxs-basket bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD
