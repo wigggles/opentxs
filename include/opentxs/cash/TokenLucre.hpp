@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CASH_TOKEN_LUCRE_HPP
-#define OPENTXS_CASH_TOKEN_LUCRE_HPP
+#ifndef OPENTXS_CASH_TOKENLUCRE_HPP
+#define OPENTXS_CASH_TOKENLUCRE_HPP
 
 #include "Token.hpp"
 
@@ -220,4 +220,4 @@ public:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CASH_TOKEN_LUCRE_HPP
+#endif // OPENTXS_CASH_TOKENLUCRE_HPP

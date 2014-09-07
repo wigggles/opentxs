@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_OT_PAYMENT_PLAN_HPP
-#define OPENTXS_CORE_OT_PAYMENT_PLAN_HPP
+#ifndef OPENTXS_CORE_OTPAYMENTPLAN_HPP
+#define OPENTXS_CORE_OTPAYMENTPLAN_HPP
 
 #include "OTAgreement.hpp"
 
@@ -561,4 +561,4 @@ public:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OT_PAYMENT_PLAN_HPP
+#endif // OPENTXS_CORE_OTPAYMENTPLAN_HPP
