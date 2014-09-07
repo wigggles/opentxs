@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_DATA_FOLDER_HPP__
-#define __OT_DATA_FOLDER_HPP__
+#ifndef OPENTXS_CORE_OTDATAFOLDER_HPP
+#define OPENTXS_CORE_OTDATAFOLDER_HPP
 
 #include "OTString.hpp"
 #include "util/Assert.hpp"
@@ -165,4 +165,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_DATA_FOLDER_HPP__
+#endif // OPENTXS_CORE_OTDATAFOLDER_HPP

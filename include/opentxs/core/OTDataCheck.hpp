@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_DATACHECK_HPP
-#define OPENTXS_CORE_DATACHECK_HPP
+#ifndef OPENTXS_CORE_OTDATACHECK_HPP
+#define OPENTXS_CORE_OTDATACHECK_HPP
 
 #include <cstdint>
 
@@ -151,4 +151,4 @@ EXPORT OT_BOOL IsChecksumValid(OT_BYTE* buffer, uint32_t size);
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_DATACHECK_HPP
+#endif // OPENTXS_CORE_OTDATACHECK_HPP

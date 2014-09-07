@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OT_PSEUDONYM_HPP__
-#define __OT_PSEUDONYM_HPP__
+#ifndef OPENTXS_CORE_OTPSEUDONYM_HPP
+#define OPENTXS_CORE_OTPSEUDONYM_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
 #include "OTIdentifier.hpp"
@@ -1062,4 +1062,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OT_PSEUDONYM_HPP__
+#endif // OPENTXS_CORE_OTPSEUDONYM_HPP
