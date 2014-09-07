@@ -187,7 +187,10 @@
 #include <memory>
 
 #include <time.h>
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #if defined(OPENTXS_HAVE_NETINET_IN_H)
 extern "C" {
