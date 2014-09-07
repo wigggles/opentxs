@@ -449,17 +449,17 @@ Utility::~Utility()
 {
 }
 
-OT_UTILITY_OT void Utility::delay()
+OT_UTILITY_OT void Utility::delay() const
 {
     OTAPI_Wrap::Sleep(delay_ms);
 }
 
-OT_UTILITY_OT void Utility::longDelay()
+OT_UTILITY_OT void Utility::longDelay() const
 {
     OTAPI_Wrap::Sleep(delay_ms + 200);
 }
 
-OT_UTILITY_OT int32_t Utility::getNbrTransactionCount()
+OT_UTILITY_OT int32_t Utility::getNbrTransactionCount() const
 {
     return max_trans_dl;
 }
@@ -469,7 +469,7 @@ OT_UTILITY_OT void Utility::setNbrTransactionCount(int32_t new_trans_dl)
     max_trans_dl = new_trans_dl;
 }
 
-OT_UTILITY_OT string Utility::getLastReplyReceived()
+OT_UTILITY_OT string Utility::getLastReplyReceived() const
 {
     return strLastReplyReceived;
 }
@@ -1692,11 +1692,10 @@ Utility::processNymbox(const string& serverID, const string& nymID,
 // OR returns -1 if there was an error.
 //
 // DONE
-OT_UTILITY_OT int32_t
-Utility::sendProcessNymboxLowLevel(const string& serverID,
-                                   const string& nymID) // bWasSent is an output
-                                                        // param allowing to
-                                                        // return whether;
+OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
+    const string& serverID, const string& nymID) const // bWasSent is an output
+                                                       // param allowing to
+                                                       // return whether;
 {
     string strLocation = "Utility::sendProcessNymboxLowLevel";
 

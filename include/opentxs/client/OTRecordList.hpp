@@ -311,10 +311,10 @@ public:
     EXPORT void AcceptTransfersAutomatically(bool bVal = true);
     EXPORT void AcceptCashAutomatically(bool bVal = true);
 
-    EXPORT bool DoesAcceptChequesAutomatically();
-    EXPORT bool DoesAcceptReceiptsAutomatically();
-    EXPORT bool DoesAcceptTransfersAutomatically();
-    EXPORT bool DoesAcceptCashAutomatically();
+    EXPORT bool DoesAcceptChequesAutomatically() const;
+    EXPORT bool DoesAcceptReceiptsAutomatically() const;
+    EXPORT bool DoesAcceptTransfersAutomatically() const;
+    EXPORT bool DoesAcceptCashAutomatically() const;
 
     EXPORT bool PerformAutoAccept(); // Before populating, process out any items
                                      // we're supposed to accept automatically.
@@ -343,7 +343,7 @@ public:
         const std::string str_my_nym_id = "", time64_t tDate = OT_TIME_ZERO);
     // RETRIEVE:
     //
-    EXPORT int32_t size();
+    EXPORT int32_t size() const;
     EXPORT std::shared_ptr<OTRecord> GetRecord(int32_t nIndex);
     EXPORT bool RemoveRecord(int32_t nIndex);
 };

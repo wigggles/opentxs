@@ -815,7 +815,7 @@ bool OT_API::Cleanup()
 }
 
 // Get
-bool OT_API::GetWalletFilename(OTString& strPath)
+bool OT_API::GetWalletFilename(OTString& strPath) const
 {
     if (m_strWalletFilename.Exists()) {
         strPath = m_strWalletFilename;
@@ -848,7 +848,7 @@ bool OT_API::SetTransportCallback(TransportCallback* pTransportCallback)
         return false;
 }
 
-TransportCallback* OT_API::GetTransportCallback()
+TransportCallback* OT_API::GetTransportCallback() const
 {
     if (nullptr != m_pTransportCallback) {
         return m_pTransportCallback;
@@ -1114,12 +1114,12 @@ bool OT_API::SetWallet(const OTString& strFilename)
     return true;
 }
 
-bool OT_API::WalletExists()
+bool OT_API::WalletExists() const
 {
     return (nullptr != m_pWallet) ? true : false;
 }
 
-bool OT_API::LoadWallet()
+bool OT_API::LoadWallet() const
 {
     OT_ASSERT_MSG(m_bInitialized,
                   "Not initialized; call OT_API::Init first.\n");
@@ -1170,7 +1170,7 @@ bool OT_API::LoadWallet()
 //
 
 bool OT_API::TransportFunction(OTServerContract& theServerContract,
-                               OTEnvelope& theEnvelope)
+                               OTEnvelope& theEnvelope) const
 {
     if (!IsInitialized()) {
         otErr << __FUNCTION__ << ": Error: OT_API is not Initialized!\n";
@@ -1328,7 +1328,7 @@ bool OT_API::TransportFunction(OTServerContract& theServerContract,
     return true;
 }
 
-int32_t OT_API::GetNymCount()
+int32_t OT_API::GetNymCount() const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1337,7 +1337,7 @@ int32_t OT_API::GetNymCount()
     return 0;
 }
 
-int32_t OT_API::GetServerCount()
+int32_t OT_API::GetServerCount() const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1346,7 +1346,7 @@ int32_t OT_API::GetServerCount()
     return 0;
 }
 
-int32_t OT_API::GetAssetTypeCount()
+int32_t OT_API::GetAssetTypeCount() const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1355,7 +1355,7 @@ int32_t OT_API::GetAssetTypeCount()
     return 0;
 }
 
-int32_t OT_API::GetAccountCount()
+int32_t OT_API::GetAccountCount() const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1364,7 +1364,8 @@ int32_t OT_API::GetAccountCount()
     return 0;
 }
 
-bool OT_API::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, OTString& NYM_NAME)
+bool OT_API::GetNym(int32_t iIndex, OTIdentifier& NYM_ID,
+                    OTString& NYM_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1373,7 +1374,8 @@ bool OT_API::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, OTString& NYM_NAME)
     return false;
 }
 
-bool OT_API::GetServer(int32_t iIndex, OTIdentifier& THE_ID, OTString& THE_NAME)
+bool OT_API::GetServer(int32_t iIndex, OTIdentifier& THE_ID,
+                       OTString& THE_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1383,7 +1385,7 @@ bool OT_API::GetServer(int32_t iIndex, OTIdentifier& THE_ID, OTString& THE_NAME)
 }
 
 bool OT_API::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
-                          OTString& THE_NAME)
+                          OTString& THE_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1394,7 +1396,7 @@ bool OT_API::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
 }
 
 bool OT_API::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
-                        OTString& THE_NAME)
+                        OTString& THE_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1404,7 +1406,7 @@ bool OT_API::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
     return false;
 }
 
-OTWallet* OT_API::GetWallet(const char* szFuncName)
+OTWallet* OT_API::GetWallet(const char* szFuncName) const
 {
     // Any function that calls GetWallet() thus asserts here.
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
@@ -1415,7 +1417,8 @@ OTWallet* OT_API::GetWallet(const char* szFuncName)
     return pWallet;
 }
 
-OTPseudonym* OT_API::GetNym(const OTIdentifier& NYM_ID, const char* szFunc)
+OTPseudonym* OT_API::GetNym(const OTIdentifier& NYM_ID,
+                            const char* szFunc) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1438,7 +1441,7 @@ OTPseudonym* OT_API::GetNym(const OTIdentifier& NYM_ID, const char* szFunc)
 }
 
 OTServerContract* OT_API::GetServer(const OTIdentifier& THE_ID,
-                                    const char* szFunc)
+                                    const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
@@ -1457,7 +1460,7 @@ OTServerContract* OT_API::GetServer(const OTIdentifier& THE_ID,
 }
 
 OTAssetContract* OT_API::GetAssetType(const OTIdentifier& THE_ID,
-                                      const char* szFunc)
+                                      const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
@@ -1475,7 +1478,8 @@ OTAssetContract* OT_API::GetAssetType(const OTIdentifier& THE_ID,
     return nullptr;
 }
 
-OTAccount* OT_API::GetAccount(const OTIdentifier& THE_ID, const char* szFunc)
+OTAccount* OT_API::GetAccount(const OTIdentifier& THE_ID,
+                              const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
@@ -1494,7 +1498,7 @@ OTAccount* OT_API::GetAccount(const OTIdentifier& THE_ID, const char* szFunc)
 }
 
 OTPseudonym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
-                                            const char* szFuncName)
+                                            const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -1504,7 +1508,7 @@ OTPseudonym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
 }
 
 OTServerContract* OT_API::GetServerContractPartialMatch(
-    const std::string PARTIAL_ID, const char* szFuncName)
+    const std::string PARTIAL_ID, const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -1515,7 +1519,7 @@ OTServerContract* OT_API::GetServerContractPartialMatch(
 }
 
 OTAssetContract* OT_API::GetAssetContractPartialMatch(
-    const std::string PARTIAL_ID, const char* szFuncName)
+    const std::string PARTIAL_ID, const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -1526,7 +1530,7 @@ OTAssetContract* OT_API::GetAssetContractPartialMatch(
 }
 
 OTAccount* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
-                                          const char* szFuncName)
+                                          const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -1541,7 +1545,7 @@ OTAccount* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
 //
 OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
                                const std::string str_id_source,
-                               const std::string str_alt_location)
+                               const std::string str_alt_location) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     switch (nKeySize) {
@@ -1596,7 +1600,7 @@ OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
 // Returns success, true or false.
 //
 bool OT_API::SetAssetType_Name(const OTIdentifier& ASSET_ID,
-                               const OTString& STR_NEW_NAME)
+                               const OTString& STR_NEW_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1623,7 +1627,7 @@ bool OT_API::SetAssetType_Name(const OTIdentifier& ASSET_ID,
 // Returns success, true or false.
 //
 bool OT_API::SetServer_Name(const OTIdentifier& SERVER_ID,
-                            const OTString& STR_NEW_NAME)
+                            const OTString& STR_NEW_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1645,7 +1649,7 @@ bool OT_API::SetServer_Name(const OTIdentifier& SERVER_ID,
 }
 
 bool OT_API::IsNym_RegisteredAtServer(const OTIdentifier& NYM_ID,
-                                      const OTIdentifier& SERVER_ID)
+                                      const OTIdentifier& SERVER_ID) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1721,7 +1725,7 @@ process.
 // So make sure you grab a fresh pointer in such situations, after calling this.
 // (Because the one you had before will crash you.)
 //
-bool OT_API::Wallet_ChangePassphrase()
+bool OT_API::Wallet_ChangePassphrase() const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -2162,7 +2166,7 @@ bool OT_API::Wallet_ChangePassphrase()
     return false;
 }
 
-bool OT_API::Wallet_CanRemoveServer(const OTIdentifier& SERVER_ID)
+bool OT_API::Wallet_CanRemoveServer(const OTIdentifier& SERVER_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -2227,7 +2231,7 @@ bool OT_API::Wallet_CanRemoveServer(const OTIdentifier& SERVER_ID)
 // This function tells you whether you can remove the asset contract or
 // not.(Whether there are accounts...)
 //
-bool OT_API::Wallet_CanRemoveAssetType(const OTIdentifier& ASSET_ID)
+bool OT_API::Wallet_CanRemoveAssetType(const OTIdentifier& ASSET_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -2274,7 +2278,7 @@ bool OT_API::Wallet_CanRemoveAssetType(const OTIdentifier& ASSET_ID)
 //
 // returns OT_BOOL
 //
-bool OT_API::Wallet_CanRemoveNym(const OTIdentifier& NYM_ID)
+bool OT_API::Wallet_CanRemoveNym(const OTIdentifier& NYM_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -2359,7 +2363,7 @@ bool OT_API::Wallet_CanRemoveNym(const OTIdentifier& NYM_ID)
 //
 // returns OT_BOOL
 //
-bool OT_API::Wallet_CanRemoveAccount(const OTIdentifier& ACCOUNT_ID)
+bool OT_API::Wallet_CanRemoveAccount(const OTIdentifier& ACCOUNT_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -2426,7 +2430,7 @@ bool OT_API::Wallet_CanRemoveAccount(const OTIdentifier& ACCOUNT_ID)
 // This will not work if there are any accounts in the wallet for the same
 // server ID.
 //
-bool OT_API::Wallet_RemoveServer(const OTIdentifier& SERVER_ID)
+bool OT_API::Wallet_RemoveServer(const OTIdentifier& SERVER_ID) const
 {
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
@@ -2477,7 +2481,7 @@ bool OT_API::Wallet_RemoveServer(const OTIdentifier& SERVER_ID)
 // This will not work if there are any accounts in the wallet for the same asset
 // type ID.
 //
-bool OT_API::Wallet_RemoveAssetType(const OTIdentifier& ASSET_ID)
+bool OT_API::Wallet_RemoveAssetType(const OTIdentifier& ASSET_ID) const
 {
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
@@ -2514,7 +2518,7 @@ bool OT_API::Wallet_RemoveAssetType(const OTIdentifier& ASSET_ID)
 // This will not work if there are any nyms in the wallet for the same server
 // ID.
 //
-bool OT_API::Wallet_RemoveNym(const OTIdentifier& NYM_ID)
+bool OT_API::Wallet_RemoveNym(const OTIdentifier& NYM_ID) const
 {
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
@@ -2570,7 +2574,8 @@ bool OT_API::Wallet_RemoveNym(const OTIdentifier& NYM_ID)
 //
 // Returns bool on success, and strOutput will contain the exported data.
 //
-bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
+bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID,
+                              OTString& strOutput) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -2728,7 +2733,7 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID, OTString& strOutput)
 // then it will be set to the ID that was already there.
 //
 bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
-                              OTIdentifier* pNymID)
+                              OTIdentifier* pNymID) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -3046,7 +3051,7 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
 
 bool OT_API::Wallet_ImportCert(const OTString& DISPLAY_NAME,
                                const OTString& FILE_CONTENTS,
-                               OTIdentifier* pNymID)
+                               OTIdentifier* pNymID) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -3118,7 +3123,8 @@ bool OT_API::Wallet_ImportCert(const OTString& DISPLAY_NAME,
     return false;
 }
 
-bool OT_API::Wallet_ExportCert(const OTIdentifier& NYM_ID, OTString& strOutput)
+bool OT_API::Wallet_ExportCert(const OTIdentifier& NYM_ID,
+                               OTString& strOutput) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -3165,7 +3171,8 @@ bool OT_API::Wallet_ExportCert(const OTIdentifier& NYM_ID, OTString& strOutput)
 // bool  NumList::Peek(int64_t & lPeek) const;
 // bool  NumList::Pop();
 
-bool OT_API::NumList_Add(OTNumList& theList, const OTNumList& theNewNumbers)
+bool OT_API::NumList_Add(OTNumList& theList,
+                         const OTNumList& theNewNumbers) const
 {
     OTNumList tempNewList(theList);
 
@@ -3179,7 +3186,8 @@ bool OT_API::NumList_Add(OTNumList& theList, const OTNumList& theNewNumbers)
     return false;
 }
 
-bool OT_API::NumList_Remove(OTNumList& theList, const OTNumList& theOldNumbers)
+bool OT_API::NumList_Remove(OTNumList& theList,
+                            const OTNumList& theOldNumbers) const
 {
     OTNumList tempNewList(theList), tempOldList(theOldNumbers);
 
@@ -3199,7 +3207,7 @@ bool OT_API::NumList_Remove(OTNumList& theList, const OTNumList& theOldNumbers)
 // Verifies the presence of theQueryNumbers on theList (as a subset)
 //
 bool OT_API::NumList_VerifyQuery(OTNumList& theList,
-                                 const OTNumList& theQueryNumbers)
+                                 const OTNumList& theQueryNumbers) const
 {
     OTNumList theTempQuery(theQueryNumbers);
 
@@ -3217,12 +3225,12 @@ bool OT_API::NumList_VerifyQuery(OTNumList& theList,
 // Verifies the COUNT and CONTENT (but not the order) matches EXACTLY.
 //
 bool OT_API::NumList_VerifyAll(OTNumList& theList,
-                               const OTNumList& theQueryNumbers)
+                               const OTNumList& theQueryNumbers) const
 {
     return theList.Verify(theQueryNumbers);
 }
 
-int32_t OT_API::NumList_Count(OTNumList& theList)
+int32_t OT_API::NumList_Count(OTNumList& theList) const
 {
     return theList.Count();
 }
@@ -3234,7 +3242,7 @@ int32_t OT_API::NumList_Count(OTNumList& theList)
  Todo:  consider making this available on the server side as well,
  so the smart contracts can see what time it is.
  */
-time64_t OT_API::GetTime()
+time64_t OT_API::GetTime() const
 {
     return OTTimeGetCurrentTime();
 }
@@ -3253,7 +3261,7 @@ time64_t OT_API::GetTime()
  return            ascEncoded.Get();            // We return it.
  */
 bool OT_API::Encode(const OTString& strPlaintext, OTString& strOutput,
-                    bool bLineBreaks)
+                    bool bLineBreaks) const
 {
     OTASCIIArmor ascArmor;
     bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks); // encodes.
@@ -3281,7 +3289,7 @@ bool OT_API::Encode(const OTString& strPlaintext, OTString& strOutput,
  return            strPlain.Get();            // We return it.
  */
 bool OT_API::Decode(const OTString& strEncoded, OTString& strOutput,
-                    bool bLineBreaks)
+                    bool bLineBreaks) const
 {
     OTASCIIArmor ascArmor;
     const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
@@ -3316,7 +3324,7 @@ bool OT_API::Decode(const OTString& strEncoded, OTString& strOutput,
  }
  */
 bool OT_API::Encrypt(const OTIdentifier& theRecipientNymID,
-                     const OTString& strPlaintext, OTString& strOutput)
+                     const OTString& strPlaintext, OTString& strOutput) const
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
     OTPseudonym* pRecipientNym =
@@ -3362,7 +3370,7 @@ bool OT_API::Encrypt(const OTIdentifier& theRecipientNymID,
  }
  */
 bool OT_API::Decrypt(const OTIdentifier& theRecipientNymID,
-                     const OTString& strCiphertext, OTString& strOutput)
+                     const OTString& strCiphertext, OTString& strOutput) const
 {
     OTPseudonym* pRecipientNym =
         GetOrLoadPrivateNym(theRecipientNymID, false,
@@ -3392,7 +3400,7 @@ bool OT_API::Decrypt(const OTIdentifier& theRecipientNymID,
  */
 bool OT_API::FlatSign(const OTIdentifier& theSignerNymID,
                       const OTString& strInput, const OTString& strContractType,
-                      OTString& strOutput)
+                      OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
@@ -3431,7 +3439,8 @@ bool OT_API::FlatSign(const OTIdentifier& theSignerNymID,
  */
 
 bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
-                          const OTString& strContract, OTString& strOutput)
+                          const OTString& strContract,
+                          OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
@@ -3485,7 +3494,8 @@ bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
  advanced uses, for OT-Scripts, server operators, etc.
  */
 bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
-                          const OTString& strContract, OTString& strOutput)
+                          const OTString& strContract,
+                          OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
@@ -3653,7 +3663,7 @@ bool OT_API::VerifyAndRetrieveXMLContents(const OTString& strContract,
 ///
 bool OT_API::VerifyAccountReceipt(const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& USER_ID,
-                                  const OTIdentifier& ACCOUNT_ID)
+                                  const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -3680,7 +3690,7 @@ bool OT_API::Create_SmartContract(
                                        // a save.)
     time64_t VALID_FROM,               // Default (0 or nullptr) == NOW
     time64_t VALID_TO, // Default (0 or nullptr) == no expiry / cancel anytime
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -3714,7 +3724,7 @@ bool OT_API::SmartContract_AddParty(
                                 // contract. (And the scripts...)
     const OTString& AGENT_NAME, // An AGENT will be added by default for this
                                 // party. Need Agent NAME.
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -3773,7 +3783,7 @@ bool OT_API::SmartContract_AddAccount(
     const OTString& ACCT_NAME,  // The Account's name as referenced in the smart
                                 // contract
     const OTString& ASSET_TYPE_ID, // Asset Type ID for the Account.
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -3829,8 +3839,9 @@ bool OT_API::SmartContract_AddAccount(
 int32_t OT_API::SmartContract_CountNumsNeeded(
     const OTString& THE_CONTRACT, // The contract, about to have the bylaw added
                                   // to it.
-    const OTString& AGENT_NAME)   // An AGENT will be added by default for this
-                                  // party. Need Agent NAME.
+    const OTString& AGENT_NAME) const // An AGENT will be added by default for
+                                      // this
+                                      // party. Need Agent NAME.
 {
     int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
@@ -3854,10 +3865,13 @@ int32_t OT_API::SmartContract_CountNumsNeeded(
     return nReturnValue;
 }
 
-bool OT_API::SmartContract_ConfirmAccount(
-    const OTString& THE_CONTRACT, const OTIdentifier& SIGNER_NYM_ID,
-    const OTString& PARTY_NAME, const OTString& ACCT_NAME,
-    const OTString& AGENT_NAME, const OTString& ACCT_ID, OTString& strOutput)
+bool OT_API::SmartContract_ConfirmAccount(const OTString& THE_CONTRACT,
+                                          const OTIdentifier& SIGNER_NYM_ID,
+                                          const OTString& PARTY_NAME,
+                                          const OTString& ACCT_NAME,
+                                          const OTString& AGENT_NAME,
+                                          const OTString& ACCT_ID,
+                                          OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4017,8 +4031,9 @@ bool OT_API::SmartContract_ConfirmParty(
     const OTString& PARTY_NAME,   // Should already be on the contract. This way
                                   // we can find it.
     const OTIdentifier& NYM_ID,   // Nym ID for the party, the actual owner,
-    OTString& strOutput) // ===> AS WELL AS for the default AGENT of that party.
-                         // (For now, until I code entities)
+    OTString& strOutput) const // ===> AS WELL AS for the default AGENT of that
+                               // party.
+                               // (For now, until I code entities)
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4116,7 +4131,7 @@ bool OT_API::SmartContract_AddBylaw(
                                        // a save.)
     const OTString& BYLAW_NAME, // The Bylaw's NAME as referenced in the smart
                                 // contract. (And the scripts...)
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     const char* BYLAW_LANGUAGE = "chai"; // todo hardcoding.
     OTPseudonym* pNym = GetOrLoadPrivateNym(
@@ -4176,7 +4191,7 @@ bool OT_API::SmartContract_AddHook(
                                  // the hook. (You can call this multiple times,
                                  // and have multiple clauses trigger on the
                                  // same hook.)
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4229,7 +4244,7 @@ bool OT_API::SmartContract_AddCallback(
                                    // smart contract. (And the scripts...)
     const OTString& CLAUSE_NAME, // The actual clause that will be triggered by
                                  // the callback. (Must exist.)
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4288,7 +4303,7 @@ bool OT_API::SmartContract_AddClause(
     const OTString& CLAUSE_NAME, // The Clause's name as referenced in the smart
                                  // contract. (And the scripts...)
     const OTString& SOURCE_CODE, // The actual source code for the clause.
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4354,7 +4369,7 @@ bool OT_API::SmartContract_AddVariable(
     // type is bool, the strings "true" or "false"
     // are expected here in order to convert to a
     // bool.
-    OTString& strOutput)
+    OTString& strOutput) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4452,7 +4467,7 @@ bool OT_API::SmartContract_AddVariable(
 //
 bool OT_API::SetNym_Name(const OTIdentifier& NYM_ID,
                          const OTIdentifier& SIGNER_NYM_ID,
-                         const OTString& NYM_NEW_NAME)
+                         const OTString& NYM_NEW_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -4495,7 +4510,7 @@ bool OT_API::SetNym_Name(const OTIdentifier& NYM_ID,
 //
 bool OT_API::SetAccount_Name(const OTIdentifier& ACCT_ID,
                              const OTIdentifier& SIGNER_NYM_ID,
-                             const OTString& ACCT_NEW_NAME)
+                             const OTString& ACCT_NEW_NAME) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -4531,7 +4546,7 @@ bool OT_API::SetAccount_Name(const OTIdentifier& ACCT_ID,
 /// CALLER is responsible to delete this Nym!
 /// (Low level.)
 OTPseudonym* OT_API::LoadPublicNym(const OTIdentifier& NYM_ID,
-                                   const char* szFuncName)
+                                   const char* szFuncName) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4557,7 +4572,7 @@ OTPseudonym* OT_API::LoadPrivateNym(const OTIdentifier& NYM_ID,
                                     const bool bChecking,
                                     const char* szFuncName,
                                     OTPasswordData* pPWData,
-                                    OTPassword* pImportPassword)
+                                    OTPassword* pImportPassword) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4646,11 +4661,11 @@ OTPseudonym* OT_API::LoadPrivateNym(const OTIdentifier& NYM_ID,
 //
 bool OT_API::Msg_HarvestTransactionNumbers(
     OTMessage& theMsg, const OTIdentifier& USER_ID,
-    const bool bHarvestingForRetry,    // false until positively asserted.
-    const bool bReplyWasSuccess,       // false until positively asserted.
-    const bool bReplyWasFailure,       // false until positively asserted.
-    const bool bTransactionWasSuccess, // false until positively asserted.
-    const bool bTransactionWasFailure) // false until positively asserted.
+    const bool bHarvestingForRetry,          // false until positively asserted.
+    const bool bReplyWasSuccess,             // false until positively asserted.
+    const bool bReplyWasFailure,             // false until positively asserted.
+    const bool bTransactionWasSuccess,       // false until positively asserted.
+    const bool bTransactionWasFailure) const // false until positively asserted.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4701,7 +4716,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
 
 bool OT_API::HarvestClosingNumbers(const OTIdentifier&,
                                    const OTIdentifier& NYM_ID,
-                                   const OTString& THE_CRON_ITEM)
+                                   const OTString& THE_CRON_ITEM) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4745,7 +4760,7 @@ bool OT_API::HarvestClosingNumbers(const OTIdentifier&,
 // use the below function to get it back.
 //
 bool OT_API::HarvestAllNumbers(const OTIdentifier&, const OTIdentifier& NYM_ID,
-                               const OTString& THE_CRON_ITEM)
+                               const OTString& THE_CRON_ITEM) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -4777,7 +4792,7 @@ bool OT_API::HarvestAllNumbers(const OTIdentifier&, const OTIdentifier& NYM_ID,
 /// No need to cleanup, since it adds the Nym to the wallet.
 ///
 OTPseudonym* OT_API::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
-                                        const char* szFuncName)
+                                        const char* szFuncName) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4804,7 +4819,7 @@ OTPseudonym* OT_API::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                          const bool bChecking,
                                          const char* szFuncName,
                                          OTPasswordData* pPWData,
-                                         OTPassword* pImportPassword)
+                                         OTPassword* pImportPassword) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4834,7 +4849,7 @@ OTPseudonym* OT_API::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 ///
 OTPseudonym* OT_API::GetOrLoadNym(const OTIdentifier& NYM_ID,
                                   const bool bChecking, const char* szFuncName,
-                                  OTPasswordData* pPWData)
+                                  OTPasswordData* pPWData) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4860,7 +4875,7 @@ OTPseudonym* OT_API::GetOrLoadNym(const OTIdentifier& NYM_ID,
 OTAccount* OT_API::GetOrLoadAccount(OTPseudonym& theNym,
                                     const OTIdentifier& ACCT_ID,
                                     const OTIdentifier& SERVER_ID,
-                                    const char* szFuncName)
+                                    const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -4876,7 +4891,7 @@ OTAccount* OT_API::GetOrLoadAccount(OTPseudonym& theNym,
 OTAccount* OT_API::GetOrLoadAccount(const OTIdentifier& NYM_ID,
                                     const OTIdentifier& ACCT_ID,
                                     const OTIdentifier& SERVER_ID,
-                                    const char* szFuncName)
+                                    const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTPseudonym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
@@ -4896,7 +4911,7 @@ OTCheque* OT_API::WriteCheque(
     const OTIdentifier& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM, const time64_t& VALID_TO,
     const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_USER_ID,
-    const OTString& CHEQUE_MEMO, const OTIdentifier* pRECIPIENT_USER_ID)
+    const OTString& CHEQUE_MEMO, const OTIdentifier* pRECIPIENT_USER_ID) const
 {
     OTPseudonym* pNym =
         GetOrLoadPrivateNym(SENDER_USER_ID, false, __FUNCTION__);
@@ -5037,7 +5052,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // until
     time64_t PAYMENT_PLAN_LENGTH,     // after the length (in seconds)
     int32_t PAYMENT_PLAN_MAX_PAYMENTS // expires, or after the maximum
-    )                                 // number of payments. These last
+    ) const                           // number of payments. These last
 {                                     // two arguments are optional.
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         RECIPIENT_USER_ID, false, __FUNCTION__); // This logs, ASSERTs, etc.
@@ -5192,7 +5207,7 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& SENDER_USER_ID,
                                 const OTIdentifier& SENDER_ACCT_ID,
                                 const OTIdentifier& RECIPIENT_USER_ID,
-                                OTPaymentPlan& thePlan)
+                                OTPaymentPlan& thePlan) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         SENDER_USER_ID, false, __FUNCTION__); // This logs, ASSERTs, etc.
@@ -5272,14 +5287,14 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
 
 // LOAD PURSE
 //
-// Returns an OTPurse pointer, or nullptr.
+// Returns an Purse pointer, or nullptr.
 //
 // (Caller responsible to delete.)
 //
 Purse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
                          const OTIdentifier& ASSET_ID,
                          const OTIdentifier& USER_ID,
-                         const OTString* pstrDisplay)
+                         const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason((nullptr == pstrDisplay)
@@ -5320,7 +5335,7 @@ Purse* OT_API::LoadPurse(const OTIdentifier& SERVER_ID,
 
 bool OT_API::SavePurse(const OTIdentifier& SERVER_ID,
                        const OTIdentifier& ASSET_ID,
-                       const OTIdentifier& USER_ID, Purse& THE_PURSE)
+                       const OTIdentifier& USER_ID, Purse& THE_PURSE) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (THE_PURSE.IsPasswordProtected()) {
@@ -5353,7 +5368,7 @@ bool OT_API::SavePurse(const OTIdentifier& SERVER_ID,
 //
 Purse* OT_API::CreatePurse(const OTIdentifier& SERVER_ID,
                            const OTIdentifier& ASSET_ID,
-                           const OTIdentifier& OWNER_ID)
+                           const OTIdentifier& OWNER_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(SERVER_ID, ASSET_ID, OWNER_ID);
@@ -5373,7 +5388,7 @@ Purse* OT_API::CreatePurse(const OTIdentifier& SERVER_ID,
 // Caller is responsible to delete!
 //
 Purse* OT_API::CreatePurse_Passphrase(const OTIdentifier& SERVER_ID,
-                                      const OTIdentifier& ASSET_ID)
+                                      const OTIdentifier& ASSET_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     Purse* pPurse = new Purse(SERVER_ID, ASSET_ID);
@@ -5405,14 +5420,14 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                // when pOwner is set to point to it.
     const bool bForEncrypting, // true==encrypting,false==decrypting.
                                // Only relevant if there's an owner.
-    const OTIdentifier* pOWNER_ID, // This can be nullptr, **IF** purse
-                                   // is password-protected. (It's
-                                   // just ignored in that case.)
-                                   // Otherwise MUST contain the NymID
-                                   // for the Purse owner.
-    const OTString* pstrDisplay1,  // for purses owned by the wallet
-                                   // already
-    const OTString* pstrDisplay2)  // for password-protected purses
+    const OTIdentifier* pOWNER_ID,      // This can be nullptr, **IF** purse
+                                        // is password-protected. (It's
+                                        // just ignored in that case.)
+                                        // Otherwise MUST contain the NymID
+                                        // for the Purse owner.
+    const OTString* pstrDisplay1,       // for purses owned by the wallet
+                                        // already
+    const OTString* pstrDisplay2) const // for password-protected purses
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const bool bDoesOwnerIDExist =
@@ -5563,7 +5578,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                    // optional), then pOWNER_ID is the
                                    // ID it will try next, before
                                    // failing.
-    const OTString* pstrDisplay)
+    const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTPasswordData thePWData((nullptr == pstrDisplay) ? OT_PW_DISPLAY
@@ -5698,7 +5713,7 @@ Token* OT_API::Purse_Peek(const OTIdentifier& SERVER_ID,
                           // Otherwise MUST contain the NymID
                           // for the Purse owner (necessary
                           // to decrypt the token.)
-                          const OTString* pstrDisplay)
+                          const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -5780,7 +5795,7 @@ Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
                          // Otherwise MUST contain the NymID
                          // for the Purse owner (necessary
                          // to decrypt the token.)
-                         const OTString* pstrDisplay)
+                         const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -5846,7 +5861,7 @@ Purse* OT_API::Purse_Pop(const OTIdentifier& SERVER_ID,
 Purse* OT_API::Purse_Empty(const OTIdentifier& SERVER_ID,
                            const OTIdentifier& ASSET_TYPE_ID,
                            const OTString& THE_PURSE,
-                           const OTString* pstrDisplay)
+                           const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason((nullptr == pstrDisplay)
@@ -5888,7 +5903,7 @@ Purse* OT_API::Purse_Push(const OTIdentifier& SERVER_ID,
                           // Otherwise MUST contain the NymID
                           // for the Purse owner (necessary
                           // to encrypt the token.)
-                          const OTString* pstrDisplay)
+                          const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     const OTString strReason1(
@@ -6109,7 +6124,7 @@ Token* OT_API::Token_ChangeOwner(
     const OTString& THE_TOKEN, const OTIdentifier& SIGNER_NYM_ID,
     const OTString& OLD_OWNER, // Pass a NymID here, or a purse.
     const OTString& NEW_OWNER, // Pass a NymID here, or a purse.
-    const OTString* pstrDisplay)
+    const OTString* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTString strWalletReason(
@@ -6264,7 +6279,7 @@ Token* OT_API::Token_ChangeOwner(
 // (Caller responsible to delete.)
 //
 Mint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
-                       const OTIdentifier& ASSET_ID)
+                       const OTIdentifier& ASSET_ID) const
 {
     const OTString strServerID(SERVER_ID);
     const OTString strAssetTypeID(ASSET_ID);
@@ -6298,6 +6313,7 @@ Mint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
 // Caller is responsible to delete.
 //
 OTServerContract* OT_API::LoadServerContract(const OTIdentifier& SERVER_ID)
+    const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTString strServerID(SERVER_ID);
@@ -6333,7 +6349,7 @@ OTServerContract* OT_API::LoadServerContract(const OTIdentifier& SERVER_ID)
 //
 // Caller is responsible to delete.
 //
-OTAssetContract* OT_API::LoadAssetContract(const OTIdentifier& ASSET_ID)
+OTAssetContract* OT_API::LoadAssetContract(const OTIdentifier& ASSET_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTString strAssetTypeID(ASSET_ID);
@@ -6378,7 +6394,7 @@ OTAssetContract* OT_API::LoadAssetContract(const OTIdentifier& ASSET_ID)
 //
 OTAccount* OT_API::LoadAssetAccount(const OTIdentifier& SERVER_ID,
                                     const OTIdentifier& USER_ID,
-                                    const OTIdentifier& ACCOUNT_ID)
+                                    const OTIdentifier& ACCOUNT_ID) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -6396,7 +6412,7 @@ OTAccount* OT_API::LoadAssetAccount(const OTIdentifier& SERVER_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadNymbox(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& USER_ID)
+                             const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6431,7 +6447,7 @@ OTLedger* OT_API::LoadNymbox(const OTIdentifier& SERVER_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadNymboxNoVerify(const OTIdentifier& SERVER_ID,
-                                     const OTIdentifier& USER_ID)
+                                     const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6462,7 +6478,7 @@ OTLedger* OT_API::LoadNymboxNoVerify(const OTIdentifier& SERVER_ID,
 //
 OTLedger* OT_API::LoadInbox(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& USER_ID,
-                            const OTIdentifier& ACCOUNT_ID)
+                            const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6500,7 +6516,7 @@ OTLedger* OT_API::LoadInbox(const OTIdentifier& SERVER_ID,
 //
 OTLedger* OT_API::LoadInboxNoVerify(const OTIdentifier& SERVER_ID,
                                     const OTIdentifier& USER_ID,
-                                    const OTIdentifier& ACCOUNT_ID)
+                                    const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6532,7 +6548,7 @@ OTLedger* OT_API::LoadInboxNoVerify(const OTIdentifier& SERVER_ID,
 //
 OTLedger* OT_API::LoadOutbox(const OTIdentifier& SERVER_ID,
                              const OTIdentifier& USER_ID,
-                             const OTIdentifier& ACCOUNT_ID)
+                             const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6574,7 +6590,7 @@ OTLedger* OT_API::LoadOutbox(const OTIdentifier& SERVER_ID,
 //
 OTLedger* OT_API::LoadOutboxNoVerify(const OTIdentifier& SERVER_ID,
                                      const OTIdentifier& USER_ID,
-                                     const OTIdentifier& ACCOUNT_ID)
+                                     const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6603,7 +6619,7 @@ OTLedger* OT_API::LoadOutboxNoVerify(const OTIdentifier& SERVER_ID,
 }
 
 OTLedger* OT_API::LoadPaymentInbox(const OTIdentifier& SERVER_ID,
-                                   const OTIdentifier& USER_ID)
+                                   const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6629,7 +6645,7 @@ OTLedger* OT_API::LoadPaymentInbox(const OTIdentifier& SERVER_ID,
 }
 
 OTLedger* OT_API::LoadPaymentInboxNoVerify(const OTIdentifier& SERVER_ID,
-                                           const OTIdentifier& USER_ID)
+                                           const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6657,7 +6673,7 @@ OTLedger* OT_API::LoadPaymentInboxNoVerify(const OTIdentifier& SERVER_ID,
 //
 OTLedger* OT_API::LoadRecordBox(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& USER_ID,
-                                const OTIdentifier& ACCOUNT_ID)
+                                const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6691,7 +6707,7 @@ OTLedger* OT_API::LoadRecordBox(const OTIdentifier& SERVER_ID,
 
 OTLedger* OT_API::LoadRecordBoxNoVerify(const OTIdentifier& SERVER_ID,
                                         const OTIdentifier& USER_ID,
-                                        const OTIdentifier& ACCOUNT_ID)
+                                        const OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6718,7 +6734,7 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const OTIdentifier& SERVER_ID,
 // Caller IS responsible to delete.
 
 OTLedger* OT_API::LoadExpiredBox(const OTIdentifier& SERVER_ID,
-                                 const OTIdentifier& USER_ID)
+                                 const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6751,7 +6767,7 @@ OTLedger* OT_API::LoadExpiredBox(const OTIdentifier& SERVER_ID,
 }
 
 OTLedger* OT_API::LoadExpiredBoxNoVerify(const OTIdentifier& SERVER_ID,
-                                         const OTIdentifier& USER_ID)
+                                         const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -6777,8 +6793,8 @@ OTLedger* OT_API::LoadExpiredBoxNoVerify(const OTIdentifier& SERVER_ID,
 
 bool OT_API::ClearExpired(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID, const int32_t nIndex,
-                          const bool bClearAll) // if true, nIndex is
-                                                // ignored.
+                          const bool bClearAll) const // if true, nIndex is
+                                                      // ignored.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
@@ -7051,7 +7067,7 @@ bool OT_API::RecordPayment(
     bool bIsInbox,  // true == payments inbox. false == outpayments box.
     int32_t nIndex, // removes payment instrument (from payments inbox or
                     // outpayments box) and moves to record box.
-    bool bSaveCopy)
+    bool bSaveCopy) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
@@ -7537,7 +7553,7 @@ bool OT_API::RecordPayment(
                     } // !bIsExpired
                 }     // sender is pNym
 
-                // TODO: Add OPTIONAL field to OTPurse: "Remitter".
+                // TODO: Add OPTIONAL field to Purse: "Remitter".
                 // This way the sender has the OPTION to attach his ID "for the
                 // record" even though
                 // a cash transaction HAS NO "SENDER."
@@ -8217,7 +8233,8 @@ bool OT_API::RecordPayment(
 bool OT_API::ClearRecord(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
     const OTIdentifier& ACCOUNT_ID, // USER_ID can be passed here as well.
-    const int32_t nIndex, const bool bClearAll) // if true, nIndex is ignored.
+    const int32_t nIndex,
+    const bool bClearAll) const // if true, nIndex is ignored.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
@@ -8291,7 +8308,7 @@ bool OT_API::ClearRecord(
 // to go.
 //
 bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, OTLedger& theNymbox,
-                                 OTPseudonym& theMessageNym)
+                                 OTPseudonym& theMessageNym) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (OTLedger::nymbox != theNymbox.GetType()) {
@@ -8329,7 +8346,7 @@ bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, OTLedger& theNymbox,
 //
 OTMessage* OT_API::PopMessageBuffer(const int64_t& lRequestNumber,
                                     const OTIdentifier& SERVER_ID,
-                                    const OTIdentifier& USER_ID)
+                                    const OTIdentifier& USER_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");
@@ -8366,7 +8383,7 @@ void OT_API::FlushMessageBuffer()
 
 OTMessage* OT_API::GetSentMessage(const int64_t& lRequestNumber,
                                   const OTIdentifier& SERVER_ID,
-                                  const OTIdentifier& USER_ID)
+                                  const OTIdentifier& USER_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");
@@ -8381,7 +8398,7 @@ OTMessage* OT_API::GetSentMessage(const int64_t& lRequestNumber,
 
 bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
                                const OTIdentifier& SERVER_ID,
-                               const OTIdentifier& USER_ID)
+                               const OTIdentifier& USER_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
@@ -8459,7 +8476,7 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 void OT_API::FlushSentMessages(const bool bHarvestingForRetry,
                                const OTIdentifier& SERVER_ID,
                                const OTIdentifier& USER_ID,
-                               OTLedger& THE_NYMBOX)
+                               OTLedger& THE_NYMBOX) const
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
@@ -8538,7 +8555,7 @@ void OT_API::FlushSentMessages(const bool bHarvestingForRetry,
 
 bool OT_API::HaveAlreadySeenReply(OTIdentifier& SERVER_ID,
                                   OTIdentifier& USER_ID,
-                                  const int64_t& lRequestNumber)
+                                  const int64_t& lRequestNumber) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
@@ -8557,8 +8574,8 @@ bool OT_API::HaveAlreadySeenReply(OTIdentifier& SERVER_ID,
 //
 // Tells you whether or not a given asset type is actually a basket currency.
 //
-bool OT_API::IsBasketCurrency(
-    const OTIdentifier& BASKET_ASSET_TYPE_ID) // returns true or false.
+bool OT_API::IsBasketCurrency(const OTIdentifier& BASKET_ASSET_TYPE_ID)
+    const // returns true or false.
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8587,6 +8604,7 @@ bool OT_API::IsBasketCurrency(
 // (Or zero.)
 //
 int32_t OT_API::GetBasketMemberCount(const OTIdentifier& BASKET_ASSET_TYPE_ID)
+    const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8616,7 +8634,7 @@ int32_t OT_API::GetBasketMemberCount(const OTIdentifier& BASKET_ASSET_TYPE_ID)
 //
 bool OT_API::GetBasketMemberType(const OTIdentifier& BASKET_ASSET_TYPE_ID,
                                  const int32_t nIndex,
-                                 OTIdentifier& theOutputMemberType)
+                                 OTIdentifier& theOutputMemberType) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8656,7 +8674,7 @@ bool OT_API::GetBasketMemberType(const OTIdentifier& BASKET_ASSET_TYPE_ID,
 // (Or 0.)
 //
 int64_t OT_API::GetBasketMemberMinimumTransferAmount(
-    const OTIdentifier& BASKET_ASSET_TYPE_ID, const int32_t nIndex)
+    const OTIdentifier& BASKET_ASSET_TYPE_ID, const int32_t nIndex) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8700,7 +8718,7 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 // (Or 0.)
 //
 int64_t OT_API::GetBasketMinimumTransferAmount(
-    const OTIdentifier& BASKET_ASSET_TYPE_ID)
+    const OTIdentifier& BASKET_ASSET_TYPE_ID) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8729,10 +8747,10 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 //
 // (Caller is responsible to delete.)
 //
-OTBasket* OT_API::GenerateBasketCreation(
-    const OTIdentifier& USER_ID,
-    const int64_t MINIMUM_TRANSFER) // Must be above zero. If <= 0, defaults to
-                                    // 10.
+OTBasket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
+                                         const int64_t MINIMUM_TRANSFER)
+    const // Must be above zero. If <= 0, defaults to
+          // 10.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -8758,7 +8776,7 @@ bool OT_API::AddBasketCreationItem(const OTIdentifier& USER_ID, // for
                                                                 // signature.
                                    OTBasket& theBasket,
                                    const OTIdentifier& ASSET_TYPE_ID,
-                                   const int64_t MINIMUM_TRANSFER)
+                                   const int64_t MINIMUM_TRANSFER) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
@@ -8784,7 +8802,7 @@ bool OT_API::AddBasketCreationItem(const OTIdentifier& USER_ID, // for
 // ISSUE BASKET CREATION REQUEST (to server.)
 //
 int32_t OT_API::issueBasket(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                            OTString& BASKET_INFO)
+                            OTString& BASKET_INFO) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -8843,8 +8861,8 @@ OTBasket* OT_API::GenerateBasketExchange(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
     const OTIdentifier& BASKET_ASSET_TYPE_ID,
     const OTIdentifier& BASKET_ASSET_ACCT_ID,
-    const int32_t TRANSFER_MULTIPLE) // 1            2             3
-{                                    // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
+    const int32_t TRANSFER_MULTIPLE) const // 1            2             3
+{ // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
@@ -8934,7 +8952,7 @@ bool OT_API::AddBasketExchangeItem(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
                                    OTBasket& theBasket,
                                    const OTIdentifier& ASSET_TYPE_ID,
-                                   const OTIdentifier& ASSET_ACCT_ID)
+                                   const OTIdentifier& ASSET_ACCT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -9128,7 +9146,7 @@ int32_t OT_API::exchangeBasket(
     OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     OTIdentifier& BASKET_ASSET_ID, OTString& BASKET_INFO,
     const bool bExchangeInOrOut // exchanging in == true, out == false.
-    )
+    ) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -9358,7 +9376,7 @@ int32_t OT_API::exchangeBasket(
 }
 
 int32_t OT_API::getTransactionNumber(OTIdentifier& SERVER_ID,
-                                     OTIdentifier& USER_ID)
+                                     OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -9408,7 +9426,7 @@ int32_t OT_API::getTransactionNumber(OTIdentifier& SERVER_ID,
 
 int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
                                    OTIdentifier& USER_ID, OTIdentifier& ACCT_ID,
-                                   const int64_t& AMOUNT)
+                                   const int64_t& AMOUNT) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -9657,7 +9675,8 @@ int32_t OT_API::notarizeWithdrawal(OTIdentifier& SERVER_ID,
 }
 
 int32_t OT_API::notarizeDeposit(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                                OTIdentifier& ACCT_ID, OTString& THE_PURSE)
+                                OTIdentifier& ACCT_ID,
+                                OTString& THE_PURSE) const
 {
     OTString strPurseReason(
         "Depositing a cash purse. Enter passphrase for the purse.");
@@ -9938,9 +9957,10 @@ int32_t OT_API::payDividend(
                                          // then this is the pepsi shares asset
                                          // type id.
     OTString& DIVIDEND_MEMO, // a message attached to the payout request.
-    const int64_t& AMOUNT_PER_SHARE) // number of dollars to be paid out PER
-                                     // SHARE (multiplied by total number of
-                                     // shares issued.)
+    const int64_t& AMOUNT_PER_SHARE) const // number of dollars to be paid out
+                                           // PER
+// SHARE (multiplied by total number of
+// shares issued.)
 {
     OTPseudonym* pNym =
         GetOrLoadPrivateNym(ISSUER_USER_ID, false,
@@ -10260,7 +10280,8 @@ int32_t OT_API::payDividend(
 int32_t OT_API::withdrawVoucher(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                 OTIdentifier& ACCT_ID,
                                 OTIdentifier& RECIPIENT_USER_ID,
-                                OTString& CHEQUE_MEMO, const int64_t& AMOUNT)
+                                OTString& CHEQUE_MEMO,
+                                const int64_t& AMOUNT) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -10520,7 +10541,7 @@ int32_t OT_API::withdrawVoucher(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 // (Therefore we won't be retrofitting this function for vouchers.)
 //
 bool OT_API::DiscardCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                           OTIdentifier& ACCT_ID, OTString& THE_CHEQUE)
+                           OTIdentifier& ACCT_ID, OTString& THE_CHEQUE) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -10594,7 +10615,7 @@ bool OT_API::DiscardCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 // cheque, to prevent the recipient from depositing it.
 
 int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                              OTIdentifier& ACCT_ID, OTString& THE_CHEQUE)
+                              OTIdentifier& ACCT_ID, OTString& THE_CHEQUE) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -10888,7 +10909,7 @@ int32_t OT_API::depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 //
 int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
-                                   const OTString& THE_PAYMENT_PLAN)
+                                   const OTString& THE_PAYMENT_PLAN) const
 {
     OTServerContract* pServer =
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
@@ -11079,7 +11100,7 @@ int32_t OT_API::triggerClause(const OTIdentifier& SERVER_ID,
                               const OTIdentifier& USER_ID,
                               const int64_t& lTransactionNum,
                               const OTString& strClauseName,
-                              const OTString* pStrParam)
+                              const OTString* pStrParam) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -11145,7 +11166,7 @@ int32_t OT_API::triggerClause(const OTIdentifier& SERVER_ID,
 
 int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& USER_ID,
-                                      const OTString& THE_SMART_CONTRACT)
+                                      const OTString& THE_SMART_CONTRACT) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -11577,9 +11598,10 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
 int32_t OT_API::cancelCronItem(const OTIdentifier& SERVER_ID,
                                const OTIdentifier& USER_ID,
                                const OTIdentifier& ASSET_ACCT_ID,
-                               const int64_t& lTransactionNum) // so the server
-                                                               // can lookup the
-                                                               // offer in Cron.
+                               const int64_t& lTransactionNum) const // so the
+                                                                     // server
+// can lookup the
+// offer in Cron.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -11737,7 +11759,7 @@ int32_t OT_API::issueMarketOffer(
     const bool bBuyingOrSelling,          //  BUYING == false, SELLING == true.
     const time64_t tLifespanInSeconds,    // 86400 == 1 day.
     const char STOP_SIGN,                 // For stop orders, set to '<' or '>'
-    const int64_t ACTIVATION_PRICE)       // For stop orders, this is
+    const int64_t ACTIVATION_PRICE) const // For stop orders, this is
                                           // threshhold price.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
@@ -12073,7 +12095,7 @@ int32_t OT_API::issueMarketOffer(
 /// convenience.)
 ///
 int32_t OT_API::getMarketList(const OTIdentifier& SERVER_ID,
-                              const OTIdentifier& USER_ID)
+                              const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -12130,7 +12152,7 @@ int32_t OT_API::getMarketList(const OTIdentifier& SERVER_ID,
 int32_t OT_API::getMarketOffers(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& USER_ID,
                                 const OTIdentifier& MARKET_ID,
-                                const int64_t& lDepth)
+                                const int64_t& lDepth) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -12195,7 +12217,7 @@ int32_t OT_API::getMarketOffers(const OTIdentifier& SERVER_ID,
 ///
 int32_t OT_API::getMarketRecentTrades(const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& USER_ID,
-                                      const OTIdentifier& MARKET_ID)
+                                      const OTIdentifier& MARKET_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -12252,7 +12274,7 @@ int32_t OT_API::getMarketRecentTrades(const OTIdentifier& SERVER_ID,
 /// and then I request them one-by-one after that...
 ///
 int32_t OT_API::getNym_MarketOffers(const OTIdentifier& SERVER_ID,
-                                    const OTIdentifier& USER_ID)
+                                    const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -12304,7 +12326,7 @@ int32_t OT_API::getNym_MarketOffers(const OTIdentifier& SERVER_ID,
 
 int32_t OT_API::notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                  OTIdentifier& ACCT_FROM, OTIdentifier& ACCT_TO,
-                                 const int64_t& AMOUNT, OTString& NOTE)
+                                 const int64_t& AMOUNT, OTString& NOTE) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12505,7 +12527,7 @@ int32_t OT_API::notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     return -1;
 }
 
-int32_t OT_API::getNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
+int32_t OT_API::getNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12552,7 +12574,7 @@ int32_t OT_API::getNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
 int32_t OT_API::getInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                         OTIdentifier& ACCT_ID)
+                         OTIdentifier& ACCT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12605,7 +12627,7 @@ int32_t OT_API::getInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
 int32_t OT_API::getOutbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                          OTIdentifier& ACCT_ID)
+                          OTIdentifier& ACCT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12662,7 +12684,8 @@ int32_t OT_API::getOutbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 //  1 or more: Count of items in Nymbox before processing.
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
-int32_t OT_API::processNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
+int32_t OT_API::processNymbox(OTIdentifier& SERVER_ID,
+                              OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12766,7 +12789,7 @@ int32_t OT_API::processNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
 }
 
 int32_t OT_API::processInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                             OTIdentifier& ACCT_ID, OTString& ACCT_LEDGER)
+                             OTIdentifier& ACCT_ID, OTString& ACCT_LEDGER) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12832,7 +12855,7 @@ int32_t OT_API::processInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 }
 
 int32_t OT_API::issueAssetType(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                               OTString& THE_CONTRACT)
+                               OTString& THE_CONTRACT) const
 {
     OTWallet* pWallet = GetWallet(__FUNCTION__);
     if (nullptr == pWallet) return (-1);
@@ -12948,7 +12971,7 @@ int32_t OT_API::issueAssetType(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 }
 
 int32_t OT_API::getContract(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                            OTIdentifier& ASSET_ID)
+                            OTIdentifier& ASSET_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12997,7 +13020,7 @@ int32_t OT_API::getContract(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 }
 
 int32_t OT_API::getMint(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                        OTIdentifier& ASSET_ID)
+                        OTIdentifier& ASSET_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -13061,7 +13084,7 @@ int32_t OT_API::getMint(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 // in that spot.)
 //
 int32_t OT_API::queryAssetTypes(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                                OTASCIIArmor& ENCODED_MAP)
+                                OTASCIIArmor& ENCODED_MAP) const
 {
     /*
      // Java code will create a StringMap object:
@@ -13186,7 +13209,7 @@ int32_t OT_API::queryAssetTypes(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 
 int32_t OT_API::createAssetAccount(OTIdentifier& SERVER_ID,
                                    OTIdentifier& USER_ID,
-                                   OTIdentifier& ASSET_ID)
+                                   OTIdentifier& ASSET_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -13240,7 +13263,7 @@ int32_t OT_API::createAssetAccount(OTIdentifier& SERVER_ID,
 
 int32_t OT_API::deleteAssetAccount(OTIdentifier& SERVER_ID,
                                    OTIdentifier& USER_ID,
-                                   OTIdentifier& ACCOUNT_ID)
+                                   OTIdentifier& ACCOUNT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -13298,7 +13321,7 @@ bool OT_API::DoesBoxReceiptExist(
     const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
                                     // USER_ID in this field also.
     const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum)
+    const int64_t& lTransactionNum) const
 {
     // static
     return VerifyBoxReceiptExists(
@@ -13314,7 +13337,7 @@ int32_t OT_API::getBoxReceipt(
     const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
                                     // USER_ID in this field also.
     const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
-    const int64_t& lTransactionNum)
+    const int64_t& lTransactionNum) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -13381,7 +13404,7 @@ int32_t OT_API::getBoxReceipt(
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
 int32_t OT_API::getAccount(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                           OTIdentifier& ACCT_ID)
+                           OTIdentifier& ACCT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13435,7 +13458,7 @@ int32_t OT_API::getAccount(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
 }
 
 int32_t OT_API::getAccountFiles(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                                OTIdentifier& ACCT_ID)
+                                OTIdentifier& ACCT_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13488,7 +13511,7 @@ int32_t OT_API::getAccountFiles(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     return m_pClient->CalcReturnVal(lRequestNumber);
 }
 
-int32_t OT_API::getRequest(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
+int32_t OT_API::getRequest(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13520,7 +13543,7 @@ int32_t OT_API::getRequest(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
 int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
                              const OTIdentifier& USER_ID,
                              const OTIdentifier& USER_ID_CHECK,
-                             const int64_t lAdjustment)
+                             const int64_t lAdjustment) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13573,7 +13596,7 @@ int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
 }
 
 int32_t OT_API::checkUser(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                          OTIdentifier& USER_ID_CHECK)
+                          OTIdentifier& USER_ID_CHECK) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13625,7 +13648,7 @@ int32_t OT_API::sendUserMessage(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
                                 OTIdentifier& USER_ID_RECIPIENT,
                                 OTString& RECIPIENT_PUBKEY, // unescaped and
                                                             // bookended.
-                                OTString& THE_MESSAGE)
+                                OTString& THE_MESSAGE) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13729,18 +13752,18 @@ int32_t OT_API::sendUserInstrument(
     OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
     OTIdentifier& USER_ID_RECIPIENT, OTString& RECIPIENT_PUBKEY,
     OTPayment& THE_INSTRUMENT,
-    OTPayment* pINSTRUMENT_FOR_SENDER) // This is only used for cash
-                                       // purses. It's a copy of the
-                                       // purse in THE_INSTRUMENT,
-                                       // except all the tokens are
-                                       // already encrypted to the
-                                       // sender's public key, instead
-                                       // of the recipient's public
-                                       // key (as THE_INSTRUMENT is.)
-                                       // This is what we put in the
-                                       // sender's outpayments, so he
-                                       // can retrieve those tokens if
-                                       // he needs to.
+    OTPayment* pINSTRUMENT_FOR_SENDER) const // This is only used for cash
+                                             // purses. It's a copy of the
+                                             // purse in THE_INSTRUMENT,
+                                             // except all the tokens are
+                                             // already encrypted to the
+                                             // sender's public key, instead
+                                             // of the recipient's public
+                                             // key (as THE_INSTRUMENT is.)
+                                             // This is what we put in the
+                                             // sender's outpayments, so he
+                                             // can retrieve those tokens if
+                                             // he needs to.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13948,7 +13971,7 @@ int32_t OT_API::sendUserInstrument(
 // Update: DONE.
 
 int32_t OT_API::createUserAccount(OTIdentifier& SERVER_ID,
-                                  OTIdentifier& USER_ID)
+                                  OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13979,7 +14002,7 @@ int32_t OT_API::createUserAccount(OTIdentifier& SERVER_ID,
 }
 
 int32_t OT_API::deleteUserAccount(OTIdentifier& SERVER_ID,
-                                  OTIdentifier& USER_ID)
+                                  OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -14009,7 +14032,8 @@ int32_t OT_API::deleteUserAccount(OTIdentifier& SERVER_ID,
     return -1;
 }
 
-int32_t OT_API::checkServerID(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
+int32_t OT_API::checkServerID(OTIdentifier& SERVER_ID,
+                              OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -14039,12 +14063,12 @@ int32_t OT_API::checkServerID(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID)
     return -1;
 }
 
-void OT_API::AddServerContract(const OTServerContract& pContract)
+void OT_API::AddServerContract(const OTServerContract& pContract) const
 {
     m_pWallet->AddServerContract(pContract);
 }
 
-void OT_API::AddAssetContract(const OTAssetContract& theContract)
+void OT_API::AddAssetContract(const OTAssetContract& theContract) const
 {
     m_pWallet->AddAssetContract(theContract);
 }

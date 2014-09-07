@@ -511,19 +511,19 @@ void OTRecordList::AcceptCashAutomatically(bool bVal)
     m_bAutoAcceptCash = bVal;
 }
 
-bool OTRecordList::DoesAcceptChequesAutomatically()
+bool OTRecordList::DoesAcceptChequesAutomatically() const
 {
     return m_bAutoAcceptCheques;
 }
-bool OTRecordList::DoesAcceptReceiptsAutomatically()
+bool OTRecordList::DoesAcceptReceiptsAutomatically() const
 {
     return m_bAutoAcceptReceipts;
 }
-bool OTRecordList::DoesAcceptTransfersAutomatically()
+bool OTRecordList::DoesAcceptTransfersAutomatically() const
 {
     return m_bAutoAcceptTransfers;
 }
-bool OTRecordList::DoesAcceptCashAutomatically()
+bool OTRecordList::DoesAcceptCashAutomatically() const
 {
     return m_bAutoAcceptCash;
 }
@@ -3792,7 +3792,7 @@ void OTRecordList::ClearContents()
 // RETRIEVE:
 //
 
-int32_t OTRecordList::size()
+int32_t OTRecordList::size() const
 {
     return m_contents.size();
 }

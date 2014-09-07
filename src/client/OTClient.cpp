@@ -186,7 +186,7 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
                  // if needed.
 }
 
-void OTClient::ProcessMessageOut(char* buf, int32_t* pnExpectReply)
+void OTClient::ProcessMessageOut(char* buf, int32_t* pnExpectReply) const
 {
     //    otErr << "OTClient::ProcessMessageOut: \n\n" << buf << "\n\n";
     //
@@ -243,7 +243,7 @@ void OTClient::ProcessMessageOut(OTMessage& theMessage)
     //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
 }
 
-bool OTClient::ProcessInBuffer(OTMessage& theServerReply)
+bool OTClient::ProcessInBuffer(OTMessage& theServerReply) const
 {
     OT_ASSERT_MSG(
         nullptr != m_pConnection,
@@ -2050,7 +2050,7 @@ void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 /// then skip it! I must have processed it already.
 ///
 void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                           OTMessage& theReply)
+                                           OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3240,7 +3240,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
 void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
                                           OTServerConnection& theConnection,
-                                          OTMessage& theReply)
+                                          OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3275,7 +3275,7 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
 
 void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                       OTServerConnection& theConnection,
-                                      OTMessage& theReply)
+                                      OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3553,7 +3553,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 /// display any vouchers.
 void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
                                          OTServerConnection& theConnection,
-                                         OTMessage& theReply)
+                                         OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -13667,7 +13667,7 @@ int32_t OTClient::ProcessUserCommand(
 bool OTClient::ConnectToTheFirstServerOnList(OTPseudonym& theNym,
                                              OTString& strCA_FILE,
                                              OTString& strKEY_FILE,
-                                             OTString& strKEY_PASSWORD)
+                                             OTString& strKEY_PASSWORD) const
 {
     OTIdentifier SERVER_ID;
     OTString SERVER_NAME;
@@ -13692,7 +13692,7 @@ bool OTClient::ConnectToTheFirstServerOnList(OTPseudonym& theNym,
 /// to do its thing.
 bool OTClient::SetFocusToServerAndNym(OTServerContract& theServerContract,
                                       OTPseudonym& theNym,
-                                      TransportCallback* pCallback)
+                                      TransportCallback* pCallback) const
 {
     OT_ASSERT(nullptr != pCallback);
     OT_ASSERT(nullptr != m_pConnection);

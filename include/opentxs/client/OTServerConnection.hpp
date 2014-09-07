@@ -172,17 +172,17 @@ public:
     {
     }
 
-    bool GetServerID(OTIdentifier& theID);
+    bool GetServerID(OTIdentifier& theID) const;
 
-    inline OTPseudonym* GetNym()
+    inline OTPseudonym* GetNym() const
     {
         return m_pNym;
     }
-    inline OTServerContract* GetServerContract()
+    inline OTServerContract* GetServerContract() const
     {
         return m_pServerContract;
     }
-    inline OTWallet* GetWallet()
+    inline OTWallet* GetWallet() const
     {
         return m_pWallet;
     }
@@ -190,7 +190,7 @@ public:
     //    inline bool IsConnected()    { return ((nullptr ==
     // m_pSocket)?false:true); }    // for socket mode                -- TCP /
     // SSL
-    inline bool IsFocused()
+    inline bool IsFocused() const
     {
         return m_bFocused;
     } // for request/response mode    -- RPC / HTTP
@@ -200,27 +200,27 @@ public:
                   TransportCallback* pCallback);
 
     // Connect() is for TCP / SSL mode.
-    EXPORT bool Connect(OTPseudonym&, OTServerContract&, OTString&, OTString&,
-                        OTString&)
+    EXPORT inline bool Connect(OTPseudonym&, OTServerContract&, OTString&,
+                               OTString&, OTString&) const
     {
         return false;
     }
 
-    void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber);
+    void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
     void ProcessMessageOut(char* buf, int32_t* pnExpectReply);
-    void ProcessMessageOut(OTMessage& theMessage);
+    void ProcessMessageOut(OTMessage& theMessage) const;
 
-    EXPORT bool ProcessInBuffer(OTMessage&)
+    EXPORT inline bool ProcessInBuffer(OTMessage&) const
     {
         return false;
     }
     bool ProcessReply(u_header& theCMD, OTMessage& theServerReply);
-    bool ProcessType1Cmd(u_header& theCMD, OTMessage& theServerReply);
+    bool ProcessType1Cmd(u_header& theCMD, OTMessage& theServerReply) const;
 
     // Assuming we are connected, then we have the nym for signing and we
     // have the connection for sending.
-    bool SignAndSend(OTMessage& theMessage);
+    bool SignAndSend(OTMessage& theMessage) const;
 };
 
 } // namespace opentxs
