@@ -143,6 +143,8 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
+#include "../basket/OTBasket.hpp"
+
 #include "../core/OTAccount.hpp"
 #include "../core/script/OTAgent.hpp"
 #include "../core/OTAmount.hpp"
@@ -164,7 +166,6 @@
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/crypto/OTSymmetricKey.hpp"
-#include "../core/basket/OTBasket.hpp"
 
 #include <memory>
 

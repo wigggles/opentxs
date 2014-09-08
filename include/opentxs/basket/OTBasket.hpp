@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_BASKET_OTBASKET_HPP
-#define OPENTXS_CORE_BASKET_OTBASKET_HPP
+#ifndef OPENTXS_BASKET_OTBASKET_HPP
+#define OPENTXS_BASKET_OTBASKET_HPP
 
 #include "OTBasketItem.hpp"
-#include "../OTContract.hpp"
+#include "opentxs/core/OTContract.hpp"
 
 /*
 
@@ -309,4 +309,4 @@ public:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_BASKET_OTBASKET_HPP
+#endif // OPENTXS_BASKET_OTBASKET_HPP

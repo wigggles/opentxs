@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTBasketItem.cpp
+ *  BasketContract.cpp
  *
  */
 
@@ -130,17 +130,106 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include "BasketContract.hpp"
+#include "OTBasket.hpp"
+#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/OTContract.hpp"
+#include "opentxs/core/OTPseudonym.hpp"
+#include "opentxs/core/OTString.hpp"
+#include "opentxs/core/OTLog.hpp"
 
-#include "basket/OTBasketItem.hpp"
+#include <irrxml/irrXML.hpp>
 
 namespace opentxs
 {
 
-BasketItem::BasketItem()
-    : lMinimumTransferAmount(0)
-    , lClosingTransactionNo(0)
+// Normally, Asset Contracts do NOT update / rewrite their contents, since their
+// primary goal is for the signature to continue to verify.  But when first
+// creating a basket contract, we have to rewrite the contents, which is done
+// here.
+BasketContract::BasketContract(OTBasket& theBasket, OTPseudonym& theSigner)
+    : OTAssetContract()
 {
+    // Grab a string copy of the basket information.
+    theBasket.SaveContractRaw(m_strBasketInfo);
+
+    OTString strTemplate;
+    OTASCIIArmor theBasketArmor(m_strBasketInfo);
+
+    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
+
+    strTemplate.Concatenate("<basketContract version=\"%s\">\n\n",
+                            m_strVersion.Get());
+    strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
+                            theBasketArmor.Get());
+
+    strTemplate.Concatenate("</%s>\n", "basketContract");
+
+    CreateContract(strTemplate, theSigner);
+}
+
+BasketContract::~BasketContract()
+{
+}
+
+void BasketContract::CreateContents()
+{
+    m_strVersion = "2.0"; // 2.0 since adding credentials.
+
+    m_xmlUnsigned.Release();
+    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
+
+    OTASCIIArmor theBasketArmor(m_strBasketInfo);
+
+    m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n",
+                              m_strVersion.Get());
+    m_xmlUnsigned.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
+                              theBasketArmor.Get());
+
+    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
+    // etc.
+    CreateInnerContents();
+
+    m_xmlUnsigned.Concatenate("</%s>\n", "basketContract");
+}
+
+// return -1 if error, 0 if nothing, and 1 if the node was processed.
+int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+{
+    int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
+
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+
+    if (nReturnVal == 1 || nReturnVal == (-1)) return nReturnVal;
+
+    OTString strNodeName(xml->getNodeName());
+
+    if (strNodeName.Compare("basketContract")) {
+        m_strVersion = xml->getAttributeValue("version");
+
+        otWarn << "\n"
+                  "===> Loading XML portion of basket contract into memory "
+                  "structures...\n\n"
+                  "Digital Basket Contract: " << m_strName
+               << "\nContract version: " << m_strVersion << "\n----------\n";
+        nReturnVal = 1;
+    }
+    else if (strNodeName.Compare("basketInfo")) {
+        if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
+            otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
+                     "field without value.\n";
+            return (-1); // error condition
+        }
+        nReturnVal = 1;
+    }
+
+    return nReturnVal;
 }
 
 } // namespace opentxs

@@ -50,7 +50,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client opentxs-ext opentxs-cash opentxs-core)
+target_link_libraries(opentxs-client opentxs-ext opentxs-cash opentxs-basket opentxs-core)
 
 if(WIN32)
   add_custom_command(TARGET opentxs-client POST_BUILD

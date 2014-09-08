@@ -18,6 +18,7 @@ include_directories(
 
 add_subdirectory(core)
 add_subdirectory(cash)
+add_subdirectory(basket)
 add_subdirectory(ext)
 add_subdirectory(client)
 add_subdirectory(opentxs)
