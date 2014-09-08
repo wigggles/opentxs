@@ -203,7 +203,8 @@ public:
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTSymmetricKey& theKey,
-                               OTString& strCiphertext, OTString& strOutput,
+                               const OTString& strCiphertext,
+                               OTString& strOutput,
                                const OTString* pstrDisplay = nullptr,
                                const OTPassword* pAlreadyHavePW = nullptr);
 

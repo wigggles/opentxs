@@ -373,7 +373,7 @@ OTCredential* OTCredential::LoadMasterFromString(
     const OTString& strNymID, // Caller is responsible to delete, in both
                               // CreateMaster and LoadMaster.
     const OTString& strMasterCredID, OTPasswordData* pPWData,
-    OTPassword* pImportPassword)
+    const OTPassword* pImportPassword)
 {
     OTCredential* pCredential = new OTCredential;
     std::unique_ptr<OTCredential> theCredentialAngel(pCredential);
@@ -486,8 +486,8 @@ bool OTCredential::SignNewMaster(OTPasswordData* pPWData)
 // re-sign
 // them all. Joy.
 //
-bool OTCredential::ReEncryptPrivateCredentials(OTPassword& theExportPassword,
-                                               bool bImporting)
+bool OTCredential::ReEncryptPrivateCredentials(
+    const OTPassword& theExportPassword, bool bImporting)
 {
     if (m_Masterkey.GetPrivateMap().size() > 0) {
         OTPasswordData thePWData(
@@ -758,8 +758,8 @@ bool OTCredential::GenerateMasterkey(int32_t nBits) // CreateMaster is
 bool OTCredential::Load_MasterFromString(const OTString& strInput,
                                          const OTString& strNymID,
                                          const OTString& strMasterCredID,
-                                         OTPasswordData*,
-                                         OTPassword* pImportPassword)
+                                         const OTPasswordData*,
+                                         const OTPassword* pImportPassword)
 {
     m_strNymID = strNymID;
     m_strMasterCredID = strMasterCredID;
@@ -848,7 +848,7 @@ bool OTCredential::Load_Master(const OTString& strNymID,
 
 bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
                                         const OTString& strSubID,
-                                        OTPassword* pImportPassword)
+                                        const OTPassword* pImportPassword)
 {
     // Make sure it's not already there.
     //
@@ -934,9 +934,9 @@ bool OTCredential::LoadSubkey(const OTString& strSubID)
     return LoadSubkeyFromString(strFileContents, strSubID);
 }
 
-bool OTCredential::LoadSubcredentialFromString(const OTString& strInput,
-                                               const OTString& strSubID,
-                                               OTPassword* pImportPassword)
+bool OTCredential::LoadSubcredentialFromString(
+    const OTString& strInput, const OTString& strSubID,
+    const OTPassword* pImportPassword)
 {
     // Make sure it's not already there.
     //
@@ -1550,7 +1550,7 @@ void OTCredential::ClearSubcredentials()
 // be placed inside, if a pointer is provided.
 //
 void OTCredential::SerializeIDs(OTString& strOutput,
-                                OTString::List& listRevokedIDs,
+                                const OTString::List& listRevokedIDs,
                                 OTString::Map* pmapPubInfo,
                                 OTString::Map* pmapPriInfo, bool bShowRevoked,
                                 bool bValid) const
@@ -1581,7 +1581,7 @@ void OTCredential::SerializeIDs(OTString& strOutput,
         // subcredential IDs.
         // If so, we'll skip serializing it here.
         //
-        OTString::List::iterator iter = std::find(
+        OTString::List::const_iterator iter = std::find(
             listRevokedIDs.begin(), listRevokedIDs.end(), str_cred_id);
 
         // Was it on the 'revoked' list?

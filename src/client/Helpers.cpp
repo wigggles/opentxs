@@ -146,7 +146,7 @@ namespace opentxs
 //
 // Caller responsible to delete.
 
-OTPayment* GetInstrument(OTPseudonym& theNym, const int32_t& nIndex,
+OTPayment* GetInstrument(const OTPseudonym& theNym, const int32_t& nIndex,
                          OTLedger& ledger) // Returns financial instrument
                                            // by index.
 {
@@ -320,7 +320,7 @@ OTPayment* GetInstrument(OTPseudonym& theNym, const int32_t& nIndex,
     return nullptr;
 }
 
-int32_t GetOutpaymentsIndexByTransNum(OTPseudonym& nym, const int64_t lTransNum)
+int32_t GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum)
 {
     int32_t lOutpaymentsCount = nym.GetOutpaymentsCount();
 

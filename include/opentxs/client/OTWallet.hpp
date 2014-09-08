@@ -227,22 +227,23 @@ public:
     EXPORT OTPseudonym* GetOrLoadNym(const OTIdentifier& NYM_ID,
                                      const bool bChecking = false,
                                      const char* szFuncName = nullptr,
-                                     OTPasswordData* pPWData = nullptr);
+                                     const OTPasswordData* pPWData = nullptr);
     EXPORT OTPseudonym* GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
                                            const char* szFuncName = nullptr);
     EXPORT OTPseudonym* GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                             const bool bChecking = false,
                                             const char* szFuncName = nullptr,
-                                            OTPasswordData* pPWData = nullptr,
-                                            OTPassword* pImportPassword =
+                                            const OTPasswordData* pPWData =
+                                                nullptr,
+                                            const OTPassword* pImportPassword =
                                                 nullptr);
 
-    EXPORT OTAccount* LoadAccount(OTPseudonym& theNym,
+    EXPORT OTAccount* LoadAccount(const OTPseudonym& theNym,
                                   const OTIdentifier& ACCT_ID,
                                   const OTIdentifier& SERVER_ID,
                                   const char* szFuncName = nullptr);
 
-    EXPORT OTAccount* GetOrLoadAccount(OTPseudonym& theNym,
+    EXPORT OTAccount* GetOrLoadAccount(const OTPseudonym& theNym,
                                        const OTIdentifier& ACCT_ID,
                                        const OTIdentifier& SERVER_ID,
                                        const char* szFuncName = nullptr);
@@ -280,7 +281,7 @@ public:
     EXPORT OTAssetContract* GetAssetContract(const OTIdentifier& theContractID);
     EXPORT OTAssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID); // wallet name for asset also accepted.
-    bool VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
+    bool VerifyAssetAccount(const OTPseudonym& theNym, const OTAccount& theAcct,
                             const OTIdentifier& SERVER_ID,
                             const OTString& strAcctID,
                             const char* szFuncName = nullptr);
@@ -330,10 +331,11 @@ public:
                                 const OTString& strPlaintext,
                                 OTString& strOutput,
                                 const OTString* pstrDisplay = nullptr,
-                                const bool bBookends = true);
+                                bool bBookends = true);
 
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
-                                OTString& strCiphertext, OTString& strOutput,
+                                const OTString& strCiphertext,
+                                OTString& strOutput,
                                 const OTString* pstrDisplay = nullptr);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,

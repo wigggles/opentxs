@@ -497,7 +497,7 @@ public:
 
     EXPORT static OTItem* CreateItemFromTransaction(
         const OTTransaction& theOwner, OTItem::itemType theType,
-        OTIdentifier* pDestinationAcctID = nullptr);
+        const OTIdentifier* pDestinationAcctID = nullptr);
     EXPORT static void GetStringFromType(OTItem::itemType theType,
                                          OTString& strType);
     inline void GetTypeString(OTString& strType)
@@ -512,7 +512,7 @@ public:
                                            // server ID, and transaction Num
     OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner,
            OTItem::itemType theType,
-           OTIdentifier* pDestinationAcctID = nullptr);
+           const OTIdentifier* pDestinationAcctID = nullptr);
 
     virtual ~OTItem();
     //    OTItem& operator=(const OTItem& rhs);

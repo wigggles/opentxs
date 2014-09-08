@@ -362,30 +362,28 @@ public:
     //
     // Sign or verify using the Asymmetric Key itself.
     //
-    virtual bool SignContract(const OTString& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const OTString& strHashType,
-                              OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool SignContract(
+        const OTString& strContractUnsigned, const OTAsymmetricKey& theKey,
+        OTSignature& theSignature, // output
+        const OTString& strHashType,
+        const OTPasswordData* pPWData = nullptr) const = 0;
 
-    virtual bool VerifySignature(const OTString& strContractToVerify,
-                                 const OTAsymmetricKey& theKey,
-                                 const OTSignature& theSignature,
-                                 const OTString& strHashType,
-                                 OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool VerifySignature(
+        const OTString& strContractToVerify, const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature, const OTString& strHashType,
+        const OTPasswordData* pPWData = nullptr) const = 0;
     // Sign or verify using the contents of a Certfile.
     //
-    virtual bool SignContract(const OTString& strContractUnsigned,
-                              const OTString& strSigHashType,
-                              const std::string& strCertFileContents,
-                              OTSignature& theSignature, // output
-                              OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool SignContract(
+        const OTString& strContractUnsigned, const OTString& strSigHashType,
+        const std::string& strCertFileContents,
+        OTSignature& theSignature, // output
+        const OTPasswordData* pPWData = nullptr) const = 0;
 
-    virtual bool VerifySignature(const OTString& strContractToVerify,
-                                 const OTString& strSigHashType,
-                                 const std::string& strCertFileContents,
-                                 const OTSignature& theSignature,
-                                 OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool VerifySignature(
+        const OTString& strContractToVerify, const OTString& strSigHashType,
+        const std::string& strCertFileContents, const OTSignature& theSignature,
+        const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT static OTCrypto* It();
 
     EXPORT void Init();
@@ -496,25 +494,25 @@ public:
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
                               const OTString& strHashType,
-                              OTPasswordData* pPWData = nullptr) const;
+                              const OTPasswordData* pPWData = nullptr) const;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const OTString& strHashType,
-                                 OTPasswordData* pPWData = nullptr) const;
+                                 const OTPasswordData* pPWData = nullptr) const;
     // Sign or verify using the contents of a Certfile.
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTString& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
-                              OTPasswordData* pPWData = nullptr) const;
+                              const OTPasswordData* pPWData = nullptr) const;
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTString& strSigHashType,
                                  const std::string& strCertFileContents,
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData = nullptr) const;
+                                 const OTPasswordData* pPWData = nullptr) const;
     void thread_setup();
     void thread_cleanup();
 

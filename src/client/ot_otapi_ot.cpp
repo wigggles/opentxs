@@ -321,7 +321,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_strParam,
-                       const int64_t p_lData)
+                       int64_t p_lData)
 {
     // otOut << "(Version of OTAPI_Func with 5 arguments.)\n";
 
@@ -429,7 +429,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_accountID,
-                       const string& p_strParam, const int64_t p_lData,
+                       const string& p_strParam, int64_t p_lData,
                        const string& p_strData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
@@ -475,7 +475,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
-                       const int64_t p_lData2)
+                       int64_t p_lData2)
 {
     // otOut << "(Version of OTAPI_Func with 7 arguments.)\n";
 
@@ -581,7 +581,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
 OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& p_assetID,
                        const string& p_basket, const string& p_accountID,
-                       const bool p_bBool, const int32_t p_nTransNumsNeeded)
+                       bool p_bBool, int32_t p_nTransNumsNeeded)
 {
     // otOut << "(Version of OTAPI_Func with 8 arguments.)\n";
 
@@ -619,7 +619,7 @@ OTAPI_Func::OTAPI_Func(const OTAPI_Func_Type theType, const string& p_serverID,
                        const string& p_nymID, const string& assetAccountID,
                        const string& currencyAcctID, const string& scale,
                        const string& minIncrement, const string& quantity,
-                       const string& price, const bool bSelling)
+                       const string& price, bool bSelling)
 {
     // otOut << "(Version of OTAPI_Func with 10 arguments.)\n";
 
@@ -836,9 +836,9 @@ OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION)
     return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
 }
 
-OT_OTAPI_OT string
-OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION,
-                            const int32_t nTotalRetries) const
+OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
+                                               const string& IN_FUNCTION,
+                                               int32_t nTotalRetries) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
@@ -1010,11 +1010,10 @@ OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func& theFunction,
     return strResult;
 }
 
-OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
-                                               const string& IN_FUNCTION,
-                                               const bool bIsTransaction,
-                                               const bool bWillRetryAfterThis,
-                                               bool& bCanRetryAfterThis) const
+OT_OTAPI_OT string
+OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction, const string& IN_FUNCTION,
+                            bool bIsTransaction, bool bWillRetryAfterThis,
+                            bool& bCanRetryAfterThis) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
@@ -1473,8 +1472,8 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 }
 
 OT_OTAPI_OT int32_t
-output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
-                     MapOfMaps&, SubMap&,
+output_nymoffer_data(const OTDB::OfferDataNym& offer_data, int32_t nIndex,
+                     const MapOfMaps&, const SubMap&,
                      the_lambda_struct&) // if 10 offers are printed for the
                                          // SAME market, nIndex will be 0..9
 { // extra_vals unused in this function, but not in others that share this
@@ -1533,8 +1532,8 @@ output_nymoffer_data(OTDB::OfferDataNym& offer_data, const int32_t nIndex,
 // removed AFTER
 
 OT_OTAPI_OT int32_t
-find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
-                    SubMap&,
+find_strange_offers(const OTDB::OfferDataNym& offer_data, const int32_t,
+                    const MapOfMaps&, const SubMap&,
                     the_lambda_struct& extra_vals) // if 10 offers are printed
                                                    // for the SAME market,
                                                    // nIndex will be 0..9
@@ -1637,9 +1636,9 @@ find_strange_offers(OTDB::OfferDataNym& offer_data, const int32_t, MapOfMaps&,
     return 1;
 }
 
-OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(MapOfMaps& map_of_maps,
+OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
                                               SubMap& sub_map,
-                                              LambdaFunc the_lambda)
+                                              const LambdaFunc the_lambda)
 {
     the_lambda_struct extra_vals;
     return iterate_nymoffers_sub_map(map_of_maps, sub_map, the_lambda,
@@ -1651,9 +1650,10 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(MapOfMaps& map_of_maps,
 // extra_vals allows you to pass any extra data you want into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t
-iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
-                          LambdaFunc the_lambda, the_lambda_struct& extra_vals)
+OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
+                                              SubMap& sub_map,
+                                              const LambdaFunc the_lambda,
+                                              the_lambda_struct& extra_vals)
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
@@ -1720,8 +1720,9 @@ iterate_nymoffers_sub_map(MapOfMaps& map_of_maps, SubMap& sub_map,
 
 OT_OTAPI_OT int32_t
 iterate_nymoffers_maps(MapOfMaps& map_of_maps,
-                       LambdaFunc the_lambda) // low level. map_of_maps must be
-                                              // good. (assumed.)
+                       const LambdaFunc the_lambda) // low level. map_of_maps
+                                                    // must be
+                                                    // good. (assumed.)
 {
     the_lambda_struct extra_vals;
     return iterate_nymoffers_maps(map_of_maps, the_lambda, extra_vals);
@@ -1731,7 +1732,7 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps,
 // lambda, for when it is called. (Like a functor.)
 //
 OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
+iterate_nymoffers_maps(MapOfMaps& map_of_maps, const LambdaFunc the_lambda,
                        the_lambda_struct& extra_vals) // low level. map_of_maps
                                                       // must be good.
                                                       // (assumed.)

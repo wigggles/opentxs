@@ -234,7 +234,7 @@ typedef std::map<std::string, std::string> map_of_strings;
 
 class OTRecordList
 {
-    OTNameLookup* m_pLookup;
+    const OTNameLookup* m_pLookup;
     // Defaults to false. If you set it true, it will run a lot faster. (And
     // give you less data.)
     bool m_bRunFast;
@@ -261,7 +261,7 @@ protected: // ADDRESS BOOK CALLER
 
 public:
     EXPORT OTRecordList(); // This one expects that s_pCaller is not nullptr.
-    EXPORT OTRecordList(OTNameLookup& theLookup);
+    EXPORT OTRecordList(const OTNameLookup& theLookup);
     EXPORT ~OTRecordList();
     EXPORT static const char* textTo()
     {

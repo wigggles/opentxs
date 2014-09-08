@@ -242,7 +242,7 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 
 bool OTKeypair::SaveCertToString(OTString& strOutput,
                                  const OTString* pstrReason,
-                                 OTPassword* pImportPassword)
+                                 const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -260,7 +260,7 @@ bool OTKeypair::SaveCertToString(OTString& strOutput,
 
 bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
                                        const OTString* pstrReason,
-                                       OTPassword* pImportPassword)
+                                       const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -276,7 +276,7 @@ bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
 
 bool OTKeypair::SaveCertAndPrivateKeyToString(OTString& strOutput,
                                               const OTString* pstrReason,
-                                              OTPassword* pImportPassword)
+                                              const OTPassword* pImportPassword)
 {
     OTString strCert, strPrivateKey;
 
@@ -291,9 +291,9 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(OTString& strOutput,
     return (bSaved1 && bSaved2);
 }
 
-bool OTKeypair::LoadCertAndPrivateKeyFromString(const OTString& strInput,
-                                                const OTString* pstrReason,
-                                                OTPassword* pImportPassword)
+bool OTKeypair::LoadCertAndPrivateKeyFromString(
+    const OTString& strInput, const OTString* pstrReason,
+    const OTPassword* pImportPassword)
 {
     OT_ASSERT(strInput.Exists());
 
@@ -330,9 +330,9 @@ bool OTKeypair::LoadCertAndPrivateKeyFromString(const OTString& strInput,
     return true;
 }
 
-bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
-                                                  const OTString* pstrReason,
-                                                  OTPassword* pImportPassword)
+bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
+    OTString* pstrOutputCert, const OTString* pstrReason,
+    const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -375,7 +375,7 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(OTString* pstrOutputCert,
 bool OTKeypair::LoadPrivateKey(const OTString& strFoldername,
                                const OTString& strFilename,
                                const OTString* pstrReason,
-                               OTPassword* pImportPassword)
+                               const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -398,7 +398,7 @@ bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
 bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
                                              bool bEscaped,
                                              const OTString* pstrReason,
-                                             OTPassword* pImportPassword)
+                                             const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -410,7 +410,7 @@ bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
 //
 bool OTKeypair::LoadPublicKeyFromCertString(
     const OTString& strCert, bool bEscaped, const OTString* pstrReason,
-    OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
+    const OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -421,7 +421,7 @@ bool OTKeypair::LoadPublicKeyFromCertString(
 bool OTKeypair::LoadPublicKeyFromCertFile(
     const OTString& strFoldername, const OTString& strFilename,
     const OTString* pstrReason,
-    OTPassword* pImportPassword) // DOES handle bookends.
+    const OTPassword* pImportPassword) // DOES handle bookends.
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -458,7 +458,7 @@ bool OTKeypair::MakeNewKeypair(int32_t nBits)
 bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
                                          const OTString& strFilename,
                                          const OTString* pstrReason,
-                                         OTPassword* pImportPassword)
+                                         const OTPassword* pImportPassword)
 {
     const char* szFunc = "OTKeypair::LoadBothKeysFromCertFile";
 
@@ -493,7 +493,8 @@ bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
     return true;
 }
 
-bool OTKeypair::SignContract(OTContract& theContract, OTPasswordData* pPWData)
+bool OTKeypair::SignContract(OTContract& theContract,
+                             const OTPasswordData* pPWData)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -690,7 +691,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
 
 // Used when importing/exporting a Nym to/from the wallet.
 //
-bool OTKeypair::ReEncrypt(OTPassword& theExportPassword, bool bImporting,
+bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           OTString& strOutput)
 {
 

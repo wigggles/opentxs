@@ -173,16 +173,16 @@ public:
     //
     static bool ArmorPrivateKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey,
                                 Timer& theTimer,
-                                OTPasswordData* pPWData = nullptr,
-                                OTPassword* pImportPassword = nullptr);
+                                const OTPasswordData* pPWData = nullptr,
+                                const OTPassword* pImportPassword = nullptr);
     static bool ArmorPublicKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey);
     static EVP_PKEY* CopyPublicKey(EVP_PKEY& theKey,
-                                   OTPasswordData* pPWData = nullptr,
-                                   OTPassword* pImportPassword =
+                                   const OTPasswordData* pPWData = nullptr,
+                                   const OTPassword* pImportPassword =
                                        nullptr); // CALLER must EVP_pkey_free!
     static EVP_PKEY* CopyPrivateKey(EVP_PKEY& theKey,
-                                    OTPasswordData* pPWData = nullptr,
-                                    OTPassword* pImportPassword =
+                                    const OTPasswordData* pPWData = nullptr,
+                                    const OTPassword* pImportPassword =
                                         nullptr); // CALLER must EVP_pkey_free!
 private:
     // INSTANCES...
@@ -192,16 +192,16 @@ private:
                       // we don't want it instantiated for any longer than
                       // absolutely necessary, when we have to use it.)
     // PRIVATE METHODS
-    EVP_PKEY* InstantiateKey(OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePublicKey(OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePrivateKey(OTPasswordData* pPWData = nullptr);
+    EVP_PKEY* InstantiateKey(const OTPasswordData* pPWData = nullptr);
+    EVP_PKEY* InstantiatePublicKey(const OTPasswordData* pPWData = nullptr);
+    EVP_PKEY* InstantiatePrivateKey(const OTPasswordData* pPWData = nullptr);
     // HIGH LEVEL (internal) METHODS
     //
-    EXPORT const EVP_PKEY* GetKey(OTPasswordData* pPWData = nullptr);
+    EXPORT const EVP_PKEY* GetKey(const OTPasswordData* pPWData = nullptr);
 
     void SetKeyAsCopyOf(EVP_PKEY& theKey, bool bIsPrivateKey = false,
                         OTPasswordData* pPWData = nullptr,
-                        OTPassword* pImportPassword = nullptr);
+                        const OTPassword* pImportPassword = nullptr);
     // LOW LEVEL (internal) METHODS
     //
     EVP_PKEY* GetKeyLowLevel();

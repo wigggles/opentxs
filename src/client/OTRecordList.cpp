@@ -3762,7 +3762,7 @@ OTRecordList::OTRecordList()
     m_pLookup = s_pCaller->getCallback(); // <==========
 }
 
-OTRecordList::OTRecordList(OTNameLookup& theLookup)
+OTRecordList::OTRecordList(const OTNameLookup& theLookup)
     : m_pLookup(&theLookup)
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)

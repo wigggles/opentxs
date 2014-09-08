@@ -213,7 +213,7 @@ private:
     public:
         Pid();
         ~Pid();
-        void OpenPid(const OTString strPidFilePath);
+        void OpenPid(const OTString& strPidFilePath);
         void ClosePid();
         bool IsPidOpen() const;
     };
@@ -231,10 +231,10 @@ private:
     OTString m_strConfigFilename;
     OTString m_strConfigFilePath;
 
-public:
     OTWallet* m_pWallet;
     OTClient* m_pClient;
 
+public:
     EXPORT OT_API();  // calls Init();
     EXPORT ~OT_API(); // calls Cleanup();
 private:
@@ -247,8 +247,8 @@ public:
     }
     EXPORT bool SetTransportCallback(TransportCallback* pTransportCallback);
     EXPORT TransportCallback* GetTransportCallback() const;
-    EXPORT bool TransportFunction(OTServerContract& theServerContract,
-                                  OTEnvelope& theEnvelope) const;
+    EXPORT bool TransportFunction(const OTServerContract& theServerContract,
+                                  const OTEnvelope& theEnvelope) const;
     EXPORT bool GetWalletFilename(OTString& strPath) const;
     EXPORT bool SetWalletFilename(const OTString& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
@@ -266,11 +266,11 @@ public:
                             const OTNumList& theNewNumbers) const;
     EXPORT bool NumList_Remove(OTNumList& theList,
                                const OTNumList& theOldNumbers) const;
-    EXPORT bool NumList_VerifyQuery(OTNumList& theList,
+    EXPORT bool NumList_VerifyQuery(const OTNumList& theList,
                                     const OTNumList& theQueryNumbers) const;
-    EXPORT bool NumList_VerifyAll(OTNumList& theList,
+    EXPORT bool NumList_VerifyAll(const OTNumList& theList,
                                   const OTNumList& theQueryNumbers) const;
-    EXPORT int32_t NumList_Count(OTNumList& theList) const;
+    EXPORT int32_t NumList_Count(const OTNumList& theList) const;
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT int32_t GetNymCount() const;
@@ -313,17 +313,19 @@ public:
                                            const char* szFuncName =
                                                nullptr) const;
     EXPORT OTPseudonym* GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
-                                            const bool bChecking = false,
+                                            bool bChecking = false,
                                             const char* szFuncName = nullptr,
-                                            OTPasswordData* pPWData = nullptr,
-                                            OTPassword* pImportPassword =
+                                            const OTPasswordData* pPWData =
+                                                nullptr,
+                                            const OTPassword* pImportPassword =
                                                 nullptr) const;
     EXPORT OTPseudonym* GetOrLoadNym(const OTIdentifier& NYM_ID,
-                                     const bool bChecking = false,
+                                     bool bChecking = false,
                                      const char* szFuncName = nullptr,
-                                     OTPasswordData* pPWData = nullptr) const;
+                                     const OTPasswordData* pPWData =
+                                         nullptr) const;
 
-    EXPORT OTAccount* GetOrLoadAccount(OTPseudonym& theNym,
+    EXPORT OTAccount* GetOrLoadAccount(const OTPseudonym& theNym,
                                        const OTIdentifier& ACCT_ID,
                                        const OTIdentifier& SERVER_ID,
                                        const char* szFuncName = nullptr) const;
@@ -354,10 +356,10 @@ public:
     EXPORT OTPseudonym* LoadPublicNym(const OTIdentifier& NYM_ID,
                                       const char* szFuncName = nullptr) const;
     EXPORT OTPseudonym* LoadPrivateNym(const OTIdentifier& NYM_ID,
-                                       const bool bChecking = false,
+                                       bool bChecking = false,
                                        const char* szFuncName = nullptr,
-                                       OTPasswordData* pPWData = nullptr,
-                                       OTPassword* pImportPassword =
+                                       const OTPasswordData* pPWData = nullptr,
+                                       const OTPassword* pImportPassword =
                                            nullptr) const;
 
     EXPORT OTPseudonym* CreateNym(int32_t nKeySize = 1024,
@@ -536,9 +538,11 @@ public:
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)
 
-    EXPORT bool DiscardCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                              OTIdentifier& ACCT_ID,
-                              OTString& THE_CHEQUE) const;
+    EXPORT bool DiscardCheque(const OTIdentifier& SERVER_ID,
+                              const OTIdentifier& USER_ID,
+                              const OTIdentifier& ACCT_ID,
+                              const OTString& THE_CHEQUE) const;
+
     // PROPOSE PAYMENT PLAN (called by Merchant)
     //
     // Returns an OTPaymentPlan pointer, or nullptr.
@@ -610,7 +614,7 @@ public:
                                  // purses. Passed in so it won't go out of
                                  // scope when return value has a member set to
                                  // point to it.
-        const bool bForEncrypting = true, // true==encrypting,false==decrypting.
+        bool bForEncrypting = true, // true==encrypting,false==decrypting.
         const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
                                                  // purse is password-protected.
                                                  // (It's
@@ -623,9 +627,9 @@ public:
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of
                                  // scope when pOwner is set to point to it.
-        const bool bCanBePublic = false, // true==private nym isn't mandatory.
-                                         // false==private nym IS mandatory.
-                                         // (Only relevant if there's an owner.)
+        bool bCanBePublic = false, // true==private nym isn't mandatory.
+                                   // false==private nym IS mandatory.
+                                   // (Only relevant if there's an owner.)
         const OTIdentifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
                                                  // purse is password-protected.
                                                  // (It's
@@ -694,11 +698,11 @@ public:
     GetBasketMemberCount(const OTIdentifier& BASKET_ASSET_TYPE_ID) const;
 
     EXPORT bool GetBasketMemberType(const OTIdentifier& BASKET_ASSET_TYPE_ID,
-                                    const int32_t nIndex,
+                                    int32_t nIndex,
                                     OTIdentifier& theOutputMemberType) const;
 
     EXPORT int64_t GetBasketMemberMinimumTransferAmount(
-        const OTIdentifier& BASKET_ASSET_TYPE_ID, const int32_t nIndex) const;
+        const OTIdentifier& BASKET_ASSET_TYPE_ID, int32_t nIndex) const;
     EXPORT OTAccount* LoadAssetAccount(const OTIdentifier& SERVER_ID,
                                        const OTIdentifier& USER_ID,
                                        const OTIdentifier& ACCOUNT_ID) const;
@@ -743,8 +747,7 @@ public:
     EXPORT bool ClearRecord(
         const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
         const OTIdentifier& ACCOUNT_ID, // USER_ID can be passed here as well.
-        const int32_t nIndex,
-        const bool bClearAll = false // if true, nIndex is ignored.
+        int32_t nIndex, bool bClearAll = false // if true, nIndex is ignored.
         ) const;
     EXPORT OTLedger* LoadExpiredBox(const OTIdentifier& SERVER_ID,
                                     const OTIdentifier& USER_ID) const;
@@ -754,7 +757,7 @@ public:
 
     EXPORT bool ClearExpired(const OTIdentifier& SERVER_ID,
                              const OTIdentifier& USER_ID, const int32_t nIndex,
-                             const bool bClearAll =
+                             bool bClearAll =
                                  false // if true, nIndex is ignored.
                              ) const;
     // Note: if instrument is expired BEFORE being recorded, it will go into the
@@ -775,7 +778,7 @@ public:
                                         // convention.
         const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
                                         // pass USER_ID in this field also.
-        const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+        int32_t nBoxType,               // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum) const;
     // Incoming
     //
@@ -791,84 +794,98 @@ public:
     EXPORT bool RemoveSentMessage(const int64_t& lRequestNumber,
                                   const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& USER_ID) const;
-    EXPORT void FlushSentMessages(const bool bHarvestingForRetry,
+    EXPORT void FlushSentMessages(bool bHarvestingForRetry,
                                   const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& USER_ID,
-                                  OTLedger& THE_NYMBOX) const;
-    EXPORT bool HaveAlreadySeenReply(OTIdentifier& SERVER_ID,
-                                     OTIdentifier& USER_ID,
+                                  const OTLedger& THE_NYMBOX) const;
+
+    EXPORT bool HaveAlreadySeenReply(const OTIdentifier& SERVER_ID,
+                                     const OTIdentifier& USER_ID,
                                      const int64_t& lRequestNumber) const;
 
-    EXPORT bool ResyncNymWithServer(OTPseudonym& theNym, OTLedger& theNymbox,
-                                    OTPseudonym& theMessageNym) const;
+    EXPORT bool ResyncNymWithServer(OTPseudonym& theNym,
+                                    const OTLedger& theNymbox,
+                                    const OTPseudonym& theMessageNym) const;
 
     // These commands below send messages to the server:
 
-    EXPORT int32_t
-    checkServerID(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    EXPORT int32_t checkServerID(const OTIdentifier& SERVER_ID,
+                                 const OTIdentifier& USER_ID) const;
 
-    EXPORT int32_t
-    createUserAccount(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
-    EXPORT int32_t
-    deleteUserAccount(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    EXPORT int32_t createUserAccount(const OTIdentifier& SERVER_ID,
+                                     const OTIdentifier& USER_ID) const;
 
-    EXPORT int32_t checkUser(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                             OTIdentifier& USER_ID_CHECK) const;
+    EXPORT int32_t deleteUserAccount(const OTIdentifier& SERVER_ID,
+                                     const OTIdentifier& USER_ID) const;
+
+    EXPORT int32_t checkUser(const OTIdentifier& SERVER_ID,
+                             const OTIdentifier& USER_ID,
+                             const OTIdentifier& USER_ID_CHECK) const;
 
     EXPORT int32_t usageCredits(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& USER_ID,
                                 const OTIdentifier& USER_ID_CHECK,
-                                const int64_t lAdjustment = 0) const;
+                                int64_t lAdjustment = 0) const;
+
+    EXPORT int32_t getRequest(const OTIdentifier& SERVER_ID,
+                              const OTIdentifier& USER_ID) const;
+
+    EXPORT int32_t sendUserMessage(const OTIdentifier& SERVER_ID,
+                                   const OTIdentifier& USER_ID,
+                                   const OTIdentifier& USER_ID_RECIPIENT,
+                                   const OTString& RECIPIENT_PUBKEY,
+                                   const OTString& THE_MESSAGE) const;
 
     EXPORT int32_t
-    getRequest(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    sendUserInstrument(const OTIdentifier& SERVER_ID,
+                       const OTIdentifier& USER_ID,
+                       const OTIdentifier& USER_ID_RECIPIENT,
+                       const OTString& RECIPIENT_PUBKEY,
+                       const OTPayment& THE_INSTRUMENT,
+                       const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 
-    EXPORT int32_t
-    sendUserMessage(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                    OTIdentifier& USER_ID_RECIPIENT, OTString& RECIPIENT_PUBKEY,
-                    OTString& THE_MESSAGE) const;
+    EXPORT int32_t issueAssetType(const OTIdentifier& SERVER_ID,
+                                  const OTIdentifier& USER_ID,
+                                  const OTString& THE_CONTRACT) const;
 
-    EXPORT int32_t
-    sendUserInstrument(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                       OTIdentifier& USER_ID_RECIPIENT,
-                       OTString& RECIPIENT_PUBKEY, OTPayment& THE_INSTRUMENT,
-                       OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
+    EXPORT int32_t getContract(const OTIdentifier& SERVER_ID,
+                               const OTIdentifier& USER_ID,
+                               const OTIdentifier& ASSET_ID) const;
 
-    EXPORT int32_t issueAssetType(OTIdentifier& SERVER_ID,
-                                  OTIdentifier& USER_ID,
-                                  OTString& THE_CONTRACT) const;
-
-    EXPORT int32_t getContract(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                               OTIdentifier& ASSET_ID) const;
-
-    EXPORT int32_t getMint(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                           OTIdentifier& ASSET_ID) const;
+    EXPORT int32_t getMint(const OTIdentifier& SERVER_ID,
+                           const OTIdentifier& USER_ID,
+                           const OTIdentifier& ASSET_ID) const;
 
     EXPORT int32_t
     getBoxReceipt(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
                   const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs
                                                   // inbox/outbox) then pass
                                                   // USER_ID in this field also.
-                  const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+                  int32_t nBoxType,               // 0/nymbox, 1/inbox, 2/outbox
                   const int64_t& lTransactionNum) const;
-    EXPORT int32_t queryAssetTypes(OTIdentifier& SERVER_ID,
-                                   OTIdentifier& USER_ID,
-                                   OTASCIIArmor& ENCODED_MAP) const;
-    EXPORT int32_t createAssetAccount(OTIdentifier& SERVER_ID,
-                                      OTIdentifier& USER_ID,
-                                      OTIdentifier& ASSET_ID) const;
-    EXPORT int32_t deleteAssetAccount(OTIdentifier& SERVER_ID,
-                                      OTIdentifier& USER_ID,
-                                      OTIdentifier& ACCOUNT_ID) const;
 
-    EXPORT int32_t getAccount(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                              OTIdentifier& ACCT_ID) const;
+    EXPORT int32_t queryAssetTypes(const OTIdentifier& SERVER_ID,
+                                   const OTIdentifier& USER_ID,
+                                   const OTASCIIArmor& ENCODED_MAP) const;
 
-    EXPORT int32_t getAccountFiles(OTIdentifier& SERVER_ID,
-                                   OTIdentifier& USER_ID,
-                                   OTIdentifier& ACCT_ID) const;
+    EXPORT int32_t createAssetAccount(const OTIdentifier& SERVER_ID,
+                                      const OTIdentifier& USER_ID,
+                                      const OTIdentifier& ASSET_ID) const;
+
+    EXPORT int32_t deleteAssetAccount(const OTIdentifier& SERVER_ID,
+                                      const OTIdentifier& USER_ID,
+                                      const OTIdentifier& ACCOUNT_ID) const;
+
+    EXPORT int32_t getAccount(const OTIdentifier& SERVER_ID,
+                              const OTIdentifier& USER_ID,
+                              const OTIdentifier& ACCT_ID) const;
+
+    EXPORT int32_t getAccountFiles(const OTIdentifier& SERVER_ID,
+                                   const OTIdentifier& USER_ID,
+                                   const OTIdentifier& ACCT_ID) const;
+
     EXPORT OTBasket* GenerateBasketCreation(const OTIdentifier& USER_ID,
-                                            const int64_t MINIMUM_TRANSFER)
+                                            int64_t MINIMUM_TRANSFER)
         const; // Must be above zero. If <= 0,
                // defaults to 10.
 
@@ -877,17 +894,19 @@ public:
         OTBasket& theBasket,               // created in above call.
         const OTIdentifier& ASSET_TYPE_ID, // Adding an asset type to the new
                                            // basket.
-        const int64_t MINIMUM_TRANSFER) const; // The amount of the asset type
-                                               // that is
-                                               // in the basket.
+        int64_t MINIMUM_TRANSFER) const;   // The amount of the asset type
+                                           // that is
+                                           // in the basket.
 
-    EXPORT int32_t issueBasket(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                               OTString& BASKET_INFO) const;
+    EXPORT int32_t issueBasket(const OTIdentifier& SERVER_ID,
+                               const OTIdentifier& USER_ID,
+                               const OTString& BASKET_INFO) const;
+
     EXPORT OTBasket* GenerateBasketExchange(
         const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
         const OTIdentifier& BASKET_ASSET_TYPE_ID,
         const OTIdentifier& BASKET_ASSET_ACCT_ID,
-        const int32_t TRANSFER_MULTIPLE) const; // 1            2             3
+        int32_t TRANSFER_MULTIPLE) const; // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     EXPORT bool AddBasketExchangeItem(const OTIdentifier& SERVER_ID,
@@ -897,70 +916,81 @@ public:
                                       const OTIdentifier& ASSET_ACCT_ID) const;
 
     EXPORT int32_t
-    exchangeBasket(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                   OTIdentifier& BASKET_ASSET_ID, OTString& BASKET_INFO,
-                   const bool bExchangeInOrOut) const;
-    EXPORT int32_t
-    getTransactionNumber(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    exchangeBasket(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
+                   const OTIdentifier& BASKET_ASSET_ID,
+                   const OTString& BASKET_INFO, bool bExchangeInOrOut) const;
+
+    EXPORT int32_t getTransactionNumber(const OTIdentifier& SERVER_ID,
+                                        const OTIdentifier& USER_ID) const;
+
+    EXPORT int32_t notarizeWithdrawal(const OTIdentifier& SERVER_ID,
+                                      const OTIdentifier& USER_ID,
+                                      const OTIdentifier& ACCT_ID,
+                                      const int64_t& AMOUNT) const;
+
+    EXPORT int32_t notarizeDeposit(const OTIdentifier& SERVER_ID,
+                                   const OTIdentifier& USER_ID,
+                                   const OTIdentifier& ACCT_ID,
+                                   const OTString& THE_PURSE) const;
 
     EXPORT int32_t
-    notarizeWithdrawal(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                       OTIdentifier& ACCT_ID, const int64_t& AMOUNT) const;
-
-    EXPORT int32_t notarizeDeposit(OTIdentifier& SERVER_ID,
-                                   OTIdentifier& USER_ID, OTIdentifier& ACCT_ID,
-                                   OTString& THE_PURSE) const;
+    notarizeTransfer(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
+                     const OTIdentifier& ACCT_FROM, const OTIdentifier& ACCT_TO,
+                     const int64_t& AMOUNT, const OTString& NOTE) const;
 
     EXPORT int32_t
-    notarizeTransfer(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                     OTIdentifier& ACCT_FROM, OTIdentifier& ACCT_TO,
-                     const int64_t& AMOUNT, OTString& NOTE) const;
+    getNymbox(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID) const;
 
-    EXPORT int32_t
-    getNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    EXPORT int32_t getInbox(const OTIdentifier& SERVER_ID,
+                            const OTIdentifier& USER_ID,
+                            const OTIdentifier& ACCT_ID) const;
 
-    EXPORT int32_t getInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                            OTIdentifier& ACCT_ID) const;
-
-    EXPORT int32_t getOutbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                             OTIdentifier& ACCT_ID) const;
+    EXPORT int32_t getOutbox(const OTIdentifier& SERVER_ID,
+                             const OTIdentifier& USER_ID,
+                             const OTIdentifier& ACCT_ID) const;
 
     // Returns:
     // -1 if error.
     //  0 if Nymbox is empty.
     //  1 or more: Count of items in Nymbox before processing.
     //
-    EXPORT int32_t
-    processNymbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID) const;
+    EXPORT int32_t processNymbox(const OTIdentifier& SERVER_ID,
+                                 const OTIdentifier& USER_ID) const;
 
-    EXPORT int32_t processInbox(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                                OTIdentifier& ACCT_ID,
-                                OTString& ACCT_LEDGER) const;
+    EXPORT int32_t processInbox(const OTIdentifier& SERVER_ID,
+                                const OTIdentifier& USER_ID,
+                                const OTIdentifier& ACCT_ID,
+                                const OTString& ACCT_LEDGER) const;
 
     EXPORT int32_t
-    withdrawVoucher(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                    OTIdentifier& ACCT_ID, OTIdentifier& RECIPIENT_USER_ID,
-                    OTString& CHEQUE_MEMO, const int64_t& AMOUNT) const;
+    withdrawVoucher(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
+                    const OTIdentifier& ACCT_ID,
+                    const OTIdentifier& RECIPIENT_USER_ID,
+                    const OTString& CHEQUE_MEMO, const int64_t& AMOUNT) const;
 
     EXPORT int32_t payDividend(
-        OTIdentifier& SERVER_ID,
-        OTIdentifier& ISSUER_USER_ID, // must be issuer of SHARES_ASSET_TYPE_ID
-        OTIdentifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
-                                             // shares, then this is the
-                                             // issuer's dollars account.
-        OTIdentifier& SHARES_ASSET_TYPE_ID, // if dollars paid for pepsi shares,
-                                            // then this is the pepsi shares
-                                            // asset type id.
-        OTString& DIVIDEND_MEMO, // user-configurable note that's added to the
-                                 // payout request message.
+        const OTIdentifier& SERVER_ID,
+        const OTIdentifier& ISSUER_USER_ID,        // must be issuer of
+                                                   // SHARES_ASSET_TYPE_ID
+        const OTIdentifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
+                                                   // shares, then this is the
+                                                   // issuer's dollars account.
+        const OTIdentifier& SHARES_ASSET_TYPE_ID,  // if dollars paid for pepsi
+                                                   // shares,
+        // then this is the pepsi shares
+        // asset type id.
+        const OTString& DIVIDEND_MEMO, // user-configurable note that's added to
+                                       // the
+                                       // payout request message.
         const int64_t& AMOUNT_PER_SHARE) const; // number of dollars to be paid
                                                 // out
     // PER SHARE (multiplied by total
     // number of shares issued.)
 
-    EXPORT int32_t depositCheque(OTIdentifier& SERVER_ID, OTIdentifier& USER_ID,
-                                 OTIdentifier& ACCT_ID,
-                                 OTString& THE_CHEQUE) const;
+    EXPORT int32_t depositCheque(const OTIdentifier& SERVER_ID,
+                                 const OTIdentifier& USER_ID,
+                                 const OTIdentifier& ACCT_ID,
+                                 const OTString& THE_CHEQUE) const;
 
     EXPORT int32_t
     triggerClause(const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
@@ -1099,10 +1129,9 @@ public:
                                     // that
                                     // party. (For now, until I code entities)
     EXPORT bool Msg_HarvestTransactionNumbers(
-        OTMessage& theMsg, const OTIdentifier& USER_ID,
-        const bool bHarvestingForRetry, const bool bReplyWasSuccess,
-        const bool bReplyWasFailure, const bool bTransactionWasSuccess,
-        const bool bTransactionWasFailure) const;
+        const OTMessage& theMsg, const OTIdentifier& USER_ID,
+        bool bHarvestingForRetry, bool bReplyWasSuccess, bool bReplyWasFailure,
+        bool bTransactionWasSuccess, bool bTransactionWasFailure) const;
 
     EXPORT bool HarvestClosingNumbers(const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& NYM_ID,
@@ -1130,11 +1159,11 @@ public:
                                               // or purchase. Will be multiplied
                                               // by minimum increment.
         const int64_t& PRICE_LIMIT,           // Per Minimum Increment...
-        const bool bBuyingOrSelling, // BUYING == false, SELLING == true.
-        const time64_t tLifespanInSeconds =
+        bool bBuyingOrSelling, // BUYING == false, SELLING == true.
+        time64_t tLifespanInSeconds =
             OT_TIME_DAY_IN_SECONDS, // 86400 seconds == 1 day.
-        const char STOP_SIGN = 0,   // For stop orders, set to '<' or '>'
-        const int64_t ACTIVATION_PRICE =
+        char STOP_SIGN = 0,         // For stop orders, set to '<' or '>'
+        int64_t ACTIVATION_PRICE =
             0) const; // For stop orders, set the threshold price here.
     EXPORT int32_t getMarketList(const OTIdentifier& SERVER_ID,
                                  const OTIdentifier& USER_ID) const;

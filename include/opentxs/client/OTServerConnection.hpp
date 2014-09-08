@@ -154,7 +154,7 @@ class OTServerConnection
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
-    //    SFSocket *                m_pSocket;     // For TCP / SSL mode.
+    //    SFSocket * m_pSocket;     // For TCP / SSL mode.
 
     bool m_bFocused; // For RPC / HTTP mode.
     TransportCallback* m_pCallback;
@@ -200,18 +200,19 @@ public:
                   TransportCallback* pCallback);
 
     // Connect() is for TCP / SSL mode.
-    EXPORT inline bool Connect(OTPseudonym&, OTServerContract&, OTString&,
-                               OTString&, OTString&) const
+    EXPORT inline bool Connect(const OTPseudonym&, const OTServerContract&,
+                               const OTString&, const OTString&,
+                               const OTString&) const
     {
         return false;
     }
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(char* buf, int32_t* pnExpectReply);
-    void ProcessMessageOut(OTMessage& theMessage) const;
+    void ProcessMessageOut(const char* buf, const int32_t* pnExpectReply);
+    void ProcessMessageOut(const OTMessage& theMessage) const;
 
-    EXPORT inline bool ProcessInBuffer(OTMessage&) const
+    EXPORT inline bool ProcessInBuffer(const OTMessage&) const
     {
         return false;
     }

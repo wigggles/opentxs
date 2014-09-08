@@ -264,9 +264,10 @@ protected:
     virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
         const OTString::Map& mapPrivate,
-        OTPassword* pImportPassword = nullptr); // if not nullptr, it means to
-                                                // use
-                                                // this password by default.
+        const OTPassword* pImportPassword = nullptr); // if not nullptr, it
+                                                      // means to
+                                                      // use
+    // this password by default.
 public:
     const OTString::Map& GetPublicMap() const
     {
@@ -331,7 +332,7 @@ public:
     // keys.) So we override CalculateContractID
     // to account for that.
     //
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID);
+    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     // We also inherit OTContract::VerifyContract() which tries to find the
     // "contract" key. Of course, there is no

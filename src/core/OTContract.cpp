@@ -304,17 +304,22 @@ bool OTContract::SaveToContractFolder()
     return SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
-void OTContract::GetFilename(OTString& strFilename)
+void OTContract::GetFilename(OTString& strFilename) const
 {
     strFilename = m_strFilename;
 }
 
-void OTContract::GetIdentifier(OTIdentifier& theIdentifier)
+void OTContract::GetFoldername(OTString& strFoldername) const
+{
+    strFoldername = m_strFoldername;
+}
+
+void OTContract::GetIdentifier(OTIdentifier& theIdentifier) const
 {
     theIdentifier = m_ID;
 }
 
-void OTContract::GetIdentifier(OTString& theIdentifier)
+void OTContract::GetIdentifier(OTString& theIdentifier) const
 {
     m_ID.GetString(theIdentifier);
 }
@@ -322,7 +327,7 @@ void OTContract::GetIdentifier(OTString& theIdentifier)
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool OTContract::VerifyContract()
+bool OTContract::VerifyContract() const
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -359,7 +364,7 @@ bool OTContract::VerifyContract()
     return true;
 }
 
-void OTContract::CalculateContractID(OTIdentifier& newID)
+void OTContract::CalculateContractID(OTIdentifier& newID) const
 {
     // may be redundant...
     std::string str_Trim(m_strRawFile.Get());
@@ -371,7 +376,7 @@ void OTContract::CalculateContractID(OTIdentifier& newID)
         otErr << __FUNCTION__ << ": Error calculating Contract digest.\n";
 }
 
-bool OTContract::VerifyContractID()
+bool OTContract::VerifyContractID() const
 {
     OTIdentifier newID;
     CalculateContractID(newID);
@@ -404,7 +409,7 @@ bool OTContract::VerifyContractID()
     }
 }
 
-const OTPseudonym* OTContract::GetContractPublicNym()
+const OTPseudonym* OTContract::GetContractPublicNym() const
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
@@ -435,7 +440,7 @@ const OTPseudonym* OTContract::GetContractPublicNym()
 
 // If there is a public key I can find for this contract, then
 // I will return it here -- or nullptr.
-const OTAsymmetricKey* OTContract::GetContractPublicKey()
+const OTAsymmetricKey* OTContract::GetContractPublicKey() const
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
@@ -476,7 +481,7 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey()
 // internally, then this is what you should call.
 //
 bool OTContract::SignContract(const OTPseudonym& theNym,
-                              OTPasswordData* pPWData)
+                              const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -525,7 +530,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 // It is NOT attached to the contract.  This is just a utility function.
 bool OTContract::SignContract(const OTPseudonym& theNym,
                               OTSignature& theSignature,
-                              OTPasswordData* pPWData)
+                              const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateSignKey(), theSignature,
                         m_strSigHashType, pPWData);
@@ -553,7 +558,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 // ready yet to signing anything with.
 //
 bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
-                             OTPasswordData* pPWData)
+                             const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -636,7 +641,7 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
 bool OTContract::SignContract(const OTAsymmetricKey& theKey,
                               OTSignature& theSignature,
                               const OTString& strHashType,
-                              OTPasswordData* pPWData)
+                              const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
@@ -676,7 +681,7 @@ bool OTContract::SignContract(const char* szFoldername,
                               const char* szFilename,    // for Certfile, for
                                                          // private key.
                               OTSignature& theSignature, // output
-                              OTPasswordData* pPWData)
+                              const OTPasswordData* pPWData)
 {
     OT_ASSERT(nullptr != szFoldername);
     OT_ASSERT(nullptr != szFilename);
@@ -778,7 +783,7 @@ bool OTContract::VerifySignature(const char* szFoldername,
 }
 
 bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
-                                  OTPasswordData* pPWData)
+                                  OTPasswordData* pPWData) const
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -808,7 +813,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifySignature(const OTPseudonym& theNym,
-                                 OTPasswordData* pPWData)
+                                 OTPasswordData* pPWData) const
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -838,7 +843,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
-                               OTPasswordData* pPWData)
+                               OTPasswordData* pPWData) const
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -1066,7 +1071,7 @@ void OTContract::UpdateContents()
 // static
 bool OTContract::SignFlatText(OTString& strFlatText,
                               const OTString& strContractType,
-                              OTPseudonym& theSigner, OTString& strOutput)
+                              const OTPseudonym& theSigner, OTString& strOutput)
 {
     const char* szFunc = "OTContract::SignFlatText";
 
@@ -2082,7 +2087,8 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 // type
 // is unknown.
 //
-bool OTContract::CreateContract(OTString& strContract, OTPseudonym& theSigner)
+bool OTContract::CreateContract(const OTString& strContract,
+                                const OTPseudonym& theSigner)
 {
     Release();
 

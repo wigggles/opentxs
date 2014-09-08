@@ -399,7 +399,7 @@ bool OTTransactionType::SaveContractWallet(std::ofstream&)
 // wish to verify its signature on this account, even though
 // the server may not be the actual owner.
 // So if you wish to VerifyOwner(), then call it.
-bool OTTransactionType::VerifyAccount(OTPseudonym& theNym)
+bool OTTransactionType::VerifyAccount(const OTPseudonym& theNym) const
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -421,7 +421,7 @@ bool OTTransactionType::VerifyAccount(OTPseudonym& theNym)
     return true;
 }
 
-bool OTTransactionType::VerifyContractID()
+bool OTTransactionType::VerifyContractID() const
 {
     // m_AcctID contains the number we read from the xml file
     // we can compare it to the existing and actual identifier.

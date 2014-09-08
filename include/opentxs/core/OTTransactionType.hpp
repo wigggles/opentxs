@@ -884,12 +884,12 @@ public:
     // with m_ID (supposedly the same number.)
     // Also Verifies the ServerID, since this object type is all about the both
     // of those IDs.
-    EXPORT virtual bool VerifyContractID();
+    EXPORT virtual bool VerifyContractID() const;
 
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(OTPseudonym& theNym);
+    virtual bool VerifyAccount(const OTPseudonym& theNym) const;
 
     // The parameters to the constructor are supposed to be the ACTUAL account
     // ID and server ID.

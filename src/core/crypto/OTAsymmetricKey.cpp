@@ -387,7 +387,7 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
 
     // We'd probably do something else if 'rwflag' is 1
 
-    OTPasswordData* pPWData = nullptr;
+    const OTPasswordData* pPWData = nullptr;
     std::string str_userdata;
 
     if (nullptr != userdata) {
@@ -462,7 +462,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
     OT_ASSERT(nullptr != userdata);
-    OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
+    const OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
     OTPassword thePassword;
@@ -1171,12 +1171,12 @@ void OTAsymmetricKey::Release()
 }
 
 // Load the private key from a .pem file
-bool OTAsymmetricKey::LoadPrivateKey(const OTString& strFoldername,
-                                     const OTString& strFilename,
-                                     const OTString* pstrReason,
-                                     OTPassword* pImportPassword) // This reason
-                                                                  // is what
-                                                                  // displays on
+bool OTAsymmetricKey::LoadPrivateKey(
+    const OTString& strFoldername, const OTString& strFilename,
+    const OTString* pstrReason,
+    const OTPassword* pImportPassword) // This reason
+                                       // is what
+                                       // displays on
 // the passphrase dialog.
 {
     Release();
@@ -1255,10 +1255,9 @@ bool OTAsymmetricKey::LoadPublicKey(const OTString& strFoldername,
 }
 
 // Load the public key from a x509 stored in a .pem file
-bool OTAsymmetricKey::LoadPublicKeyFromCertFile(const OTString& strFoldername,
-                                                const OTString& strFilename,
-                                                const OTString* pstrReason,
-                                                OTPassword* pImportPassword)
+bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
+    const OTString& strFoldername, const OTString& strFilename,
+    const OTString* pstrReason, const OTPassword* pImportPassword)
 {
     Release();
 

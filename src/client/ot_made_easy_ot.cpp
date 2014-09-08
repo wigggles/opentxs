@@ -147,7 +147,7 @@
 using namespace opentxs;
 using namespace std;
 
-OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(const int32_t nNumberNeeded,
+OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(int32_t nNumberNeeded,
                                                   const string& strMyServerID,
                                                   const string& strMyNymID)
 {
@@ -232,7 +232,7 @@ MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
 
 OT_MADE_EASY_OT int32_t
 MadeEasy::retrieve_nym(const string& strServerID, const string& strMyNymID,
-                       bool& bWasMsgSent, const bool bForceDownload)
+                       bool& bWasMsgSent, bool bForceDownload)
 {
 
     Utility MsgUtil;
@@ -271,7 +271,7 @@ OT_MADE_EASY_OT string MadeEasy::check_user(const string& SERVER_ID,
 //  CREATE NYM (pseudonym)
 //  returns new Nym ID
 //
-OT_MADE_EASY_OT string MadeEasy::create_pseudonym(const int32_t nKeybits,
+OT_MADE_EASY_OT string MadeEasy::create_pseudonym(int32_t nKeybits,
                                                   const string& strNymIDSource,
                                                   const string& strAltLocation)
 {
@@ -321,7 +321,7 @@ OT_MADE_EASY_OT string MadeEasy::issue_basket_currency(const string& SERVER_ID,
 //
 OT_MADE_EASY_OT string MadeEasy::exchange_basket_currency(
     const string& SERVER_ID, const string& NYM_ID, const string& ASSET_TYPE,
-    const string& THE_BASKET, const string& ACCT_ID, const bool IN_OR_OUT)
+    const string& THE_BASKET, const string& ACCT_ID, bool IN_OR_OUT)
 {
     OTAPI_Func ot_Msg;
 
@@ -424,7 +424,7 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 // returns true/false
 OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
     const string& SERVER_ID, const string& NYM_ID, const string& ACCOUNT_ID,
-    const bool bForceDownload) // bForceDownload=false
+    bool bForceDownload) // bForceDownload=false
 {
     Utility MsgUtil;
 
@@ -438,7 +438,7 @@ OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
 OT_MADE_EASY_OT string
 MadeEasy::send_transfer(const string& SERVER_ID, const string& NYM_ID,
                         const string& ACCT_FROM, const string& ACCT_TO,
-                        const int64_t AMOUNT, const string& NOTE)
+                        int64_t AMOUNT, const string& NOTE)
 {
     OTAPI_Func ot_Msg;
 
@@ -700,7 +700,7 @@ MadeEasy::send_user_cash(const string& SERVER_ID, const string& NYM_ID,
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)
 //
 OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
-    const string& SERVER_ID, const string& NYM_ID, const int32_t nIndex,
+    const string& SERVER_ID, const string& NYM_ID, int32_t nIndex,
     const string& PRELOADED_INBOX) // PRELOADED_INBOX is optional.
 {
     string strInstrument;
@@ -750,7 +750,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
 //
 OT_MADE_EASY_OT string
 MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
-                          const string& ACCT_ID, const int32_t nBoxType,
+                          const string& ACCT_ID, int32_t nBoxType,
                           const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
@@ -872,9 +872,8 @@ OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& SERVER_ID,
 OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     const string& ASSET_ACCT_ID, const string& CURRENCY_ACCT_ID,
     const string& scale, const string& minIncrement, const string& quantity,
-    const string& price, const bool bSelling,
-    const string& strLifespanInSeconds, const string& strStopSign,
-    const string& strActivationPrice)
+    const string& price, bool bSelling, const string& strLifespanInSeconds,
+    const string& strStopSign, const string& strActivationPrice)
 {
     OTAPI_Func ot_Msg;
 
@@ -1064,7 +1063,7 @@ MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
 //
 OT_MADE_EASY_OT string
 MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
-                        const string& ACCT_ID, const int64_t AMOUNT)
+                        const string& ACCT_ID, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
@@ -1080,7 +1079,7 @@ MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
 OT_MADE_EASY_OT string
 MadeEasy::withdraw_voucher(const string& SERVER_ID, const string& NYM_ID,
                            const string& ACCT_ID, const string& RECIP_NYM_ID,
-                           const string& STR_MEMO, const int64_t AMOUNT)
+                           const string& STR_MEMO, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
@@ -1098,7 +1097,7 @@ OT_MADE_EASY_OT string
 MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
                        const string& SOURCE_ACCT_ID,
                        const string& SHARES_ASSET_ID, const string& STR_MEMO,
-                       const int64_t AMOUNT_PER_SHARE)
+                       int64_t AMOUNT_PER_SHARE)
 {
     OTAPI_Func ot_Msg;
 
@@ -1203,8 +1202,7 @@ MadeEasy::adjust_usage_credits(const string& SERVER_ID,
 OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& serverID,
                                                const string& nymID,
                                                const string& assetID,
-                                               string& userInput,
-                                               const bool isPurse)
+                                               string& userInput, bool isPurse)
 {
     //  otOut << "OT_ME_importCashPurse, serverID:" << serverID << "
     // nymID:" << nymID << " assetID:" << assetID);
@@ -1301,7 +1299,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     string& newPurse, string& newPurseForSender, const string& serverID,
     const string& assetID, const string& nymID, string& oldPurse,
     const vector<string>& selectedTokens, const string& recipientNymID,
-    const bool bPWProtectOldPurse, const bool bPWProtectNewPurse)
+    bool bPWProtectOldPurse, bool bPWProtectNewPurse)
 {
     // By this point, we know that "selected tokens" has a size of 0, or MORE
     // THAN ONE. (But NOT 1 exactly.)
@@ -1760,7 +1758,7 @@ OT_MADE_EASY_OT string
 MadeEasy::exportCashPurse(const string& serverID, const string& assetID,
                           const string& nymID, const string& oldPurse,
                           const vector<string>& selectedTokens,
-                          string& recipientNymID, const bool bPasswordProtected,
+                          string& recipientNymID, bool bPasswordProtected,
                           string& strRetainedCopy)
 {
     //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
@@ -1825,8 +1823,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
     const string& serverID, const string& assetID, const string& nymID,
     const string& oldPurse, const vector<string>& selectedTokens,
     const string& accountID,
-    const bool bReimportIfFailure) // So we don't re-import a purse that wasn't
-                                   // internal to begin with.
+    bool bReimportIfFailure) // So we don't re-import a purse that wasn't
+                             // internal to begin with.
 {
     string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {

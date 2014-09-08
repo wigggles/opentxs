@@ -193,7 +193,7 @@ public:
                                       const std::string& strCiphertext));
     MOCK_METHOD0(CreateSymmetricKey, std::string());
     MOCK_METHOD2(SymmetricEncrypt, std::string(const std::string& SYMMETRIC_KEY,
-                                               const std::string& PLAintEXT));
+                                               const std::string& PLAINTEXT));
     MOCK_METHOD2(SymmetricDecrypt,
                  std::string(const std::string& SYMMETRIC_KEY,
                              const std::string& CIPHERTEXT_ENVELOPE));

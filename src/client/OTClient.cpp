@@ -186,7 +186,7 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
                  // if needed.
 }
 
-void OTClient::ProcessMessageOut(char* buf, int32_t* pnExpectReply) const
+void OTClient::ProcessMessageOut(const char* buf, int32_t* pnExpectReply) const
 {
     //    otErr << "OTClient::ProcessMessageOut: \n\n" << buf << "\n\n";
     //
@@ -199,7 +199,7 @@ void OTClient::ProcessMessageOut(char* buf, int32_t* pnExpectReply) const
     //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
 }
 
-void OTClient::ProcessMessageOut(OTMessage& theMessage)
+void OTClient::ProcessMessageOut(const OTMessage& theMessage)
 {
     const OTString strMessage(theMessage);
     //    otErr << "OTClient::ProcessMessageOut: \n\n" << strMessage << "\n\n";
@@ -243,7 +243,7 @@ void OTClient::ProcessMessageOut(OTMessage& theMessage)
     //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
 }
 
-bool OTClient::ProcessInBuffer(OTMessage& theServerReply) const
+bool OTClient::ProcessInBuffer(const OTMessage& theServerReply) const
 {
     OT_ASSERT_MSG(
         nullptr != m_pConnection,
@@ -258,7 +258,7 @@ bool OTClient::ProcessInBuffer(OTMessage& theServerReply) const
 bool OTClient::AcceptEntireNymbox(
     OTLedger& theNymbox,
     //                                  OTServerConnection    & theConnection,
-    const OTIdentifier& theServerID, OTServerContract& theServerContract,
+    const OTIdentifier& theServerID, const OTServerContract& theServerContract,
     OTPseudonym& theNym, OTMessage& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
@@ -1155,14 +1155,14 @@ bool OTClient::AcceptEntireNymbox(
 //
 bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
                                  const OTIdentifier& theServerID,
-                                 OTServerContract& theServerContract,
-                                 OTPseudonym& theNym, OTMessage&,
-                                 OTAccount& theAccount)
+                                 const OTServerContract& theServerContract,
+                                 OTPseudonym& theNym, const OTMessage&,
+                                 const OTAccount& theAccount)
 {
     bool bSuccess = false;
     OTPseudonym* pNym = &theNym;
     OTIdentifier theAccountID(theInbox);
-    OTAccount* pAccount = &theAccount;
+    const OTAccount* pAccount = &theAccount;
     // Need this for balance agreement (outbox hash)
     std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
     if (nullptr == pOutbox) {
@@ -3238,9 +3238,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     }
 }
 
-void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
-                                          OTServerConnection& theConnection,
-                                          OTMessage& theReply) const
+void OTClient::ProcessPayDividendResponse(
+    OTTransaction& theTransaction, const OTServerConnection& theConnection,
+    const OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3274,8 +3274,8 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction,
 }
 
 void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
-                                      OTServerConnection& theConnection,
-                                      OTMessage& theReply) const
+                                      const OTServerConnection& theConnection,
+                                      const OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3551,9 +3551,9 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 /// the transaction and
 /// grab any cash tokens that are inside, to save inside a purse.  Also want to
 /// display any vouchers.
-void OTClient::ProcessWithdrawalResponse(OTTransaction& theTransaction,
-                                         OTServerConnection& theConnection,
-                                         OTMessage& theReply) const
+void OTClient::ProcessWithdrawalResponse(
+    OTTransaction& theTransaction, const OTServerConnection& theConnection,
+    const OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -8891,10 +8891,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, OTMessage& theMessage,
     OTPseudonym& theNym,
-    //                                  OTAssetContract & theContract,
-    OTServerContract& theServer, OTAccount* pAccount,
+    // OTAssetContract & theContract,
+    const OTServerContract& theServer, const OTAccount* pAccount,
     int64_t lTransactionAmount, OTAssetContract* pMyAssetContract,
-    OTIdentifier* pHisNymID, OTIdentifier* pHisAcctID)
+    const OTIdentifier* pHisNymID, const OTIdentifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
     // -- only
@@ -13664,10 +13664,9 @@ int32_t OTClient::ProcessUserCommand(
 /// the wallet and display them in a nice list on the screen, and the user could
 /// just click on one, and you would just call Wallet.Connect(ServerID) and do
 /// your thing.
-bool OTClient::ConnectToTheFirstServerOnList(OTPseudonym& theNym,
-                                             OTString& strCA_FILE,
-                                             OTString& strKEY_FILE,
-                                             OTString& strKEY_PASSWORD) const
+bool OTClient::ConnectToTheFirstServerOnList(
+    const OTPseudonym& theNym, const OTString& strCA_FILE,
+    const OTString& strKEY_FILE, const OTString& strKEY_PASSWORD) const
 {
     OTIdentifier SERVER_ID;
     OTString SERVER_NAME;

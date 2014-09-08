@@ -777,7 +777,8 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
     }
 }
 
-bool OTWallet::VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
+bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym,
+                                  const OTAccount& theAcct,
                                   const OTIdentifier& SERVER_ID,
                                   const OTString& strAcctID,
                                   const char* szFuncName)
@@ -822,7 +823,7 @@ bool OTWallet::VerifyAssetAccount(OTPseudonym& theNym, OTAccount& theAcct,
 
 // No need to cleanup the account returned, it's owned by the wallet.
 //
-OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
+OTAccount* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
                                       const OTIdentifier& ACCT_ID,
                                       const OTIdentifier& SERVER_ID,
                                       const char* szFuncName)
@@ -863,7 +864,7 @@ OTAccount* OTWallet::GetOrLoadAccount(OTPseudonym& theNym,
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-OTAccount* OTWallet::LoadAccount(OTPseudonym& theNym,
+OTAccount* OTWallet::LoadAccount(const OTPseudonym& theNym,
                                  const OTIdentifier& ACCT_ID,
                                  const OTIdentifier& SERVER_ID,
                                  const char* szFuncName)
@@ -959,8 +960,8 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
                                            const bool bChecking,
                                            const char* szFuncName,
-                                           OTPasswordData* pPWData,
-                                           OTPassword* pImportPassword)
+                                           const OTPasswordData* pPWData,
+                                           const OTPassword* pImportPassword)
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ":" << szFuncName
@@ -1076,7 +1077,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
                                     const bool bChecking,
                                     const char* szFuncName,
-                                    OTPasswordData* pPWData)
+                                    const OTPasswordData* pPWData)
 {
     OTPseudonym* pNym = GetOrLoadPublicNym(NYM_ID, szFuncName);
 
@@ -1486,7 +1487,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
 bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
                                const OTString& strPlaintext,
                                OTString& strOutput, const OTString* pstrDisplay,
-                               const bool bBookends)
+                               bool bBookends)
 {
     if (key_id.empty() || !strPlaintext.Exists()) return false;
 
@@ -1510,8 +1511,8 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
     return false;
 }
 bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
-                               OTString& strCiphertext, OTString& strOutput,
-                               const OTString* pstrDisplay)
+                               const OTString& strCiphertext,
+                               OTString& strOutput, const OTString* pstrDisplay)
 {
     if (key_id.empty() || !strCiphertext.Exists()) return false;
 

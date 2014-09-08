@@ -235,9 +235,9 @@ public:
     EXPORT static OTAccount* LoadExistingAccount(const OTIdentifier& accountId,
                                                  const OTIdentifier& serverId);
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadInbox(OTPseudonym& nym);
+    EXPORT OTLedger* LoadInbox(OTPseudonym& nym) const;
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadOutbox(OTPseudonym& nym);
+    EXPORT OTLedger* LoadOutbox(OTPseudonym& nym) const;
 
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(OTLedger& box, OTIdentifier* hash = nullptr);

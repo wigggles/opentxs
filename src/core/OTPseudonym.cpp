@@ -157,7 +157,7 @@ namespace opentxs
 {
 
 OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
-                                        OTString* pstrName,
+                                        const OTString* pstrName,
                                         const char* szFuncName)
 {
     const char* szFunc =
@@ -285,10 +285,10 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
 // static
 OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
                                          const bool bChecking,
-                                         OTString* pstrName,
+                                         const OTString* pstrName,
                                          const char* szFuncName,
-                                         OTPasswordData* pPWData,
-                                         OTPassword* pImportPassword)
+                                         const OTPasswordData* pPWData,
+                                         const OTPassword* pImportPassword)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
@@ -1088,14 +1088,14 @@ void OTPseudonym::AddMail(OTMessage& theMessage) // a mail message is a form of
 }
 
 /// return the number of mail items available for this Nym.
-int32_t OTPseudonym::GetMailCount()
+int32_t OTPseudonym::GetMailCount() const
 {
     return static_cast<int32_t>(m_dequeMail.size());
 }
 
 // Look up a piece of mail by index.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetMailByIndex(const int32_t nIndex)
+OTMessage* OTPseudonym::GetMailByIndex(const int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1143,14 +1143,14 @@ void OTPseudonym::AddOutmail(OTMessage& theMessage) // a mail message is a form
 }
 
 /// return the number of mail items available for this Nym.
-int32_t OTPseudonym::GetOutmailCount()
+int32_t OTPseudonym::GetOutmailCount() const
 {
     return static_cast<int32_t>(m_dequeOutmail.size());
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex)
+OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1203,14 +1203,14 @@ void OTPseudonym::AddOutpayments(OTMessage& theMessage) // a payments message is
 }
 
 /// return the number of payments items available for this Nym.
-int32_t OTPseudonym::GetOutpaymentsCount()
+int32_t OTPseudonym::GetOutpaymentsCount() const
 {
     return static_cast<int32_t>(m_dequeOutpayments.size());
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex)
+OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1789,7 +1789,7 @@ void OTPseudonym::RemoveReqNumbers(const OTString* pstrServerID)
 // whenever) this
 // function will return an accurate answer after that point, and forever.
 //
-bool OTPseudonym::IsRegisteredAtServer(const OTString& strServerID)
+bool OTPseudonym::IsRegisteredAtServer(const OTString& strServerID) const
 {
     bool bRetVal = false; // default is return false: "No, I'm NOT registered at
                           // that Server."
@@ -1989,8 +1989,8 @@ for this Nym. Infinite if negative.
 // those pieces were already done
 // just prior to this call.
 //
-bool OTPseudonym::ResyncWithServer(OTLedger& theNymbox,
-                                   OTPseudonym& theMessageNym)
+bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
+                                   const OTPseudonym& theMessageNym)
 {
     bool bSuccess = true;
 
@@ -2167,9 +2167,9 @@ typedef std::map<std::string, dequeOfTransNums *>    mapOfTransNums;
 
 // Verify whether a certain transaction number appears on a certain list.
 //
-bool OTPseudonym::VerifyGenericNum(mapOfTransNums& THE_MAP,
+bool OTPseudonym::VerifyGenericNum(const mapOfTransNums& THE_MAP,
                                    const OTString& strServerID,
-                                   const int64_t& lTransNum)
+                                   const int64_t& lTransNum) const
 {
     std::string strID = strServerID.Get();
 
@@ -2323,8 +2323,8 @@ bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
 
 // Returns count of transaction numbers available for a given server.
 //
-int32_t OTPseudonym::GetGenericNumCount(mapOfTransNums& THE_MAP,
-                                        const OTIdentifier& theServerID)
+int32_t OTPseudonym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
+                                        const OTIdentifier& theServerID) const
 {
     int32_t nReturnValue = 0;
 
@@ -2359,9 +2359,9 @@ int32_t OTPseudonym::GetGenericNumCount(mapOfTransNums& THE_MAP,
 }
 
 // by index.
-int64_t OTPseudonym::GetGenericNum(mapOfTransNums& THE_MAP,
+int64_t OTPseudonym::GetGenericNum(const mapOfTransNums& THE_MAP,
                                    const OTIdentifier& theServerID,
-                                   int32_t nIndex)
+                                   int32_t nIndex) const
 {
     int64_t lRetVal = 0;
 
@@ -2401,28 +2401,28 @@ int64_t OTPseudonym::GetGenericNum(mapOfTransNums& THE_MAP,
 
 // by index.
 int64_t OTPseudonym::GetTentativeNum(const OTIdentifier& theServerID,
-                                     int32_t nIndex)
+                                     int32_t nIndex) const
 {
     return GetGenericNum(m_mapTentativeNum, theServerID, nIndex);
 }
 
 // by index.
 int64_t OTPseudonym::GetIssuedNum(const OTIdentifier& theServerID,
-                                  int32_t nIndex)
+                                  int32_t nIndex) const
 {
     return GetGenericNum(m_mapIssuedNum, theServerID, nIndex);
 }
 
 // by index.
 int64_t OTPseudonym::GetTransactionNum(const OTIdentifier& theServerID,
-                                       int32_t nIndex)
+                                       int32_t nIndex) const
 {
     return GetGenericNum(m_mapTransNum, theServerID, nIndex);
 }
 
 // by index.
 int64_t OTPseudonym::GetAcknowledgedNum(const OTIdentifier& theServerID,
-                                        int32_t nIndex)
+                                        int32_t nIndex) const
 {
     return GetGenericNum(m_mapAcknowledgedNum, theServerID, nIndex);
 }
@@ -2431,8 +2431,8 @@ int64_t OTPseudonym::GetAcknowledgedNum(const OTIdentifier& theServerID,
 
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether he actually has a right to use it.
-bool OTPseudonym::VerifyTransactionNum(const OTString& strServerID,
-                                       const int64_t& lTransNum) // doesn't save
+bool OTPseudonym::VerifyTransactionNum(
+    const OTString& strServerID, const int64_t& lTransNum) const // doesn't save
 {
     return VerifyGenericNum(m_mapTransNum, strServerID, lTransNum);
 }
@@ -2456,6 +2456,7 @@ bool OTPseudonym::RemoveTransactionNum(const OTString& strServerID,
 // Returns count of transaction numbers available for a given server.
 //
 int32_t OTPseudonym::GetTransactionNumCount(const OTIdentifier& theServerID)
+    const
 {
     return GetGenericNumCount(m_mapTransNum, theServerID);
 }
@@ -2473,7 +2474,7 @@ bool OTPseudonym::AddTransactionNum(const OTString& strServerID,
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether it was issued to him and still awaiting final closing.
 bool OTPseudonym::VerifyIssuedNum(const OTString& strServerID,
-                                  const int64_t& lTransNum)
+                                  const int64_t& lTransNum) const
 {
     return VerifyGenericNum(m_mapIssuedNum, strServerID, lTransNum);
 }
@@ -2495,7 +2496,7 @@ bool OTPseudonym::RemoveIssuedNum(const OTString& strServerID,
 
 // Returns count of transaction numbers not yet cleared for a given server.
 //
-int32_t OTPseudonym::GetIssuedNumCount(const OTIdentifier& theServerID)
+int32_t OTPseudonym::GetIssuedNumCount(const OTIdentifier& theServerID) const
 {
     return GetGenericNumCount(m_mapIssuedNum, theServerID);
 }
@@ -2513,7 +2514,7 @@ bool OTPseudonym::AddIssuedNum(const OTString& strServerID,
 // On the server side: A user has submitted a specific transaction number.
 // Verify whether it was issued to him and still awaiting final closing.
 bool OTPseudonym::VerifyTentativeNum(const OTString& strServerID,
-                                     const int64_t& lTransNum)
+                                     const int64_t& lTransNum) const
 {
     return VerifyGenericNum(m_mapTentativeNum, strServerID, lTransNum);
 }
@@ -2536,7 +2537,7 @@ bool OTPseudonym::RemoveTentativeNum(const OTString& strServerID,
 
 // Returns count of transaction numbers not yet cleared for a given server.
 //
-int32_t OTPseudonym::GetTentativeNumCount(const OTIdentifier& theServerID)
+int32_t OTPseudonym::GetTentativeNumCount(const OTIdentifier& theServerID) const
 {
     return GetGenericNumCount(m_mapTentativeNum, theServerID);
 }
@@ -2563,7 +2564,7 @@ bool OTPseudonym::AddTentativeNum(const OTString& strServerID,
 // I sent.
 //
 bool OTPseudonym::VerifyAcknowledgedNum(const OTString& strServerID,
-                                        const int64_t& lRequestNum)
+                                        const int64_t& lRequestNum) const
 {
     return VerifyGenericNum(m_mapAcknowledgedNum, strServerID, lRequestNum);
 }
@@ -2595,6 +2596,7 @@ bool OTPseudonym::RemoveAcknowledgedNum(const OTString& strServerID,
 // told me he has already seen the reply to.)
 //
 int32_t OTPseudonym::GetAcknowledgedNumCount(const OTIdentifier& theServerID)
+    const
 {
     return GetGenericNumCount(m_mapAcknowledgedNum, theServerID);
 }
@@ -3026,7 +3028,7 @@ bool OTPseudonym::GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
 // otherwise it won't be there to get.
 //
 bool OTPseudonym::GetHighestNum(const OTString& strServerID,
-                                int64_t& lHighestNum)
+                                int64_t& lHighestNum) const
 {
     bool bRetVal = false;
     std::string strID = strServerID.Get();
@@ -3318,7 +3320,7 @@ int64_t OTPseudonym::UpdateHighestNum(OTPseudonym& SIGNER_NYM,
 // and if the request number needs to be incremented,
 // then make sure you call IncrementRequestNum (below)
 bool OTPseudonym::GetCurrentRequestNum(const OTString& strServerID,
-                                       int64_t& lReqNum)
+                                       int64_t& lReqNum) const
 {
     bool bRetVal = false;
     std::string strID = strServerID.Get();
@@ -4093,10 +4095,10 @@ bool OTPseudonym::SavePseudonym(std::ofstream& ofs)
 // in the wallet.
 bool OTPseudonym::ReEncryptPrivateCredentials(
     bool bImporting, // bImporting=true, or false if exporting.
-    OTPasswordData* pPWData, OTPassword* pImportPassword)
+    const OTPasswordData* pPWData, const OTPassword* pImportPassword)
 {
-    OTPassword* pExportPassphrase = nullptr;
-    std::unique_ptr<OTPassword> thePasswordAngel;
+    const OTPassword* pExportPassphrase = nullptr;
+    std::unique_ptr<const OTPassword> thePasswordAngel;
 
     if (nullptr == pImportPassword) {
 
@@ -4159,7 +4161,7 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
 // credential IDs.
 //
 void OTPseudonym::GetPublicCredentials(OTString& strCredList,
-                                       OTString::Map* pmapCredFiles)
+                                       OTString::Map* pmapCredFiles) const
 {
     OTString strNymID;
     GetIdentifier(strNymID);
@@ -4211,7 +4213,7 @@ void OTPseudonym::GetPrivateCredentials(OTString& strCredList,
     strCredList.Concatenate("</OTuser>\n");
 }
 
-void OTPseudonym::SerializeNymIDSource(OTString& strOutput)
+void OTPseudonym::SerializeNymIDSource(OTString& strOutput) const
 {
 
     // We encode these before storing.
@@ -4296,8 +4298,8 @@ bool OTPseudonym::SaveCredentialList()
 bool OTPseudonym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
                                                      // by default. For
                                                      // private, pass true.
-                                  OTPasswordData* pPWData,
-                                  OTPassword* pImportPassword)
+                                  const OTPasswordData* pPWData,
+                                  const OTPassword* pImportPassword)
 {
     OTString strReason(nullptr == pPWData ? OT_PW_DISPLAY
                                           : pPWData->GetDisplayString());
@@ -4947,7 +4949,7 @@ bool OTPseudonym::LoadFromString(
                                     // during registration, when the
                                     // credentials have been sent
                                     // inside a message.)
-    OTString* pstrReason, OTPassword* pImportPassword)
+    OTString* pstrReason, const OTPassword* pImportPassword)
 {
     bool bSuccess = false;
 
@@ -6107,7 +6109,7 @@ bool OTPseudonym::LoadNymfile(const char* szFilename)
 
 bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
     const OTString& strInput, OTPasswordData* pPWData,
-    OTPassword* pImportPassword)
+    const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeypair);
 
@@ -6130,8 +6132,8 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
 // (to reduce code bloat.)
 
 bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
-                                            OTPasswordData* pPWData,
-                                            OTPassword* pImportPassword)
+                                            const OTPasswordData* pPWData,
+                                            const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeypair);
 

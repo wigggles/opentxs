@@ -217,24 +217,25 @@ public:
     bool SignContractDefaultHash(const OTString& strContractUnsigned,
                                  const EVP_PKEY* pkey,
                                  OTSignature& theSignature, // output
-                                 OTPasswordData* pPWData = nullptr) const;
+                                 const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifyContractDefaultHash(const OTString& strContractToVerify,
                                    const EVP_PKEY* pkey,
                                    const OTSignature& theSignature,
-                                   OTPasswordData* pPWData = nullptr) const;
+                                   const OTPasswordData* pPWData =
+                                       nullptr) const;
 
     // Sign or verify using the actual OpenSSL EVP_PKEY
     //
     bool SignContract(const OTString& strContractUnsigned, const EVP_PKEY* pkey,
                       OTSignature& theSignature, // output
                       const OTString& strHashType,
-                      OTPasswordData* pPWData = nullptr) const;
+                      const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const OTString& strContractToVerify,
                          const EVP_PKEY* pkey, const OTSignature& theSignature,
                          const OTString& strHashType,
-                         OTPasswordData* pPWData = nullptr) const;
+                         const OTPasswordData* pPWData = nullptr) const;
 
     static const EVP_MD* GetOpenSSLDigestByName(const OTString& theName);
 };
@@ -3738,7 +3739,7 @@ prog_end:
  */
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
     const OTString& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, OTPasswordData*) const
+    OTSignature& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::SignContractDefaultHash";
 
@@ -4009,7 +4010,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     const OTString& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, OTPasswordData*) const
+    const OTSignature& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::VerifyContractDefaultHash";
 
@@ -4643,7 +4644,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     const OTString& strContractUnsigned, const EVP_PKEY* pkey,
     OTSignature& theSignature, const OTString& strHashType,
-    OTPasswordData* pPWData) const
+    const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(nullptr != pkey,
                   "Null private key sent to OTCrypto_OpenSSL::SignContract.\n");
@@ -4774,7 +4775,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTAsymmetricKey& theKey,
                                     OTSignature& theSignature, // output
                                     const OTString& strHashType,
-                                    OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData) const
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -4799,7 +4800,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
                                        const OTAsymmetricKey& theKey,
                                        const OTSignature& theSignature,
                                        const OTString& strHashType,
-                                       OTPasswordData* pPWData) const
+                                       const OTPasswordData* pPWData) const
 {
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
     OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
@@ -4824,7 +4825,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     const OTString& strContractToVerify, const EVP_PKEY* pkey,
     const OTSignature& theSignature, const OTString& strHashType,
-    OTPasswordData* pPWData) const
+    const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
                   "OTCrypto_OpenSSL::VerifySignature: ASSERT FAILURE: "
@@ -4924,7 +4925,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTString& strSigHashType,
                                     const std::string& strCertFileContents,
                                     OTSignature& theSignature,
-                                    OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractUnsigned.Exists(), "OTCrypto_OpenSSL::"
                                                 "SignContract: ASSERT FAILURE: "
@@ -4957,7 +4958,8 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
 
     bool bSigned = false;
     EVP_PKEY* pkey = PEM_read_bio_PrivateKey(
-        bio, nullptr, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+        bio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
+        const_cast<OTPasswordData*>(pPWData));
 
     if (nullptr == pkey) {
         otErr << "OTCrypto_OpenSSL::SignContract: "
@@ -4982,7 +4984,7 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
                                        const OTString& strSigHashType,
                                        const std::string& strCertFileContents,
                                        const OTSignature& theSignature,
-                                       OTPasswordData* pPWData) const
+                                       const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
                   "OTCrypto_OpenSSL::VerifySignature: ASSERT FAILURE: "
@@ -5004,8 +5006,9 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    X509* x509 = PEM_read_bio_X509(
-        bio, nullptr, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+    X509* x509 =
+        PEM_read_bio_X509(bio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
+                          const_cast<OTPasswordData*>(pPWData));
 
     if (nullptr == x509) {
         otErr << szFunc << ": Failed reading x509 out of cert file...\n";

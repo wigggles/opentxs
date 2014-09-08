@@ -223,10 +223,10 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     const OTString& strCert, // Contains certificate and private key.
     bool bEscaped,           // "escaped" means pre-pended with "- " as in:   -
                              // -----BEGIN CER....
-    const OTString* pstrReason,  // This reason is what displays on the
-                                 // passphrase dialog.
-    OTPassword* pImportPassword) // Used when importing an exported
-                                 // Nym into a wallet.
+    const OTString* pstrReason,        // This reason is what displays on the
+                                       // passphrase dialog.
+    const OTPassword* pImportPassword) // Used when importing an exported
+                                       // Nym into a wallet.
 {
     Release();
 
@@ -377,7 +377,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
 //
 bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
     const OTString& strCert, bool bEscaped, const OTString* pstrReason,
-    OTPassword* pImportPassword)
+    const OTPassword* pImportPassword)
 {
     Release();
 
@@ -504,8 +504,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 
 // Used when importing / exporting Nym to/from the wallet.
 //
-bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
-                                                  bool bImporting)
+bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
+    const OTPassword& theExportPassword, bool bImporting)
 {
     OT_ASSERT(m_p_ascKey != nullptr);
     OT_ASSERT(IsPrivate());
@@ -682,9 +682,9 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(OTPassword& theExportPassword,
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::SaveCertToString(OTString& strOutput,
-                                               const OTString* pstrReason,
-                                               OTPassword* pImportPassword)
+bool OTAsymmetricKey_OpenSSL::SaveCertToString(
+    OTString& strOutput, const OTString* pstrReason,
+    const OTPassword* pImportPassword)
 {
     X509* x509 = dp->GetX509();
 
@@ -740,7 +740,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(OTString& strOutput,
 // virtual
 bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
     OTString& strOutput, const OTString* pstrReason,
-    OTPassword* pImportPassword)
+    const OTPassword* pImportPassword)
 {
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo security (revisit this mode...)
