@@ -435,8 +435,8 @@ public:
     OTScriptable();
     virtual ~OTScriptable();
 
-    void UpdateContentsToString(OTString& strAppend);
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID);
+    void UpdateContentsToString(OTString& strAppend, bool bCalculatingID) const;
+    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     virtual void Release();
     void Release_Scriptable();

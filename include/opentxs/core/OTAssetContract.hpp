@@ -153,12 +153,13 @@ public:
                            OTString& filename, OTString& strID);
     EXPORT virtual ~OTAssetContract();
 
-    virtual void CreateContents(); // Only used when first generating an asset
-                                   // or server contract. Meant for contracts
-                                   // which never change after that point.
-                                   // Otherwise does the same thing as
-                                   // UpdateContents. (But meant for a different
-                                   // purpose.)
+    EXPORT virtual void CreateContents(); // Only used when first generating an
+                                          // asset
+    // or server contract. Meant for contracts
+    // which never change after that point.
+    // Otherwise does the same thing as
+    // UpdateContents. (But meant for a different
+    // purpose.)
 
     EXPORT bool IsShares() const
     {
@@ -218,7 +219,7 @@ public:
                                                               // 545,
                                                               // GetCentsOnly
                                                               // returns 45.
-    const OTString& GetBasketInfo() const
+    EXPORT const OTString& GetBasketInfo() const
     {
         return m_strBasketInfo;
     }
@@ -240,13 +241,13 @@ public:
         return m_strCurrencyTLA;
     } // "USD""     (for example)
 
-    virtual bool SaveContractWallet(OTString& strContents) const;
-    virtual bool SaveContractWallet(std::ofstream& ofs);
-    virtual bool DisplayStatistics(OTString& strContents) const;
+    EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
 protected:
     // baskets

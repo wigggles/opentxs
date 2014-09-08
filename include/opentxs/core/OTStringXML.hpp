@@ -149,15 +149,15 @@ namespace opentxs
 class OTStringXML : public OTString
 {
 public:
-    OTStringXML();
+    EXPORT OTStringXML();
     EXPORT OTStringXML(const OTString& value);
-    OTStringXML(const OTStringXML& value);
+    EXPORT OTStringXML(const OTStringXML& value);
     EXPORT ~OTStringXML();
 
     EXPORT operator irr::io::IFileReadCallBack*();
 
-    OTStringXML& operator=(const OTString& rhs);
-    OTStringXML& operator=(const OTStringXML& rhs);
+    EXPORT OTStringXML& operator=(const OTString& rhs);
+    EXPORT OTStringXML& operator=(const OTStringXML& rhs);
 
     using OTString::swap;
 
