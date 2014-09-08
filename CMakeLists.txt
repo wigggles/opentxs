@@ -202,8 +202,9 @@ endif()
 if(BUILD_DOCUMENTATION)
    find_package(Doxygen)
    if(DOXYGEN_FOUND)
+     configure_file("cmake/Doxyfile.in" "Doxyfile" @ONLY)
      add_custom_target(doc
-       ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+       ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
        COMMENT "Generating API documentation with Doxygen.." VERBATIM)
    endif()
@@ -214,6 +215,7 @@ endif()
 # Get submodules
 
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 
 #-----------------------------------------------------------------------------
 # Source Definitions
@@ -270,6 +272,7 @@ else()
   add_definitions(-DEXPORT=)
 endif()
 
+
 #-----------------------------------------------------------------------------
 # Build source
 
@@ -300,7 +303,7 @@ add_subdirectory(wrappers)
 
 
 if(NOT WIN32)
-	configure_file("opentxs.pc.in" "opentxs.pc" @ONLY)
+	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
 	include(GNUInstallDirs)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
 		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
@@ -345,7 +348,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Uninstal
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake"
     IMMEDIATE @ONLY)
 

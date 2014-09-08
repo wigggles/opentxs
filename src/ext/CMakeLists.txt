@@ -19,7 +19,7 @@ include_directories(
 set(MODULE_NAME opentxs-ext)
 if(WIN32)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
     @ONLY
   )
