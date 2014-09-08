@@ -306,16 +306,7 @@ public:
     EXPORT bool SaveActiveCronReceipt(const OTIdentifier& theNymID); // client
                                                                      // side
                                                                      // only
-    // For moving money from one nym's account to another.
-    // Specifically used in Smart Contracts, and it is also nearly identically
-    // copied in OTPaymentPlan.
-    //
-    bool MoveFunds(
-        const mapOfNyms& map_NymsAlreadyLoaded, const int64_t& lAmount,
-        const OTIdentifier& SOURCE_ACCT_ID,     // GetSenderAcctID();
-        const OTIdentifier& SENDER_USER_ID,     // GetSenderUserID();
-        const OTIdentifier& RECIPIENT_ACCT_ID,  // GetRecipientAcctID();
-        const OTIdentifier& RECIPIENT_USER_ID); // GetRecipientUserID();
+
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my
