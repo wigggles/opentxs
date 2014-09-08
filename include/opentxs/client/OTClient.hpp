@@ -373,10 +373,10 @@ public:
                                        TransportCallback* pCallback) const;
 
     // For the test client in SSL / TCP mode.
-    bool ConnectToTheFirstServerOnList(OTPseudonym& theNym,
-                                       OTString& strCA_FILE,
-                                       OTString& strKEY_FILE,
-                                       OTString& strKEY_PASSWORD) const;
+    bool ConnectToTheFirstServerOnList(const OTPseudonym& theNym,
+                                       const OTString& strCA_FILE,
+                                       const OTString& strKEY_FILE,
+                                       const OTString& strKEY_PASSWORD) const;
 
     // Eventually, the wallet will have a LIST of these server connections,
     // and any use of the connection will first require to look up the right one
@@ -390,21 +390,21 @@ public:
     bool InitClient(OTWallet& theWallet); // Need to call this before using.
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
-    void ProcessMessageOut(char* buf, int32_t* pnExpectReply) const;
-    void ProcessMessageOut(OTMessage& theMessage);
-    bool ProcessInBuffer(OTMessage& theServerReply) const;
+    void ProcessMessageOut(const char* buf, int32_t* pnExpectReply) const;
+    void ProcessMessageOut(const OTMessage& theMessage);
+    bool ProcessInBuffer(const OTMessage& theServerReply) const;
     // These functions are for command processing:
 
     EXPORT int32_t
     ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                        OTMessage& theMessage, OTPseudonym& theNym,
                        // OTAssetContract & theContract,
-                       OTServerContract& theServer,
-                       OTAccount* pAccount = nullptr,
+                       const OTServerContract& theServer,
+                       const OTAccount* pAccount = nullptr,
                        int64_t lTransactionAmount = 0,
                        OTAssetContract* pMyAssetContract = nullptr,
-                       OTIdentifier* pHisNymID = nullptr,
-                       OTIdentifier* pHisAcctID = nullptr);
+                       const OTIdentifier* pHisNymID = nullptr,
+                       const OTIdentifier* pHisAcctID = nullptr);
 
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
@@ -414,14 +414,14 @@ public:
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
                                      OTMessage& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
-                                   OTServerConnection& theConnection,
-                                   OTMessage& theReply) const;
+                                   const OTServerConnection& theConnection,
+                                   const OTMessage& theReply) const;
     void ProcessDepositResponse(OTTransaction& theTransaction,
-                                OTServerConnection& theConnection,
-                                OTMessage& theReply) const;
+                                const OTServerConnection& theConnection,
+                                const OTMessage& theReply) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
-                                    OTServerConnection& theConnection,
-                                    OTMessage& theReply) const;
+                                    const OTServerConnection& theConnection,
+                                    const OTMessage& theReply) const;
 
     //  void AcceptEntireInbox (OTLedger & theInbox,  OTServerConnection &
     // theConnection);
@@ -429,13 +429,13 @@ public:
     // theConnection);
 
     bool AcceptEntireInbox(OTLedger& theInbox, const OTIdentifier& theServerID,
-                           OTServerContract& theServerContract,
-                           OTPseudonym& theNym, OTMessage& theMessage,
-                           OTAccount& theAccount);
+                           const OTServerContract& theServerContract,
+                           OTPseudonym& theNym, const OTMessage& theMessage,
+                           const OTAccount& theAccount);
 
     bool AcceptEntireNymbox(OTLedger& theNymbox,
                             const OTIdentifier& theServerID,
-                            OTServerContract& theServerContract,
+                            const OTServerContract& theServerContract,
                             OTPseudonym& theNym, OTMessage& theMessage);
 
     // void HarvestTransactionNumbers(OTTransaction & theTransaction,

@@ -331,8 +331,7 @@ public:
     return    ascEncoded.Get();    // We return it.
     */
     EXPORT static std::string Encode(const std::string& strPlaintext,
-                                     const bool& bLineBreaks); // bLineBreaks is
-                                                               // OT_BOOL
+                                     const bool& bLineBreaks);
 
     /** Decode an OT-encoded string (back to plainext.)
 
@@ -348,8 +347,7 @@ public:
     return    strPlain.Get();    // We return it.
     */
     EXPORT static std::string Decode(const std::string& strEncoded,
-                                     const bool& bLineBreaks); // bLineBreaks is
-                                                               // OT_BOOL
+                                     const bool& bLineBreaks);
 
     /** OT-ENCRYPT a plainext string. (ASYMMETRIC)
 
@@ -407,7 +405,7 @@ public:
     EXPORT static std::string CreateSymmetricKey();
 
     EXPORT static std::string SymmetricEncrypt(const std::string& SYMMETRIC_KEY,
-                                               const std::string& PLAintEXT);
+                                               const std::string& PLAINTEXT);
     EXPORT static std::string SymmetricDecrypt(
         const std::string& SYMMETRIC_KEY,
         const std::string& CIPHERTEXT_ENVELOPE);

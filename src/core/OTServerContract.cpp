@@ -160,7 +160,8 @@ OTServerContract::~OTServerContract()
 {
 }
 
-bool OTServerContract::GetConnectInfo(OTString& strHostname, int32_t& nPort)
+bool OTServerContract::GetConnectInfo(OTString& strHostname,
+                                      int32_t& nPort) const
 {
     if (m_strHostname.GetLength()) {
         strHostname = m_strHostname;

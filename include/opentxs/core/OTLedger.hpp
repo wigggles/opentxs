@@ -248,8 +248,8 @@ public:
 
     EXPORT OTTransaction* GetTransaction(
         const OTTransaction::transactionType theType);
-    EXPORT OTTransaction* GetTransaction(int64_t lTransactionNum);
-    EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex);
+    EXPORT OTTransaction* GetTransaction(int64_t lTransactionNum) const;
+    EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex) const;
     EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
     EXPORT OTTransaction* GetChequeReceipt(const int64_t lChequeNum,
@@ -332,11 +332,12 @@ public:
     {
         return static_cast<int32_t>(m_mapTransactions.size());
     }
-    EXPORT int32_t GetTransactionCountInRefTo(const int64_t lReferenceNum);
+    EXPORT int32_t
+    GetTransactionCountInRefTo(const int64_t lReferenceNum) const;
     EXPORT int64_t GetTotalPendingValue(); // for inbox only, allows you to
                                            // lookup the total value of pending
                                            // transfers within.
-    EXPORT mapOfTransactions& GetTransactionMap();
+    EXPORT const mapOfTransactions& GetTransactionMap() const;
     EXPORT OTLedger(const OTIdentifier& theUserID,
                     const OTIdentifier& theAccountID,
                     const OTIdentifier& theServerID);
@@ -370,7 +371,7 @@ public:
 
     EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
     EXPORT static char const* _GetTypeString(ledgerType theType);
-    EXPORT char const* GetTypeString()
+    EXPORT char const* GetTypeString() const
     {
         return _GetTypeString(m_Type);
     }

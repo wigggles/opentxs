@@ -144,11 +144,11 @@ class OTPayment;
 
 // Caller is responsible to delete.
 // returns financial instrument by index. (Cheque, Purse, etc.)
-EXPORT OTPayment* GetInstrument(OTPseudonym& theNym, const int32_t& nIndex,
-                                OTLedger& ledger);
+EXPORT OTPayment* GetInstrument(const OTPseudonym& theNym,
+                                const int32_t& nIndex, OTLedger& ledger);
 
 EXPORT int32_t
-GetOutpaymentsIndexByTransNum(OTPseudonym& nym, const int64_t lTransNum);
+GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum);
 
 } // namespace opentxs
 

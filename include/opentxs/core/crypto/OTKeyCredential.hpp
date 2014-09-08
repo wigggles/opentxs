@@ -256,9 +256,10 @@ protected:
     virtual bool SetPublicContents(const OTString::Map& mapPublic);
     virtual bool SetPrivateContents(
         const OTString::Map& mapPrivate,
-        OTPassword* pImportPassword = nullptr); // if not nullptr, it means to
-                                                // use
-                                                // this password by default.
+        const OTPassword* pImportPassword = nullptr); // if not nullptr, it
+                                                      // means to
+                                                      // use
+    // this password by default.
 public:
     OTKeypair m_SigningKey; // Signing keys, for signing/verifying a "legal
                             // signature".
@@ -267,7 +268,7 @@ public:
     OTKeypair m_EncryptKey; // Encryption keys, used for sealing/opening
                             // OTEnvelopes.
     bool GenerateKeys(int32_t nBits = 1024); // Gotta start somewhere.
-    bool ReEncryptKeys(OTPassword& theExportPassword,
+    bool ReEncryptKeys(const OTPassword& theExportPassword,
                        bool bImporting); // Used when importing/exporting a Nym
                                          // to/from the wallet.
     virtual bool VerifyInternally(); // Verify that m_strNymID is the same as
@@ -281,7 +282,7 @@ public:
     OTKeyCredential();
     OTKeyCredential(OTCredential& theOwner);
     bool SignContract(OTContract& theContract,
-                      OTPasswordData* pPWData = nullptr);
+                      const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t
     GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                              const OTSignature& theSignature,

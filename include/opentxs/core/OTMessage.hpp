@@ -158,20 +158,20 @@ public:
     EXPORT OTMessage();
     EXPORT virtual ~OTMessage();
 
-    virtual bool VerifyContractID();
+    virtual bool VerifyContractID() const;
 
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
                                      OTPasswordData* pPWData = nullptr);
-    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        OTPasswordData* pPWData = nullptr);
+    EXPORT virtual bool VerifySignature(
+        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool HarvestTransactionNumbers(
         OTPseudonym& theNym,
-        const bool bHarvestingForRetry,     // false until positively asserted.
-        const bool bReplyWasSuccess,        // false until positively asserted.
-        const bool bReplyWasFailure,        // false until positively asserted.
-        const bool bTransactionWasSuccess,  // false until positively asserted.
-        const bool bTransactionWasFailure); // false until positively asserted.
+        bool bHarvestingForRetry,           // false until positively asserted.
+        bool bReplyWasSuccess,              // false until positively asserted.
+        bool bReplyWasFailure,              // false until positively asserted.
+        bool bTransactionWasSuccess,        // false until positively asserted.
+        bool bTransactionWasFailure) const; // false until positively asserted.
 
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already

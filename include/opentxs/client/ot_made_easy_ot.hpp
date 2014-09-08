@@ -173,11 +173,11 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string create_market_offer(
         const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
         const std::string& scale, const std::string& minIncrement,
-        const std::string& quantity, const std::string& price,
-        const bool bSelling, const std::string& strLifespanInSeconds,
-        const std::string& strStopSign, const std::string& strActivationPrice);
+        const std::string& quantity, const std::string& price, bool bSelling,
+        const std::string& strLifespanInSeconds, const std::string& strStopSign,
+        const std::string& strActivationPrice);
     EXPORT OT_MADE_EASY_OT static std::string create_pseudonym(
-        const int32_t nKeybits, const std::string& strNymIDSource,
+        int32_t nKeybits, const std::string& strNymIDSource,
         const std::string& strAltLocation);
     EXPORT OT_MADE_EASY_OT static std::string deposit_cheque(
         const std::string& SERVER_ID, const std::string& NYM_ID,
@@ -193,12 +193,12 @@ public:
         const std::string& nymID, const std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
         const std::string& accountID,
-        const bool bReimportIfFailure); // So we don't re-import a purse that
-                                        // wasn't internal to begin with.
+        bool bReimportIfFailure); // So we don't re-import a purse that
+                                  // wasn't internal to begin with.
     EXPORT OT_MADE_EASY_OT static std::string exchange_basket_currency(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ASSET_TYPE, const std::string& THE_BASKET,
-        const std::string& ACCT_ID, const bool IN_OR_OUT);
+        const std::string& ACCT_ID, bool IN_OR_OUT);
     EXPORT OT_MADE_EASY_OT static bool exchangeCashPurse(
         const std::string& serverID, const std::string& assetID,
         const std::string& nymID, std::string& oldPurse,
@@ -207,31 +207,30 @@ public:
         const std::string& serverID, const std::string& assetID,
         const std::string& nymID, const std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
-        std::string& recipientNymID, const bool bPasswordProtected,
+        std::string& recipientNymID, bool bPasswordProtected,
         std::string& strRetainedCopy);
     EXPORT OT_MADE_EASY_OT static std::string get_box_receipt(
         const std::string& SERVER_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const int32_t nBoxType,
+        const std::string& ACCT_ID, int32_t nBoxType,
         const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string get_market_list(
         const std::string& SERVER_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_market_offers(
         const std::string& SERVER_ID, const std::string& NYM_ID,
-        const std::string& MARKET_ID, const int64_t MAX_DEPTH);
+        const std::string& MARKET_ID, int64_t MAX_DEPTH);
     EXPORT OT_MADE_EASY_OT static std::string get_market_recent_trades(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& MARKET_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_nym_market_offers(
         const std::string& SERVER_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
-        const int32_t nIndex,
+        const std::string& SERVER_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
     EXPORT OT_MADE_EASY_OT static bool importCashPurse(
         const std::string& serverID, const std::string& nymID,
-        const std::string& assetID, std::string& userInput, const bool isPurse);
+        const std::string& assetID, std::string& userInput, bool isPurse);
     EXPORT OT_MADE_EASY_OT static bool insure_enough_nums(
-        const int32_t nNumberNeeded, const std::string& strMyServerID,
+        int32_t nNumberNeeded, const std::string& strMyServerID,
         const std::string& strMyNymID);
     EXPORT OT_MADE_EASY_OT static std::string issue_asset_type(
         const std::string& SERVER_ID, const std::string& NYM_ID,
@@ -264,7 +263,7 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string pay_dividend(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& SOURCE_ACCT_ID, const std::string& SHARES_ASSET_ID,
-        const std::string& STR_MEMO, const int64_t AMOUNT_PER_SHARE);
+        const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE);
     EXPORT OT_MADE_EASY_OT static std::string process_inbox(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID, const std::string& RESPONSE_LEDGER);
@@ -273,8 +272,8 @@ public:
         const std::string& serverID, const std::string& assetID,
         const std::string& nymID, std::string& oldPurse,
         const std::vector<std::string>& selectedTokens,
-        const std::string& recipientNymID, const bool bPWProtectOldPurse,
-        const bool bPWProtectNewPurse);
+        const std::string& recipientNymID, bool bPWProtectOldPurse,
+        bool bPWProtectNewPurse);
     EXPORT OT_MADE_EASY_OT static std::string query_asset_types(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ENCODED_MAP);
@@ -283,7 +282,7 @@ public:
     EXPORT OT_MADE_EASY_OT static bool retrieve_account(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
-        const bool bForceDownload); // bForceDownload=false
+        bool bForceDownload); // bForceDownload=false
     EXPORT OT_MADE_EASY_OT static std::string retrieve_contract(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& CONTRACT_ID);
@@ -292,11 +291,11 @@ public:
         const std::string& ASSET_ID);
     EXPORT OT_MADE_EASY_OT static int32_t retrieve_nym(
         const std::string& strServerID, const std::string& strMyNymID,
-        bool& bWasMsgSent, const bool bForceDownload);
+        bool& bWasMsgSent, bool bForceDownload);
     EXPORT OT_MADE_EASY_OT static std::string send_transfer(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ACCT_FROM, const std::string& ACCT_TO,
-        const int64_t AMOUNT, const std::string& NOTE);
+        int64_t AMOUNT, const std::string& NOTE);
     EXPORT OT_MADE_EASY_OT static std::string send_user_cash(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT,
@@ -328,11 +327,11 @@ public:
         const std::string& STR_PARAM);
     EXPORT OT_MADE_EASY_OT static std::string withdraw_cash(
         const std::string& SERVER_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const int64_t AMOUNT);
+        const std::string& ACCT_ID, int64_t AMOUNT);
     EXPORT OT_MADE_EASY_OT static std::string withdraw_voucher(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& RECIP_NYM_ID,
-        const std::string& STR_MEMO, const int64_t AMOUNT);
+        const std::string& STR_MEMO, int64_t AMOUNT);
 };
 
 } // namespace opentxs

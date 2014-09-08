@@ -157,11 +157,11 @@ namespace opentxs
 
 bool OTMessage::HarvestTransactionNumbers(
     OTPseudonym& theNym,
-    const bool bHarvestingForRetry,    // false until positively asserted.
-    const bool bReplyWasSuccess,       // false until positively asserted.
-    const bool bReplyWasFailure,       // false until positively asserted.
-    const bool bTransactionWasSuccess, // false until positively asserted.
-    const bool bTransactionWasFailure) // false until positively asserted.
+    bool bHarvestingForRetry,          // false until positively asserted.
+    bool bReplyWasSuccess,             // false until positively asserted.
+    bool bReplyWasFailure,             // false until positively asserted.
+    bool bTransactionWasSuccess,       // false until positively asserted.
+    bool bTransactionWasFailure) const // false until positively asserted.
 {
 
     const OTIdentifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strServerID),
@@ -3895,7 +3895,7 @@ bool OTMessage::SignContract(const OTPseudonym& theNym, OTPasswordData* pPWData)
 
 // virtual (OTContract)
 bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                OTPasswordData* pPWData)
+                                OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -3924,7 +3924,7 @@ bool OTMessage::VerifySignature(const OTPseudonym& theNym,
 // So I will end up using it. But for now, VerifyContractID will always return
 // true.
 //
-bool OTMessage::VerifyContractID()
+bool OTMessage::VerifyContractID() const
 {
     return true;
 }

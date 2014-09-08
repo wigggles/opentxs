@@ -834,7 +834,7 @@ bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
 
 // static
 bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
-                             OTString& strCiphertext, OTString& strOutput,
+                             const OTString& strCiphertext, OTString& strOutput,
                              const OTString* pstrDisplay,
                              const OTPassword* pAlreadyHavePW)
 {

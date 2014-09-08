@@ -486,8 +486,8 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 // virtual
 bool OTKeyCredential::SetPrivateContents(
     const OTString::Map& mapPrivate,
-    OTPassword* pImportPassword) // if not nullptr, it means to use this
-                                 // password by default.
+    const OTPassword* pImportPassword) // if not nullptr, it means to use this
+                                       // password by default.
 {
 
     if (mapPrivate.size() != 3) {
@@ -661,12 +661,12 @@ bool OTKeyCredential::SetPrivateContents(
 }
 
 bool OTKeyCredential::SignContract(OTContract& theContract,
-                                   OTPasswordData* pPWData)
+                                   const OTPasswordData* pPWData)
 {
     return m_SigningKey.SignContract(theContract, pPWData);
 }
 
-bool OTKeyCredential::ReEncryptKeys(OTPassword& theExportPassword,
+bool OTKeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
                                     bool bImporting)
 {
     OTString strSign, strAuth, strEncr;

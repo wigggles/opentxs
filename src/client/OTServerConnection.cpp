@@ -713,7 +713,7 @@ bool OTServerConnection::SignAndSend(OTMessage& theMessage) const
     return false;
 }
 
-void OTServerConnection::ProcessMessageOut(OTMessage& theMessage) const
+void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
 {
     u_header theCMD;
     OTPayload thePayload;
@@ -818,7 +818,7 @@ void OTServerConnection::ProcessMessageOut(OTMessage& theMessage) const
 // This function interprets test input (so should have been in test client?)
 // then it uses that to send a message to server.
 // The buf passed in is simply data collected by fgets from stdin.
-void OTServerConnection::ProcessMessageOut(char* buf, int32_t*)
+void OTServerConnection::ProcessMessageOut(const char* buf, const int32_t*)
 {
 
     OT_ASSERT(nullptr != buf);

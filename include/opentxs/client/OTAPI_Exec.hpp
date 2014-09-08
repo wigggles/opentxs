@@ -406,7 +406,7 @@ public:
     EXPORT virtual std::string CreateSymmetricKey() const;
 
     EXPORT virtual std::string SymmetricEncrypt(
-        const std::string& SYMMETRIC_KEY, const std::string& PLAintEXT) const;
+        const std::string& SYMMETRIC_KEY, const std::string& PLAINTEXT) const;
     EXPORT virtual std::string SymmetricDecrypt(
         const std::string& SYMMETRIC_KEY,
         const std::string& CIPHERTEXT_ENVELOPE) const;

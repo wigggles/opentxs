@@ -1157,7 +1157,7 @@ OTLedger::OTLedger()
     InitLedger();
 }
 
-mapOfTransactions& OTLedger::GetTransactionMap()
+const mapOfTransactions& OTLedger::GetTransactionMap() const
 {
     return m_mapTransactions;
 }
@@ -1251,7 +1251,7 @@ int32_t OTLedger::GetTransactionIndex(int64_t lTransactionNum)
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum)
+OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum) const
 {
     // loop through the transactions inside this ledger
 
@@ -1271,7 +1271,7 @@ OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum)
+int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum) const
 {
     int32_t nCount = 0;
 
@@ -1287,7 +1287,7 @@ int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum)
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTTransaction* OTLedger::GetTransactionByIndex(int32_t nIndex)
+OTTransaction* OTLedger::GetTransactionByIndex(int32_t nIndex) const
 {
     // Out of bounds.
     if ((nIndex < 0) || (nIndex >= GetTransactionCount())) return nullptr;

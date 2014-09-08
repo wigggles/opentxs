@@ -154,7 +154,7 @@ InterpretTransactionMsgReply(const std::string& SERVER_ID,
                              const std::string& strAttempt,
                              const std::string& strResponse);
 EXPORT OT_UTILITY_OT bool VerifyExists(const std::string& name,
-                                       const bool bFlag = true);
+                                       bool bFlag = true);
 EXPORT OT_UTILITY_OT int32_t VerifyMessageSuccess(const std::string& message);
 EXPORT OT_UTILITY_OT int32_t
 VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
@@ -184,21 +184,21 @@ public:
                           bool& bWasMsgSent);
     EXPORT OT_UTILITY_OT int32_t
     getAndProcessNymbox_4(const std::string& serverID, const std::string& nymID,
-                          bool& bWasMsgSent, const bool bForceDownload);
+                          bool& bWasMsgSent, bool bForceDownload);
     EXPORT OT_UTILITY_OT int32_t
     getAndProcessNymbox_8(const std::string& serverID, const std::string& nymID,
-                          bool& bWasMsgSent, const bool bForceDownload,
-                          const int32_t nRequestNumber, bool& bFoundNymboxItem,
-                          const bool bHarvestingForRetry,
+                          bool& bWasMsgSent, bool bForceDownload,
+                          int32_t nRequestNumber, bool& bFoundNymboxItem,
+                          bool bHarvestingForRetry,
                           const OTfourbool& bMsgFoursome);
     EXPORT OT_UTILITY_OT bool getBoxReceiptLowLevel(
         const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, const int32_t nBoxType,
-        const int64_t strTransactionNum, bool& bWasSent);
+        const std::string& accountID, int32_t nBoxType,
+        int64_t strTransactionNum, bool& bWasSent);
     EXPORT OT_UTILITY_OT bool getBoxReceiptWithErrorCorrection(
         const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, const int32_t nBoxType,
-        const int64_t strTransactionNum);
+        const std::string& accountID, int32_t nBoxType,
+        int64_t strTransactionNum);
     EXPORT OT_UTILITY_OT int32_t
     getInboxAccount(const std::string& serverID, const std::string& nymID,
                     const std::string& accountID, bool& bWasSentInbox,
@@ -206,39 +206,38 @@ public:
     EXPORT OT_UTILITY_OT int32_t
     getInboxAccount(const std::string& serverID, const std::string& nymID,
                     const std::string& accountID, bool& bWasSentInbox,
-                    bool& bWasSentAccount, const bool bForceDownload);
+                    bool& bWasSentAccount, bool bForceDownload);
     EXPORT OT_UTILITY_OT int32_t
     getInboxAccount_old(const std::string& serverID, const std::string& nymID,
                         const std::string& accountID, bool& bWasSentInbox,
-                        bool& bWasSentAccount, const bool bForceDownload);
+                        bool& bWasSentAccount, bool bForceDownload);
     EXPORT OT_UTILITY_OT int32_t
     getInboxLowLevel(const std::string& serverID, const std::string& nymID,
                      const std::string& accountID, bool& bWasSent);
     EXPORT OT_UTILITY_OT int32_t
     getInboxLowLevel(const std::string& serverID, const std::string& nymID,
-                     const std::string& accountID, bool& bWasSent,
-                     const bool bForce);
+                     const std::string& accountID, bool& bWasSent, bool bForce);
     EXPORT OT_UTILITY_OT bool getInboxOutboxAccount(
         const std::string& accountID);
     EXPORT OT_UTILITY_OT bool getInboxOutboxAccount(
-        const std::string& accountID, const bool bForceDownload);
+        const std::string& accountID, bool bForceDownload);
     EXPORT OT_UTILITY_OT bool getIntermediaryFiles(
         const std::string& serverID, const std::string& nymID,
         const std::string& accountID);
     EXPORT OT_UTILITY_OT bool getIntermediaryFiles(const std::string& serverID,
                                                    const std::string& nymID,
                                                    const std::string& accountID,
-                                                   const bool bForceDownload);
+                                                   bool bForceDownload);
     EXPORT OT_UTILITY_OT bool getIntermediaryFiles_old(
         const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, const bool bForceDownload);
+        const std::string& accountID, bool bForceDownload);
     EXPORT OT_UTILITY_OT std::string getLastReplyReceived() const;
     EXPORT OT_UTILITY_OT int32_t getNbrTransactionCount() const;
     EXPORT OT_UTILITY_OT int32_t
     getNymbox(const std::string& serverID, const std::string& nymID);
     EXPORT OT_UTILITY_OT int32_t getNymbox(const std::string& serverID,
                                            const std::string& nymID,
-                                           const bool bForceDownload);
+                                           bool bForceDownload);
     EXPORT OT_UTILITY_OT int32_t
     getNymboxLowLevel(const std::string& serverID, const std::string& nymID);
     EXPORT OT_UTILITY_OT int32_t getNymboxLowLevel(const std::string& serverID,
@@ -247,10 +246,10 @@ public:
     EXPORT OT_UTILITY_OT int32_t
     getOutboxLowLevel(const std::string& serverID, const std::string& nymID,
                       const std::string& accountID, bool& bWasSent);
-    EXPORT OT_UTILITY_OT int32_t
-    getOutboxLowLevel(const std::string& serverID, const std::string& nymID,
-                      const std::string& accountID, bool& bWasSent,
-                      const bool bForce);
+    EXPORT OT_UTILITY_OT int32_t getOutboxLowLevel(const std::string& serverID,
+                                                   const std::string& nymID,
+                                                   const std::string& accountID,
+                                                   bool& bWasSent, bool bForce);
     EXPORT OT_UTILITY_OT int32_t
     getRequestNumber(const std::string& serverID, const std::string& nymID);
     EXPORT OT_UTILITY_OT int32_t getRequestNumber(const std::string& serverID,
@@ -260,17 +259,17 @@ public:
                                                     const std::string& nymID);
     EXPORT OT_UTILITY_OT bool getTransactionNumbers(const std::string& serverID,
                                                     const std::string& nymID,
-                                                    const bool bForceFirstCall);
+                                                    bool bForceFirstCall);
     EXPORT OT_UTILITY_OT int32_t
     getTransactionNumLowLevel(const std::string& serverID,
                               const std::string& nymID, bool& bWasSent);
     EXPORT OT_UTILITY_OT bool insureHaveAllBoxReceipts(
         const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, const int32_t nBoxType);
+        const std::string& accountID, int32_t nBoxType);
     EXPORT OT_UTILITY_OT bool insureHaveAllBoxReceipts(
         const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, const int32_t nBoxType,
-        const int32_t nRequestSeeking, bool& bFoundIt);
+        const std::string& accountID, int32_t nBoxType, int32_t nRequestSeeking,
+        bool& bFoundIt);
     EXPORT OT_UTILITY_OT void longDelay() const;
     EXPORT OT_UTILITY_OT int32_t
     processNymbox(const std::string& serverID, const std::string& nymID,
@@ -279,11 +278,11 @@ public:
                   int32_t& nTransSuccessOut);
     EXPORT OT_UTILITY_OT std::string ReceiveReplyLowLevel(
         const std::string& serverID17, const std::string& nymID,
-        const int32_t nRequestNumber8, const std::string& IN_FUNCTION);
+        int32_t nRequestNumber8, const std::string& IN_FUNCTION);
     EXPORT OT_UTILITY_OT int32_t
     receiveReplySuccessLowLevel(const std::string& serverID18,
                                 const std::string& nymID,
-                                const int32_t nRequestNumber7,
+                                int32_t nRequestNumber7,
                                 const std::string& IN_FUNCTION);
     EXPORT OT_UTILITY_OT int32_t
     sendProcessNymboxLowLevel(const std::string& serverID,

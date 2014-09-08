@@ -213,11 +213,11 @@ bool OTSubcredential::SetPublicContents(const OTString::Map& mapPublic)
 
 // virtual
 bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
-                                         OTPassword*) // if not nullptr,
-                                                      // it means to
-                                                      // use this
-                                                      // password by
-                                                      // default.)
+                                         const OTPassword*) // if not nullptr,
+                                                            // it means to
+                                                            // use this
+                                                            // password by
+                                                            // default.)
 {
     m_mapPrivateInfo = mapPrivate;
     return true;
@@ -751,7 +751,7 @@ bool OTSubcredential::VerifyContract()
 }
 
 // Overriding from OTContract.
-void OTSubcredential::CalculateContractID(OTIdentifier& newID)
+void OTSubcredential::CalculateContractID(OTIdentifier& newID) const
 {
     if (!newID.CalculateDigest(GetPubCredential()))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";

@@ -371,7 +371,7 @@ public: // DESTRUCTION
     bool LoadPrivateKey(const OTString& strFoldername,
                         const OTString& strFilename,
                         const OTString* pstrReason = nullptr,
-                        OTPassword* pImportPassword = nullptr);
+                        const OTPassword* pImportPassword = nullptr);
     bool LoadPublicKey(const OTString& strFoldername,
                        const OTString& strFilename);
 
@@ -385,27 +385,29 @@ public: // DESTRUCTION
     virtual bool LoadPrivateKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
         const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr) = 0; // Used when importing an
+        const OTPassword* pImportPassword = nullptr) = 0; // Used when importing
+                                                          // an
     // exported Nym into a wallet.
     // Load Public Key from Cert (file or string)
     //
     virtual bool LoadPublicKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
         const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr) = 0; // DOES handle bookends, AND
-                                                    // escapes.
+        const OTPassword* pImportPassword = nullptr) = 0; // DOES handle
+                                                          // bookends, AND
+                                                          // escapes.
     bool LoadPublicKeyFromCertFile(const OTString& strFoldername,
                                    const OTString& strFilename,
                                    const OTString* pstrReason = nullptr,
-                                   OTPassword* pImportPassword =
+                                   const OTPassword* pImportPassword =
                                        nullptr); // DOES handle bookends.
-    virtual bool SaveCertToString(OTString& strOutput,
-                                  const OTString* pstrReason = nullptr,
-                                  OTPassword* pImportPassword = nullptr) = 0;
+    virtual bool SaveCertToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) = 0;
     virtual bool SavePrivateKeyToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr) = 0;
-    virtual bool ReEncryptPrivateKey(OTPassword& theExportPassword,
+        const OTPassword* pImportPassword = nullptr) = 0;
+    virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) = 0;
     // PUBLIC KEY
 

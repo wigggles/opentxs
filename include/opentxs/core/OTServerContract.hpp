@@ -154,7 +154,7 @@ public:
     EXPORT OTServerContract(OTString& name, OTString& foldername,
                             OTString& filename, OTString& strID);
     EXPORT virtual ~OTServerContract();
-    EXPORT bool GetConnectInfo(OTString& strHostname, int32_t& nPort);
+    EXPORT bool GetConnectInfo(OTString& strHostname, int32_t& nPort) const;
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
                                           // contracts which never change after

@@ -166,7 +166,7 @@ void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetX509(X509* x509)
 
 void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
     EVP_PKEY& theKey, bool bIsPrivateKey, OTPasswordData* pPWData,
-    OTPassword* pImportPassword)
+    const OTPassword* pImportPassword)
 {
     backlink->Release();
     OTPasswordData thePWData(nullptr == pImportPassword
@@ -230,7 +230,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 }
 
 const EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(
-    OTPasswordData* pPWData)
+    const OTPasswordData* pPWData)
 {
     OT_ASSERT_MSG(nullptr != backlink->m_p_ascKey,
                   "OTAsymmetricKey_OpenSSL::GetKey: nullptr != m_p_ascKey\n");
@@ -259,7 +259,7 @@ const EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::GetKey(
 
 // Low-level / private
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiateKey(OTPasswordData* pPWData)
+    InstantiateKey(const OTPasswordData* pPWData)
 {
     if (backlink->IsPublic())
         return InstantiatePublicKey(pPWData); // this is the ONLY place,
@@ -280,7 +280,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 
 // static      // CALLER must EVP_pkey_free!
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
-    EVP_PKEY& theKey, OTPasswordData* pPWData, OTPassword* pImportPassword)
+    EVP_PKEY& theKey, const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
 {
 
     // Create a new memory buffer on the OpenSSL side
@@ -354,10 +355,13 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                 if (nullptr == pImportPassword)
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
-                        nullptr == pPWData ? &thePWData : pPWData);
+                        nullptr == pPWData
+                            ? &thePWData
+                            : const_cast<OTPasswordData*>(pPWData));
                 else
-                    pReturnKey = PEM_read_bio_PUBKEY(keyBio, nullptr, 0,
-                                                     pImportPassword);
+                    pReturnKey = PEM_read_bio_PUBKEY(
+                        keyBio, nullptr, 0,
+                        const_cast<OTPassword*>(pImportPassword));
 
                 // We don't need the BIO anymore.
                 // Free the BIO and related buffers, filters, etc. (auto with
@@ -397,8 +401,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
 //
 // static      // CALLER must EVP_pkey_free!
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    CopyPrivateKey(EVP_PKEY& theKey, OTPasswordData* pPWData,
-                   OTPassword* pImportPassword)
+    CopyPrivateKey(EVP_PKEY& theKey, const OTPasswordData* pPWData,
+                   const OTPassword* pImportPassword)
 {
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
@@ -426,7 +430,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem, &theKey, pCipher, nullptr, 0,
             OTAsymmetricKey::GetPasswordCallback(),
-            nullptr == pPWData ? &thePWDataWrite : pPWData);
+            nullptr == pPWData ? &thePWDataWrite
+                               : const_cast<OTPasswordData*>(pPWData));
     else
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem, &theKey, pCipher, nullptr, 0, 0,
@@ -489,7 +494,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                 if (nullptr == pImportPassword)
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
-                        nullptr == pPWData ? &thePWData : pPWData);
+                        nullptr == pPWData
+                            ? &thePWData
+                            : const_cast<OTPasswordData*>(pPWData));
                 else
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio, nullptr, 0,
@@ -590,7 +597,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 //
 //
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiatePublicKey(OTPasswordData* pPWData)
+    InstantiatePublicKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
     OT_ASSERT(backlink->m_p_ascKey != nullptr);
@@ -628,8 +635,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 
         if (nullptr == pPWData) pPWData = &thePWData;
 
-        pReturnKey = PEM_read_bio_PUBKEY(
-            keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+        pReturnKey = PEM_read_bio_PUBKEY(keyBio, nullptr,
+                                         OTAsymmetricKey::GetPasswordCallback(),
+                                         const_cast<OTPasswordData*>(pPWData));
 
         backlink->ReleaseKeyLowLevel(); // Release whatever loaded key I might
                                         // have already had.
@@ -651,7 +659,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 }
 
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    InstantiatePrivateKey(OTPasswordData* pPWData)
+    InstantiatePrivateKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
     OT_ASSERT(backlink->m_p_ascKey != nullptr);
@@ -698,7 +706,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         if (nullptr == pPWData) pPWData = &thePWData;
 
         pReturnKey = PEM_read_bio_PrivateKey(
-            keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+            keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
+            const_cast<OTPasswordData*>(pPWData));
 
         // Free the BIO and related buffers, filters, etc.
         backlink->ReleaseKeyLowLevel();
@@ -737,7 +746,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
 // static
 bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
     EVP_PKEY& theKey, OTASCIIArmor& ascKey, Timer& theTimer,
-    OTPasswordData* pPWData, OTPassword* pImportPassword)
+    const OTPasswordData* pPWData, const OTPassword* pImportPassword)
 {
     bool bReturnVal = false;
 
@@ -760,7 +769,8 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem, &theKey,
             EVP_des_ede3_cbc(), // todo should this algorithm be hardcoded?
-            nullptr, 0, OTAsymmetricKey::GetPasswordCallback(), pPWData);
+            nullptr, 0, OTAsymmetricKey::GetPasswordCallback(),
+            const_cast<OTPasswordData*>(pPWData));
     else
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem, &theKey,

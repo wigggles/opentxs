@@ -227,15 +227,16 @@ private:
                                 // SHOULD be found in every subcredential signed
                                 // by that master.
 
-    OTPassword* m_pImportPassword; // Not owned. Just here for convenience.
-                                   // Sometimes it will be set, so that when
-                                   // loading something up (and decrypting it)
-                                   // the password is already available, so the
-                                   // user doesn't have to type it a million
-                                   // times (such as during import.) So we use
-                                   // it when it's available. And usually
-                                   // whoever set it, will immediately set it
-                                   // back to nullptr when he's done.
+    const OTPassword* m_pImportPassword; // Not owned. Just here for
+                                         // convenience.
+    // Sometimes it will be set, so that when
+    // loading something up (and decrypting it)
+    // the password is already available, so the
+    // user doesn't have to type it a million
+    // times (such as during import.) So we use
+    // it when it's available. And usually
+    // whoever set it, will immediately set it
+    // back to nullptr when he's done.
 private:
     OTCredential();
     bool SetPublicContents(const OTString::Map& mapPublic);    // For master
@@ -267,11 +268,11 @@ private:
     // creating a new
     // subcredential.
 public:
-    EXPORT OTPassword* GetImportPassword()
+    EXPORT const OTPassword* GetImportPassword() const
     {
         return m_pImportPassword;
     }
-    EXPORT void SetImportPassword(OTPassword* pImportPassword)
+    EXPORT void SetImportPassword(const OTPassword* pImportPassword)
     {
         m_pImportPassword = pImportPassword;
     }
@@ -290,15 +291,16 @@ public:
         const OTString& strNymID, // Caller is responsible to delete, in both
                                   // CreateMaster and LoadMaster.
         const OTString& strMasterCredID, OTPasswordData* pPWData = nullptr,
-        OTPassword* pImportPassword = nullptr);
+        const OTPassword* pImportPassword = nullptr);
     EXPORT bool Load_Master(const OTString& strNymID,
                             const OTString& strMasterCredID,
                             OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(const OTString& strInput,
                                       const OTString& strNymID,
                                       const OTString& strMasterCredID,
-                                      OTPasswordData* pPWData = nullptr,
-                                      OTPassword* pImportPassword = nullptr);
+                                      const OTPasswordData* pPWData = nullptr,
+                                      const OTPassword* pImportPassword =
+                                          nullptr);
     // For subcredentials that are specifically *subkeys*. Meaning it will
     // contain 3 keypairs: signing, authentication, and encryption.
     //
@@ -316,7 +318,7 @@ public:
         OTPasswordData* pPWData =
             nullptr, // The master key will sign the subcredential.
         OTSubcredential* *ppSubcred = nullptr); // output
-    EXPORT bool ReEncryptPrivateCredentials(OTPassword& theExportPassword,
+    EXPORT bool ReEncryptPrivateCredentials(const OTPassword& theExportPassword,
                                             bool bImporting); // Like for when
                                                               // you are
                                                               // exporting a Nym
@@ -326,10 +328,11 @@ public:
     EXPORT bool LoadSubcredential(const OTString& strSubID);
     EXPORT bool LoadSubkeyFromString(const OTString& strInput,
                                      const OTString& strSubID,
-                                     OTPassword* pImportPassword = nullptr);
+                                     const OTPassword* pImportPassword =
+                                         nullptr);
     EXPORT bool LoadSubcredentialFromString(const OTString& strInput,
                                             const OTString& strSubID,
-                                            OTPassword* pImportPassword =
+                                            const OTPassword* pImportPassword =
                                                 nullptr);
     EXPORT size_t GetSubcredentialCount() const;
     EXPORT const OTSubcredential* GetSubcredential(
@@ -357,7 +360,7 @@ public:
     // bValid=false means we're saving m_mapRevoked.
     //
     EXPORT void SerializeIDs(OTString& strOutput,
-                             OTString::List& listRevokedIDs,
+                             const OTString::List& listRevokedIDs,
                              OTString::Map* pmapPubInfo = nullptr,
                              OTString::Map* pmapPriInfo = nullptr,
                              bool bShowRevoked = false,

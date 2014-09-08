@@ -342,8 +342,8 @@ public:
     // of the contract, and you have the signer, and you just want to sign it
     // and
     // calculate its new ID from the finished result.
-    EXPORT virtual bool CreateContract(OTString& strContract,
-                                       OTPseudonym& theSigner);
+    EXPORT virtual bool CreateContract(const OTString& strContract,
+                                       const OTPseudonym& theSigner);
 
     // CreateContract is great if you already know what kind of contract to
     // instantiate
@@ -357,7 +357,7 @@ public:
     EXPORT static bool SignFlatText(
         OTString& strFlatText,
         const OTString& strContractType, // "LEDGER" or "PURSE" etc.
-        OTPseudonym& theSigner, OTString& strOutput);
+        const OTPseudonym& theSigner, OTString& strOutput);
 
     bool InsertNym(const OTString& strKeyName, const OTString& strKeyValue);
 
@@ -377,22 +377,24 @@ public:
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
     // supported, but soon contracts will also support x509 certs.
-    EXPORT virtual bool VerifyContract();
+    EXPORT virtual bool VerifyContract() const;
 
     // Only overriden in OTOffer so far.
     //
-    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier); // You can
-                                                                    // get it
+    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier) const; // You
+                                                                          // can
+    // get it
     // in string or
     // binary form.
-    EXPORT virtual void GetIdentifier(OTString& theIdentifier); // The Contract
-                                                                // ID is a hash
-                                                                // of the
-                                                                // contract raw
-                                                                // file.
+    EXPORT virtual void GetIdentifier(OTString& theIdentifier)
+        const; // The Contract
+               // ID is a hash
+               // of the
+               // contract raw
+               // file.
 
-    void GetFilename(OTString& strFilename);
-    void GetFoldername(OTString& strFoldername);
+    void GetFilename(OTString& strFilename) const;
+    void GetFoldername(OTString& strFoldername) const;
 
     // assumes m_strFilename is already set. Then it reads that file into a
     // string.
@@ -461,13 +463,13 @@ public:
     // Save m_xmlUnsigned to a string that's passed in
     EXPORT virtual bool SaveContents(OTString& strContents) const;
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData = nullptr);
+                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
                                     OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(const OTAsymmetricKey& theKey,
-                            OTPasswordData* pPWData = nullptr);
+                            const OTPasswordData* pPWData = nullptr);
     bool SignContract(const OTPseudonym& theNym, OTSignature& theSignature,
-                      OTPasswordData* pPWData = nullptr);
+                      const OTPasswordData* pPWData = nullptr);
     bool SignContractAuthent(const OTPseudonym& theNym, // Uses authentication
                                                         // key instead of
                                                         // signing key.
@@ -475,12 +477,13 @@ public:
                              OTPasswordData* pPWData = nullptr);
     bool SignContract(const OTAsymmetricKey& theKey, OTSignature& theSignature,
                       const OTString& strHashType,
-                      OTPasswordData* pPWData = nullptr);
+                      const OTPasswordData* pPWData = nullptr);
 
     bool SignContract(const char* szFoldername,
-                      const char* szFilename,             // for Cert.
-                      OTSignature& theSignature,          // output
-                      OTPasswordData* pPWData = nullptr); // optional in/out
+                      const char* szFilename,    // for Cert.
+                      OTSignature& theSignature, // output
+                      const OTPasswordData* pPWData =
+                          nullptr); // optional in/out
 
     // Calculates a hash of m_strRawFile (the xml portion of the contract plus
     // the signatures)
@@ -503,17 +506,17 @@ public:
     // copies of the account file and wallet file are the only records of that
     // account ID
     // which is a giant int64_t number.
-    EXPORT virtual bool VerifyContractID();
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID);
+    EXPORT virtual bool VerifyContractID() const;
+    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     // So far not overridden anywhere (used to be OTTrade.)
-    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        OTPasswordData* pPWData = nullptr);
-    EXPORT virtual bool VerifySigAuthent(const OTPseudonym& theNym,
-                                         OTPasswordData* pPWData = nullptr);
+    EXPORT virtual bool VerifySignature(
+        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
+    EXPORT virtual bool VerifySigAuthent(
+        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
-                              OTPasswordData* pPWData = nullptr);
+                              OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const OTPseudonym& theNym,
                          const OTSignature& theSignature,
@@ -540,8 +543,8 @@ public:
     // If true, it proves that certain entities really did sign
     // it, and that the contract hasn't been tampered with since
     // it was signed.
-    const OTAsymmetricKey* GetContractPublicKey();
-    EXPORT const OTPseudonym* GetContractPublicNym();
+    const OTAsymmetricKey* GetContractPublicKey() const;
+    EXPORT const OTPseudonym* GetContractPublicNym() const;
 };
 
 } // namespace opentxs

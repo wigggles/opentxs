@@ -198,7 +198,7 @@ class OTKeypair
 
 public:
     EXPORT bool MakeNewKeypair(int32_t nBits = 1024);
-    EXPORT bool ReEncrypt(OTPassword& theExportPassword, bool bImporting,
+    EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           OTString& strOutput); // Used when importing/exporting
                                                 // a Nym to/from the wallet.
     EXPORT bool HasPublicKey();
@@ -208,20 +208,19 @@ public:
     EXPORT bool CalculateID(OTIdentifier& theOutput) const;
     EXPORT bool SaveCertToString(OTString& strOutput,
                                  const OTString* pstrReason = nullptr,
-                                 OTPassword* pImportPassword = nullptr);
+                                 const OTPassword* pImportPassword = nullptr);
     EXPORT bool SavePrivateKeyToString(OTString& strOutput,
                                        const OTString* pstrReason = nullptr,
-                                       OTPassword* pImportPassword = nullptr);
-    EXPORT bool SaveCertAndPrivateKeyToString(OTString& strOutput,
-                                              const OTString* pstrReason =
-                                                  nullptr,
-                                              OTPassword* pImportPassword =
-                                                  nullptr);
+                                       const OTPassword* pImportPassword =
+                                           nullptr);
+    EXPORT bool SaveCertAndPrivateKeyToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     // Load from local storage.
     EXPORT bool LoadPrivateKey(const OTString& strFoldername,
                                const OTString& strFilename,
                                const OTString* pstrReason = nullptr,
-                               OTPassword* pImportPassword = nullptr);
+                               const OTPassword* pImportPassword = nullptr);
     EXPORT bool LoadPublicKey(const OTString& strFoldername,
                               const OTString& strFilename);
     // LoadPrivateKeyFromCertString
@@ -233,36 +232,35 @@ public:
                                              bool bEscaped = true,
                                              const OTString* pstrReason =
                                                  nullptr,
-                                             OTPassword* pImportPassword =
+                                             const OTPassword* pImportPassword =
                                                  nullptr);
     // Load Public Key from Cert (file or string)
     //
     EXPORT bool LoadPublicKeyFromCertString(
         const OTString& strCert, bool bEscaped = true,
         const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr); // DOES handle bookends,
-                                                // AND escapes.
+        const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
+                                                      // AND escapes.
     EXPORT bool LoadPublicKeyFromCertFile(const OTString& strFoldername,
                                           const OTString& strFilename,
                                           const OTString* pstrReason = nullptr,
-                                          OTPassword* pImportPassword =
+                                          const OTPassword* pImportPassword =
                                               nullptr); // DOES handle bookends.
-    EXPORT bool LoadCertAndPrivateKeyFromString(const OTString& strInput,
-                                                const OTString* pstrReason =
-                                                    nullptr,
-                                                OTPassword* pImportPassword =
-                                                    nullptr);
+    EXPORT bool LoadCertAndPrivateKeyFromString(
+        const OTString& strInput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     // LOAD BOTH KEYS FROM CERT FILE
     //
     EXPORT bool LoadBothKeysFromCertFile(const OTString& strFoldername,
                                          const OTString& strFilename,
                                          const OTString* pstrReason = nullptr,
-                                         OTPassword* pImportPassword = nullptr);
+                                         const OTPassword* pImportPassword =
+                                             nullptr);
 
     EXPORT bool SaveAndReloadBothKeysFromTempFile(
         OTString* pstrOutputCert = nullptr,
         const OTString* pstrReason = nullptr,
-        OTPassword* pImportPassword = nullptr);
+        const OTPassword* pImportPassword = nullptr);
     // PUBLIC KEY
 
     // * Get the public key in ASCII-armored format                 --
@@ -305,7 +303,7 @@ public:
     // Only works if a private key is present.
     //
     EXPORT bool SignContract(OTContract& theContract,
-                             OTPasswordData* pPWData = nullptr);
+                             const OTPasswordData* pPWData = nullptr);
     EXPORT void SetMetadata(const OTSignatureMetadata& theMetadata);
     EXPORT int32_t GetPublicKeyBySignature(
         listOfAsymmetricKeys& listOutput, // inclusive means, return keys when

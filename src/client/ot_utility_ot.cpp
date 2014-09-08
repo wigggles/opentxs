@@ -147,7 +147,7 @@ OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr)
 }
 
 OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
-                                const bool bDisplayError)
+                                bool bDisplayError)
 {
     if (OT_ME::FindVariable2(theObjectNameAsStr) == nullptr) {
         if (bDisplayError) {
@@ -602,7 +602,7 @@ Utility::getNymbox(const string& serverID, const string& nymID)
 
 OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
                                          const string& nymID,
-                                         const bool bForceDownload)
+                                         bool bForceDownload)
 {
     string strLocation = "Utility::getNymbox";
 
@@ -865,10 +865,9 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
 
 OT_UTILITY_OT int32_t
 Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
-                               bool& bWasMsgSent, const bool bForceDownload,
-                               const int32_t nRequestNumber,
-                               bool& bFoundNymboxItem,
-                               const bool bHarvestingForRetry,
+                               bool& bWasMsgSent, bool bForceDownload,
+                               int32_t nRequestNumber, bool& bFoundNymboxItem,
+                               bool bHarvestingForRetry,
                                const OTfourbool& bMsgFoursome)
 {
     string strLocation = "Utility::getAndProcessNymbox";
@@ -1522,7 +1521,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 //
 OT_UTILITY_OT int32_t
 Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
-                               bool& bWasMsgSent, const bool bForceDownload)
+                               bool& bWasMsgSent, bool bForceDownload)
 {
     string strLocation = "Utility::getAndProcessNymbox_4";
 
@@ -1737,7 +1736,7 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
 OT_UTILITY_OT int32_t
 Utility::receiveReplySuccessLowLevel(const string& serverID18,
                                      const string& nymID,
-                                     const int32_t nRequestNumber7,
+                                     int32_t nRequestNumber7,
                                      const string& IN_FUNCTION)
 {
     string strReply = ReceiveReplyLowLevel(
@@ -1762,10 +1761,10 @@ Utility::receiveReplySuccessLowLevel(const string& serverID18,
 // "success=true" or "success=false" message, the caller will have to figure
 // that out for himself.)
 //
-OT_UTILITY_OT string
-Utility::ReceiveReplyLowLevel(const string& serverID17, const string& nymID,
-                              const int32_t nRequestNumber8,
-                              const string& IN_FUNCTION)
+OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& serverID17,
+                                                   const string& nymID,
+                                                   int32_t nRequestNumber8,
+                                                   const string& IN_FUNCTION)
 {
     delay();
     setLastReplyReceived("");
@@ -1878,7 +1877,7 @@ Utility::getRequestNumber(const string& serverID, const string& nymID,
 // called by getBoxReceiptWithErrorCorrection   DONE
 OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     const string& serverID, const string& nymID, const string& accountID,
-    const int32_t nBoxType, const int64_t strTransactionNum,
+    int32_t nBoxType, int64_t strTransactionNum,
     bool& bWasSent) // bWasSent is OTBool
 {
     string strLocation = "Utility::getBoxReceiptLowLevel";
@@ -1959,8 +1958,7 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
 // called by insureHaveAllBoxReceipts     DONE
 OT_UTILITY_OT bool Utility::getBoxReceiptWithErrorCorrection(
     const string& serverID, const string& nymID, const string& accountID,
-    const int32_t nBoxType,
-    const int64_t strTransactionNum) // nBoxType is int32_t
+    int32_t nBoxType, int64_t strTransactionNum) // nBoxType is int32_t
 {
     string strLocation = "Utility::getBoxReceiptWithErrorCorrection";
 
@@ -2006,7 +2004,7 @@ OT_UTILITY_OT bool Utility::getBoxReceiptWithErrorCorrection(
 //
 OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
     const string& serverID, const string& nymID, const string& accountID,
-    const int32_t nBoxType) // nBoxType is int32_t
+    int32_t nBoxType) // nBoxType is int32_t
 {
     bool bFoundIt = false;
     int32_t nRequestSeeking = 0;
@@ -2016,7 +2014,7 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 
 OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
     const string& serverID, const string& nymID, const string& accountID,
-    const int32_t nBoxType, const int32_t nRequestSeeking, bool& bFoundIt)
+    int32_t nBoxType, int32_t nRequestSeeking, bool& bFoundIt)
 {
     string strLocation = "Utility::insureHaveAllBoxReceipts";
 
@@ -2357,14 +2355,14 @@ static void getBoxReceipt(  const string SERVER_ID,
 const string USER_ID,
 const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
-const int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
+int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);
 
 static bool DoesBoxReceiptExist(const string SERVER_ID,
 const string USER_ID,
 const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
-const int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
+int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);
 */
 // If the transaction number requests fail, this function will try to resync
@@ -2492,7 +2490,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(const string& serverID,
 
 OT_UTILITY_OT bool Utility::getTransactionNumbers(
     const string& serverID, const string& nymID,
-    const bool bForceFirstCall) // boolean bForceFirstCall defaults to true.
+    bool bForceFirstCall) // boolean bForceFirstCall defaults to true.
 {
     string strLocation = "Utility::getTransactionNumbers";
 
@@ -2837,7 +2835,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(const string& serverID,
 // DEPRECATED
 OT_UTILITY_OT bool Utility::getIntermediaryFiles_old(
     const string& serverID, const string& nymID, const string& accountID,
-    const bool bForceDownload) // booleanbForceDownload = false;
+    bool bForceDownload) // booleanbForceDownload = false;
 {
     string strLocation = "Utility::getIntermediaryFiles_old";
 
@@ -2989,7 +2987,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles_old(
 // uses getAccountFiles instead of getAccount, getInbox, and getOutbox.
 OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     const string& serverID, const string& nymID, const string& accountID,
-    const bool bForceDownload) // booleanbForceDownload = false;
+    bool bForceDownload) // booleanbForceDownload = false;
 {
     string strLocation = "Utility::getIntermediaryFiles";
 
@@ -3236,7 +3234,7 @@ OT_UTILITY_OT bool Utility::getInboxOutboxAccount(const string& accountID)
 
 OT_UTILITY_OT bool Utility::getInboxOutboxAccount(
     const string& accountID,
-    const bool bForceDownload) // booleanbForceDownload = false;
+    bool bForceDownload) // booleanbForceDownload = false;
 {
     string strLocation = "Utility::getInboxOutboxAccount";
 
@@ -3297,7 +3295,7 @@ OT_UTILITY_OT int32_t
 Utility::getInboxAccount_old(const string& serverID, const string& nymID,
                              const string& accountID, bool& bWasSentInbox,
                              bool& bWasSentAccount,
-                             const bool bForceDownload) // bForceDownload=false
+                             bool bForceDownload) // bForceDownload=false
 {
     string strLocation = "Utility::getInboxAccount_old";
 
@@ -3432,7 +3430,7 @@ Utility::getInboxLowLevel(const string& serverID, const string& nymID,
 OT_UTILITY_OT int32_t
 Utility::getInboxLowLevel(const string& serverID, const string& nymID,
                           const string& accountID, bool& bWasSent,
-                          const bool bForce) // bForce defaults to FALSE
+                          bool bForce) // bForce defaults to FALSE
 {
     string strLocation = "Utility::getInboxLowLevel";
 
@@ -3585,7 +3583,7 @@ Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
 OT_UTILITY_OT int32_t
 Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
                            const string& accountID, bool& bWasSent,
-                           const bool bForce) // bForce defaults to FALSE
+                           bool bForce) // bForce defaults to FALSE
 {
     bWasSent = false;
 

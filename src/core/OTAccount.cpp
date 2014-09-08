@@ -222,7 +222,7 @@ char const* OTAccount::_GetTypeString(AccountType accountType)
 }
 
 // Caller responsible to delete.
-OTLedger* OTAccount::LoadInbox(OTPseudonym& nym)
+OTLedger* OTAccount::LoadInbox(OTPseudonym& nym) const
 {
     auto* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
@@ -239,7 +239,7 @@ OTLedger* OTAccount::LoadInbox(OTPseudonym& nym)
 }
 
 // Caller responsible to delete.
-OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym)
+OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym) const
 {
     auto* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());

@@ -370,11 +370,11 @@ public:
     EXPORT const char* GetDisplayString() const;
     EXPORT bool isUsingOldSystem() const;
     EXPORT void setUsingOldSystem(bool bUsing = true);
-    OTPassword* GetMasterPW()
+    OTPassword* GetMasterPW() const
     {
         return m_pMasterPW;
     }
-    std::shared_ptr<OTCachedKey> GetCachedKey()
+    std::shared_ptr<OTCachedKey> GetCachedKey() const
     {
         return m_pCachedKey;
     }
