@@ -30,7 +30,7 @@ cp -r deps/irrxml opentxs/include/
 cp scripts/tests/ot_test.opentxs opentxs/tests/
 cp scripts/ot/*.ot opentxs/tests/
 
-version=`cat VERSION`
+version=`cat build/VERSION`
 compiler=${CXX}
 package="opentxs-${version}-${os}-${compiler}.tar.gz"
 
@@ -39,4 +39,4 @@ tar -vpczf ${package} opentxs
 
 mkdir s3
 cp ${package} s3/
-cp VERSION s3/
+cp build/VERSION s3/
