@@ -300,7 +300,7 @@ add_subdirectory(wrappers)
 
 
 if(NOT WIN32)
-	configure_file("opentxs.pc.in" "opentxs.pc" @ONLY)
+	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
 	include(GNUInstallDirs)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
 		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
@@ -345,7 +345,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Uninstal
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake"
     IMMEDIATE @ONLY)
 
