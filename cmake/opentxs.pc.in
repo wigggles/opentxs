@@ -4,11 +4,7 @@ libdir=${exec_prefix}/@LIB_INSTALL_DIR@
 includedir=${prefix}/include
 
 Name: @CMAKE_PROJECT_NAME@
-Description: Open-Transactions (OT) is an easy-to-use financial crypto, digital cash and transaction library.
-OT includes a C++ class library, a client API (available in many languages as link libraries), a CLI interface
-to a script framework and a server. Users can issue and transact a large variety of digital assets: financial
-instruments, markets, basket currencies, unforgeable account balances, cheques, vouchers, untraceable digital
-cash, Ricardian contracts, smart contracts (with scriptable clauses), and more.
+Description: @CPACK_PACKAGE_DESCRIPTION@
 Version: @VERSION@
 
 Libs: -L${libdir} -llibopentxs-client -llibopentxs-core -llibopentxs-ext
