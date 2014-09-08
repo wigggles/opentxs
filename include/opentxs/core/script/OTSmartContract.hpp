@@ -201,6 +201,14 @@ private:
     // contain the
     time64_t m_tNextProcessDate; // date that it WILL be, in a week. (Or zero.)
 
+    // For moving money from one nym's account to another.
+    // it is also nearly identically copied in OTPaymentPlan.
+    bool MoveFunds(const mapOfNyms& map_NymsAlreadyLoaded,
+                   const int64_t& lAmount, const OTIdentifier& SOURCE_ACCT_ID,
+                   const OTIdentifier& SENDER_USER_ID,
+                   const OTIdentifier& RECIPIENT_ACCT_ID,
+                   const OTIdentifier& RECIPIENT_USER_ID);
+
 protected:
     virtual void onActivate(); // called by OTCronItem::HookActivationOnCron().
 
