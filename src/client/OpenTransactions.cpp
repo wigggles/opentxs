@@ -1764,8 +1764,7 @@ bool OT_API::Wallet_ChangePassphrase() const
             if (nullptr != m_plist_nyms) {
                 while (!m_plist_nyms->empty()) // Here's the cleanup.
                 {
-                    std::list<OTPseudonym*>::iterator it =
-                        m_plist_nyms->begin();
+                    auto it = m_plist_nyms->begin();
                     OTPseudonym* pNym = *it;
                     OT_ASSERT(nullptr != pNym);
 
@@ -2890,8 +2889,8 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
 
     OTPasswordData thePWDataLoad(strReasonToLoad.Get());
     OTPasswordData thePWDataSave(strReasonToSave.Get());
-    OTString::Map::iterator it_credlist = theMap.find("credlist");
-    OTString::Map::iterator it_credentials = theMap.find("credentials");
+    auto it_credlist = theMap.find("credlist");
+    auto it_credentials = theMap.find("credentials");
     bool bHasCredentials = false;
     // found "credlist"
     //

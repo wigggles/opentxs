@@ -180,7 +180,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // servers) that happen to have the same request number. So we verify
     // that here, before removing any old ones with the same number and IDs.
     //
-    mapOfMessages::iterator it = messagesMap_.begin();
+    auto it = messagesMap_.begin();
 
     for (; it != messagesMap_.end(); ++it) {
 
@@ -313,7 +313,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
                                               const OTString& strServerID,
                                               const OTString& strNymID)
 {
-    mapOfMessages::iterator it = messagesMap_.begin();
+    auto it = messagesMap_.begin();
 
     for (; it != messagesMap_.end(); ++it) {
 
@@ -397,7 +397,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
 {
     //  const char * szFuncName        = "OTMessageOutbuffer::Clear";
 
-    mapOfMessages::iterator it = messagesMap_.begin();
+    auto it = messagesMap_.begin();
 
     while (it != messagesMap_.end()) {
 
@@ -582,7 +582,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                   // message.
             }     // if pNym !nullptr
 
-            mapOfMessages::iterator temp_it = it;
+            auto temp_it = it;
             ++temp_it;
             messagesMap_.erase(it);
             it = temp_it; // here's where the iterator gets incremented (during
@@ -699,7 +699,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
     strFile.Format("%lld.msg", lRequestNum);
 
-    mapOfMessages::iterator it = messagesMap_.begin();
+    auto it = messagesMap_.begin();
 
     bool bReturnValue = false;
 
@@ -728,7 +728,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
             delete pMsg;
             pMsg = nullptr;
 
-            mapOfMessages::iterator temp_it = it;
+            auto temp_it = it;
             ++temp_it;
             messagesMap_.erase(it);
             it = temp_it; // here's where it gets incremented. (During the

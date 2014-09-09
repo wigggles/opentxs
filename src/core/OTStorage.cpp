@@ -872,11 +872,11 @@ Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
     // method for
     // the appropriate object type.
 
-    mapOfFunctions::iterator ii = details::pFunctionMap->find(theKey);
+    auto it = details::pFunctionMap->find(theKey);
 
-    if (details::pFunctionMap->end() == ii) return nullptr;
+    if (details::pFunctionMap->end() == it) return nullptr;
 
-    InstantiateFunc* pFunc = ii->second;
+    InstantiateFunc* pFunc = it->second;
 
     if (nullptr != pFunc) {
         pStorable = (*pFunc)(); // Now we instantiate the object...
@@ -1526,10 +1526,9 @@ void BufferPB::SetData(const uint8_t* pData, size_t theSize)
 
 #define OT_IMPLEMENT_PB_LIST_PACK(pb_name, element_type)                       \
     __pb_obj.clear_##pb_name();                                                \
-    for (std::deque<PointerTo##element_type>::iterator ii =                    \
-             list_##element_type##s.begin();                                   \
-         ii != list_##element_type##s.end(); ++ii) {                           \
-        PointerTo##element_type thePtr = (*ii);                                \
+    for (auto it = list_##element_type##s.begin();                             \
+         it != list_##element_type##s.end(); ++it) {                           \
+        PointerTo##element_type thePtr = (*it);                                \
         element_type##PB* pObject =                                            \
             dynamic_cast<element_type##PB*>(thePtr.pointer());                 \
         OT_ASSERT(nullptr != pObject);                                         \
@@ -1593,11 +1592,10 @@ void StringMapPB::hookBeforePack()
     // Loop through all the key/value pairs in the map, and add them to
     // __pb_obj.node.
     //
-    for (std::map<std::string, std::string>::iterator ii = the_map.begin();
-         ii != the_map.end(); ++ii) {
+    for (auto it = the_map.begin(); it != the_map.end(); ++it) {
         KeyValue_InternalPB* pNode = __pb_obj.add_node();
-        pNode->set_key(ii->first);
-        pNode->set_value(ii->second);
+        pNode->set_key(it->first);
+        pNode->set_value(it->second);
     }
 }
 

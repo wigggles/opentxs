@@ -646,8 +646,7 @@ bool OTAssetContract::ForEachAccountRecord(
                 if (nullptr !=
                     pLoadedAccounts) // there are some accounts already loaded,
                 { // let's see if the one we're looking for is there...
-                    mapOfAccounts::iterator found_it =
-                        pLoadedAccounts->find(str_acct_id);
+                    auto found_it = pLoadedAccounts->find(str_acct_id);
 
                     if (pLoadedAccounts->end() != found_it) // FOUND IT.
                     {

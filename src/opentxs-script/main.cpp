@@ -153,8 +153,10 @@
 
 #include <anyoption/anyoption.hpp>
 
-#include <memory>
+#ifndef WIN32
 #include <iterator>
+#include <memory>
+#endif
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"

@@ -1891,14 +1891,14 @@ OTBylaw* OTScriptable::GetBylaw(const std::string str_bylaw_name)
         return nullptr;
     }
 
-    mapOfBylaws::iterator iii = m_mapBylaws.find(str_bylaw_name);
+    auto it = m_mapBylaws.find(str_bylaw_name);
 
-    if (m_mapBylaws.end() == iii) // Did NOT find it.
+    if (m_mapBylaws.end() == it) // Did NOT find it.
     {
         return nullptr;
     }
 
-    OTBylaw* pBylaw = iii->second;
+    OTBylaw* pBylaw = it->second;
     OT_ASSERT(nullptr != pBylaw);
 
     return pBylaw;
@@ -1912,7 +1912,7 @@ OTParty* OTScriptable::GetParty(const std::string str_party_name)
         return nullptr;
     }
 
-    mapOfParties::iterator it = m_mapParties.find(str_party_name);
+    auto it = m_mapParties.find(str_party_name);
 
     if (m_mapParties.end() == it) // Did NOT find it.
     {
@@ -2062,7 +2062,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
     // If NOT found, then we failed. (For trying to confirm a non-existent
     // party.)
     //
-    mapOfParties::iterator it_delete = m_mapParties.find(str_party_name);
+    auto it_delete = m_mapParties.find(str_party_name);
 
     if (it_delete != m_mapParties.end()) // It was already there. (Good.)
     {
@@ -3034,8 +3034,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             // kind of harsh validation for both, then
                             // create a clause object and add to my list here.
 
-                            OTString::Map::iterator it =
-                                temp_MapAttributes.find("name");
+                            auto it = temp_MapAttributes.find("name");
 
                             if ((it != temp_MapAttributes.end())) // We expected
                                                                   // this much.

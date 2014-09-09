@@ -921,8 +921,7 @@ bool OTPseudonym::AddNewSubkey(
 {
     const OTString strMasterCredID(idMasterCredential);
 
-    mapOfCredentials::iterator it =
-        m_mapCredentials.find(strMasterCredID.Get());
+    auto it = m_mapCredentials.find(strMasterCredID.Get());
 
     if (it == m_mapCredentials.end()) // Didn't find it.
     {
@@ -1010,8 +1009,7 @@ bool OTPseudonym::AddNewSubcredential(
 {
     const OTString strMasterCredID(idMasterCredential);
 
-    mapOfCredentials::iterator it =
-        m_mapCredentials.find(strMasterCredID.Get());
+    auto it = m_mapCredentials.find(strMasterCredID.Get());
 
     if (it == m_mapCredentials.end()) // Didn't find it.
     {
@@ -1742,7 +1740,7 @@ bool OTPseudonym::SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
 {
     bool bSuccess = false;
 
-    mapOfIdentifiers::iterator find_it = the_map.find(str_id);
+    auto find_it = the_map.find(str_id);
 
     if (the_map.end() != find_it) // found something for that str_id
     {
@@ -2291,10 +2289,9 @@ bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
             dequeOfTransNums* pDeque = (it.second);
             OT_ASSERT(nullptr != pDeque);
 
-            dequeOfTransNums::iterator iiii =
-                std::find(pDeque->begin(), pDeque->end(), lTransNum);
+            auto iter = std::find(pDeque->begin(), pDeque->end(), lTransNum);
 
-            if (iiii == pDeque->end()) // Only add it if it's not already there.
+            if (iter == pDeque->end()) // Only add it if it's not already there.
                                        // No duplicates!
                 pDeque->push_front(lTransNum);
 
@@ -3594,7 +3591,7 @@ bool OTPseudonym::VerifyPseudonym() const
         // (So that's what I'm doing.)
         //
         if (!m_pkeypair->HasPublicKey()) {
-            mapOfCredentials::const_iterator it = m_mapCredentials.begin();
+            auto it = m_mapCredentials.begin();
             OT_ASSERT(m_mapCredentials.end() != it);
             OTCredential* pCredential = it->second;
             OT_ASSERT(nullptr != pCredential);
@@ -3805,7 +3802,7 @@ bool OTPseudonym::LoadPublicKey()
     //
     if (LoadCredentials() && (GetMasterCredentialCount() > 0)) // New style!
     {
-        //        mapOfCredentials::iterator it = m_mapCredentials.begin();
+        //        auto it = m_mapCredentials.begin();
         //        OT_ASSERT(m_mapCredentials.end() != it);
         //        OTCredential * pCredential = it->second;
         //        OT_ASSERT(nullptr != pCredential);
@@ -4807,7 +4804,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
 
 OTCredential* OTPseudonym::GetMasterCredential(const OTString& strID)
 {
-    mapOfCredentials::iterator iter = m_mapCredentials.find(strID.Get());
+    auto iter = m_mapCredentials.find(strID.Get());
     OTCredential* pCredential = nullptr;
 
     if (iter != m_mapCredentials.end()) // found it
@@ -4818,7 +4815,7 @@ OTCredential* OTPseudonym::GetMasterCredential(const OTString& strID)
 
 OTCredential* OTPseudonym::GetRevokedCredential(const OTString& strID)
 {
-    mapOfCredentials::iterator iter = m_mapRevoked.find(strID.Get());
+    auto iter = m_mapRevoked.find(strID.Get());
     OTCredential* pCredential = nullptr;
 
     if (iter != m_mapRevoked.end()) // found it
@@ -4873,8 +4870,7 @@ const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex)
 const OTSubcredential* OTPseudonym::GetSubcredential(
     const OTString& strMasterID, const OTString& strSubCredID) const
 {
-    mapOfCredentials::const_iterator iter =
-        m_mapCredentials.find(strMasterID.Get());
+    auto iter = m_mapCredentials.find(strMasterID.Get());
     const OTCredential* pMaster = nullptr;
 
     if (iter != m_mapCredentials.end()) // found it
@@ -4897,8 +4893,7 @@ const OTSubcredential* OTPseudonym::GetSubcredential(
 const OTSubcredential* OTPseudonym::GetRevokedSubcred(
     const OTString& strRevokedID, const OTString& strSubCredID) const
 {
-    mapOfCredentials::const_iterator iter =
-        m_mapRevoked.find(strRevokedID.Get());
+    auto iter = m_mapRevoked.find(strRevokedID.Get());
     const OTCredential* pMaster = nullptr;
 
     if (iter != m_mapRevoked.end()) // found it
@@ -5118,8 +5113,7 @@ bool OTPseudonym::LoadFromString(
                     pCredential = OTCredential::LoadMaster(strNymID, strID);
                 else // In this case, it potentially is on the map...
                 {
-                    OTString::Map::iterator it_cred =
-                        pMapCredentials->find(strID.Get());
+                    auto it_cred = pMapCredentials->find(strID.Get());
 
                     if (it_cred ==
                         pMapCredentials->end()) // Nope, didn't find it on the
@@ -5159,8 +5153,7 @@ bool OTPseudonym::LoadFromString(
                 {
                     mapOfCredentials* pMap =
                         bValid ? &m_mapCredentials : &m_mapRevoked;
-                    mapOfCredentials::iterator iter =
-                        pMap->find(strID.Get()); // todo optimize.
+                    auto iter = pMap->find(strID.Get()); // todo optimize.
                     if (iter == pMap->end()) // It's not already there, so it's
                                              // safe to add it.
                         pMap->insert(std::pair<std::string, OTCredential*>(
@@ -5217,8 +5210,7 @@ bool OTPseudonym::LoadFromString(
                         bLoaded = pCredential->LoadSubkey(strID);
                     else // In this case, it potentially is on the map...
                     {
-                        OTString::Map::iterator it_cred =
-                            pMapCredentials->find(strID.Get());
+                        auto it_cred = pMapCredentials->find(strID.Get());
 
                         if (it_cred ==
                             pMapCredentials->end()) // Nope, didn't find it on
@@ -5295,8 +5287,7 @@ bool OTPseudonym::LoadFromString(
                         bLoaded = pCredential->LoadSubcredential(strID);
                     else // In this case, it potentially is on the map...
                     {
-                        OTString::Map::iterator it_cred =
-                            pMapCredentials->find(strID.Get());
+                        auto it_cred = pMapCredentials->find(strID.Get());
 
                         if (it_cred ==
                             pMapCredentials->end()) // Nope, didn't find it on
@@ -6151,7 +6142,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
         (GetMasterCredentialCount() > 0)) // New style!
     {
         //      return true;
-        mapOfCredentials::iterator it = m_mapCredentials.begin();
+        auto it = m_mapCredentials.begin();
         OT_ASSERT(m_mapCredentials.end() != it);
         OTCredential* pCredential = it->second;
         OT_ASSERT(nullptr != pCredential);

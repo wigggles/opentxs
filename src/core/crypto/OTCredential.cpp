@@ -852,7 +852,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
 {
     // Make sure it's not already there.
     //
-    mapOfSubcredentials::iterator it = m_mapSubcredentials.find(strSubID.Get());
+    auto it = m_mapSubcredentials.find(strSubID.Get());
     if (it != m_mapSubcredentials.end()) // It was already there. (Reload it.)
     {
         otErr << __FUNCTION__ << ": Warning: Deleting and re-loading "
@@ -940,7 +940,7 @@ bool OTCredential::LoadSubcredentialFromString(
 {
     // Make sure it's not already there.
     //
-    mapOfSubcredentials::iterator it = m_mapSubcredentials.find(strSubID.Get());
+    auto it = m_mapSubcredentials.find(strSubID.Get());
     if (it != m_mapSubcredentials.end()) // It was already there. (Reload it.)
     {
         otErr << __FUNCTION__ << ": Warning: Deleting and re-loading "
@@ -1307,8 +1307,8 @@ const OTSubcredential* OTCredential::GetSubcredential(
         // See if pSub, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
-            OTString::List::const_iterator iter = std::find(
-                plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
+            auto iter = std::find(plistRevokedIDs->begin(),
+                                  plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked credential.
         }
@@ -1379,8 +1379,8 @@ const OTKeypair& OTCredential::GetAuthKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
-            OTString::List::const_iterator iter = std::find(
-                plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
+            auto iter = std::find(plistRevokedIDs->begin(),
+                                  plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
         }
@@ -1416,8 +1416,8 @@ const OTKeypair& OTCredential::GetEncrKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
-            OTString::List::const_iterator iter = std::find(
-                plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
+            auto iter = std::find(plistRevokedIDs->begin(),
+                                  plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
         }
@@ -1453,8 +1453,8 @@ const OTKeypair& OTCredential::GetSignKeypair(
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
-            OTString::List::const_iterator iter = std::find(
-                plistRevokedIDs->begin(), plistRevokedIDs->end(), str_cred_id);
+            auto iter = std::find(plistRevokedIDs->begin(),
+                                  plistRevokedIDs->end(), str_cred_id);
             if (iter != plistRevokedIDs->end()) // It was on the revoked list.
                 continue;                       // Skip this revoked key.
         }
@@ -1581,8 +1581,8 @@ void OTCredential::SerializeIDs(OTString& strOutput,
         // subcredential IDs.
         // If so, we'll skip serializing it here.
         //
-        OTString::List::const_iterator iter = std::find(
-            listRevokedIDs.begin(), listRevokedIDs.end(), str_cred_id);
+        auto iter = std::find(listRevokedIDs.begin(), listRevokedIDs.end(),
+                              str_cred_id);
 
         // Was it on the 'revoked' list?
         // If not, then the subcredential isn't revoked, so it's still valid.

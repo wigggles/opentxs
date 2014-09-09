@@ -623,15 +623,15 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
 OTOffer* OTMarket::GetOffer(const int64_t& lTransactionNum)
 {
     // See if there's something there with that transaction number.
-    mapOfOffersTrnsNum::iterator ii = m_mapOffers.find(lTransactionNum);
+    auto it = m_mapOffers.find(lTransactionNum);
 
-    if (ii == m_mapOffers.end()) {
+    if (it == m_mapOffers.end()) {
         // nothing found.
         return nullptr;
     }
     // Found it!
     else {
-        OTOffer* pOffer = ii->second;
+        OTOffer* pOffer = it->second;
 
         OT_ASSERT((nullptr != pOffer));
 
@@ -652,24 +652,24 @@ bool OTMarket::RemoveOffer(const int64_t& lTransactionNum) // if false, offer
     bool bReturnValue = false;
 
     // See if there's something there with that transaction number.
-    mapOfOffersTrnsNum::iterator ii = m_mapOffers.find(lTransactionNum);
+    auto it = m_mapOffers.find(lTransactionNum);
 
     // If it's not already on the list, then there's nothing to remove.
-    if (ii == m_mapOffers.end()) {
+    if (it == m_mapOffers.end()) {
         otErr << "Attempt to remove non-existent Offer from Market. "
                  "Transaction #: " << lTransactionNum << "\n";
         return false;
     }
     // Otherwise, if it WAS already there, remove it properly.
     else {
-        OTOffer* pOffer = ii->second;
+        OTOffer* pOffer = it->second;
 
         OT_ASSERT(nullptr != pOffer);
 
         // This removes it from one list (the one indexed by transaction
         // number.)
         // But it's still on one of the other lists...
-        m_mapOffers.erase(ii);
+        m_mapOffers.erase(it);
 
         // The code operates the same whether ask or bid. Just use a pointer.
         mapOfOffers* pMap = (pOffer->IsBid() ? &m_mapBids : &m_mapAsks);
@@ -757,10 +757,10 @@ bool OTMarket::AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile,
         // See if there's something else already there with the same transaction
         // number.
         //
-        mapOfOffersTrnsNum::iterator ii = m_mapOffers.find(lTransactionNum);
+        auto it = m_mapOffers.find(lTransactionNum);
 
         // If it's not already on the list, then add it...
-        if (ii == m_mapOffers.end()) {
+        if (it == m_mapOffers.end()) {
             m_mapOffers[lTransactionNum] = &theOffer;
             otLog4 << "Offer added as an offer to the market...\n";
         }
@@ -935,10 +935,10 @@ int64_t OTMarket::GetLowestAskPrice()
 {
     int64_t lPrice = 0;
 
-    mapOfOffers::iterator ii = m_mapAsks.begin();
+    auto it = m_mapAsks.begin();
 
-    if (ii != m_mapAsks.end()) {
-        lPrice = ii->first;
+    if (it != m_mapAsks.end()) {
+        lPrice = it->first;
 
         // Market orders have a 0 price, so we need to skip any if they are
         // here.
@@ -949,11 +949,11 @@ int64_t OTMarket::GetLowestAskPrice()
         // actual prices, so we need to skip any that have a 0 price.
         //
         while (0 == lPrice) {
-            ++ii;
+            ++it;
 
-            if (ii == m_mapAsks.end()) break;
+            if (it == m_mapAsks.end()) break;
 
-            lPrice = ii->first;
+            lPrice = it->first;
         }
     }
 

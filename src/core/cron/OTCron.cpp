@@ -840,7 +840,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
                                                      // wasn't found.
 {
     // See if there's a cron item with that transaction number.
-    mapOfCronItems::iterator it_map = FindItemOnMap(lTransactionNum);
+    auto it_map = FindItemOnMap(lTransactionNum);
 
     // If it's not already on the list, then there's nothing to remove.
     if (m_mapCronItems.end() == it_map) {
@@ -855,8 +855,7 @@ bool OTCron::RemoveCronItem(int64_t lTransactionNum,
         //      OT_ASSERT(nullptr != pItem); // Already done in FindItemOnMap.
 
         // We have to remove it from the multimap as well.
-        multimapOfCronItems::iterator it_multimap =
-            FindItemOnMultimap(lTransactionNum);
+        auto it_multimap = FindItemOnMultimap(lTransactionNum);
         OT_ASSERT(m_multimapCronItems.end() !=
                   it_multimap); // If found on map, MUST be on multimap also.
 
@@ -887,7 +886,7 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
     // See if there's something there with lTransactionNum
     // as its "official" number.
     //
-    mapOfCronItems::iterator itt = m_mapCronItems.find(lTransactionNum);
+    auto itt = m_mapCronItems.find(lTransactionNum);
 
     if (itt != m_mapCronItems.end()) // Found it!
     {
@@ -913,7 +912,7 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(int64_t lTransactionNum)
 multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
     int64_t lTransactionNum)
 {
-    multimapOfCronItems::iterator itt = m_multimapCronItems.begin();
+    auto itt = m_multimapCronItems.begin();
 
     while (m_multimapCronItems.end() != itt) {
         OTCronItem* pItem = itt->second;
@@ -940,7 +939,7 @@ OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
     // See if there's something there with lTransactionNum
     // as its "official" number.
     //
-    mapOfCronItems::iterator itt = m_mapCronItems.find(lTransactionNum);
+    auto itt = m_mapCronItems.find(lTransactionNum);
 
     if (itt != m_mapCronItems.end()) // Found it!
     {
@@ -968,7 +967,7 @@ OTCronItem* OTCron::GetItemByOfficialNum(int64_t lTransactionNum)
 OTCronItem* OTCron::GetItemByValidOpeningNum(int64_t lOpeningNum)
 {
     // See if there's something there with that transaction number.
-    mapOfCronItems::iterator itt = m_mapCronItems.find(lOpeningNum);
+    auto itt = m_mapCronItems.find(lOpeningNum);
 
     if (itt == m_mapCronItems.end()) {
         // We didn't find it as the "official" number, so let's loop
@@ -1015,10 +1014,10 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
     // See if there's something else already there with the same market ID.
-    mapOfMarkets::iterator ii = m_mapMarkets.find(std_MARKET_ID);
+    auto it = m_mapMarkets.find(std_MARKET_ID);
 
     // If it's not already on the list, then add it...
-    if (ii == m_mapMarkets.end()) {
+    if (it == m_mapMarkets.end()) {
         // If I've been instructed to save the market, and Cron did NOT
         // successfully save the market
         //  (to its own file), then return false.  This will happen if
@@ -1113,15 +1112,15 @@ OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
     // See if there's something there with that transaction number.
-    mapOfMarkets::iterator ii = m_mapMarkets.find(std_MARKET_ID);
+    auto it = m_mapMarkets.find(std_MARKET_ID);
 
-    if (ii == m_mapMarkets.end()) {
+    if (it == m_mapMarkets.end()) {
         // nothing found.
         return nullptr;
     }
     // Found it!
     else {
-        OTMarket* pMarket = ii->second;
+        OTMarket* pMarket = it->second;
 
         OT_ASSERT((nullptr != pMarket));
 
@@ -1197,8 +1196,8 @@ void OTCron::Release_Cron()
     // If there were any dynamically allocated objects, clean them up here.
 
     while (!m_multimapCronItems.empty()) {
-        multimapOfCronItems::iterator ii = m_multimapCronItems.begin();
-        m_multimapCronItems.erase(ii);
+        auto it = m_multimapCronItems.begin();
+        m_multimapCronItems.erase(it);
 
         // We don't delete the pItem in here, since these are the
         // same pItems being deleted in the next block.
@@ -1206,16 +1205,16 @@ void OTCron::Release_Cron()
 
     while (!m_mapCronItems.empty()) {
         OTCronItem* pItem = m_mapCronItems.begin()->second;
-        mapOfCronItems::iterator ii = m_mapCronItems.begin();
-        m_mapCronItems.erase(ii);
+        auto it = m_mapCronItems.begin();
+        m_mapCronItems.erase(it);
         delete pItem;
         pItem = nullptr;
     }
 
     while (!m_mapMarkets.empty()) {
         OTMarket* pMarket = m_mapMarkets.begin()->second;
-        mapOfMarkets::iterator ii = m_mapMarkets.begin();
-        m_mapMarkets.erase(ii);
+        auto it = m_mapMarkets.begin();
+        m_mapMarkets.erase(it);
         delete pMarket;
         pMarket = nullptr;
     }

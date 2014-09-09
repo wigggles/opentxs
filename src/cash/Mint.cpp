@@ -616,13 +616,13 @@ int64_t Mint::GetDenomination(int32_t nIndex)
 
     int32_t nIterateIndex = 0;
 
-    for (mapOfArmor::iterator ii = m_mapPublic.begin(); ii != m_mapPublic.end();
-         ++ii, nIterateIndex++) {
-        OTASCIIArmor* pArmor = ii->second;
+    for (auto it = m_mapPublic.begin(); it != m_mapPublic.end();
+         ++it, nIterateIndex++) {
+        OTASCIIArmor* pArmor = it->second;
         OT_ASSERT_MSG(nullptr != pArmor,
                       "nullptr mint pointer in Mint::GetDenomination.\n");
 
-        if (nIndex == nIterateIndex) return ii->first;
+        if (nIndex == nIterateIndex) return it->first;
     }
 
     return 0;

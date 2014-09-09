@@ -623,8 +623,7 @@ bool OTRecordList::PerformAutoAccept()
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
                                                     // found anything.)
-                                map_of_strings::iterator it_asset =
-                                    m_assets.find(str_inpmt_asset);
+                                auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
                                                                 // asset types
@@ -862,11 +861,10 @@ bool OTRecordList::PerformAutoAccept()
             // list definitely contains a copy of the string that won't be
             // deleted.)
             //
-            list_of_strings::iterator it_nym =
-                std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
-            list_of_strings::iterator it_server =
+            auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
+            auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_server_id);
-            map_of_strings::iterator it_asset = m_assets.find(str_asset_id);
+            auto it_asset = m_assets.find(str_asset_id);
             if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
                 (m_assets.end() == it_asset)) {
                 otOut << __FUNCTION__ << ": Skipping an account ("
@@ -1130,8 +1128,7 @@ bool OTRecordList::Populate()
             if (theOutPayment.GetAssetTypeID(theAssetTypeID)) {
                 OTString strTemp(theAssetTypeID);
                 str_outpmt_asset = strTemp.Get();
-                map_of_strings::iterator it_asset =
-                    m_assets.find(str_outpmt_asset);
+                auto it_asset = m_assets.find(str_outpmt_asset);
                 if (it_asset != m_assets.end()) // Found it on the map of asset
                                                 // types we care about.
                 {
@@ -1174,8 +1171,8 @@ bool OTRecordList::Populate()
             { // (In Outpayments, the SENDER's account is MY acct.)
                 OTString strTemp(theAccountID);
                 str_outpmt_account = strTemp.Get();
-                list_of_strings::iterator it_acct = std::find(
-                    m_accounts.begin(), m_accounts.end(), str_outpmt_account);
+                auto it_acct = std::find(m_accounts.begin(), m_accounts.end(),
+                                         str_outpmt_account);
                 if (it_acct != m_accounts.end()) // Found it on the list of
                                                  // accounts we care about.
                 {
@@ -1221,8 +1218,8 @@ bool OTRecordList::Populate()
             // it.)
             // Also, let's do the same for asset types.
             //
-            list_of_strings::iterator it_server = std::find(
-                m_servers.begin(), m_servers.end(), str_outpmt_server);
+            auto it_server = std::find(m_servers.begin(), m_servers.end(),
+                                       str_outpmt_server);
 
             if (it_server != m_servers.end()) // Found the serverID on the list
                                               // of servers we care about.
@@ -1336,7 +1333,7 @@ bool OTRecordList::Populate()
             // Let's see if that server is on m_servers (otherwise we can skip
             // it.)
             //
-            list_of_strings::iterator it_server =
+            auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_mail_server);
 
             if (it_server != m_servers.end()) // Found the serverID on the list
@@ -1433,7 +1430,7 @@ bool OTRecordList::Populate()
             // Let's see if that server is on m_servers (otherwise we can skip
             // it.)
             //
-            list_of_strings::iterator it_server =
+            auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_mail_server);
 
             if (it_server != m_servers.end()) // Found the serverID on the list
@@ -1662,8 +1659,7 @@ bool OTRecordList::Populate()
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
                                                     // found anything.)
-                                map_of_strings::iterator it_asset =
-                                    m_assets.find(str_inpmt_asset);
+                                auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
                                                                 // asset types
@@ -2021,10 +2017,9 @@ bool OTRecordList::Populate()
                                                        // on the payment (only
                                                        // applies to outgoing
                                                        // payments.)
-                                    list_of_strings::iterator it_acct =
-                                        std::find(m_accounts.begin(),
-                                                  m_accounts.end(),
-                                                  str_outpmt_account);
+                                    auto it_acct = std::find(
+                                        m_accounts.begin(), m_accounts.end(),
+                                        str_outpmt_account);
                                     if (it_acct !=
                                         m_accounts.end()) // Found it on the
                                                           // list of accounts we
@@ -2095,8 +2090,7 @@ bool OTRecordList::Populate()
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
                                                     // found anything.)
-                                map_of_strings::iterator it_asset =
-                                    m_assets.find(str_inpmt_asset);
+                                auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
                                                                 // asset types
@@ -2452,10 +2446,9 @@ bool OTRecordList::Populate()
                                                        // on the payment (only
                                                        // applies to outgoing
                                                        // payments.)
-                                    list_of_strings::iterator it_acct =
-                                        std::find(m_accounts.begin(),
-                                                  m_accounts.end(),
-                                                  str_outpmt_account);
+                                    auto it_acct = std::find(
+                                        m_accounts.begin(), m_accounts.end(),
+                                        str_outpmt_account);
                                     if (it_acct !=
                                         m_accounts.end()) // Found it on the
                                                           // list of accounts we
@@ -2527,8 +2520,7 @@ bool OTRecordList::Populate()
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
                                                     // found anything.)
-                                map_of_strings::iterator it_asset =
-                                    m_assets.find(str_inpmt_asset);
+                                auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
                                                                 // asset types
@@ -2685,11 +2677,10 @@ bool OTRecordList::Populate()
         // "care about"
         // list definitely contains a copy of the string that won't be deleted.)
         //
-        list_of_strings::iterator it_nym =
-            std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
-        list_of_strings::iterator it_server =
+        auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
+        auto it_server =
             std::find(m_servers.begin(), m_servers.end(), str_server_id);
-        map_of_strings::iterator it_asset = m_assets.find(str_asset_id);
+        auto it_asset = m_assets.find(str_asset_id);
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
             (m_assets.end() == it_asset)) {
             otOut << __FUNCTION__ << ": Skipping an account ("

@@ -1535,7 +1535,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id)
 {
     if (str_id.empty()) return std::shared_ptr<OTSymmetricKey>();
 
-    mapOfSymmetricKeys::iterator it = m_mapExtraKeys.find(str_id);
+    auto it = m_mapExtraKeys.find(str_id);
 
     if (it != m_mapExtraKeys.end()) // It's already there (can't add it.)
     {
@@ -1552,7 +1552,7 @@ bool OTWallet::addExtraKey(const std::string& str_id,
 {
     if (str_id.empty() || !pKey) return false;
 
-    mapOfSymmetricKeys::iterator it = m_mapExtraKeys.find(str_id);
+    auto it = m_mapExtraKeys.find(str_id);
 
     if (it != m_mapExtraKeys.end()) // It's already there (can't add it.)
         return false;

@@ -422,8 +422,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 OTClause* pClause = it.second;
                 OT_ASSERT(nullptr != pClause);
 
-                mapOfClauses::iterator it_rhs =
-                    theHookClauses2.find(str_clause_name);
+                auto it_rhs = theHookClauses2.find(str_clause_name);
 
                 if (theHookClauses2.end() == it_rhs) {
                     otOut << "OTBylaw::Compare: Unable to find hook clause ("
@@ -515,7 +514,7 @@ bool OTBylaw::AddCallback(const std::string str_CallbackName,
 {
     // Make sure it's not already there...
     //
-    mapOfCallbacks::iterator it = m_mapCallbacks.find(str_CallbackName);
+    auto it = m_mapCallbacks.find(str_CallbackName);
 
     if (m_mapCallbacks.end() != it) // It's already there. (Can't add it twice.)
     {
@@ -589,7 +588,7 @@ OTVariable* OTBylaw::GetVariable(const std::string str_var_name) // not a
         return nullptr;
     }
 
-    mapOfVariables::iterator it = m_mapVariables.find(str_var_name);
+    auto it = m_mapVariables.find(str_var_name);
 
     if (m_mapVariables.end() == it) return nullptr;
 
@@ -629,7 +628,7 @@ OTClause* OTBylaw::GetClause(const std::string str_clause_name)
         return nullptr;
     }
 
-    mapOfClauses::iterator it = m_mapClauses.find(str_clause_name);
+    auto it = m_mapClauses.find(str_clause_name);
 
     if (m_mapClauses.end() == it) return nullptr;
 
@@ -769,11 +768,11 @@ bool OTBylaw::AddVariable(OTVariable& theVariable)
 
     // todo security: validate the name.
     //
-    mapOfVariables::iterator ii = m_mapVariables.find(str_name);
+    auto it = m_mapVariables.find(str_name);
 
     // Make sure it's not already there...
     //
-    if (m_mapVariables.end() == ii) // If it wasn't already there...
+    if (m_mapVariables.end() == it) // If it wasn't already there...
     {
 
         // Then insert it...
@@ -895,9 +894,9 @@ bool OTBylaw::AddClause(OTClause& theClause)
     }
     // Todo: any other validation on the name. security.
 
-    mapOfClauses::iterator ii = m_mapClauses.find(str_clause_name);
+    auto it = m_mapClauses.find(str_clause_name);
 
-    if (m_mapClauses.end() == ii) // If it wasn't already there...
+    if (m_mapClauses.end() == it) // If it wasn't already there...
     {
 
         // Then insert it...

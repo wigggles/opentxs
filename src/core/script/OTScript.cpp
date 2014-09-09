@@ -389,7 +389,7 @@ void OTScript::AddVariable(const std::string str_var_name, OTVariable& theVar)
 
 OTVariable* OTScript::FindVariable(const std::string str_var_name)
 {
-    mapOfVariables::iterator it_var = m_mapVariables.find(str_var_name);
+    auto it_var = m_mapVariables.find(str_var_name);
     return it_var != m_mapVariables.end() ? it_var->second : nullptr;
 }
 
@@ -403,7 +403,7 @@ OTVariable* OTScript::FindVariable(const std::string str_var_name)
 void OTScript::RemoveVariable(OTVariable& theVar)
 {
     const std::string str_var_name = theVar.GetName().Get();
-    mapOfVariables::iterator it_var = m_mapVariables.find(str_var_name);
+    auto it_var = m_mapVariables.find(str_var_name);
 
     if (it_var != m_mapVariables.end()) {
         m_mapVariables.erase(it_var); // no need to delete the variable pointer
