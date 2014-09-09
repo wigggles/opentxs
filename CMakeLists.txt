@@ -311,12 +311,6 @@ add_subdirectory(wrappers)
 
 
 #-----------------------------------------------------------------------------
-# Create the VERSION-file
-
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/VERSION" "${VERSION_STRING}")
-
-
-#-----------------------------------------------------------------------------
 # Produce a pkg-config file
 
 

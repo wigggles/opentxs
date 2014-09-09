@@ -30,13 +30,12 @@ cp -r deps/irrxml opentxs/include/
 cp scripts/tests/ot_test.opentxs opentxs/tests/
 cp scripts/ot/*.ot opentxs/tests/
 
-version=`cat build/VERSION`
+version=$(git describe)
 compiler=${CXX}
-package="opentxs-${version}-${os}-${compiler}.tar.gz"
+package="opentxs-${version%%-*}-${os}-${compiler}.tar.gz"
 
 echo "Creating package ${package}"
 tar -vpczf ${package} opentxs
 
 mkdir s3
 cp ${package} s3/
-cp build/VERSION s3/
