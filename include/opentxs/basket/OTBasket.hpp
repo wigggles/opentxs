@@ -192,7 +192,7 @@ class OTBasket : public OTContract
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
 
-    void CreateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
+    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 
 protected:
     int32_t m_nSubCount;

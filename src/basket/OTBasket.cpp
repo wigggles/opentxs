@@ -405,11 +405,11 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // contents
 void OTBasket::UpdateContents()
 {
-    CreateContents(m_xmlUnsigned, m_bHideAccountID);
+    GenerateContents(m_xmlUnsigned, m_bHideAccountID);
 }
 
-void OTBasket::CreateContents(OTStringXML& xmlUnsigned,
-                              bool bHideAccountID) const
+void OTBasket::GenerateContents(OTStringXML& xmlUnsigned,
+                                bool bHideAccountID) const
 {
     // I release this because I'm about to repopulate it.
     xmlUnsigned.Release();
@@ -475,7 +475,7 @@ void OTBasket::CalculateContractID(OTIdentifier& newID) const
     // from server to server.)
     // do this on a copy since we don't want to modify this basket
     OTStringXML xmlUnsigned;
-    CreateContents(xmlUnsigned, true);
+    GenerateContents(xmlUnsigned, true);
 
     newID.CalculateDigest(xmlUnsigned);
 }
