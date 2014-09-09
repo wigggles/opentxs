@@ -468,7 +468,7 @@ public:
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
                                      const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
-                                    OTPasswordData* pPWData = nullptr);
+                                    const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(const OTAsymmetricKey& theKey,
                             const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTPseudonym& theNym,
@@ -479,7 +479,7 @@ public:
                                                                // key instead of
                                                                // signing key.
                                     OTSignature& theSignature,
-                                    OTPasswordData* pPWData = nullptr);
+                                    const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTAsymmetricKey& theKey,
                              OTSignature& theSignature,
                              const OTString& strHashType,

@@ -505,7 +505,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 // Signs using authentication key instead of signing key.
 //
 bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData)
+                                     const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(nullptr != pSig, "OTContract::SignContractAuthent: Error "
@@ -539,7 +539,7 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 // Uses authentication key instead of signing key.
 bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                                      OTSignature& theSignature,
-                                     OTPasswordData* pPWData)
+                                     const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateAuthKey(), theSignature,
                         m_strSigHashType, pPWData);
