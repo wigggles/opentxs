@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: @CMAKE_PROJECT_NAME@
 Description: @CPACK_PACKAGE_DESCRIPTION@
-Version: @VERSION@
+Version: @VERSION_STRING@
 
 Libs: -L${libdir} -lopentxs-client -lopentxs-core -lopentxs-ext
 Libs.private: @PRIVATE_LIBS@
