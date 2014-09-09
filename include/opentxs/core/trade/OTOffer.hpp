@@ -296,9 +296,8 @@ public:
         if (m_lMinimumIncrement < 1) m_lMinimumIncrement = 1;
         return m_lMinimumIncrement;
     }
-    inline const int64_t& GetScale()
+    inline const int64_t& GetScale() const
     {
-        if (m_lScale < 1) m_lScale = 1;
         return m_lScale;
     }
 
@@ -350,7 +349,7 @@ public:
     EXPORT virtual ~OTOffer();
 
     // Overridden from OTContract.
-    virtual void GetIdentifier(OTIdentifier& theIdentifier);
+    virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
 
     void InitOffer();
 
@@ -363,7 +362,7 @@ public:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

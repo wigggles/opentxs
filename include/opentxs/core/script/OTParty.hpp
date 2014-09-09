@@ -228,8 +228,8 @@ public:
     // with bad addresses.
     //
     void ClearTemporaryPointers();
-    bool SignContract(OTContract& theInput); // The party will use its
-                                             // authorizing agent.
+    bool SignContract(OTContract& theInput) const; // The party will use its
+                                                   // authorizing agent.
     // See if a certain transaction number is present.
     // Checks opening number on party, and closing numbers on his accounts.
     bool HasTransactionNum(const int64_t& lInput) const;
@@ -348,8 +348,8 @@ public:
     {
         return static_cast<int32_t>(m_mapAgents.size());
     }
-    EXPORT OTAgent* GetAgent(const std::string& str_agent_name);
-    EXPORT OTAgent* GetAgentByIndex(int32_t nIndex);
+    EXPORT OTAgent* GetAgent(const std::string& str_agent_name) const;
+    EXPORT OTAgent* GetAgentByIndex(int32_t nIndex) const;
     const std::string& GetAuthorizingAgentName() const
     {
         return m_str_authorizing_agent;

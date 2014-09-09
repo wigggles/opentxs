@@ -626,11 +626,16 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
+bool OTSubcredential::SaveContractWallet(std::ofstream&) const
+{
+    return false;
+}
+
 // VERIFICATION
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
 //
-bool OTSubcredential::VerifyNymID()
+bool OTSubcredential::VerifyNymID() const
 {
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.

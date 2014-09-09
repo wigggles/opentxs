@@ -242,7 +242,7 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 
 bool OTKeypair::SaveCertToString(OTString& strOutput,
                                  const OTString* pstrReason,
-                                 const OTPassword* pImportPassword)
+                                 const OTPassword* pImportPassword) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -260,7 +260,7 @@ bool OTKeypair::SaveCertToString(OTString& strOutput,
 
 bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
                                        const OTString* pstrReason,
-                                       const OTPassword* pImportPassword)
+                                       const OTPassword* pImportPassword) const
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 

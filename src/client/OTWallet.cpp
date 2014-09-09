@@ -777,8 +777,7 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
     }
 }
 
-bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym,
-                                  const OTAccount& theAcct,
+bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
                                   const OTIdentifier& SERVER_ID,
                                   const OTString& strAcctID,
                                   const char* szFuncName)

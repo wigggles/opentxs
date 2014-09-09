@@ -889,7 +889,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const OTPseudonym& theNym) const;
+    virtual bool VerifyAccount(const OTPseudonym& theNym);
 
     // The parameters to the constructor are supposed to be the ACTUAL account
     // ID and server ID.
@@ -940,7 +940,7 @@ public:
     EXPORT void SetReferenceString(const OTString& theStr);
 
     //    virtual bool SaveContractWallet(FILE * fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

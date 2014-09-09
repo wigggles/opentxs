@@ -213,12 +213,12 @@ public:
                                                       // AND
                                                       // escapes.
 
-    virtual bool SaveCertToString(OTString& strOutput,
-                                  const OTString* pstrReason = nullptr,
-                                  const OTPassword* pImportPassword = nullptr);
+    virtual bool SaveCertToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const;
     virtual bool SavePrivateKeyToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
+        const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool LoadPublicKeyFromPGPKey(
         const OTASCIIArmor& strKey); // does NOT handle bookends.

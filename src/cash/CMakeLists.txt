@@ -31,7 +31,7 @@ include_directories(SYSTEM
 set(MODULE_NAME opentxs-cash)
 if(WIN32)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
     @ONLY
   )

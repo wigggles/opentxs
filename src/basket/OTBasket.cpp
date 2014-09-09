@@ -401,15 +401,22 @@ int32_t OTBasket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return 0;
 }
 
-void OTBasket::UpdateContents() // Before transmission or serialization, this is
-                                // where the basket updates its contents
+// Before transmission or serialization, this is where the basket updates its
+// contents
+void OTBasket::UpdateContents()
+{
+    GenerateContents(m_xmlUnsigned, m_bHideAccountID);
+}
+
+void OTBasket::GenerateContents(OTStringXML& xmlUnsigned,
+                                bool bHideAccountID) const
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n"
-                              " minimumTransfer=\"%lld\" >\n\n",
-                              m_nSubCount, m_lMinimumTransfer);
+    xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n"
+                            " minimumTransfer=\"%lld\" >\n\n",
+                            m_nSubCount, m_lMinimumTransfer);
 
     // Only uesd in Request Basket (requesting an exchange in/out.)
     // (Versus a basket object used for ISSUING a basket currency, this is
@@ -417,14 +424,14 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
     //
     if (IsExchanging()) {
         OTString strRequestAcctID(m_RequestAccountID);
-        m_xmlUnsigned.Concatenate("<requestExchange "
-                                  "transferMultiple=\"%d\"\n "
-                                  "transferAccountID=\"%s\"\n "
-                                  "closingTransactionNo=\"%lld\"\n "
-                                  "direction=\"%s\" />\n\n",
-                                  m_nTransferMultiple, strRequestAcctID.Get(),
-                                  m_lClosingTransactionNo,
-                                  m_bExchangingIn ? "in" : "out");
+        xmlUnsigned.Concatenate("<requestExchange "
+                                "transferMultiple=\"%d\"\n "
+                                "transferAccountID=\"%s\"\n "
+                                "closingTransactionNo=\"%lld\"\n "
+                                "direction=\"%s\" />\n\n",
+                                m_nTransferMultiple, strRequestAcctID.Get(),
+                                m_lClosingTransactionNo,
+                                m_bExchangingIn ? "in" : "out");
     }
 
     for (int32_t i = 0; i < Count(); i++) {
@@ -437,23 +444,23 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
             strContractID(pItem->SUB_CONTRACT_ID);
 
         if (IsExchanging())
-            m_xmlUnsigned.Concatenate(
+            xmlUnsigned.Concatenate(
                 "<basketItem minimumTransfer=\"%lld\"\n"
                 " closingTransactionNo=\"%lld\"\n"
                 " accountID=\"%s\"\n"
                 " assetID=\"%s\" />\n\n",
                 pItem->lMinimumTransferAmount, pItem->lClosingTransactionNo,
-                m_bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
+                bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
         else
-            m_xmlUnsigned.Concatenate("<basketItem minimumTransfer=\"%lld\"\n"
-                                      " accountID=\"%s\"\n"
-                                      " assetID=\"%s\" />\n\n",
-                                      pItem->lMinimumTransferAmount,
-                                      m_bHideAccountID ? "" : strAcctID.Get(),
-                                      strContractID.Get());
+            xmlUnsigned.Concatenate("<basketItem minimumTransfer=\"%lld\"\n"
+                                    " accountID=\"%s\"\n"
+                                    " assetID=\"%s\" />\n\n",
+                                    pItem->lMinimumTransferAmount,
+                                    bHideAccountID ? "" : strAcctID.Get(),
+                                    strContractID.Get());
     }
 
-    m_xmlUnsigned.Concatenate("</currencyBasket>\n");
+    xmlUnsigned.Concatenate("</currencyBasket>\n");
 }
 
 // Most contracts calculate their ID by hashing the Raw File (signatures and
@@ -462,24 +469,15 @@ void OTBasket::UpdateContents() // Before transmission or serialization, this is
 // removed.
 // This way, the basket will produce a consistent ID across multiple different
 // servers.
-void OTBasket::CalculateContractID(OTIdentifier& newID)
+void OTBasket::CalculateContractID(OTIdentifier& newID) const
 {
-    const OTString strContents(m_xmlUnsigned);
-
     // Produce a version of the file without account IDs (which are different
     // from server to server.)
-    //
-    m_bHideAccountID = true;
+    // do this on a copy since we don't want to modify this basket
+    OTStringXML xmlUnsigned;
+    GenerateContents(xmlUnsigned, true);
 
-    UpdateContents(); // <=========
-
-    newID.CalculateDigest(m_xmlUnsigned);
-
-    // Put it back the way it was.
-    m_bHideAccountID = false;
-    //    UpdateContents(); // No need to do this, we already had this string
-    // before (above).
-    m_xmlUnsigned = strContents; // Here we just set it back again.
+    newID.CalculateDigest(xmlUnsigned);
 }
 
 OTBasket::OTBasket(int32_t nCount, int64_t lMinimumTransferAmount)
@@ -534,7 +532,7 @@ void OTBasket::Release()
     ot_super::Release();
 }
 
-bool OTBasket::SaveContractWallet(std::ofstream&)
+bool OTBasket::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

@@ -146,7 +146,7 @@ class OTPseudonym;
 class OTMessage : public OTContract
 {
 protected:
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
     //    virtual bool SaveContractWallet(FILE * fl);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
@@ -161,9 +161,10 @@ public:
     virtual bool VerifyContractID() const;
 
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
-                                     OTPasswordData* pPWData = nullptr);
-    EXPORT virtual bool VerifySignature(
-        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
+                                     const OTPasswordData* pPWData = nullptr);
+    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
+                                        const OTPasswordData* pPWData = nullptr)
+        const;
 
     EXPORT bool HarvestTransactionNumbers(
         OTPseudonym& theNym,

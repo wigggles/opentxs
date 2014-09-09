@@ -134,7 +134,6 @@
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
 #include "opentxs/core/OTAssetContract.hpp"
-#include "opentxs/core/OTString.hpp"
 
 namespace opentxs
 {
@@ -145,7 +144,7 @@ class OTPseudonym;
 class BasketContract : public OTAssetContract
 {
 public:
-    BasketContract(OTBasket& basket, OTPseudonym& signer);
+    EXPORT BasketContract(OTBasket& basket, OTPseudonym& signer);
     virtual ~BasketContract();
 
     virtual void CreateContents();

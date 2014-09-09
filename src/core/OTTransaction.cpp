@@ -171,7 +171,7 @@ void OTTransaction::SetClosingNum(const int64_t lClosingNum)
 //
 // This overrides from OTTransactionType::VerifyAccount()
 //
-bool OTTransaction::VerifyAccount(OTPseudonym& theNym)
+bool OTTransaction::VerifyAccount(const OTPseudonym& theNym)
 {
     OTLedger* pParent = const_cast<OTLedger*>(m_pParent);
 
@@ -3487,7 +3487,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     return pTransaction;
 }
 
-bool OTTransaction::SaveContractWallet(std::ofstream&)
+bool OTTransaction::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

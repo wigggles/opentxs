@@ -382,7 +382,7 @@ public:
     EXPORT void Release_Payment();
 
     EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT static const char* _GetTypeString(paymentType theType);
     EXPORT const char* GetTypeString() const
     {

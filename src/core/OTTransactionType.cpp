@@ -388,7 +388,7 @@ void OTTransactionType::SetReferenceString(const OTString& theStr)
     m_ascInReferenceTo.SetString(theStr);
 }
 
-bool OTTransactionType::SaveContractWallet(std::ofstream&)
+bool OTTransactionType::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }
@@ -399,7 +399,7 @@ bool OTTransactionType::SaveContractWallet(std::ofstream&)
 // wish to verify its signature on this account, even though
 // the server may not be the actual owner.
 // So if you wish to VerifyOwner(), then call it.
-bool OTTransactionType::VerifyAccount(const OTPseudonym& theNym) const
+bool OTTransactionType::VerifyAccount(const OTPseudonym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //

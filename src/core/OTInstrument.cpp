@@ -218,7 +218,7 @@ void OTInstrument::Release()
     //    InitInstrument(); // unnecessary.
 }
 
-bool OTInstrument::SaveContractWallet(std::ofstream&)
+bool OTInstrument::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

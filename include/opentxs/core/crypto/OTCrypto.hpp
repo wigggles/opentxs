@@ -357,16 +357,16 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = nullptr) const = 0;
+                      const OTPasswordData* pPWData = nullptr) const = 0;
     // SIGN / VERIFY
     //
     // Sign or verify using the Asymmetric Key itself.
     //
-    virtual bool SignContract(
-        const OTString& strContractUnsigned, const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
-        const OTString& strHashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool SignContract(const OTString& strContractUnsigned,
+                              const OTAsymmetricKey& theKey,
+                              OTSignature& theSignature, // output
+                              const OTString& strHashType,
+                              const OTPasswordData* pPWData = nullptr) = 0;
 
     virtual bool VerifySignature(
         const OTString& strContractToVerify, const OTAsymmetricKey& theKey,
@@ -374,11 +374,11 @@ public:
         const OTPasswordData* pPWData = nullptr) const = 0;
     // Sign or verify using the contents of a Certfile.
     //
-    virtual bool SignContract(
-        const OTString& strContractUnsigned, const OTString& strSigHashType,
-        const std::string& strCertFileContents,
-        OTSignature& theSignature, // output
-        const OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool SignContract(const OTString& strContractUnsigned,
+                              const OTString& strSigHashType,
+                              const std::string& strCertFileContents,
+                              OTSignature& theSignature, // output
+                              const OTPasswordData* pPWData = nullptr) = 0;
 
     virtual bool VerifySignature(
         const OTString& strContractToVerify, const OTString& strSigHashType,
@@ -487,14 +487,14 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = nullptr) const;
+                      const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
                               const OTString& strHashType,
-                              const OTPasswordData* pPWData = nullptr) const;
+                              const OTPasswordData* pPWData = nullptr);
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTAsymmetricKey& theKey,
@@ -506,7 +506,7 @@ public:
                               const OTString& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr) const;
+                              const OTPasswordData* pPWData = nullptr);
 
     virtual bool VerifySignature(const OTString& strContractToVerify,
                                  const OTString& strSigHashType,

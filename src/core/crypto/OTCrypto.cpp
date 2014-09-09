@@ -3008,7 +3008,8 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 // RSA / AES
 
 bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                            OTString& theOutput, OTPasswordData* pPWData) const
+                            OTString& theOutput,
+                            const OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Open";
 
@@ -4775,7 +4776,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTAsymmetricKey& theKey,
                                     OTSignature& theSignature, // output
                                     const OTString& strHashType,
-                                    const OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData)
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -4925,7 +4926,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTString& strSigHashType,
                                     const std::string& strCertFileContents,
                                     OTSignature& theSignature,
-                                    const OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData)
 {
     OT_ASSERT_MSG(strContractUnsigned.Exists(), "OTCrypto_OpenSSL::"
                                                 "SignContract: ASSERT FAILURE: "

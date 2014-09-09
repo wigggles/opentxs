@@ -608,10 +608,10 @@ bool OTParty::HasActiveAgent() const
 
 /// Get Agent pointer by Name. Returns nullptr on failure.
 ///
-OTAgent* OTParty::GetAgent(const std::string& str_agent_name)
+OTAgent* OTParty::GetAgent(const std::string& str_agent_name) const
 {
     if (OTScriptable::ValidateName(str_agent_name)) {
-        mapOfAgents::iterator it = m_mapAgents.find(str_agent_name);
+        mapOfAgents::const_iterator it = m_mapAgents.find(str_agent_name);
 
         if (m_mapAgents.end() != it) // If we found something...
         {
@@ -629,7 +629,7 @@ OTAgent* OTParty::GetAgent(const std::string& str_agent_name)
 
 /// Get Agent pointer by Index. Returns nullptr on failure.
 ///
-OTAgent* OTParty::GetAgentByIndex(int32_t nIndex)
+OTAgent* OTParty::GetAgentByIndex(int32_t nIndex) const
 {
     if (false == ((nIndex >= 0) &&
                   (nIndex < static_cast<int64_t>(m_mapAgents.size())))) {
@@ -1418,7 +1418,7 @@ bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
 // Done
 // The party will use its authorizing agent.
 //
-bool OTParty::SignContract(OTContract& theInput)
+bool OTParty::SignContract(OTContract& theInput) const
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         otErr << "OTParty::" << __FUNCTION__

@@ -203,7 +203,7 @@ bool isPowerOfTen(const int64_t& x)
     // (Done.)
  }
  */
-void OTOffer::GetIdentifier(OTIdentifier& theIdentifier)
+void OTOffer::GetIdentifier(OTIdentifier& theIdentifier) const
 {
     OTString strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
@@ -214,9 +214,7 @@ void OTOffer::GetIdentifier(OTIdentifier& theIdentifier)
     strTemp.Format("ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%lld\n",
                    strAsset.Get(), strCurrency.Get(), lScale);
 
-    m_ID.CalculateDigest(strTemp);
-
-    OTContract::GetIdentifier(theIdentifier);
+    theIdentifier.CalculateDigest(strTemp);
 }
 
 bool OTOffer::IsMarketOrder() const
@@ -595,12 +593,11 @@ void OTOffer::InitOffer()
     m_lTransactionNum = 0;
     m_lTotalAssetsOffer = 0;
     m_lFinishedSoFar = 0;
-    m_lMinimumIncrement =
-        1;        // This must be 1 or greater. CANNOT be zero. Enforced.
-    m_lScale = 1; // This must be 1 or greater. CANNOT be zero. Enforced.
+    m_lMinimumIncrement = 1; // This must be 1 or greater. Enforced.
+    SetScale(1);             // This must be 1 or greater. Enforced.
 }
 
-bool OTOffer::SaveContractWallet(std::ofstream&)
+bool OTOffer::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

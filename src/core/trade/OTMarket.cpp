@@ -167,7 +167,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (!strcmp("market", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
-        m_lScale = atol(xml->getAttributeValue("marketScale"));
+        SetScale(atol(xml->getAttributeValue("marketScale")));
         m_lLastSalePrice = atol(xml->getAttributeValue("lastSalePrice"));
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
@@ -900,7 +900,7 @@ bool OTMarket::SaveMarket()
 
 // A Market's ID is based on the asset type, the currency type, and the scale.
 //
-void OTMarket::GetIdentifier(OTIdentifier& theIdentifier)
+void OTMarket::GetIdentifier(OTIdentifier& theIdentifier) const
 {
     OTString strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
@@ -911,9 +911,7 @@ void OTMarket::GetIdentifier(OTIdentifier& theIdentifier)
     strTemp.Format("ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%lld\n",
                    strAsset.Get(), strCurrency.Get(), lScale);
 
-    m_ID.CalculateDigest(strTemp);
-
-    OTContract::GetIdentifier(theIdentifier);
+    theIdentifier.CalculateDigest(strTemp);
 }
 
 // returns 0 if there are no bids. Otherwise returns the value of the highest
@@ -2829,7 +2827,7 @@ void OTMarket::Release()
     InitMarket();
 }
 
-bool OTMarket::SaveContractWallet(std::ofstream&)
+bool OTMarket::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

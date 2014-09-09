@@ -107,7 +107,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else()
     message(FATAL_ERROR "No C++11 support for Clang version. Please upgrade Clang to a version supporting C++11.")
   endif()
-  set(WARN_CXX_FLAGS "-Wno-overloaded-virtual")
 endif()
 
 if(BUILD_SHARED_LIBS)

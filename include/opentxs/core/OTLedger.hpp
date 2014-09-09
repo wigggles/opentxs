@@ -271,7 +271,7 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT virtual bool VerifyAccount(OTPseudonym& theNym);
+    EXPORT virtual bool VerifyAccount(const OTPseudonym& theNym);
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(std::set<int64_t>* psetUnloaded =
                                     nullptr); // if psetUnloaded passed in, then
@@ -369,7 +369,7 @@ public:
                                const ledgerType theType,
                                bool bCreateFile = false);
 
-    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const
     {

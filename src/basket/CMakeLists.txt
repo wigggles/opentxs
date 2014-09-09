@@ -6,7 +6,7 @@ set(cxx-sources
   OTBasketItem.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/basket/*.hpp")
+file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/basket/*.hpp")
 
 set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
@@ -23,7 +23,7 @@ include_directories(
 set(MODULE_NAME opentxs-basket)
 if(WIN32)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../windll.rc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
     @ONLY
   )

@@ -1747,7 +1747,7 @@ void OTPaymentPlan::Release()
     InitPaymentPlan();
 }
 
-bool OTPaymentPlan::SaveContractWallet(std::ofstream&)
+bool OTPaymentPlan::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

@@ -184,7 +184,7 @@ char const* OTLedger::_GetTypeString(ledgerType theType)
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //
-bool OTLedger::VerifyAccount(OTPseudonym& theNym)
+bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
 {
     switch (GetType()) {
     case OTLedger::message: // message ledgers do not load Box Receipts. (They
@@ -2475,7 +2475,7 @@ void OTLedger::Release()
                          // now...
 }
 
-bool OTLedger::SaveContractWallet(std::ofstream&)
+bool OTLedger::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

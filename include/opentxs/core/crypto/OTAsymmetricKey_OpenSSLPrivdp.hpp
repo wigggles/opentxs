@@ -200,7 +200,7 @@ private:
     EXPORT const EVP_PKEY* GetKey(const OTPasswordData* pPWData = nullptr);
 
     void SetKeyAsCopyOf(EVP_PKEY& theKey, bool bIsPrivateKey = false,
-                        OTPasswordData* pPWData = nullptr,
+                        const OTPasswordData* pPWData = nullptr,
                         const OTPassword* pImportPassword = nullptr);
     // LOW LEVEL (internal) METHODS
     //

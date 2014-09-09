@@ -331,9 +331,10 @@ public:
         // can already be derived from private. For now we pass it
         // through... May eliminate this parameter later if not
         // needed.
-        OTPasswordData* pPWData = nullptr, // Pass in the string to show users
-                                           // here, if/when asking for the
-                                           // passphrase.
+        const OTPasswordData* pPWData =
+            nullptr, // Pass in the string to show users
+                     // here, if/when asking for the
+                     // passphrase.
         bool bChangeNymID =
             false); // Must be explicitly set to true, to change the Nym's ID.
                     // Other restrictions also apply... must be your first
@@ -349,9 +350,10 @@ public:
         const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const OTString::Map* pmapPrivate =
             nullptr, // If nullptr, then the keys are generated in here.
-        OTPasswordData* pPWData = nullptr, // Pass in the string to show users
-                                           // here, if/when asking for the
-                                           // passphrase.
+        const OTPasswordData* pPWData =
+            nullptr, // Pass in the string to show users
+                     // here, if/when asking for the
+                     // passphrase.
         OTString* pstrNewID =
             nullptr); // Optional -- if success, allows to return
                       // the ID for the new subkey that was
@@ -367,9 +369,10 @@ public:
         // can already be derived from private. For now we pass it
         // through... May eliminate this parameter later if not
         // needed.
-        OTPasswordData* pPWData = nullptr); // Pass in the string to show users
-                                            // here, if/when asking for the
-                                            // passphrase.
+        const OTPasswordData* pPWData =
+            nullptr); // Pass in the string to show users
+                      // here, if/when asking for the
+                      // passphrase.
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT OTCredential* GetMasterCredential(const OTString& strID);
@@ -618,7 +621,7 @@ public:
                                           const OTPassword* pImportPassword =
                                               nullptr);
     EXPORT bool Loadx509CertAndPrivateKeyFromString(
-        const OTString& strInput, OTPasswordData* pPWData = nullptr,
+        const OTString& strInput, const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool Savex509CertAndPrivateKey(bool bCreateFile = true,
                                           const OTString* pstrReason = nullptr);

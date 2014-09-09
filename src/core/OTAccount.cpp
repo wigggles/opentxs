@@ -779,7 +779,7 @@ bool OTAccount::SaveContractWallet(OTString& contents) const
     return true;
 }
 
-bool OTAccount::SaveContractWallet(std::ofstream& ofs)
+bool OTAccount::SaveContractWallet(std::ofstream& ofs) const
 {
     OTString strOutput;
 

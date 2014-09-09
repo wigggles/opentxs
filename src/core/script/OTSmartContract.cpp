@@ -5565,7 +5565,8 @@ void OTSmartContract::UpdateContents()
 
     // *** OT SCRIPTABLE ***
     //
-    UpdateContentsToString(m_xmlUnsigned); // FYI: this is: void
+    UpdateContentsToString(m_xmlUnsigned,
+                           m_bCalculatingID); // FYI: this is: void
 
     if (!m_bCalculatingID) {
 
@@ -6094,7 +6095,7 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-bool OTSmartContract::SaveContractWallet(std::ofstream&)
+bool OTSmartContract::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

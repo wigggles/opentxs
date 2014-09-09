@@ -3870,7 +3870,8 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // their contents just before signing.
 // See OTMessage::UpdateContents near the top of this file for an example.
 //
-bool OTMessage::SignContract(const OTPseudonym& theNym, OTPasswordData* pPWData)
+bool OTMessage::SignContract(const OTPseudonym& theNym,
+                             const OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures(); // Note: this might change with credentials. We might
@@ -3895,7 +3896,7 @@ bool OTMessage::SignContract(const OTPseudonym& theNym, OTPasswordData* pPWData)
 
 // virtual (OTContract)
 bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                OTPasswordData* pPWData) const
+                                const OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -3949,7 +3950,7 @@ OTMessage::~OTMessage()
 
 // This actually saves to any file you want to pass it to.
 
-bool OTMessage::SaveContractWallet(std::ofstream& ofs)
+bool OTMessage::SaveContractWallet(std::ofstream& ofs) const
 {
     OTString strContract;
 

@@ -556,9 +556,9 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(OTPseudonym& theNym);
+    virtual bool VerifyAccount(const OTPseudonym& theNym);
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     void InitTransaction();
 

@@ -340,7 +340,7 @@ public:
     EXPORT void Release_Purse();
     EXPORT void ReleaseTokens();
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

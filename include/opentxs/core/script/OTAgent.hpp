@@ -259,15 +259,17 @@ public:
     bool ReserveOpeningTransNum(const OTString& strServerID);
     bool ReserveClosingTransNum(const OTString& strServerID,
                                 OTPartyAccount& thePartyAcct);
-    EXPORT bool SignContract(OTContract& theInput);
+    EXPORT bool SignContract(OTContract& theInput) const;
 
     // Verify that this agent somehow has legitimate agency over this account.
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const OTAccount& theAccount) const;
-    bool VerifySignature(OTContract& theContract); // Have the agent try to
-                                                   // verify his own signature
-                                                   // against any contract.
+    bool VerifySignature(const OTContract& theContract) const; // Have the agent
+                                                               // try
+                                                               // to
+    // verify his own signature
+    // against any contract.
 
     void SetParty(OTParty& theOwnerParty); // This happens when the agent is
                                            // added to the party.

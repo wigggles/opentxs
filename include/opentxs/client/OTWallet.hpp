@@ -281,7 +281,7 @@ public:
     EXPORT OTAssetContract* GetAssetContract(const OTIdentifier& theContractID);
     EXPORT OTAssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID); // wallet name for asset also accepted.
-    bool VerifyAssetAccount(const OTPseudonym& theNym, const OTAccount& theAcct,
+    bool VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
                             const OTIdentifier& SERVER_ID,
                             const OTString& strAcctID,
                             const char* szFuncName = nullptr);

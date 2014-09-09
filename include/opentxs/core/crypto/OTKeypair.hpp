@@ -208,11 +208,12 @@ public:
     EXPORT bool CalculateID(OTIdentifier& theOutput) const;
     EXPORT bool SaveCertToString(OTString& strOutput,
                                  const OTString* pstrReason = nullptr,
-                                 const OTPassword* pImportPassword = nullptr);
+                                 const OTPassword* pImportPassword =
+                                     nullptr) const;
     EXPORT bool SavePrivateKeyToString(OTString& strOutput,
                                        const OTString* pstrReason = nullptr,
                                        const OTPassword* pImportPassword =
-                                           nullptr);
+                                           nullptr) const;
     EXPORT bool SaveCertAndPrivateKeyToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
