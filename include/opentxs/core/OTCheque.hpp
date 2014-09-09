@@ -255,7 +255,7 @@ public:
                                    // is where the token saves its contents
 
     //    virtual bool SaveContractWallet(FILE * fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

@@ -179,7 +179,7 @@ public:
     EXPORT virtual void Release();
     // overriding this so I can set filename automatically inside based on ID.
     EXPORT virtual bool LoadContract();
-    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT virtual bool SaveContractWallet(OTString& contents) const;
     EXPORT virtual bool DisplayStatistics(OTString& contents) const;
 

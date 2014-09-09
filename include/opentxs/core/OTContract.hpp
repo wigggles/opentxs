@@ -378,7 +378,7 @@ public:
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
     // supported, but soon contracts will also support x509 certs.
-    EXPORT virtual bool VerifyContract() const;
+    EXPORT virtual bool VerifyContract();
 
     // Only overriden in OTOffer so far.
     //
@@ -458,7 +458,7 @@ public:
     EXPORT virtual bool SaveContents(std::ofstream& ofs) const;
 
     // Saves the entire contract to a file that's already open (like a wallet).
-    virtual bool SaveContractWallet(std::ofstream& ofs) = 0;
+    virtual bool SaveContractWallet(std::ofstream& ofs) const = 0;
     EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
 
     EXPORT virtual bool DisplayStatistics(OTString& strContents) const;

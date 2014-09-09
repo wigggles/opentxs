@@ -403,10 +403,10 @@ public: // DESTRUCTION
                                        nullptr); // DOES handle bookends.
     virtual bool SaveCertToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
+        const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool SavePrivateKeyToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
+        const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) = 0;
     // PUBLIC KEY

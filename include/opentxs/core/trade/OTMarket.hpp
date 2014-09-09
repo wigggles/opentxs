@@ -273,9 +273,8 @@ public:
         return m_SERVER_ID;
     }
 
-    inline const int64_t& GetScale()
+    inline const int64_t& GetScale() const
     {
-        if (m_lScale < 1) m_lScale = 1;
         return m_lScale;
     }
     inline void SetScale(const int64_t& lScale)
@@ -308,7 +307,7 @@ public:
     virtual ~OTMarket();
 
     // Overridden from OTContract.
-    virtual void GetIdentifier(OTIdentifier& theIdentifier);
+    virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
 
     inline void SetCronPointer(OTCron& theCron)
     {
@@ -332,7 +331,7 @@ public:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

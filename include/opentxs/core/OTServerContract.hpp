@@ -162,7 +162,7 @@ public:
                                           // same thing as UpdateContents. (But
                                           // meant for a different purpose.)
     virtual bool SaveContractWallet(OTString& strContents) const;
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
     virtual bool DisplayStatistics(OTString& strContents) const;
 };
 

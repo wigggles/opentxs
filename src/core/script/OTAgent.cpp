@@ -156,7 +156,7 @@
 namespace opentxs
 {
 
-bool OTAgent::VerifySignature(OTContract& theContract)
+bool OTAgent::VerifySignature(OTContract& theContract) const
 {
     // Only individual agents can sign for things, not groups (groups vote, they
     // don't sign.)

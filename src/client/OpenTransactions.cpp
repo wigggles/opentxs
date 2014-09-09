@@ -3550,13 +3550,13 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
  */
 bool OT_API::VerifySignature(const OTString& strContract,
                              const OTIdentifier& theSignerNymID,
-                             OTContract** ppContract) // If you use
-                                                      // this optional
-                                                      // parameter,
-                                                      // then YOU are
-                                                      // responsible
-                                                      // to clean it
-                                                      // up.
+                             OTContract** ppContract) const // If you use
+                                                            // this optional
+                                                            // parameter,
+                                                            // then YOU are
+                                                            // responsible
+                                                            // to clean it
+                                                            // up.
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
     OTPseudonym* pNym =

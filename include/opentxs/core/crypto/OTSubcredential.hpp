@@ -360,8 +360,9 @@ public:
     // that Nym's subcredentials.
     //
     virtual bool VerifyContract();
-    bool VerifyNymID(); // Verifies that m_strNymID is the same as the hash of
-                        // m_strSourceForNymID.
+    bool VerifyNymID() const; // Verifies that m_strNymID is the same as the
+                              // hash of
+                              // m_strSourceForNymID.
     virtual bool VerifySignedByMaster();
     void SetOwner(OTCredential& theOwner);
     virtual void SetMetadata()
@@ -374,10 +375,7 @@ public:
     void Release_Subcredential();
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual bool SaveContractWallet(std::ofstream&)
-    {
-        return false;
-    }
+    virtual bool SaveContractWallet(std::ofstream&) const;
 };
 
 } // namespace opentxs

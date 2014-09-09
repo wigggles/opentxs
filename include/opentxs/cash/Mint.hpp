@@ -284,7 +284,7 @@ public:
         return m_nDenominationCount;
     }
 
-    virtual bool VerifyContractID();
+    virtual bool VerifyContractID() const;
 
     EXPORT bool VerifyMint(const OTPseudonym& theOperator);
 
@@ -321,7 +321,7 @@ public:
                                     OTString& theCleartextToken,
                                     int64_t lDenomination) = 0;
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

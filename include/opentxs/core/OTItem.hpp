@@ -519,7 +519,7 @@ public:
     void InitItem();
 
     //    virtual bool SaveContractWallet(FILE * fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

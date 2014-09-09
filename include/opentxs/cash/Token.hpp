@@ -423,7 +423,7 @@ public:
     EXPORT bool GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
                                      int32_t nTokenIndex);
 
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

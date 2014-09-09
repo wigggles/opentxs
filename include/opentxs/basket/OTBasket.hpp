@@ -192,6 +192,8 @@ class OTBasket : public OTContract
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
 
+    void CreateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
+
 protected:
     int32_t m_nSubCount;
     int64_t m_lMinimumTransfer;  // used in the actual basket
@@ -218,9 +220,9 @@ public:
 
     virtual void UpdateContents();
     //    virtual bool SaveContractWallet(FILE * fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID);
+    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     inline int64_t GetMinimumTransfer() const
     {

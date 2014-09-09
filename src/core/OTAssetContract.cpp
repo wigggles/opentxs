@@ -547,7 +547,7 @@ bool OTAssetContract::SaveContractWallet(OTString& strContents) const
     return true;
 }
 
-bool OTAssetContract::SaveContractWallet(std::ofstream& ofs)
+bool OTAssetContract::SaveContractWallet(std::ofstream& ofs) const
 {
     OTString strOutput;
 

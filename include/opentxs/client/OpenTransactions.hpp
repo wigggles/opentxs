@@ -509,9 +509,9 @@ public:
     EXPORT bool VerifySignature(const OTString& strContract,
                                 const OTIdentifier& theSignerNymID,
                                 OTContract** ppContract =
-                                    nullptr); // If you use this optional
-                                              // parameter, then YOU are
-                                              // responsible to clean it up.
+                                    nullptr) const; // If you use this optional
+                                                    // parameter, then YOU are
+    // responsible to clean it up.
 
     /// Verify and Retrieve XML Contents.
     EXPORT bool VerifyAndRetrieveXMLContents(const OTString& strContract,

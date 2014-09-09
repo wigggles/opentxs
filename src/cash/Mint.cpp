@@ -532,7 +532,7 @@ bool Mint::VerifyMint(const OTPseudonym& theOperator)
 // Asset Type ID
 // from it and then verify that it matches what we were expecting from the asset
 // type.
-bool Mint::VerifyContractID()
+bool Mint::VerifyContractID() const
 {
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
@@ -966,7 +966,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     }
 }
 
-bool Mint::SaveContractWallet(std::ofstream&)
+bool Mint::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

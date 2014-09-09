@@ -418,7 +418,7 @@ OTCheque::~OTCheque()
     Release_Cheque();
 }
 
-bool OTCheque::SaveContractWallet(std::ofstream&)
+bool OTCheque::SaveContractWallet(std::ofstream&) const
 {
 
     return true;

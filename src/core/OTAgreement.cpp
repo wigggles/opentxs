@@ -1645,7 +1645,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-bool OTAgreement::SaveContractWallet(std::ofstream&)
+bool OTAgreement::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

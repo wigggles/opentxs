@@ -3487,7 +3487,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     return pTransaction;
 }
 
-bool OTTransaction::SaveContractWallet(std::ofstream&)
+bool OTTransaction::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

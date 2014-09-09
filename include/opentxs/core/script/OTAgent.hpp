@@ -265,9 +265,10 @@ public:
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const OTAccount& theAccount) const;
-    bool VerifySignature(OTContract& theContract); // Have the agent try to
-                                                   // verify his own signature
-                                                   // against any contract.
+    bool VerifySignature(OTContract& theContract) const; // Have the agent try
+                                                         // to
+    // verify his own signature
+    // against any contract.
 
     void SetParty(OTParty& theOwnerParty); // This happens when the agent is
                                            // added to the party.

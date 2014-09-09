@@ -684,7 +684,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 // virtual
 bool OTAsymmetricKey_OpenSSL::SaveCertToString(
     OTString& strOutput, const OTString* pstrReason,
-    const OTPassword* pImportPassword)
+    const OTPassword* pImportPassword) const
 {
     X509* x509 = dp->GetX509();
 
@@ -740,7 +740,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 // virtual
 bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
     OTString& strOutput, const OTString* pstrReason,
-    const OTPassword* pImportPassword)
+    const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo security (revisit this mode...)

@@ -3949,7 +3949,7 @@ OTMessage::~OTMessage()
 
 // This actually saves to any file you want to pass it to.
 
-bool OTMessage::SaveContractWallet(std::ofstream& ofs)
+bool OTMessage::SaveContractWallet(std::ofstream& ofs) const
 {
     OTString strContract;
 

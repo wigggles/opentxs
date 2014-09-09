@@ -327,7 +327,7 @@ void OTContract::GetIdentifier(OTString& theIdentifier) const
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool OTContract::VerifyContract() const
+bool OTContract::VerifyContract()
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.

@@ -441,7 +441,7 @@ public:
     virtual void Release();
     void Release_Scriptable();
     virtual void UpdateContents();
-    virtual bool SaveContractWallet(std::ofstream& ofs);
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

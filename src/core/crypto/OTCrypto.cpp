@@ -4775,7 +4775,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTAsymmetricKey& theKey,
                                     OTSignature& theSignature, // output
                                     const OTString& strHashType,
-                                    const OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData)
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -4925,7 +4925,7 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
                                     const OTString& strSigHashType,
                                     const std::string& strCertFileContents,
                                     OTSignature& theSignature,
-                                    const OTPasswordData* pPWData) const
+                                    const OTPasswordData* pPWData)
 {
     OT_ASSERT_MSG(strContractUnsigned.Exists(), "OTCrypto_OpenSSL::"
                                                 "SignContract: ASSERT FAILURE: "

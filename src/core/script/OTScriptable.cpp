@@ -2271,27 +2271,17 @@ bool OTScriptable::Compare(OTScriptable& rhs)
 // contract
 // such as an OTAssetContract.)
 //
-void OTScriptable::CalculateContractID(OTIdentifier& newID)
+void OTScriptable::CalculateContractID(OTIdentifier& newID) const
 {
-    const OTString strContents(m_xmlUnsigned);
-
     // Produce a template version of the scriptable.
-    //
-    m_bCalculatingID = true;
+    OTStringXML xmlUnsigned;
+    UpdateContentsToString(xmlUnsigned, true);
 
-    UpdateContents(); // <=========
-
-    newID.CalculateDigest(m_xmlUnsigned);
-
-    // Put it back the way it was.
-    m_bCalculatingID = false;
-
-    //    UpdateContents(); // No need to do this, we already had this string
-    // before (above).
-    m_xmlUnsigned = strContents; // Here we just set it back again.
+    newID.CalculateDigest(xmlUnsigned);
 }
 
-void OTScriptable::UpdateContentsToString(OTString& strAppend)
+void OTScriptable::UpdateContentsToString(OTString& strAppend,
+                                          bool bCalculatingID) const
 {
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
         strAppend.Concatenate("<scriptableContract\n specifyAssetID=\"%s\"\n "
@@ -2311,7 +2301,7 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend)
             // in order
             // to generate its ID.
             //
-            pParty->Serialize(strAppend, m_bCalculatingID, m_bSpecifyAssetID,
+            pParty->Serialize(strAppend, bCalculatingID, m_bSpecifyAssetID,
                               m_bSpecifyParties);
         }
 
@@ -2319,7 +2309,7 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend)
             OTBylaw* pBylaw = it.second;
             OT_ASSERT(nullptr != pBylaw);
 
-            pBylaw->Serialize(strAppend, m_bCalculatingID);
+            pBylaw->Serialize(strAppend, bCalculatingID);
         }
 
         strAppend.Concatenate("</scriptableContract>\n\n");
@@ -2333,7 +2323,7 @@ void OTScriptable::UpdateContents() // Before transmission or serialization,
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    UpdateContentsToString(m_xmlUnsigned);
+    UpdateContentsToString(m_xmlUnsigned, m_bCalculatingID);
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -3408,7 +3398,7 @@ OTScriptable::~OTScriptable()
     Release_Scriptable();
 }
 
-bool OTScriptable::SaveContractWallet(std::ofstream&)
+bool OTScriptable::SaveContractWallet(std::ofstream&) const
 {
     return true;
 }

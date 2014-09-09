@@ -369,7 +369,7 @@ public:
                                const ledgerType theType,
                                bool bCreateFile = false);
 
-    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs);
+    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const
     {
