@@ -281,8 +281,7 @@ public:
     virtual void SetMetadata();
     OTKeyCredential();
     OTKeyCredential(OTCredential& theOwner);
-    bool SignContract(OTContract& theContract,
-                      const OTPasswordData* pPWData = nullptr);
+    bool Sign(OTContract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t
     GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
                              const OTSignature& theSignature,
