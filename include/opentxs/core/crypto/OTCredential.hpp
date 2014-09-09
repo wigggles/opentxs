@@ -259,14 +259,16 @@ private:
     bool GenerateMasterkey(int32_t nBits = 1024); // CreateMaster is able to
                                                   // create keys from scratch
                                                   // (by calling this function.)
-    bool SignNewMaster(OTPasswordData* pPWData = nullptr); // SignMaster is used
+    bool SignNewMaster(const OTPasswordData* pPWData =
+                           nullptr); // SignMaster is used
     // when creating master
     // credential.
     bool SignNewSubcredential(OTSubcredential& theSubCred,
                               OTIdentifier& theSubCredID_out,
-                              OTPasswordData* pPWData = nullptr); // Used when
-    // creating a new
-    // subcredential.
+                              const OTPasswordData* pPWData =
+                                  nullptr); // Used when
+                                            // creating a new
+                                            // subcredential.
 public:
     EXPORT const OTPassword* GetImportPassword() const
     {
@@ -281,11 +283,13 @@ public:
         const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
         const OTString::Map* pmapPrivate = nullptr,
         const OTString::Map* pmapPublic = nullptr,
-        OTPasswordData* pPWData = nullptr);
-    static OTCredential* LoadMaster(
-        const OTString& strNymID, // Caller is responsible to delete, in both
-                                  // CreateMaster and LoadMaster.
-        const OTString& strMasterCredID, OTPasswordData* pPWData = nullptr);
+        const OTPasswordData* pPWData = nullptr);
+    static OTCredential* LoadMaster(const OTString& strNymID, // Caller is
+                                                              // responsible to
+                                                              // delete, in both
+                                    // CreateMaster and LoadMaster.
+                                    const OTString& strMasterCredID,
+                                    const OTPasswordData* pPWData = nullptr);
     static OTCredential* LoadMasterFromString(
         const OTString& strInput,
         const OTString& strNymID, // Caller is responsible to delete, in both
@@ -294,7 +298,7 @@ public:
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool Load_Master(const OTString& strNymID,
                             const OTString& strMasterCredID,
-                            OTPasswordData* pPWData = nullptr);
+                            const OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(const OTString& strInput,
                                       const OTString& strNymID,
                                       const OTString& strMasterCredID,
@@ -308,14 +312,14 @@ public:
         const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
         const OTString::Map* pmapPrivate =
             nullptr, // Public keys are derived from the private.
-        OTPasswordData* pPWData =
+        const OTPasswordData* pPWData =
             nullptr,                    // The master key will sign the subkey.
         OTSubkey* *ppSubkey = nullptr); // output
     // For non-key credentials, such as for 3rd-party authentication.
     //
     EXPORT bool AddNewSubcredential(
         const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
-        OTPasswordData* pPWData =
+        const OTPasswordData* pPWData =
             nullptr, // The master key will sign the subcredential.
         OTSubcredential* *ppSubcred = nullptr); // output
     EXPORT bool ReEncryptPrivateCredentials(const OTPassword& theExportPassword,

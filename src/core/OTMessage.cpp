@@ -3896,7 +3896,7 @@ bool OTMessage::SignContract(const OTPseudonym& theNym,
 
 // virtual (OTContract)
 bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                OTPasswordData* pPWData) const
+                                const OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing

@@ -357,7 +357,7 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = nullptr) const = 0;
+                      const OTPasswordData* pPWData = nullptr) const = 0;
     // SIGN / VERIFY
     //
     // Sign or verify using the Asymmetric Key itself.
@@ -487,7 +487,7 @@ public:
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      OTPasswordData* pPWData = nullptr) const;
+                      const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
     virtual bool SignContract(const OTString& strContractUnsigned,

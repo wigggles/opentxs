@@ -733,11 +733,11 @@ bool OTContract::SignContract(const char* szFoldername,
 // contract and is
 // somewhere in m_listSignatures. Now it is being verified.
 //
-bool OTContract::VerifySignature(const char* szFoldername,
-                                 const char* szFilename, // for Cert.
-                                 const OTSignature& theSignature,
-                                 OTPasswordData* pPWData) const // optional
-                                                                // in/out
+bool OTContract::VerifySignature(
+    const char* szFoldername, const char* szFilename, // for Cert.
+    const OTSignature& theSignature,
+    const OTPasswordData* pPWData) const // optional
+                                         // in/out
 {
     OT_ASSERT_MSG(
         nullptr != szFoldername,
@@ -783,7 +783,7 @@ bool OTContract::VerifySignature(const char* szFoldername,
 }
 
 bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
-                                  OTPasswordData* pPWData) const
+                                  const OTPasswordData* pPWData) const
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -813,7 +813,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifySignature(const OTPseudonym& theNym,
-                                 OTPasswordData* pPWData) const
+                                 const OTPasswordData* pPWData) const
 {
     OTString strNymID;
     theNym.GetIdentifier(strNymID);
@@ -843,7 +843,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 }
 
 bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
-                               OTPasswordData* pPWData) const
+                               const OTPasswordData* pPWData) const
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -874,7 +874,7 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
 //
 bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
                                   const OTSignature& theSignature,
-                                  OTPasswordData* pPWData) const
+                                  const OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySigAuthent 1");
@@ -919,7 +919,7 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 //
 bool OTContract::VerifySignature(const OTPseudonym& theNym,
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData) const
+                                 const OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySignature 1");
@@ -959,7 +959,7 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
 bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const OTString& strHashType,
-                                 OTPasswordData* pPWData) const
+                                 const OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)

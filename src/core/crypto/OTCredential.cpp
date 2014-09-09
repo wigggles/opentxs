@@ -349,7 +349,7 @@ const OTString& OTCredential::GetMasterCredID() const
 OTCredential* OTCredential::LoadMaster(
     const OTString& strNymID, // Caller is responsible to delete, in both
                               // CreateMaster and LoadMaster.
-    const OTString& strMasterCredID, OTPasswordData* pPWData)
+    const OTString& strMasterCredID, const OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
     std::unique_ptr<OTCredential> theCredentialAngel(pCredential);
@@ -395,7 +395,7 @@ OTCredential* OTCredential::LoadMasterFromString(
 }
 
 // called by OTCredential::CreateMaster
-bool OTCredential::SignNewMaster(OTPasswordData* pPWData)
+bool OTCredential::SignNewMaster(const OTPasswordData* pPWData)
 {
     OTPasswordData thePWData(
         "Signing new master credential... OTCredential::SignNewMaster");
@@ -569,7 +569,7 @@ bool OTCredential::ReEncryptPrivateCredentials(
 
 bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
                                         OTIdentifier& theSubCredID_out,
-                                        OTPasswordData* pPWData)
+                                        const OTPasswordData* pPWData)
 {
     OTPasswordData thePWData(
         "Signing new subcredential... OTCredential::SignNewSubcredential");
@@ -805,7 +805,7 @@ bool OTCredential::Load_MasterFromString(const OTString& strInput,
 
 bool OTCredential::Load_Master(const OTString& strNymID,
                                const OTString& strMasterCredID,
-                               OTPasswordData* pPWData)
+                               const OTPasswordData* pPWData)
 {
 
     std::string str_Folder =
@@ -1027,7 +1027,7 @@ bool OTCredential::AddNewSubkey(
     const int32_t nBits,              // Ignored unless pmapPrivate is nullptr
     const OTString::Map* pmapPrivate, // Public keys are derived from
                                       // the private.
-    OTPasswordData* pPWData,          // The master key will sign the subkey.
+    const OTPasswordData* pPWData,    // The master key will sign the subkey.
     OTSubkey** ppSubkey)              // output
 {
     OTSubkey* pSub = new OTSubkey(*this);
@@ -1109,9 +1109,9 @@ bool OTCredential::AddNewSubkey(
 //
 bool OTCredential::AddNewSubcredential(
     const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
-    OTPasswordData* pPWData,     // The master key will sign the
-                                 // subcredential.
-    OTSubcredential** ppSubcred) // output
+    const OTPasswordData* pPWData, // The master key will sign the
+                                   // subcredential.
+    OTSubcredential** ppSubcred)   // output
 {
     OTSubcredential* pSub = new OTSubcredential(*this);
     OT_ASSERT(nullptr != pSub);
@@ -1190,7 +1190,7 @@ OTCredential* OTCredential::CreateMaster(
                                       // already be derived from
                                       // private. But not all
                                       // credentials are keys...
-    OTPasswordData* pPWData)
+    const OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
     OT_ASSERT(nullptr != pCredential);

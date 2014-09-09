@@ -516,34 +516,36 @@ public:
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     // So far not overridden anywhere (used to be OTTrade.)
-    EXPORT virtual bool VerifySignature(
-        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
+    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
+                                        const OTPasswordData* pPWData = nullptr)
+        const;
     EXPORT virtual bool VerifySigAuthent(
-        const OTPseudonym& theNym, OTPasswordData* pPWData = nullptr) const;
+        const OTPseudonym& theNym,
+        const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
-                              OTPasswordData* pPWData = nullptr) const;
+                              const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const OTPseudonym& theNym,
                                 const OTSignature& theSignature,
-                                OTPasswordData* pPWData = nullptr) const;
+                                const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySigAuthent(const OTPseudonym& theNym, // Uses
                                                             // authentication
                                                             // key
                                  // instead of signing key.
                                  const OTSignature& theSignature,
-                                 OTPasswordData* pPWData = nullptr) const;
+                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const OTAsymmetricKey& theKey,
                                 const OTSignature& theSignature,
                                 const OTString& strHashType,
-                                OTPasswordData* pPWData = nullptr) const;
+                                const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const char* szFoldername,
                                 const char* szFilename, // for Cert.
                                 const OTSignature& theSignature,
-                                OTPasswordData* pPWData =
+                                const OTPasswordData* pPWData =
                                     nullptr) const; // optional in/out
 
     //      bool VerifySignatures();   // This function verifies the signatures

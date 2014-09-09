@@ -3008,7 +3008,8 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 // RSA / AES
 
 bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                            OTString& theOutput, OTPasswordData* pPWData) const
+                            OTString& theOutput,
+                            const OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Open";
 

@@ -412,7 +412,7 @@ bool OTPseudonym::AddNewMasterCredential(
                                       // private. For now we pass it
                                       // through... May eliminate this
                                       // parameter later if not needed.
-    OTPasswordData* pPWData,          // Pass in the string to show users here,
+    const OTPasswordData* pPWData,    // Pass in the string to show users here,
                                       // if/when asking for the passphrase.
     bool bChangeNymID) // Must be explicitly set to true, to change
                        // the Nym's ID. Other restrictions also
@@ -917,7 +917,7 @@ bool OTPseudonym::AddNewSubkey(
     const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
     const OTString::Map* pmapPrivate, // If nullptr, then the keys are
                                       // generated in here.
-    OTPasswordData* pPWData, OTString* pstrNewID)
+    const OTPasswordData* pPWData, OTString* pstrNewID)
 {
     const OTString strMasterCredID(idMasterCredential);
 
@@ -1006,7 +1006,7 @@ bool OTPseudonym::AddNewSubcredential(
                                       // private. For now we pass it
                                       // through... May eliminate this
                                       // parameter later if not needed.
-    OTPasswordData* pPWData)
+    const OTPasswordData* pPWData)
 {
     const OTString strMasterCredID(idMasterCredential);
 
@@ -6108,7 +6108,7 @@ bool OTPseudonym::LoadNymfile(const char* szFilename)
 }
 
 bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
-    const OTString& strInput, OTPasswordData* pPWData,
+    const OTString& strInput, const OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeypair);
