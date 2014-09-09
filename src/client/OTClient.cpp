@@ -256,11 +256,11 @@ bool OTClient::ProcessInBuffer(const OTMessage& theServerReply) const
 /// This is standard behavior for the Nymbox (NOT the inbox.)
 /// That is, to just accept everything there.
 //
-bool OTClient::AcceptEntireNymbox(
-    OTLedger& theNymbox,
-    //                                  OTServerConnection    & theConnection,
-    const OTIdentifier& theServerID, const OTServerContract& theServerContract,
-    OTPseudonym& theNym, OTMessage& theMessage)
+bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
+                                  // OTServerConnection& theConnection,
+                                  const OTIdentifier& theServerID,
+                                  const OTServerContract& theServerContract,
+                                  OTPseudonym& theNym, OTMessage& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
@@ -2037,7 +2037,7 @@ void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 /// function, the same as you would have normally if you had received the server
 /// reply in the first
 /// place!  That way transaction sync issues become impossible.
-/// SOLUTION: bool OTClient::ProcessServerReply(OTMessage & theReply)
+/// SOLUTION: bool OTClient::ProcessServerReply(OTMessage& theReply)
 /// Any message deemed important enough to have a notice containing the reply
 /// dropped into my nymbox,
 /// I will just take that message and pass it to ProcessServerReply(), which
@@ -4472,18 +4472,10 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                             // at that time.
                             //
                             //                          void
-                            // load_str_trans_add_to_ledger( const OTIdentifier
-                            // & the_nym_id,
-                            //                                                             const
-                            // OTString & str_trans,
-                            //                                                             const
-                            // OTString str_box_type,
-                            //                                                             const
-                            // int64_t & lTransNum,
-                            //                                                             OTPseudonym
-                            // & the_nym,
-                            //                                                             OTLedger
-                            // & ledger );
+                            // load_str_trans_add_to_ledger(const OTIdentifier&
+                            // the_nym_id, const OTString& str_trans, const
+                            // OTString str_box_type, const int64_t& lTransNum,
+                            // OTPseudonym& the_nym, OTLedger& ledger);
 
                             // Basically we are taking this receipt from the
                             // Nymbox, and also adding copies of it
@@ -8892,7 +8884,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, OTMessage& theMessage,
     OTPseudonym& theNym,
-    // OTAssetContract & theContract,
+    // OTAssetContract& theContract,
     const OTServerContract& theServer, const OTAccount* pAccount,
     int64_t lTransactionAmount, OTAssetContract* pMyAssetContract,
     const OTIdentifier* pHisNymID, const OTIdentifier* pHisAcctID)
@@ -10021,7 +10013,7 @@ int32_t OTClient::ProcessUserCommand(
         bool bGotTransNum = theNym.GetNextTransactionNum(
             theNym, strServerID, lStoredTransactionNumber); // this saves
 
-        //      int32_t GetTransactionNumCount(const OTIdentifier &
+        //      int32_t GetTransactionNumCount(const OTIdentifier&
         // theServerID); // count
 
         if (bGotTransNum) {
@@ -10526,11 +10518,9 @@ int32_t OTClient::ProcessUserCommand(
 
     /*
     bool OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE
-    requestedCommand,
-    OTMessage & theMessage,
-    OTPseudonym & theNym,
-    //                                  OTAssetContract & theContract,
-    OTServerContract & theServer,
+    requestedCommand, OTMessage& theMessage, OTPseudonym& theNym,
+    //                                  OTAssetContract& theContract,
+    OTServerContract& theServer,
     OTAccount * pAccount=nullptr,
     int64_t lTransactionAmount=0,
     OTAssetContract * pMyAssetContract=nullptr,
@@ -12163,11 +12153,10 @@ int32_t OTClient::ProcessUserCommand(
     }
 
     /*
-    bool ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-    OTMessage & theMessage,
-    OTPseudonym & theNym,
-    //                            OTAssetContract & theContract,
-    OTServerContract & theServer,
+    bool ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand, OTMessage&
+    theMessage, OTPseudonym& theNym,
+    //                            OTAssetContract& theContract,
+    OTServerContract& theServer,
     OTAccount * pAccount=nullptr,
     int64_t lTransactionAmount = 0,
     OTAssetContract * pMyAssetContract=nullptr,
@@ -13201,11 +13190,11 @@ int32_t OTClient::ProcessUserCommand(
         }
 
         /*
-        OTPaymentPlan( const OTIdentifier & SERVER_ID,            const
-        OTIdentifier & ASSET_ID,
-        const OTIdentifier & SENDER_ACCT_ID,    const OTIdentifier &
-        SENDER_USER_ID,
-        const OTIdentifier & RECIPIENT_ACCT_ID, const OTIdentifier &
+        OTPaymentPlan(const OTIdentifier& SERVER_ID,            const
+        OTIdentifier& ASSET_ID, const OTIdentifier& SENDER_ACCT_ID,    const
+        OTIdentifier&
+        SENDER_USER_ID, const OTIdentifier& RECIPIENT_ACCT_ID, const
+        OTIdentifier&
         RECIPIENT_USER_ID);
 
         */
@@ -13633,7 +13622,7 @@ int32_t OTClient::ProcessUserCommand(
     contract is the AssetID
 
     // (2) Sign the Message
-    OTContract & aSigningDoc = theMessage;
+    OTContract& aSigningDoc = theMessage;
     aSigningDoc.SignContract(theNym);
 
     // (3) Save the Message (with signatures and all, back to its internal

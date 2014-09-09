@@ -813,7 +813,7 @@ DONE cron_activate        (Triggers when the smart contract is first activated.)
 */
 
 // Global version. (string parameter)
-// typedef bool (*OT_SM_RetBool_ThrStr)(OTSmartContract * pContract,
+// typedef bool (*OT_SM_RetBool_ThrStr)(OTSmartContract* pContract,
 //                                       const std::string from_acct_name,
 //                                       const std::string to_acct_name,
 //                                       const std::string str_Amount);
@@ -826,7 +826,7 @@ DONE cron_activate        (Triggers when the smart contract is first activated.)
 // process_clause.
 
 // Global version. (int64_t parameter)
-// typedef bool (*OT_SM_RetBool_TwoStr_OneL)(OTSmartContract * pContract,
+// typedef bool (*OT_SM_RetBool_TwoStr_OneL)(OTSmartContract* pContract,
 //                                            const std::string from_acct_name,
 //                                            const std::string to_acct_name,
 //                                            const int64_t lAmount);
@@ -991,21 +991,21 @@ void OTSmartContract::DeactivateSmartContract() // Called from within script.
 OTParty        * GetParty    (const std::string str_party_name);
 OTBylaw        * GetBylaw    (const std::string str_bylaw_name);
 OTClause    * GetClause    (const std::string str_clause_name);
-OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym & theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym& theNym, OTAgent **
 ppAgent=nullptr);
-OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym & theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym, OTAgent **
 ppAgent=nullptr);
-OTParty * FindPartyBasedOnAccount(OTAccount & theAccount, OTPartyAccount **
+OTParty * FindPartyBasedOnAccount(OTAccount& theAccount, OTPartyAccount **
 ppPartyAccount=nullptr);
-OTParty * FindPartyBasedOnNymIDAsAgent(const OTIdentifier & theNymID, OTAgent **
+OTParty * FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID, OTAgent **
 ppAgent=nullptr);
-OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier & theNymID,
+OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier& theNymID,
 OTAgent ** ppAgent=nullptr);
-OTParty * FindPartyBasedOnAccountID(const OTIdentifier & theAcctID,
+OTParty * FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
 OTPartyAccount ** ppPartyAccount=nullptr);
 OTAgent            * GetAgent(const std::string str_agent_name);
 OTPartyAccount    * GetPartyAccount(const std::string str_acct_name);
-OTPartyAccount    * GetPartyAccountByID(const OTIdentifier & theAcctID);
+OTPartyAccount    * GetPartyAccountByID(const OTIdentifier& theAcctID);
 */
 
 // Returns true if it was empty (and thus successfully set.)
@@ -4130,7 +4130,7 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
     //
     //
     // ===> THIS version (OTSmartContract) will look up pParty using theNym via:
-    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const OTPseudonym &
+    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const OTPseudonym&
     // theNym, OTAgent ** ppAgent=nullptr);
     //
     // ...Then it WILL check to see if pParty has its Opening number verified as
@@ -4239,7 +4239,7 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 // Server will also want to verify that originator IS a party (this function
 // won't do it.)
 //
-// bool OTSmartContract::VerifySmartContract(OTPseudonym & theNym)
+// bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym)
 //{
 // Need to verify:
 //

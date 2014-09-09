@@ -159,7 +159,7 @@ public:
     EXPORT static OTAPI_Exec* It();
 
     EXPORT static OT_API* OTAPI();
-    //    EXPORT static bool & Cleanup();
+    //    EXPORT static bool& Cleanup();
 
     EXPORT static int64_t StringToLong(const std::string& strNumber);
     EXPORT static std::string LongToString(const int64_t& lNumber);
@@ -298,9 +298,9 @@ public:
     interface. You would use Java functions at that point.)
     Shown here only for reference.
     */
-    // const std::string & OT_CLI_ReadLine();    // Reads from cin until
+    // const std::string& OT_CLI_ReadLine();    // Reads from cin until
     // Newline.
-    // const std::string & OT_CLI_ReadUntilEOF();    // Reads from cin until
+    // const std::string& OT_CLI_ReadUntilEOF();    // Reads from cin until
     // EOF.
 
     // OTNumList is a class that encapsulates working with a comma-separated
@@ -335,7 +335,7 @@ public:
 
     /** Decode an OT-encoded string (back to plainext.)
 
-    EXPORT static std::string Decode(const std::string & strEncoded);
+    EXPORT static std::string Decode(const std::string& strEncoded);
 
     This will base64-decode, uncompress, and unpack an OT-encoded string.
     Returns the plainext string, or nullptr.
@@ -351,8 +351,8 @@ public:
 
     /** OT-ENCRYPT a plainext string. (ASYMMETRIC)
 
-    EXPORT static std::string Encrypt(const std::string & RECIPIENT_NYM_ID,
-    const std::string & strPlaintext);
+    EXPORT static std::string Encrypt(const std::string& RECIPIENT_NYM_ID,
+    const std::string& strPlaintext);
 
     This will encode, ENCRYPT, and encode a plain string.
     Returns the base64-encoded ciphertext, or nullptr.
@@ -373,8 +373,8 @@ public:
 
     /** OT-DECRYPT an OT-encrypted string back to plainext. (ASYMMETRIC)
 
-    EXPORT static std::string Decrypt(const std::string & RECIPIENT_NYM_ID,
-    const std::string & strCiphertext);
+    EXPORT static std::string Decrypt(const std::string& RECIPIENT_NYM_ID,
+    const std::string& strCiphertext);
 
     Decrypts the base64-encoded ciphertext back into a normal string plainext.
     Returns the plainext string, or nullptr.
@@ -412,8 +412,8 @@ public:
 
     /** OT-Sign a CONTRACT. (First signature)
 
-    EXPORT static std::string SignContract(const std::string & SIGNER_NYM_ID,
-    const std::string & THE_CONTRACT);
+    EXPORT static std::string SignContract(const std::string& SIGNER_NYM_ID,
+    const std::string& THE_CONTRACT);
 
     Tries to instantiate the contract object, based on the string passed in.
     Releases all signatures, and then signs the contract.
@@ -447,8 +447,8 @@ public:
 
     /** OT-Sign a CONTRACT. (Add a signature)
 
-    EXPORT static std::string AddSignature(const std::string & SIGNER_NYM_ID,
-    const std::string & THE_CONTRACT);
+    EXPORT static std::string AddSignature(const std::string& SIGNER_NYM_ID,
+    const std::string& THE_CONTRACT);
 
     Tries to instantiate the contract object, based on the string passed in.
     Signs the contract, without releasing any signatures that are already there.
@@ -581,9 +581,9 @@ public:
     // Use these below functions to get the new contract ITSELF, using its ID
     // that was returned by the above two functions:
     //
-    // EXPORT std::string GetServer_Contract(const std::string & SERVER_ID); //
+    // EXPORT std::string GetServer_Contract(const std::string& SERVER_ID); //
     // Return's Server's contract (based on server ID)
-    // EXPORT std::string GetAssetType_Contract(const std::string &
+    // EXPORT std::string GetAssetType_Contract(const std::string&
     // ASSET_TYPE_ID); // Returns currency contract based on Asset Type ID
 
     /*
@@ -652,10 +652,10 @@ public:
     */
 
     /*
-    EXPORT static std::string Contract_AddTag(const std::string & NYM_ID, const
-    std::string & THE_CONTRACT,
-    const std::string & TAG_NAME, const std::string & SUBTAG_NAME,
-    const std::string & SUBTAG_VALUE, const std::string & TAG_VALUE);
+    EXPORT static std::string Contract_AddTag(const std::string& NYM_ID, const
+    std::string& THE_CONTRACT,
+    const std::string& TAG_NAME, const std::string& SUBTAG_NAME,
+    const std::string& SUBTAG_VALUE, const std::string& TAG_VALUE);
     key == TAG_NAME
     name == SUBTAG_NAME
     "contract" == SUBTAG_VALUE
@@ -1236,13 +1236,13 @@ public:
     From OTAgreement: (This must be called first, before the other two methods
     below can be called.)
 
-    bool    OTAgreement::SetProposal(    const OTPseudonym & MERCHANT_NYM,
-    const OTString & strConsideration,
-    const time64_t & VALID_FROM=0, const time64_t & VALID_TO=0);
+    bool    OTAgreement::SetProposal(const OTPseudonym& MERCHANT_NYM, const
+    OTString& strConsideration,
+    const time64_t& VALID_FROM=0, const time64_t& VALID_TO=0);
 
     ----------------------------------------------------------------------------------------
     (Optional initial payment):
-    bool    OTPaymentPlan::SetInitialPayment(const int64_t & lAmount, time64_t
+    bool    OTPaymentPlan::SetInitialPayment(const int64_t& lAmount, time64_t
     tTimeUntilInitialPayment=0); // default: now.
     ----------------------------------------------------------------------------------------
 
@@ -1251,7 +1251,7 @@ public:
 
     ----------------------------------------------------------------------------------------
     (Optional regular payments):
-    bool    OTPaymentPlan::SetPaymentPlan(const int64_t & lPaymentAmount,
+    bool    OTPaymentPlan::SetPaymentPlan(const int64_t& lPaymentAmount,
                 time64_t tTimeUntilPlanStart  =OT_TIME_MONTH_IN_SECONDS, //
     Default: 1st payment in 30 days
                 time64_t tBetweenPayments     =OT_TIME_MONTH_IN_SECONDS, //
@@ -1713,16 +1713,16 @@ public:
         const bool& bTransactionWasFailure);
 
     // Returns OT_BOOL
-    // int32_t HarvestClosingNumbers(const std::string & SERVER_ID,
-    //    const std::string & NYM_ID,
-    //    const std::string & THE_CRON_ITEM);
+    // int32_t HarvestClosingNumbers(const std::string& SERVER_ID,
+    //    const std::string& NYM_ID,
+    //    const std::string& THE_CRON_ITEM);
     //
     //
     //
     // Returns OT_BOOL
-    // int32_t HarvestAllNumbers(const std::string & SERVER_ID,
-    //    const std::string & NYM_ID,
-    //    const std::string & THE_CRON_ITEM);
+    // int32_t HarvestAllNumbers(const std::string& SERVER_ID,
+    //    const std::string& NYM_ID,
+    //    const std::string& THE_CRON_ITEM);
 
     /** -----------------------------------------------------------------
     // LOAD USER PUBLIC KEY -- from local storage
@@ -2235,9 +2235,9 @@ public:
     mask applied by the currency contract.)
 
     (above a bit.)
-    EXPORT static std::string LoadPurse(const std::string & SERVER_ID,
-    const std::string & ASSET_TYPE_ID,
-    const std::string & USER_ID); // returns nullptr, or a purse.
+    EXPORT static std::string LoadPurse(const std::string& SERVER_ID,
+    const std::string& ASSET_TYPE_ID,
+    const std::string& USER_ID); // returns nullptr, or a purse.
     */
 
     /** Warning! This will overwrite whatever purse is there.

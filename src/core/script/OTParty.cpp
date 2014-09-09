@@ -731,7 +731,7 @@ OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
     return nullptr;
 }
 
-// bool OTPartyAccount::IsAccountByID(const OTIdentifier & theAcctID) const
+// bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
 
 // If account is present for Party, return true.
 bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,

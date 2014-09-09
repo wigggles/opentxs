@@ -188,11 +188,11 @@ public:
     bool            isForCachedKey()   const;
     const char *    GetDisplayString() const;
 
-    OTPasswordData(const char        *   szDisplay, OTPassword *
+    OTPasswordData(const char* szDisplay, OTPassword *
 pMasterPW=nullptr);
-    OTPasswordData(const std::string & str_Display, OTPassword *
+    OTPasswordData(const std::string& str_Display, OTPassword *
 pMasterPW=nullptr);
-    OTPasswordData(const OTString    &  strDisplay, OTPassword *
+    OTPasswordData(const OTString& strDisplay, OTPassword *
 pMasterPW=nullptr);
     ~OTPasswordData();
 };

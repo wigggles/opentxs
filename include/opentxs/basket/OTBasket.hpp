@@ -219,7 +219,7 @@ public:
     EXPORT virtual ~OTBasket();
 
     virtual void UpdateContents();
-    //    virtual bool SaveContractWallet(FILE * fl);
+    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;

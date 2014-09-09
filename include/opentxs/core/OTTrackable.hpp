@@ -186,7 +186,7 @@ public:
     }
     // From OTInstrument (parent class of OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
      : OTContract()
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
@@ -197,13 +197,13 @@ public:
      inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
      }
 
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
+     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
      ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
+     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
      SERVER_ID; }
 
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
 
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
      / TO dates.

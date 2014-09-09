@@ -176,9 +176,9 @@ public:
  class OTNameLookupIPhone : public OTNameLookup
  {
  public:
-    virtual std::string GetNymName(const std::string & str_id) const;
-    virtual std::string GetAcctName(const std::string & str_id) const;
-    virtual std::string GetAddressName(const std::string & str_id) const; //
+    virtual std::string GetNymName(const std::string& str_id) const;
+    virtual std::string GetAcctName(const std::string& str_id) const;
+    virtual std::string GetAddressName(const std::string& str_id) const; //
  Used for Bitmessage and other special addresses.
  };
  */

@@ -391,7 +391,7 @@ public:
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg, OTPseudonym& theServerNym,
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-        //                                  const int64_t & lInReferenceTo, //
+        // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const OTString& strReference, OTString* pstrNote = nullptr,
         OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);

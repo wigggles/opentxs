@@ -781,7 +781,7 @@ bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
         bool bSuccess = true;
 
         theItem.HookActivationOnCron(
-            pActivator,    // (OTPseudonym * pActivator) // sometimes nullptr.
+            pActivator,    // (OTPseudonym* pActivator) // sometimes nullptr.
             bSaveReceipt); // If merely being reloaded after server reboot, this
                            // is false.
         // But if actually being activated for the first time, then this is

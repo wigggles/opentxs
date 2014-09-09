@@ -1127,7 +1127,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 // This version DOES do demangling.
 //
 /*
-void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
+void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 {
     sig_ucontext_t * uc = (sig_ucontext_t *)ucontext;
 

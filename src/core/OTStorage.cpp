@@ -1191,11 +1191,11 @@ AddressBook::~AddressBook()
  version of java
  {                    // interfaces, which C++ normally implements via pure
  virtual base classes
-     T const & t;    // and multiple inheritance. But in this case, I need to
+     T const& t;    // and multiple inheritance. But in this case, I need to
  have a consistent
  public:                // interface across disparate classes (in various
  circumstances including
-     TStorable(T const & obj) : t(obj) { }    // here with protocol buffers) and
+     TStorable(T const& obj) : t(obj) { }    // here with protocol buffers) and
  template interfaces
      bool pack(PackedBuffer& theBuffer)    // allow me to do that even with
  classes in a different hierarchy.
@@ -1365,7 +1365,7 @@ template <class theBaseType, class theInternalType,
 }
 
 //    if (false == makeTStorablepStorable->pack(*pBuffer))
-//::google::protobuf::MessageLite    &    IStorablePB::getPBMessage()
+//::google::protobuf::MessageLite& IStorablePB::getPBMessage()
 //{
 //    return makeTStorablePBgetPBMessage();
 //}
@@ -1481,7 +1481,7 @@ bool BufferPB::ReadFromIStream(std::istream& inStream, int64_t lFilesize)
 
 bool BufferPB::WriteToOStream(std::ostream& outStream)
 {
-    // bool    SerializeToOstream(ostream * output) const
+    // bool    SerializeToOstream(ostream* output) const
     if (m_buffer.length() > 0) {
         outStream.write(m_buffer.c_str(), m_buffer.length());
         return outStream.good() ? true : false;
@@ -2120,7 +2120,7 @@ OTPacker* Storage::GetPacker(PackType ePackType)
 
 // (SetPacker(), from .h file)
 // This is called once, in the factory.
-// void Storage::SetPacker(OTPacker & thePacker) { OT_ASSERT(nullptr ==
+// void Storage::SetPacker(OTPacker& thePacker) { OT_ASSERT(nullptr ==
 // m_pPacker);
 // m_pPacker =  &thePacker; }
 

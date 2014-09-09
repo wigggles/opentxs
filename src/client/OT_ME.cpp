@@ -1286,7 +1286,7 @@ bool OT_ME::Register_Headers_With_Script()
     return false;
 }
 
-// bool OT_ME::Register_OTDB_With_Script_Lua(OTScriptLua & theScript)
+// bool OT_ME::Register_OTDB_With_Script_Lua(OTScriptLua& theScript)
 
 bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
 {
@@ -1608,7 +1608,7 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
 //      EXPORT size_t Get##name##Count();
 //      EXPORT name * Get##name(size_t nIndex);
 //      EXPORT bool Remove##name(size_t nIndex##name);
-//      EXPORT bool Add##name(name & disownObject)
+//      EXPORT bool Add##name(name& disownObject)
 
 #define OT_CHAI_CONTAINER(container, name)                                     \
     theScript.chai->add(fun(&OTDB::container::Get##name##Count),               \
@@ -1748,7 +1748,7 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
     }
 }
 
-// bool OT_ME::Register_CLI_With_Script_Lua(OTScriptLua & theScript)
+// bool OT_ME::Register_CLI_With_Script_Lua(OTScriptLua& theScript)
 
 bool OT_ME::Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const
 {
@@ -1789,7 +1789,7 @@ bool OT_ME::Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const
     }
 }
 
-// bool OT_ME::Register_API_With_Script_Lua(OTScriptLua & theScript)
+// bool OT_ME::Register_API_With_Script_Lua(OTScriptLua& theScript)
 
 bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 {
@@ -2573,7 +2573,7 @@ bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
 
 #ifdef OT_USE_SCRIPT_CHAI
 
-// bool OT_ME::Register_Headers_With_Script_Lua(OTScriptLua & theScript)
+// bool OT_ME::Register_Headers_With_Script_Lua(OTScriptLua& theScript)
 
 // Note: Private method. Assumes theScript is m_pScript (but now as
 // a specific type, aka OTScriptChai, vs just being an OTScript.)

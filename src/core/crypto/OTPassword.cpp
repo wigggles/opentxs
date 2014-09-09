@@ -337,8 +337,7 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
 }
 
 /* WINDOWS:
- errno_t memcpy_s(
-     void   * dest,
+ errno_t memcpy_s(void* dest,
      size_t   numberOfElements,
      const
      void   * src,

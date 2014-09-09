@@ -400,26 +400,26 @@ bool OTAPI_Exec::PopMemlogBack() const
 }
 
 // OpenTransactions.h
-// bool      NumList_Add        (OTNumList & theList, const OTNumList &
+// bool      NumList_Add        (OTNumList& theList, const OTNumList&
 // theNewNumbers);
-// bool      NumList_Remove     (OTNumList & theList, const OTNumList &
+// bool      NumList_Remove     (OTNumList& theList, const OTNumList&
 // theOldNumbers);
-// bool      NumList_VerifyQuery(OTNumList & theList, const OTNumList &
+// bool      NumList_VerifyQuery(OTNumList& theList, const OTNumList&
 // theQueryNumbers);
-// bool      NumList_VerifyAll  (OTNumList & theList, const OTNumList &
+// bool      NumList_VerifyAll  (OTNumList& theList, const OTNumList&
 // theQueryNumbers);
-// int32_t   NumList_Count      (OTNumList & theList);
+// int32_t   NumList_Count      (OTNumList& theList);
 
 // OTAPI_funcdef.h
-// std::string      OTAPI_Exec::NumList_Add        (const std::string &
-// strNumList, const std::string & strNumbers);
-// std::string      OTAPI_Exec::NumList_Remove     (const std::string &
-// strNumList, const std::string & strNumbers);
-// int32_t          OTAPI_Exec::NumList_VerifyQuery(const std::string &
-// strNumList, const std::string & strNumbers); // returns bool
-// int32_t          OTAPI_Exec::NumList_VerifyAll  (const std::string &
-// strNumList, const std::string & strNumbers); // returns bool
-// int32_t          OTAPI_Exec::NumList_Count      (const std::string &
+// std::string      OTAPI_Exec::NumList_Add        (const std::string&
+// strNumList, const std::string& strNumbers);
+// std::string      OTAPI_Exec::NumList_Remove     (const std::string&
+// strNumList, const std::string& strNumbers);
+// int32_t          OTAPI_Exec::NumList_VerifyQuery(const std::string&
+// strNumList, const std::string& strNumbers); // returns bool
+// int32_t          OTAPI_Exec::NumList_VerifyAll  (const std::string&
+// strNumList, const std::string& strNumbers); // returns bool
+// int32_t          OTAPI_Exec::NumList_Count      (const std::string&
 // strNumList);
 
 // Returns new list if ALL strNumbers are successfully added to strNumList.
@@ -1286,9 +1286,9 @@ std::string OTAPI_Exec::CreateAssetContract(
 // Use these below functions to get the new contract ITSELF, using its ID
 // that was returned by the above two functions:
 //
-// std::string OTAPI_Exec::GetServer_Contract(const std::string & SERVER_ID); //
+// std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID); //
 // Return's Server's contract (based on server ID)
-// std::string OTAPI_Exec::GetAssetType_Contract(const std::string &
+// std::string OTAPI_Exec::GetAssetType_Contract(const std::string&
 // ASSET_TYPE_ID); // Returns currency contract based on Asset Type ID
 
 std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID)
@@ -2302,7 +2302,7 @@ bool OTAPI_Exec::Wallet_ChangePassphrase() const
     return OTAPI()->Wallet_ChangePassphrase();
 }
 
-// bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString & strOutput,
+// bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString& strOutput,
 // OTString * pstrReason)
 
 // bool OTPseudonym::Savex509CertAndPrivateKey(bool       bCreateFile,
@@ -2314,10 +2314,10 @@ bool OTAPI_Exec::Wallet_ChangePassphrase() const
 std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //  OTPseudonym *    GetNym(const OTIdentifier & NYM_ID, const std::string &
+    //  OTPseudonym *    GetNym(const OTIdentifier& NYM_ID, const std::string&
     // strFuncName="");
-    //  OTPseudonym *    GetNymByIDPartialMatch(const std::string &PARTIAL_ID,
-    // const std::string & strFuncName="");
+    //  OTPseudonym *    GetNymByIDPartialMatch(const std::string&PARTIAL_ID,
+    // const std::string& strFuncName="");
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
@@ -2366,10 +2366,10 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetServerIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTServerContract *    GetServer(const OTIdentifier & THE_ID, const
-    // std::string & strFuncName="");
+    //    OTServerContract *    GetServer(const OTIdentifier& THE_ID, const
+    // std::string& strFuncName="");
     //    OTServerContract *    GetServerContractPartialMatch(const std::string
-    // &PARTIAL_ID, const std::string & strFuncName="");
+    // &PARTIAL_ID, const std::string& strFuncName="");
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
         otErr << __FUNCTION__
@@ -2420,10 +2420,10 @@ std::string OTAPI_Exec::Wallet_GetServerIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTAssetContract *    GetAssetType(const OTIdentifier & THE_ID, const
-    // std::string & strFuncName="");
+    //    OTAssetContract *    GetAssetType(const OTIdentifier& THE_ID, const
+    // std::string& strFuncName="");
     //    OTAssetContract *    GetAssetContractPartialMatch(const std::string
-    // &PARTIAL_ID, const std::string & strFuncName="");
+    // &PARTIAL_ID, const std::string& strFuncName="");
 
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -2473,10 +2473,10 @@ std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    //    OTAccount *   GetAccount(const OTIdentifier & THE_ID, const
-    // std::string & strFuncName="");
-    //    OTAccount *   GetAccountPartialMatch(const std::string &PARTIAL_ID,
-    // const std::string & strFuncName="");
+    //    OTAccount *   GetAccount(const OTIdentifier& THE_ID, const
+    // std::string& strFuncName="");
+    //    OTAccount *   GetAccountPartialMatch(const std::string&PARTIAL_ID,
+    // const std::string& strFuncName="");
 
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -2640,7 +2640,7 @@ std::string OTAPI_Exec::GetNym_NymboxHash(const std::string& SERVER_ID,
                                                // string and not just use
                                                // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string & in the first
+            // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
             // there.
             //
@@ -2691,7 +2691,7 @@ std::string OTAPI_Exec::GetNym_RecentHash(const std::string& SERVER_ID,
                                                // string and not just use
                                                // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string & in the first
+            // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
             // there.
             //
@@ -2741,7 +2741,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
                                                // string and not just use
                                                // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string & in the first
+            // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
             // there.
             //
@@ -2791,7 +2791,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(const std::string& ACCOUNT_ID,
                                                // string and not just use
                                                // NYM_ID?
             // The answer is because I'm looking forward to a day soon when we
-            // don't passconst std::string & in the first
+            // don't passconst std::string& in the first
             // place, and thus I can't always expect that variable will be
             // there.
             //
@@ -4272,7 +4272,7 @@ time64_t OTAPI_Exec::GetTime(void) const
 
 /** OT-encode a plaintext string.  (NOT ENCRYPT)
 
-std::string OTAPI_Exec::Encode(const std::string & strPlaintext);
+std::string OTAPI_Exec::Encode(const std::string& strPlaintext);
 
 This will pack, compress, and base64-encode a plain string.
 Returns the base64-encoded string, or "".
@@ -4314,7 +4314,7 @@ std::string OTAPI_Exec::Encode(const std::string& strPlaintext,
 
 /** Decode an OT-encoded string (back to plaintext.)  (NOT DECRYPT)
 
-std::string OTAPI_Exec::Decode(const std::string & strEncoded);
+std::string OTAPI_Exec::Decode(const std::string& strEncoded);
 
 This will base64-decode, uncompress, and unpack an OT-encoded string.
 Returns the plaintext string, or "".
@@ -4353,8 +4353,8 @@ std::string OTAPI_Exec::Decode(const std::string& strEncoded,
 
 /** OT-ENCRYPT a plaintext string.  ASYMMETRIC
 
-std::string OTAPI_Exec::Encrypt(const std::string & RECIPIENT_NYM_ID, const
-std::string & strPlaintext);
+std::string OTAPI_Exec::Encrypt(const std::string& RECIPIENT_NYM_ID, const
+std::string& strPlaintext);
 
 This will encode, ENCRYPT, and encode a plain string.
 Returns the base64-encoded ciphertext, or "".
@@ -4396,8 +4396,8 @@ std::string OTAPI_Exec::Encrypt(const std::string& RECIPIENT_NYM_ID,
 
 /** OT-DECRYPT an OT-encrypted string back to plaintext.  ASYMMETRIC
 
-std::string OTAPI_Exec::Decrypt(const std::string & RECIPIENT_NYM_ID, const
-std::string & strCiphertext);
+std::string OTAPI_Exec::Decrypt(const std::string& RECIPIENT_NYM_ID, const
+std::string& strCiphertext);
 
 Decrypts the base64-encoded ciphertext back into a normal string plaintext.
 Returns the plaintext string, or "".
@@ -4464,10 +4464,10 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
 }
 
 // OTEnvelope:
-//     bool Encrypt(const OTString & theInput,        OTSymmetricKey & theKey,
-// const OTPassword & thePassword);
-//     bool Decrypt(      OTString & theOutput, const OTSymmetricKey & theKey,
-// const OTPassword & thePassword);
+//     bool Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
+// const OTPassword& thePassword);
+//     bool Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
+// const OTPassword& thePassword);
 
 // Returns the CIPHERTEXT_ENVELOPE (the Envelope encrypted with the Symmetric
 // Key.)
@@ -4531,8 +4531,8 @@ std::string OTAPI_Exec::SymmetricDecrypt(const std::string& SYMMETRIC_KEY,
 
 /** OT-Sign a CONTRACT.  (First signature)
 
-std::string OTAPI_Exec::SignContract(const std::string & SIGNER_NYM_ID, const
-std::string & THE_CONTRACT);
+std::string OTAPI_Exec::SignContract(const std::string& SIGNER_NYM_ID, const
+std::string& THE_CONTRACT);
 
 Tries to instantiate the contract object, based on the string passed in.
 Releases all signatures, and then signs the contract.
@@ -4630,8 +4630,8 @@ std::string OTAPI_Exec::FlatSign(const std::string& SIGNER_NYM_ID,
 
 /** OT-Sign a CONTRACT.  (Add a signature)
 
-std::string OTAPI_Exec::AddSignature(const std::string & SIGNER_NYM_ID, const
-std::string & THE_CONTRACT);
+std::string OTAPI_Exec::AddSignature(const std::string& SIGNER_NYM_ID, const
+std::string& THE_CONTRACT);
 
 Tries to instantiate the contract object, based on the string passed in.
 Signs the contract, without releasing any signatures that are already there.
@@ -7726,9 +7726,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     return bSuccess ? true : false;
 }
 
-// bool OTAPI_Exec::HarvestClosingNumbers(const std::string & SERVER_ID,
-//                                    const std::string & NYM_ID,
-//                                    const std::string & THE_CRON_ITEM)
+// bool OTAPI_Exec::HarvestClosingNumbers(const std::string& SERVER_ID,
+//                                    const std::string& NYM_ID,
+//                                    const std::string& THE_CRON_ITEM)
 //{
 //    OT_ASSERT_MSG("" != SERVER_ID, "OTAPI_Exec::HarvestClosingNumbers: Null
 // SERVER_ID passed in.");
@@ -7740,7 +7740,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 //    const OTIdentifier    theNymID(NYM_ID), theServerID(SERVER_ID);
 //    const OTString        strContract(THE_CRON_ITEM);
 //
-//    const bool & bHarvested = OTAPI()->HarvestClosingNumbers(theServerID,
+//    const bool& bHarvested = OTAPI()->HarvestClosingNumbers(theServerID,
 // theNymID, strContract);
 //
 //    return bHarvested ? true : false;
@@ -7765,9 +7765,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 // #'s back, and since in that case your opening number is still good, you would
 // use the below function to get it back.
 //
-// bool OTAPI_Exec::HarvestAllNumbers(const std::string & SERVER_ID,
-//                                const std::string & NYM_ID,
-//                                const std::string & THE_CRON_ITEM)
+// bool OTAPI_Exec::HarvestAllNumbers(const std::string& SERVER_ID,
+//                                const std::string& NYM_ID,
+//                                const std::string& THE_CRON_ITEM)
 //{
 //    OT_ASSERT_MSG("" != SERVER_ID, "OTAPI_Exec::HarvestAllNumbers: Null
 // SERVER_ID passed in.");
@@ -7779,7 +7779,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 //    const OTIdentifier    theNymID(NYM_ID), theServerID(SERVER_ID);
 //    const OTString        strContract(THE_CRON_ITEM);
 //
-//    const bool & bHarvested = OTAPI()->HarvestAllNumbers(theServerID,
+//    const bool& bHarvested = OTAPI()->HarvestAllNumbers(theServerID,
 // theNymID, strContract);
 //
 //    return bHarvested ? true : false;
@@ -8293,7 +8293,7 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
 
     const int64_t lRequestNumber = REQUEST_NUMBER;
 
-    // const std::string & strFunc = "OTAPI_Exec::HaveAlreadySeenReply";
+    // const std::string& strFunc = "OTAPI_Exec::HaveAlreadySeenReply";
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
@@ -9368,8 +9368,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
 
 // returns the message, optionally with Subject: as first line.
 
- std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string & NYM_ID,
-const int32_t & nIndex)
+ std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
+const int32_t& nIndex)
 {
     OT_ASSERT_MSG("" != NYM_ID, "Null NYM_ID passed to
 OTAPI_Exec::GetNym_MailContentsByIndex");
@@ -12029,7 +12029,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 }
 
 /*
-std::string OTAPI_Exec::LoadPurse(const std::string & SERVER_ID,
+std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
                                   std::string ASSET_TYPE_ID,
                                   std::string USER_ID) // returns "", or a
 purse.
@@ -15156,11 +15156,11 @@ void OTAPI_Exec::FlushMessageBuffer(void) const
 /*
 class OTMessageOutbuffer:
 void        Clear();
-void        AddSentMessage      (OTMessage & theMessage);   // Allocate theMsg
+void        AddSentMessage      (OTMessage& theMessage);   // Allocate theMsg
 on the heap (takes ownership.) Mapped by request num.
-OTMessage * GetSentMessage      (const int64_t & lRequestNum); // null == not
+OTMessage * GetSentMessage      (const int64_t& lRequestNum); // null == not
 found. caller NOT responsible to delete.
-bool        RemoveSentMessage   (const int64_t & lRequestNum); // true == it was
+bool        RemoveSentMessage   (const int64_t& lRequestNum); // true == it was
 removed. false == it wasn't found.
 */
 

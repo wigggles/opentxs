@@ -215,9 +215,9 @@ public:
 
     // SetAgreement replaced with the 2 functions below. See notes even lower.
     //
-    //    bool    SetAgreement(const int64_t & lTransactionNum,    const
-    // OTString & strConsideration,
-    //                       const time64_t & VALID_FROM=0,    const time64_t &
+    //    bool    SetAgreement(const int64_t& lTransactionNum,    const
+    // OTString& strConsideration,
+    //                       const time64_t& VALID_FROM=0,    const time64_t&
     // VALID_TO=0);
 
     EXPORT bool SetProposal(OTPseudonym& MERCHANT_NYM,
@@ -235,14 +235,13 @@ public:
 
     /*
         FIRST: (Construction)
-     OTAgreement(const OTIdentifier & SERVER_ID,            const OTIdentifier &
+     OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
     ASSET_ID);
        OR:
-     OTAgreement(const OTIdentifier & SERVER_ID,            const OTIdentifier &
-    ASSET_ID,
-                const OTIdentifier & SENDER_ACCT_ID,    const OTIdentifier &
-    SENDER_USER_ID,
-                const OTIdentifier & RECIPIENT_ACCT_ID,    const OTIdentifier &
+     OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
+    ASSET_ID, const OTIdentifier& SENDER_ACCT_ID,    const OTIdentifier&
+    SENDER_USER_ID, const OTIdentifier& RECIPIENT_ACCT_ID,    const
+    OTIdentifier&
     RECIPIENT_USER_ID);
        OR:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealServerID(),
@@ -257,9 +256,9 @@ public:
      THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each
     other):
 
-     bool        SetInitialPayment(const int64_t & lAmount, time64_t
+     bool        SetInitialPayment(const int64_t& lAmount, time64_t
     tTimeUntilInitialPayment=0); // default: now.
-     bool        SetPaymentPlan(const int64_t & lPaymentAmount, time64_t
+     bool        SetPaymentPlan(const int64_t& lPaymentAmount, time64_t
     tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
                                 time64_t
     tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
@@ -300,7 +299,7 @@ public:
 
      THE RECIPIENT:
 
-     3) bool bConfirmation =  pPlan->Confirm(OTPseudonym & PAYER_NYM,
+     3) bool bConfirmation =  pPlan->Confirm(OTPseudonym& PAYER_NYM,
                                              OTPseudonym *
     pMERCHANT_NYM=nullptr,
                                              OTIdentifier *
@@ -377,11 +376,11 @@ public:
 
     // From OTCronItem (parent class of this)
     /*
-     inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
+     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-     inline void SetCreationDate(const time64_t & CREATION_DATE) {
+     inline void SetCreationDate(const time64_t& CREATION_DATE) {
      m_CREATION_DATE = CREATION_DATE; }
-     inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
+     inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
 
      // These are for:
      // std::deque<int64_t> m_dequeClosingNumbers;
@@ -392,7 +391,7 @@ public:
      int64_t    GetClosingTransactionNoAt(int32_t nIndex) const;
      int32_t     GetCountClosingNumbers() const;
 
-     void    AddClosingTransactionNo(const int64_t & lClosingTransactionNo);
+     void    AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
      */
     virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
 
@@ -410,13 +409,13 @@ public:
      inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum
      = lTransactionNum; }
 
-     inline const OTIdentifier &    GetSenderAcctID()        { return
+     inline const OTIdentifier&    GetSenderAcctID()        { return
      m_SENDER_ACCT_ID; }
-     inline const OTIdentifier &    GetSenderUserID()        { return
+     inline const OTIdentifier&    GetSenderUserID()        { return
      m_SENDER_USER_ID; }
-     inline void            SetSenderAcctID(const OTIdentifier & ACCT_ID)
+     inline void            SetSenderAcctID(const OTIdentifier& ACCT_ID)
      { m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void            SetSenderUserID(const OTIdentifier & USER_ID)
+     inline void            SetSenderUserID(const OTIdentifier& USER_ID)
      { m_SENDER_USER_ID = USER_ID; }
      */
 
@@ -426,15 +425,15 @@ public:
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
      : OTContract()
 
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
 
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
+     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
      ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
+     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
      SERVER_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
@@ -467,13 +466,13 @@ public:
     /*
      From OTContract, I have:
 
-     virtual bool SignContract (const OTPseudonym & theNym);
+     virtual bool SignContract (const OTPseudonym& theNym);
 
      */
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg, OTPseudonym& theServerNym,
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-        //                                  const int64_t & lInReferenceTo, //
+        // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const OTString& strReference, OTString* pstrNote = nullptr,
         OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);

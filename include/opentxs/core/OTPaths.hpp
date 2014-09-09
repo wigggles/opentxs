@@ -196,7 +196,7 @@ public:
                                               // relative);
         (OTSettings& config = s_settings,     // optional
          const OTString& strPrefixFolder = "" // optional
-         // const bool & bIsRelative = false
+         // const bool& bIsRelative = false
          );
 
     EXPORT static bool LoadSetScriptsFolder     // ie. PrefixFolder() + [if (NOT

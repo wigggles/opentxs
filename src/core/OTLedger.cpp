@@ -219,7 +219,7 @@ bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
     return OTTransactionType::VerifyAccount(theNym);
 }
 /*
- bool OTTransactionType::VerifyAccount(OTPseudonym & theNym)
+ bool OTTransactionType::VerifyAccount(OTPseudonym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -1668,7 +1668,7 @@ OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
 
         // it only reports receipts where we don't yet have balance agreement.
         //      pTransaction->ProduceInboxReportItem(*pBalanceItem,
-        // const_cast<OTTransaction &>(theOwner));
+        // const_cast<OTTransaction&>(theOwner));
         pTransaction->ProduceInboxReportItem(
             *pBalanceItem); // <======= This function adds a receipt sub-item to
                             // pBalanceItem, where appropriate for INBOX items.

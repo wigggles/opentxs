@@ -196,7 +196,7 @@ bool isPowerOfTen(const int64_t& x)
 
  To use OTOffer::GetIdentifier is simple:
 
- void blah (OTOffer & theOffer)
+ void blah (OTOffer& theOffer)
  {
     OTIdentifier MARKET_ID(theOffer); // the magic happens right here.
 

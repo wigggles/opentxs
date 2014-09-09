@@ -354,7 +354,7 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
         // fit 'em all.
         m_lTransactionNum = theInput.GetTransactionNum();
 
-        // const OTString &  OTPaymentPlan::GetConsideration() const
+        // const OTString&  OTPaymentPlan::GetConsideration() const
         //                  { return m_strConsideration; }
         if (theInput.GetConsideration().Exists())
             m_strMemo.Set(theInput.GetConsideration());
@@ -1370,7 +1370,7 @@ Purse* OTPayment::InstantiatePurse() const
 }
 
 /*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID) const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID) const
 {
     if (OTPayment::PURSE == GetType())
     {
@@ -1384,8 +1384,8 @@ NOT contain a purse. "
     return nullptr;
 }
 
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
-OTIdentifier & ASSET_ID) const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTIdentifier& ASSET_ID) const
 {
     if (OTPayment::PURSE == GetType())
     {
@@ -1417,8 +1417,8 @@ Purse* OTPayment::InstantiatePurse(const OTString& strPayment)
 }
 
 /*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
-OTString & strPayment)
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTString& strPayment)
 {
     if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
@@ -1435,8 +1435,8 @@ the "
 }
 
 
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier & SERVER_ID, const
-OTIdentifier & ASSET_ID, const OTString & strPayment)
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTIdentifier& ASSET_ID, const OTString& strPayment)
 {
     if (false == SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the

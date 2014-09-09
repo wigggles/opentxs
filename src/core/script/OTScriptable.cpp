@@ -657,7 +657,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 bool OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg, OTPseudonym& theServerNym,
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-    //                                          const int64_t & lInReferenceTo,
+    // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
     OTPseudonym* pActualNym)

@@ -862,12 +862,12 @@ EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
 
 /*
 typedef template<class T>
-T * OT_DYNAMIC_CAST(Storable * pObject)
+T * OT_DYNAMIC_CAST(Storable* pObject)
 {
     return dynamic_cast<T *>(pObject);
 }
 template<class T>
-const T * OT_DYNAMIC_CONST_CAST(const Storable * pObject)
+const T * OT_DYNAMIC_CONST_CAST(const Storable* pObject)
 {
     return dynamic_cast<const T *>(pObject);
 }
@@ -877,6 +877,7 @@ const T * OT_DYNAMIC_CONST_CAST(const Storable * pObject)
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+                                                                               \
 public:                                                                        \
     size_t Get##name##Count();                                                 \
     name* Get##name(size_t nIndex);                                            \
@@ -889,6 +890,7 @@ public:                                                                        \
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+                                                                               \
 public:                                                                        \
     EXPORT size_t Get##name##Count();                                          \
     EXPORT name* Get##name(size_t nIndex);                                     \
@@ -1901,7 +1903,7 @@ public:
 
     // Store/Retrieve an object. (Storable.)
 
-    bool StoreObject(Storable & theContents, std::string strFolder,
+    bool StoreObject(Storable& theContents, std::string strFolder,
     std::string oneStr="", std::string twoStr="", std::string threeStr="");
 
     // Use %newobject OTDB::Storage::Query();

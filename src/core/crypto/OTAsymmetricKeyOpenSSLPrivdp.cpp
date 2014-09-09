@@ -176,11 +176,11 @@ void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
                                    "(OTAsymmetricKey_OpenSSL::SetKeyAsCopyOf)");
 
     // typedef
-    // int32_t OT_OPENSSL_CALLBACK (char *buf, int32_t size, int32_t rwflag,
+    // int32_t OT_OPENSSL_CALLBACK (char* buf, int32_t size, int32_t rwflag,
     // void *userdata);
     /*
-    EVP_PKEY *  CopyPublicKey (EVP_PKEY & theKey);
-    EVP_PKEY *  CopyPrivateKey(EVP_PKEY & theKey);
+    EVP_PKEY *  CopyPublicKey (EVP_PKEY& theKey);
+    EVP_PKEY *  CopyPrivateKey(EVP_PKEY& theKey);
     */
     m_pKey = bIsPrivateKey
                  ? OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::

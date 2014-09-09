@@ -1279,12 +1279,12 @@ bool OTTransaction::VerifyBalanceReceipt(
     OTPseudonym& SERVER_NYM, // For verifying a signature.
     OTPseudonym& THE_NYM)    // transaction numbers issued according to nym must
                              // match this.
-// OTLedger & THE_INBOX,    // All inbox items on *this must also be found in
+// OTLedger& THE_INBOX,    // All inbox items on *this must also be found in
 // THE_INBOX. All new items (on THE_INBOX only) must be accounted for in the
 // balance.
-// OTLedger & THE_OUTBOX,    // All inbox items that changed balance (cheque,
+// OTLedger& THE_OUTBOX,    // All inbox items that changed balance (cheque,
 // market, payment) must be found on the list of issued numbers.
-// const OTAccount & THE_ACCOUNT) // All outbox items must match, and the
+// const OTAccount& THE_ACCOUNT) // All outbox items must match, and the
 // account balance must be accounted for as described.
 {   // These are now loaded within this function, so no need to pass them in.
     // Load the other receipt (see above) if necessary.
@@ -3341,7 +3341,7 @@ void OTTransaction::InitTransaction()
 // This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
 // each of which separately load their full contents from a separate datafile
 // not during loading but during the subsequent verification process.
-// See: bool OTTransaction::VerifyItems(OTPseudonym & theNym)
+// See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
     const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
@@ -3438,17 +3438,17 @@ OTTransaction::OTTransaction(
     if (nullptr != pNumList) m_Numlist = *pNumList;
 }
 
-// bool GenerateTransaction(const OTIdentifier & theAccountID, const
-// OTIdentifier & theServerID, int64_t lTransactionNum);
+// bool GenerateTransaction(const OTIdentifier& theAccountID, const
+// OTIdentifier& theServerID, int64_t lTransactionNum);
 //
 // static
-// OTTransaction * GenerateTransaction(const OTIdentifier & theUserID, const
-// OTIdentifier & theAccountID,
-//                                    const OTIdentifier & theServerID,
+// OTTransaction * GenerateTransaction(const OTIdentifier& theUserID, const
+// OTIdentifier& theAccountID,
+//                                    const OTIdentifier& theServerID,
 // transactionType theType,
 //                                    int64_t lTransactionNum=0);
 // static
-// OTTransaction * GenerateTransaction(const OTLedger & theOwner,
+// OTTransaction * GenerateTransaction(const OTLedger& theOwner,
 // transactionType theType, int64_t lTransactionNum=0);
 
 // static
@@ -4504,9 +4504,9 @@ void OTTransaction::UpdateContents()
 inside:
  paymentInbox ledger, paymentOutbox ledger, and recordBox ledger?
 
- void SaveAbbrevPaymentInboxRecord(OTString & strOutput);
- void SaveAbbrevPaymentOutboxRecord(OTString & strOutput);
- void SaveAbbrevRecordBoxRecord(OTString & strOutput);
+ void SaveAbbrevPaymentInboxRecord(OTString& strOutput);
+ void SaveAbbrevPaymentOutboxRecord(OTString& strOutput);
+ void SaveAbbrevRecordBoxRecord(OTString& strOutput);
 
 
  --- paymentInbox ledger:

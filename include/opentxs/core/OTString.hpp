@@ -279,8 +279,8 @@ protected:
 
 // bool operator >(const OTString& s1, const OTString& s2);
 // bool operator <(const OTString& s1, const OTString& s2);
-// bool operator >=(const OTString &s1, const OTString& s2);
-// bool operator <=(const OTString &s1, const OTString& s2);
+// bool operator >=(const OTString& s1, const OTString& s2);
+// bool operator <=(const OTString& s1, const OTString& s2);
 
 } // namespace opentxs
 

@@ -359,7 +359,7 @@ result in less efficient code. Check compiler
  documentation and the assembly output from the compiler.
 
 // memset_s.c
-void *memset_s(void *v, int32_t c, size_t n) {
+void *memset_s(void* v, int32_t c, size_t n) {
     volatile uint8_t *p = v;
     while (n--)
         *p++ = c;
@@ -368,7 +368,7 @@ void *memset_s(void *v, int32_t c, size_t n) {
 }
 
 // getPassword.c
-extern void *memset_s(void *v, int32_t c, size_t n);
+extern void *memset_s(void* v, int32_t c, size_t n);
 
 void getPassword(void) {
     char pwd[64];

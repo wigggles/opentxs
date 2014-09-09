@@ -560,7 +560,7 @@ bool OTAssetContract::SaveContractWallet(std::ofstream& ofs) const
 }
 
 /*
-bool OTAssetContract::SaveContractWallet(FILE * fl)
+bool OTAssetContract::SaveContractWallet(FILE* fl)
 {
     OTString strID(m_ID);
 

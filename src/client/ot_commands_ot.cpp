@@ -9156,8 +9156,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
         // THAT's when we need to move
         // the record, not here. (But this is what we'll do for now.)
         //
-        // OTAPI_Wrap::RecordPayment(const OTIdentifier & SERVER_ID,
-        //                              const OTIdentifier & USER_ID,
+        // OTAPI_Wrap::RecordPayment(const OTIdentifier& SERVER_ID,
+        //                              const OTIdentifier& USER_ID,
         //                              bool bIsInbox, // true == payments
         // inbox. false == payments outbox.
         //                              int32_t  nIndex)   // removes payment

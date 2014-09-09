@@ -1858,7 +1858,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // private key to that new master key.
                     //
                     //                  bool OTWallet::IsNymOnCachedKey(const
-                    // OTIdentifier & needle) const // needle and haystack.
+                    // OTIdentifier& needle) const // needle and haystack.
 
                     const bool bIsOldStyleNym =
                         (false == IsNymOnCachedKey(theNymID));

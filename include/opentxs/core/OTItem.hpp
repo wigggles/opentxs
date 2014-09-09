@@ -518,7 +518,7 @@ public:
     //    OTItem& operator=(const OTItem& rhs);
     void InitItem();
 
-    //    virtual bool SaveContractWallet(FILE * fl);
+    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 

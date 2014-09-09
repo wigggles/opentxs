@@ -398,7 +398,7 @@ public:
     EXPORT int32_t
     ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                        OTMessage& theMessage, OTPseudonym& theNym,
-                       // OTAssetContract & theContract,
+                       // OTAssetContract& theContract,
                        const OTServerContract& theServer,
                        const OTAccount* pAccount = nullptr,
                        int64_t lTransactionAmount = 0,
@@ -423,9 +423,9 @@ public:
                                     const OTServerConnection& theConnection,
                                     const OTMessage& theReply) const;
 
-    //  void AcceptEntireInbox (OTLedger & theInbox,  OTServerConnection &
+    //  void AcceptEntireInbox (OTLedger& theInbox,  OTServerConnection&
     // theConnection);
-    //  void AcceptEntireNymbox(OTLedger & theNymbox, OTServerConnection &
+    //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
     // theConnection);
 
     bool AcceptEntireInbox(OTLedger& theInbox, const OTIdentifier& theServerID,
@@ -438,8 +438,8 @@ public:
                             const OTServerContract& theServerContract,
                             OTPseudonym& theNym, OTMessage& theMessage);
 
-    // void HarvestTransactionNumbers(OTTransaction & theTransaction,
-    // OTPseudonym & theNym);
+    // void HarvestTransactionNumbers(OTTransaction& theTransaction,
+    // OTPseudonym& theNym);
 };
 
 } // namespace opentxs

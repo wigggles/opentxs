@@ -371,8 +371,8 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
 /*
  extern "C"
  {
- typedef int32_t OT_OPENSSL_CALLBACK(char *buf, int32_t size, int32_t rwflag,
- void *u); // <== Callback type, used for declaring.
+ typedef int32_t OT_OPENSSL_CALLBACK(char* buf, int32_t size, int32_t rwflag,
+ void* u); // <== Callback type, used for declaring.
  }
 */
 
@@ -558,7 +558,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         // Actually that's it. The master already asks twice when it's
         // generating.
 
-        //      bool   GetMasterPassword(      OTPassword & theOutput,
+        //      bool   GetMasterPassword(OTPassword& theOutput,
         //                               const char       * szDisplay=nullptr,
         //                                     bool         bVerifyTwice=false);
 

@@ -154,7 +154,7 @@ std::ostream& operator<<(std::ostream& os, const OTString& obj)
 }
 
 /*
- int32_t vsnprintf(char *str, size_t size, const char *format, va_list ap);
+ int32_t vsnprintf(char* str, size_t size, const char* format, va_list ap);
 
        Upon successful return, these functions return the number of characters
        printed  (not  including  the  trailing  '\0'  used  to  end  output to
@@ -267,7 +267,7 @@ bool OTString::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
 
 //#ifndef __linux__
 // extern "C" {
-//  size_t strnlen(const char *s, size_t max)
+//  size_t strnlen(const char* s, size_t max)
 //   {
 //       register const char *p;
 //       for(p = s; *p && max--; ++p);
@@ -291,7 +291,7 @@ implementations that manage the problems of their original ANSI ancestors.
 
 // #include <string.h>
 
-size_t strlcpy(char *d, const char *s, size_t bufsize)
+size_t strlcpy(char* d, const char* s, size_t bufsize)
 {
     size_t len;
     size_t ret;
@@ -307,7 +307,7 @@ size_t strlcpy(char *d, const char *s, size_t bufsize)
     return ret;
 }
 
-size_t strlcat(char *d, const char *s, size_t bufsize)
+size_t strlcat(char* d, const char* s, size_t bufsize)
 {
     size_t len1;
     size_t len2;
@@ -336,8 +336,7 @@ size_t strlcat(char *d, const char *s, size_t bufsize)
 
 /*
  WINDOWS:
-errno_t strcpy_s(
-                 char *strDestination,
+errno_t strcpy_s(char* strDestination,
                  size_t numberOfElements,   // MAX SIZE of destination.
                  const char *strSource);
 
@@ -346,7 +345,7 @@ errno_t strcpy_s(
                 const char * restrict src,
                 size_t size); // MAX SIZE of destination.
 
- extern "C" size_t strnlen(const char *s, size_t max); // Moved the definition
+ extern "C" size_t strnlen(const char* s, size_t max); // Moved the definition
 of this function to OTPassword.cpp
  */
 
@@ -531,7 +530,7 @@ void fwrite_string(std::ostream& ofs, const char* str)
 }
 
 /*
-void fwrite_string(FILE *fl, const char *str)
+void fwrite_string(FILE* fl, const char* str)
 {
     char * pchar;
 
@@ -708,7 +707,7 @@ int64_t OTString::ToLong() const
 }
 
 /*
- int64_t OTString::StringToLong(const std::string & strNumber)
+ int64_t OTString::StringToLong(const std::string& strNumber)
  {
     char* end;
     int64_t lNumber = strtol(strNumber.c_str(), &end, 10);
@@ -976,7 +975,7 @@ bool OTString::MemSet(const char* pMem, uint32_t theSize) // if theSize is 10...
     // -------------------
     OTPassword::zeroMemory(str_new, theSize + 1);
 
-    //  void * OTPassword::safe_memcpy(void   * dest,
+    //  void * OTPassword::safe_memcpy(void* dest,
     //                                 uint32_t dest_size,
     //                                 const
     //                                 void   * src,
@@ -1286,7 +1285,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
 }
 
 /*
- char *str_dup2(const char *str, int32_t length)
+ char *str_dup2(const char* str, int32_t length)
  {
      char *str_new;
      str_new = new char [length + 1];
@@ -1296,7 +1295,7 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
  }
  */
 
-// inline bool vformat(const char * fmt, va_list vl, std::string & str_output)
+// inline bool vformat(const char* fmt, va_list vl, std::string& str_output)
 //{
 //    int32_t size      = 512;
 //    char * buffer = new char[size];
@@ -1368,7 +1367,7 @@ void OTString::WriteToFile(std::ostream& ofs) const
 }
 
 /*
-void OTString::WriteToFile(FILE * fl) const
+void OTString::WriteToFile(FILE* fl) const
 {
     if (fl != nullptr)
         fwrite_string(fl, data_);

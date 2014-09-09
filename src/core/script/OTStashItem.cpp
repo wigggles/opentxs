@@ -143,7 +143,7 @@ namespace opentxs
  int64_t GetAmount() const { return m_lAmount; }
  void SetAmount(const int64_t lAmount) { m_lAmount = lAmount; }
 
- const OTString & GetAssetTypeID() { return m_strAssetTypeID; }
+ const OTString& GetAssetTypeID() { return m_strAssetTypeID; }
  */
 
 OTStashItem::OTStashItem() : m_lAmount(0)

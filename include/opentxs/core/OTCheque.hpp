@@ -223,19 +223,19 @@ public:
      // number handy to write it with. (Necessary to prevent double-spending.)
      inline       int64_t              GetTransactionNum() const  { return
      m_lTransactionNum; }
-     inline const OTIdentifier &    GetSenderAcctID()           { return
+     inline const OTIdentifier&    GetSenderAcctID()           { return
      m_SENDER_ACCT_ID; }
-     inline const OTIdentifier &    GetSenderUserID()           { return
+     inline const OTIdentifier&    GetSenderUserID()           { return
      m_SENDER_USER_ID; }
      */
 
     // From OTInstrument (parent class of OTTrackable, parent class of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
      : OTContract()
 
-     inline const OTIdentifier & GetAssetID()  const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID;    }
+     inline const OTIdentifier& GetAssetID()  const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetServerID() const { return m_ServerID;    }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
      inline time64_t GetValidTo()        const { return m_VALID_TO;   }
@@ -254,7 +254,7 @@ public:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the token saves its contents
 
-    //    virtual bool SaveContractWallet(FILE * fl);
+    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 

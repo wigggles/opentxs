@@ -181,12 +181,12 @@ TIME_FROM; }
 }
 
 
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
 
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
+     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
 ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
+     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
 SERVER_ID; }
 
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM

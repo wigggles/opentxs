@@ -6533,7 +6533,7 @@ const OTAsymmetricKey& OTPseudonym::GetPublicSignKey() const
 }
 
 // This is being called by:
-// OTContract::VerifySignature(const OTPseudonym & theNym, const OTSignature &
+// OTContract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
 // theSignature, OTPasswordData * pPWData=nullptr)
 //
 // Note: Need to change OTContract::VerifySignature so that it checks all of

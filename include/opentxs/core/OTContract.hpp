@@ -213,22 +213,22 @@ protected:
                             // there into members here.
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    //    virtual bool SignContract(const EVP_PKEY * pkey, OTSignature &
+    //    virtual bool SignContract(const EVP_PKEY* pkey, OTSignature&
     // theSignature,
-    //                              const OTString & strHashType);
-    //    bool VerifySignature(const EVP_PKEY * pkey, const OTSignature &
+    //                              const OTString& strHashType);
+    //    bool VerifySignature(const EVP_PKEY* pkey, const OTSignature&
     // theSignature,
-    //                         const OTString & strHashType) const;
+    //                         const OTString& strHashType) const;
     // The default hash scheme involves combining 2 other hashes
     // If a hash with one of the special names comes through, it will
     // be processed here instead of the normal code. The above two functions
     // will call these two when appropriate.
     // NOTE: Moved to OTCrypto
     //
-    //    bool SignContractDefaultHash  (const EVP_PKEY * pkey, OTSignature &
+    //    bool SignContractDefaultHash  (const EVP_PKEY* pkey, OTSignature&
     // theSignature);
-    //    bool VerifyContractDefaultHash(const EVP_PKEY * pkey, const
-    // OTSignature & theSignature) const;
+    //    bool VerifyContractDefaultHash(const EVP_PKEY* pkey, const
+    // OTSignature& theSignature) const;
 public:
     // Used by OTTransactionType::Factory and OTToken::Factory.
     // In both cases, it takes the input string, trims it, and if it's
@@ -434,7 +434,7 @@ public:
     EXPORT bool SaveContract(); // This saves the Contract to its own internal
                                 // member string, m_strRawFile (and does
                                 // NOT actually save it to a file.)
-    //      bool SaveContract(OTString & strContract); // Saves the contract to
+    //      bool SaveContract(OTString& strContract); // Saves the contract to
     // any string you want to pass in.
     EXPORT bool SaveContract(const char* szFoldername,
                              const char* szFilename); // Saves the contract to a

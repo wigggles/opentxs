@@ -221,7 +221,7 @@ private:
     static bool CheckLogger(OTLog* pLogger);
 
 public:
-    // EXPORT static OTLog & It();
+    // EXPORT static OTLog& It();
 
     // now the logger checks the global config file itself for the log-filename.
     EXPORT static bool Init(const OTString& strThreadContext = "",

@@ -1200,8 +1200,8 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 
         return const;
 
-        char *    OTAPI_Wrap::GetSentMessage(const char * REQUEST_NUMBER)
-        OT_BOOL   OTAPI_Wrap::RemoveSentMessage(const char * REQUEST_NUMBER)
+        char *    OTAPI_Wrap::GetSentMessage(const char* REQUEST_NUMBER)
+        OT_BOOL   OTAPI_Wrap::RemoveSentMessage(const char* REQUEST_NUMBER)
 
         */
         // All of these booleans (except "error") represent RECEIVED ANSWERS
