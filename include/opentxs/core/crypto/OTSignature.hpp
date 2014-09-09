@@ -144,7 +144,8 @@ class OTString;
 class OTSignature : public OTASCIIArmor
 {
 public:
-    OTSignature() : OTASCIIArmor()
+    OTSignature()
+        : OTASCIIArmor()
     {
     }
 
@@ -152,15 +153,18 @@ public:
     {
     }
 
-    OTSignature(const OTString& value) : OTASCIIArmor(value)
+    OTSignature(const OTString& value)
+        : OTASCIIArmor(value)
     {
     }
 
-    OTSignature(const OTASCIIArmor& value) : OTASCIIArmor(value)
+    OTSignature(const OTASCIIArmor& value)
+        : OTASCIIArmor(value)
     {
     }
 
-    OTSignature(const char* value) : OTASCIIArmor(value)
+    OTSignature(const char* value)
+        : OTASCIIArmor(value)
     {
     }
 

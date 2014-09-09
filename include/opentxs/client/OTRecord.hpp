@@ -141,13 +141,7 @@ namespace opentxs
 class OTRecord
 {
 public:
-    enum OTRecordType {
-        Mail = 0,
-        Transfer,
-        Receipt,
-        Instrument,
-        ErrorState
-    };
+    enum OTRecordType { Mail = 0, Transfer, Receipt, Instrument, ErrorState };
 
 private:
     int32_t m_nBoxIndex;
@@ -256,9 +250,9 @@ public:
     // cheque. But if voucher, smart
     // contract, payment plan, you must
     // provide.
-    EXPORT bool AcceptIncomingInstrument(const std::string& str_into_acct)
-        const; // For incoming, pending
-               // (not-yet-accepted) instruments.
+    EXPORT bool AcceptIncomingInstrument(
+        const std::string& str_into_acct) const; // For incoming, pending
+    // (not-yet-accepted) instruments.
     EXPORT bool AcceptIncomingTransfer() const; // For incoming, pending
                                                 // (not-yet-accepted) transfers.
     EXPORT bool AcceptIncomingReceipt() const;  // For incoming,

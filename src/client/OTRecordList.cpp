@@ -604,10 +604,11 @@ bool OTRecordList::PerformAutoAccept()
                 // either way.
                 //
                 OTLedger* pInbox =
-                    m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
-                                     theServerID, theNymID)
-                               : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(
-                                     theServerID, theNymID);
+                    m_bRunFast
+                        ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
+                              theServerID, theNymID)
+                        : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
+                                                                theNymID);
                 std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
                 // It loaded up, so let's loop through it.
@@ -808,10 +809,11 @@ bool OTRecordList::PerformAutoAccept()
                                     str_server_id.c_str())) &&
                                 (strAcctAssetID.Compare(
                                     str_asset_type_id.c_str())) &&
-                                (0 == str_acct_type.compare(
-                                          "simple"))) // No issuer accounts
-                                                      // allowed here. Only
-                                                      // simple accounts.
+                                (0 ==
+                                 str_acct_type.compare("simple"))) // No issuer
+                                                                   // accounts
+                            // allowed here. Only
+                            // simple accounts.
                             {
                                 // Accept it.
                                 //
@@ -821,7 +823,7 @@ bool OTRecordList::PerformAutoAccept()
 
                                 OT_ME madeEasy;
                                 if (!madeEasy.accept_from_paymentbox(
-                                         str_account_id, str_indices, "ANY")) {
+                                        str_account_id, str_indices, "ANY")) {
                                     otErr << __FUNCTION__
                                           << ": Error while trying to "
                                              "accept this instrument.\n";
@@ -958,10 +960,10 @@ bool OTRecordList::PerformAutoAccept()
 
                         int32_t nNumberNeeded = 20;
                         if (!madeEasy.make_sure_enough_trans_nums(
-                                 nNumberNeeded, // I'm just hardcoding: "Make
-                                                // sure I have at least 20
-                                                // transaction numbers."
-                                 str_server_id, str_nym_id)) {
+                                nNumberNeeded, // I'm just hardcoding: "Make
+                                               // sure I have at least 20
+                                               // transaction numbers."
+                                str_server_id, str_nym_id)) {
                             otOut << "\n\nFailure: "
                                      "make_sure_enough_trans_nums: "
                                      "returned false. (Skipping inbox "
@@ -1552,10 +1554,11 @@ bool OTRecordList::Populate()
             // either way.
             //
             OTLedger* pInbox =
-                m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
-                                 theServerID, theNymID)
-                           : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
-                                                                   theNymID);
+                m_bRunFast
+                    ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(theServerID,
+                                                                    theNymID)
+                    : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
+                                                            theNymID);
             std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
@@ -1804,9 +1807,10 @@ bool OTRecordList::Populate()
             // since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             OTLedger* pRecordbox =
-                m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
-                                 theServerID, theNymID, theNymID)
-                           : // twice.
+                m_bRunFast
+                    ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
+                          theServerID, theNymID, theNymID)
+                    : // twice.
                     OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID,
                                                        theNymID);
             std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
@@ -1843,11 +1847,12 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 == str_nym_id.compare(
-                                         str_sender_id)) // str_nym_id IS
-                                                         // str_sender_id.
-                                                         // (Therefore we want
-                                                         // recipient.)
+                            if (0 ==
+                                str_nym_id.compare(str_sender_id)) // str_nym_id
+                                                                   // IS
+                            // str_sender_id.
+                            // (Therefore we want
+                            // recipient.)
                             {
                                 bOutgoing = true; // if Nym is the sender, then
                                                   // it must have been outgoing.
@@ -1919,11 +1924,12 @@ bool OTRecordList::Populate()
                             const std::string str_recipient_id(
                                 strRecipientID.Get());
 
-                            if (0 != str_nym_id.compare(
-                                         str_recipient_id)) // str_nym_id is NOT
-                                                            // str_recipient_id.
-                                // (Therefore we want
-                                // str_recipient_id.)
+                            if (0 !=
+                                str_nym_id.compare(
+                                    str_recipient_id)) // str_nym_id is NOT
+                                                       // str_recipient_id.
+                                                       // (Therefore we want
+                                                       // str_recipient_id.)
                             {
                                 // If Nym is not the recipient, then he must be
                                 // the sender.
@@ -2233,10 +2239,11 @@ bool OTRecordList::Populate()
             // Also loop through its expired record box.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             OTLedger* pExpiredbox =
-                m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(
-                                 theServerID, theNymID)
-                           : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theServerID,
-                                                                 theNymID);
+                m_bRunFast
+                    ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(theServerID,
+                                                                  theNymID)
+                    : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theServerID,
+                                                          theNymID);
             std::unique_ptr<OTLedger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
@@ -2272,11 +2279,12 @@ bool OTRecordList::Populate()
                             // Whereas if Nym were the recipient, then we'd want
                             // the SENDER. (For display.)
                             //
-                            if (0 == str_nym_id.compare(
-                                         str_sender_id)) // str_nym_id IS
-                                                         // str_sender_id.
-                                                         // (Therefore we want
-                                                         // recipient.)
+                            if (0 ==
+                                str_nym_id.compare(str_sender_id)) // str_nym_id
+                                                                   // IS
+                            // str_sender_id.
+                            // (Therefore we want
+                            // recipient.)
                             {
                                 bOutgoing = true; // if Nym is the sender, then
                                                   // it must have been outgoing.
@@ -2348,11 +2356,12 @@ bool OTRecordList::Populate()
                             const std::string str_recipient_id(
                                 strRecipientID.Get());
 
-                            if (0 != str_nym_id.compare(
-                                         str_recipient_id)) // str_nym_id is NOT
-                                                            // str_recipient_id.
-                                // (Therefore we want
-                                // str_recipient_id.)
+                            if (0 !=
+                                str_nym_id.compare(
+                                    str_recipient_id)) // str_nym_id is NOT
+                                                       // str_recipient_id.
+                                                       // (Therefore we want
+                                                       // str_recipient_id.)
                             {
                                 // If Nym is not the recipient, then he must be
                                 // the sender.
@@ -2731,11 +2740,11 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
         //
-        OTLedger* pInbox =
-            m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
-                             theServerID, theNymID, theAccountID)
-                       : OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID,
-                                                        theAccountID);
+        OTLedger* pInbox = m_bRunFast
+                               ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+                                     theServerID, theNymID, theAccountID)
+                               : OTAPI_Wrap::OTAPI()->LoadInbox(
+                                     theServerID, theNymID, theAccountID);
         std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
         // It loaded up, so let's loop through it.
@@ -2993,11 +3002,11 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before running
         // Populate.
         //
-        OTLedger* pOutbox =
-            m_bRunFast ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
-                             theServerID, theNymID, theAccountID)
-                       : OTAPI_Wrap::OTAPI()->LoadOutbox(theServerID, theNymID,
-                                                         theAccountID);
+        OTLedger* pOutbox = m_bRunFast
+                                ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
+                                      theServerID, theNymID, theAccountID)
+                                : OTAPI_Wrap::OTAPI()->LoadOutbox(
+                                      theServerID, theNymID, theAccountID);
         std::unique_ptr<OTLedger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
@@ -3208,11 +3217,12 @@ bool OTRecordList::Populate()
                         // Whereas if Nym were the recipient, then we'd want the
                         // SENDER. (For display.)
                         //
-                        if (0 == str_account_id.compare(
-                                     str_sender_acct_id)) // str_account_id IS
-                                                          // str_sender_acct_id.
-                                                          // (Therefore we want
-                                                          // recipient.)
+                        if (0 ==
+                            str_account_id.compare(
+                                str_sender_acct_id)) // str_account_id IS
+                                                     // str_sender_acct_id.
+                                                     // (Therefore we want
+                                                     // recipient.)
                         {
                             bOutgoing = true; // if Nym is the sender, then it
                                               // must have been outgoing.
@@ -3364,9 +3374,9 @@ bool OTRecordList::Populate()
                         if (0 !=
                             str_account_id.compare(
                                 str_recipient_acct_id)) // str_account_id is NOT
-                            // str_recipient_acct_id.
-                            // (Therefore we want
-                            // str_recipient_acct_id.)
+                        // str_recipient_acct_id.
+                        // (Therefore we want
+                        // str_recipient_acct_id.)
                         {
                             // If Nym is not the recipient, then he must be the
                             // sender.
@@ -3483,11 +3493,12 @@ bool OTRecordList::Populate()
                         const std::string str_recipient_id(
                             strRecipientID.Get());
 
-                        if (0 != str_nym_id.compare(
-                                     str_recipient_id)) // str_nym_id is NOT
-                                                        // str_recipient_id.
-                                                        // (Therefore we want
-                                                        // str_recipient_id.)
+                        if (0 !=
+                            str_nym_id.compare(str_recipient_id)) // str_nym_id
+                                                                  // is NOT
+                        // str_recipient_id.
+                        // (Therefore we want
+                        // str_recipient_id.)
                         {
                             // If Nym is not the recipient, then he must be the
                             // sender.

@@ -245,10 +245,11 @@ bool Transactor::issueNextTransactionNumber(OTPseudonym& theNym,
     // is also recorded in his Nym file.)  That way the server always knows
     // which
     // numbers are valid for each Nym.
-    else if (bStoreTheNumber &&
-             (false == pNym->AddTransactionNum(
-                           server_->m_nymServer, server_->m_strServerID,
-                           transactionNumber_, true))) // bSave = true
+    else if (bStoreTheNumber && (false ==
+                                 pNym->AddTransactionNum(server_->m_nymServer,
+                                                         server_->m_strServerID,
+                                                         transactionNumber_,
+                                                         true))) // bSave = true
     {
         OTLog::Error("Error adding transaction number to Nym file.\n");
         transactionNumber_--;
@@ -607,8 +608,8 @@ Mint* Transactor::getMint(const OTIdentifier& ASSET_TYPE_ID,
     if (pMint->LoadMint(strSeries.Get())) {
         if (pMint->VerifyMint(server_->m_nymServer)) // I don't verify the
                                                      // Mint's
-            // expiration date here, just its
-            // signature, ID, etc.
+        // expiration date here, just its
+        // signature, ID, etc.
         { // (Expiry dates are enforced on tokens during deposit--and checked
             // against mint--
             // but expiry dates are only enforced on the Mint itself during a

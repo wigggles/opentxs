@@ -250,9 +250,9 @@ public:
 
     bool HarvestTransactionNumber(
         const int64_t& lNumber, const OTString& strServerID,
-        bool bSave =
-            false, // Each agent's nym is used if pSignerNym is nullptr,
-                   // whereas the server
+        bool bSave = false, // Each agent's nym is used if pSignerNym is
+                            // nullptr,
+                            // whereas the server
         OTPseudonym* pSignerNym = nullptr); // uses this optional arg to
                                             // substitute serverNym as signer.
 

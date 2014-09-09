@@ -2600,10 +2600,10 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // In this function, pStashNym and pServerNym are always the same.
 
     if (!pOrigCronItem->VerifyNymAsAgent(
-             *pPartyNym, *pServerNym,
-             // In case it needs to load the AUTHORIZING agent, and that agent
-             // is already loaded, it will have access here.
-             &map_ALREADY_LOADED)) {
+            *pPartyNym, *pServerNym,
+            // In case it needs to load the AUTHORIZING agent, and that agent
+            // is already loaded, it will have access here.
+            &map_ALREADY_LOADED)) {
         otErr << "OTSmartContract::StashFunds: Failed authorization for party "
                  "Nym: " << strPartyUserID << "\n";
         FlagForRemoval(); // Remove it from Cron.
@@ -3561,11 +3561,11 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // TOdo: if the above block fails, should I still go dropping these
         // receipts?
         //
-        if ((false == pParty->DropFinalReceiptToNymboxes(
-                          lNewTransactionNumber, // new, owned by the server.
-                                                 // For notices.
-                          strOrigCronItem, nullptr, pstrAttachment,
-                          pPartyNym))) {
+        if ((false ==
+             pParty->DropFinalReceiptToNymboxes(
+                 lNewTransactionNumber, // new, owned by the server.
+                                        // For notices.
+                 strOrigCronItem, nullptr, pstrAttachment, pPartyNym))) {
             otErr << "OTSmartContract::" << __FUNCTION__
                   << ": Failure dropping final receipt into nymbox for even a "
                      "single agent.\n";
@@ -3629,11 +3629,12 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // (This happens in OTAgent::DropFinalReceipt, FYI.)
         //
 
-        if (false == pParty->DropFinalReceiptToInboxes(
-                         &nym_map, // contains any Nyms who might already be
-                                   // loaded, mapped by ID.
-                         strServerID, *pServerNym, lNewTransactionNumber,
-                         strOrigCronItem, nullptr, pstrAttachment)) {
+        if (false ==
+            pParty->DropFinalReceiptToInboxes(
+                &nym_map, // contains any Nyms who might already be
+                          // loaded, mapped by ID.
+                strServerID, *pServerNym, lNewTransactionNumber,
+                strOrigCronItem, nullptr, pstrAttachment)) {
             otErr << "OTSmartContract::onFinalReceipt: Failure dropping final "
                      "receipt into all inboxes. (Missed at least one.)\n";
         }
@@ -3871,8 +3872,8 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
                                                    // assumed a bool is expected
                                                    // to be returned inside it.
                                                    //            if (false ==
-                // pScript->ExecuteScript((str_clause_name.compare("process_clause")
-                // == 0) ? &theReturnVal : nullptr))
+            // pScript->ExecuteScript((str_clause_name.compare("process_clause")
+            // == 0) ? &theReturnVal : nullptr))
             {
                 otErr << "OTSmartContract::ExecuteClauses: Error while running "
                          "smartcontract trans# " << GetTransactionNum()
@@ -6415,10 +6416,10 @@ bool OTSmartContract::MoveFunds(
     // VERIFIES on the party's signed copy.
     //
     if (!pOrigCronItem->VerifyNymAsAgent(
-             *pSenderNym, *pServerNym,
-             // In case it needs to load the AUTHORIZING agent, and that agent
-             // is already loaded, it will have access here.
-             &map_ALREADY_LOADED)) {
+            *pSenderNym, *pServerNym,
+            // In case it needs to load the AUTHORIZING agent, and that agent
+            // is already loaded, it will have access here.
+            &map_ALREADY_LOADED)) {
         otErr << "OTCronItem::MoveFunds: Failed authorization for sender Nym: "
               << strSenderUserID << "\n";
         FlagForRemoval(); // Remove it from Cron.
@@ -6426,10 +6427,10 @@ bool OTSmartContract::MoveFunds(
     }
 
     if (!pOrigCronItem->VerifyNymAsAgent(
-             *pRecipientNym, *pServerNym,
-             // In case it needs to load the AUTHORIZING agent, and that agent
-             // is already loaded, it will have access here.
-             &map_ALREADY_LOADED)) {
+            *pRecipientNym, *pServerNym,
+            // In case it needs to load the AUTHORIZING agent, and that agent
+            // is already loaded, it will have access here.
+            &map_ALREADY_LOADED)) {
         otErr
             << "OTCronItem::MoveFunds: Failed authorization for recipient Nym: "
             << strRecipientUserID << "\n";

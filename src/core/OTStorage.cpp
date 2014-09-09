@@ -445,15 +445,15 @@ InitOTDBDetails::InitOTDBDetails() // Constructor for namespace
         &BidDataPB::Instantiate;
     theMap[std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_ASK_DATA)] =
         &AskDataPB::Instantiate;
-    theMap
-        [std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_OFFER_LIST_MARKET)] =
-            &OfferListMarketPB::Instantiate;
-    theMap
-        [std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_TRADE_DATA_MARKET)] =
-            &TradeDataMarketPB::Instantiate;
-    theMap
-        [std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_TRADE_LIST_MARKET)] =
-            &TradeListMarketPB::Instantiate;
+    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
+                          STORED_OBJ_OFFER_LIST_MARKET)] =
+        &OfferListMarketPB::Instantiate;
+    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
+                          STORED_OBJ_TRADE_DATA_MARKET)] =
+        &TradeDataMarketPB::Instantiate;
+    theMap[std::make_pair(PACK_PROTOCOL_BUFFERS,
+                          STORED_OBJ_TRADE_LIST_MARKET)] =
+        &TradeListMarketPB::Instantiate;
     theMap[std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_OFFER_DATA_NYM)] =
         &OfferDataNymPB::Instantiate;
     theMap[std::make_pair(PACK_PROTOCOL_BUFFERS, STORED_OBJ_OFFER_LIST_NYM)] =
@@ -2922,7 +2922,8 @@ bool StorageFS::onEraseValueByKey(std::string strFolder, std::string oneStr,
 
 // Constructor for Filesystem storage context.
 //
-StorageFS::StorageFS() : Storage()
+StorageFS::StorageFS()
+    : Storage()
 {
     OTString strDataPath;
     OTDataFolder::Get(strDataPath);

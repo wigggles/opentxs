@@ -276,11 +276,13 @@ OTScript::OTScript()
 {
 }
 
-OTScript::OTScript(const OTString& strValue) : m_str_script(strValue.Get())
+OTScript::OTScript(const OTString& strValue)
+    : m_str_script(strValue.Get())
 {
 }
 
-OTScript::OTScript(const char* new_string) : m_str_script(new_string)
+OTScript::OTScript(const char* new_string)
+    : m_str_script(new_string)
 {
 }
 
@@ -289,7 +291,8 @@ OTScript::OTScript(const char* new_string, size_t sizeLength)
 {
 }
 
-OTScript::OTScript(const std::string& new_string) : m_str_script(new_string)
+OTScript::OTScript(const std::string& new_string)
+    : m_str_script(new_string)
 {
 }
 

@@ -161,7 +161,7 @@ typedef std::map<std::string, OTAssetContract*> mapOfContracts;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 typedef std::map<std::string, OTServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
-mapOfSymmetricKeys;
+    mapOfSymmetricKeys;
 typedef std::set<OTIdentifier> setOfIdentifiers;
 
 class OTWallet
@@ -181,13 +181,11 @@ public:
                                      const OTPasswordData* pPWData = nullptr);
     EXPORT OTPseudonym* GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
                                            const char* szFuncName = nullptr);
-    EXPORT OTPseudonym* GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
-                                            bool bChecking = false,
-                                            const char* szFuncName = nullptr,
-                                            const OTPasswordData* pPWData =
-                                                nullptr,
-                                            const OTPassword* pImportPassword =
-                                                nullptr);
+    EXPORT OTPseudonym* GetOrLoadPrivateNym(
+        const OTIdentifier& NYM_ID, bool bChecking = false,
+        const char* szFuncName = nullptr,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
 
     EXPORT OTAccount* LoadAccount(const OTPseudonym& theNym,
                                   const OTIdentifier& ACCT_ID,

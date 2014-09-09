@@ -206,14 +206,12 @@ public:
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
     EXPORT bool CalculateID(OTIdentifier& theOutput) const;
-    EXPORT bool SaveCertToString(OTString& strOutput,
-                                 const OTString* pstrReason = nullptr,
-                                 const OTPassword* pImportPassword =
-                                     nullptr) const;
-    EXPORT bool SavePrivateKeyToString(OTString& strOutput,
-                                       const OTString* pstrReason = nullptr,
-                                       const OTPassword* pImportPassword =
-                                           nullptr) const;
+    EXPORT bool SaveCertToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const;
+    EXPORT bool SavePrivateKeyToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SaveCertAndPrivateKeyToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
@@ -229,12 +227,10 @@ public:
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN
     // CERTIFICATE....
     //
-    EXPORT bool LoadPrivateKeyFromCertString(const OTString& strCert,
-                                             bool bEscaped = true,
-                                             const OTString* pstrReason =
-                                                 nullptr,
-                                             const OTPassword* pImportPassword =
-                                                 nullptr);
+    EXPORT bool LoadPrivateKeyFromCertString(
+        const OTString& strCert, bool bEscaped = true,
+        const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     // Load Public Key from Cert (file or string)
     //
     EXPORT bool LoadPublicKeyFromCertString(
@@ -242,21 +238,19 @@ public:
         const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND escapes.
-    EXPORT bool LoadPublicKeyFromCertFile(const OTString& strFoldername,
-                                          const OTString& strFilename,
-                                          const OTString* pstrReason = nullptr,
-                                          const OTPassword* pImportPassword =
-                                              nullptr); // DOES handle bookends.
+    EXPORT bool LoadPublicKeyFromCertFile(
+        const OTString& strFoldername, const OTString& strFilename,
+        const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
     EXPORT bool LoadCertAndPrivateKeyFromString(
         const OTString& strInput, const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // LOAD BOTH KEYS FROM CERT FILE
     //
-    EXPORT bool LoadBothKeysFromCertFile(const OTString& strFoldername,
-                                         const OTString& strFilename,
-                                         const OTString* pstrReason = nullptr,
-                                         const OTPassword* pImportPassword =
-                                             nullptr);
+    EXPORT bool LoadBothKeysFromCertFile(
+        const OTString& strFoldername, const OTString& strFilename,
+        const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr);
 
     EXPORT bool SaveAndReloadBothKeysFromTempFile(
         OTString* pstrOutputCert = nullptr,

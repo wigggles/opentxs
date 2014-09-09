@@ -108,8 +108,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_show_basket()
                     }
 
                     if (!OTAPI_Wrap::IsBasketCurrency(strAssetID)) {
-                        otOut << "Failure: not a basket currency: "
-                              << strAssetID << " : " << strAssetName << "\n";
+                        otOut
+                            << "Failure: not a basket currency: " << strAssetID
+                            << " : " << strAssetName << "\n";
                     }
                     else {
                         // display all the details about this basket currency
@@ -230,8 +231,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewBasket()
     return -1;
 }
 
-OT_COMMANDS_OT int32_t
-OT_Command::details_new_basket(const string& strServer, const string& strNym)
+OT_COMMANDS_OT int32_t OT_Command::details_new_basket(const string& strServer,
+                                                      const string& strNym)
 {
     int32_t nBasketCount = 2;
     otOut << "How many different asset types will compose this new basket "
@@ -387,9 +388,10 @@ OT_Command::details_new_basket(const string& strServer, const string& strNym)
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_exchange_basket(const string& strServer,
-                                    const string& strNym, const string& strAcct,
-                                    const string& strBasketType)
+    OT_Command::details_exchange_basket(const string& strServer,
+                                        const string& strNym,
+                                        const string& strAcct,
+                                        const string& strBasketType)
 {
     // NOTE: details_exchange_basket ASSUMES that strAcct has a server of
     // strServer and
@@ -737,8 +739,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainExchangeBasket()
 // Also: if strNym exists, the accounts are filtered by that Nym.
 //
 OT_COMMANDS_OT int32_t
-OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
-                                 bool bFilter, const string& strBasketType)
+    OT_Command::stat_basket_accounts(const string& strServer,
+                                     const string& strNym, bool bFilter,
+                                     const string& strBasketType)
 {
     cout << "------------------------------------------------------------------"
             "\n";
@@ -808,9 +811,9 @@ OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
 //
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_discard_incoming(const string& strServer,
-                                     const string& strMyNym,
-                                     const string& strIndices)
+    OT_Command::details_discard_incoming(const string& strServer,
+                                         const string& strMyNym,
+                                         const string& strIndices)
 {
     if (!VerifyStringVal(strIndices)) {
         return -1;
@@ -856,7 +859,7 @@ OT_Command::details_discard_incoming(const string& strServer,
             if (!("all" == strIndices) &&
                 ((nIndicesCount > 0) &&
                  !OTAPI_Wrap::NumList_VerifyQuery(
-                      strIndices, std::to_string(nInboxIndex)))) {
+                     strIndices, std::to_string(nInboxIndex)))) {
                 continue;
             }
 
@@ -939,9 +942,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainDiscard()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_cancel_outgoing(const string& strMyNym,
-                                    const string& strMyAcct,
-                                    const string& strIndices)
+    OT_Command::details_cancel_outgoing(const string& strMyNym,
+                                        const string& strMyAcct,
+                                        const string& strIndices)
 {
     // NOTE: You can't just discard a sent cheque
     // from your outpayment box. Why not?\nJust because you remove your record
@@ -1226,10 +1229,11 @@ OT_Command::details_cancel_outgoing(const string& strMyNym,
                                 strServer, strSenderAcctID, strSenderUserID,
                                 strPaymentContents, strPaymentType);
 
-                            otOut << "\n" << (1 == nDepositCheque ? "Success"
-                                                                  : "Failure")
-                                  << " canceling cheque of type: "
-                                  << strPaymentType << "\n";
+                            otOut
+                                << "\n"
+                                << (1 == nDepositCheque ? "Success" : "Failure")
+                                << " canceling cheque of type: "
+                                << strPaymentType << "\n";
                         }
                     }
                 }
@@ -1402,8 +1406,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainTriggerClause()
 }
 
 OT_COMMANDS_OT string
-OT_Command::find_revokedID_for_subcred(const string& strMyNymID,
-                                       const string& strInputID)
+    OT_Command::find_revokedID_for_subcred(const string& strMyNymID,
+                                           const string& strInputID)
 {
     int32_t nCredCount = OTAPI_Wrap::GetNym_RevokedCredCount(strMyNymID);
 
@@ -1435,8 +1439,8 @@ OT_Command::find_revokedID_for_subcred(const string& strMyNymID,
 }
 
 OT_COMMANDS_OT string
-OT_Command::find_masterID_for_subcred(const string& strMyNymID,
-                                      const string& strInputID)
+    OT_Command::find_masterID_for_subcred(const string& strMyNymID,
+                                          const string& strInputID)
 {
     int32_t nCredCount = OTAPI_Wrap::GetNym_CredentialCount(strMyNymID);
 
@@ -1565,7 +1569,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowCredential()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_credentials(const string& strMyNymID)
+    OT_Command::details_show_credentials(const string& strMyNymID)
 {
     int32_t nReturnVal = -1;
 
@@ -2030,7 +2034,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainProposePlan()
 // the user to enter it.
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
+    OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
 {
     string strLocation = "details_confirm_plan";
 
@@ -2147,8 +2151,8 @@ OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
 //
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_confirm_smart_contract(string& strSmartContract,
-                                           int32_t nIndex)
+    OT_Command::details_confirm_smart_contract(string& strSmartContract,
+                                               int32_t nIndex)
 {
     string strLocation = "details_confirm_smart_contract";
 
@@ -2547,7 +2551,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                                 GetAccountWallet_Name(
                                                     strWalletAcctID);
                                             if (!VerifyStringVal(
-                                                     strAccountName)) {
+                                                    strAccountName)) {
                                                 strAccountName = "";
                                             }
                                             otOut << i << " : "
@@ -2662,7 +2666,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                                     OT_CLI_ReadLine();
 
                                                 if (!VerifyStringVal(
-                                                         strAgentIndex)) {
+                                                        strAgentIndex)) {
                                                     return -1;
                                                 }
 
@@ -2684,7 +2688,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                                                         nAgentIndex);
 
                                                 if (!VerifyStringVal(
-                                                         strAgentName)) {
+                                                        strAgentName)) {
                                                     otOut << "Error: Unable to "
                                                              "retrieve agent "
                                                              "name at index "
@@ -2728,7 +2732,7 @@ OT_Command::details_confirm_smart_contract(string& strSmartContract,
                             1;
 
                         if (!MadeEasy::insure_enough_nums(
-                                 numCountNeeded, strServerID, strNymID)) {
+                                numCountNeeded, strServerID, strNymID)) {
                             otOut << "\n** Sorry -- Nym (" << strNymID
                                   << ") doesn't have enough transaction "
                                      "numbers to confirm this smart contract. "
@@ -3604,10 +3608,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainChangePw()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_send_transfer(const string& strMyAcctID,
-                                  const string& strHisAcctID,
-                                  const string& strAmount,
-                                  const string& strNote)
+    OT_Command::details_send_transfer(const string& strMyAcctID,
+                                      const string& strHisAcctID,
+                                      const string& strAmount,
+                                      const string& strNote)
 {
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
     if (!VerifyStringVal(strMyNymID)) {
@@ -4031,7 +4035,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendMessage()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_write_cheque(string& strCheque, bool bIsInvoice)
+    OT_Command::details_write_cheque(string& strCheque, bool bIsInvoice)
 {
     Utility MsgUtil;
 
@@ -4659,11 +4663,11 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendInvoice()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_create_offer(const string& strScale,
-                                 const string& strMinIncrement,
-                                 const string& strQuantity,
-                                 const string& strPrice, bool bSelling,
-                                 const string& strLifespan)
+    OT_Command::details_create_offer(const string& strScale,
+                                     const string& strMinIncrement,
+                                     const string& strQuantity,
+                                     const string& strPrice, bool bSelling,
+                                     const string& strLifespan)
 {
     // NOTE: The top half of this function has nothing to do with placing a new
     // offer.
@@ -5497,9 +5501,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMint()
 // Returns 1 for success, 0 for failure.
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_create_nym(int32_t nKeybits, const string& strName,
-                               const string& strSourceForNymID,
-                               const string& strAltLocation)
+    OT_Command::details_create_nym(int32_t nKeybits, const string& strName,
+                                   const string& strSourceForNymID,
+                                   const string& strAltLocation)
 {
     string strNymID =
         MadeEasy::create_pseudonym(nKeybits, strSourceForNymID, strAltLocation);
@@ -6113,9 +6117,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainRefresh()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_download_contract(const string& strServerID,
-                                      const string& strNymID,
-                                      const string& strContractID)
+    OT_Command::details_download_contract(const string& strServerID,
+                                          const string& strNymID,
+                                          const string& strContractID)
 {
     string strRetrieved =
         MadeEasy::retrieve_contract(strServerID, strNymID, strContractID);
@@ -6291,7 +6295,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainRefreshNym()
 
 // Note: nBoxType is 0 for Nymbox, 1 for Inbox, and 2 for Outbox.
 OT_COMMANDS_OT int32_t
-OT_Command::details_download_box_receipt(const string& strID, int32_t nBoxType)
+    OT_Command::details_download_box_receipt(const string& strID,
+                                             int32_t nBoxType)
 {
     string strMyNymID = MyNym;
     string strAcctID;
@@ -6410,7 +6415,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
 // (from asset account on server to cash purse on client.)
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_withdraw_cash(const string& strMyAcctID, int64_t lAmount)
+    OT_Command::details_withdraw_cash(const string& strMyAcctID,
+                                      int64_t lAmount)
 {
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
     if (!VerifyStringVal(strMyNymID)) {
@@ -6934,8 +6940,8 @@ OT_COMMANDS_OT OTDB::OfferListMarket* OT_Command::loadMarketOffers(
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_market_offers(const string& strServerID,
-                                       const string& strMarketID)
+    OT_Command::details_show_market_offers(const string& strServerID,
+                                           const string& strMarketID)
 {
     OTDB::OfferListMarket* offerListPtr =
         loadMarketOffers(strServerID, strMarketID);
@@ -7213,8 +7219,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainAdjustUsageCredits()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_nym_offers(const string& strServerID,
-                                    const string& strNymID)
+    OT_Command::details_show_nym_offers(const string& strServerID,
+                                        const string& strNymID)
 {
     string strLocation = "details_show_nym_offers";
 
@@ -7274,8 +7280,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMyOffers()
 }
 
 OT_COMMANDS_OT string
-OT_Command::details_get_nym_market_offers(const string& strServerID,
-                                          const string& strNymID)
+    OT_Command::details_get_nym_market_offers(const string& strServerID,
+                                              const string& strNymID)
 {
     string strResponse;
 
@@ -7319,8 +7325,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetMyOffers()
 // shareholders, sending them EACH a voucher cheque in the amount of strAmount *
 // number of shares owned.
 //
-OT_COMMANDS_OT int32_t
-OT_Command::details_pay_dividend(const string& strAmount, const string& strMemo)
+OT_COMMANDS_OT int32_t OT_Command::details_pay_dividend(const string& strAmount,
+                                                        const string& strMemo)
 {
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(MyAcct);
     if (!VerifyStringVal(strMyNymID)) {
@@ -7555,11 +7561,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowPurse()
 // to handle any of those types.
 //
 
-OT_COMMANDS_OT int32_t
-OT_Command::details_deposit_cheque(const string& strServerID,
-                                   const string& strMyAcct,
-                                   const string& strMyNymID,
-                                   const string& strInstrument, const string&)
+OT_COMMANDS_OT int32_t OT_Command::details_deposit_cheque(
+    const string& strServerID, const string& strMyAcct,
+    const string& strMyNymID, const string& strInstrument, const string&)
 {
     string strAssetTypeID = OTAPI_Wrap::Instrmnt_GetAssetID(strInstrument);
 
@@ -7598,11 +7602,11 @@ OT_Command::details_deposit_cheque(const string& strServerID,
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_deposit_purse(const string& strServerID,
-                                  const string& strMyAcct,
-                                  const string& strFromNymID,
-                                  const string& strInstrument,
-                                  const string& strIndices)
+    OT_Command::details_deposit_purse(const string& strServerID,
+                                      const string& strMyAcct,
+                                      const string& strFromNymID,
+                                      const string& strInstrument,
+                                      const string& strIndices)
 {
     string strLocation = "details_deposit_purse";
 
@@ -7902,8 +7906,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainDeposit()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_import_purse(const string& strInstrument, bool bHasPassword,
-                                 const string& strPurseOwner)
+    OT_Command::details_import_purse(const string& strInstrument,
+                                     bool bHasPassword,
+                                     const string& strPurseOwner)
 {
     if (!VerifyStringVal(strInstrument)) {
         return -1;
@@ -7946,7 +7951,7 @@ OT_Command::details_import_purse(const string& strInstrument, bool bHasPassword,
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_import_cash(const string& strInstrument)
+    OT_Command::details_import_cash(const string& strInstrument)
 {
     if (!VerifyStringVal(strInstrument)) {
         return -1;
@@ -8617,13 +8622,11 @@ OT_COMMANDS_OT bool OT_Command::withdraw_and_send_cash(
     return false;
 }
 
-OT_COMMANDS_OT int32_t
-OT_Command::details_send_cash(string& strResponse, const string& strServerID,
-                              const string& strAssetTypeID,
-                              const string& strMyNymID,
-                              const string& strMyAcctID, string& strHisNymID,
-                              const string&, const string& strAmount,
-                              string& strIndices, bool bPasswordProtected)
+OT_COMMANDS_OT int32_t OT_Command::details_send_cash(
+    string& strResponse, const string& strServerID,
+    const string& strAssetTypeID, const string& strMyNymID,
+    const string& strMyAcctID, string& strHisNymID, const string&,
+    const string& strAmount, string& strIndices, bool bPasswordProtected)
 {
 
     string strLocation = "\n details_send_cash";
@@ -8770,9 +8773,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewKey()
 //
 
 OT_COMMANDS_OT int32_t
-OT_Command::handle_payment_index(const string& strMyAcctID, int32_t nIndex,
-                                 const string& strPaymentType,
-                                 const string& strInbox)
+    OT_Command::handle_payment_index(const string& strMyAcctID, int32_t nIndex,
+                                     const string& strPaymentType,
+                                     const string& strInbox)
 {
     if (!VerifyStringVal(strMyAcctID)) {
         otOut << "Failure: strMyAcctID not a valid string.\n";
@@ -8974,9 +8977,9 @@ OT_Command::handle_payment_index(const string& strMyAcctID, int32_t nIndex,
 // COULD have been named
 // "details_accept_specific_instruments_of_specific_types_from_the_payment_inbox."
 OT_COMMANDS_OT int32_t
-OT_Command::accept_from_paymentbox(const string& strMyAcctID,
-                                   const string& strIndices,
-                                   const string& strPaymentType)
+    OT_Command::accept_from_paymentbox(const string& strMyAcctID,
+                                       const string& strIndices,
+                                       const string& strPaymentType)
 {
     if (!VerifyStringVal(strMyAcctID)) {
         otOut << "Failure: strMyAcctID not a valid string.\n";
@@ -9032,8 +9035,9 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
         //
         // - If NO indices are specified, accept all the ones matching MyAcct's
         // asset type.
-        if ((nIndicesCount > 0) && !OTAPI_Wrap::NumList_VerifyQuery(
-                                        strIndices, std::to_string(nIndex))) {
+        if ((nIndicesCount > 0) &&
+            !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
+                                             std::to_string(nIndex))) {
             bContinue = true;
         }
         else if (!bContinue) {
@@ -9045,8 +9049,8 @@ OT_Command::accept_from_paymentbox(const string& strMyAcctID,
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_accept_invoices(const string& strMyAcctID,
-                                    const string& strIndices)
+    OT_Command::details_accept_invoices(const string& strMyAcctID,
+                                        const string& strIndices)
 {
     return accept_from_paymentbox(strMyAcctID, strIndices, "INVOICE");
 }
@@ -9073,8 +9077,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainAcceptInvoices()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_accept_payments(const string& strMyAcctID,
-                                    const string& strIndices)
+    OT_Command::details_accept_payments(const string& strMyAcctID,
+                                        const string& strIndices)
 {
     int32_t nAcceptedPurses =
         accept_from_paymentbox(strMyAcctID, strIndices, "PURSE");
@@ -9805,10 +9809,10 @@ OT_COMMANDS_OT int32_t OT_Command::mainInpayments()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_record(const string& strServerID,
-                                const string& strMyNymID,
-                                const string& strMyAcctID, int32_t nIndex,
-                                const string& strRecordBox)
+    OT_Command::details_show_record(const string& strServerID,
+                                    const string& strMyNymID,
+                                    const string& strMyAcctID, int32_t nIndex,
+                                    const string& strRecordBox)
 {
     if (!VerifyStringVal(strRecordBox)) {
         otOut << "\n\n details_show_record: strRecordBox is empty.\n(Need to "
@@ -9881,9 +9885,9 @@ OT_Command::details_show_record(const string& strServerID,
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_records(const string& strServerID,
-                                 const string& strMyNymID,
-                                 const string& strMyAcctID)
+    OT_Command::details_show_records(const string& strServerID,
+                                     const string& strMyNymID,
+                                     const string& strMyAcctID)
 {
     string strRecordBox =
         OTAPI_Wrap::LoadRecordBox(strServerID, strMyNymID, strMyAcctID);
@@ -10029,9 +10033,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowRecords()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_clear_records(const string& strServerID,
-                                  const string& strMyNymID,
-                                  const string& strMyAcctID)
+    OT_Command::details_clear_records(const string& strServerID,
+                                      const string& strMyNymID,
+                                      const string& strMyAcctID)
 {
     bool bTrue = true;
     bool bCleared =
@@ -10140,8 +10144,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearRecords()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_clear_expired(const string& strServerID,
-                                  const string& strMyNymID)
+    OT_Command::details_clear_expired(const string& strServerID,
+                                      const string& strMyNymID)
 {
     bool bTrue = true;
     bool bCleared = OTAPI_Wrap::ClearExpired(strServerID, strMyNymID, 0, bTrue);
@@ -10181,9 +10185,9 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearExpired()
 // the account ID are the same.
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_expired(const string& strServerID,
-                                 const string& strMyNymID, int32_t nIndex,
-                                 const string& strExpiredBox)
+    OT_Command::details_show_expired(const string& strServerID,
+                                     const string& strMyNymID, int32_t nIndex,
+                                     const string& strExpiredBox)
 {
     if (!VerifyStringVal(strExpiredBox)) {
         otOut << "\n\n details_show_expired: strExpiredBox is empty.\n(Need to "
@@ -10254,8 +10258,8 @@ OT_Command::details_show_expired(const string& strServerID,
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_show_expired_records(const string& strServerID,
-                                         const string& strMyNymID)
+    OT_Command::details_show_expired_records(const string& strServerID,
+                                             const string& strMyNymID)
 {
     string strExpiredBox = OTAPI_Wrap::LoadExpiredBox(strServerID, strMyNymID);
 
@@ -10636,8 +10640,8 @@ OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
     return true;
 }
 
-OT_COMMANDS_OT int32_t
-OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
+OT_COMMANDS_OT int32_t OT_Command::details_del_mail(const string& strMyNymID,
+                                                    const string& strIndices)
 {
 
     int32_t nCount = OTAPI_Wrap::GetNym_MailCount(strMyNymID);
@@ -10679,8 +10683,9 @@ OT_Command::details_del_mail(const string& strMyNymID, const string& strIndices)
         // If we're not deleting "all" (i.e. we're deleting specific indices)...
         // and the current index doesn't appear on that specified list, then
         // continue...
-        if (!bDeleteAll && !OTAPI_Wrap::NumList_VerifyQuery(
-                                strIndices, std::to_string(nIndex))) {
+        if (!bDeleteAll &&
+            !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
+                                             std::to_string(nIndex))) {
             // We skip any indices that the user isn't trying to delete.
             //          continue   // apparently not supported by the language.
         }
@@ -10917,8 +10922,9 @@ OT_COMMANDS_OT int32_t OT_Command::details_del_outmail(const string& strMyNymID,
         // If we're not deleting "all" (i.e. we're deleting specific indices)...
         // and the current index doesn't appear on that specified list, then
         // continue...
-        if (!bDeleteAll && !OTAPI_Wrap::NumList_VerifyQuery(
-                                strIndices, std::to_string(nIndex))) {
+        if (!bDeleteAll &&
+            !OTAPI_Wrap::NumList_VerifyQuery(strIndices,
+                                             std::to_string(nIndex))) {
             // We skip any indices that the user isn't trying to delete.
             //          continue // apparently not supported by the language.
         }

@@ -394,9 +394,10 @@ bool OTContract::VerifyContractID() const
         OTString str1(m_ID), str2(newID);
 
         otOut << "\nHashes do NOT match in OTContract::VerifyContractID.\n "
-                 "Expected: " << str1 << "\n   Actual: " << str2 << "\n"
-            //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
-                                                                    "\n";
+                 "Expected: " << str1 << "\n   Actual: " << str2
+              << "\n"
+                 //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
+                 "\n";
         return false;
     }
     else {
@@ -660,9 +661,9 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
     //
     UpdateContents();
 
-    if (false == OTCrypto::It()->SignContract(m_xmlUnsigned, theKey,
-                                              theSignature, strHashType,
-                                              pPWData)) {
+    if (false ==
+        OTCrypto::It()->SignContract(m_xmlUnsigned, theKey, theSignature,
+                                     strHashType, pPWData)) {
         otErr << "OTContract::SignContract: "
                  "OTCrypto::It()->SignContract returned false.\n";
         return false;
@@ -717,9 +718,10 @@ bool OTContract::SignContract(const char* szFoldername,
     //
     UpdateContents();
 
-    if (false == OTCrypto::It()->SignContract(m_xmlUnsigned, m_strSigHashType,
-                                              strCertFileContents, theSignature,
-                                              pPWData)) {
+    if (false ==
+        OTCrypto::It()->SignContract(m_xmlUnsigned, m_strSigHashType,
+                                     strCertFileContents, theSignature,
+                                     pPWData)) {
         otErr << szFunc << ": OTCrypto::It()->SignContract returned false, "
                            "using Cert file: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
@@ -770,9 +772,10 @@ bool OTContract::VerifySignature(
     OTPasswordData thePWData("Reading the public key...");
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    if (false == OTCrypto::It()->VerifySignature(
-                     m_xmlUnsigned, m_strSigHashType, strCertFileContents,
-                     theSignature, pPWData)) {
+    if (false ==
+        OTCrypto::It()->VerifySignature(m_xmlUnsigned, m_strSigHashType,
+                                        strCertFileContents, theSignature,
+                                        pPWData)) {
         otLog4 << szFunc << ": OTCrypto::It()->VerifySignature returned false, "
                             "using Cert file: " << szFoldername
                << OTLog::PathSeparator() << szFilename << "\n";
@@ -971,9 +974,10 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
 
     OTPasswordData thePWData("OTContract::VerifySignature 2");
 
-    if (false == OTCrypto::It()->VerifySignature(
-                     m_xmlUnsigned, theKey, theSignature, strHashType,
-                     (nullptr != pPWData) ? pPWData : &thePWData)) {
+    if (false ==
+        OTCrypto::It()->VerifySignature(
+            m_xmlUnsigned, theKey, theSignature, strHashType,
+            (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
                << ": OTCrypto::It()->VerifySignature returned false.\n";
         return false;
@@ -1111,10 +1115,11 @@ bool OTContract::SignFlatText(OTString& strFlatText,
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
-    if (false == OTCrypto::It()->SignContract(
-                     strInput, theSigner.GetPrivateSignKey(),
-                     theSignature, // the output
-                     OTIdentifier::DefaultHashAlgorithm, &thePWData)) {
+    if (false ==
+        OTCrypto::It()->SignContract(strInput, theSigner.GetPrivateSignKey(),
+                                     theSignature, // the output
+                                     OTIdentifier::DefaultHashAlgorithm,
+                                     &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n" << strInput
               << "\n\n\n";
         return false;
@@ -1735,8 +1740,8 @@ bool OTContract::SkipToElement(IrrXMLReader*& xml)
             continue;
         } // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
-            //        { otOut << "*** OTContract::SkipToElement: EXN_ELEMENT_END
-            // (ERROR)\n";  return false; }
+        //        { otOut << "*** OTContract::SkipToElement: EXN_ELEMENT_END
+        // (ERROR)\n";  return false; }
         {
             otWarn << "*** " << szFunc << ": EXN_ELEMENT_END  (skipping "
                    << xml->getNodeName() << ")\n";
@@ -1784,9 +1789,9 @@ bool OTContract::SkipToTextField(IrrXMLReader*& xml)
             continue;
         } // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
-            //        { otOut << "*** OTContract::SkipToTextField:
-            // EXN_ELEMENT_END  (skipping)\n";  continue; }     // SKIP
-            // (debugging...)
+        //        { otOut << "*** OTContract::SkipToTextField:
+        // EXN_ELEMENT_END  (skipping)\n";  continue; }     // SKIP
+        // (debugging...)
         {
             otOut << "*** " << szFunc << ": EXN_ELEMENT_END  (ERROR)\n";
             return false;

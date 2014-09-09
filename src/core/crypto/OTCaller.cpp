@@ -153,13 +153,13 @@
 // FT: Credit to the Bitcoin team for the mlock / munlock defines.
 
 #define mlock(a, b)                                                            \
-    mlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                      \
-          (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -               \
-              (((size_t)(a)) & (~((PAGESIZE) - 1))))
+    mlock(((void*)(((size_t)(a)) & (~((PAGESIZE)-1)))),                        \
+          (((((size_t)(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -                   \
+              (((size_t)(a)) & (~((PAGESIZE)-1))))
 #define munlock(a, b)                                                          \
-    munlock(((void*)(((size_t)(a)) & (~((PAGESIZE) - 1)))),                    \
-            (((((size_t)(a)) + (b) - 1) | ((PAGESIZE) - 1)) + 1) -             \
-                (((size_t)(a)) & (~((PAGESIZE) - 1))))
+    munlock(((void*)(((size_t)(a)) & (~((PAGESIZE)-1)))),                      \
+            (((((size_t)(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -                 \
+                (((size_t)(a)) & (~((PAGESIZE)-1))))
 #endif
 
 namespace opentxs

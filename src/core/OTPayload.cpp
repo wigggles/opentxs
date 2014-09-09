@@ -142,7 +142,8 @@
 namespace opentxs
 {
 
-OTPayload::OTPayload() : OTData()
+OTPayload::OTPayload()
+    : OTData()
 {
 }
 
@@ -151,11 +152,13 @@ OTPayload::OTPayload(const void* pNewData, uint32_t nNewSize)
 {
 }
 
-OTPayload::OTPayload(const OTPayload& rhs) : OTData(rhs)
+OTPayload::OTPayload(const OTPayload& rhs)
+    : OTData(rhs)
 {
 }
 
-OTPayload::OTPayload(const OTASCIIArmor& theSource) : OTData(theSource)
+OTPayload::OTPayload(const OTASCIIArmor& theSource)
+    : OTData(theSource)
 {
 }
 

@@ -323,12 +323,12 @@ public:
                                                               // a Nym, this is
                                                               // the
     // Nym's ID. Otherwise this is false.
-    std::string GetEntityID(bool* pBoolSuccess =
-                                nullptr) const; // If party is an
-                                                // entity, this is
-                                                // the entity's
-                                                // ID. Otherwise
-                                                // false.
+    std::string GetEntityID(bool* pBoolSuccess = nullptr) const; // If party is
+                                                                 // an
+    // entity, this is
+    // the entity's
+    // ID. Otherwise
+    // false.
     // If party is a Nym, this is the NymID. Else return EntityID().
     EXPORT std::string GetPartyID(bool* pBoolSuccess = nullptr) const;
     // Some agents are passive (voting groups) and cannot behave actively, and
@@ -362,10 +362,10 @@ public:
     // return true.
     //
     bool HasAgent(OTPseudonym& theNym,
-                  OTAgent** ppAgent =
-                      nullptr) const; // If Nym is agent for Party,
-                                      // set agent's pointer to Nym
-                                      // and return true.
+                  OTAgent** ppAgent = nullptr) const; // If Nym is agent for
+                                                      // Party,
+    // set agent's pointer to Nym
+    // and return true.
     bool HasAgentByNymID(const OTIdentifier& theNymID,
                          OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgent(OTPseudonym& theNym,
@@ -403,13 +403,13 @@ public:
     } // returns total of all accounts owned by this party.
     int32_t GetAccountCount(std::string str_agent_name)
         const; // Only counts accounts authorized for str_agent_name.
-    EXPORT OTPartyAccount* GetAccount(const std::string& str_acct_name)
-        const; // Get PartyAcct by name.
+    EXPORT OTPartyAccount* GetAccount(
+        const std::string& str_acct_name) const; // Get PartyAcct by name.
     EXPORT OTPartyAccount* GetAccountByIndex(int32_t nIndex); // by index
     EXPORT OTPartyAccount* GetAccountByAgent(
         const std::string& str_agent_name); // by agent name
-    EXPORT OTPartyAccount* GetAccountByID(const OTIdentifier& theAcctID)
-        const; // by asset acct id
+    EXPORT OTPartyAccount* GetAccountByID(
+        const OTIdentifier& theAcctID) const; // by asset acct id
     // If account is present for Party, set account's pointer to theAccount and
     // return true.
     //

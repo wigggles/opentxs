@@ -162,9 +162,9 @@ public:
 
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
                                      const OTPasswordData* pPWData = nullptr);
-    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        const OTPasswordData* pPWData = nullptr)
-        const;
+    EXPORT virtual bool VerifySignature(
+        const OTPseudonym& theNym,
+        const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool HarvestTransactionNumbers(
         OTPseudonym& theNym,

@@ -151,11 +151,13 @@
 namespace opentxs
 {
 
-OTClause::OTClause() : m_pBylaw(nullptr)
+OTClause::OTClause()
+    : m_pBylaw(nullptr)
 {
 }
 
-OTClause::OTClause(const char* szName, const char* szCode) : m_pBylaw(nullptr)
+OTClause::OTClause(const char* szName, const char* szCode)
+    : m_pBylaw(nullptr)
 {
     if (nullptr != szName) m_strName.Set(szName);
 

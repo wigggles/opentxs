@@ -197,7 +197,7 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(int32_t nNumberNeeded,
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
 //
 OT_MADE_EASY_OT string
-MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
+    MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -231,8 +231,8 @@ MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
 // RETRIEVE NYM INTERMEDIARY FILES
 
 OT_MADE_EASY_OT int32_t
-MadeEasy::retrieve_nym(const string& strServerID, const string& strMyNymID,
-                       bool& bWasMsgSent, bool bForceDownload)
+    MadeEasy::retrieve_nym(const string& strServerID, const string& strMyNymID,
+                           bool& bWasMsgSent, bool bForceDownload)
 {
 
     Utility MsgUtil;
@@ -353,9 +353,9 @@ OT_MADE_EASY_OT string MadeEasy::retrieve_contract(const string& SERVER_ID,
 //  LOAD OR RETRIEVE CONTRACT
 //
 OT_MADE_EASY_OT string
-MadeEasy::load_or_retrieve_contract(const string& SERVER_ID,
-                                    const string& NYM_ID,
-                                    const string& CONTRACT_ID)
+    MadeEasy::load_or_retrieve_contract(const string& SERVER_ID,
+                                        const string& NYM_ID,
+                                        const string& CONTRACT_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -436,9 +436,9 @@ OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
 // SEND TRANSFER  -- TRANSACTION
 
 OT_MADE_EASY_OT string
-MadeEasy::send_transfer(const string& SERVER_ID, const string& NYM_ID,
-                        const string& ACCT_FROM, const string& ACCT_TO,
-                        int64_t AMOUNT, const string& NOTE)
+    MadeEasy::send_transfer(const string& SERVER_ID, const string& NYM_ID,
+                            const string& ACCT_FROM, const string& ACCT_TO,
+                            int64_t AMOUNT, const string& NOTE)
 {
     OTAPI_Func ot_Msg;
 
@@ -452,9 +452,10 @@ MadeEasy::send_transfer(const string& SERVER_ID, const string& NYM_ID,
 
 // PROCESS INBOX  -- TRANSACTION
 
-OT_MADE_EASY_OT string
-MadeEasy::process_inbox(const string& SERVER_ID, const string& NYM_ID,
-                        const string& ACCOUNT_ID, const string& RESPONSE_LEDGER)
+OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& SERVER_ID,
+                                               const string& NYM_ID,
+                                               const string& ACCOUNT_ID,
+                                               const string& RESPONSE_LEDGER)
 {
     OTAPI_Func ot_Msg;
 
@@ -471,8 +472,8 @@ MadeEasy::process_inbox(const string& SERVER_ID, const string& NYM_ID,
 // Load a public key from local storage, and return it (or null).
 //
 OT_MADE_EASY_OT string
-MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
-                                                           // storage.
+    MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
+                                                               // storage.
 {
     OTAPI_Func ot_Msg;
 
@@ -502,7 +503,8 @@ MadeEasy::load_public_encryption_key(const string& NYM_ID) // from local
 // Load a public key from local storage, and return it (or null).
 //
 OT_MADE_EASY_OT string
-MadeEasy::load_public_signing_key(const string& NYM_ID) // from local storage.
+    MadeEasy::load_public_signing_key(const string& NYM_ID) // from local
+                                                            // storage.
 {
     OTAPI_Func ot_Msg;
 
@@ -525,9 +527,9 @@ MadeEasy::load_public_signing_key(const string& NYM_ID) // from local storage.
 // and return. (Might still return null.)
 //
 OT_MADE_EASY_OT string
-MadeEasy::load_or_retrieve_encrypt_key(const string& SERVER_ID,
-                                       const string& NYM_ID,
-                                       const string& TARGET_NYM_ID)
+    MadeEasy::load_or_retrieve_encrypt_key(const string& SERVER_ID,
+                                           const string& NYM_ID,
+                                           const string& TARGET_NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -544,9 +546,9 @@ MadeEasy::load_or_retrieve_encrypt_key(const string& SERVER_ID,
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::load_or_retrieve_signing_key(const string& SERVER_ID,
-                                       const string& NYM_ID,
-                                       const string& TARGET_NYM_ID)
+    MadeEasy::load_or_retrieve_signing_key(const string& SERVER_ID,
+                                           const string& NYM_ID,
+                                           const string& TARGET_NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -565,10 +567,11 @@ MadeEasy::load_or_retrieve_signing_key(const string& SERVER_ID,
 // SEND USER MESSAGE  (requires recipient public key)
 //
 OT_MADE_EASY_OT string
-MadeEasy::send_user_msg_pubkey(const string& SERVER_ID, const string& NYM_ID,
-                               const string& RECIPIENT_NYM_ID,
-                               const string& RECIPIENT_PUBKEY,
-                               const string& THE_MESSAGE)
+    MadeEasy::send_user_msg_pubkey(const string& SERVER_ID,
+                                   const string& NYM_ID,
+                                   const string& RECIPIENT_NYM_ID,
+                                   const string& RECIPIENT_PUBKEY,
+                                   const string& THE_MESSAGE)
 {
     OTAPI_Func ot_Msg;
 
@@ -583,10 +586,11 @@ MadeEasy::send_user_msg_pubkey(const string& SERVER_ID, const string& NYM_ID,
 // SEND USER INSTRUMENT  (requires recipient public key)
 //
 OT_MADE_EASY_OT string
-MadeEasy::send_user_pmnt_pubkey(const string& SERVER_ID, const string& NYM_ID,
-                                const string& RECIPIENT_NYM_ID,
-                                const string& RECIPIENT_PUBKEY,
-                                const string& THE_INSTRUMENT)
+    MadeEasy::send_user_pmnt_pubkey(const string& SERVER_ID,
+                                    const string& NYM_ID,
+                                    const string& RECIPIENT_NYM_ID,
+                                    const string& RECIPIENT_PUBKEY,
+                                    const string& THE_INSTRUMENT)
 {
     OTAPI_Func ot_Msg;
 
@@ -600,12 +604,10 @@ MadeEasy::send_user_pmnt_pubkey(const string& SERVER_ID, const string& NYM_ID,
 
 // SEND USER CASH  (requires recipient public key)
 //
-OT_MADE_EASY_OT string
-MadeEasy::send_user_cash_pubkey(const string& SERVER_ID, const string& NYM_ID,
-                                const string& RECIPIENT_NYM_ID,
-                                const string& RECIPIENT_PUBKEY,
-                                const string& THE_INSTRUMENT,
-                                const string& INSTRUMENT_FOR_SENDER)
+OT_MADE_EASY_OT string MadeEasy::send_user_cash_pubkey(
+    const string& SERVER_ID, const string& NYM_ID,
+    const string& RECIPIENT_NYM_ID, const string& RECIPIENT_PUBKEY,
+    const string& THE_INSTRUMENT, const string& INSTRUMENT_FOR_SENDER)
 {
     OTAPI_Func ot_Msg;
 
@@ -648,9 +650,9 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
 // automatically)
 //
 OT_MADE_EASY_OT string
-MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
-                            const string& RECIPIENT_NYM_ID,
-                            const string& THE_PAYMENT)
+    MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
+                                const string& RECIPIENT_NYM_ID,
+                                const string& THE_PAYMENT)
 {
     OTAPI_Func ot_Msg;
 
@@ -673,10 +675,11 @@ MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
 // SEND USER CASH  (only requires recipient's ID, and retrieves pubkey
 // automatically)
 //
-OT_MADE_EASY_OT string
-MadeEasy::send_user_cash(const string& SERVER_ID, const string& NYM_ID,
-                         const string& RECIPIENT_NYM_ID,
-                         const string& THE_PAYMENT, const string& SENDERS_COPY)
+OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& SERVER_ID,
+                                                const string& NYM_ID,
+                                                const string& RECIPIENT_NYM_ID,
+                                                const string& THE_PAYMENT,
+                                                const string& SENDERS_COPY)
 {
     OTAPI_Func ot_Msg;
 
@@ -749,9 +752,9 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
 // Otherwise for inbox/outbox, pass the actual ACCT_ID there as normal.
 //
 OT_MADE_EASY_OT string
-MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
-                          const string& ACCT_ID, int32_t nBoxType,
-                          const string& STR_TRANS_NUM)
+    MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
+                              const string& ACCT_ID, int32_t nBoxType,
+                              const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
 
@@ -926,9 +929,10 @@ OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& SERVER_ID,
 
 // KILL PAYMENT PLAN (an active one that's already running) -- TRANSACTION
 //
-OT_MADE_EASY_OT string
-MadeEasy::kill_payment_plan(const string& SERVER_ID, const string& NYM_ID,
-                            const string& ACCT_ID, const string& STR_TRANS_NUM)
+OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& SERVER_ID,
+                                                   const string& NYM_ID,
+                                                   const string& ACCT_ID,
+                                                   const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
 
@@ -942,11 +946,9 @@ MadeEasy::kill_payment_plan(const string& SERVER_ID, const string& NYM_ID,
 
 // ACTIVATE SMART CONTRACT  -- TRANSACTION
 //
-OT_MADE_EASY_OT string
-MadeEasy::activate_smart_contract(const string& SERVER_ID, const string& NYM_ID,
-                                  const string& ACCT_ID,
-                                  const string& AGENT_NAME,
-                                  const string& THE_SMART_CONTRACT)
+OT_MADE_EASY_OT string MadeEasy::activate_smart_contract(
+    const string& SERVER_ID, const string& NYM_ID, const string& ACCT_ID,
+    const string& AGENT_NAME, const string& THE_SMART_CONTRACT)
 {
     OTAPI_Func ot_Msg;
 
@@ -964,8 +966,9 @@ MadeEasy::activate_smart_contract(const string& SERVER_ID, const string& NYM_ID,
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::deposit_payment_plan(const string& SERVER_ID, const string& NYM_ID,
-                               const string& THE_PAYMENT_PLAN)
+    MadeEasy::deposit_payment_plan(const string& SERVER_ID,
+                                   const string& NYM_ID,
+                                   const string& THE_PAYMENT_PLAN)
 {
     OTAPI_Func ot_Msg;
 
@@ -993,8 +996,8 @@ MadeEasy::deposit_payment_plan(const string& SERVER_ID, const string& NYM_ID,
 // TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::cancel_payment_plan(const string& SERVER_ID, const string& NYM_ID,
-                              const string& THE_PAYMENT_PLAN)
+    MadeEasy::cancel_payment_plan(const string& SERVER_ID, const string& NYM_ID,
+                                  const string& THE_PAYMENT_PLAN)
 {
     OTAPI_Func ot_Msg;
 
@@ -1040,9 +1043,9 @@ MadeEasy::cancel_payment_plan(const string& SERVER_ID, const string& NYM_ID,
 // TRIGGER CLAUSE (on running smart contract)  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
-                         const string& STR_TRANS_NUM, const string& CLAUSE_NAME,
-                         const string& STR_PARAM)
+    MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
+                             const string& STR_TRANS_NUM,
+                             const string& CLAUSE_NAME, const string& STR_PARAM)
 {
     OTAPI_Func ot_Msg;
 
@@ -1062,8 +1065,8 @@ MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
 // WITHDRAW CASH  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
-                        const string& ACCT_ID, int64_t AMOUNT)
+    MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
+                            const string& ACCT_ID, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
@@ -1077,9 +1080,10 @@ MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
 // WITHDRAW VOUCHER  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::withdraw_voucher(const string& SERVER_ID, const string& NYM_ID,
-                           const string& ACCT_ID, const string& RECIP_NYM_ID,
-                           const string& STR_MEMO, int64_t AMOUNT)
+    MadeEasy::withdraw_voucher(const string& SERVER_ID, const string& NYM_ID,
+                               const string& ACCT_ID,
+                               const string& RECIP_NYM_ID,
+                               const string& STR_MEMO, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
@@ -1094,10 +1098,10 @@ MadeEasy::withdraw_voucher(const string& SERVER_ID, const string& NYM_ID,
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
-                       const string& SOURCE_ACCT_ID,
-                       const string& SHARES_ASSET_ID, const string& STR_MEMO,
-                       int64_t AMOUNT_PER_SHARE)
+    MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
+                           const string& SOURCE_ACCT_ID,
+                           const string& SHARES_ASSET_ID,
+                           const string& STR_MEMO, int64_t AMOUNT_PER_SHARE)
 {
     OTAPI_Func ot_Msg;
 
@@ -1109,8 +1113,8 @@ MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::deposit_cheque(const string& SERVER_ID, const string& NYM_ID,
-                         const string& ACCT_ID, const string& STR_CHEQUE)
+    MadeEasy::deposit_cheque(const string& SERVER_ID, const string& NYM_ID,
+                             const string& ACCT_ID, const string& STR_CHEQUE)
 {
     OTAPI_Func ot_Msg;
 
@@ -1123,7 +1127,7 @@ MadeEasy::deposit_cheque(const string& SERVER_ID, const string& NYM_ID,
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::get_market_list(const string& SERVER_ID, const string& NYM_ID)
+    MadeEasy::get_market_list(const string& SERVER_ID, const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -1140,8 +1144,8 @@ MadeEasy::get_market_list(const string& SERVER_ID, const string& NYM_ID)
 //                           const char * MAX_DEPTH)
 
 OT_MADE_EASY_OT string
-MadeEasy::get_market_offers(const string& SERVER_ID, const string& NYM_ID,
-                            const string& MARKET_ID, int64_t MAX_DEPTH)
+    MadeEasy::get_market_offers(const string& SERVER_ID, const string& NYM_ID,
+                                const string& MARKET_ID, int64_t MAX_DEPTH)
 {
     OTAPI_Func ot_Msg;
 
@@ -1153,8 +1157,8 @@ MadeEasy::get_market_offers(const string& SERVER_ID, const string& NYM_ID,
     return strResponse;
 }
 
-OT_MADE_EASY_OT string
-MadeEasy::get_nym_market_offers(const string& SERVER_ID, const string& NYM_ID)
+OT_MADE_EASY_OT string MadeEasy::get_nym_market_offers(const string& SERVER_ID,
+                                                       const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -1166,9 +1170,9 @@ MadeEasy::get_nym_market_offers(const string& SERVER_ID, const string& NYM_ID)
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::get_market_recent_trades(const string& SERVER_ID,
-                                   const string& NYM_ID,
-                                   const string& MARKET_ID)
+    MadeEasy::get_market_recent_trades(const string& SERVER_ID,
+                                       const string& NYM_ID,
+                                       const string& MARKET_ID)
 {
     OTAPI_Func ot_Msg;
 
@@ -1181,10 +1185,10 @@ MadeEasy::get_market_recent_trades(const string& SERVER_ID,
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::adjust_usage_credits(const string& SERVER_ID,
-                               const string& USER_NYM_ID,
-                               const string& TARGET_NYM_ID,
-                               const string& ADJUSTMENT)
+    MadeEasy::adjust_usage_credits(const string& SERVER_ID,
+                                   const string& USER_NYM_ID,
+                                   const string& TARGET_NYM_ID,
+                                   const string& ADJUSTMENT)
 {
     OTAPI_Func ot_Msg;
 
@@ -1755,11 +1759,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 // Returns: "new Purse"
 //
 OT_MADE_EASY_OT string
-MadeEasy::exportCashPurse(const string& serverID, const string& assetID,
-                          const string& nymID, const string& oldPurse,
-                          const vector<string>& selectedTokens,
-                          string& recipientNymID, bool bPasswordProtected,
-                          string& strRetainedCopy)
+    MadeEasy::exportCashPurse(const string& serverID, const string& assetID,
+                              const string& nymID, const string& oldPurse,
+                              const vector<string>& selectedTokens,
+                              string& recipientNymID, bool bPasswordProtected,
+                              string& strRetainedCopy)
 {
     //  otOut << "OT_ME_exportCashPurse starts, selectedTokens:" <<
     // selectedTokens << "\n";
@@ -1971,8 +1975,8 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
 }
 
 OT_MADE_EASY_OT string
-MadeEasy::deposit_purse(const string& SERVER_ID, const string& NYM_ID,
-                        const string& ACCT_ID, const string& STR_PURSE)
+    MadeEasy::deposit_purse(const string& SERVER_ID, const string& NYM_ID,
+                            const string& ACCT_ID, const string& STR_PURSE)
 {
     OTAPI_Func ot_Msg;
 

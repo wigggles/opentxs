@@ -289,7 +289,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // NOTE: Market Orders (new) have a 0 price, so this error condition was
         // changed.
         if (!strPriceLimit.Exists())
-            //      if (lPriceLimit < 1)
+        //      if (lPriceLimit < 1)
         {
             otOut << "OTOffer::ProcessXMLNode: Failure: priceLimit *must* be "
                      "provided(" << lPriceLimit << ").\n";

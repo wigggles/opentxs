@@ -144,7 +144,8 @@
 namespace opentxs
 {
 
-OTServerContract::OTServerContract() : OTContract()
+OTServerContract::OTServerContract()
+    : OTContract()
 {
     m_nPort = 0;
 }

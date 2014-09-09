@@ -151,7 +151,8 @@ private:
 public:
     CSimpleIniA iniSimple;
 
-    OTSettingsPvt() : iniSimple()
+    OTSettingsPvt()
+        : iniSimple()
     {
     }
 };

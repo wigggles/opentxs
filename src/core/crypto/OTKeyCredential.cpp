@@ -281,10 +281,12 @@ bool OTKeyCredential::VerifyInternally()
 
 // otErr << "%s line %d: \n", __FILE__, __LINE__);
 
-OTKeyCredential::OTKeyCredential() : ot_super()
+OTKeyCredential::OTKeyCredential()
+    : ot_super()
 {
 }
-OTKeyCredential::OTKeyCredential(OTCredential& theOwner) : ot_super(theOwner)
+OTKeyCredential::OTKeyCredential(OTCredential& theOwner)
+    : ot_super(theOwner)
 {
 }
 
@@ -525,9 +527,10 @@ bool OTKeyCredential::SetPrivateContents(
         strPrivate.Set(itAuth->second.c_str()); // strPrivate now contains the
                                                 // private Cert string.
 
-        if (false == m_AuthentKey.LoadPrivateKeyFromCertString(
-                         strPrivate, false /*bEscaped true by default*/,
-                         &strReason, pImportPassword)) {
+        if (false ==
+            m_AuthentKey.LoadPrivateKeyFromCertString(
+                strPrivate, false /*bEscaped true by default*/, &strReason,
+                pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private authentication key "
                      "based on string.\n";
@@ -541,9 +544,10 @@ bool OTKeyCredential::SetPrivateContents(
         {
             OTString strPublic;
 
-            if ((false == m_AuthentKey.LoadPublicKeyFromCertString(
-                              strPrivate, false /* bEscaped true by default */,
-                              &strReason, pImportPassword)) ||
+            if ((false ==
+                 m_AuthentKey.LoadPublicKeyFromCertString(
+                     strPrivate, false /* bEscaped true by default */,
+                     &strReason, pImportPassword)) ||
                 (false ==
                  m_AuthentKey.GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {
@@ -563,9 +567,10 @@ bool OTKeyCredential::SetPrivateContents(
         strPrivate.Release();
         strPrivate.Set(itEncr->second.c_str());
 
-        if (false == m_EncryptKey.LoadPrivateKeyFromCertString(
-                         strPrivate, false /*bEscaped true by default*/,
-                         &strReason, pImportPassword)) {
+        if (false ==
+            m_EncryptKey.LoadPrivateKeyFromCertString(
+                strPrivate, false /*bEscaped true by default*/, &strReason,
+                pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private encryption key based on "
                      "string.\n";
@@ -579,9 +584,10 @@ bool OTKeyCredential::SetPrivateContents(
         {
             OTString strPublic;
 
-            if ((false == m_EncryptKey.LoadPublicKeyFromCertString(
-                              strPrivate, false /* bEscaped true by default */,
-                              &strReason, pImportPassword)) ||
+            if ((false ==
+                 m_EncryptKey.LoadPublicKeyFromCertString(
+                     strPrivate, false /* bEscaped true by default */,
+                     &strReason, pImportPassword)) ||
                 (false ==
                  m_EncryptKey.GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {
@@ -600,9 +606,10 @@ bool OTKeyCredential::SetPrivateContents(
         strPrivate.Release();
         strPrivate.Set(itSign->second.c_str());
 
-        if (false == m_SigningKey.LoadPrivateKeyFromCertString(
-                         strPrivate, false /*bEscaped true by default*/,
-                         &strReason, pImportPassword)) {
+        if (false ==
+            m_SigningKey.LoadPrivateKeyFromCertString(
+                strPrivate, false /*bEscaped true by default*/, &strReason,
+                pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private signing key based on "
                      "string.\n";
@@ -616,9 +623,10 @@ bool OTKeyCredential::SetPrivateContents(
         {
             OTString strPublic;
 
-            if ((false == m_SigningKey.LoadPublicKeyFromCertString(
-                              strPrivate, false /* bEscaped true by default */,
-                              &strReason, pImportPassword)) ||
+            if ((false ==
+                 m_SigningKey.LoadPublicKeyFromCertString(
+                     strPrivate, false /* bEscaped true by default */,
+                     &strReason, pImportPassword)) ||
                 (false ==
                  m_SigningKey.GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {

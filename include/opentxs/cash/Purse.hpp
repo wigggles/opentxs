@@ -257,8 +257,9 @@ public:
     // stores the passphrase for the symmetric key.
     EXPORT std::shared_ptr<OTCachedKey> GetInternalMaster();
     EXPORT bool GetPassphrase(OTPassword& theOutput,
-                              const char* szDisplay =
-                                  nullptr); // Retrieves the passphrase for this
+                              const char* szDisplay = nullptr); // Retrieves the
+                                                                // passphrase
+                                                                // for this
     // purse (which is cached by the master
     // key.) Prompts the user to enter his
     // actual passphrase, if necessary to

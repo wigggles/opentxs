@@ -354,7 +354,8 @@ protected:
     OTCallback* _callback;
 
 public:
-    OTCaller() : _callback(nullptr)
+    OTCaller()
+        : _callback(nullptr)
     {
     }
     EXPORT ~OTCaller();

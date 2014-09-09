@@ -282,13 +282,12 @@ public:
     OTKeyCredential();
     OTKeyCredential(OTCredential& theOwner);
     bool Sign(OTContract& theContract, const OTPasswordData* pPWData = nullptr);
-    EXPORT int32_t
-    GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
-                             const OTSignature& theSignature,
-                             char cKeyType = '0') const; // 'S' (signing key) or
-                                                         // 'E' (encryption key)
-                                                         // or 'A'
-                                                         // (authentication key)
+    EXPORT int32_t GetPublicKeysBySignature(
+        listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
+        char cKeyType = '0') const; // 'S' (signing key) or
+                                    // 'E' (encryption key)
+                                    // or 'A'
+                                    // (authentication key)
     virtual ~OTKeyCredential();
     virtual void Release();
     void Release_Subkey();

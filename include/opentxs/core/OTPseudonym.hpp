@@ -318,68 +318,68 @@ public:
     EXPORT bool AddNewMasterCredential(
         OTString& strOutputMasterCredID, // The new ID, upon success, is
                                          // returned here.
-        const OTString* pstrSourceForNymID =
-            nullptr,          // If nullptr, it uses the Nym's
-                              // (presumed) existing pubkey
-                              // as the source.
+        const OTString* pstrSourceForNymID = nullptr, // If nullptr, it uses the
+                                                      // Nym's
+        // (presumed) existing pubkey
+        // as the source.
         int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
-        const OTString::Map* pmapPrivate =
-            nullptr, // If nullptr, then the keys are generated in here.
-        const OTString::Map* pmapPublic = nullptr, // In the case of key
-                                                   // credentials, public is
-                                                   // optional since it
+        const OTString::Map* pmapPrivate = nullptr, // If nullptr, then the keys
+                                                    // are generated in here.
+        const OTString::Map* pmapPublic = nullptr,  // In the case of key
+                                                    // credentials, public is
+                                                    // optional since it
         // can already be derived from private. For now we pass it
         // through... May eliminate this parameter later if not
         // needed.
-        const OTPasswordData* pPWData =
-            nullptr, // Pass in the string to show users
-                     // here, if/when asking for the
-                     // passphrase.
-        bool bChangeNymID =
-            false); // Must be explicitly set to true, to change the Nym's ID.
-                    // Other restrictions also apply... must be your first
-                    // master credential. Must have no accounts. Basically can
-                    // only be used for brand-new Nyms in circumstances where
-                    // it's assumed the Nym's ID is in the process of being
-                    // generated anyway. Should never be used on some existing
-                    // Nym who is already in the wallet and who may even have
-                    // accounts somewhere already.
+        const OTPasswordData* pPWData = nullptr, // Pass in the string to show
+                                                 // users
+                                                 // here, if/when asking for the
+                                                 // passphrase.
+        bool bChangeNymID = false); // Must be explicitly set to true, to change
+                                    // the Nym's ID.
+    // Other restrictions also apply... must be your first
+    // master credential. Must have no accounts. Basically can
+    // only be used for brand-new Nyms in circumstances where
+    // it's assumed the Nym's ID is in the process of being
+    // generated anyway. Should never be used on some existing
+    // Nym who is already in the wallet and who may even have
+    // accounts somewhere already.
 
     EXPORT bool AddNewSubkey(
         const OTIdentifier& idMasterCredential,
         int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
-        const OTString::Map* pmapPrivate =
-            nullptr, // If nullptr, then the keys are generated in here.
-        const OTPasswordData* pPWData =
-            nullptr, // Pass in the string to show users
-                     // here, if/when asking for the
-                     // passphrase.
-        OTString* pstrNewID =
-            nullptr); // Optional -- if success, allows to return
-                      // the ID for the new subkey that was
-                      // created.
+        const OTString::Map* pmapPrivate = nullptr, // If nullptr, then the keys
+                                                    // are generated in here.
+        const OTPasswordData* pPWData = nullptr, // Pass in the string to show
+                                                 // users
+                                                 // here, if/when asking for the
+                                                 // passphrase.
+        OTString* pstrNewID = nullptr); // Optional -- if success, allows to
+                                        // return
+                                        // the ID for the new subkey that was
+                                        // created.
 
     EXPORT bool AddNewSubcredential(
         const OTIdentifier& idMasterCredential,
-        const OTString::Map* pmapPrivate =
-            nullptr, // If nullptr, then the keys are generated in here.
-        const OTString::Map* pmapPublic = nullptr, // In the case of key
-                                                   // credentials, public is
-                                                   // optional since it
+        const OTString::Map* pmapPrivate = nullptr, // If nullptr, then the keys
+                                                    // are generated in here.
+        const OTString::Map* pmapPublic = nullptr,  // In the case of key
+                                                    // credentials, public is
+                                                    // optional since it
         // can already be derived from private. For now we pass it
         // through... May eliminate this parameter later if not
         // needed.
-        const OTPasswordData* pPWData =
-            nullptr); // Pass in the string to show users
-                      // here, if/when asking for the
-                      // passphrase.
+        const OTPasswordData* pPWData = nullptr); // Pass in the string to show
+                                                  // users
+    // here, if/when asking for the
+    // passphrase.
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT OTCredential* GetMasterCredential(const OTString& strID);
     EXPORT OTCredential* GetRevokedCredential(const OTString& strID);
     EXPORT const OTCredential* GetMasterCredentialByIndex(int32_t nIndex) const;
-    EXPORT const OTCredential* GetRevokedCredentialByIndex(int32_t nIndex)
-        const;
+    EXPORT const OTCredential* GetRevokedCredentialByIndex(
+        int32_t nIndex) const;
     EXPORT const OTSubcredential* GetSubcredential(
         const OTString& strMasterID, const OTString& strSubCredID) const;
     EXPORT const OTSubcredential* GetRevokedSubcred(
@@ -563,30 +563,28 @@ public:
     const OTAsymmetricKey& GetPrivateSignKey() const;
     // OT uses the signature's metadata to narrow down its search for the
     // correct public key.
-    EXPORT int32_t
-    GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
-                             const OTSignature& theSignature,
-                             char cKeyType = '0') const; // 'S' (signing key) or
-                                                         // 'E' (encryption key)
-                                                         // or 'A'
-                                                         // (authentication key)
+    EXPORT int32_t GetPublicKeysBySignature(
+        listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
+        char cKeyType = '0') const; // 'S' (signing key) or
+                                    // 'E' (encryption key)
+                                    // or 'A'
+                                    // (authentication key)
     EXPORT bool SaveCredentialList();
     EXPORT void SaveCredentialListToString(OTString& strOutput);
     EXPORT void SaveCredentialsToString(OTString& strOutput,
                                         OTString::Map* pmapPubInfo = nullptr,
                                         OTString::Map* pmapPriInfo = nullptr);
-    EXPORT bool LoadCredentials(bool bLoadPrivate =
-                                    false, // Loads public credentials by
-                                           // default. For private, pass true.
+    EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
+                                                           // credentials by
+                                // default. For private, pass true.
                                 const OTPasswordData* pPWData = nullptr,
                                 const OTPassword* pImportPassword = nullptr);
     // Like for when you are exporting a Nym from the wallet.
-    EXPORT bool ReEncryptPrivateCredentials(bool bImporting,
-                                            const OTPasswordData* pPWData =
-                                                nullptr, // bImporting=true, or
-                                                         // false if exporting.
-                                            const OTPassword* pImportPassword =
-                                                nullptr);
+    EXPORT bool ReEncryptPrivateCredentials(
+        bool bImporting,
+        const OTPasswordData* pPWData = nullptr, // bImporting=true, or
+                                                 // false if exporting.
+        const OTPassword* pImportPassword = nullptr);
     // The signer is whoever wanted to make sure these nym files haven't
     // changed.
     // Usually that means the server nym.  Most of the time, m_nymServer will be
@@ -605,8 +603,8 @@ public:
                                OTString* pstrReason = nullptr,
                                const OTPassword* pImportPassword = nullptr);
     // pstrID is an output parameter.
-    EXPORT bool Server_PubKeyExists(OTString* pstrID =
-                                        nullptr); // Only used on server side.
+    EXPORT bool Server_PubKeyExists(OTString* pstrID = nullptr); // Only used on
+                                                                 // server side.
     EXPORT bool LoadPublicKey();
     EXPORT static bool DoesCertfileExist(const OTString& strNymID); // static
                                                                     // version
@@ -615,19 +613,16 @@ public:
                                                                     // function.
     EXPORT bool CertfileExists(); // on the client side, this means it's a
                                   // private Nym.
-    EXPORT bool Loadx509CertAndPrivateKey(bool bChecking = false,
-                                          const OTPasswordData* pPWData =
-                                              nullptr,
-                                          const OTPassword* pImportPassword =
-                                              nullptr);
+    EXPORT bool Loadx509CertAndPrivateKey(
+        bool bChecking = false, const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     EXPORT bool Loadx509CertAndPrivateKeyFromString(
         const OTString& strInput, const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool Savex509CertAndPrivateKey(bool bCreateFile = true,
                                           const OTString* pstrReason = nullptr);
-    EXPORT bool Savex509CertAndPrivateKeyToString(OTString& strOutput,
-                                                  const OTString* pstrReason =
-                                                      nullptr);
+    EXPORT bool Savex509CertAndPrivateKeyToString(
+        OTString& strOutput, const OTString* pstrReason = nullptr);
     EXPORT bool SavePseudonymWallet(OTString& strOutput) const;
     EXPORT bool SavePseudonymWallet(std::ofstream& ofs) const;
     EXPORT bool SavePublicKey(const OTString& strPath) const;
@@ -684,8 +679,8 @@ public:
         const OTIdentifier& theServerID, OTPseudonym& SIGNER_NYM,
         OTPseudonym& theOtherNym, // OtherNym is used as container for us to
                                   // send a list
-        bool bSave =
-            false); // of issued numbers to the server (for balance agreement)
+        bool bSave = false); // of issued numbers to the server (for balance
+                             // agreement)
 
     EXPORT bool ClawbackTransactionNumber(
         const OTIdentifier& theServerID,
@@ -710,17 +705,17 @@ public:
     // request number for
     // the serverID
 
-    EXPORT bool GetHighestNum(const OTString& strServerID, int64_t& lHighestNum)
-        const; // get the last/current
-               // highest transaction
-               // number for the serverID.
-    EXPORT int64_t
-    UpdateHighestNum(OTPseudonym& SIGNER_NYM, const OTString& strServerID,
-                     std::set<int64_t>& setNumbers,
-                     std::set<int64_t>& setOutputGood,
-                     std::set<int64_t>& setOutputBad,
-                     bool bSave = false); // Returns 0 if success, otherwise #
-                                          // of the violator.
+    EXPORT bool GetHighestNum(const OTString& strServerID,
+                              int64_t& lHighestNum) const; // get the
+                                                           // last/current
+    // highest transaction
+    // number for the serverID.
+    EXPORT int64_t UpdateHighestNum(
+        OTPseudonym& SIGNER_NYM, const OTString& strServerID,
+        std::set<int64_t>& setNumbers, std::set<int64_t>& setOutputGood,
+        std::set<int64_t>& setOutputBad,
+        bool bSave = false); // Returns 0 if success, otherwise #
+                             // of the violator.
 
     inline mapOfTransNums& GetMapTransNum()
     {
@@ -740,8 +735,9 @@ public:
     } // This one actually stores request numbers.
 
     EXPORT void RemoveAllNumbers(const OTString* pstrServerID = nullptr,
-                                 bool bRemoveHighestNum =
-                                     true); // for transaction numbers
+                                 bool bRemoveHighestNum = true); // for
+                                                                 // transaction
+                                                                 // numbers
     EXPORT void RemoveReqNumbers(const OTString* pstrServerID =
                                      nullptr); // for request numbers (entirely
                                                // different animal)
@@ -752,16 +748,16 @@ public:
                                                                  // server, if
                                                                  // it was there
                                                                  // before.
-    EXPORT bool IsRegisteredAtServer(const OTString& strServerID)
-        const; // You can't
-               // go using a
-               // Nym at a
-               // certain
-               // server, if
-               // it's not
-               // registered
-               // there...
-               //
+    EXPORT bool IsRegisteredAtServer(
+        const OTString& strServerID) const; // You can't
+                                            // go using a
+                                            // Nym at a
+                                            // certain
+                                            // server, if
+                                            // it's not
+                                            // registered
+                                            // there...
+                                            //
     // ** ResyncWithServer **
     //
     // Not for normal use! (Since you should never get out of sync with the
@@ -826,23 +822,23 @@ public:
     // TransNum
     // available for
     // use.
-    EXPORT bool VerifyTentativeNum(const OTString& strServerID,
-                                   const int64_t& lTransNum)
-        const; // Client-side
-               // verifies that
-               // it actually
-               // tried to sign
-               // for this number
-               // (so it knows if
-               // the reply is
-               // valid.)
-    EXPORT bool VerifyAcknowledgedNum(const OTString& strServerID,
-                                      const int64_t& lRequestNum)
-        const; // Client
-               // verifies
-               // it has
-               // already
-               // seen a
+    EXPORT bool VerifyTentativeNum(
+        const OTString& strServerID,
+        const int64_t& lTransNum) const; // Client-side
+                                         // verifies that
+                                         // it actually
+                                         // tried to sign
+                                         // for this number
+                                         // (so it knows if
+                                         // the reply is
+                                         // valid.)
+    EXPORT bool VerifyAcknowledgedNum(
+        const OTString& strServerID,
+        const int64_t& lRequestNum) const; // Client
+                                           // verifies
+                                           // it has
+                                           // already
+                                           // seen a
     // server reply. Server acknowledges client
     // has seen reply (so client can remove
     // from list, so server can as well.)
@@ -857,7 +853,7 @@ public:
     // until I accept the receipts or put stop payment onto them.
     //
     EXPORT int32_t
-    GetIssuedNumCount(const OTIdentifier& theServerID) const; // count
+        GetIssuedNumCount(const OTIdentifier& theServerID) const; // count
     EXPORT int64_t GetIssuedNum(const OTIdentifier& theServerID,
                                 int32_t nIndex) const; // index
 
@@ -873,7 +869,7 @@ public:
     // to use.
     //
     EXPORT int32_t
-    GetTransactionNumCount(const OTIdentifier& theServerID) const; // count
+        GetTransactionNumCount(const OTIdentifier& theServerID) const; // count
     EXPORT int64_t GetTransactionNum(const OTIdentifier& theServerID,
                                      int32_t nIndex) const; // index
 
@@ -916,7 +912,7 @@ public:
     // will be wrong.
     //
     EXPORT int32_t
-    GetTentativeNumCount(const OTIdentifier& theServerID) const; // count
+        GetTentativeNumCount(const OTIdentifier& theServerID) const; // count
     EXPORT int64_t GetTentativeNum(const OTIdentifier& theServerID,
                                    int32_t nIndex) const; // index
 
@@ -958,7 +954,7 @@ public:
     // as well.
     //
     EXPORT int32_t
-    GetAcknowledgedNumCount(const OTIdentifier& theServerID) const; // count
+        GetAcknowledgedNumCount(const OTIdentifier& theServerID) const; // count
     EXPORT int64_t GetAcknowledgedNum(const OTIdentifier& theServerID,
                                       int32_t nIndex) const; // index
 
@@ -1027,8 +1023,8 @@ public:
                                                    // original OTMessage that
                                                    // this Nym sent.
     EXPORT int32_t
-    GetOutmailCount() const; // How many outmail messages does this Nym
-                             // currently store?
+        GetOutmailCount() const; // How many outmail messages does this Nym
+                                 // currently store?
     EXPORT OTMessage* GetOutmailByIndex(int32_t nIndex) const; // Get a
                                                                // specific
                                                                // piece of
@@ -1051,18 +1047,18 @@ public:
                                                        // the original OTMessage
                                                        // that this Nym sent.
     EXPORT int32_t
-    GetOutpaymentsCount() const; // How many outpayments messages does
-                                 // this Nym currently store?
-    EXPORT OTMessage* GetOutpaymentsByIndex(int32_t nIndex)
-        const; // Get a specific piece of outpayments, at a
-               // specific index.
+        GetOutpaymentsCount() const; // How many outpayments messages does
+                                     // this Nym currently store?
+    EXPORT OTMessage* GetOutpaymentsByIndex(
+        int32_t nIndex) const; // Get a specific piece of outpayments, at a
+                               // specific index.
     EXPORT bool RemoveOutpaymentsByIndex(int32_t nIndex,
-                                         bool bDeleteIt =
-                                             true); // if returns false,
-                                                    // outpayments index was bad
-                                                    // (or something else must
-                                                    // have gone seriously
-                                                    // wrong.)
+                                         bool bDeleteIt = true); // if returns
+                                                                 // false,
+    // outpayments index was bad
+    // (or something else must
+    // have gone seriously
+    // wrong.)
 
     EXPORT void ClearOutpayments(); // called by the destructor. (Not intended
                                     // to erase messages from local storage.)

@@ -2096,8 +2096,8 @@ bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
                                                // be on my tentative list.
 
         if (false == AddTentativeNum(strServerID, lNum)) // Add to list of
-            // tentatively-being-added
-            // numbers.
+        // tentatively-being-added
+        // numbers.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
                      "TentativeNum (" << lNum
@@ -2451,8 +2451,8 @@ bool OTPseudonym::RemoveTransactionNum(const OTString& strServerID,
 
 // Returns count of transaction numbers available for a given server.
 //
-int32_t OTPseudonym::GetTransactionNumCount(const OTIdentifier& theServerID)
-    const
+int32_t OTPseudonym::GetTransactionNumCount(
+    const OTIdentifier& theServerID) const
 {
     return GetGenericNumCount(m_mapTransNum, theServerID);
 }
@@ -2591,8 +2591,8 @@ bool OTPseudonym::RemoveAcknowledgedNum(const OTString& strServerID,
 // has
 // told me he has already seen the reply to.)
 //
-int32_t OTPseudonym::GetAcknowledgedNumCount(const OTIdentifier& theServerID)
-    const
+int32_t OTPseudonym::GetAcknowledgedNumCount(
+    const OTIdentifier& theServerID) const
 {
     return GetGenericNumCount(m_mapAcknowledgedNum, theServerID);
 }
@@ -3721,7 +3721,7 @@ bool OTPseudonym::SavePublicKey(const OTString& strPath) const
 
     if (m_pkeypair->GetPublicKey(strKey, false)) // false means "do not ESCAPE
                                                  // the bookends"
-        // Ie we'll get ----------- instead of - ---------
+    // Ie we'll get ----------- instead of - ---------
     {
         bool bStored =
             OTDB::StorePlainString(strKey.Get(), szFoldername, szFilename);
@@ -3755,7 +3755,7 @@ bool OTPseudonym::SavePublicKey(std::ofstream& ofs) const
 
     if (m_pkeypair->GetPublicKey(strKey, false)) // false means "do not ESCAPE
                                                  // the bookends"
-        // Ie we'll get ----------- instead of - ---------
+    // Ie we'll get ----------- instead of - ---------
     {
         strKey.WriteToFile(ofs);
     }
@@ -4138,8 +4138,9 @@ bool OTPseudonym::ReEncryptPrivateCredentials(
         OTCredential* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
+        if (false ==
+            pCredential->ReEncryptPrivateCredentials(*pExportPassphrase,
+                                                     bImporting))
             return false;
     }
 
@@ -4823,8 +4824,8 @@ OTCredential* OTPseudonym::GetRevokedCredential(const OTString& strID)
     return pCredential;
 }
 
-const OTCredential* OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex)
-    const
+const OTCredential* OTPseudonym::GetMasterCredentialByIndex(
+    int32_t nIndex) const
 {
     if ((nIndex < 0) ||
         (nIndex >= static_cast<int64_t>(m_mapCredentials.size()))) {
@@ -4845,8 +4846,8 @@ const OTCredential* OTPseudonym::GetMasterCredentialByIndex(int32_t nIndex)
     return nullptr;
 }
 
-const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(int32_t nIndex)
-    const
+const OTCredential* OTPseudonym::GetRevokedCredentialByIndex(
+    int32_t nIndex) const
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapRevoked.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
@@ -6021,8 +6022,9 @@ bool OTPseudonym::VerifyTransactionStatementNumbersOnNym(
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 lTransactionNumber = pDeque->at(i);
 
-                if (false == THE_NYM.VerifyIssuedNum(OTstrServerID,
-                                                     lTransactionNumber)) {
+                if (false ==
+                    THE_NYM.VerifyIssuedNum(OTstrServerID,
+                                            lTransactionNumber)) {
                     otOut << "OTPseudonym::" << __FUNCTION__
                           << ": Issued transaction # " << lTransactionNumber
                           << " from *this not found on THE_NYM.\n";

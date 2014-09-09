@@ -155,7 +155,8 @@
 namespace opentxs
 {
 
-UserCommandProcessor::UserCommandProcessor(OTServer* server) : server_(server)
+UserCommandProcessor::UserCommandProcessor(OTServer* server)
+    : server_(server)
 {
 }
 
@@ -173,9 +174,10 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         ((ServerSettings::GetOverrideNymID().size() <=
           0) || // AND (there's no Override Nym ID listed --OR-- the Override
                 // Nym ID doesn't
-         (0 != ServerSettings::GetOverrideNymID().compare(
-                   (theMessage.m_strNymID.Get()))))) // match the Nym's ID who
-                                                     // sent this message)
+         (0 !=
+          ServerSettings::GetOverrideNymID().compare(
+              (theMessage.m_strNymID.Get()))))) // match the Nym's ID who
+                                                // sent this message)
     {
         OTLog::vOutput(
             0, "UserCommandProcessor::ProcessUserCommand: Nym %s: failed "
@@ -499,10 +501,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                         // Okay, now that the Nym is verified, let's verify the
                         // message itself...
                         //
-                        if (false == theMessage.VerifySignature(
-                                         *pNym)) // FYI, OTMessage overrides
-                                                 // VerifySignature with
-                                                 // VerifySigAuthent.
+                        if (false ==
+                            theMessage.VerifySignature(*pNym)) // FYI, OTMessage
+                                                               // overrides
+                        // VerifySignature with
+                        // VerifySigAuthent.
                         { // (Because we use authentication keys, not signing
                             // keys, for messages.)
                             OTLog::Output(0, "@createUserAccount: "
@@ -731,16 +734,16 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                 return true;
                             }
                             else
-                                //                               ((pNym->IsMarkedForDeletion()
-                                // &&  (true == bLoadedPublicKey)) ||  // We
-                                // allow people to resurrect deleted Nyms.
-                                ////                              ((false ==
-                                /// bLoadedSignedNymfile)    && (false ==
-                                /// bLoadedPublicKey))     // It's like this now
-                                /// so unregistered Nyms
-                                //                                (false ==
-                                // bLoadedPublicKey))
-                                // // can still buy usage credits.
+                            //                               ((pNym->IsMarkedForDeletion()
+                            // &&  (true == bLoadedPublicKey)) ||  // We
+                            // allow people to resurrect deleted Nyms.
+                            ////                              ((false ==
+                            /// bLoadedSignedNymfile)    && (false ==
+                            /// bLoadedPublicKey))     // It's like this now
+                            /// so unregistered Nyms
+                            //                                (false ==
+                            // bLoadedPublicKey))
+                            // // can still buy usage credits.
                             {
                                 if (pNym->IsMarkedForDeletion())
                                     pNym->MarkAsUndeleted();
@@ -941,8 +944,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                 //
                 int64_t lRequestNumber = 0;
 
-                if (false == pNym->GetCurrentRequestNum(server_->m_strServerID,
-                                                        lRequestNumber)) {
+                if (false ==
+                    pNym->GetCurrentRequestNum(server_->m_strServerID,
+                                               lRequestNumber)) {
                     OTLog::Output(0, "Nym file request number doesn't exist. "
                                      "Apparently first-ever request to "
                                      "server--but everything checks out. "
@@ -979,10 +983,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                 // Let's compare it to the one that was sent in the message...
                 // (This prevents attackers
                 // from repeat-sending intercepted messages to the server.)
-                if (false == theMessage.m_strCommand.Compare(
-                                 "getRequest")) // IF it's NOT a getRequest CMD,
-                                                // (therefore requires a request
-                                                // number)
+                if (false ==
+                    theMessage.m_strCommand.Compare(
+                        "getRequest")) // IF it's NOT a getRequest CMD,
+                                       // (therefore requires a request
+                                       // number)
                 {
                     if (lRequestNumber !=
                         atol(theMessage.m_strRequestNum.Get())) // AND the
@@ -1020,8 +1025,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                         if (ServerSettings::__admin_usage_credits &&
                             pNym->GetUsageCredits() >= 0 &&
                             (ServerSettings::GetOverrideNymID().size() <= 0 ||
-                             (0 != ServerSettings::GetOverrideNymID().compare(
-                                       (theMessage.m_strNymID.Get()))))) {
+                             (0 !=
+                              ServerSettings::GetOverrideNymID().compare(
+                                  (theMessage.m_strNymID.Get()))))) {
                             const int64_t& lUsageCredits =
                                 pNym->GetUsageCredits();
 
@@ -1071,8 +1077,8 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                 }
                 else // If you entered this else, that means it IS a
                        // getRequest command
-                    // So we allow it to go through without verifying this step,
-                    // and without incrementing the counter.
+                // So we allow it to go through without verifying this step,
+                // and without incrementing the counter.
                 {
                     // pNym->IncrementRequestNum(server_->m_strServerID); //
                     // commented
@@ -1201,8 +1207,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                 // Nymbox and removes the replyNotice, and then adds the # to
                 // its internal list for safe-keeping.
                 //
-                if (false == pNym->VerifyAcknowledgedNum(server_->m_strServerID,
-                                                         lRequestNum)) {
+                if (false ==
+                    pNym->VerifyAcknowledgedNum(server_->m_strServerID,
+                                                lRequestNum)) {
                     // Verify whether a replyNotice exists in the Nymbox, with
                     // that lRequestNum
                     //
@@ -1341,10 +1348,10 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                                        // the only one that
                                                        // doesn't require a
                                                        // request number.
-        // All of the other commands, below, will fail above if the proper
-        // request number isn't included
-        // in the message.  They will already have failed by this point if they
-        // didn't verify.
+    // All of the other commands, below, will fail above if the proper
+    // request number isn't included
+    // in the message.  They will already have failed by this point if they
+    // didn't verify.
     {
         OTLog::vOutput(0, "\n==> Received a getRequest message. Nym: %s ...\n",
                        strMsgNymID.Get());
@@ -2399,9 +2406,10 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
     const bool bIsPrivilegedNym =
         ((ServerSettings::GetOverrideNymID().size() >
           0) && // And if there's an override Nym...
-         (0 == ServerSettings::GetOverrideNymID().compare(
-                   (MsgIn.m_strNymID.Get())))); // And if the acting Nym IS the
-                                                // override Nym...
+         (0 ==
+          ServerSettings::GetOverrideNymID().compare(
+              (MsgIn.m_strNymID.Get())))); // And if the acting Nym IS the
+                                           // override Nym...
     // The amount the usage credits are being ADJUSTED by.
     const int64_t lAdjustment =
         (bIsPrivilegedNym && ServerSettings::__admin_usage_credits)
@@ -2473,10 +2481,11 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
         // powers, or there's an error.
         //
         if (false == ((ServerSettings::GetOverrideNymID().size() > 0) &&
-                      (0 == ServerSettings::GetOverrideNymID().compare(
-                                (MsgIn.m_strNymID.Get()))))) // ...And if he's
-                                                             // not the special
-            // "override Nym"...
+                      (0 ==
+                       ServerSettings::GetOverrideNymID().compare(
+                           (MsgIn.m_strNymID.Get()))))) // ...And if he's
+                                                        // not the special
+                                                        // "override Nym"...
         {
             OTLog::vError("%s: Failed attempt by a normal Nym to view or "
                           "adjust usage credits on a different Nym (you're "
@@ -2717,10 +2726,10 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
         // transaction processor.  That way, users can double-check.
         if (bSuccessCalculateDigest) {
             if ((ASSET_USER_ID == USER_ID))
-                // The ID of the user who signed the contract must be the ID of
-                // the user
-                // whose public key is associated with this user account. They
-                // are one.
+            // The ID of the user who signed the contract must be the ID of
+            // the user
+            // whose public key is associated with this user account. They
+            // are one.
             {
                 if (pAssetContract->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
@@ -3018,9 +3027,10 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                 BasketItem* pItem = theBasket.At(i);
                 OT_ASSERT(nullptr != pItem);
 
-                if (nullptr == server_->transactor_.getAssetContract(
-                                   pItem->SUB_CONTRACT_ID)) // Sub-currency
-                                                            // not found.
+                if (nullptr ==
+                    server_->transactor_.getAssetContract(
+                        pItem->SUB_CONTRACT_ID)) // Sub-currency
+                                                 // not found.
                 {
                     const OTString strSubID(pItem->SUB_CONTRACT_ID);
                     OTLog::vError("%s: Failed: Sub-currency for basket is not "
@@ -4130,8 +4140,8 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                         pParty->GetPartyName(),
                         str_clause_name)) // This calls (if available) the
                                           // scripted clause: bool
-                    // party_may_execute_clause(party_name,
-                    // clause_name)
+                // party_may_execute_clause(party_name,
+                // clause_name)
                 {
                     //
                     // Execute the clause.
@@ -5333,7 +5343,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                 pResponseLedger->AddTransaction(*pTranResponse);
 
                 if (!server_->transactor_.verifyTransactionNumber(
-                         theNym, lTransactionNumber)) {
+                        theNym, lTransactionNumber)) {
                     // The user may not submit a transaction using a number he's
                     // already used before.
                     OTLog::vOutput(
@@ -5390,8 +5400,8 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                         // agreement.)
 
                         if (!server_->transactor_.removeIssuedNumber(
-                                 theNym, lTransactionNumber,
-                                 true)) // bSave=true
+                                theNym, lTransactionNumber,
+                                true)) // bSave=true
                         {
                             OTLog::vError("%s: Error removing issued number "
                                           "from user nym.\n",

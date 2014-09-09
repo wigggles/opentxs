@@ -162,7 +162,8 @@ private:
 public:
     OTAsymmetricKey_OpenSSL* backlink;
     // cppcheck-suppress uninitMemberVar
-    explicit OTAsymmetricKey_OpenSSLPrivdp() : backlink(0)
+    explicit OTAsymmetricKey_OpenSSLPrivdp()
+        : backlink(0)
     {
     }
 

@@ -188,7 +188,8 @@ bool ClientConnection::SealMessageForRecipient(OTMessage& msg,
     return false;
 }
 
-ClientConnection::ClientConnection() : publicKey_(OTAsymmetricKey::KeyFactory())
+ClientConnection::ClientConnection()
+    : publicKey_(OTAsymmetricKey::KeyFactory())
 {
 }
 

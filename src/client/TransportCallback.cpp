@@ -138,7 +138,8 @@
 namespace opentxs
 {
 
-TransportCallback::TransportCallback(OT_API& api) : api_(api)
+TransportCallback::TransportCallback(OT_API& api)
+    : api_(api)
 {
 }
 

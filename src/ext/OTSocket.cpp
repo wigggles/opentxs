@@ -178,7 +178,8 @@ OTSocket::Defaults::Defaults(int64_t lLatencySendMs,
 {
 }
 
-OTSocket::Mutex::Mutex() : m_pMutex(new std::mutex)
+OTSocket::Mutex::Mutex()
+    : m_pMutex(new std::mutex)
 {
 }
 

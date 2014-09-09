@@ -162,10 +162,10 @@ public:
     EXPORT int32_t VerifyMessageSuccess(const std::string& str_Message) const;
 
     EXPORT int32_t
-    VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
-                                  const std::string& USER_ID,
-                                  const std::string& ACCOUNT_ID,
-                                  const std::string& str_Message) const;
+        VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& ACCOUNT_ID,
+                                      const std::string& str_Message) const;
 
     EXPORT int32_t VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
                                         const std::string& USER_ID,
@@ -173,24 +173,21 @@ public:
                                         const std::string& str_Message) const;
 
     EXPORT int32_t
-    InterpretTransactionMsgReply(const std::string& SERVER_ID,
-                                 const std::string& USER_ID,
-                                 const std::string& ACCOUNT_ID,
-                                 const std::string& str_Attempt,
-                                 const std::string& str_Response) const;
+        InterpretTransactionMsgReply(const std::string& SERVER_ID,
+                                     const std::string& USER_ID,
+                                     const std::string& ACCOUNT_ID,
+                                     const std::string& str_Attempt,
+                                     const std::string& str_Response) const;
 
-    EXPORT std::string ExecuteScript_ReturnString(const std::string& str_Code,
-                                                  std::string str_DisplayName =
-                                                      "<BLANK>");
-    EXPORT bool ExecuteScript_ReturnBool(const std::string& str_Code,
-                                         std::string str_DisplayName =
-                                             "<BLANK>");
+    EXPORT std::string ExecuteScript_ReturnString(
+        const std::string& str_Code, std::string str_DisplayName = "<BLANK>");
+    EXPORT bool ExecuteScript_ReturnBool(
+        const std::string& str_Code, std::string str_DisplayName = "<BLANK>");
     EXPORT int32_t
-    ExecuteScript_ReturnInt(const std::string& str_Code,
-                            std::string str_DisplayName = "<BLANK>");
-    EXPORT void ExecuteScript_ReturnVoid(const std::string& str_Code,
-                                         std::string str_DisplayName =
-                                             "<BLANK>");
+        ExecuteScript_ReturnInt(const std::string& str_Code,
+                                std::string str_DisplayName = "<BLANK>");
+    EXPORT void ExecuteScript_ReturnVoid(
+        const std::string& str_Code, std::string str_DisplayName = "<BLANK>");
 
     EXPORT void AddVariable(const std::string& str_var_name,
                             OTVariable& theVar);
@@ -278,8 +275,8 @@ public:
                                        const std::string& INDICES,
                                        const std::string& PAYMENT_TYPE) const;
 
-    EXPORT std::string load_public_encryption_key(const std::string& NYM_ID)
-        const;
+    EXPORT std::string load_public_encryption_key(
+        const std::string& NYM_ID) const;
 
     EXPORT std::string load_public_signing_key(const std::string& NYM_ID) const;
 

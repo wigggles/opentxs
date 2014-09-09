@@ -1248,8 +1248,9 @@ OTCredential* OTCredential::CreateMaster(
         // Using m_Masterkey's actual signing key to sign "m_Masterkey the
         // contract."
         //
-        if (false == pCredential->SignNewMaster(nullptr == pPWData ? &thePWData
-                                                                   : pPWData)) {
+        if (false ==
+            pCredential->SignNewMaster(nullptr == pPWData ? &thePWData
+                                                          : pPWData)) {
             otErr << "In " << __FILE__ << ", line " << __LINE__
                   << ": Failed trying to call pCredential->SignNewMaster\n";
             delete pCredential;
@@ -1320,8 +1321,8 @@ const OTSubcredential* OTCredential::GetSubcredential(
     return nullptr;
 }
 
-const OTSubcredential* OTCredential::GetSubcredentialByIndex(int32_t nIndex)
-    const
+const OTSubcredential* OTCredential::GetSubcredentialByIndex(
+    int32_t nIndex) const
 {
     if ((nIndex < 0) ||
         (nIndex >= static_cast<int64_t>(m_mapSubcredentials.size()))) {

@@ -215,9 +215,9 @@ public:
 
     // Then call one (or both) of these:
 
-    EXPORT bool SetInitialPayment(const int64_t& lAmount,
-                                  time64_t tTimeUntilInitialPayment =
-                                      OT_TIME_ZERO); // default: now.
+    EXPORT bool SetInitialPayment(
+        const int64_t& lAmount,
+        time64_t tTimeUntilInitialPayment = OT_TIME_ZERO); // default: now.
 
     // These two can be called independent of each other. You can
     // have an initial payment, AND/OR a payment plan.
@@ -225,10 +225,9 @@ public:
     EXPORT bool SetPaymentPlan(
         const int64_t& lPaymentAmount,
         time64_t tTimeUntilPlanStart = OT_TIME_MONTH_IN_SECONDS,
-        time64_t tBetweenPayments =
-            OT_TIME_MONTH_IN_SECONDS, // Default: 30 days.
-        time64_t tPlanLength = OT_TIME_ZERO,
-        int32_t nMaxPayments = 0);
+        time64_t tBetweenPayments = OT_TIME_MONTH_IN_SECONDS, // Default: 30
+                                                              // days.
+        time64_t tPlanLength = OT_TIME_ZERO, int32_t nMaxPayments = 0);
 
     // VerifyAgreement()
     // This function verifies both Nyms and both signatures.

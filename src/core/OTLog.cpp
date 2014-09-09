@@ -949,8 +949,7 @@ void ot_terminate()
 
     std::lock_guard<std::mutex> lock(the_Mutex);
 
-    try
-    {
+    try {
         // try once to re-throw currently active exception
         static bool tried_throw = false;
         if (!tried_throw) {
@@ -958,14 +957,12 @@ void ot_terminate()
             throw;
         }
     }
-    catch (const std::exception& e)
-    {
+    catch (const std::exception& e) {
         std::cerr << "ot_terminate: " << __FUNCTION__
                   << " caught unhandled exception. type: " << typeid(e).name()
                   << " what(): " << e.what() << std::endl;
     }
-    catch (...)
-    {
+    catch (...) {
         std::cerr << "ot_terminate: " << __FUNCTION__
                   << " caught unknown/unhandled exception." << std::endl;
     }

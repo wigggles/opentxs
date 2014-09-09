@@ -160,7 +160,8 @@ namespace opentxs
 // carries
 // a request number that cannot be found in this queue.
 
-OTMessageOutbuffer::OTMessageOutbuffer() : dataFolder_(OTDataFolder::Get())
+OTMessageOutbuffer::OTMessageOutbuffer()
+    : dataFolder_(OTDataFolder::Get())
 {
     OT_ASSERT(dataFolder_.Exists());
 }

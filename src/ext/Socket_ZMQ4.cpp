@@ -161,7 +161,8 @@ OTSocket_ZMQ_4::ZMQ4::~ZMQ4()
     delete context_zmq;
 }
 
-OTSocket_ZMQ_4::OTSocket_ZMQ_4() : m_pzmq(new ZMQ4())
+OTSocket_ZMQ_4::OTSocket_ZMQ_4()
+    : m_pzmq(new ZMQ4())
 {
 }
 
@@ -193,14 +194,12 @@ bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
 
     if (!CloseSocket()) return false;
 
-    try
-    {
+    try {
         m_pzmq->socket_zmq = new zmq::socket_t(
             *m_pzmq->context_zmq,
             bIsRequest ? ZMQ_REQ : ZMQ_REP); // make a new socket
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -213,12 +212,10 @@ bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
 
     const int linger = 0; // close immediately
 
-    try
-    {
+    try {
         m_pzmq->socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -241,13 +238,11 @@ bool OTSocket_ZMQ_4::NewContext()
     if (nullptr != m_pzmq->context_zmq) delete m_pzmq->context_zmq;
     m_pzmq->context_zmq = nullptr;
 
-    try
-    {
+    try {
         m_pzmq->context_zmq = new zmq::context_t(
             1, 31); // Threads, Max Sockets. (31 is a sane default).
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -302,12 +297,10 @@ bool OTSocket_ZMQ_4::Connect()
 
     if (!NewSocket(true)) return false; // NewSocket(true), Request Socket.
 
-    try
-    {
+    try {
         m_pzmq->socket_zmq->connect(m_strConnectPath.Get());
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -342,15 +335,13 @@ bool OTSocket_ZMQ_4::Listen()
 
     if (!NewSocket(false)) return false; // NewSocket(false), Responce Socket.
 
-    try
-    {
+    try {
         m_pzmq->socket_zmq->bind(m_strBindingPath.Get()); // since
                                                           // m_strBindingPath
                                                           // was checked and set
                                                           // above.
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -435,13 +426,11 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
     bool bSuccessSending = false;
 
     if (m_bIsBlocking) {
-        try
-        {
+        try {
             bSuccessSending =
                 m_pzmq->socket_zmq->send(zmq_message); // Blocking.
         }
-        catch (std::exception& e)
-        {
+        catch (std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
@@ -458,16 +447,14 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
                 {(*m_pzmq->socket_zmq), 0, ZMQ_POLLOUT, 0}};
 
             int nPoll = 0;
-            try
-            {
+            try {
                 nPoll =
                     zmq::poll(&items[0], 1,
                               static_cast<long>(lDoubling)); // ZMQ_POLLOUT, 1
                                                              // item, timeout
                                                              // (milliseconds)
             }
-            catch (std::exception& e)
-            {
+            catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                               e.what());
                 OT_FAIL;
@@ -476,14 +463,12 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
             lDoubling *= 2;
 
             if (items[0].revents & ZMQ_POLLOUT) {
-                try
-                {
+                try {
                     bSuccessSending = m_pzmq->socket_zmq->send(
                         zmq_message,
                         ZMQ_NOBLOCK); // <=========== SEND ===============
                 }
-                catch (std::exception& e)
-                {
+                catch (std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                                   e.what());
                     OT_FAIL;
@@ -567,13 +552,11 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
     // each (Doubling every time.)
     //
     if (m_bIsBlocking) {
-        try
-        {
+        try {
             bSuccessReceiving =
                 m_pzmq->socket_zmq->recv(&zmq_message); // Blocking.
         }
-        catch (std::exception& e)
-        {
+        catch (std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
@@ -589,12 +572,10 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
             zmq::pollitem_t items[] = {{*m_pzmq->socket_zmq, 0, ZMQ_POLLIN, 0}};
 
             int nPoll = 0;
-            try
-            {
+            try {
                 nPoll = zmq::poll(&items[0], 1, static_cast<long>(lDoubling));
             }
-            catch (std::exception& e)
-            {
+            catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                               e.what());
                 OT_FAIL;
@@ -604,14 +585,12 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
 
             //  If we got a reply, process it
             if (items[0].revents & ZMQ_POLLIN) {
-                try
-                {
+                try {
                     bSuccessReceiving = m_pzmq->socket_zmq->recv(
                         &zmq_message,
                         ZMQ_NOBLOCK); // <=========== RECEIVE ===============
                 }
-                catch (std::exception& e)
-                {
+                catch (std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                                   e.what());
                     OT_FAIL;

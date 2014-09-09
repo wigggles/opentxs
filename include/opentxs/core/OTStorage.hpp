@@ -218,20 +218,18 @@ namespace OTDB
 
 // Currently supporting MsgPack and Protocol Buffers.
 //
-enum PackType // PACKING TYPE
-{
-    PACK_MESSAGE_PACK = 0, // Using MessagePack as packer.
-    PACK_PROTOCOL_BUFFERS, // Using Google Protocol Buffers as packer.
-    PACK_TYPE_ERROR        // (Should never be.)
+enum PackType            // PACKING TYPE
+{ PACK_MESSAGE_PACK = 0, // Using MessagePack as packer.
+  PACK_PROTOCOL_BUFFERS, // Using Google Protocol Buffers as packer.
+  PACK_TYPE_ERROR        // (Should never be.)
 };
 
 // Currently supporting filesystem, with subclasses possible via API.
 //
-enum StorageType // STORAGE TYPE
-{
-    STORE_FILESYSTEM = 0, // Filesystem
-    //        STORE_COUCH_DB,            // Couch DB (not yet supported)
-    STORE_TYPE_SUBCLASS // (Subclass provided by API client via SWIG.)
+enum StorageType        // STORAGE TYPE
+{ STORE_FILESYSTEM = 0, // Filesystem
+  //        STORE_COUCH_DB,            // Couch DB (not yet supported)
+  STORE_TYPE_SUBCLASS // (Subclass provided by API client via SWIG.)
 };
 
 #ifndef SWIG
@@ -339,7 +337,7 @@ typedef std::pair<PackType, StoredObjectType> InstantiateFuncKey; // Those
 // "protocol buffers", those form the KEY for looking up the LoomAcctPB
 // instantiator.
 typedef std::map<InstantiateFuncKey, InstantiateFunc*>
-mapOfFunctions; //...basically implementing my own vtable, eh?
+    mapOfFunctions; //...basically implementing my own vtable, eh?
 
 // OTDB Namespace PRIVATE MEMBERS
 // this "details" naming is a common C++ idiom for "private" in a namespace.
@@ -373,9 +371,9 @@ extern OTDB::mapOfFunctions* pFunctionMap; // This is a pointer so I can control
 // interface
 // derived from IStorable (They're all listed somewhere below.)
 //
-DeclareInterface(IStorable)
-virtual bool onPack(PackedBuffer& theBuffer,
-                    Storable& inObj) = 0; // buffer is output, inObj is input.
+DeclareInterface(IStorable) virtual bool onPack(
+    PackedBuffer& theBuffer,
+    Storable& inObj) = 0; // buffer is output, inObj is input.
 virtual bool onUnpack(PackedBuffer& theBuffer,
                       Storable& outObj) = 0; // buffer is input, outObj is
                                              // output.
@@ -441,7 +439,8 @@ EndInterface
                           // storage context.
 
 protected:
-    Storable() : m_Type("Storable")
+    Storable()
+        : m_Type("Storable")
     {
     }
 
@@ -513,7 +512,8 @@ public:
         theInternalType m_buffer;                                              \
                                                                                \
     public:                                                                    \
-        theNewType() : PackedBuffer()                                          \
+        theNewType()                                                           \
+            : PackedBuffer()                                                   \
         {                                                                      \
         }                                                                      \
         virtual ~theNewType()                                                  \
@@ -571,7 +571,8 @@ template <class theBufferType>
 class PackerSubclass : public OTPacker
 {
 public:
-    PackerSubclass() : OTPacker()
+    PackerSubclass()
+        : OTPacker()
     {
     }
     virtual ~PackerSubclass()
@@ -612,11 +613,13 @@ private:
     OTPacker* m_pPacker;
 
 protected:
-    Storage() : m_pPacker(nullptr)
+    Storage()
+        : m_pPacker(nullptr)
     {
     }
 
-    Storage(const Storage&) : m_pPacker(nullptr)
+    Storage(const Storage&)
+        : m_pPacker(nullptr)
     {
     } // We don't want to copy the pointer. Let it create its own.
 
@@ -910,7 +913,8 @@ class OTDBString : public Storable
     // Therefore, I don't allow you to access the constructor except through the
     // factory.
 protected:
-    OTDBString() : Storable()
+    OTDBString()
+        : Storable()
     {
         m_Type = "OTDBString";
     }
@@ -938,7 +942,8 @@ class Blob : public Storable
     // Therefore, I don't allow you to access the constructor except through the
     // factory.
 protected:
-    Blob() : Storable()
+    Blob()
+        : Storable()
     {
         m_Type = "Blob";
     }
@@ -962,7 +967,8 @@ class StringMap : public Storable
     // Therefore, I don't allow you to access the constructor except through the
     // factory.
 protected:
-    StringMap() : Storable()
+    StringMap()
+        : Storable()
     {
         m_Type = "StringMap";
     }
@@ -998,7 +1004,8 @@ class Displayable : public Storable
     // Therefore, I don't allow you to access the constructor except through the
     // factory.
 protected:
-    Displayable() : Storable()
+    Displayable()
+        : Storable()
     {
         m_Type = "Displayable";
     }
@@ -1090,7 +1097,8 @@ class MarketList : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    MarketList() : Storable()
+    MarketList()
+        : Storable()
     {
         m_Type = "MarketList";
     }
@@ -1158,7 +1166,8 @@ class BidData : public OfferDataMarket
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    BidData() : OfferDataMarket()
+    BidData()
+        : OfferDataMarket()
     {
         m_Type = "BidData";
     }
@@ -1185,7 +1194,8 @@ class AskData : public OfferDataMarket
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    AskData() : OfferDataMarket()
+    AskData()
+        : OfferDataMarket()
     {
         m_Type = "AskData";
     }
@@ -1212,7 +1222,8 @@ class OfferListMarket : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    OfferListMarket() : Storable()
+    OfferListMarket()
+        : Storable()
     {
         m_Type = "OfferListMarket";
     }
@@ -1265,7 +1276,8 @@ class TradeListMarket : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    TradeListMarket() : Storable()
+    TradeListMarket()
+        : Storable()
     {
         m_Type = "TradeListMarket";
     }
@@ -1358,7 +1370,8 @@ class OfferListNym : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    OfferListNym() : Storable()
+    OfferListNym()
+        : Storable()
     {
         m_Type = "OfferListNym";
     }
@@ -1426,7 +1439,8 @@ class TradeListNym : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    TradeListNym() : Storable()
+    TradeListNym()
+        : Storable()
     {
         m_Type = "TradeListNym";
     }
@@ -1449,7 +1463,8 @@ class Acct : public Displayable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    Acct() : Displayable()
+    Acct()
+        : Displayable()
     {
         m_Type = "Acct";
     }
@@ -1473,7 +1488,8 @@ class BitcoinAcct : public Acct
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    BitcoinAcct() : Acct()
+    BitcoinAcct()
+        : Acct()
     {
         m_Type = "BitcoinAcct";
     }
@@ -1501,7 +1517,8 @@ class ServerInfo : public Displayable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    ServerInfo() : Displayable()
+    ServerInfo()
+        : Displayable()
     {
         m_Type = "ServerInfo";
     }
@@ -1525,7 +1542,8 @@ class Server : public ServerInfo
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    Server() : ServerInfo()
+    Server()
+        : ServerInfo()
     {
         m_Type = "Server";
     }
@@ -1552,7 +1570,8 @@ class BitcoinServer : public Server
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    BitcoinServer() : Server()
+    BitcoinServer()
+        : Server()
     {
         m_Type = "BitcoinServer";
     }
@@ -1582,7 +1601,8 @@ class RippleServer : public Server
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    RippleServer() : Server()
+    RippleServer()
+        : Server()
     {
         m_Type = "RippleServer";
     }
@@ -1615,7 +1635,8 @@ class LoomServer : public Server
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    LoomServer() : Server()
+    LoomServer()
+        : Server()
     {
         m_Type = "LoomServer";
     }
@@ -1646,7 +1667,8 @@ class ContactNym : public Displayable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    ContactNym() : Displayable()
+    ContactNym()
+        : Displayable()
     {
         m_Type = "ContactNym";
     }
@@ -1672,7 +1694,8 @@ class WalletData : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    WalletData() : Storable()
+    WalletData()
+        : Storable()
     {
         m_Type = "WalletData";
     }
@@ -1702,7 +1725,8 @@ class ContactAcct : public Displayable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    ContactAcct() : Displayable()
+    ContactAcct()
+        : Displayable()
     {
         m_Type = "ContactAcct";
     }
@@ -1731,7 +1755,8 @@ class Contact : public Displayable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    Contact() : Displayable()
+    Contact()
+        : Displayable()
     {
         m_Type = "Contact";
     }
@@ -1758,7 +1783,8 @@ class AddressBook : public Storable
     // Therefore, I don't allow you to access the constructor except through
     // factory.
 protected:
-    AddressBook() : Storable()
+    AddressBook()
+        : Storable()
     {
         m_Type = "AddressBook";
     }
@@ -1877,8 +1903,8 @@ public:
     // lower level calls.
 
     bool ConfirmOrCreateFolder(const char* szFolderName,
-                               struct stat* pst =
-                                   nullptr); // local to data_folder
+                               struct stat* pst = nullptr); // local to
+                                                            // data_folder
     bool ConfirmFile(const char* szFileName,
                      struct stat* pst = nullptr); // local to data_folder
 

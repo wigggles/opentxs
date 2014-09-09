@@ -158,12 +158,14 @@
 namespace opentxs
 {
 
-OTSubkey::OTSubkey() : OTKeyCredential()
+OTSubkey::OTSubkey()
+    : OTKeyCredential()
 {
     m_strContractType = "KEY CREDENTIAL";
 }
 
-OTSubkey::OTSubkey(OTCredential& other) : OTKeyCredential(other)
+OTSubkey::OTSubkey(OTCredential& other)
+    : OTKeyCredential(other)
 {
     m_strContractType = "KEY CREDENTIAL";
 }

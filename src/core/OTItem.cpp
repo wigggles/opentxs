@@ -309,8 +309,9 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
                 if (i > 0)
                     otErr << "OTItem::VerifyTransactionStatement: THIS SHOULD "
                              "NOT HAPPEN.\n";
-                else if (false == THE_NYM.AddIssuedNum(SERVER_ID,
-                                                       lTemp)) // doesn't save.
+                else if (false ==
+                         THE_NYM.AddIssuedNum(SERVER_ID,
+                                              lTemp)) // doesn't save.
                     otErr << "Failed adding issued number back to THE_NYM in "
                              "OTItem::VerifyTransactionStatement.\n";
             }
@@ -962,8 +963,9 @@ bool OTItem::VerifyBalanceStatement(
                 if (i > 0)
                     otErr << "OTItem::" << __FUNCTION__
                           << ": THIS SHOULD NOT HAPPEN.\n";
-                else if (false == THE_NYM.AddIssuedNum(SERVER_ID,
-                                                       lTemp)) // doesn't save.
+                else if (false ==
+                         THE_NYM.AddIssuedNum(SERVER_ID,
+                                              lTemp)) // doesn't save.
                     otErr << "OTItem::" << __FUNCTION__
                           << ": Failed adding issued number back to THE_NYM.\n";
             }
@@ -1132,18 +1134,18 @@ int64_t OTItem::GetNumberOfOrigin()
 
     if (0 == m_lNumberOfOrigin) {
         switch (GetType()) {
-        case acceptPending
-            : // this item is a client-side acceptance of a pending transfer
-        case rejectPending
-            : // this item is a client-side rejection of a pending transfer
-        case acceptCronReceipt: // this item is a client-side acceptance of a
-                                // cron receipt in his inbox.
-        case acceptItemReceipt: // this item is a client-side acceptance of an
-                                // item receipt in his inbox.
-        case disputeCronReceipt
-            : // this item is a client dispute of a cron receipt in his inbox.
-        case disputeItemReceipt
-            : // this item is a client dispute of an item receipt in his inbox.
+        case acceptPending: // this item is a client-side acceptance of a
+                            // pending transfer
+        case rejectPending: // this item is a client-side rejection of a pending
+                            // transfer
+        case acceptCronReceipt:  // this item is a client-side acceptance of a
+                                 // cron receipt in his inbox.
+        case acceptItemReceipt:  // this item is a client-side acceptance of an
+                                 // item receipt in his inbox.
+        case disputeCronReceipt: // this item is a client dispute of a cron
+                                 // receipt in his inbox.
+        case disputeItemReceipt: // this item is a client dispute of an item
+                                 // receipt in his inbox.
 
         case acceptFinalReceipt:   // this item is a client-side acceptance of a
                                    // final receipt in his inbox. (All related
@@ -1181,8 +1183,8 @@ void OTItem::CalculateNumberOfOrigin()
     case acceptTransaction:   // this item is a client-side acceptance of a
                               // transaction number (a blank) in my Nymbox
     case atAcceptTransaction: // server reply
-    case acceptMessage
-        : // this item is a client-side acceptance of a message in my Nymbox
+    case acceptMessage: // this item is a client-side acceptance of a message in
+                        // my Nymbox
     case atAcceptMessage: // server reply
     case acceptNotice:    // this item is a client-side acceptance of a server
                           // notification in my Nymbox
@@ -1204,18 +1206,18 @@ void OTItem::CalculateNumberOfOrigin()
         SetNumberOfOrigin(0); // Not applicable.
         break;
 
-    case acceptPending
-        : // this item is a client-side acceptance of a pending transfer
-    case rejectPending
-        : // this item is a client-side rejection of a pending transfer
-    case acceptCronReceipt: // this item is a client-side acceptance of a cron
-                            // receipt in his inbox.
-    case acceptItemReceipt: // this item is a client-side acceptance of an item
-                            // receipt in his inbox.
-    case disputeCronReceipt
-        : // this item is a client dispute of a cron receipt in his inbox.
-    case disputeItemReceipt
-        : // this item is a client dispute of an item receipt in his inbox.
+    case acceptPending: // this item is a client-side acceptance of a pending
+                        // transfer
+    case rejectPending: // this item is a client-side rejection of a pending
+                        // transfer
+    case acceptCronReceipt:  // this item is a client-side acceptance of a cron
+                             // receipt in his inbox.
+    case acceptItemReceipt:  // this item is a client-side acceptance of an item
+                             // receipt in his inbox.
+    case disputeCronReceipt: // this item is a client dispute of a cron receipt
+                             // in his inbox.
+    case disputeItemReceipt: // this item is a client dispute of an item receipt
+                             // in his inbox.
 
     case acceptFinalReceipt: // this item is a client-side acceptance of a final
                              // receipt in his inbox. (All related receipts must
@@ -1242,8 +1244,8 @@ void OTItem::CalculateNumberOfOrigin()
                          // payment occuring. Also used in inbox report.
     case finalReceipt:   // server receipt dropped into inbox / nymbox as result
                          // of cron item expiring or being canceled.
-    case basketReceipt
-        : // server receipt dropped into inbox as result of a basket exchange.
+    case basketReceipt:  // server receipt dropped into inbox as result of a
+                         // basket exchange.
 
         SetNumberOfOrigin(GetReferenceToNum()); // pending is in
                                                 // reference to the
@@ -1325,15 +1327,15 @@ void OTItem::CalculateNumberOfOrigin()
     } break;
 
     // FEEs
-    case serverfee
-        : // this item is a fee from the transaction server (per contract)
+    case serverfee: // this item is a fee from the transaction server (per
+                    // contract)
     case atServerfee:
     case issuerfee: // this item is a fee from the issuer (per contract)
     case atIssuerfee:
 
     // INFO (BALANCE, HASH, etc) these are still all messages with replies.
-    case balanceStatement
-        : // this item is a statement of balance. (For asset account.)
+    case balanceStatement: // this item is a statement of balance. (For asset
+                           // account.)
     case atBalanceStatement:
     case transactionStatement: // this item is a transaction statement. (For Nym
                                // -- which numbers are assigned to him.)
@@ -1345,16 +1347,16 @@ void OTItem::CalculateNumberOfOrigin()
     case atTransfer: // Server reply.
 
     // CASH WITHDRAWAL / DEPOSIT
-    case withdrawal
-        : // this item is a cash withdrawal (of chaumian blinded tokens)
+    case withdrawal: // this item is a cash withdrawal (of chaumian blinded
+                     // tokens)
     case atWithdrawal:
-    case deposit
-        : // this item is a cash deposit (of a purse containing blinded tokens.)
+    case deposit: // this item is a cash deposit (of a purse containing blinded
+                  // tokens.)
     case atDeposit:
 
     // CHEQUES AND VOUCHERS
-    case withdrawVoucher
-        : // this item is a request to purchase a voucher (a cashier's cheque)
+    case withdrawVoucher: // this item is a request to purchase a voucher (a
+                          // cashier's cheque)
     case atWithdrawVoucher:
 
     // PAYING DIVIDEND ON SHARES OF STOCK
@@ -1362,28 +1364,28 @@ void OTItem::CalculateNumberOfOrigin()
     case atPayDividend: // the server reply to that request.
 
     // TRADING ON MARKETS
-    case marketOffer: // this item is an offer to be put on a market.
-    case atMarketOffer
-        : // server reply or updated notification regarding a market offer.
+    case marketOffer:   // this item is an offer to be put on a market.
+    case atMarketOffer: // server reply or updated notification regarding a
+                        // market offer.
 
     // PAYMENT PLANS
-    case paymentPlan: // this item is a new payment plan
-    case atPaymentPlan
-        : // server reply or updated notification regarding a payment plan.
+    case paymentPlan:   // this item is a new payment plan
+    case atPaymentPlan: // server reply or updated notification regarding a
+                        // payment plan.
 
     // SMART CONTRACTS
-    case smartContract: // this item is a new smart contract
-    case atSmartContract
-        : // server reply or updated notification regarding a smart contract.
+    case smartContract:   // this item is a new smart contract
+    case atSmartContract: // server reply or updated notification regarding a
+                          // smart contract.
 
     // CANCELLING: Market Offers and Payment Plans.
-    case cancelCronItem
-        : // this item is intended to cancel a market offer or payment plan.
+    case cancelCronItem:   // this item is intended to cancel a market offer or
+                           // payment plan.
     case atCancelCronItem: // reply from the server regarding said cancellation.
 
     // EXCHANGE IN/OUT OF A BASKET CURRENCY
-    case exchangeBasket
-        : // this item is an exchange in/out of a basket currency.
+    case exchangeBasket:   // this item is an exchange in/out of a basket
+                           // currency.
     case atExchangeBasket: // reply from the server regarding said exchange.
 
     default:
@@ -2113,12 +2115,12 @@ void OTItem::GetStringFromType(OTItem::itemType theType, OTString& strType)
         strType.Set("atExchangeBasket");
         break;
 
-    case OTItem::chequeReceipt
-        : // used for inbox statements in balance agreement.
+    case OTItem::chequeReceipt: // used for inbox statements in balance
+                                // agreement.
         strType.Set("chequeReceipt");
         break;
-    case OTItem::voucherReceipt
-        : // used for inbox statements in balance agreement.
+    case OTItem::voucherReceipt: // used for inbox statements in balance
+                                 // agreement.
         strType.Set("voucherReceipt");
         break;
     case OTItem::marketReceipt: // used as market receipt, and also for inbox
@@ -2130,8 +2132,8 @@ void OTItem::GetStringFromType(OTItem::itemType theType, OTString& strType)
                                  // statement as payment receipt.
         strType.Set("paymentReceipt");
         break;
-    case OTItem::transferReceipt
-        : // used in inbox statement as transfer receipt.
+    case OTItem::transferReceipt: // used in inbox statement as transfer
+                                  // receipt.
         strType.Set("transferReceipt");
         break;
 
@@ -2140,13 +2142,13 @@ void OTItem::GetStringFromType(OTItem::itemType theType, OTString& strType)
                                // cancelled Cron Item.)
         strType.Set("finalReceipt");
         break;
-    case OTItem::basketReceipt
-        : // used in inbox statement as basket receipt. (For exchange.)
+    case OTItem::basketReceipt: // used in inbox statement as basket receipt.
+                                // (For exchange.)
         strType.Set("basketReceipt");
         break;
 
-    case OTItem::notice
-        : // used in Nymbox statement as notification from server.
+    case OTItem::notice: // used in Nymbox statement as notification from
+                         // server.
         strType.Set("notice");
         break;
     case OTItem::replyNotice: // some server replies (to your request) have a

@@ -252,16 +252,12 @@ public:
     EXPORT static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml,
                                             OTString& strOutput);
 
-    static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
-                                           OTASCIIArmor& ascOutput,
-                                           const char*& szName,
-                                           OTString::Map* pmapExtraVars =
-                                               nullptr);
-    static bool LoadEncodedTextFieldByName(irr::io::IrrXMLReader*& xml,
-                                           OTString& strOutput,
-                                           const char*& szName,
-                                           OTString::Map* pmapExtraVars =
-                                               nullptr);
+    static bool LoadEncodedTextFieldByName(
+        irr::io::IrrXMLReader*& xml, OTASCIIArmor& ascOutput,
+        const char*& szName, OTString::Map* pmapExtraVars = nullptr);
+    static bool LoadEncodedTextFieldByName(
+        irr::io::IrrXMLReader*& xml, OTString& strOutput, const char*& szName,
+        OTString::Map* pmapExtraVars = nullptr);
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
@@ -386,12 +382,12 @@ public:
     // get it
     // in string or
     // binary form.
-    EXPORT virtual void GetIdentifier(OTString& theIdentifier)
-        const; // The Contract
-               // ID is a hash
-               // of the
-               // contract raw
-               // file.
+    EXPORT virtual void GetIdentifier(
+        OTString& theIdentifier) const; // The Contract
+                                        // ID is a hash
+                                        // of the
+                                        // contract raw
+                                        // file.
 
     EXPORT void GetFilename(OTString& strFilename) const;
     EXPORT void GetFoldername(OTString& strFoldername) const;
@@ -484,11 +480,11 @@ public:
                              const OTString& strHashType,
                              const OTPasswordData* pPWData = nullptr);
 
-    EXPORT bool SignContract(const char* szFoldername,
-                             const char* szFilename,    // for Cert.
-                             OTSignature& theSignature, // output
-                             const OTPasswordData* pPWData =
-                                 nullptr); // optional in/out
+    EXPORT bool SignContract(
+        const char* szFoldername,
+        const char* szFilename,                   // for Cert.
+        OTSignature& theSignature,                // output
+        const OTPasswordData* pPWData = nullptr); // optional in/out
 
     // Calculates a hash of m_strRawFile (the xml portion of the contract plus
     // the signatures)
@@ -515,9 +511,9 @@ public:
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     // So far not overridden anywhere (used to be OTTrade.)
-    EXPORT virtual bool VerifySignature(const OTPseudonym& theNym,
-                                        const OTPasswordData* pPWData = nullptr)
-        const;
+    EXPORT virtual bool VerifySignature(
+        const OTPseudonym& theNym,
+        const OTPasswordData* pPWData = nullptr) const;
     EXPORT virtual bool VerifySigAuthent(
         const OTPseudonym& theNym,
         const OTPasswordData* pPWData = nullptr) const;
@@ -541,11 +537,11 @@ public:
                                 const OTString& strHashType,
                                 const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifySignature(const char* szFoldername,
-                                const char* szFilename, // for Cert.
-                                const OTSignature& theSignature,
-                                const OTPasswordData* pPWData =
-                                    nullptr) const; // optional in/out
+    EXPORT bool VerifySignature(
+        const char* szFoldername,
+        const char* szFilename, // for Cert.
+        const OTSignature& theSignature,
+        const OTPasswordData* pPWData = nullptr) const; // optional in/out
 
     //      bool VerifySignatures();   // This function verifies the signatures
     // on the contract.

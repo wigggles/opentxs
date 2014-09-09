@@ -217,7 +217,8 @@ bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
 }
 
 // initializes blank.
-OTASCIIArmor::OTASCIIArmor() : OTString()
+OTASCIIArmor::OTASCIIArmor()
+    : OTString()
 {
 }
 
@@ -229,13 +230,15 @@ OTASCIIArmor::OTASCIIArmor(const OTString& strValue)
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const OTPayload& theValue) : OTString()
+OTASCIIArmor::OTASCIIArmor(const OTPayload& theValue)
+    : OTString()
 {
     SetData(theValue);
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const OTData& theValue) : OTString()
+OTASCIIArmor::OTASCIIArmor(const OTData& theValue)
+    : OTString()
 {
     SetData(theValue);
 }
@@ -248,13 +251,15 @@ OTASCIIArmor::OTASCIIArmor(const OTASCIIArmor& strValue)
 
 // assumes envelope contains encrypted data;
 // grabs that data in base64-form onto *this.
-OTASCIIArmor::OTASCIIArmor(const OTEnvelope& theEnvelope) : OTString()
+OTASCIIArmor::OTASCIIArmor(const OTEnvelope& theEnvelope)
+    : OTString()
 {
     theEnvelope.GetAsciiArmoredData(*this);
 }
 
 // copies (already encoded)
-OTASCIIArmor::OTASCIIArmor(const char* szValue) : OTString(szValue)
+OTASCIIArmor::OTASCIIArmor(const char* szValue)
+    : OTString(szValue)
 {
 }
 
@@ -390,8 +395,8 @@ std::string decompress_string(const std::string& str)
 /// adding packing,
 /// to solve any issues of binary compatibility across various platforms.
 //
-bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
-    const // bLineBreaks=true
+bool OTASCIIArmor::GetAndUnpackString(
+    OTString& strData, bool bLineBreaks) const // bLineBreaks=true
 {
     size_t outSize = 0;
     uint8_t* pData = nullptr;
@@ -413,12 +418,10 @@ bool OTASCIIArmor::GetAndUnpackString(OTString& strData, bool bLineBreaks)
         pData = nullptr;
 
         std::string str_uncompressed = "";
-        try
-        {
+        try {
             str_uncompressed = decompress_string(str_decoded);
         }
-        catch (const std::runtime_error&)
-        {
+        catch (const std::runtime_error&) {
             otErr << "Failed decompressing string in "
                      "OTASCIIArmor::GetAndUnpackString.\n";
             return false;

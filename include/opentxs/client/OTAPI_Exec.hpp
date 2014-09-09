@@ -297,12 +297,12 @@ public:
                                    const std::string& strNumbers) const;
     EXPORT std::string NumList_Remove(const std::string& strNumList,
                                       const std::string& strNumbers) const;
-    EXPORT bool NumList_VerifyQuery(const std::string& strNumList,
-                                    const std::string& strNumbers)
-        const; // returns OT_BOOL
-    EXPORT bool NumList_VerifyAll(const std::string& strNumList,
-                                  const std::string& strNumbers)
-        const; // returns OT_BOOL
+    EXPORT bool NumList_VerifyQuery(
+        const std::string& strNumList,
+        const std::string& strNumbers) const; // returns OT_BOOL
+    EXPORT bool NumList_VerifyAll(
+        const std::string& strNumList,
+        const std::string& strNumbers) const; // returns OT_BOOL
     EXPORT int32_t NumList_Count(const std::string& strNumList) const;
 
     /** OT-encode a plainext string.
@@ -394,9 +394,9 @@ public:
 
     EXPORT std::string SymmetricEncrypt(const std::string& SYMMETRIC_KEY,
                                         const std::string& PLAINTEXT) const;
-    EXPORT std::string SymmetricDecrypt(const std::string& SYMMETRIC_KEY,
-                                        const std::string& CIPHERTEXT_ENVELOPE)
-        const;
+    EXPORT std::string SymmetricDecrypt(
+        const std::string& SYMMETRIC_KEY,
+        const std::string& CIPHERTEXT_ENVELOPE) const;
 
     /** OT-Sign a CONTRACT. (First signature)
 
@@ -520,8 +520,8 @@ public:
                                          int64_t lTransNum) const;
 
     EXPORT std::string GetNym_SourceForID(const std::string& NYM_ID) const;
-    EXPORT std::string GetNym_AltSourceLocation(const std::string& NYM_ID)
-        const;
+    EXPORT std::string GetNym_AltSourceLocation(
+        const std::string& NYM_ID) const;
 
     EXPORT int32_t GetNym_CredentialCount(const std::string& NYM_ID) const;
     EXPORT std::string GetNym_CredentialID(const std::string& NYM_ID,
@@ -536,8 +536,8 @@ public:
         const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const;
 
     EXPORT int32_t
-    GetNym_SubcredentialCount(const std::string& NYM_ID,
-                              const std::string& MASTER_CRED_ID) const;
+        GetNym_SubcredentialCount(const std::string& NYM_ID,
+                                  const std::string& MASTER_CRED_ID) const;
     EXPORT std::string GetNym_SubCredentialID(const std::string& NYM_ID,
                                               const std::string& MASTER_CRED_ID,
                                               const int32_t& nIndex) const;
@@ -563,8 +563,8 @@ public:
     EXPORT std::string CreateAssetContract(
         const std::string& NYM_ID, const std::string& strXMLcontents) const;
 
-    EXPORT std::string CalculateAssetContractID(const std::string& str_Contract)
-        const;
+    EXPORT std::string CalculateAssetContractID(
+        const std::string& str_Contract) const;
     EXPORT std::string CalculateServerContractID(
         const std::string& str_Contract) const;
 
@@ -659,8 +659,11 @@ public:
     // If you have a server contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT int32_t AddServerContract(const std::string& strContract)
-        const; // returns OT_TRUE (1) or OT_FALSE(0)
+    EXPORT int32_t
+        AddServerContract(const std::string& strContract) const; // returns
+                                                                 // OT_TRUE (1)
+                                                                 // or
+                                                                 // OT_FALSE(0)
 
     /** --------------------------------------------------
     // ADD ASSET CONTRACT (to wallet)
@@ -668,8 +671,11 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT int32_t AddAssetContract(const std::string& strContract)
-        const; // returns OT_TRUE (1) or OT_FALSE(0)
+    EXPORT int32_t
+        AddAssetContract(const std::string& strContract) const; // returns
+                                                                // OT_TRUE (1)
+                                                                // or
+                                                                // OT_FALSE(0)
 
     /** --------------------------------------------------
 
@@ -685,12 +691,15 @@ public:
     EXPORT int32_t GetAccountCount() const;
     EXPORT int32_t GetNymCount() const;
 
-    EXPORT std::string GetServer_ID(const int32_t& nIndex)
-        const; // based on Index (above 4 functions) this
-               // returns the Server's ID
-    EXPORT std::string GetServer_Name(const std::string& SERVER_ID)
-        const; // Return's Server's name (based on
-               // server ID)
+    EXPORT std::string GetServer_ID(const int32_t& nIndex) const; // based on
+                                                                  // Index
+                                                                  // (above 4
+                                                                  // functions)
+                                                                  // this
+    // returns the Server's ID
+    EXPORT std::string GetServer_Name(
+        const std::string& SERVER_ID) const; // Return's Server's name (based on
+                                             // server ID)
     EXPORT std::string GetServer_Contract(const std::string& SERVER_ID)
         const; // Return's Server's contract (based on
                // server ID)
@@ -715,18 +724,22 @@ public:
     EXPORT int64_t StringToAmount(const std::string& ASSET_TYPE_ID,
                                   const std::string& str_input) const;
 
-    EXPORT std::string GetAssetType_ID(const int32_t& nIndex)
-        const; // returns Asset Type ID (based on index from
-               // GetAssetTypeCount)
-    EXPORT std::string GetAssetType_Name(const std::string& ASSET_TYPE_ID)
-        const; // Returns asset type name
-               // based on
-               // Asset Type ID
+    EXPORT std::string GetAssetType_ID(const int32_t& nIndex) const; // returns
+                                                                     // Asset
+                                                                     // Type ID
+                                                                     // (based
+                                                                     // on index
+                                                                     // from
+    // GetAssetTypeCount)
+    EXPORT std::string GetAssetType_Name(
+        const std::string& ASSET_TYPE_ID) const; // Returns asset type name
+                                                 // based on
+                                                 // Asset Type ID
     EXPORT std::string GetAssetType_TLA(const std::string& THE_ID) const;
-    EXPORT std::string GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
-        const; // Returns currency contract
-               // based on
-               // Asset Type ID
+    EXPORT std::string GetAssetType_Contract(
+        const std::string& ASSET_TYPE_ID) const; // Returns currency contract
+                                                 // based on
+                                                 // Asset Type ID
 
     /** You already have accounts in your wallet (without any server
     communications)
@@ -741,32 +754,32 @@ public:
     EXPORT std::string GetAccountWallet_ID(const int32_t& nIndex)
         const; // returns a string containing the account ID,
                // based on index.
-    EXPORT std::string GetAccountWallet_Name(const std::string& ACCOUNT_ID)
-        const; // returns the account name, based
-               // on
-               // account ID.
-    EXPORT int64_t GetAccountWallet_Balance(const std::string& ACCOUNT_ID)
-        const; // returns the account balance,
-               // based on
-               // account ID.
-    EXPORT std::string GetAccountWallet_Type(const std::string& ACCOUNT_ID)
-        const; // returns the account type
-               // (simple,
-               // issuer, etc)
+    EXPORT std::string GetAccountWallet_Name(
+        const std::string& ACCOUNT_ID) const; // returns the account name, based
+                                              // on
+                                              // account ID.
+    EXPORT int64_t GetAccountWallet_Balance(
+        const std::string& ACCOUNT_ID) const; // returns the account balance,
+                                              // based on
+                                              // account ID.
+    EXPORT std::string GetAccountWallet_Type(
+        const std::string& ACCOUNT_ID) const; // returns the account type
+                                              // (simple,
+                                              // issuer, etc)
     EXPORT std::string GetAccountWallet_AssetTypeID(
         const std::string& ACCOUNT_ID) const; // returns asset type ID of the
                                               // account
-    EXPORT std::string GetAccountWallet_ServerID(const std::string& ACCOUNT_ID)
-        const; // returns Server ID of the
-               // account
-    EXPORT std::string GetAccountWallet_NymID(const std::string& ACCOUNT_ID)
-        const; // returns Nym ID of the account
+    EXPORT std::string GetAccountWallet_ServerID(
+        const std::string& ACCOUNT_ID) const; // returns Server ID of the
+                                              // account
+    EXPORT std::string GetAccountWallet_NymID(
+        const std::string& ACCOUNT_ID) const; // returns Nym ID of the account
 
-    EXPORT std::string GetAccountWallet_InboxHash(const std::string& ACCOUNT_ID)
-        const; // returns latest InboxHash
-               // according to
-               // the account file. (Usually more
-               // recent than: GetNym_InboxHash)
+    EXPORT std::string GetAccountWallet_InboxHash(
+        const std::string& ACCOUNT_ID) const; // returns latest InboxHash
+                                              // according to
+                                              // the account file. (Usually more
+                                              // recent than: GetNym_InboxHash)
     EXPORT std::string GetAccountWallet_OutboxHash(
         const std::string& ACCOUNT_ID) const; // returns latest OutboxHash
                                               // according
@@ -802,8 +815,11 @@ public:
     // 4 functions)
     // this returns
     // the Nym's ID
-    EXPORT std::string GetNym_Name(const std::string& NYM_ID)
-        const; // Returns Nym Name (based on NymID)
+    EXPORT std::string GetNym_Name(const std::string& NYM_ID) const; // Returns
+                                                                     // Nym Name
+                                                                     // (based
+                                                                     // on
+                                                                     // NymID)
     EXPORT std::string GetNym_Stats(const std::string& NYM_ID)
         const; // Returns Nym Statistics (based on NymID)
     EXPORT std::string GetNym_NymboxHash(const std::string& SERVER_ID,
@@ -859,14 +875,14 @@ public:
 
     EXPORT int32_t GetNym_MailCount(const std::string& NYM_ID) const;
 
-    EXPORT std::string GetNym_MailContentsByIndex(const std::string& NYM_ID,
-                                                  const int32_t& nIndex)
-        const; // returns the message itself (Subject:
-               // optionally as first line)
+    EXPORT std::string GetNym_MailContentsByIndex(
+        const std::string& NYM_ID,
+        const int32_t& nIndex) const; // returns the message itself (Subject:
+                                      // optionally as first line)
 
-    EXPORT std::string GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
-                                                  const int32_t& nIndex)
-        const; // returns the NymID of the sender.
+    EXPORT std::string GetNym_MailSenderIDByIndex(
+        const std::string& NYM_ID,
+        const int32_t& nIndex) const; // returns the NymID of the sender.
     EXPORT std::string GetNym_MailServerIDByIndex(
         const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
     // ServerID where the
@@ -876,16 +892,19 @@ public:
                                       const int32_t& nIndex) const; // (1 or
                                                                     // 0.)
     EXPORT bool Nym_VerifyMailByIndex(const std::string& NYM_ID,
-                                      const int32_t& nIndex)
-        const; // true if signature verifies. (Sender Nym MUST
-               // be in my wallet for this to work.)
+                                      const int32_t& nIndex) const; // true if
+                                                                    // signature
+                                                                    // verifies.
+                                                                    // (Sender
+                                                                    // Nym MUST
+    // be in my wallet for this to work.)
 
     EXPORT int32_t GetNym_OutmailCount(const std::string& NYM_ID) const;
 
-    EXPORT std::string GetNym_OutmailContentsByIndex(const std::string& NYM_ID,
-                                                     const int32_t& nIndex)
-        const; // returns the message itself (Subject:
-               // optionally as first line)
+    EXPORT std::string GetNym_OutmailContentsByIndex(
+        const std::string& NYM_ID,
+        const int32_t& nIndex) const; // returns the message itself (Subject:
+                                      // optionally as first line)
 
     EXPORT std::string GetNym_OutmailRecipientIDByIndex(
         const std::string& NYM_ID,
@@ -1039,9 +1058,9 @@ public:
     EXPORT std::string Wallet_ImportNym(const std::string& FILE_CONTENTS) const;
 
     //! Returns the imported cert's NymID, if successful. Else nullptr.
-    EXPORT std::string Wallet_ImportCert(const std::string& DISPLAY_NAME,
-                                         const std::string& FILE_CONTENTS)
-        const;
+    EXPORT std::string Wallet_ImportCert(
+        const std::string& DISPLAY_NAME,
+        const std::string& FILE_CONTENTS) const;
 
     //! Returns the exported cert, if successful. Else nullptr.
     EXPORT std::string Wallet_ExportCert(const std::string& NYM_ID) const;
@@ -1050,8 +1069,8 @@ public:
     // ID.
     //! Returns nullptr on failure, otherwise returns the full ID.
     //
-    EXPORT std::string Wallet_GetNymIDFromPartial(const std::string& PARTIAL_ID)
-        const;
+    EXPORT std::string Wallet_GetNymIDFromPartial(
+        const std::string& PARTIAL_ID) const;
     EXPORT std::string Wallet_GetServerIDFromPartial(
         const std::string& PARTIAL_ID) const;
     EXPORT std::string Wallet_GetAssetIDFromPartial(
@@ -1518,12 +1537,12 @@ public:
     Various informational functions for the Smart Contracts.
     */
 
-    EXPORT bool Smart_AreAllPartiesConfirmed(const std::string& THE_CONTRACT)
-        const; // true or false?
+    EXPORT bool Smart_AreAllPartiesConfirmed(
+        const std::string& THE_CONTRACT) const; // true or false?
     EXPORT int32_t Smart_GetBylawCount(const std::string& THE_CONTRACT) const;
-    EXPORT std::string Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
-                                             const int32_t& nIndex)
-        const; // returns the name of the bylaw.
+    EXPORT std::string Smart_GetBylawByIndex(
+        const std::string& THE_CONTRACT,
+        const int32_t& nIndex) const; // returns the name of the bylaw.
     EXPORT std::string Bylaw_GetLanguage(const std::string& THE_CONTRACT,
                                          const std::string& BYLAW_NAME) const;
     EXPORT int32_t Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
@@ -1576,12 +1595,12 @@ public:
                                                  // attached to
                                                  // callback.
     EXPORT int32_t Smart_GetPartyCount(const std::string& THE_CONTRACT) const;
-    EXPORT std::string Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
-                                             const int32_t& nIndex)
-        const; // returns the name of the party.
-    EXPORT bool Smart_IsPartyConfirmed(const std::string& THE_CONTRACT,
-                                       const std::string& PARTY_NAME)
-        const; // true or false?
+    EXPORT std::string Smart_GetPartyByIndex(
+        const std::string& THE_CONTRACT,
+        const int32_t& nIndex) const; // returns the name of the party.
+    EXPORT bool Smart_IsPartyConfirmed(
+        const std::string& THE_CONTRACT,
+        const std::string& PARTY_NAME) const; // true or false?
     EXPORT std::string Party_GetID(const std::string& THE_CONTRACT,
                                    const std::string& PARTY_NAME)
         const; // returns either NymID or Entity ID.
@@ -1625,9 +1644,9 @@ public:
     // See Create_SmartContract (etc.)
     */
     EXPORT int32_t
-    activateSmartContract(const std::string& SERVER_ID,
-                          const std::string& USER_ID,
-                          const std::string& THE_SMART_CONTRACT) const;
+        activateSmartContract(const std::string& SERVER_ID,
+                              const std::string& USER_ID,
+                              const std::string& THE_SMART_CONTRACT) const;
     /**
     // If a smart contract is already running on the server, this allows a party
     // to trigger clauses on that smart contract, by name. This is NOT a
@@ -1735,11 +1754,11 @@ public:
     //
     // MEANT TO BE USED in cases where a private key is also available.
     */
-    EXPORT std::string LoadUserPubkey_Encryption(const std::string& USER_ID)
-        const; // returns nullptr, or a public key.
+    EXPORT std::string LoadUserPubkey_Encryption(
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
-    EXPORT std::string LoadUserPubkey_Signing(const std::string& USER_ID)
-        const; // returns nullptr, or a public key.
+    EXPORT std::string LoadUserPubkey_Signing(
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
     /** -----------------------------------------------------------------
     // LOAD PUBLIC KEY -- from local storage
@@ -1748,11 +1767,11 @@ public:
     //
     // MEANT TO BE USED in cases where a private key is NOT available.
     */
-    EXPORT std::string LoadPubkey_Encryption(const std::string& USER_ID)
-        const; // returns nullptr, or a public key.
+    EXPORT std::string LoadPubkey_Encryption(
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
-    EXPORT std::string LoadPubkey_Signing(const std::string& USER_ID)
-        const; // returns nullptr, or a public key.
+    EXPORT std::string LoadPubkey_Signing(
+        const std::string& USER_ID) const; // returns nullptr, or a public key.
 
     /** ------------------------------------------------------------------------
     //
@@ -1761,8 +1780,8 @@ public:
     //
     // Loads the user's private key, verifies, then returns OT_TRUE or OT_FALSE.
     */
-    EXPORT bool VerifyUserPrivateKey(const std::string& USER_ID)
-        const; // returns OT_BOOL
+    EXPORT bool VerifyUserPrivateKey(
+        const std::string& USER_ID) const; // returns OT_BOOL
 
     /** --------------------------------------------------------------
     // LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
@@ -1776,13 +1795,13 @@ public:
         const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
         const std::string& USER_ID) const; // returns nullptr, or a purse.
 
-    EXPORT std::string LoadMint(const std::string& SERVER_ID,
-                                const std::string& ASSET_TYPE_ID)
-        const; // returns nullptr, or a mint
+    EXPORT std::string LoadMint(
+        const std::string& SERVER_ID,
+        const std::string& ASSET_TYPE_ID) const; // returns nullptr, or a mint
 
-    EXPORT std::string LoadAssetContract(const std::string& ASSET_TYPE_ID)
-        const; // returns nullptr, or an asset
-               // contract.
+    EXPORT std::string LoadAssetContract(
+        const std::string& ASSET_TYPE_ID) const; // returns nullptr, or an asset
+                                                 // contract.
 
     EXPORT std::string LoadServerContract(const std::string& SERVER_ID)
         const; // returns nullptr, or a server contract.
@@ -1799,9 +1818,9 @@ public:
     // Tells you whether or not a given asset type is actually a basket
     currency.
     */
-    EXPORT bool IsBasketCurrency(const std::string& ASSET_TYPE_ID)
-        const; // returns OT_BOOL (OT_TRUE or
-               // OT_FALSE aka 1 or 0.)
+    EXPORT bool IsBasketCurrency(
+        const std::string& ASSET_TYPE_ID) const; // returns OT_BOOL (OT_TRUE or
+                                                 // OT_FALSE aka 1 or 0.)
 
     /** --------------------------------------------------------------------
     // Get Basket Count (of backing asset types.)
@@ -1810,7 +1829,7 @@ public:
     // (Or zero.)
     */
     EXPORT int32_t
-    Basket_GetMemberCount(const std::string& BASKET_ASSET_TYPE_ID) const;
+        Basket_GetMemberCount(const std::string& BASKET_ASSET_TYPE_ID) const;
 
     /** --------------------------------------------------------------------
     // Get Asset Type of a basket's member currency, by index.
@@ -1930,13 +1949,13 @@ public:
     // know
     // it wasn't expired at the time that it was recorded.)
     //
-    EXPORT std::string LoadExpiredBox(const std::string& SERVER_ID,
-                                      const std::string& USER_ID)
-        const; // Returns nullptr, or an ExpiredBox
+    EXPORT std::string LoadExpiredBox(
+        const std::string& SERVER_ID,
+        const std::string& USER_ID) const; // Returns nullptr, or an ExpiredBox
 
-    EXPORT std::string LoadExpiredBoxNoVerify(const std::string& SERVER_ID,
-                                              const std::string& USER_ID)
-        const; // Returns nullptr, or a ExpiredBox.
+    EXPORT std::string LoadExpiredBoxNoVerify(
+        const std::string& SERVER_ID,
+        const std::string& USER_ID) const; // Returns nullptr, or a ExpiredBox.
 
     EXPORT bool ClearExpired(const std::string& SERVER_ID,
                              const std::string& USER_ID, const int32_t& nIndex,
@@ -1945,12 +1964,12 @@ public:
                              ) const;
 
     //! Find out how many pending transactions (and receipts) are in this inbox.
-    EXPORT int32_t
-    Ledger_GetCount(const std::string& SERVER_ID, const std::string& USER_ID,
-                    const std::string& ACCOUNT_ID,
-                    const std::string& THE_LEDGER) const; // Returns number of
-                                                          // transactions
-                                                          // within.
+    EXPORT int32_t Ledger_GetCount(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ACCOUNT_ID,
+        const std::string& THE_LEDGER) const; // Returns number of
+                                              // transactions
+                                              // within.
 
     //! Creates a new 'response' ledger, set up with the right Server ID, etc,
     // so you can
@@ -2103,9 +2122,9 @@ public:
     //! processed the reply for that message.
     //
     EXPORT int64_t
-    ReplyNotice_GetRequestNum(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& THE_TRANSACTION) const;
+        ReplyNotice_GetRequestNum(const std::string& SERVER_ID,
+                                  const std::string& USER_ID,
+                                  const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------------------------
     // Retrieve Voucher from Transaction
@@ -2153,16 +2172,16 @@ public:
     // Returns OT_BOOL.
     */
     EXPORT int32_t
-    Transaction_GetSuccess(const std::string& SERVER_ID,
-                           const std::string& USER_ID,
-                           const std::string& ACCOUNT_ID,
-                           const std::string& THE_TRANSACTION) const;
+        Transaction_GetSuccess(const std::string& SERVER_ID,
+                               const std::string& USER_ID,
+                               const std::string& ACCOUNT_ID,
+                               const std::string& THE_TRANSACTION) const;
 
     EXPORT int32_t
-    Transaction_IsCanceled(const std::string& SERVER_ID,
-                           const std::string& USER_ID,
-                           const std::string& ACCOUNT_ID,
-                           const std::string& THE_TRANSACTION) const;
+        Transaction_IsCanceled(const std::string& SERVER_ID,
+                               const std::string& USER_ID,
+                               const std::string& ACCOUNT_ID,
+                               const std::string& THE_TRANSACTION) const;
 
     /** Gets the balance agreement success (from a transaction.)
     // returns OT_BOOL.
@@ -2181,16 +2200,16 @@ public:
     OTTransaction::GetDateSigned().)
     */
     EXPORT time64_t
-    Transaction_GetDateSigned(const std::string& SERVER_ID,
+        Transaction_GetDateSigned(const std::string& SERVER_ID,
+                                  const std::string& USER_ID,
+                                  const std::string& ACCOUNT_ID,
+                                  const std::string& THE_TRANSACTION) const;
+
+    EXPORT int64_t
+        Transaction_GetAmount(const std::string& SERVER_ID,
                               const std::string& USER_ID,
                               const std::string& ACCOUNT_ID,
                               const std::string& THE_TRANSACTION) const;
-
-    EXPORT int64_t
-    Transaction_GetAmount(const std::string& SERVER_ID,
-                          const std::string& USER_ID,
-                          const std::string& ACCOUNT_ID,
-                          const std::string& THE_TRANSACTION) const;
 
     /** --------------------------------------------------
     //
@@ -2520,19 +2539,19 @@ public:
     */
     EXPORT int64_t Instrmnt_GetAmount(const std::string& THE_INSTRUMENT) const;
     EXPORT int64_t
-    Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT) const;
+        Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT) const;
     EXPORT time64_t
-    Instrmnt_GetValidFrom(const std::string& THE_INSTRUMENT) const;
+        Instrmnt_GetValidFrom(const std::string& THE_INSTRUMENT) const;
     EXPORT time64_t
-    Instrmnt_GetValidTo(const std::string& THE_INSTRUMENT) const;
-    EXPORT std::string Instrmnt_GetMemo(const std::string& THE_INSTRUMENT)
-        const;
-    EXPORT std::string Instrmnt_GetType(const std::string& THE_INSTRUMENT)
-        const;
-    EXPORT std::string Instrmnt_GetServerID(const std::string& THE_INSTRUMENT)
-        const;
-    EXPORT std::string Instrmnt_GetAssetID(const std::string& THE_INSTRUMENT)
-        const;
+        Instrmnt_GetValidTo(const std::string& THE_INSTRUMENT) const;
+    EXPORT std::string Instrmnt_GetMemo(
+        const std::string& THE_INSTRUMENT) const;
+    EXPORT std::string Instrmnt_GetType(
+        const std::string& THE_INSTRUMENT) const;
+    EXPORT std::string Instrmnt_GetServerID(
+        const std::string& THE_INSTRUMENT) const;
+    EXPORT std::string Instrmnt_GetAssetID(
+        const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetSenderUserID(
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetSenderAcctID(
@@ -2739,7 +2758,7 @@ public:
     // the balance AFTER the adjustment. (The current "Usage Credits" balance.)
     */
     EXPORT int64_t
-    Message_GetUsageCredits(const std::string& THE_MESSAGE) const;
+        Message_GetUsageCredits(const std::string& THE_MESSAGE) const;
 
     /**
     CHECK USER --- (Grab his public key based on his User ID.)
@@ -2885,8 +2904,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t
-    getRequest(const std::string& SERVER_ID, const std::string& USER_ID) const;
+    EXPORT int32_t getRequest(const std::string& SERVER_ID,
+                              const std::string& USER_ID) const;
 
     /**
     GET TRANSACTION NUMBER
@@ -3195,9 +3214,10 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT int32_t
-    notarizeWithdrawal(const std::string& SERVER_ID, const std::string& USER_ID,
-                       const std::string& ACCT_ID, const int64_t& AMOUNT) const;
+    EXPORT int32_t notarizeWithdrawal(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& ACCT_ID,
+                                      const int64_t& AMOUNT) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3245,10 +3265,12 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT int32_t
-    notarizeTransfer(const std::string& SERVER_ID, const std::string& USER_ID,
-                     const std::string& ACCT_FROM, const std::string& ACCT_TO,
-                     const int64_t& AMOUNT, const std::string& NOTE) const;
+    EXPORT int32_t notarizeTransfer(const std::string& SERVER_ID,
+                                    const std::string& USER_ID,
+                                    const std::string& ACCT_FROM,
+                                    const std::string& ACCT_TO,
+                                    const int64_t& AMOUNT,
+                                    const std::string& NOTE) const;
 
     /**
     --------------------------------------------------------------------------
@@ -3358,8 +3380,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t
-    getNymbox(const std::string& SERVER_ID, const std::string& USER_ID) const;
+    EXPORT int32_t getNymbox(const std::string& SERVER_ID,
+                             const std::string& USER_ID) const;
 
     // from local storage.
     EXPORT std::string LoadNymbox(const std::string& SERVER_ID,
@@ -3368,9 +3390,9 @@ public:
                                                                      // or a
                                                                      // Nymbox.
 
-    EXPORT std::string LoadNymboxNoVerify(const std::string& SERVER_ID,
-                                          const std::string& USER_ID)
-        const; // Returns nullptr, or a Nymbox.
+    EXPORT std::string LoadNymboxNoVerify(
+        const std::string& SERVER_ID,
+        const std::string& USER_ID) const; // Returns nullptr, or a Nymbox.
 
     /** Some server replies (to your messages) are so important that a notice is
     dropped
@@ -3612,8 +3634,9 @@ public:
     */
 
     EXPORT int32_t
-    depositPaymentPlan(const std::string& SERVER_ID, const std::string& USER_ID,
-                       const std::string& THE_PAYMENT_PLAN) const;
+        depositPaymentPlan(const std::string& SERVER_ID,
+                           const std::string& USER_ID,
+                           const std::string& THE_PAYMENT_PLAN) const;
 
     /** --------------------------------------------------
     // ISSUE MARKET OFFER
@@ -3741,9 +3764,10 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT int32_t
-    getNym_MarketOffers(const std::string& SERVER_ID,
-                        const std::string& USER_ID) const; // Offers this Nym
-                                                           // has out on market.
+        getNym_MarketOffers(const std::string& SERVER_ID,
+                            const std::string& USER_ID) const; // Offers this
+                                                               // Nym
+    // has out on market.
     // These may just be the Cron Receipts...
 
     // Returns int32_t:
@@ -3994,16 +4018,16 @@ public:
     // Returns OT_ERROR for error. (-1)
     */
     EXPORT int32_t
-    Message_GetTransactionSuccess(const std::string& SERVER_ID,
-                                  const std::string& USER_ID,
-                                  const std::string& ACCOUNT_ID,
-                                  const std::string& THE_MESSAGE) const;
+        Message_GetTransactionSuccess(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& ACCOUNT_ID,
+                                      const std::string& THE_MESSAGE) const;
 
     EXPORT int32_t
-    Message_IsTransactionCanceled(const std::string& SERVER_ID,
-                                  const std::string& USER_ID,
-                                  const std::string& ACCOUNT_ID,
-                                  const std::string& THE_MESSAGE) const;
+        Message_IsTransactionCanceled(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& ACCOUNT_ID,
+                                      const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET BALANCE AGREEMENT SUCCESS (From a MESSAGE.)
@@ -4011,11 +4035,9 @@ public:
     // Returns OT_TRUE (1) for Success and OT_FALSE (0) for Failure.
     // Returns OT_ERROR for error. (-1)
     */
-    EXPORT int32_t
-    Message_GetBalanceAgreementSuccess(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& ACCOUNT_ID,
-                                       const std::string& THE_MESSAGE) const;
+    EXPORT int32_t Message_GetBalanceAgreementSuccess(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET MESSAGE LEDGER
@@ -4033,8 +4055,8 @@ public:
     // server reply and get the new asset type ID out of it.
     // Otherwise how will you ever open accounts in that new type?
     */
-    EXPORT std::string Message_GetNewAssetTypeID(const std::string& THE_MESSAGE)
-        const;
+    EXPORT std::string Message_GetNewAssetTypeID(
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET NEW ISSUER ACCOUNT ID
@@ -4055,8 +4077,8 @@ public:
     // This function allows you to get the new account ID out of the
     // server reply message.
     */
-    EXPORT std::string Message_GetNewAcctID(const std::string& THE_MESSAGE)
-        const;
+    EXPORT std::string Message_GetNewAcctID(
+        const std::string& THE_MESSAGE) const;
 
     /** -----------------------------------------------------------
     // GET NYMBOX HASH
@@ -4066,8 +4088,8 @@ public:
     // also allows the client to query the server for this information
     // for syncronicity purposes.
     */
-    EXPORT std::string Message_GetNymboxHash(const std::string& THE_MESSAGE)
-        const;
+    EXPORT std::string Message_GetNymboxHash(
+        const std::string& THE_MESSAGE) const;
 
 protected:
     static bool bInitOTApp;

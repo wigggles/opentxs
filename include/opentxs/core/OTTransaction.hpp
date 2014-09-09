@@ -672,10 +672,9 @@ public:
         const OTIdentifier& theServerID, transactionType theType,
         int64_t lTransactionNum = 0);
 
-    EXPORT static OTTransaction* GenerateTransaction(const OTLedger& theOwner,
-                                                     transactionType theType,
-                                                     int64_t lTransactionNum =
-                                                         0);
+    EXPORT static OTTransaction* GenerateTransaction(
+        const OTLedger& theOwner, transactionType theType,
+        int64_t lTransactionNum = 0);
     inline transactionType GetType() const
     {
         return m_Type;

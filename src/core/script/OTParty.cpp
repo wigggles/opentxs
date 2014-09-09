@@ -811,8 +811,10 @@ bool OTParty::HasAgentByNymID(const OTIdentifier& theNymID,
 // If so, make sure that agent has a pointer to theNym and return true.
 // else return false.
 //
-bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym, OTAgent** ppAgent)
-    const // ppAgent lets you get the agent ptr if it was there.
+bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym,
+                                  OTAgent** ppAgent) const // ppAgent lets you
+                                                           // get the agent ptr
+                                                           // if it was there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
         auto it = m_mapAgents.find(m_str_authorizing_agent);
@@ -841,8 +843,12 @@ bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym, OTAgent** ppAgent)
 }
 
 bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
-                                         OTAgent** ppAgent)
-    const // ppAgent lets you get the agent ptr if it was there.
+                                         OTAgent** ppAgent) const // ppAgent
+                                                                  // lets you
+                                                                  // get the
+                                                                  // agent ptr
+                                                                  // if it was
+                                                                  // there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
         auto it = m_mapAgents.find(m_str_authorizing_agent);
@@ -986,12 +992,13 @@ bool OTParty::DropFinalReceiptToInboxes(
         OT_ASSERT_MSG(nullptr != pAcct,
                       "Unexpected nullptr partyaccount pointer in party map.");
 
-        if (false == pAcct->DropFinalReceiptToInbox(
-                         pNymMap, // contains any Nyms who might already be
-                                  // loaded, mapped by ID.
-                         strServerID, theServerNym, *pSmartContract,
-                         lNewTransactionNumber, strOrigCronItem, pstrNote,
-                         pstrAttachment)) {
+        if (false ==
+            pAcct->DropFinalReceiptToInbox(
+                pNymMap, // contains any Nyms who might already be
+                         // loaded, mapped by ID.
+                strServerID, theServerNym, *pSmartContract,
+                lNewTransactionNumber, strOrigCronItem, pstrNote,
+                pstrAttachment)) {
             otErr << szFunc
                   << ": Failed dropping final Receipt to agent's Inbox.\n";
             bSuccess = false; // Notice: no break. We still try to notify them
@@ -1034,9 +1041,10 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
         OT_ASSERT_MSG(nullptr != pAgent,
                       "Unexpected nullptr agent pointer in party map.");
 
-        if (false == pAgent->DropFinalReceiptToNymbox(
-                         *pSmartContract, lNewTransactionNumber,
-                         strOrigCronItem, pstrNote, pstrAttachment, pActualNym))
+        if (false ==
+            pAgent->DropFinalReceiptToNymbox(
+                *pSmartContract, lNewTransactionNumber, strOrigCronItem,
+                pstrNote, pstrAttachment, pActualNym))
             otErr << "OTParty::DropFinalReceiptToNymboxes: Failed dropping "
                      "final Receipt to agent's Nymbox.\n";
         else
@@ -1643,8 +1651,9 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
         return false;
     }
 
-    if (false == pMainAgent->ReserveOpeningTransNum(
-                     strServerID)) // <==============================
+    if (false ==
+        pMainAgent->ReserveOpeningTransNum(
+            strServerID)) // <==============================
     {
         otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorizing "
                  "agent (" << GetAuthorizingAgentName()
@@ -1875,10 +1884,10 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
         OTPartyAccount* pAcct = it.second;
         OT_ASSERT(nullptr != pAcct);
 
-        if (false == theParty.AddAccount(pAcct->GetAgentName(),
-                                         pAcct->GetName(), pAcct->GetAcctID(),
-                                         pAcct->GetAssetTypeID(),
-                                         pAcct->GetClosingTransNo())) {
+        if (false ==
+            theParty.AddAccount(pAcct->GetAgentName(), pAcct->GetName(),
+                                pAcct->GetAcctID(), pAcct->GetAssetTypeID(),
+                                pAcct->GetClosingTransNo())) {
             otOut
                 << "OTParty::CopyAcctsToConfirmingParty: Unable to add Account "
                 << str_acct_name << ", when copying from *this party "

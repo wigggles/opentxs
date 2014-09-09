@@ -204,16 +204,15 @@ public:
     // contents up properly into an OTASCIIArmor object. (That's what this
     // function will do.)
     //
-    EXPORT static bool LoadFromString(OTASCIIArmor& ascArmor,
-                                      const OTString& strInput,
-                                      std::string str_bookend =
-                                          "-----BEGIN"); // todo hardcoding.
-                                                         // str_bookend is a
-                                                         // default. So you
-                                                         // could make it more
-                                                         // specific like,
-                                                         // -----BEGIN ENCRYPTED
-                                                         // KEY (or whatever.)
+    EXPORT static bool LoadFromString(
+        OTASCIIArmor& ascArmor, const OTString& strInput,
+        std::string str_bookend = "-----BEGIN"); // todo hardcoding.
+                                                 // str_bookend is a
+                                                 // default. So you
+                                                 // could make it more
+                                                 // specific like,
+                                                 // -----BEGIN ENCRYPTED
+                                                 // KEY (or whatever.)
 
     EXPORT bool LoadFromString(OTString& theStr, bool bEscaped = false,
                                const // This sub-string determines where the

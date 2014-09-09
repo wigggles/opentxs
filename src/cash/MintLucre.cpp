@@ -151,7 +151,8 @@ namespace opentxs
 
 #if defined(OT_CASH_USING_LUCRE)
 
-MintLucre::MintLucre() : ot_super()
+MintLucre::MintLucre()
+    : ot_super()
 {
 }
 

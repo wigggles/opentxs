@@ -1241,14 +1241,16 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
                                  "numbers available to do this.\n";
         return false;
     }
-    else if (false == MERCHANT_NYM.GetNextTransactionNum(
-                            MERCHANT_NYM, strServerID, lTransactionNumber)) {
+    else if (false ==
+               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID,
+                                                  lTransactionNumber)) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
         return false;
     }
-    else if (false == MERCHANT_NYM.GetNextTransactionNum(
-                            MERCHANT_NYM, strServerID, lClosingTransactionNo)) {
+    else if (false ==
+               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID,
+                                                  lClosingTransactionNo)) {
         otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
                                  "transaction number.\n";
         MERCHANT_NYM.AddTransactionNum(MERCHANT_NYM, strServerID,
@@ -1345,14 +1347,16 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     OTString strServerID(GetServerID());
     int64_t lTransactionNumber = 0, lClosingTransactionNo = 0;
 
-    if (false == PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID,
-                                                 lTransactionNumber)) {
+    if (false ==
+        PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID,
+                                        lTransactionNumber)) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
         return false;
     }
-    else if (false == PAYER_NYM.GetNextTransactionNum(
-                            PAYER_NYM, strServerID, lClosingTransactionNo)) {
+    else if (false ==
+               PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID,
+                                               lClosingTransactionNo)) {
         otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
                                  "transaction number.\n";
         PAYER_NYM.AddTransactionNum(PAYER_NYM, strServerID, lTransactionNumber,
@@ -1452,7 +1456,8 @@ lValidTo);
 }
 */
 
-OTAgreement::OTAgreement() : ot_super()
+OTAgreement::OTAgreement()
+    : ot_super()
 {
     InitAgreement();
 }

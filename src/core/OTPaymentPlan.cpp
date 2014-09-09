@@ -506,7 +506,7 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
     }
     for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
         if (!RECIPIENT_NYM.VerifyIssuedNum(
-                 strServerID, GetRecipientClosingTransactionNoAt(i))) {
+                strServerID, GetRecipientClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Recipient's Closing transaction number "
                   << GetRecipientClosingTransactionNoAt(i)

@@ -987,8 +987,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
-    case OTLedger::recordBox
-        : // stored by Acct ID *and* Nym ID (depending on the box.)
+    case OTLedger::recordBox: // stored by Acct ID *and* Nym ID (depending on
+                              // the box.)
         m_strFoldername = OTFolders::RecordBox().Get();
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
@@ -2335,9 +2335,9 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             if (strTransaction.Exists() &&
                 pTransaction->LoadContractFromString(strTransaction) &&
                 pTransaction->VerifyContractID())
-                // I responsible here to call pTransaction->VerifyContractID()
-                // since
-                // I am loading it here and adding it to the ledger. (So I do.)
+            // I responsible here to call pTransaction->VerifyContractID()
+            // since
+            // I am loading it here and adding it to the ledger. (So I do.)
             {
 
                 OTTransaction* pExistingTrans =

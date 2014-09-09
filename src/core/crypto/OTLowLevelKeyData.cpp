@@ -168,7 +168,8 @@ OTLowLevelKeyData::~OTLowLevelKeyData()
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-OTLowLevelKeyData::OTLowLevelKeyData() : m_bCleanup(true)
+OTLowLevelKeyData::OTLowLevelKeyData()
+    : m_bCleanup(true)
 {
     dp = new OTLowLevelKeyDataOpenSSLdp();
     dp->m_pX509 = nullptr;
