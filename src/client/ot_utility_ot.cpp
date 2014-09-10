@@ -1088,7 +1088,7 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
         // just the getNymbox msg.)
         //
         //
-        //            void OTAPI_Wrap::FlushSentMessages(const int32_t
+        //            void OTAPI_Wrap::FlushSentMessages( int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * SERVER_ID,
         //                              const char * USER_ID,
@@ -2351,16 +2351,14 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 }
 
 /*
-static void getBoxReceipt(  const string SERVER_ID,
-const string USER_ID,
-const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
+static void getBoxReceipt( string SERVER_ID, string USER_ID, string ACCT_ID, //
+If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
 int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);
 
-static bool DoesBoxReceiptExist(const string SERVER_ID,
-const string USER_ID,
-const string ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
+static bool DoesBoxReceiptExist( string SERVER_ID, string USER_ID, string
+ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
 in this field also.
 int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);

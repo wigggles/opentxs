@@ -180,48 +180,47 @@ public:
     }
     EXPORT const char* GetLanguage() const;
     EXPORT bool AddVariable(OTVariable& theVariable);
-    EXPORT bool AddVariable(const std::string str_Name,
-                            const std::string str_Value,
-                            const OTVariable::OTVariable_Access theAccess =
+    EXPORT bool AddVariable(std::string str_Name, std::string str_Value,
+                            OTVariable::OTVariable_Access theAccess =
                                 OTVariable::Var_Persistent);
-    EXPORT bool AddVariable(const std::string str_Name, const int32_t nValue,
-                            const OTVariable::OTVariable_Access theAccess =
+    EXPORT bool AddVariable(std::string str_Name, int32_t nValue,
+                            OTVariable::OTVariable_Access theAccess =
                                 OTVariable::Var_Persistent);
-    EXPORT bool AddVariable(const std::string str_Name, const bool bValue,
-                            const OTVariable::OTVariable_Access theAccess =
+    EXPORT bool AddVariable(std::string str_Name, bool bValue,
+                            OTVariable::OTVariable_Access theAccess =
                                 OTVariable::Var_Persistent);
     EXPORT bool AddClause(OTClause& theClause);
     EXPORT bool AddClause(const char* szName, const char* szCode);
-    EXPORT bool AddHook(const std::string str_HookName,
-                        const std::string str_ClauseName); // name of hook such
-                                                           // as cron_process or
-                                                           // hook_activate, and
-                                                           // name of clause,
-                                                           // such as sectionA
-                                                           // (corresponding to
-                                                           // an actual script
-                                                           // in the clauses
-                                                           // map.)
-    EXPORT bool AddCallback(const std::string str_CallbackName,
-                            const std::string str_ClauseName); // name of
-                                                               // callback such
-                                                               // as
+    EXPORT bool AddHook(std::string str_HookName,
+                        std::string str_ClauseName); // name of hook such
+                                                     // as cron_process or
+                                                     // hook_activate, and
+                                                     // name of clause,
+                                                     // such as sectionA
+                                                     // (corresponding to
+                                                     // an actual script
+                                                     // in the clauses
+                                                     // map.)
+    EXPORT bool AddCallback(std::string str_CallbackName,
+                            std::string str_ClauseName); // name of
+                                                         // callback such
+                                                         // as
     // callback_party_may_execute_clause,
     // and name of clause, such as
     // custom_party_may_execute_clause
     // (corresponding to an actual script
     // in the clauses map.)
-    EXPORT OTVariable* GetVariable(const std::string str_Name); // not a
-                                                                // reference, so
-                                                                // you can pass
-                                                                // in char *.
-                                                                // Maybe that's
-                                                                // bad? todo:
-                                                                // research
-                                                                // that.
-    EXPORT OTClause* GetClause(const std::string str_Name);
-    EXPORT OTClause* GetCallback(const std::string str_CallbackName);
-    EXPORT bool GetHooks(const std::string str_HookName,
+    EXPORT OTVariable* GetVariable(std::string str_Name); // not a
+                                                          // reference, so
+                                                          // you can pass
+                                                          // in char *.
+                                                          // Maybe that's
+                                                          // bad? todo:
+                                                          // research
+                                                          // that.
+    EXPORT OTClause* GetClause(std::string str_Name);
+    EXPORT OTClause* GetCallback(std::string str_CallbackName);
+    EXPORT bool GetHooks(std::string str_HookName,
                          mapOfClauses& theResults); // Look up all clauses
                                                     // matching a specific hook.
     EXPORT int32_t GetVariableCount() const

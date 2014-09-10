@@ -330,7 +330,7 @@ public:
 
     EXPORT bool VerifySmartContract(OTPseudonym& theNym, OTAccount& theAcct,
                                     OTPseudonym& theServerNym,
-                                    const bool bBurnTransNo = false);
+                                    bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has
     // supplied transaction numbers and a user/acct ID. theNym definitely IS the
@@ -382,50 +382,48 @@ public:
     // CALLBACKS that OT server uses occasionally. (Smart Contracts can
     // supply a special script that is activated for each callback.)
 
-    //    bool OTScriptable::CanExecuteClause(const std::string str_party_name,
-    // const std::string str_clause_name); // This calls (if available) the
+    //    bool OTScriptable::CanExecuteClause(std::string str_party_name,
+    // std::string str_clause_name); // This calls (if available) the
     // scripted clause: bool party_may_execute_clause(party_name, clause_name)
-    bool CanCancelContract(const std::string str_party_name); // This calls (if
-                                                              // available) the
-                                                              // scripted
-                                                              // clause:
+    bool CanCancelContract(std::string str_party_name); // This calls (if
+                                                        // available) the
+                                                        // scripted
+                                                        // clause:
     // bool party_may_cancel_contract(party_name)
     // OT NATIVE FUNCTIONS -- Available for scripts to call:
 
-    void SetRemainingTimer(const std::string str_seconds_from_now); // onProcess
-                                                                    // will
-                                                                    // trigger X
-                                                                    // seconds
-                                                                    // from
-                                                                    // now...
-                                                                    // (And not
-                                                                    // until
-                                                                    // then,
-                                                                    // either.)
+    void SetRemainingTimer(std::string str_seconds_from_now); // onProcess
+                                                              // will
+                                                              // trigger X
+                                                              // seconds
+                                                              // from
+                                                              // now...
+                                                              // (And not
+                                                              // until
+                                                              // then,
+                                                              // either.)
     std::string GetRemainingTimer() const; // returns seconds left on the timer,
                                            // in string format, or "0".
     // class member, with string parameter
-    bool MoveAcctFundsStr(
-        const std::string from_acct_name, const std::string to_acct_name,
-        const std::string str_Amount); // calls OTCronItem::MoveFunds()
-    bool StashAcctFunds(const std::string from_acct_name,
-                        const std::string to_stash_name,
-                        const std::string str_Amount); // calls StashFunds()
-    bool UnstashAcctFunds(const std::string to_acct_name,
-                          const std::string from_stash_name,
-                          const std::string str_Amount); // calls StashFunds(
-                                                         // lAmount * (-1) )
-    std::string GetAcctBalance(const std::string from_acct_name);
-    std::string GetStashBalance(const std::string stash_name,
-                                const std::string asset_type_id);
+    bool MoveAcctFundsStr(std::string from_acct_name, std::string to_acct_name,
+                          std::string str_Amount); // calls
+                                                   // OTCronItem::MoveFunds()
+    bool StashAcctFunds(std::string from_acct_name, std::string to_stash_name,
+                        std::string str_Amount); // calls StashFunds()
+    bool UnstashAcctFunds(std::string to_acct_name, std::string from_stash_name,
+                          std::string str_Amount); // calls StashFunds(
+                                                   // lAmount * (-1) )
+    std::string GetAcctBalance(std::string from_acct_name);
+    std::string GetStashBalance(std::string stash_name,
+                                std::string asset_type_id);
 
-    std::string GetAssetTypeIDofAcct(const std::string from_acct_name);
+    std::string GetAssetTypeIDofAcct(std::string from_acct_name);
 
     // Todo: someday add "rejection notice" here too.
     // (Might be a demand for smart contracts to send failure notices.)
     // We already send a failure notice to all parties in the cash where
     // the smart contract fails to activate.
-    bool SendNoticeToParty(const std::string party_name);
+    bool SendNoticeToParty(std::string party_name);
     bool SendANoticeToAllParties();
 
     void DeactivateSmartContract();
@@ -445,7 +443,7 @@ public:
     // Done: Have a server backing account to double this record (like with cash
     // withdrawals) so it will turn up properly on an audit.
     //
-    OTStash* GetStash(const std::string str_stash_name);
+    OTStash* GetStash(std::string str_stash_name);
 
     // Low-level.
     EXPORT void ExecuteClauses(mapOfClauses& theClauses,

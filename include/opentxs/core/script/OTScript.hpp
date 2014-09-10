@@ -201,7 +201,7 @@ public:
     EXPORT void SetScript(const char* new_string, size_t sizeLength);
     EXPORT void SetScript(const std::string& new_string);
 
-    void SetDisplayFilename(const std::string str_display_filename)
+    void SetDisplayFilename(std::string str_display_filename)
     {
         m_str_display_filename = str_display_filename;
     }
@@ -219,10 +219,10 @@ public:
     // cleaning up the mess!  theParty is passed as reference to insure it
     // already exists.
     //
-    void AddParty(const std::string str_party_name, OTParty& theParty);
-    void AddAccount(const std::string str_acct_name, OTPartyAccount& theAcct);
-    EXPORT void AddVariable(const std::string str_var_name, OTVariable& theVar);
-    EXPORT OTVariable* FindVariable(const std::string str_var_name);
+    void AddParty(std::string str_party_name, OTParty& theParty);
+    void AddAccount(std::string str_acct_name, OTPartyAccount& theAcct);
+    EXPORT void AddVariable(std::string str_var_name, OTVariable& theVar);
+    EXPORT OTVariable* FindVariable(std::string str_var_name);
     EXPORT void RemoveVariable(OTVariable& theVar);
 
     // Note: any relevant assets or asset accounts are listed by their owner /

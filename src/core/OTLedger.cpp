@@ -947,7 +947,7 @@ OTLedger* OTLedger::GenerateLedger(
     const OTIdentifier& theUserID,
     const OTIdentifier& theAcctID, // AcctID should be "OwnerID" since could be
                                    // acct OR Nym (with nymbox)
-    const OTIdentifier& theServerID, const ledgerType theType, bool bCreateFile)
+    const OTIdentifier& theServerID, ledgerType theType, bool bCreateFile)
 {
     OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theServerID);
     OT_ASSERT(nullptr != pLedger);
@@ -960,7 +960,7 @@ OTLedger* OTLedger::GenerateLedger(
 
 bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
                               const OTIdentifier& theServerID,
-                              const ledgerType theType, bool bCreateFile)
+                              ledgerType theType, bool bCreateFile)
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
@@ -1212,8 +1212,7 @@ bool OTLedger::AddTransaction(OTTransaction& theTransaction)
     return false;
 }
 
-OTTransaction* OTLedger::GetTransaction(
-    const OTTransaction::transactionType theType)
+OTTransaction* OTLedger::GetTransaction(OTTransaction::transactionType theType)
 {
     // loop through the items that make up this transaction
 
@@ -1270,7 +1269,7 @@ OTTransaction* OTLedger::GetTransaction(int64_t lTransactionNum) const
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t OTLedger::GetTransactionCountInRefTo(const int64_t lReferenceNum) const
+int32_t OTLedger::GetTransactionCountInRefTo(int64_t lReferenceNum) const
 {
     int32_t nCount = 0;
 
@@ -1400,7 +1399,7 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
 // (But of course do NOT delete the OTTransaction that's returned, since that is
 // owned by the ledger.)
 //
-OTTransaction* OTLedger::GetChequeReceipt(const int64_t lChequeNum,
+OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
                                           OTCheque** ppChequeOut) // CALLER
                                                                   // RESPONSIBLE
                                                                   // TO DELETE.
@@ -1530,7 +1529,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 ///
 /// returns a new balance statement item containing the inbox report
 /// CALLER IS RESPONSIBLE TO DELETE.
-OTItem* OTLedger::GenerateBalanceStatement(const int64_t lAdjustment,
+OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
                                            const OTTransaction& theOwner,
                                            OTPseudonym& theNym,
                                            const OTAccount& theAccount,

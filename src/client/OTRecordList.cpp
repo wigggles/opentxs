@@ -393,7 +393,7 @@ OTLookupCaller* OTRecordList::getAddrBookCaller()
 
 // Set the default server here.
 
-void OTRecordList::SetServerID(const std::string str_id)
+void OTRecordList::SetServerID(std::string str_id)
 {
     ClearServers();
     AddServerID(str_id);
@@ -401,7 +401,7 @@ void OTRecordList::SetServerID(const std::string str_id)
 
 // Unless you have many servers, then use this.
 
-void OTRecordList::AddServerID(const std::string str_id)
+void OTRecordList::AddServerID(std::string str_id)
 {
     m_servers.insert(m_servers.end(), str_id);
 }
@@ -414,13 +414,13 @@ void OTRecordList::ClearServers()
     m_servers.clear();
 }
 
-void OTRecordList::SetAssetID(const std::string str_id)
+void OTRecordList::SetAssetID(std::string str_id)
 {
     ClearAssets();
     AddAssetID(str_id);
 }
 
-void OTRecordList::AddAssetID(const std::string str_id)
+void OTRecordList::AddAssetID(std::string str_id)
 {
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
@@ -460,13 +460,13 @@ void OTRecordList::ClearAssets()
     m_assets.clear();
 }
 
-void OTRecordList::SetNymID(const std::string str_id)
+void OTRecordList::SetNymID(std::string str_id)
 {
     ClearNyms();
     AddNymID(str_id);
 }
 
-void OTRecordList::AddNymID(const std::string str_id)
+void OTRecordList::AddNymID(std::string str_id)
 {
     m_nyms.insert(m_nyms.end(), str_id);
 }
@@ -477,13 +477,13 @@ void OTRecordList::ClearNyms()
     m_nyms.clear();
 }
 
-void OTRecordList::SetAccountID(const std::string str_id)
+void OTRecordList::SetAccountID(std::string str_id)
 {
     ClearAccounts();
     AddAccountID(str_id);
 }
 
-void OTRecordList::AddAccountID(const std::string str_id)
+void OTRecordList::AddAccountID(std::string str_id)
 {
     m_accounts.insert(m_accounts.end(), str_id);
 }
@@ -3637,7 +3637,7 @@ void OTRecordList::AddSpecialMsg(
                                      // contents, before passing here.
     const std::string& str_address, const std::string& str_other_address,
     const std::string& str_type, const std::string& str_type_display,
-    const std::string str_my_nym_id, time64_t tDate)
+    std::string str_my_nym_id, time64_t tDate)
 {
     const char* pToFrom =
         bIsOutgoing ? OTRecordList::textTo() : OTRecordList::textFrom();

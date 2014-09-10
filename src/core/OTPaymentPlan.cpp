@@ -1558,7 +1558,7 @@ bool OTPaymentPlan::ProcessCron()
         // next one is not yet due.
         //
         // I also know that GetTimeBetweenPayments() is set to
-        // (OT_TIME_DAY_IN_SECONDS* 7)
+        // (OT_TIME_DAY_IN_SECONDS * 7)
         //
         // Duration / timebetween == 16/7 == 2 with 2 remainder.    (+1 to get
         // 3: THREE should have already happened.)

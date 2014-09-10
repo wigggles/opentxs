@@ -427,8 +427,8 @@ EndInterface
     }
 #endif // (not) SWIG
 
-    //    static const CLASS_NAME    *    ot_dynamic_cast(const    Storable
-    // *pObject) { return dynamic_cast<const T *>(pObject); }
+    //    static const CLASS_NAME    *    ot_dynamic_cast( Storable // *pObject)
+    // { return dynamic_cast<const T *>(pObject); }
 
     //
     // STORABLE
@@ -1796,25 +1796,23 @@ protected:
 
     // Confirms if a file exists.  If it exists at path; return length.
     int64_t ConstructAndConfirmPath(std::string& strOutput,
-                                    const std::string strFolder,
-                                    const std::string oneStr = "",
-                                    const std::string twoStr = "",
-                                    const std::string threeStr = "");
+                                    std::string strFolder,
+                                    std::string oneStr = "",
+                                    std::string twoStr = "",
+                                    std::string threeStr = "");
 
     // Verifies whether path exists AND creates folders where necessary.
     int64_t ConstructAndCreatePath(std::string& strOutput,
-                                   const std::string strFolder,
-                                   const std::string oneStr = "",
-                                   const std::string twoStr = "",
-                                   const std::string threeStr = "");
+                                   std::string strFolder,
+                                   std::string oneStr = "",
+                                   std::string twoStr = "",
+                                   std::string threeStr = "");
 
 private:
-    int64_t ConstructAndConfirmPathImp(const bool bMakePath,
-                                       std::string& strOutput,
-                                       const std::string zeroStr,
-                                       const std::string oneStr,
-                                       const std::string twoStr,
-                                       const std::string threeStr);
+    int64_t ConstructAndConfirmPathImp(bool bMakePath, std::string& strOutput,
+                                       std::string zeroStr, std::string oneStr,
+                                       std::string twoStr,
+                                       std::string threeStr);
 
 protected:
     // If you wish to make your own subclass of OTDB::Storage, then use

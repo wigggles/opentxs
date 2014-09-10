@@ -1942,7 +1942,7 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
 //
 void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                                   const OTString& str_trans,
-                                  const OTString str_box_type,
+                                  OTString str_box_type,
                                   const int64_t& lTransNum,
                                   OTPseudonym& the_nym, OTLedger& ledger)
 {

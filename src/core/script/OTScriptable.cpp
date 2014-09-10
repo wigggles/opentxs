@@ -252,7 +252,7 @@ bool is_ot_namechar_invalid(char c)
 }
 
 // static
-bool OTScriptable::ValidateName(const std::string str_name)
+bool OTScriptable::ValidateName(std::string str_name)
 {
     if (str_name.size() <= 0) {
         otErr << "OTScriptable::ValidateName: Name has zero size.\n";
@@ -319,8 +319,8 @@ std::string OTScriptable::GetTime() // Returns a string, containing seconds as
 // script, which will call this function,
 // which will trigger the script callback_party_may_execute_clause(), etc.
 //
-bool OTScriptable::CanExecuteClause(const std::string str_party_name,
-                                    const std::string str_clause_name)
+bool OTScriptable::CanExecuteClause(std::string str_party_name,
+                                    std::string str_clause_name)
 {
     OTParty* pParty = GetParty(str_party_name);
     OTClause* pClause = GetClause(str_clause_name);
@@ -766,7 +766,7 @@ void OTScriptable::SetAsClean()
 // authorized agent for any party's accounts.
 //
 int32_t OTScriptable::GetCountTransNumsNeededForAgent(
-    const std::string str_agent_name)
+    std::string str_agent_name)
 {
     int32_t nReturnVal = 0;
 
@@ -794,7 +794,7 @@ int32_t OTScriptable::GetCountTransNumsNeededForAgent(
     return nReturnVal;
 }
 
-OTPartyAccount* OTScriptable::GetPartyAccount(const std::string str_acct_name)
+OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name)
 {
     if (false == OTScriptable::ValidateName(str_acct_name)) // this logs, FYI.
     {
@@ -1841,7 +1841,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
 // Find the first (and hopefully the only) clause on this scriptable object,
 // with a given name. (Searches ALL Bylaws on *this.)
 //
-OTClause* OTScriptable::GetClause(const std::string str_clause_name)
+OTClause* OTScriptable::GetClause(std::string str_clause_name)
 {
     if (false == OTScriptable::ValidateName(str_clause_name)) // this logs, FYI.
     {
@@ -1862,7 +1862,7 @@ OTClause* OTScriptable::GetClause(const std::string str_clause_name)
     return nullptr;
 }
 
-OTAgent* OTScriptable::GetAgent(const std::string str_agent_name)
+OTAgent* OTScriptable::GetAgent(std::string str_agent_name)
 {
     if (false == OTScriptable::ValidateName(str_agent_name)) // this logs, FYI.
     {
@@ -1883,7 +1883,7 @@ OTAgent* OTScriptable::GetAgent(const std::string str_agent_name)
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylaw(const std::string str_bylaw_name)
+OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name)
 {
     if (false == OTScriptable::ValidateName(str_bylaw_name)) // this logs, FYI.
     {
@@ -1904,7 +1904,7 @@ OTBylaw* OTScriptable::GetBylaw(const std::string str_bylaw_name)
     return pBylaw;
 }
 
-OTParty* OTScriptable::GetParty(const std::string str_party_name)
+OTParty* OTScriptable::GetParty(std::string str_party_name)
 {
     if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
@@ -3273,7 +3273,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // Look up the first (and hopefully only) variable registered for a given name.
 // (Across all of my Bylaws)
 //
-OTVariable* OTScriptable::GetVariable(const std::string str_VarName)
+OTVariable* OTScriptable::GetVariable(std::string str_VarName)
 {
     if (false == OTScriptable::ValidateName(str_VarName)) // this logs, FYI.
     {
@@ -3297,7 +3297,7 @@ OTVariable* OTScriptable::GetVariable(const std::string str_VarName)
 // Look up the first (and hopefully only) clause registered for a given
 // callback.
 //
-OTClause* OTScriptable::GetCallback(const std::string str_CallbackName)
+OTClause* OTScriptable::GetCallback(std::string str_CallbackName)
 {
     if ((false == OTScriptable::ValidateName(str_CallbackName)) ||
         (str_CallbackName.compare(0, 9, "callback_") != 0)) // this logs, FYI.
@@ -3322,8 +3322,7 @@ OTClause* OTScriptable::GetCallback(const std::string str_CallbackName)
 
 // Look up all clauses matching a specific hook.
 //
-bool OTScriptable::GetHooks(const std::string str_HookName,
-                            mapOfClauses& theResults)
+bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
 {
     if ((false == OTScriptable::ValidateName(str_HookName)) ||
         ((str_HookName.compare(0, 5, "cron_") != 0) &&

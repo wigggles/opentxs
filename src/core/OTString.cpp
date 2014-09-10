@@ -342,7 +342,7 @@ errno_t strcpy_s(char* strDestination,
 
  UNIX:
  size_t strlcpy(char * restrict dst,
-                const char * restrict src,
+                const char* restrict src,
                 size_t size); // MAX SIZE of destination.
 
  extern "C" size_t strnlen(const char* s, size_t max); // Moved the definition
@@ -417,9 +417,9 @@ std::string& OTString::trim(std::string& str)
     return str;
 }
 
-const std::string OTString::replace_chars(const std::string& str,
-                                          const std::string& charsFrom,
-                                          const char& charTo)
+std::string OTString::replace_chars(const std::string& str,
+                                    const std::string& charsFrom,
+                                    const char& charTo)
 {
     std::string l_str(str);
     size_t found;

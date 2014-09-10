@@ -209,7 +209,7 @@ private:
 
 public:
     OTAgent();
-    OTAgent(const std::string str_agent_name, OTPseudonym& theNym,
+    OTAgent(std::string str_agent_name, OTPseudonym& theNym,
             bool bNymRepresentsSelf = true);
     /*IF false, then: ENTITY and ROLE parameters go here.*/
     //

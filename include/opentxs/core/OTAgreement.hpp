@@ -222,8 +222,8 @@ public:
 
     EXPORT bool SetProposal(OTPseudonym& MERCHANT_NYM,
                             const OTString& strConsideration,
-                            const time64_t VALID_FROM = OT_TIME_ZERO,
-                            const time64_t VALID_TO = OT_TIME_ZERO);
+                            time64_t VALID_FROM = OT_TIME_ZERO,
+                            time64_t VALID_TO = OT_TIME_ZERO);
 
     EXPORT bool Confirm(OTPseudonym& PAYER_NYM,
                         OTPseudonym* pMERCHANT_NYM = nullptr,

@@ -351,7 +351,7 @@ void OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize)
  (Then count is the actual size being copied.)
  */
 // UNIX:
-//    void * memcpy(void *restrict s1, const void *restrict s2, size_t n);
+//    void * memcpy(void* restrict s1, const void* restrict s2, size_t n);
 //
 // static
 void* OTPassword::safe_memcpy(void* dest, uint32_t dest_size, const void* src,

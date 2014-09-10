@@ -145,7 +145,7 @@ void AppendChecksum(OT_BYTE* buffer, uint32_t& size);
 
 EXPORT OT_BYTE CalcChecksum(OT_BYTE* buffer, uint32_t size);
 
-OT_BYTE CalcChecksum(const OT_BYTE* const buffer, const uint32_t size);
+OT_BYTE CalcChecksum(const OT_BYTE* const buffer, uint32_t size);
 
 EXPORT OT_BOOL IsChecksumValid(OT_BYTE* buffer, uint32_t size);
 

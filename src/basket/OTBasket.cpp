@@ -186,7 +186,7 @@ namespace opentxs
 
 void OTBasket::HarvestClosingNumbers(OTPseudonym& theNym,
                                      const OTIdentifier& theServerID,
-                                     const bool bSave)
+                                     bool bSave)
 {
     const OTString strServerID(theServerID);
     bool bNeedToSave = false;

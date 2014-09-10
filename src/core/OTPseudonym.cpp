@@ -284,7 +284,7 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
 
 // static
 OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
-                                         const bool bChecking,
+                                         bool bChecking,
                                          const OTString* pstrName,
                                          const char* szFuncName,
                                          const OTPasswordData* pPWData,
@@ -914,7 +914,7 @@ bool OTPseudonym::AddNewMasterCredential(
 
 bool OTPseudonym::AddNewSubkey(
     const OTIdentifier& idMasterCredential,
-    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
+    int32_t nBits,                    // Ignored unless pmapPrivate is nullptr.
     const OTString::Map* pmapPrivate, // If nullptr, then the keys are
                                       // generated in here.
     const OTPasswordData* pPWData, OTString* pstrNewID)
@@ -1093,7 +1093,7 @@ int32_t OTPseudonym::GetMailCount() const
 
 // Look up a piece of mail by index.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetMailByIndex(const int32_t nIndex) const
+OTMessage* OTPseudonym::GetMailByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1104,8 +1104,8 @@ OTMessage* OTPseudonym::GetMailByIndex(const int32_t nIndex) const
     return m_dequeMail.at(nIndex);
 }
 
-bool OTPseudonym::RemoveMailByIndex(const int32_t nIndex) // if false, mail
-                                                          // index was bad.
+bool OTPseudonym::RemoveMailByIndex(int32_t nIndex) // if false, mail
+                                                    // index was bad.
 {
     const uint32_t uIndex = nIndex;
 
@@ -1148,7 +1148,7 @@ int32_t OTPseudonym::GetOutmailCount() const
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex) const
+OTMessage* OTPseudonym::GetOutmailByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1160,9 +1160,9 @@ OTMessage* OTPseudonym::GetOutmailByIndex(const int32_t nIndex) const
     return m_dequeOutmail.at(nIndex);
 }
 
-bool OTPseudonym::RemoveOutmailByIndex(const int32_t nIndex) // if false,
-                                                             // outmail index
-                                                             // was bad.
+bool OTPseudonym::RemoveOutmailByIndex(int32_t nIndex) // if false,
+                                                       // outmail index
+                                                       // was bad.
 {
     const uint32_t uIndex = nIndex;
 
@@ -1208,7 +1208,7 @@ int32_t OTPseudonym::GetOutpaymentsCount() const
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex) const
+OTMessage* OTPseudonym::GetOutpaymentsByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1221,7 +1221,7 @@ OTMessage* OTPseudonym::GetOutpaymentsByIndex(const int32_t nIndex) const
 }
 
 // if this function returns false, outpayments index was bad.
-bool OTPseudonym::RemoveOutpaymentsByIndex(const int32_t nIndex, bool bDeleteIt)
+bool OTPseudonym::RemoveOutpaymentsByIndex(int32_t nIndex, bool bDeleteIt)
 {
     const uint32_t uIndex = nIndex;
 
@@ -1420,8 +1420,8 @@ bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
                               // nym files
                               // and certs in local storage. (Pass false when
                               // creating a temp Nym, like for OTPurse.)
-                              const std::string str_id_source,
-                              const std::string str_alt_location)
+                              std::string str_id_source,
+                              std::string str_alt_location)
 {
 
     OT_ASSERT(nullptr != m_pkeypair);
@@ -1547,9 +1547,9 @@ bool OTPseudonym::SetIdentifierByPubkey()
 // So I added this method to make such a thing easy to do.
 //
 void OTPseudonym::RemoveAllNumbers(const OTString* pstrServerID,
-                                   const bool bRemoveHighestNum) // Some callers
-                                                                 // don't want
-                                                                 // to wipe
+                                   bool bRemoveHighestNum) // Some callers
+                                                           // don't want
+                                                           // to wipe
 // the highest num. Some do.
 {
     std::string str_ServerID(pstrServerID ? pstrServerID->Get() : "");
@@ -2269,8 +2269,7 @@ bool OTPseudonym::RemoveGenericNum(mapOfTransNums& THE_MAP,
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
 bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
-                                const OTString& strServerID,
-                                const int64_t lTransNum)
+                                const OTString& strServerID, int64_t lTransNum)
 {
     bool bSuccessFindingServerID = false, bSuccess = false;
     std::string strID = strServerID.Get();
@@ -2461,7 +2460,7 @@ int32_t OTPseudonym::GetTransactionNumCount(const OTIdentifier& theServerID)
 // No signer needed for this one, and save is false.
 // This version is ONLY for cases where we're not saving inside this function.
 bool OTPseudonym::AddTransactionNum(const OTString& strServerID,
-                                    const int64_t lTransNum) // doesn't save
+                                    int64_t lTransNum) // doesn't save
 {
     return AddGenericNum(m_mapTransNum, strServerID, lTransNum);
 }
@@ -6122,7 +6121,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
 // Todo: if the above function works fine, then call it in the below function
 // (to reduce code bloat.)
 
-bool OTPseudonym::Loadx509CertAndPrivateKey(const bool bChecking,
+bool OTPseudonym::Loadx509CertAndPrivateKey(bool bChecking,
                                             const OTPasswordData* pPWData,
                                             const OTPassword* pImportPassword)
 {

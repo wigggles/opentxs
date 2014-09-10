@@ -238,7 +238,7 @@ OTStash::OTStash()
     // m_mapStashItems
 }
 
-OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount)
+OTStash::OTStash(const OTString& strAssetTypeID, int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(strAssetTypeID, lAmount);
     OT_ASSERT(nullptr != pItem);
@@ -247,7 +247,7 @@ OTStash::OTStash(const OTString& strAssetTypeID, const int64_t lAmount)
         std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
 }
 
-OTStash::OTStash(const OTIdentifier& theAssetTypeID, const int64_t lAmount)
+OTStash::OTStash(const OTIdentifier& theAssetTypeID, int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
     OT_ASSERT(nullptr != pItem);
@@ -294,7 +294,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     return pStashItem;
 }
 
-int64_t OTStash::GetAmount(const std::string str_asset_type_id)
+int64_t OTStash::GetAmount(std::string str_asset_type_id)
 {
     OTStashItem* pStashItem =
         GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()
@@ -303,8 +303,7 @@ int64_t OTStash::GetAmount(const std::string str_asset_type_id)
     return pStashItem->GetAmount();
 }
 
-bool OTStash::CreditStash(const std::string str_asset_type_id,
-                          const int64_t& lAmount)
+bool OTStash::CreditStash(std::string str_asset_type_id, const int64_t& lAmount)
 {
     OTStashItem* pStashItem =
         GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()
@@ -313,8 +312,7 @@ bool OTStash::CreditStash(const std::string str_asset_type_id,
     return pStashItem->CreditStash(lAmount);
 }
 
-bool OTStash::DebitStash(const std::string str_asset_type_id,
-                         const int64_t& lAmount)
+bool OTStash::DebitStash(std::string str_asset_type_id, const int64_t& lAmount)
 {
     OTStashItem* pStashItem =
         GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()

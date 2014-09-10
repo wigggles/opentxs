@@ -442,7 +442,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
 }
 
 bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
-                                            const OTString strInput,
+                                            const OTString& strInput,
                                             const OTString* pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Seal_or_Encrypt";

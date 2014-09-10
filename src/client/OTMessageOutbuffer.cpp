@@ -529,7 +529,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                     // reply sitting
                     // in the nymbox) therefore we KNOW any messages in here
                     // never got a reply
-                    // from the server,
+                    // from the server
 
                     const bool bReplyWasSuccess =
                         false; // If the msg had been a success, the reply

@@ -178,7 +178,7 @@ void OTParty::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 
 // Only counts accounts authorized for str_agent_name.
 //
-int32_t OTParty::GetAccountCount(const std::string str_agent_name) const
+int32_t OTParty::GetAccountCount(std::string str_agent_name) const
 {
     int32_t nCount = 0;
 
@@ -224,7 +224,7 @@ OTParty::OTParty()
 }
 
 OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
-                 const char* szAuthAgent, const bool bCreateAgent)
+                 const char* szAuthAgent, bool bCreateAgent)
     : m_pstr_party_name(nullptr)
     , m_bPartyIsNym(bIsOwnerNym)
     , m_str_owner_id(szOwnerID != nullptr ? szOwnerID : "")
@@ -251,12 +251,11 @@ OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
     }
 }
 
-OTParty::OTParty(const std::string str_PartyName,
+OTParty::OTParty(std::string str_PartyName,
                  OTPseudonym& theNym, // Nym is BOTH owner AND agent, when using
                                       // this constructor.
                  const std::string str_agent_name, OTAccount* pAccount,
-                 const std::string* pstr_account_name,
-                 const int64_t lClosingTransNo)
+                 const std::string* pstr_account_name, int64_t lClosingTransNo)
     : m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
     , m_lOpeningTransNo(0)
@@ -343,7 +342,7 @@ bool OTParty::AddAgent(OTAgent& theAgent)
 bool OTParty::AddAccount(const OTString& strAgentName, const OTString& strName,
                          const OTString& strAcctID,
                          const OTString& strAssetTypeID,
-                         const int64_t lClosingTransNo)
+                         int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
         strName, strAgentName, strAcctID, strAssetTypeID, lClosingTransNo);
@@ -358,7 +357,7 @@ bool OTParty::AddAccount(const OTString& strAgentName, const OTString& strName,
 }
 
 bool OTParty::AddAccount(const OTString& strAgentName, const char* szAcctName,
-                         OTAccount& theAccount, const int64_t lClosingTransNo)
+                         OTAccount& theAccount, int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
         szAcctName, strAgentName, theAccount, lClosingTransNo);
@@ -414,7 +413,7 @@ bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
     return false;
 }
 
-int64_t OTParty::GetClosingTransNo(const std::string str_for_acct_name) const
+int64_t OTParty::GetClosingTransNo(std::string str_for_acct_name) const
 {
     auto it = m_mapPartyAccounts.find(str_for_acct_name);
 
@@ -1362,7 +1361,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 //
 bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                                             const OTString& strServerID,
-                                            const bool bBurnTransNo)
+                                            bool bBurnTransNo)
 {
     OT_ASSERT(nullptr != m_pOwnerAgreement);
 

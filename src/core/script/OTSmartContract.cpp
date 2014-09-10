@@ -839,8 +839,8 @@ DONE cron_activate        (Triggers when the smart contract is first activated.)
 
 // Class member, with string parameter.
 typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
-    const std::string from_acct_name, const std::string to_acct_name,
-    const std::string str_Amount);
+    std::string from_acct_name, std::string to_acct_name,
+    std::string str_Amount);
 
 // TEST RESULT: WORKS calling Chaiscript
 // Cron: Processing smart contract clauses for hook: cron_process
@@ -988,9 +988,9 @@ void OTSmartContract::DeactivateSmartContract() // Called from within script.
 
 // These are from OTScriptable (super-grandparent-class to *this):
 /* ----------------------------------------------------
-OTParty        * GetParty    (const std::string str_party_name);
-OTBylaw        * GetBylaw    (const std::string str_bylaw_name);
-OTClause    * GetClause    (const std::string str_clause_name);
+OTParty        * GetParty    (std::string str_party_name);
+OTBylaw        * GetBylaw    (std::string str_bylaw_name);
+OTClause    * GetClause    (std::string str_clause_name);
 OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym& theNym, OTAgent **
 ppAgent=nullptr);
 OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym, OTAgent **
@@ -1003,8 +1003,8 @@ OTParty * FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier& theNymID,
 OTAgent ** ppAgent=nullptr);
 OTParty * FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
 OTPartyAccount ** ppPartyAccount=nullptr);
-OTAgent            * GetAgent(const std::string str_agent_name);
-OTPartyAccount    * GetPartyAccount(const std::string str_acct_name);
+OTAgent            * GetAgent(std::string str_agent_name);
+OTPartyAccount    * GetPartyAccount(std::string str_acct_name);
 OTPartyAccount    * GetPartyAccountByID(const OTIdentifier& theAcctID);
 */
 
@@ -1100,8 +1100,8 @@ int64_t OTSmartContract::GetClosingNumber(const OTIdentifier& theAcctID) const
 // onProcess will trigger X seconds from now...
 //
 void OTSmartContract::SetRemainingTimer(
-    const std::string str_seconds_from_now) // if this is <=0, then it sets next
-                                            // process date to 0.
+    std::string str_seconds_from_now) // if this is <=0, then it sets next
+                                      // process date to 0.
 {
     if (str_seconds_from_now.size() <= 0) // string length...
     {
@@ -1179,7 +1179,7 @@ void OTSmartContract::onActivate()
     }
 }
 
-std::string OTSmartContract::GetAcctBalance(const std::string from_acct_name)
+std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1391,8 +1391,7 @@ std::string OTSmartContract::GetAcctBalance(const std::string from_acct_name)
     return strBalance.Get();
 }
 
-std::string OTSmartContract::GetAssetTypeIDofAcct(
-    const std::string from_acct_name)
+std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1609,8 +1608,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(
     return str_return_value;
 }
 
-std::string OTSmartContract::GetStashBalance(const std::string from_stash_name,
-                                             const std::string asset_type_id)
+std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
+                                             std::string asset_type_id)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1700,7 +1699,7 @@ bool OTSmartContract::SendANoticeToAllParties()
     return bDroppedNotice;
 }
 
-bool OTSmartContract::SendNoticeToParty(const std::string party_name)
+bool OTSmartContract::SendNoticeToParty(std::string party_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1817,9 +1816,9 @@ bool OTSmartContract::SendNoticeToParty(const std::string party_name)
 // This is so that
 // stashed funds will show up properly on an audit.
 //
-bool OTSmartContract::StashAcctFunds(const std::string from_acct_name,
-                                     const std::string to_stash_name,
-                                     const std::string str_Amount)
+bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
+                                     std::string to_stash_name,
+                                     std::string str_Amount)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -2070,9 +2069,9 @@ bool OTSmartContract::StashAcctFunds(const std::string from_acct_name,
 // This is so that
 // stashed funds will show up properly on an audit.
 //
-bool OTSmartContract::UnstashAcctFunds(const std::string to_acct_name,
-                                       const std::string from_stash_name,
-                                       const std::string str_Amount)
+bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
+                                       std::string from_stash_name,
+                                       std::string str_Amount)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3117,9 +3116,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 // this smart contract.)
 //
 
-bool OTSmartContract::MoveAcctFundsStr(const std::string from_acct_name,
-                                       const std::string to_acct_name,
-                                       const std::string str_Amount)
+bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
+                                       std::string to_acct_name,
+                                       std::string str_Amount)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3966,7 +3965,7 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
 // callback_party_may_cancel_contract(),
 // etc.
 //
-bool OTSmartContract::CanCancelContract(const std::string str_party_name)
+bool OTSmartContract::CanCancelContract(std::string str_party_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -4391,7 +4390,7 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                           OTAccount& theAcct,
                                           OTPseudonym& theServerNym,
-                                          const bool bBurnTransNo)
+                                          bool bBurnTransNo)
 {
     OTAgent* pAuthAgent = nullptr;
     OTParty* pAuthParty = FindPartyBasedOnNymAsAuthAgent(theNym, &pAuthAgent);
@@ -5312,7 +5311,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
 
 // ALWAYS succeeds. (It will OT_ASSERT() otherwise.)
 //
-OTStash* OTSmartContract::GetStash(const std::string str_stash_name)
+OTStash* OTSmartContract::GetStash(std::string str_stash_name)
 {
     auto it = m_mapStashes.find(str_stash_name);
 

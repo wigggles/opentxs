@@ -1032,8 +1032,8 @@ bool OTRecord::IsPaymentPlan() const
 }
 // For outgoing, pending (not-yet-accepted) instruments.
 //
-bool OTRecord::CancelOutgoing(const std::string str_via_acct) const // This can
-                                                                    // be
+bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
+                                                              // be
 // blank if it's a
 // cheque.
 {

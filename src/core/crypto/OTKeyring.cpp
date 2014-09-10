@@ -1023,7 +1023,7 @@ KWallet::Wallet* OTKeyring::OpenKWallet()
     return OTKeyring::s_pWallet;
 }
 
-// bool OTKeyring::DoesPasswordExist(const QString key)
+// bool OTKeyring::DoesPasswordExist( QString key)
 //{
 //    KWallet::Wallet * pWallet = OTKeyring::OpenKWallet();
 //
@@ -1180,7 +1180,7 @@ bool OTKeyring::KWallet_DeleteSecret(const OTString& strUser,
 std::string OTKeyring::s_str_passwd_folder;
 
 // static
-void OTKeyring::FlatFile_SetPasswordFolder(const std::string folder)
+void OTKeyring::FlatFile_SetPasswordFolder(std::string folder)
 {
     OTKeyring::s_str_passwd_folder = folder;
 }

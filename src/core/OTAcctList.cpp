@@ -273,7 +273,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
     const OTIdentifier& assetTypeId, const OTIdentifier& serverId,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
-    bool& wasAcctCreated, const int64_t stashTransNum)
+    bool& wasAcctCreated, int64_t stashTransNum)
 {
     std::shared_ptr<OTAccount> account;
     wasAcctCreated = false;

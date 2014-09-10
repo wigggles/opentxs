@@ -150,8 +150,8 @@ private:
     static bool GetSetAll();
 
     static inline bool GetSetFolderName(OTSettings& config,
-                                        const std::string strKeyName,
-                                        const std::string strDefaultName,
+                                        std::string strKeyName,
+                                        std::string strDefaultName,
                                         OTString& ret_strName)
     {
         if (ret_strName.Exists())

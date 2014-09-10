@@ -336,9 +336,8 @@ bool OTCryptoConfig::GetSetAll()
     return true;
 }
 
-bool OTCryptoConfig::GetSetValue(OTSettings& config,
-                                 const std::string strKeyName,
-                                 const int32_t nDefaultValue,
+bool OTCryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
+                                 int32_t nDefaultValue,
                                  const int32_t*& out_nValue)
 
 {
@@ -1515,7 +1514,7 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
 //
 OTPassword* OTCrypto_OpenSSL::DeriveKey(
     const OTPassword& userPassword, const OTPayload& dataSalt,
-    const uint32_t uIterations,
+    uint32_t uIterations,
     const OTPayload& dataCheckHash /*= OTPayload()*/) const
 {
     OTPayload tempPayload = dataCheckHash;
@@ -1525,7 +1524,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveKey(
 
 OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
                                            const OTPayload& dataSalt,
-                                           const uint32_t uIterations,
+                                           uint32_t uIterations,
                                            OTPayload& dataCheckHash) const
 {
     //  OT_ASSERT(userPassword.isPassword());

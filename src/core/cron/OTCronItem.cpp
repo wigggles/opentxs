@@ -628,8 +628,7 @@ bool OTCronItem::SaveCronReceipt()
     return bSaved;
 }
 
-bool OTCronItem::SetDateRange(const time64_t VALID_FROM,
-                              const time64_t VALID_TO)
+bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
 {
     // Set the CREATION DATE
     //

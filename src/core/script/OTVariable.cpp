@@ -244,8 +244,8 @@ OTVariable::OTVariable()
 }
 
 // STRING
-OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,
-                       const OTVariable_Access theAccess)
+OTVariable::OTVariable(std::string str_Name, std::string str_Value,
+                       OTVariable_Access theAccess)
     : m_strName(str_Name.c_str())
     , m_str_Value(str_Value)
     , m_nValue(0)
@@ -263,8 +263,8 @@ OTVariable::OTVariable(const std::string str_Name, const std::string str_Value,
 }
 
 // INT
-OTVariable::OTVariable(const std::string str_Name, const int32_t nValue,
-                       const OTVariable_Access theAccess)
+OTVariable::OTVariable(std::string str_Name, int32_t nValue,
+                       OTVariable_Access theAccess)
     : m_strName(str_Name.c_str())
     , m_nValue(nValue)
     , m_bValue(false)
@@ -278,8 +278,8 @@ OTVariable::OTVariable(const std::string str_Name, const int32_t nValue,
 }
 
 // BOOL
-OTVariable::OTVariable(const std::string str_Name, const bool bValue,
-                       const OTVariable_Access theAccess)
+OTVariable::OTVariable(std::string str_Name, bool bValue,
+                       OTVariable_Access theAccess)
     : m_strName(str_Name.c_str())
     , m_nValue(0)
     , m_bValue(bValue)
@@ -317,7 +317,7 @@ bool OTVariable::SetValue(const int32_t& nValue)
     return true;
 }
 
-bool OTVariable::SetValue(const bool bValue)
+bool OTVariable::SetValue(bool bValue)
 {
     if (!IsBool()) {
         otErr << "OTVariable::SetValue(bool): Error: This variable ("

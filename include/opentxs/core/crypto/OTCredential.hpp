@@ -280,7 +280,7 @@ public:
     }
     static OTCredential* CreateMaster(
         const OTString& strSourceForNymID,
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
+        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
         const OTString::Map* pmapPrivate = nullptr,
         const OTString::Map* pmapPublic = nullptr,
         const OTPasswordData* pPWData = nullptr);
@@ -309,7 +309,7 @@ public:
     // contain 3 keypairs: signing, authentication, and encryption.
     //
     EXPORT bool AddNewSubkey(
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
+        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
         const OTString::Map* pmapPrivate =
             nullptr, // Public keys are derived from the private.
         const OTPasswordData* pPWData =

@@ -344,7 +344,7 @@ void OTScript::SetScript(const std::string& new_string)
 // cleaning up the mess!  theParty is passed as reference to insure it already
 // exists.
 //
-void OTScript::AddParty(const std::string str_party_name, OTParty& theParty)
+void OTScript::AddParty(std::string str_party_name, OTParty& theParty)
 {
     //  typedef std::map<std::string, OTParty *> mapOfParties;
 
@@ -357,8 +357,7 @@ void OTScript::AddParty(const std::string str_party_name, OTParty& theParty)
     theParty.RegisterAccountsForExecution(*this);
 }
 
-void OTScript::AddAccount(const std::string str_acct_name,
-                          OTPartyAccount& theAcct)
+void OTScript::AddAccount(std::string str_acct_name, OTPartyAccount& theAcct)
 {
     m_mapAccounts.insert(
         std::pair<std::string, OTPartyAccount*>(str_acct_name, &theAcct));
@@ -375,7 +374,7 @@ void OTScript::AddAccount(const std::string str_acct_name,
 // from the script's list of variables. (Instead of calling this function, which
 // is lower-level.)
 //
-void OTScript::AddVariable(const std::string str_var_name, OTVariable& theVar)
+void OTScript::AddVariable(std::string str_var_name, OTVariable& theVar)
 {
     //  mapOfVariables  m_mapVariables;
 
@@ -387,7 +386,7 @@ void OTScript::AddVariable(const std::string str_var_name, OTVariable& theVar)
     // variables, and isn't responsible to clean them up.
 }
 
-OTVariable* OTScript::FindVariable(const std::string str_var_name)
+OTVariable* OTScript::FindVariable(std::string str_var_name)
 {
     auto it_var = m_mapVariables.find(str_var_name);
     return it_var != m_mapVariables.end() ? it_var->second : nullptr;

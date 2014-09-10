@@ -172,7 +172,7 @@ public:
     // Caller must delete.
     EXPORT static OTPassword* GetPassphraseFromUser(
         const OTString* pstrDisplay = nullptr,
-        const bool bAskTwice = false); // returns a text OTPassword, or nullptr.
+        bool bAskTwice = false); // returns a text OTPassword, or nullptr.
 
     // If you already have the passphrase, you can pass it in as an optional
     // arg.
@@ -187,7 +187,7 @@ public:
                                const OTString& strPlaintext,
                                OTString& strOutput,
                                const OTString* pstrDisplay = nullptr,
-                               const bool bBookends = true,
+                               bool bBookends = true,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTString& strKey, OTString& strCiphertext,
@@ -199,7 +199,7 @@ public:
                                const OTString& strPlaintext,
                                OTString& strOutput,
                                const OTString* pstrDisplay = nullptr,
-                               const bool bBookends = true,
+                               bool bBookends = true,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTSymmetricKey& theKey,
@@ -232,8 +232,7 @@ public:
 
     // Must have a hash-check already!
     EXPORT OTPassword* CalculateDerivedKeyFromPassphrase(
-        const OTPassword& thePassphrase,
-        const bool bCheckForHashCheck = true) const;
+        const OTPassword& thePassphrase, bool bCheckForHashCheck = true) const;
 
     // Must not have a hash-check yet!
     EXPORT OTPassword* CalculateNewDerivedKeyFromPassphrase(

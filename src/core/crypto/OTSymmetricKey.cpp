@@ -472,8 +472,7 @@ bool OTSymmetricKey::ReGenerateHashCheck(const OTPassword& thePassphrase)
 // CALLER IS RESPONSIBLE TO DELETE.
 //
 OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
-    const OTPassword& thePassphrase,
-    const bool bCheckForHashCheck /*= true*/) const
+    const OTPassword& thePassphrase, bool bCheckForHashCheck /*= true*/) const
 {
     //  OT_ASSERT(m_bIsGenerated);
     //  OT_ASSERT(thePassphrase.isPassword());
@@ -622,9 +621,11 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 // The highest-level possible interface (used by the API)
 //
 // static  NOTE: this version circumvents the master key.
-OTPassword* OTSymmetricKey::GetPassphraseFromUser(
-    const OTString* pstrDisplay,
-    const bool bAskTwice) // returns a text OTPassword, or nullptr.
+OTPassword* OTSymmetricKey::GetPassphraseFromUser(const OTString* pstrDisplay,
+                                                  bool bAskTwice) // returns a
+                                                                  // text
+                                                                  // OTPassword,
+                                                                  // or nullptr.
 {
     // Caller MUST delete!
 
@@ -713,7 +714,7 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
 // static
 bool OTSymmetricKey::Encrypt(const OTString& strKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay, const bool bBookends,
+                             const OTString* pstrDisplay, bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
@@ -739,7 +740,7 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 // static
 bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
                              const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay, const bool bBookends,
+                             const OTString* pstrDisplay, bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {

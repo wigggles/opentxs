@@ -188,7 +188,7 @@ OTDB::OTPacker* OTASCIIArmor::GetPacker()
 // static
 bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
                                   const OTString& strInput,
-                                  const std::string str_bookend)
+                                  std::string str_bookend)
 {
 
     if (strInput.Contains(str_bookend)) // YES there are bookends around this.

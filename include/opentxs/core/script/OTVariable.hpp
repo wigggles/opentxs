@@ -214,7 +214,7 @@ public:
         m_pBylaw = &theBylaw;
     }
     bool SetValue(const int32_t& nValue);
-    bool SetValue(const bool bValue);
+    bool SetValue(bool bValue);
     bool SetValue(const std::string& str_Value);
 
     EXPORT const OTString& GetName() const
@@ -272,12 +272,12 @@ public:
     bool Compare(OTVariable& rhs);
 
     EXPORT OTVariable();
-    EXPORT OTVariable(const std::string str_Name, const int32_t nValue,
-                      const OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(const std::string str_Name, const bool bValue,
-                      const OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(const std::string str_Name, const std::string str_Value,
-                      const OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(std::string str_Name, int32_t nValue,
+                      OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(std::string str_Name, bool bValue,
+                      OTVariable_Access theAccess = Var_Persistent);
+    EXPORT OTVariable(std::string str_Name, std::string str_Value,
+                      OTVariable_Access theAccess = Var_Persistent);
     EXPORT virtual ~OTVariable();
 
     void Serialize(OTString& strAppend, bool bCalculatingID = false);

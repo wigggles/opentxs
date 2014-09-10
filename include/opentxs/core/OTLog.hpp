@@ -259,15 +259,15 @@ public:
 
     // We keep 1024 logs in memory, to make them available via the API.
     EXPORT static int32_t GetMemlogSize();
-    EXPORT static const OTString GetMemlogAtIndex(const int32_t nIndex);
-    EXPORT static const OTString PeekMemlogFront();
-    EXPORT static const OTString PeekMemlogBack();
+    EXPORT static OTString GetMemlogAtIndex(int32_t nIndex);
+    EXPORT static OTString PeekMemlogFront();
+    EXPORT static OTString PeekMemlogBack();
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
     EXPORT static bool PushMemlogFront(const OTString& strLog);
     EXPORT static bool PushMemlogBack(const OTString& strLog);
-    EXPORT static bool SleepSeconds(const int64_t lSeconds);
-    EXPORT static bool SleepMilliseconds(const int64_t lMilliseconds);
+    EXPORT static bool SleepSeconds(int64_t lSeconds);
+    EXPORT static bool SleepMilliseconds(int64_t lMilliseconds);
 
     // Output() logs normal output, which carries a verbosity level.
     //
@@ -314,7 +314,7 @@ public:
 
     // String Helpers
     EXPORT static bool StringFill(OTString& out_strString, const char* szString,
-                                  const int32_t iLength,
+                                  int32_t iLength,
                                   const char* szAppend = nullptr);
 
     EXPORT static void SetupSignalHandler(); // OPTIONAL. Therefore I will call

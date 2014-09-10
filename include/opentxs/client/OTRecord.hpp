@@ -260,9 +260,8 @@ public:
                                                 // see if it's been accepted, so
                                                 // this lets you erase the
                                                 // record of sending it.)
-    EXPORT bool CancelOutgoing(const std::string str_via_acct)
-        const; // For outgoing,
-               // pending
+    EXPORT bool CancelOutgoing(std::string str_via_acct) const; // For outgoing,
+                                                                // pending
     // (not-yet-accepted) instruments.
     // NOTE: str_via_acct can be blank if a
     // cheque. But if voucher, smart

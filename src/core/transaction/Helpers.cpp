@@ -402,8 +402,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger)
     return LoadBoxReceipt(theAbbrev, lLedgerType);
 }
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                              const int64_t lLedgerType)
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 {
     // See if the appropriate file exists, and load it up from
     // local storage, into a string.
@@ -540,7 +539,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
     return pBoxReceipt;
 }
 
-bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+bool SetupBoxReceiptFilename(int64_t lLedgerType,
                              const OTString& strUserOrAcctID,
                              const OTString& strServerID,
                              const int64_t& lTransactionNum,
@@ -590,8 +589,7 @@ bool SetupBoxReceiptFilename(const int64_t lLedgerType,
     return true;
 }
 
-bool SetupBoxReceiptFilename(const int64_t lLedgerType,
-                             OTTransaction& theTransaction,
+bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
                              const char* szCaller, OTString& strFolder1name,
                              OTString& strFolder2name, OTString& strFolder3name,
                              OTString& strFilename)

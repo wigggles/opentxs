@@ -271,7 +271,7 @@ protected:
                              // time (yes if true)
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     void InitToken();
-    bool ChooseIndex(const int32_t nIndex);
+    bool ChooseIndex(int32_t nIndex);
     EXPORT Token();
     EXPORT Token& operator=(const Token& rhs);
     EXPORT Token(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);

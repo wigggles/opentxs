@@ -2552,31 +2552,28 @@ bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
 
  */
 int64_t StorageFS::ConstructAndCreatePath(std::string& strOutput,
-                                          const std::string strFolder,
-                                          const std::string oneStr,
-                                          const std::string twoStr,
-                                          const std::string threeStr)
+                                          std::string strFolder,
+                                          std::string oneStr,
+                                          std::string twoStr,
+                                          std::string threeStr)
 {
     return ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr,
                                       twoStr, threeStr);
 }
 
 int64_t StorageFS::ConstructAndConfirmPath(std::string& strOutput,
-                                           const std::string strFolder,
-                                           const std::string oneStr,
-                                           const std::string twoStr,
-                                           const std::string threeStr)
+                                           std::string strFolder,
+                                           std::string oneStr,
+                                           std::string twoStr,
+                                           std::string threeStr)
 {
     return ConstructAndConfirmPathImp(false, strOutput, strFolder, oneStr,
                                       twoStr, threeStr);
 }
 
-int64_t StorageFS::ConstructAndConfirmPathImp(const bool bMakePath,
-                                              std::string& strOutput,
-                                              const std::string zeroStr,
-                                              const std::string oneStr,
-                                              const std::string twoStr,
-                                              const std::string threeStr)
+int64_t StorageFS::ConstructAndConfirmPathImp(
+    bool bMakePath, std::string& strOutput, std::string zeroStr,
+    std::string oneStr, std::string twoStr, std::string threeStr)
 {
     const std::string strRoot(m_strDataPath.c_str());
 

@@ -148,7 +148,7 @@ public:
     {
         return m_lAmount;
     }
-    void SetAmount(const int64_t lAmount)
+    void SetAmount(int64_t lAmount)
     {
         m_lAmount = lAmount;
     }
@@ -159,8 +159,8 @@ public:
         return m_strAssetTypeID;
     }
     OTStashItem();
-    OTStashItem(const OTString& strAssetTypeID, const int64_t lAmount = 0);
-    OTStashItem(const OTIdentifier& theAssetTypeID, const int64_t lAmount = 0);
+    OTStashItem(const OTString& strAssetTypeID, int64_t lAmount = 0);
+    OTStashItem(const OTIdentifier& theAssetTypeID, int64_t lAmount = 0);
     virtual ~OTStashItem();
 };
 

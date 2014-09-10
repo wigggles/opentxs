@@ -738,8 +738,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainExchangeBasket()
 //
 OT_COMMANDS_OT int32_t
 OT_Command::stat_basket_accounts(const string& strServer, const string& strNym,
-                                 const bool bFilter,
-                                 const string& strBasketType)
+                                 bool bFilter, const string& strBasketType)
 {
     cout << "------------------------------------------------------------------"
             "\n";
@@ -1669,7 +1668,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowCredentials()
 OT_COMMANDS_OT bool OT_Command::stat_partyagent(const string& strSmartContract,
                                                 const string& strPartyName,
                                                 const string& strAgentName,
-                                                const int32_t nIndex)
+                                                int32_t nIndex)
 {
     string strAgentID = OTAPI_Wrap::Party_GetAgentID(
         strSmartContract, strPartyName, strAgentName);
@@ -1690,7 +1689,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagent(const string& strSmartContract,
 
 OT_COMMANDS_OT bool OT_Command::stat_partyagent_index(
     const string& strSmartContract, const string& strPartyName,
-    const int32_t nCurrentAgent)
+    int32_t nCurrentAgent)
 {
     string strAgentName = OTAPI_Wrap::Party_GetAgentNameByIndex(
         strSmartContract, strPartyName, nCurrentAgent);
@@ -1706,7 +1705,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagent_index(
 
 OT_COMMANDS_OT bool OT_Command::stat_partyagents(const string& strSmartContract,
                                                  const string& strPartyName,
-                                                 const int32_t nDepth)
+                                                 int32_t nDepth)
 {
     int32_t nAgentCount =
         OTAPI_Wrap::Party_GetAgentCount(strSmartContract, strPartyName);
@@ -1736,7 +1735,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyagents(const string& strSmartContract,
 
 OT_COMMANDS_OT bool OT_Command::stat_partyaccount(
     const string& strSmartContract, const string& strPartyName,
-    const string& strAcctName, const int32_t nCurrentAccount)
+    const string& strAcctName, int32_t nCurrentAccount)
 {
     string strAcctAssetID = OTAPI_Wrap::Party_GetAcctAssetID(
         strSmartContract, strPartyName, strAcctName);
@@ -1768,7 +1767,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccount(
 
 OT_COMMANDS_OT bool OT_Command::stat_partyaccount_index(
     const string& strSmartContract, const string& strPartyName,
-    const int32_t nCurrentAccount)
+    int32_t nCurrentAccount)
 {
     string strAcctName = OTAPI_Wrap::Party_GetAcctNameByIndex(
         strSmartContract, strPartyName, nCurrentAccount);
@@ -1784,8 +1783,7 @@ OT_COMMANDS_OT bool OT_Command::stat_partyaccount_index(
 }
 
 OT_COMMANDS_OT bool OT_Command::stat_partyaccounts(
-    const string& strSmartContract, const string& strPartyName,
-    const int32_t nDepth)
+    const string& strSmartContract, const string& strPartyName, int32_t nDepth)
 {
     int32_t nAccountCount =
         OTAPI_Wrap::Party_GetAcctCount(strSmartContract, strPartyName);
@@ -2150,7 +2148,7 @@ OT_Command::details_confirm_plan(const string& strPlan, const int32_t)
 
 OT_COMMANDS_OT int32_t
 OT_Command::details_confirm_smart_contract(string& strSmartContract,
-                                           const int32_t nIndex)
+                                           int32_t nIndex)
 {
     string strLocation = "details_confirm_smart_contract";
 
@@ -4033,7 +4031,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainSendMessage()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_write_cheque(string& strCheque, const bool bIsInvoice)
+OT_Command::details_write_cheque(string& strCheque, bool bIsInvoice)
 {
     Utility MsgUtil;
 
@@ -4664,7 +4662,7 @@ OT_COMMANDS_OT int32_t
 OT_Command::details_create_offer(const string& strScale,
                                  const string& strMinIncrement,
                                  const string& strQuantity,
-                                 const string& strPrice, const bool bSelling,
+                                 const string& strPrice, bool bSelling,
                                  const string& strLifespan)
 {
     // NOTE: The top half of this function has nothing to do with placing a new
@@ -5498,7 +5496,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMint()
 // Returns 1 for success, 0 for failure.
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_create_nym(const int32_t nKeybits, const string& strName,
+OT_Command::details_create_nym(int32_t nKeybits, const string& strName,
                                const string& strSourceForNymID,
                                const string& strAltLocation)
 {
@@ -5634,7 +5632,7 @@ cash instructions.
 // strIndices == "" for "all indices"
 //
 OT_COMMANDS_OT int32_t OT_Command::accept_inbox_items(const string& strMyAcctID,
-                                                      const int32_t nItemType,
+                                                      int32_t nItemType,
                                                       const string& strIndices)
 {
     Utility MsgUtil;
@@ -6241,7 +6239,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainRegisterNym()
 
 OT_COMMANDS_OT bool OT_Command::details_refresh_nym(const string& strServerID,
                                                     const string& strMyNymID,
-                                                    const bool bForceDownload)
+                                                    bool bForceDownload)
 {
     bool bWasMsgSent = false;
     int32_t nGetAndProcessNymbox = MadeEasy::retrieve_nym(
@@ -6292,8 +6290,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainRefreshNym()
 
 // Note: nBoxType is 0 for Nymbox, 1 for Inbox, and 2 for Outbox.
 OT_COMMANDS_OT int32_t
-OT_Command::details_download_box_receipt(const string& strID,
-                                         const int32_t nBoxType)
+OT_Command::details_download_box_receipt(const string& strID, int32_t nBoxType)
 {
     string strMyNymID = MyNym;
     string strAcctID;
@@ -6412,8 +6409,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainGetReceipt()
 // (from asset account on server to cash purse on client.)
 //
 OT_COMMANDS_OT int32_t
-OT_Command::details_withdraw_cash(const string& strMyAcctID,
-                                  const int64_t lAmount)
+OT_Command::details_withdraw_cash(const string& strMyAcctID, int64_t lAmount)
 {
     string strMyNymID = OTAPI_Wrap::GetAccountWallet_NymID(strMyAcctID);
     if (!VerifyStringVal(strMyNymID)) {
@@ -7899,8 +7895,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainDeposit()
 }
 
 OT_COMMANDS_OT int32_t
-OT_Command::details_import_purse(const string& strInstrument,
-                                 const bool bHasPassword,
+OT_Command::details_import_purse(const string& strInstrument, bool bHasPassword,
                                  const string& strPurseOwner)
 {
     if (!VerifyStringVal(strInstrument)) {
@@ -8107,7 +8102,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainImportCash()
 OT_COMMANDS_OT string OT_Command::details_export_cash(
     const string& strServerID, const string& strFromNymID,
     const string& strAssetTypeID, string& strHisNymID, const string& strIndices,
-    const bool bPasswordProtected, string& strRetainedCopy)
+    bool bPasswordProtected, string& strRetainedCopy)
 {
 
     string strLocation = "\n details_export_cash";
@@ -8621,7 +8616,7 @@ OT_Command::details_send_cash(string& strResponse, const string& strServerID,
                               const string& strMyNymID,
                               const string& strMyAcctID, string& strHisNymID,
                               const string&, const string& strAmount,
-                              string& strIndices, const bool bPasswordProtected)
+                              string& strIndices, bool bPasswordProtected)
 {
 
     string strLocation = "\n details_send_cash";
@@ -8768,8 +8763,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainNewKey()
 //
 
 OT_COMMANDS_OT int32_t
-OT_Command::handle_payment_index(const string& strMyAcctID,
-                                 const int32_t nIndex,
+OT_Command::handle_payment_index(const string& strMyAcctID, int32_t nIndex,
                                  const string& strPaymentType,
                                  const string& strInbox)
 {
@@ -9273,7 +9267,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
 }
 
 vector<string> tokenize(const string& str, const string& delimiters,
-                        const bool trimEmpty)
+                        bool trimEmpty)
 {
     int32_t lastPos = 0;
     vector<string> tokens;
@@ -9806,7 +9800,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainInpayments()
 OT_COMMANDS_OT int32_t
 OT_Command::details_show_record(const string& strServerID,
                                 const string& strMyNymID,
-                                const string& strMyAcctID, const int32_t nIndex,
+                                const string& strMyAcctID, int32_t nIndex,
                                 const string& strRecordBox)
 {
     if (!VerifyStringVal(strRecordBox)) {
@@ -10181,7 +10175,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainClearExpired()
 //
 OT_COMMANDS_OT int32_t
 OT_Command::details_show_expired(const string& strServerID,
-                                 const string& strMyNymID, const int32_t nIndex,
+                                 const string& strMyNymID, int32_t nIndex,
                                  const string& strExpiredBox)
 {
     if (!VerifyStringVal(strExpiredBox)) {
@@ -10593,8 +10587,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainOutbox()
 }
 
 OT_COMMANDS_OT bool OT_Command::show_mail_message(const string& strMyNymID,
-                                                  const int32_t nIndex,
-                                                  const bool bShowContents)
+                                                  int32_t nIndex,
+                                                  bool bShowContents)
 {
     bool bMailVerified = OTAPI_Wrap::Nym_VerifyMailByIndex(strMyNymID, nIndex);
 
@@ -10785,8 +10779,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainInmail()
 }
 
 OT_COMMANDS_OT bool OT_Command::show_outmail_message(const string& strMyNymID,
-                                                     const int32_t nIndex,
-                                                     const bool bShowContents)
+                                                     int32_t nIndex,
+                                                     bool bShowContents)
 {
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutmailByIndex(strMyNymID, nIndex);
@@ -10969,8 +10963,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainDeleteOutmail()
 }
 
 OT_COMMANDS_OT bool OT_Command::show_outpayment(const string& strMyNym,
-                                                const int32_t nIndex,
-                                                const bool bShowInFull)
+                                                int32_t nIndex,
+                                                bool bShowInFull)
 {
     bool bMailVerified =
         OTAPI_Wrap::Nym_VerifyOutpaymentsByIndex(strMyNym, nIndex);

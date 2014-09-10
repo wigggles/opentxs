@@ -141,7 +141,7 @@ namespace opentxs
 
 /*
  int64_t GetAmount() const { return m_lAmount; }
- void SetAmount(const int64_t lAmount) { m_lAmount = lAmount; }
+ void SetAmount( int64_t lAmount) { m_lAmount = lAmount; }
 
  const OTString& GetAssetTypeID() { return m_strAssetTypeID; }
  */
@@ -150,14 +150,13 @@ OTStashItem::OTStashItem() : m_lAmount(0)
 {
 }
 
-OTStashItem::OTStashItem(const OTString& strAssetTypeID, const int64_t lAmount)
+OTStashItem::OTStashItem(const OTString& strAssetTypeID, int64_t lAmount)
     : m_strAssetTypeID(strAssetTypeID)
     , m_lAmount(lAmount)
 {
 }
 
-OTStashItem::OTStashItem(const OTIdentifier& theAssetTypeID,
-                         const int64_t lAmount)
+OTStashItem::OTStashItem(const OTIdentifier& theAssetTypeID, int64_t lAmount)
     : m_strAssetTypeID(theAssetTypeID)
     , m_lAmount(lAmount)
 {

@@ -169,12 +169,12 @@ OT_ME::~OT_ME()
 
 typedef std::map<std::string, std::string> mapOfArguments;
 
-// int32_t    OT_CLI_GetArgsCount     (const std::string str_Args);
-// std::string OT_CLI_GetValueByKey    (const std::string str_Args, const
+// int32_t    OT_CLI_GetArgsCount     (std::string str_Args);
+// std::string OT_CLI_GetValueByKey    (std::string str_Args,
 // std::string str_key);
-// std::string OT_CLI_GetValueByIndex  (const std::string str_Args, const
+// std::string OT_CLI_GetValueByIndex  (std::string str_Args,
 // int32_t nIndex);
-// std::string OT_CLI_GetKeyByIndex    (const std::string str_Args, const
+// std::string OT_CLI_GetKeyByIndex    (std::string str_Args,
 // int32_t nIndex);
 
 // If user-defined script arguments were passed,

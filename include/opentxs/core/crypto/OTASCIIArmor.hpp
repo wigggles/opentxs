@@ -206,7 +206,7 @@ public:
     //
     EXPORT static bool LoadFromString(OTASCIIArmor& ascArmor,
                                       const OTString& strInput,
-                                      const std::string str_bookend =
+                                      std::string str_bookend =
                                           "-----BEGIN"); // todo hardcoding.
                                                          // str_bookend is a
                                                          // default. So you

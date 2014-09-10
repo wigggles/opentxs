@@ -541,8 +541,8 @@ public:
                   const OTIdentifier& theServerID,
                   const int64_t& lNumberOfOrigin,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
-                  const int64_t& lInRefDisplay, const time64_t the_DATE_SIGNED,
-                  const transactionType theType, const OTString& strHash,
+                  const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
+                  transactionType theType, const OTString& strHash,
                   const int64_t& lAdjustment, const int64_t& lDisplayValue,
                   const int64_t& lClosingNum, const int64_t& lRequestNum,
                   bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
@@ -589,7 +589,7 @@ public:
         return m_lAbbrevAmount;
     }
 
-    void SetAbbrevAdjustment(const int64_t lAmount)
+    void SetAbbrevAdjustment(int64_t lAmount)
     {
         m_lAbbrevAmount = lAmount;
     }
@@ -599,7 +599,7 @@ public:
         return m_lDisplayAmount;
     }
 
-    void SetAbbrevDisplayAmount(const int64_t lAmount)
+    void SetAbbrevDisplayAmount(int64_t lAmount)
     {
         m_lDisplayAmount = lAmount;
     }
@@ -609,7 +609,7 @@ public:
         return m_lInRefDisplay;
     }
 
-    void SetAbbrevInRefDisplay(const int64_t lAmount)
+    void SetAbbrevInRefDisplay(int64_t lAmount)
     {
         m_lInRefDisplay = lAmount;
     }
@@ -631,14 +631,14 @@ public:
         return m_bReplyTransSuccess;
     }
 
-    void SetReplyTransSuccess(const bool bVal)
+    void SetReplyTransSuccess(bool bVal)
     {
         m_bReplyTransSuccess = bVal;
     }
 
     // These are used for finalReceipt and basketReceipt
     EXPORT int64_t GetClosingNum() const;
-    EXPORT void SetClosingNum(const int64_t lClosingNum);
+    EXPORT void SetClosingNum(int64_t lClosingNum);
     EXPORT int64_t GetReferenceNumForDisplay(); /// For display purposes. The
                                                 /// "ref #" you actually display
                                                 /// (versus the one you use
@@ -681,7 +681,7 @@ public:
         return m_Type;
     }
 
-    inline void SetType(const transactionType theType)
+    inline void SetType(transactionType theType)
     {
         m_Type = theType;
     }
@@ -689,7 +689,7 @@ public:
     // This function assumes that theLedger is the owner of this transaction.
     // We pass the ledger in so we can determine the proper directory we're
     // reading from.
-    EXPORT bool SaveBoxReceipt(const int64_t lLedgerType);
+    EXPORT bool SaveBoxReceipt(int64_t lLedgerType);
 
     EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
 
@@ -712,16 +712,16 @@ public:
         return static_cast<int32_t>(m_listItems.size());
     }
 
-    int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number
-                                                           // of items that are
-                                                           // IN REFERENCE TO
-                                                           // some transaction#.
+    int32_t GetItemCountInRefTo(int64_t lReference); // Count the number
+                                                     // of items that are
+                                                     // IN REFERENCE TO
+                                                     // some transaction#.
 
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
-    EXPORT OTItem* GetItem(const OTItem::itemType theType);
+    EXPORT OTItem* GetItem(OTItem::itemType theType);
 
-    EXPORT OTItem* GetItemInRefTo(const int64_t lReference);
+    EXPORT OTItem* GetItemInRefTo(int64_t lReference);
 
     EXPORT void AddItem(OTItem& theItem); // You have to allocate the item on
                                           // the heap and then pass it in as a
@@ -764,15 +764,15 @@ public:
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
         OTPseudonym& theNym,
-        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
-                                        // clawback the opening # because it
-                                        // will be using another opening # the
-                                        // next time OT_API_exchangeBasket() is
-                                        // called.
-        const bool bReplyWasSuccess,    // false until positively asserted.
-        const bool bReplyWasFailure,    // false until positively asserted.
-        const bool bTransactionWasSuccess,  // false until positively asserted.
-        const bool bTransactionWasFailure); // false until positively asserted.
+        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
+                                      // clawback the opening # because it
+                                      // will be using another opening # the
+                                      // next time OT_API_exchangeBasket() is
+                                      // called.
+        bool bReplyWasSuccess,        // false until positively asserted.
+        bool bReplyWasFailure,        // false until positively asserted.
+        bool bTransactionWasSuccess,  // false until positively asserted.
+        bool bTransactionWasFailure); // false until positively asserted.
 
     // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
     // TRANSACTION, and not the other way around!
@@ -782,15 +782,15 @@ public:
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
         OTPseudonym& theNym,
-        const bool bHarvestingForRetry, // exchangeBasket, on retry, needs to
-                                        // clawback the opening # because it
-                                        // will be using another opening # the
-                                        // next time OT_API_exchangeBasket() is
-                                        // called.
-        const bool bReplyWasSuccess,    // false until positively asserted.
-        const bool bReplyWasFailure,    // false until positively asserted.
-        const bool bTransactionWasSuccess,  // false until positively asserted.
-        const bool bTransactionWasFailure); // false until positively asserted.
+        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
+                                      // clawback the opening # because it
+                                      // will be using another opening # the
+                                      // next time OT_API_exchangeBasket() is
+                                      // called.
+        bool bReplyWasSuccess,        // false until positively asserted.
+        bool bReplyWasFailure,        // false until positively asserted.
+        bool bTransactionWasSuccess,  // false until positively asserted.
+        bool bTransactionWasFailure); // false until positively asserted.
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.

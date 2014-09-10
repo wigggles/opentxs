@@ -384,7 +384,7 @@ public:
     //
     EXPORT bool AddBlankNumbersToItem(const OTNumList& theAddition);
     int64_t GetClosingNum() const;
-    void SetClosingNum(const int64_t lClosingNum);
+    void SetClosingNum(int64_t lClosingNum);
     EXPORT virtual int64_t GetNumberOfOrigin();
     EXPORT virtual void CalculateNumberOfOrigin();
     // used for looping through the items in a few places.
@@ -395,19 +395,21 @@ public:
     OTItem* GetItem(int32_t nIndex); // While processing an item, you may wish
                                      // to query it for sub-items of a certain
                                      // type.
-    OTItem* GetItemByTransactionNum(
-        const int64_t lTransactionNumber); // While processing an item, you may
-                                           // wish to query it for sub-items
+    OTItem* GetItemByTransactionNum(int64_t lTransactionNumber); // While
+                                                                 // processing
+                                                                 // an item, you
+                                                                 // may
+    // wish to query it for sub-items
     OTItem* GetFinalReceiptItemByReferenceNum(
-        const int64_t lReferenceNumber); // The final receipt item MAY be
-                                         // present, and co-relates to others
-                                         // that share its "in reference to"
-                                         // value. (Others such as
-                                         // marketReceipts and paymentReceipts.)
-    int32_t GetItemCountInRefTo(const int64_t lReference); // Count the number
-                                                           // of items that are
-                                                           // IN REFERENCE TO
-                                                           // some transaction#.
+        int64_t lReferenceNumber); // The final receipt item MAY be
+                                   // present, and co-relates to others
+                                   // that share its "in reference to"
+                                   // value. (Others such as
+                                   // marketReceipts and paymentReceipts.)
+    int32_t GetItemCountInRefTo(int64_t lReference); // Count the number
+                                                     // of items that are
+                                                     // IN REFERENCE TO
+                                                     // some transaction#.
     inline int32_t GetItemCount() const
     {
         return static_cast<int32_t>(m_listItems.size());
@@ -421,7 +423,7 @@ public:
     // the "From" accountID and the ServerID are now in the parent class. (2 of
     // each.)
 
-    inline void SetNewOutboxTransNum(const int64_t lTransNum)
+    inline void SetNewOutboxTransNum(int64_t lTransNum)
     {
         m_lNewOutboxTransNum = lTransNum;
     }
@@ -441,17 +443,17 @@ public:
     // whether the wallet side set it up correctly (and thus it's okay to sign
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
-        const int64_t lActualAdjustment, OTPseudonym& THE_NYM,
-        OTLedger& THE_INBOX, OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
+        int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
+        OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
-        const int64_t lOutboxTrnsNum =
+        int64_t lOutboxTrnsNum =
             0); // Used in special case of transfers (the user
                 // didn't know the outbox trans# when constructing
                 // the original request.) Unused when 0.
                 // server-side
     EXPORT bool VerifyTransactionStatement(OTPseudonym& THE_NYM,
                                            OTTransaction& TARGET_TRANSACTION,
-                                           const bool bIsRealTransaction =
+                                           bool bIsRealTransaction =
                                                true); // We use this when the
                                                       // trans# is 0 (like when
                                                       // processing Nymbox.)
