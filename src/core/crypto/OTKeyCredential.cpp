@@ -410,23 +410,22 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
         return false;
     }
 
-    auto iiAuth = mapPublic.find("A"); // Authentication key
-    auto iiEncr = mapPublic.find("E"); // Encryption key
-    auto iiSign = mapPublic.find("S"); // Signing key
-
-    if (mapPublic.end() == iiAuth) {
+    auto itAuth = mapPublic.find("A"); // Authentication key
+    if (mapPublic.end() == itAuth) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find public authentication key.\n";
         return false;
     }
 
-    if (mapPublic.end() == iiEncr) {
+    auto itEncr = mapPublic.find("E"); // Encryption key
+    if (mapPublic.end() == itEncr) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find public encryption key.\n";
         return false;
     }
 
-    if (mapPublic.end() == iiSign) {
+    auto itSign = mapPublic.find("S"); // Signing key
+    if (mapPublic.end() == itSign) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find public signing key.\n";
         return false;
@@ -435,7 +434,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
     if (ot_super::SetPublicContents(mapPublic)) {
 
         OTString strKey;
-        strKey.Set(iiAuth->second.c_str());
+        strKey.Set(itAuth->second.c_str());
         if (false == m_AuthentKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public authentication key based "
@@ -444,7 +443,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
         }
 
         strKey.Release();
-        strKey.Set(iiEncr->second.c_str());
+        strKey.Set(itEncr->second.c_str());
         if (false == m_EncryptKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public encryption key based on "
@@ -453,7 +452,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
         }
 
         strKey.Release();
-        strKey.Set(iiSign->second.c_str());
+        strKey.Set(itSign->second.c_str());
         if (false == m_SigningKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public signing key based on "
@@ -497,25 +496,22 @@ bool OTKeyCredential::SetPrivateContents(
         return false;
     }
 
-    OTString::Map::const_iterator iiAuth =
-        mapPrivate.find("A"); // Authentication key
-    OTString::Map::const_iterator iiEncr =
-        mapPrivate.find("E"); // Encryption key
-    OTString::Map::const_iterator iiSign = mapPrivate.find("S"); // Signing key
-
-    if (mapPrivate.end() == iiAuth) {
+    auto itAuth = mapPrivate.find("A"); // Authentication key
+    if (mapPrivate.end() == itAuth) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find private authentication key.\n";
         return false;
     }
 
-    if (mapPrivate.end() == iiEncr) {
+    auto itEncr = mapPrivate.find("E"); // Encryption key
+    if (mapPrivate.end() == itEncr) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find private encryption key.\n";
         return false;
     }
 
-    if (mapPrivate.end() == iiSign) {
+    auto itSign = mapPrivate.find("S"); // Signing key
+    if (mapPrivate.end() == itSign) {
         otErr << __FILE__ << " line " << __LINE__
               << ": Failure: Unable to find private signing key.\n";
         return false;
@@ -526,7 +522,7 @@ bool OTKeyCredential::SetPrivateContents(
         OTString::Map mapPublic;
 
         OTString strPrivate;
-        strPrivate.Set(iiAuth->second.c_str()); // strPrivate now contains the
+        strPrivate.Set(itAuth->second.c_str()); // strPrivate now contains the
                                                 // private Cert string.
 
         if (false == m_AuthentKey.LoadPrivateKeyFromCertString(
@@ -565,7 +561,7 @@ bool OTKeyCredential::SetPrivateContents(
         }
 
         strPrivate.Release();
-        strPrivate.Set(iiEncr->second.c_str());
+        strPrivate.Set(itEncr->second.c_str());
 
         if (false == m_EncryptKey.LoadPrivateKeyFromCertString(
                          strPrivate, false /*bEscaped true by default*/,
@@ -602,7 +598,7 @@ bool OTKeyCredential::SetPrivateContents(
         }
 
         strPrivate.Release();
-        strPrivate.Set(iiSign->second.c_str());
+        strPrivate.Set(itSign->second.c_str());
 
         if (false == m_SigningKey.LoadPrivateKeyFromCertString(
                          strPrivate, false /*bEscaped true by default*/,

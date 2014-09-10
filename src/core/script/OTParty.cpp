@@ -314,9 +314,9 @@ bool OTParty::AddAgent(OTAgent& theAgent)
         return false;
     }
 
-    mapOfAgents::iterator ii = m_mapAgents.find(str_agent_name);
+    auto it = m_mapAgents.find(str_agent_name);
 
-    if (m_mapAgents.end() == ii) // If it wasn't already there...
+    if (m_mapAgents.end() == it) // If it wasn't already there...
     {
         // TODO: Validate here that the same agent isn't already on this party
         // under a different name.
@@ -381,9 +381,9 @@ bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
         return false;
     }
 
-    mapOfPartyAccounts::iterator ii = m_mapPartyAccounts.find(str_acct_name);
+    auto it = m_mapPartyAccounts.find(str_acct_name);
 
-    if (m_mapPartyAccounts.end() == ii) // If it wasn't already there...
+    if (m_mapPartyAccounts.end() == it) // If it wasn't already there...
     {
         // Todo:  Validate here that there isn't another account already on the
         // same party
@@ -416,8 +416,7 @@ bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
 
 int64_t OTParty::GetClosingTransNo(const std::string str_for_acct_name) const
 {
-    mapOfPartyAccounts::const_iterator it =
-        m_mapPartyAccounts.find(str_for_acct_name);
+    auto it = m_mapPartyAccounts.find(str_for_acct_name);
 
     if (m_mapPartyAccounts.end() == it) // If it wasn't already there...
     {
@@ -611,7 +610,7 @@ bool OTParty::HasActiveAgent() const
 OTAgent* OTParty::GetAgent(const std::string& str_agent_name) const
 {
     if (OTScriptable::ValidateName(str_agent_name)) {
-        mapOfAgents::const_iterator it = m_mapAgents.find(str_agent_name);
+        auto it = m_mapAgents.find(str_agent_name);
 
         if (m_mapAgents.end() != it) // If we found something...
         {
@@ -658,8 +657,7 @@ OTPartyAccount* OTParty::GetAccount(const std::string& str_acct_name) const
     // \n", str_acct_name.c_str());
 
     if (OTScriptable::ValidateName(str_acct_name)) {
-        mapOfPartyAccounts::const_iterator it =
-            m_mapPartyAccounts.find(str_acct_name);
+        auto it = m_mapPartyAccounts.find(str_acct_name);
 
         if (m_mapPartyAccounts.end() != it) // If we found something...
         {
@@ -818,8 +816,7 @@ bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym, OTAgent** ppAgent)
     const // ppAgent lets you get the agent ptr if it was there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
-        mapOfAgents::const_iterator it =
-            m_mapAgents.find(m_str_authorizing_agent);
+        auto it = m_mapAgents.find(m_str_authorizing_agent);
 
         if (m_mapAgents.end() != it) // If we found something...
         {
@@ -849,8 +846,7 @@ bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
     const // ppAgent lets you get the agent ptr if it was there.
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
-        mapOfAgents::const_iterator it =
-            m_mapAgents.find(m_str_authorizing_agent);
+        auto it = m_mapAgents.find(m_str_authorizing_agent);
 
         if (m_mapAgents.end() != it) // If we found something...
         {
@@ -899,7 +895,7 @@ OTPseudonym* OTParty::LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
                                               OTAgent** ppAgent)
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
-        mapOfAgents::iterator it = m_mapAgents.find(m_str_authorizing_agent);
+        auto it = m_mapAgents.find(m_str_authorizing_agent);
 
         if (m_mapAgents.end() != it) // If we found something...
         {
@@ -1115,8 +1111,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         // Disallow duplicate Acct IDs.
         // (Only can use an acct once inside a smart contract.)
         //
-        std::set<std::string>::iterator it_acct_id =
-            theAcctIDSet.find(strAcctID.Get());
+        auto it_acct_id = theAcctIDSet.find(strAcctID.Get());
 
         if (theAcctIDSet.end() == it_acct_id) // It's not already there (good).
         {
@@ -1131,13 +1126,13 @@ bool OTParty::LoadAndVerifyAssetAccounts(
             return false;
         }
 
-        mapOfAccounts::iterator ii = map_Accts_Already_Loaded.find(
+        auto it = map_Accts_Already_Loaded.find(
             strAcctID.Get()); // If it's there, it's mapped by Acct ID, so we
                               // can look it up.
 
-        if (map_Accts_Already_Loaded.end() != ii) // Found it.
+        if (map_Accts_Already_Loaded.end() != it) // Found it.
         {
-            pAccount = ii->second;
+            pAccount = it->second;
             OT_ASSERT(nullptr != pAccount);
 
             // Now we KNOW the Account is "already loaded" and we KNOW the
@@ -1282,14 +1277,14 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
         bool bHadToLoadtheNymMyself = true;
         OTPseudonym* pNym = nullptr;
 
-        mapOfNyms::iterator ii =
+        auto it =
             map_Nyms_Already_Loaded.find(str_agent_id); // If it's there, it's
                                                         // mapped by Nym ID, so
                                                         // we can look it up.
 
-        if (map_Nyms_Already_Loaded.end() != ii) // Found it.
+        if (map_Nyms_Already_Loaded.end() != it) // Found it.
         {
-            pNym = ii->second;
+            pNym = it->second;
             OT_ASSERT(nullptr != pNym);
 
             // Now we KNOW the Nym is "already loaded" and we KNOW the agent has

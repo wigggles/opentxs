@@ -905,7 +905,7 @@ int Opentxs::run(int argc, char* argv[])
 
             // has this macro been defined?
             string macroName = cmd.substr(macro, macroEnd - macro);
-            map<string, string>::iterator found = macros.find(macroName);
+            auto found = macros.find(macroName);
             if (found == macros.end()) {
                 otOut << "\n\n***ERROR***\n"
                          "Macro expansion failed.\n"

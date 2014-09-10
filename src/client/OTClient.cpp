@@ -7830,9 +7830,9 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             else {
                 OTString::Map& theMap = pMap->the_map;
                 OTString strAccount, strInbox, strOutbox;
-                OTString::Map::iterator it_account = theMap.find("account");
-                OTString::Map::iterator it_inbox = theMap.find("inbox");
-                OTString::Map::iterator it_outbox = theMap.find("outbox");
+                auto it_account = theMap.find("account");
+                auto it_inbox = theMap.find("inbox");
+                auto it_outbox = theMap.find("outbox");
                 if ((theMap.end() != it_account) &&
                     (it_account->second.size() > 0))
                     strAccount = it_account->second.c_str();

@@ -2534,8 +2534,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     //    OTPseudonym * pStashNym            = pServerNym;
 
     const std::string str_party_id = strPartyUserID.Get();
-    mapOfNyms::const_iterator it_party =
-        map_NymsAlreadyLoaded.find(str_party_id);
+    auto it_party = map_NymsAlreadyLoaded.find(str_party_id);
 
     if (map_NymsAlreadyLoaded.end() !=
         it_party) // found the party in list of Nyms that are already loaded.
@@ -2589,13 +2588,11 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     mapOfNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
                                   // have processed the Nym pointers (above) and
                                   // have better data here now.
-    mapOfNyms::iterator it_temp;
-
     map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
         strServerNymID.Get(),
         pServerNym)); // Add Server Nym to list of Nyms already loaded.
 
-    it_temp = map_ALREADY_LOADED.find(strPartyUserID.Get());
+    auto it_temp = map_ALREADY_LOADED.find(strPartyUserID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
         map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
             strPartyUserID.Get(),
@@ -3588,11 +3585,9 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // pServerNym
         {
             const OTIdentifier theServerNymID(*pServerNym);
-            const OTString strServerNymID(theServerNymID); // <--
+            const OTString strServerNymID(theServerNymID);
 
-            mapOfNyms::iterator iiii = nym_map.find(strServerNymID.Get());
-
-            if (nym_map.end() == iiii) // wasn't already there
+            if (nym_map.end() == nym_map.find(strServerNymID.Get()))
                 nym_map.insert(std::pair<std::string, OTPseudonym*>(
                     strServerNymID.Get(), pServerNym));
         }
@@ -3600,33 +3595,27 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // theOriginator
         {
             const OTIdentifier theOriginatorNymID(theOriginator);
-            const OTString strOriginatorNymID(theOriginatorNymID); // <--
+            const OTString strOriginatorNymID(theOriginatorNymID);
 
-            mapOfNyms::iterator iiii = nym_map.find(strOriginatorNymID.Get());
-
-            if (nym_map.end() == iiii) // wasn't already there
+            if (nym_map.end() == nym_map.find(strOriginatorNymID.Get()))
                 nym_map.insert(std::pair<std::string, OTPseudonym*>(
                     strOriginatorNymID.Get(), &theOriginator));
         }
 
         if (nullptr != pActingNym) {
             const OTIdentifier theActingNymID(*pActingNym);
-            const OTString strActingNymID(theActingNymID); // <--
+            const OTString strActingNymID(theActingNymID);
 
-            mapOfNyms::iterator iiii = nym_map.find(strActingNymID.Get());
-
-            if (nym_map.end() == iiii) // wasn't already there
+            if (nym_map.end() == nym_map.find(strActingNymID.Get()))
                 nym_map.insert(std::pair<std::string, OTPseudonym*>(
                     strActingNymID.Get(), pActingNym));
         }
 
         if (nullptr != pPartyNym) {
             const OTIdentifier thePartyNymID(*pPartyNym);
-            const OTString strPartyNymID(thePartyNymID); // <--
+            const OTString strPartyNymID(thePartyNymID);
 
-            mapOfNyms::iterator iiii = nym_map.find(strPartyNymID.Get());
-
-            if (nym_map.end() == iiii) // wasn't already there
+            if (nym_map.end() == nym_map.find(strPartyNymID.Get()))
                 nym_map.insert(std::pair<std::string, OTPseudonym*>(
                     strPartyNymID.Get(), pPartyNym));
         }
@@ -4771,7 +4760,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
 
         // SKIP FAILED PARTIES...
         //
-        std::set<OTParty*>::iterator it_failed = theFailedParties.find(pParty);
+        auto it_failed = theFailedParties.find(pParty);
 
         if (theFailedParties.end() != it_failed) // this means pParty was found
                                                  // on the FAILED list. (So we
@@ -5043,8 +5032,7 @@ void OTSmartContract::HarvestClosingNumbers(OTPseudonym* pSignerNym,
 
             // Skip failed parties...
             //
-            std::set<OTParty*>::iterator it_failed =
-                pFailedParties->find(pParty);
+            auto it_failed = pFailedParties->find(pParty);
 
             if (pFailedParties->end() != it_failed) // this means pParty was
                                                     // found on the FAILED list.
@@ -5326,7 +5314,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
 //
 OTStash* OTSmartContract::GetStash(const std::string str_stash_name)
 {
-    mapOfStashes::iterator it = m_mapStashes.find(str_stash_name);
+    auto it = m_mapStashes.find(str_stash_name);
 
     if (m_mapStashes.end() == it) // It's not there. Create it.
     {
@@ -6216,10 +6204,8 @@ bool OTSmartContract::MoveFunds(
     OTPseudonym* pSenderNym = nullptr;
     OTPseudonym* pRecipientNym = nullptr;
 
-    mapOfNyms::const_iterator it_sender =
-        map_NymsAlreadyLoaded.find(strSenderUserID.Get());
-    mapOfNyms::const_iterator it_recipient =
-        map_NymsAlreadyLoaded.find(strRecipientUserID.Get());
+    auto it_sender = map_NymsAlreadyLoaded.find(strSenderUserID.Get());
+    auto it_recipient = map_NymsAlreadyLoaded.find(strRecipientUserID.Get());
 
     if (map_NymsAlreadyLoaded.end() !=
         it_sender) // found the sender in list of Nyms that are already loaded.
@@ -6328,9 +6314,7 @@ bool OTSmartContract::MoveFunds(
     mapOfNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
                                   // have processed the Nym pointers (above) and
                                   // have better data here now.
-    mapOfNyms::iterator it_temp;
-
-    it_temp = map_ALREADY_LOADED.find(strServerNymID.Get());
+    auto it_temp = map_ALREADY_LOADED.find(strServerNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
         map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
             strServerNymID.Get(),

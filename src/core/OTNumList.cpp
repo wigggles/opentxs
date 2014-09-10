@@ -272,7 +272,7 @@ bool OTNumList::Add(const char* szNumbers) // if false, means the numbers were
 bool OTNumList::Add(const int64_t& theValue) // if false, means the value was
                                              // already there.
 {
-    std::set<int64_t>::iterator it = m_setData.find(theValue);
+    auto it = m_setData.find(theValue);
 
     if (m_setData.end() == it) // it's not already there, so add it.
     {
@@ -284,7 +284,7 @@ bool OTNumList::Add(const int64_t& theValue) // if false, means the value was
 
 bool OTNumList::Peek(int64_t& lPeek) const
 {
-    std::set<int64_t>::iterator it = m_setData.begin();
+    auto it = m_setData.begin();
 
     if (m_setData.end() != it) // it's there.
     {
@@ -296,7 +296,7 @@ bool OTNumList::Peek(int64_t& lPeek) const
 
 bool OTNumList::Pop()
 {
-    std::set<int64_t>::iterator it = m_setData.begin();
+    auto it = m_setData.begin();
 
     if (m_setData.end() != it) // it's there.
     {
@@ -309,7 +309,7 @@ bool OTNumList::Pop()
 bool OTNumList::Remove(const int64_t& theValue) // if false, means the value was
                                                 // NOT already there.
 {
-    std::set<int64_t>::iterator it = m_setData.find(theValue);
+    auto it = m_setData.find(theValue);
 
     if (m_setData.end() != it) // it's there.
     {
@@ -323,7 +323,7 @@ bool OTNumList::Verify(const int64_t& theValue) const // returns true/false
                                                       // (whether value is
                                                       // already there.)
 {
-    std::set<int64_t>::iterator it = m_setData.find(theValue);
+    auto it = m_setData.find(theValue);
 
     return (m_setData.end() == it) ? false : true;
 }
@@ -374,7 +374,7 @@ bool OTNumList::VerifyAny(const OTNumList& rhs) const
 bool OTNumList::VerifyAny(const std::set<int64_t>& setData) const
 {
     for (const auto& it : m_setData) {
-        std::set<int64_t>::const_iterator it_find = setData.find(it);
+        auto it_find = setData.find(it);
 
         if (it_find != setData.end()) // found a match.
             return true;

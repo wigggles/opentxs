@@ -1168,7 +1168,7 @@ const mapOfTransactions& OTLedger::GetTransactionMap() const
 bool OTLedger::RemoveTransaction(int64_t lTransactionNum, bool bDeleteIt)
 {
     // See if there's something there with that transaction number.
-    mapOfTransactions::iterator it = m_mapTransactions.find(lTransactionNum);
+    auto it = m_mapTransactions.find(lTransactionNum);
 
     // If it's not already on the list, then there's nothing to remove.
     if (it == m_mapTransactions.end()) {
@@ -1195,8 +1195,7 @@ bool OTLedger::AddTransaction(OTTransaction& theTransaction)
 {
     // See if there's something else already there with the same transaction
     // number.
-    mapOfTransactions::iterator it =
-        m_mapTransactions.find(theTransaction.GetTransactionNum());
+    auto it = m_mapTransactions.find(theTransaction.GetTransactionNum());
 
     // If it's not already on the list, then add it...
     if (it == m_mapTransactions.end()) {

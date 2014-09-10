@@ -214,7 +214,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTIdentifier* pIdentifier)
     const OTString strIdentifier(*pIdentifier);
     const std::string str_identifier(strIdentifier.Get());
 
-    mapOfCachedKeys::iterator it_keys = s_mapCachedKeys.find(str_identifier);
+    auto it_keys = s_mapCachedKeys.find(str_identifier);
 
     if (s_mapCachedKeys.end() != it_keys) // found it!
     {
@@ -287,7 +287,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 
     // Let's see if it's already there on the map...
     //
-    mapOfCachedKeys::iterator it_keys = s_mapCachedKeys.find(str_identifier);
+    auto it_keys = s_mapCachedKeys.find(str_identifier);
 
     if (s_mapCachedKeys.end() != it_keys) // found it!
     {

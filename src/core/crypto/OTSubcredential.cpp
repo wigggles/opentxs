@@ -440,7 +440,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     return (-1); // error condition
                 }
 
-                OTString::Map::iterator it = temp_MapAttributes.find("key");
+                auto it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string& str_key = it->second;
@@ -539,7 +539,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     return (-1); // error condition
                 }
 
-                OTString::Map::iterator it = temp_MapAttributes.find("key");
+                auto it = temp_MapAttributes.find("key");
                 if ((it != temp_MapAttributes.end())) // We expected this much.
                 {
                     std::string& str_key = it->second;

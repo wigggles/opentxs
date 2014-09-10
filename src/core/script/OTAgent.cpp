@@ -745,7 +745,7 @@ bool OTAgent::DropFinalReceiptToInbox(
             const OTString strNymID(theAgentNymID);
             OT_ASSERT(strNymID.Exists());
 
-            mapOfNyms::iterator ittt = pNymMap->find(strNymID.Get());
+            auto ittt = pNymMap->find(strNymID.Get());
 
             if (pNymMap->end() != ittt) // found it!
             {
@@ -976,7 +976,7 @@ bool OTAgent::HarvestTransactionNumber(
             // list of open cron numbers.
             //
             std::set<int64_t>& theIDSet = m_pNym->GetSetOpenCronItems();
-            std::set<int64_t>::iterator theSetIT = theIDSet.find(lNumber);
+            auto theSetIT = theIDSet.find(lNumber);
 
             if (theIDSet.end() != theSetIT) // IF it was there, THEN remove it.
                                             // (Client doesn't even track these,
@@ -1074,7 +1074,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
             // Since the Trans# is now out of play, the server removes it as an
             // open cron item.
             //
-            std::set<int64_t>::iterator theSetIT = theIDSet.find(lNumber);
+            auto theSetIT = theIDSet.find(lNumber);
 
             if (theIDSet.end() != theSetIT) // IF it was there, THEN remove it.
                                             // (Client doesn't even track these,
