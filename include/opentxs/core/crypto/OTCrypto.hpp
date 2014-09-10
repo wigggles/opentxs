@@ -161,9 +161,8 @@ class OTCryptoConfig
 private:
     static bool GetSetAll();
 
-    static bool GetSetValue(OTSettings& config, const std::string strKeyName,
-                            const int32_t nDefaultValue,
-                            const int32_t*& out_nValue);
+    static bool GetSetValue(OTSettings& config, std::string strKeyName,
+                            int32_t nDefaultValue, const int32_t*& out_nValue);
 
     static const int32_t& GetValue(const int32_t*& pValue);
 
@@ -316,12 +315,12 @@ public:
     //
     virtual OTPassword* DeriveKey(
         const OTPassword& userPassword, const OTPayload& dataSalt,
-        const uint32_t uIterations,
+        uint32_t uIterations,
         const OTPayload& dataCheckHash = OTPayload()) const = 0;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
                                      const OTPayload& dataSalt,
-                                     const uint32_t uIterations,
+                                     uint32_t uIterations,
                                      OTPayload& dataCheckHash) const = 0;
 
     // ENCRYPT / DECRYPT
@@ -332,7 +331,7 @@ public:
         const OTPassword& theRawSymmetricKey, // The symmetric key, in clear
                                               // form.
         const char* szInput,                  // This is the Plaintext.
-        const uint32_t lInputLength,
+        uint32_t lInputLength,
         const OTPayload& theIV, // (We assume this IV is already generated and
                                 // passed in.)
         OTPayload& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
@@ -341,7 +340,7 @@ public:
                                                                // key, in clear
                                                                // form.
                          const char* szInput, // This is the Ciphertext.
-                         const uint32_t lInputLength,
+                         uint32_t lInputLength,
                          const OTPayload& theIV, // (We assume this IV is
                                                  // already generated and passed
                                                  // in.)
@@ -451,12 +450,12 @@ public:
     //
     virtual OTPassword* DeriveKey(
         const OTPassword& userPassword, const OTPayload& dataSalt,
-        const uint32_t uIterations,
+        uint32_t uIterations,
         const OTPayload& dataCheckHash = OTPayload()) const;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
                                      const OTPayload& dataSalt,
-                                     const uint32_t uIterations,
+                                     uint32_t uIterations,
                                      OTPayload& dataCheckHash) const;
     // ENCRYPT / DECRYPT
     // Symmetric (secret key) encryption / decryption
@@ -464,7 +463,7 @@ public:
         const OTPassword& theRawSymmetricKey, // The symmetric key, in clear
                                               // form.
         const char* szInput,                  // This is the Plaintext.
-        const uint32_t lInputLength,
+        uint32_t lInputLength,
         const OTPayload& theIV, // (We assume this IV is already generated and
                                 // passed in.)
         OTPayload& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
@@ -473,7 +472,7 @@ public:
                                                                // key, in clear
                                                                // form.
                          const char* szInput, // This is the Ciphertext.
-                         const uint32_t lInputLength,
+                         uint32_t lInputLength,
                          const OTPayload& theIV, // (We assume this IV is
                                                  // already generated and passed
                                                  // in.)
@@ -568,16 +567,16 @@ public:
 
 /*
  int32_t PKCS5_PBKDF2_HMAC_SHA1    (
-    const void *     password,
+    const void*     password,
     size_t          password_len,
 
-    const void *     salt,
+    const void*     salt,
     size_t          salt_len,
 
     uint64_t     iter,
 
     size_t          keylen,
-    void *          key
+    void*          key
 )
 */
 

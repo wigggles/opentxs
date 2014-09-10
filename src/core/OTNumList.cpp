@@ -156,7 +156,7 @@ OTNumList::OTNumList(int64_t lInput)
 }
 
 // removed, security reasons.
-// OTNumList::OTNumList(const char * szNumbers)
+// OTNumList::OTNumList(const char* szNumbers)
 //{
 //    Add(szNumbers);
 //}

@@ -157,7 +157,7 @@ int64_t OTTransaction::GetClosingNum() const
     return m_lClosingTransactionNo;
 }
 
-void OTTransaction::SetClosingNum(const int64_t lClosingNum)
+void OTTransaction::SetClosingNum(int64_t lClosingNum)
 {
     m_lClosingTransactionNo = lClosingNum;
 }
@@ -302,14 +302,12 @@ currency.
 //
 bool OTTransaction::HarvestOpeningNumber(
     OTPseudonym& theNym,
-    const bool bHarvestingForRetry, // The message was sent, failed somehow, and
-                                    // is now being re-tried.
-    const bool bReplyWasSuccess,    // Message was a success? false until
-                                    // positively asserted.
-    const bool bReplyWasFailure,    // Message received "failure" ? false until
-                                    // positively asserted.
-    const bool bTransactionWasSuccess, // false until positively asserted.
-    const bool bTransactionWasFailure) // false until positively asserted.
+    bool bHarvestingForRetry,    // The message was sent, failed somehow, and
+                                 // is now being re-tried.
+    bool bReplyWasSuccess,       // false until positively asserted.
+    bool bReplyWasFailure,       // false until positively asserted.
+    bool bTransactionWasSuccess, // false until positively asserted.
+    bool bTransactionWasFailure) // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -899,11 +897,11 @@ bool OTTransaction::HarvestOpeningNumber(
 //
 bool OTTransaction::HarvestClosingNumbers(
     OTPseudonym& theNym,
-    const bool bHarvestingForRetry,    // false until positively asserted.
-    const bool bReplyWasSuccess,       // false until positively asserted.
-    const bool bReplyWasFailure,       // false until positively asserted.
-    const bool bTransactionWasSuccess, // false until positively asserted.
-    const bool bTransactionWasFailure) // false until positively asserted.
+    bool bHarvestingForRetry,    // false until positively asserted.
+    bool bReplyWasSuccess,       // false until positively asserted.
+    bool bReplyWasFailure,       // false until positively asserted.
+    bool bTransactionWasSuccess, // false until positively asserted.
+    bool bTransactionWasFailure) // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -1279,12 +1277,12 @@ bool OTTransaction::VerifyBalanceReceipt(
     OTPseudonym& SERVER_NYM, // For verifying a signature.
     OTPseudonym& THE_NYM)    // transaction numbers issued according to nym must
                              // match this.
-// OTLedger & THE_INBOX,    // All inbox items on *this must also be found in
+// OTLedger& THE_INBOX,    // All inbox items on *this must also be found in
 // THE_INBOX. All new items (on THE_INBOX only) must be accounted for in the
 // balance.
-// OTLedger & THE_OUTBOX,    // All inbox items that changed balance (cheque,
+// OTLedger& THE_OUTBOX,    // All inbox items that changed balance (cheque,
 // market, payment) must be found on the list of issued numbers.
-// const OTAccount & THE_ACCOUNT) // All outbox items must match, and the
+// const OTAccount& THE_ACCOUNT) // All outbox items must match, and the
 // account balance must be accounted for as described.
 {   // These are now loaded within this function, so no need to pass them in.
     // Load the other receipt (see above) if necessary.
@@ -3004,7 +3002,7 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
     return bDeleted;
 }
 
-bool OTTransaction::SaveBoxReceipt(const int64_t lLedgerType)
+bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 {
 
     if (IsAbbreviated()) {
@@ -3341,17 +3339,17 @@ void OTTransaction::InitTransaction()
 // This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
 // each of which separately load their full contents from a separate datafile
 // not during loading but during the subsequent verification process.
-// See: bool OTTransaction::VerifyItems(OTPseudonym & theNym)
+// See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
     const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
     const OTIdentifier& theServerID, const int64_t& lNumberOfOrigin,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
-    const int64_t& lInRefDisplay, const time64_t the_DATE_SIGNED,
-    const transactionType theType, const OTString& strHash,
+    const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
+    transactionType theType, const OTString& strHash,
     const int64_t& lAdjustment, const int64_t& lDisplayValue,
     const int64_t& lClosingNum, const int64_t& lRequestNum,
-    const bool bReplyTransSuccess, OTNumList* pNumList)
+    bool bReplyTransSuccess, OTNumList* pNumList)
     : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
@@ -3438,17 +3436,17 @@ OTTransaction::OTTransaction(
     if (nullptr != pNumList) m_Numlist = *pNumList;
 }
 
-// bool GenerateTransaction(const OTIdentifier & theAccountID, const
-// OTIdentifier & theServerID, int64_t lTransactionNum);
+// bool GenerateTransaction(const OTIdentifier& theAccountID, const
+// OTIdentifier& theServerID, int64_t lTransactionNum);
 //
 // static
-// OTTransaction * GenerateTransaction(const OTIdentifier & theUserID, const
-// OTIdentifier & theAccountID,
-//                                    const OTIdentifier & theServerID,
+// OTTransaction * GenerateTransaction(const OTIdentifier& theUserID, const
+// OTIdentifier& theAccountID,
+//                                    const OTIdentifier& theServerID,
 // transactionType theType,
 //                                    int64_t lTransactionNum=0);
 // static
-// OTTransaction * GenerateTransaction(const OTLedger & theOwner,
+// OTTransaction * GenerateTransaction(const OTLedger& theOwner,
 // transactionType theType, int64_t lTransactionNum=0);
 
 // static
@@ -3522,7 +3520,7 @@ void OTTransaction::AddItem(OTItem& theItem)
 
 // While processing a transaction, you may wish to query it for items of a
 // certain type.
-OTItem* OTTransaction::GetItem(const OTItem::itemType theType)
+OTItem* OTTransaction::GetItem(OTItem::itemType theType)
 {
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
@@ -3537,7 +3535,7 @@ OTItem* OTTransaction::GetItem(const OTItem::itemType theType)
 // While processing a transaction, you may wish to query it for items in
 // reference to a particular transaction number.
 //
-OTItem* OTTransaction::GetItemInRefTo(const int64_t lReference)
+OTItem* OTTransaction::GetItemInRefTo(int64_t lReference)
 {
     if (GetItemCountInRefTo(lReference) > 1) {
         OT_FAIL_MSG("CAN'T USE GetItemInRefTo! (There are multiple items in "
@@ -3559,7 +3557,7 @@ OTItem* OTTransaction::GetItemInRefTo(const int64_t lReference)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t OTTransaction::GetItemCountInRefTo(const int64_t lReference)
+int32_t OTTransaction::GetItemCountInRefTo(int64_t lReference)
 {
     int32_t nCount = 0;
 
@@ -4504,9 +4502,9 @@ void OTTransaction::UpdateContents()
 inside:
  paymentInbox ledger, paymentOutbox ledger, and recordBox ledger?
 
- void SaveAbbrevPaymentInboxRecord(OTString & strOutput);
- void SaveAbbrevPaymentOutboxRecord(OTString & strOutput);
- void SaveAbbrevRecordBoxRecord(OTString & strOutput);
+ void SaveAbbrevPaymentInboxRecord(OTString& strOutput);
+ void SaveAbbrevPaymentOutboxRecord(OTString& strOutput);
+ void SaveAbbrevRecordBoxRecord(OTString& strOutput);
 
 
  --- paymentInbox ledger:

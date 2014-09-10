@@ -1143,7 +1143,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
         otOut << "Extracted ElGamal Key from PGP public key block, but "
                  "currently do not support it (sorry))\n";
         //
-        // int32_t EVP_PKEY_assign_EC_KEY(EVP_PKEY *pkey,EC_KEY *key); // Here
+        // int32_t EVP_PKEY_assign_EC_KEY(EVP_PKEY* pkey, EC_KEY* key); // Here
         // is the assign function for El Gamal
         // (assuming that "EC" stands for eliptical curve... kind of hard to
         // tell with the OpenSSL docs...)

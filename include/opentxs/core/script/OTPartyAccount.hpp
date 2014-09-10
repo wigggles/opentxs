@@ -268,7 +268,7 @@ public:
     {
         return m_lClosingTransNo;
     }
-    void SetClosingTransNo(const int64_t lTransNo)
+    void SetClosingTransNo(int64_t lTransNo)
     {
         m_lClosingTransNo = lTransNo;
     }
@@ -279,9 +279,8 @@ public:
         const int64_t& lNewTransactionNumber, const OTString& strOrigCronItem,
         OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr);
     OTPartyAccount();
-    OTPartyAccount(const std::string str_account_name,
-                   const OTString& strAgentName, OTAccount& theAccount,
-                   int64_t lClosingTransNo);
+    OTPartyAccount(std::string str_account_name, const OTString& strAgentName,
+                   OTAccount& theAccount, int64_t lClosingTransNo);
     OTPartyAccount(const OTString& strName, const OTString& strAgentName,
                    const OTString& strAcctID, const OTString& strAssetTypeID,
                    int64_t lClosingTransNo);

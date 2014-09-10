@@ -220,14 +220,16 @@ public:
     EXPORT void InitAccount();
 
     EXPORT void Release_Account();
-    EXPORT static OTAccount* GenerateNewAccount(
-        const OTIdentifier& userId, const OTIdentifier& serverId,
-        const OTPseudonym& serverNym, const OTMessage& message,
-        const AccountType acctType = simple, int64_t stashTransNum = 0);
+    EXPORT static OTAccount* GenerateNewAccount(const OTIdentifier& userId,
+                                                const OTIdentifier& serverId,
+                                                const OTPseudonym& serverNym,
+                                                const OTMessage& message,
+                                                AccountType acctType = simple,
+                                                int64_t stashTransNum = 0);
 
     EXPORT bool GenerateNewAccount(const OTPseudonym& server,
                                    const OTMessage& message,
-                                   const AccountType acctType = simple,
+                                   AccountType acctType = simple,
                                    int64_t stashTransNum = 0);
     // Let's say you don't have or know the UserID, and you just want to load
     // the damn thing up.

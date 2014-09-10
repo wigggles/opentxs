@@ -166,7 +166,7 @@ class OTServerConnection
 
 public:
     OTServerConnection(OTWallet& theWallet, OTClient& theClient);
-    //    OTServerConnection(OTWallet & theWallet, OTClient & theClient,
+    //    OTServerConnection(OTWallet& theWallet, OTClient& theClient,
     // SFSocket * pSock);
     EXPORT ~OTServerConnection()
     {

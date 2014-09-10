@@ -209,10 +209,10 @@ public:
     EXPORT void GetString(OTString& theStr) const;
 };
 
-// bool operator > (const OTIdentifier &s1, const OTIdentifier& s2);
-// bool operator < (const OTIdentifier &s1, const OTIdentifier& s2);
-// bool operator >=(const OTIdentifier &s1, const OTIdentifier& s2);
-// bool operator <=(const OTIdentifier &s1, const OTIdentifier& s2);
+// bool operator > (const OTIdentifier& s1, const OTIdentifier& s2);
+// bool operator < (const OTIdentifier& s1, const OTIdentifier& s2);
+// bool operator >=(const OTIdentifier& s1, const OTIdentifier& s2);
+// bool operator <=(const OTIdentifier& s1, const OTIdentifier& s2);
 
 } // namespace opentxs
 

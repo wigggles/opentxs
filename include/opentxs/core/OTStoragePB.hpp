@@ -186,9 +186,9 @@ theInternalType __pb_obj; \
 protected: \
 theType() : theBaseType() { } \
 public: \
-::google::protobuf::MessageLite & getPBMessage() { return
+::google::protobuf::MessageLite& getPBMessage() { return
 dynamic_cast<::google::protobuf::MessageLite>(__pb_obj); } \
-static Storable * Instantiate() { return dynamic_cast<Storable *>(new
+static Storable* Instantiate() { return dynamic_cast<Storable*>(new
 theType()); } \
 virtual ~theType() { } \
 virtual void hookBeforePack(); \

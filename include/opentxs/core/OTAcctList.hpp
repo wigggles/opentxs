@@ -180,7 +180,7 @@ public:
         const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
                               // created here. Otherwise set to false;
-        const int64_t stashTransNum = 0);
+        int64_t stashTransNum = 0);
 
 private:
     typedef std::map<std::string, std::weak_ptr<OTAccount>> MapOfWeakAccounts;

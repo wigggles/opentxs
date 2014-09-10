@@ -310,16 +310,16 @@ public:
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const OTString& strPayment);
     EXPORT Purse* InstantiatePurse() const;
-    //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID) const;
-    //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const
-    // OTIdentifier & ASSET_ID) const;
+    //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID) const;
+    //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
+    // OTIdentifier& ASSET_ID) const;
 
     EXPORT Purse* InstantiatePurse(const OTString& strPayment);
-    //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID,
-    //                                   const OTString & strPayment);
-    //        OTPurse * InstantiatePurse(const OTIdentifier & SERVER_ID, const
-    // OTIdentifier & ASSET_ID,
-    //                                   const OTString & strPayment);
+    //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID,
+    //                                   const OTString& strPayment);
+    //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
+    // OTIdentifier& ASSET_ID,
+    //                                   const OTString& strPayment);
     EXPORT bool GetPaymentContents(OTString& strOutput) const
     {
         strOutput = m_strPayment;

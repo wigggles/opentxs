@@ -465,7 +465,7 @@ int64_t OTTransactionType::GetTransactionNum() const
     return m_lTransactionNum;
 }
 
-void OTTransactionType::SetTransactionNum(const int64_t lTransactionNum)
+void OTTransactionType::SetTransactionNum(int64_t lTransactionNum)
 {
     m_lTransactionNum = lTransactionNum;
 }
@@ -491,7 +491,7 @@ int64_t OTTransactionType::GetRawNumberOfOrigin() const
     return m_lNumberOfOrigin;
 }
 
-void OTTransactionType::SetNumberOfOrigin(const int64_t lTransactionNum)
+void OTTransactionType::SetNumberOfOrigin(int64_t lTransactionNum)
 {
     m_lNumberOfOrigin = lTransactionNum;
 }
@@ -531,7 +531,7 @@ int64_t OTTransactionType::GetReferenceToNum() const
     return m_lInReferenceToTransaction;
 }
 
-void OTTransactionType::SetReferenceToNum(const int64_t lTransactionNum)
+void OTTransactionType::SetReferenceToNum(int64_t lTransactionNum)
 {
     m_lInReferenceToTransaction = lTransactionNum;
 }

@@ -275,7 +275,7 @@ private:
                                       const std::string& str_display);
 
 public:
-    EXPORT static void FlatFile_SetPasswordFolder(const std::string folder);
+    EXPORT static void FlatFile_SetPasswordFolder(std::string folder);
     EXPORT static const char* FlatFile_GetPasswordFolder();
 
 private:

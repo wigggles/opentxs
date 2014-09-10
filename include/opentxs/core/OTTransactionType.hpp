@@ -920,7 +920,7 @@ public:
 
     // need to know the transaction number of this transaction? Call this.
     EXPORT int64_t GetTransactionNum() const;
-    void SetTransactionNum(const int64_t lTransactionNum);
+    void SetTransactionNum(int64_t lTransactionNum);
 
     EXPORT virtual void CalculateNumberOfOrigin(); // Calculates number of
                                                    // origin.
@@ -928,18 +928,18 @@ public:
 
     EXPORT int64_t GetRawNumberOfOrigin() const; // Gets WITHOUT calculating.
 
-    EXPORT void SetNumberOfOrigin(const int64_t lTransactionNum);
+    EXPORT void SetNumberOfOrigin(int64_t lTransactionNum);
     EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
     EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
 
     EXPORT int64_t GetReferenceToNum() const;
-    EXPORT void SetReferenceToNum(const int64_t lTransactionNum);
+    EXPORT void SetReferenceToNum(int64_t lTransactionNum);
 
     EXPORT void GetReferenceString(OTString& theStr) const;
     EXPORT void SetReferenceString(const OTString& theStr);
 
-    //    virtual bool SaveContractWallet(FILE * fl);
+    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 

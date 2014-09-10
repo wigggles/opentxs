@@ -268,8 +268,8 @@ public:
         return m_CREATION_DATE;
     }
 
-    EXPORT bool SetDateRange(const time64_t VALID_FROM = OT_TIME_ZERO,
-                             const time64_t VALID_TO = OT_TIME_ZERO);
+    EXPORT bool SetDateRange(time64_t VALID_FROM = OT_TIME_ZERO,
+                             time64_t VALID_TO = OT_TIME_ZERO);
     inline void SetLastProcessDate(const time64_t& THE_DATE)
     {
         m_LAST_PROCESS_DATE = THE_DATE;

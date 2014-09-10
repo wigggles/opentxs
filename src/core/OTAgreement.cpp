@@ -150,7 +150,7 @@ namespace opentxs
 bool OTAgreement::SendNoticeToAllParties(
     bool bSuccessMsg, OTPseudonym& theServerNym,
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-    //                                       const int64_t & lInReferenceTo,
+    //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
     OTPseudonym* pActualNym)
@@ -844,9 +844,9 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 }
 
 /*
- inline const OTIdentifier &    GetRecipientAcctID() const { return
+ inline const OTIdentifier&    GetRecipientAcctID() const { return
  m_RECIPIENT_ACCT_ID; }
- inline const OTIdentifier &    GetRecipientUserID() const { return
+ inline const OTIdentifier&    GetRecipientUserID() const { return
  m_RECIPIENT_USER_ID; }
  */
 
@@ -1156,12 +1156,12 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 // this call, from MERCHANT_NYM.)
 bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
                               const OTString& strConsideration,
-                              const time64_t VALID_FROM,
-                              const time64_t VALID_TO) // VALID_TO is a
-                                                       // length here.
-                                                       // (i.e. it's
-                                                       // ADDED to
-                                                       // valid_from)
+                              time64_t VALID_FROM,
+                              time64_t VALID_TO) // VALID_TO is a
+                                                 // length here.
+                                                 // (i.e. it's
+                                                 // ADDED to
+                                                 // valid_from)
 {
 
     OTIdentifier id_MERCHANT_NYM;
@@ -1388,9 +1388,9 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
 // THIS FUNCTION IS DEPRECATED
 //
 /*
-bool OTAgreement::SetAgreement(const int64_t & lTransactionNum,    const
-OTString & strConsideration,
-                               const time64_t & VALID_FROM=0,    const time64_t
+bool OTAgreement::SetAgreement(const int64_t& lTransactionNum,    const
+OTString& strConsideration,
+                               const time64_t& VALID_FROM=0,    const time64_t
 & VALID_TO=0)
 {
     // Set the Transaction Number...

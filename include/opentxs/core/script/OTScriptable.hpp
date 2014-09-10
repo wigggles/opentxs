@@ -256,9 +256,9 @@ public:
     EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
     EXPORT virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
-    EXPORT OTParty* GetParty(const std::string str_party_name);
-    EXPORT OTBylaw* GetBylaw(const std::string str_bylaw_name);
-    EXPORT OTClause* GetClause(const std::string str_clause_name);
+    EXPORT OTParty* GetParty(std::string str_party_name);
+    EXPORT OTBylaw* GetBylaw(std::string str_bylaw_name);
+    EXPORT OTClause* GetClause(std::string str_clause_name);
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex);
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex);
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
@@ -274,8 +274,8 @@ public:
     OTParty* FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
                                        OTPartyAccount** ppPartyAccount =
                                            nullptr);
-    OTAgent* GetAgent(const std::string str_agent_name);
-    OTPartyAccount* GetPartyAccount(const std::string str_acct_name);
+    OTAgent* GetAgent(std::string str_agent_name);
+    OTPartyAccount* GetPartyAccount(std::string str_acct_name);
     OTPartyAccount* GetPartyAccountByID(const OTIdentifier& theAcctID) const;
     // This function returns the count of how many trans#s a Nym needs in order
     // to confirm as
@@ -285,8 +285,7 @@ public:
     // which agent is the
     // authorized agent.)
     //
-    EXPORT int32_t
-    GetCountTransNumsNeededForAgent(const std::string str_agent_name);
+    EXPORT int32_t GetCountTransNumsNeededForAgent(std::string str_agent_name);
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a
     // payment plan, OR
@@ -324,7 +323,7 @@ public:
         // too. UNLESS you pass a map here, in which case they will
         // instead be added to this map. (But if you do that, then you
         // must delete them yourself after calling this function.)
-        const bool bBurnTransNo =
+        bool bBurnTransNo =
             false); // In OTServer::VerifySmartContract(), it not only wants to
                     // verify the # is properly issued, but it additionally
                     // wants to see that it hasn't been USED yet -- AND it wants
@@ -339,7 +338,7 @@ public:
                                    // Nym
         const OTString& strServerID, // For verifying issued num, need the
                                      // serverID the # goes with.
-        const bool bBurnTransNo =
+        bool bBurnTransNo =
             false); // In OTServer::VerifySmartContract(), it not only wants to
                     // verify the closing # is properly issued, but it
                     // additionally wants to see that it hasn't been USED yet --
@@ -368,17 +367,17 @@ public:
     // hook name, but you can NOT have the same clause name repeated
     // multiple times in theResults. Each clause can only trigger once.
     //
-    bool GetHooks(const std::string str_HookName, mapOfClauses& theResults);
-    OTClause* GetCallback(const std::string str_CallbackName); // See if a
-                                                               // scripted
-                                                               // clause was
-                                                               // provided for
-                                                               // any given
-                                                               // callback name.
-    OTVariable* GetVariable(const std::string str_VarName); // See if a variable
-                                                            // exists for a
-                                                            // given variable
-                                                            // name.
+    bool GetHooks(std::string str_HookName, mapOfClauses& theResults);
+    OTClause* GetCallback(std::string str_CallbackName); // See if a
+                                                         // scripted
+                                                         // clause was
+                                                         // provided for
+                                                         // any given
+                                                         // callback name.
+    OTVariable* GetVariable(std::string str_VarName);    // See if a variable
+                                                         // exists for a
+                                                         // given variable
+                                                         // name.
     bool IsDirty() const; // So you can tell if any of the persistent or
                           // important variables have CHANGED since it was last
                           // set clean.
@@ -391,7 +390,7 @@ public:
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg, OTPseudonym& theServerNym,
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
-        //                                  const int64_t & lInReferenceTo, //
+        // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const OTString& strReference, OTString* pstrNote = nullptr,
         OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
@@ -403,10 +402,10 @@ public:
     // CanExecuteClause will call ExecuteCallback() if that script exists, so
     // the script can reply true/false.
     //
-    EXPORT bool CanExecuteClause(
-        const std::string str_party_name,
-        const std::string str_clause_name); // This calls (if available) the
-                                            // scripted clause:
+    EXPORT bool CanExecuteClause(std::string str_party_name,
+                                 std::string str_clause_name); // This calls (if
+                                                               // available) the
+    // scripted clause:
     // bool party_may_execute_clause(party_name,
     // clause_name)
 
@@ -427,7 +426,7 @@ public:
     // And make sure it's not blank. This is for script variable names, clause
     // names, party names, etc.
     //
-    static bool ValidateName(const std::string str_name);
+    static bool ValidateName(std::string str_name);
     // For use from inside server-side scripts.
     //
     static std::string GetTime(); // Returns a string, containing seconds as

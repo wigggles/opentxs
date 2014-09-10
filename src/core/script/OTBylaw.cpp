@@ -465,7 +465,7 @@ const std::string OTBylaw::GetCallbackNameByIndex(int32_t nIndex)
     return "";
 }
 
-OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
+OTClause* OTBylaw::GetCallback(std::string str_CallbackName)
 {
     if ((false ==
          OTScriptable::ValidateName(str_CallbackName)) || // Invalid callback
@@ -509,8 +509,8 @@ OTClause* OTBylaw::GetCallback(const std::string str_CallbackName)
 // You are NOT allowed to add multiple callbacks for any given callback trigger.
 // There can be only one clause that answers to any given callback.
 //
-bool OTBylaw::AddCallback(const std::string str_CallbackName,
-                          const std::string str_ClauseName)
+bool OTBylaw::AddCallback(std::string str_CallbackName,
+                          std::string str_ClauseName)
 {
     // Make sure it's not already there...
     //
@@ -553,8 +553,7 @@ bool OTBylaw::AddCallback(const std::string str_CallbackName,
 // You ARE allowed to add multiple clauses for the same hook.
 // They will ALL trigger on that hook.
 //
-bool OTBylaw::AddHook(const std::string str_HookName,
-                      const std::string str_ClauseName)
+bool OTBylaw::AddHook(std::string str_HookName, std::string str_ClauseName)
 {
     if (!OTScriptable::ValidateName(str_HookName) ||
         !OTScriptable::ValidateName(str_ClauseName))
@@ -577,10 +576,10 @@ bool OTBylaw::AddHook(const std::string str_HookName,
     return false;
 }
 
-OTVariable* OTBylaw::GetVariable(const std::string str_var_name) // not a
-                                                                 // reference,
-                                                                 // so you can
-                                                                 // pass in char
+OTVariable* OTBylaw::GetVariable(std::string str_var_name) // not a
+                                                           // reference,
+                                                           // so you can
+                                                           // pass in char
 // *. Maybe that's bad? todo: research that.
 {
     if (!OTScriptable::ValidateName(str_var_name)) {
@@ -621,7 +620,7 @@ OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
     return nullptr;
 }
 
-OTClause* OTBylaw::GetClause(const std::string str_clause_name)
+OTClause* OTBylaw::GetClause(std::string str_clause_name)
 {
     if (!OTScriptable::ValidateName(str_clause_name)) {
         otErr << "OTBylaw::GetClause:  Error: empty str_clause_name.\n";
@@ -684,7 +683,7 @@ const std::string OTBylaw::GetHookNameByIndex(int32_t nIndex)
 // "GetHooks" could have been termed,
 // "GetAMapOfAllClausesRegisteredForTheHookWithName(str_HookName)
 //
-bool OTBylaw::GetHooks(const std::string str_HookName, mapOfClauses& theResults)
+bool OTBylaw::GetHooks(std::string str_HookName, mapOfClauses& theResults)
 {
     if (!OTScriptable::ValidateName(str_HookName)) {
         otErr << __FUNCTION__ << ": Error: invalid str_HookName.\n";
@@ -791,8 +790,8 @@ bool OTBylaw::AddVariable(OTVariable& theVariable)
     return false;
 }
 
-bool OTBylaw::AddVariable(const std::string str_Name, const bool bValue,
-                          const OTVariable::OTVariable_Access theAccess)
+bool OTBylaw::AddVariable(std::string str_Name, bool bValue,
+                          OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, bValue, theAccess);
     OT_ASSERT(nullptr != pVar);
@@ -805,9 +804,8 @@ bool OTBylaw::AddVariable(const std::string str_Name, const bool bValue,
     return true;
 }
 
-bool OTBylaw::AddVariable(const std::string str_Name,
-                          const std::string str_Value,
-                          const OTVariable::OTVariable_Access theAccess)
+bool OTBylaw::AddVariable(std::string str_Name, std::string str_Value,
+                          OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, str_Value, theAccess);
     OT_ASSERT(nullptr != pVar);
@@ -820,8 +818,8 @@ bool OTBylaw::AddVariable(const std::string str_Name,
     return true;
 }
 
-bool OTBylaw::AddVariable(const std::string str_Name, const int32_t nValue,
-                          const OTVariable::OTVariable_Access theAccess)
+bool OTBylaw::AddVariable(std::string str_Name, int32_t nValue,
+                          OTVariable::OTVariable_Access theAccess)
 {
     OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);
     OT_ASSERT(nullptr != pVar);

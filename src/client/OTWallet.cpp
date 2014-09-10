@@ -294,8 +294,10 @@ OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
     return nullptr;
 }
 
-OTPseudonym* OTWallet::GetNymByIDPartialMatch(
-    const std::string PARTIAL_ID) // works with name as well.
+OTPseudonym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
+                                                                      // with
+                                                                      // name as
+                                                                      // well.
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
@@ -353,8 +355,7 @@ int32_t OTWallet::GetAccountCount()
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetNym(const int32_t iIndex, OTIdentifier& NYM_ID,
-                      OTString& NYM_NAME)
+bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, OTString& NYM_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetNymCount() && iIndex >= 0) {
@@ -379,7 +380,7 @@ bool OTWallet::GetNym(const int32_t iIndex, OTIdentifier& NYM_ID,
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetServer(const int32_t iIndex, OTIdentifier& THE_ID,
+bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID,
                          OTString& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
@@ -406,7 +407,7 @@ bool OTWallet::GetServer(const int32_t iIndex, OTIdentifier& THE_ID,
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetAssetType(const int32_t iIndex, OTIdentifier& THE_ID,
+bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
                             OTString& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
@@ -433,7 +434,7 @@ bool OTWallet::GetAssetType(const int32_t iIndex, OTIdentifier& THE_ID,
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetAccount(const int32_t iIndex, OTIdentifier& THE_ID,
+bool OTWallet::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
                           OTString& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
@@ -615,8 +616,10 @@ OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
     return nullptr;
 }
 
-OTAccount* OTWallet::GetAccountPartialMatch(
-    const std::string PARTIAL_ID) // works with the name, too.
+OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
+                                                                    // with the
+                                                                    // name,
+                                                                    // too.
 {
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
@@ -686,7 +689,7 @@ OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
 }
 
 OTServerContract* OTWallet::GetServerContractPartialMatch(
-    const std::string PARTIAL_ID)
+    std::string PARTIAL_ID)
 {
     for (auto& it : m_mapServers) {
         OTContract* pServer = it.second;
@@ -957,7 +960,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 // reloads it as a private nym at that time.
 //
 OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
-                                           const bool bChecking,
+                                           bool bChecking,
                                            const char* szFuncName,
                                            const OTPasswordData* pPWData,
                                            const OTPassword* pImportPassword)
@@ -1073,8 +1076,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 // No need to cleanup, since either function called will add the loaded
 // Nym to the wallet, which will take ownership.
 //
-OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID,
-                                    const bool bChecking,
+OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID, bool bChecking,
                                     const char* szFuncName,
                                     const OTPasswordData* pPWData)
 {
@@ -1220,7 +1222,7 @@ OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
 }
 
 OTAssetContract* OTWallet::GetAssetContractPartialMatch(
-    const std::string PARTIAL_ID) // works with name, too.
+    std::string PARTIAL_ID) // works with name, too.
 {
     for (auto& it : m_mapContracts) {
         OTAssetContract* pContract = it.second;
@@ -1858,7 +1860,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // private key to that new master key.
                     //
                     //                  bool OTWallet::IsNymOnCachedKey(const
-                    // OTIdentifier & needle) const // needle and haystack.
+                    // OTIdentifier& needle) const // needle and haystack.
 
                     const bool bIsOldStyleNym =
                         (false == IsNymOnCachedKey(theNymID));

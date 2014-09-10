@@ -209,14 +209,13 @@ private:
 public:
     OTParty();
     EXPORT OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
-                   const char* szAuthAgent, const bool bCreateAgent = false);
-    EXPORT OTParty(const std::string str_PartyName,
+                   const char* szAuthAgent, bool bCreateAgent = false);
+    EXPORT OTParty(std::string str_PartyName,
                    OTPseudonym& theNym, // Nym is BOTH owner AND agent, when
                                         // using this constructor.
-                   const std::string str_agent_name,
-                   OTAccount* pAccount = nullptr,
+                   std::string str_agent_name, OTAccount* pAccount = nullptr,
                    const std::string* pstr_account_name = nullptr,
-                   const int64_t lClosingTransNo = 0);
+                   int64_t lClosingTransNo = 0);
     virtual ~OTParty();
     void CleanupAgents();
     void CleanupAccounts();
@@ -268,8 +267,8 @@ public:
     bool SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
                            const OTIdentifier& theServerID,
                            const int64_t& lNewTransactionNumber,
-                           //                           const int64_t &
-                           // lInReferenceTo,  // We use GetOpenTransNo() now.
+                           // const int64_t& lInReferenceTo,
+                           // We use GetOpenTransNo() now.
                            const OTString& strReference,
                            OTString* pstrNote = nullptr,
                            OTString* pstrAttachment = nullptr,
@@ -303,7 +302,7 @@ public:
     // There is one of these for each asset account on the party.
     // You need the acct name to look it up.
     //
-    int64_t GetClosingTransNo(const std::string str_for_acct_name) const;
+    int64_t GetClosingTransNo(std::string str_for_acct_name) const;
     // as used "IN THE SCRIPT."
     //
     EXPORT std::string GetPartyName(bool* pBoolSuccess = nullptr)
@@ -354,7 +353,7 @@ public:
     {
         return m_str_authorizing_agent;
     }
-    void SetAuthorizingAgentName(const std::string str_agent_name)
+    void SetAuthorizingAgentName(std::string str_agent_name)
     {
         m_str_authorizing_agent = str_agent_name;
     }
@@ -393,16 +392,15 @@ public:
     EXPORT bool AddAccount(const OTString& strAgentName,
                            const OTString& strName, const OTString& strAcctID,
                            const OTString& strAssetTypeID,
-                           const int64_t lClosingTransNo);
+                           int64_t lClosingTransNo);
     EXPORT bool AddAccount(const OTString& strAgentName, const char* szAcctName,
-                           OTAccount& theAccount,
-                           const int64_t lClosingTransNo);
+                           OTAccount& theAccount, int64_t lClosingTransNo);
 
     int32_t GetAccountCount() const
     {
         return static_cast<int32_t>(m_mapPartyAccounts.size());
     } // returns total of all accounts owned by this party.
-    int32_t GetAccountCount(const std::string str_agent_name)
+    int32_t GetAccountCount(std::string str_agent_name)
         const; // Only counts accounts authorized for str_agent_name.
     EXPORT OTPartyAccount* GetAccount(const std::string& str_acct_name)
         const; // Get PartyAcct by name.
@@ -421,7 +419,7 @@ public:
     bool VerifyOwnershipOfAccount(const OTAccount& theAccount) const;
     bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                                        const OTString& strServerID,
-                                       const bool bBurnTransNo = false);
+                                       bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const; // When confirming a party, a new version replaces the original.
                // This is part of that process.

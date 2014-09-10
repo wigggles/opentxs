@@ -336,9 +336,8 @@ bool OTCryptoConfig::GetSetAll()
     return true;
 }
 
-bool OTCryptoConfig::GetSetValue(OTSettings& config,
-                                 const std::string strKeyName,
-                                 const int32_t nDefaultValue,
+bool OTCryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
+                                 int32_t nDefaultValue,
                                  const int32_t*& out_nValue)
 
 {
@@ -896,13 +895,13 @@ extern "C" {
 
 //    // Just trying to get Whirlpool working since they added it to OpenSSL
 //    //
-//    static int32_t init(EVP_MD_CTX *ctx)
+//    static int32_t init(EVP_MD_CTX* ctx)
 //    { return WHIRLPOOL_Init((WHIRLPOOL_CTX*)ctx->md_data); }
 //
-//    static int32_t update(EVP_MD_CTX *ctx,const void *data,size_t count)
+//    static int32_t update(EVP_MD_CTX* ctx, const void* data,size_t count)
 //    { return WHIRLPOOL_Update((WHIRLPOOL_CTX*)ctx->md_data,data,count); }
 //
-//    static int32_t final(EVP_MD_CTX *ctx,uint8_t *md)
+//    static int32_t final(EVP_MD_CTX* ctx, uint8_t* md)
 //    { return WHIRLPOOL_Final(md,(WHIRLPOOL_CTX*)ctx->md_data); }
 //
 //
@@ -964,7 +963,7 @@ OTCrypto_OpenSSL::~OTCrypto_OpenSSL()
 
 
  #include <openssl/conf.h>
- void OPENSSL_config(const char *config_name);
+ void OPENSSL_config(const char* config_name);
  //void OPENSSL_no_config(void);
  //Applications should free up configuration at application closedown by calling
  CONF_modules_free().
@@ -986,21 +985,19 @@ typedef struct crypto_threadid_st
         } CRYPTO_THREADID;
 
 // Only use CRYPTO_THREADID_set_[numeric|pointer]() within callbacks
-void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID *id, uint64_t val);
-void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID *id, void *ptr);
+void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, uint64_t val);
+void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID* id, void* ptr);
 
 int32_t CRYPTO_THREADID_set_callback(void (*threadid_func)(CRYPTO_THREADID *));
 
 void (*CRYPTO_THREADID_get_callback(void))(CRYPTO_THREADID *);
 
-void CRYPTO_THREADID_current(CRYPTO_THREADID *id);
+void CRYPTO_THREADID_current(CRYPTO_THREADID* id);
 
-int32_t CRYPTO_THREADID_cmp(const CRYPTO_THREADID *a,
-                        const CRYPTO_THREADID *b);
-void CRYPTO_THREADID_cpy(CRYPTO_THREADID *dest,
-                         const CRYPTO_THREADID *src);
+int32_t CRYPTO_THREADID_cmp(const CRYPTO_THREADID* a, const CRYPTO_THREADID* b);
+void CRYPTO_THREADID_cpy(CRYPTO_THREADID* dest, const CRYPTO_THREADID* src);
 
- uint64_t CRYPTO_THREADID_hash(const CRYPTO_THREADID *id);
+ uint64_t CRYPTO_THREADID_hash(const CRYPTO_THREADID* id);
 
 int32_t CRYPTO_num_locks(void);
 
@@ -1011,7 +1008,7 @@ int32_t CRYPTO_num_locks(void);
 least two callback functions are set,
  locking_function and threadid_func.
 
- locking_function(int32_t mode, int32_t n, const char *file, int32_t line) is
+ locking_function(int32_t mode, int32_t n, const char* file, int32_t line) is
 needed to perform locking on shared data structures.
  (Note that OpenSSL uses a number of global data structures that will be
 implicitly shared whenever multiple threads
@@ -1025,7 +1022,7 @@ mutex locks. It sets the n-th lock if
  file and line are the file number of the function setting the lock. They can be
 useful for debugging.
 
- threadid_func( CRYPTO_THREADID *id) is needed to record the currently-executing
+ threadid_func(CRYPTO_THREADID* id) is needed to record the currently-executing
 thread's identifier into id. The
  implementation of this callback should not fill in id directly, but should use
 CRYPTO_THREADID_set_numeric() if
@@ -1046,18 +1043,18 @@ platform has a thread-local error number
 struct CRYPTO_dynlock_value;
 
 void CRYPTO_set_dynlock_create_callback(struct CRYPTO_dynlock_value *
-       (*dyn_create_function)(char *file, int32_t line));
+       (*dyn_create_function)(char* file, int32_t line));
 void CRYPTO_set_dynlock_lock_callback(void (*dyn_lock_function)
-       (int32_t mode, struct CRYPTO_dynlock_value *l,
-       const char *file, int32_t line));
+       (int32_t mode, struct CRYPTO_dynlock_value *l, const char* file, int32_t
+line));
 void CRYPTO_set_dynlock_destroy_callback(void (*dyn_destroy_function)
-       (struct CRYPTO_dynlock_value *l, const char *file, int32_t line));
+       (struct CRYPTO_dynlock_value *l, const char* file, int32_t line));
 
 int32_t CRYPTO_get_new_dynlockid(void);
 
 void CRYPTO_destroy_dynlockid(int32_t i);
 
-void CRYPTO_lock(int32_t mode, int32_t n, const char *file, int32_t line);
+void CRYPTO_lock(int32_t mode, int32_t n, const char* file, int32_t line);
 
 #define CRYPTO_w_lock(type)    \
        CRYPTO_lock(CRYPTO_LOCK|CRYPTO_WRITE,type,__FILE__,__LINE__)
@@ -1087,7 +1084,7 @@ void ot_openssl_locking_callback(int32_t mode, int32_t type, char* file,
 
 // done
 /*
- threadid_func( CRYPTO_THREADID *id) is needed to record the currently-executing
+ threadid_func(CRYPTO_THREADID* id) is needed to record the currently-executing
  thread's identifier into id.
  The implementation of this callback should not fill in id directly, but should
  use CRYPTO_THREADID_set_numeric()
@@ -1123,15 +1120,15 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
     unsigned long val =
         std::hash<std::thread::id>()(std::this_thread::get_id());
 
-    //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID *id, uint64_t val);
-    //    void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID *id, void *ptr);
+    //    void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, uint64_t val);
+    //    void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID* id, void* ptr);
 
     CRYPTO_THREADID_set_numeric(id, val);
 }
 #endif
 
 /*
- locking_function(int32_t mode, int32_t n, const char *file, int32_t line) is
+ locking_function(int32_t mode, int32_t n, const char* file, int32_t line) is
  needed to perform locking on
  shared data structures. (Note that OpenSSL uses a number of global data
  structures that will
@@ -1180,7 +1177,7 @@ void ot_openssl_locking_callback(int32_t mode, int32_t type, const char*,
 
 --- Another example of similar code:
 
-char *unbase64(uint8_t *input, int32_t length)
+char *unbase64(uint8_t* input, int32_t length)
 {
     OpenSSL_BIO b64(nullptr), bmem(nullptr);
 
@@ -1202,7 +1199,7 @@ char *unbase64(uint8_t *input, int32_t length)
 // and return them as a string in strData
 // It does NOT handle Uncompression
 
-bool OTASCIIArmor::GetString(OTString & strData, bool bLineBreaks) const //=true
+bool OTASCIIArmor::GetString(OTString& strData, bool bLineBreaks) const //=true
 {
     size_t        outSize    = 0;
     uint8_t *    pData    = nullptr;
@@ -1226,7 +1223,7 @@ bool OTASCIIArmor::GetString(OTString & strData, bool bLineBreaks) const //=true
 // and then Set() that as the string contents for *this.
 // It does NOT handle compression.
 
-bool OTASCIIArmor::SetString(const OTString & strData, bool bLineBreaks) //
+bool OTASCIIArmor::SetString(const OTString& strData, bool bLineBreaks) //
 =true
 {
     char *    pString    = nullptr;
@@ -1517,7 +1514,7 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
 //
 OTPassword* OTCrypto_OpenSSL::DeriveKey(
     const OTPassword& userPassword, const OTPayload& dataSalt,
-    const uint32_t uIterations,
+    uint32_t uIterations,
     const OTPayload& dataCheckHash /*= OTPayload()*/) const
 {
     OTPayload tempPayload = dataCheckHash;
@@ -1527,7 +1524,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveKey(
 
 OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
                                            const OTPayload& dataSalt,
-                                           const uint32_t uIterations,
+                                           uint32_t uIterations,
                                            OTPayload& dataCheckHash) const
 {
     //  OT_ASSERT(userPassword.isPassword());
@@ -2727,9 +2724,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
 
     /*
-    int32_t EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-                     uint8_t **ek,  int32_t *ekl,
-                     uint8_t *iv,
+    int32_t EVP_SealInit(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* type,
+                     uint8_t **ek, int32_t* ekl, uint8_t* iv,
                      EVP_PKEY **pubk,     int32_t npubk);
 
      -- ek is an array of buffers where the public-key-encrypted secret key will
@@ -2956,20 +2952,20 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
 
 /*
 #include <openssl/evp.h>
-int32_t EVP_OpenInit(EVP_CIPHER_CTX *ctx,EVP_CIPHER *type,uint8_t *ek,
-                 int32_t ekl,uint8_t *iv,EVP_PKEY *priv);
-int32_t EVP_OpenUpdate(EVP_CIPHER_CTX *ctx, uint8_t *out,
-                   int32_t *outl, uint8_t *in, int32_t inl);
-int32_t EVP_OpenFinal(EVP_CIPHER_CTX *ctx, uint8_t *out,
-                  int32_t *outl);
+int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, uint8_t* ek,
+                 int32_t ekl, uint8_t* iv, EVP_PKEY* priv);
+int32_t EVP_OpenUpdate(EVP_CIPHER_CTX* ctx, uint8_t* out, int32_t* outl,
+uint8_t* in, int32_t inl);
+int32_t EVP_OpenFinal(EVP_CIPHER_CTX* ctx, uint8_t* out, int32_t* outl);
 DESCRIPTION
 
 The EVP envelope routines are a high level interface to envelope decryption.
 They decrypt a public key
  encrypted symmetric key and then decrypt data using it.
 
- int32_t EVP_OpenInit(EVP_CIPHER_CTX *ctx,EVP_CIPHER *type,uint8_t *ek, int32_t
-ekl,uint8_t *iv,EVP_PKEY *priv);
+ int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, uint8_t* ek,
+int32_t
+ekl, uint8_t* iv, EVP_PKEY* priv);
 EVP_OpenInit() initializes a cipher context ctx for decryption with cipher type.
 It decrypts the encrypted
  symmetric key of length ekl bytes passed in the ek parameter using the private
@@ -3486,8 +3482,8 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     //  uint32_t     GetSize    () const { return m_lSize; }
     //    bool         IsEmpty    () const;
     //  virtual void Release    ();
-    //    void         Assign     (const void * pNewData, uint32_t lNewSize);
-    //    void         Concatenate(const void * pNewData, uint32_t lNewSize);
+    //    void         Assign     (const void* pNewData, uint32_t lNewSize);
+    //    void         Concatenate(const void* pNewData, uint32_t lNewSize);
 
     // int32_t EVP_OpenInit(
     //          EVP_CIPHER_CTX *ctx,
@@ -3769,8 +3765,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
     EVP_MD_CTX mdHash1_ctx, mdHash2_ctx;
 
-    //  OTPassword::zeroMemory(uint8_t * szMemory, uint32_t theSize);
-    //  OTPassword::zeroMemory(void * vMemory,     uint32_t theSize);
+    //  OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize);
+    //  OTPassword::zeroMemory(void* vMemory,     uint32_t theSize);
     OTPassword::zeroMemory(&vOutputHash1.at(0),
                            OTCryptoConfig::SymmetricKeySizeMax());
     OTPassword::zeroMemory(&vOutputHash2.at(0),
@@ -3891,11 +3887,10 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
     // the result goes into EM.
 
     /*
-     int32_t RSA_padding_add_PKCS1_PSS(RSA *rsa, uint8_t *EM,
-     const uint8_t *mHash,
-     const EVP_MD *Hash, int32_t sLen);
+     int32_t RSA_padding_add_PKCS1_PSS(RSA* rsa, uint8_t* EM, const uint8_t*
+     mHash, const EVP_MD* Hash, int32_t sLen);
      */
-    //    int32_t RSA_padding_add_xxx(uint8_t *to, int32_t tlen,
+    //    int32_t RSA_padding_add_xxx(uint8_t* to, int32_t tlen,
     //                            uint8_t *f, int32_t fl);
     // RSA_padding_add_xxx() encodes *fl* bytes from *f* so as to fit into
     // *tlen*
@@ -3953,8 +3948,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
     // RSA_NO_PADDING: of size tlen) at to.
 
     // RSA_private_encrypt
-    //    int32_t RSA_private_encrypt(int32_t flen, uint8_t *from,
-    //                            uint8_t *to, RSA *rsa, int32_t padding);
+    //    int32_t RSA_private_encrypt(int32_t flen, uint8_t* from,
+    //                            uint8_t *to, RSA* rsa, int32_t padding);
     // RSA_private_encrypt() signs the *flen* bytes at *from* (usually a message
     // digest with
     // an algorithm identifier) using the private key rsa and stores the
@@ -4179,8 +4174,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
         pRsaKey,           // signer's public key
         RSA_NO_PADDING);
 
-    // int32_t RSA_public_decrypt(int32_t flen, uint8_t *from,
-    //                            uint8_t *to, RSA *rsa, int32_t padding);
+    // int32_t RSA_public_decrypt(int32_t flen, uint8_t* from,
+    //                            uint8_t *to, RSA* rsa, int32_t padding);
 
     // RSA_public_decrypt() recovers the message digest from the *flen* bytes
     // int64_t signature at *from*,
@@ -4215,8 +4210,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     // the message itself.)
     // They SHOULD be the same.
     /*
-     int32_t RSA_verify_PKCS1_PSS(RSA *rsa, const uint8_t *mHash,
-     const EVP_MD *Hash, const uint8_t *EM, int32_t sLen)
+     int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const uint8_t* mHash, const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
      */ // rsa        mHash    Hash alg.    EM         sLen
     status = RSA_verify_PKCS1_PSS(pRsaKey, &vDigest.at(0), digest1,
                                   &vDecrypted.at(0),
@@ -4308,10 +4302,10 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     /*
      #include <openssl/rsa.h>
 
-     int32_t RSA_sign(int32_t type, const uint8_t *m, uint32_t m_len,
-     uint8_t *sigret, uint32_t *siglen, RSA *rsa);
-     int32_t RSA_verify(int32_t type, const uint8_t *m, uint32_t m_len,
-     uint8_t *sigbuf, uint32_t siglen, RSA *rsa);
+     int32_t RSA_sign(int32_t type, const uint8_t* m, uint32_t m_len, uint8_t*
+     sigret, uint32_t* siglen, RSA* rsa);
+     int32_t RSA_verify(int32_t type, const uint8_t* m, uint32_t m_len, uint8_t*
+     sigbuf, uint32_t siglen, RSA* rsa);
 
      DESCRIPTION
 
@@ -5113,7 +5107,7 @@ void OpenSSL_BIO::setFreeOnly()
  RAND_bytes(salt, sizeof(salt));
 
  // From OTPassword.h:
- // size_t strnlen(const char *s, size_t max)
+ // size_t strnlen(const char* s, size_t max)
 
  PKCS5_PBKDF2_HMAC_SHA1(passwd, strnlen(passwd, BIGGEST_POSSIBLE_PWD), salt,
 sizeof(salt), iter, sizeof(key), key);
@@ -5168,11 +5162,9 @@ int32_t main()
 
 
 
- int32_t EVP_BytesToKey(const EVP_CIPHER *type,const EVP_MD *md,
-                    const uint8_t *salt,
-                    const uint8_t *data, int32_t datal,
-                    int32_t count,
-                    uint8_t *key,uint8_t *iv);
+ int32_t EVP_BytesToKey(const EVP_CIPHER* type, const EVP_MD* md, const uint8_t*
+salt, const uint8_t* data, int32_t datal,
+                    int32_t count, uint8_t* key, uint8_t* iv);
 
  EVP_BytesToKey() derives a key and IV from various parameters.
     type is the cipher to derive the key and IV for.
@@ -5195,29 +5187,24 @@ data.
  and decrypted with a private key. The keys can just be passed in or whatever.
 
 
-int32_t PKCS5_PBKDF2_HMAC_SHA1    (
-    const void *     password,
-    size_t          password_len,
-    const void *     salt,
+int32_t PKCS5_PBKDF2_HMAC_SHA1    (const void* password,
+    size_t          password_len, const void* salt,
     size_t          salt_len,
     uint64_t     iter,
-    size_t          keylen,
-    void *          key
-)
+    size_t          keylen, void* key)
 
 
  OPENSSL's version:
 
- int32_t PKCS5_PBKDF2_HMAC_SHA1(
-    const char *pass, int32_t passlen,
-    const uint8_t *salt, int32_t saltlen,
+ int32_t PKCS5_PBKDF2_HMAC_SHA1(const char* pass, int32_t passlen, const
+uint8_t* salt, int32_t saltlen,
     int32_t iter,
-    int32_t keylen,  uint8_t *out);
+    int32_t keylen, uint8_t* out);
 
  */
 
 /*
-int32_t do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
+int32_t do_evp_seal(FILE* rsa_pkey_file, FILE* in_file, FILE* out_file)
 {
     int32_t retval = 0;
     RSA *rsa_pkey = nullptr;

@@ -164,7 +164,7 @@ class OTNumList
 
 public:
     EXPORT OTNumList(const std::set<int64_t>& theNumbers);
-    //        OTNumList(const char * szNumbers); // removed for security
+    //        OTNumList(const char* szNumbers); // removed for security
     // reasons.
     EXPORT OTNumList(const OTString& strNumbers);
     EXPORT OTNumList(const std::string& strNumbers);

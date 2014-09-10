@@ -583,8 +583,8 @@ bool OTCachedKey::GetIdentifier(OTString& strIdentifier) const
 
  OT_OPENSSL_CALLBACK * OTAsymmetricKey::GetPasswordCallback()
 
- #define OPENSSL_CALLBACK_FUNC(name) extern "C" (name)(char *buf, int32_t size,
- int32_t rwflag, void *userdata)
+ #define OPENSSL_CALLBACK_FUNC(name) extern "C" (name)(char* buf, int32_t size,
+ int32_t rwflag, void* userdata)
 
  */
 
@@ -702,7 +702,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
     // GenerateKey
     // and GetRawKey.)
     //
-    // int32_t OT_OPENSSL_CALLBACK (char *buf, int32_t size, int32_t rwflag,
+    // int32_t OT_OPENSSL_CALLBACK (char* buf, int32_t size, int32_t rwflag,
     // void *userdata);
     //
     // For us, it will set passUserInput to the password from the user, and

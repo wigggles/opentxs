@@ -178,10 +178,12 @@
 namespace opentxs
 {
 
-bool OTItem::VerifyTransactionStatement(
-    OTPseudonym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
-    const bool bIsRealTransaction) // Sometimes the trans# is 0 (like
-                                   // when processing Nymbox)
+bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
+                                        OTTransaction& TARGET_TRANSACTION,
+                                        bool bIsRealTransaction) // Sometimes
+                                                                 // the trans#
+                                                                 // is 0 (like
+// when processing Nymbox)
 {
     if (GetType() != OTItem::transactionStatement) {
         otOut << __FUNCTION__
@@ -353,11 +355,11 @@ bool OTItem::VerifyTransactionStatement(
 //    are all still there.
 //
 bool OTItem::VerifyBalanceStatement(
-    const int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
+    int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
     OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
     OTTransaction& TARGET_TRANSACTION,
-    const int64_t lOutboxTrnsNum) // Only used in the case of transfer,
-                                  // where the user
+    int64_t lOutboxTrnsNum) // Only used in the case of transfer,
+                            // where the user
 { // doesn't know the outbox trans# in advance, so he sends
     if (GetType() != OTItem::balanceStatement) // a dummy number (currently '1')
                                                // which we verify against
@@ -1069,7 +1071,7 @@ OTItem* OTItem::GetItem(int32_t nIndex)
 }
 
 // While processing an item, you may wish to query it for sub-items
-OTItem* OTItem::GetItemByTransactionNum(const int64_t lTransactionNumber)
+OTItem* OTItem::GetItemByTransactionNum(int64_t lTransactionNumber)
 {
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
@@ -1085,7 +1087,7 @@ OTItem* OTItem::GetItemByTransactionNum(const int64_t lTransactionNumber)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-int32_t OTItem::GetItemCountInRefTo(const int64_t lReference)
+int32_t OTItem::GetItemCountInRefTo(int64_t lReference)
 {
     int32_t nCount = 0;
 
@@ -1103,8 +1105,7 @@ int32_t OTItem::GetItemCountInRefTo(const int64_t lReference)
 // its "in reference to" value. (Others such as marketReceipts and
 // paymentReceipts.)
 //
-OTItem* OTItem::GetFinalReceiptItemByReferenceNum(
-    const int64_t lReferenceNumber)
+OTItem* OTItem::GetFinalReceiptItemByReferenceNum(int64_t lReferenceNumber)
 {
     for (auto& it : m_listItems) {
         OTItem* pItem = it;
@@ -2011,7 +2012,7 @@ int64_t OTItem::GetClosingNum() const
     return m_lClosingTransactionNo;
 }
 
-void OTItem::SetClosingNum(const int64_t lClosingNum)
+void OTItem::SetClosingNum(int64_t lClosingNum)
 {
     m_lClosingTransactionNo = lClosingNum;
 }

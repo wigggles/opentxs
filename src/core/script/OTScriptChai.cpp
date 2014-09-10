@@ -243,9 +243,9 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
          OTVariable_Access      GetAccess() const { return m_Access; }
 
-         int64_t           &    GetValueLong() { return m_lValue; }
-         bool           &    GetValueBool() { return m_bValue; }
-         std::string    &    GetValueString() { return m_str_Value; }
+         int64_t& GetValueLong() { return m_lValue; }
+         bool& GetValueBool() { return m_bValue; }
+         std::string& GetValueString() { return m_str_Value; }
          */
 
         for (auto& it : m_mapVariables) {

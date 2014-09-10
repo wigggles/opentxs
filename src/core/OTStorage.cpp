@@ -1191,11 +1191,11 @@ AddressBook::~AddressBook()
  version of java
  {                    // interfaces, which C++ normally implements via pure
  virtual base classes
-     T const & t;    // and multiple inheritance. But in this case, I need to
+     T const& t;    // and multiple inheritance. But in this case, I need to
  have a consistent
  public:                // interface across disparate classes (in various
  circumstances including
-     TStorable(T const & obj) : t(obj) { }    // here with protocol buffers) and
+     TStorable(T const& obj) : t(obj) { }    // here with protocol buffers) and
  template interfaces
      bool pack(PackedBuffer& theBuffer)    // allow me to do that even with
  classes in a different hierarchy.
@@ -1365,7 +1365,7 @@ template <class theBaseType, class theInternalType,
 }
 
 //    if (false == makeTStorablepStorable->pack(*pBuffer))
-//::google::protobuf::MessageLite    &    IStorablePB::getPBMessage()
+//::google::protobuf::MessageLite& IStorablePB::getPBMessage()
 //{
 //    return makeTStorablePBgetPBMessage();
 //}
@@ -1481,7 +1481,7 @@ bool BufferPB::ReadFromIStream(std::istream& inStream, int64_t lFilesize)
 
 bool BufferPB::WriteToOStream(std::ostream& outStream)
 {
-    // bool    SerializeToOstream(ostream * output) const
+    // bool    SerializeToOstream(ostream* output) const
     if (m_buffer.length() > 0) {
         outStream.write(m_buffer.c_str(), m_buffer.length());
         return outStream.good() ? true : false;
@@ -2120,7 +2120,7 @@ OTPacker* Storage::GetPacker(PackType ePackType)
 
 // (SetPacker(), from .h file)
 // This is called once, in the factory.
-// void Storage::SetPacker(OTPacker & thePacker) { OT_ASSERT(nullptr ==
+// void Storage::SetPacker(OTPacker& thePacker) { OT_ASSERT(nullptr ==
 // m_pPacker);
 // m_pPacker =  &thePacker; }
 
@@ -2552,31 +2552,28 @@ bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
 
  */
 int64_t StorageFS::ConstructAndCreatePath(std::string& strOutput,
-                                          const std::string strFolder,
-                                          const std::string oneStr,
-                                          const std::string twoStr,
-                                          const std::string threeStr)
+                                          std::string strFolder,
+                                          std::string oneStr,
+                                          std::string twoStr,
+                                          std::string threeStr)
 {
     return ConstructAndConfirmPathImp(true, strOutput, strFolder, oneStr,
                                       twoStr, threeStr);
 }
 
 int64_t StorageFS::ConstructAndConfirmPath(std::string& strOutput,
-                                           const std::string strFolder,
-                                           const std::string oneStr,
-                                           const std::string twoStr,
-                                           const std::string threeStr)
+                                           std::string strFolder,
+                                           std::string oneStr,
+                                           std::string twoStr,
+                                           std::string threeStr)
 {
     return ConstructAndConfirmPathImp(false, strOutput, strFolder, oneStr,
                                       twoStr, threeStr);
 }
 
-int64_t StorageFS::ConstructAndConfirmPathImp(const bool bMakePath,
-                                              std::string& strOutput,
-                                              const std::string zeroStr,
-                                              const std::string oneStr,
-                                              const std::string twoStr,
-                                              const std::string threeStr)
+int64_t StorageFS::ConstructAndConfirmPathImp(
+    bool bMakePath, std::string& strOutput, std::string zeroStr,
+    std::string oneStr, std::string twoStr, std::string threeStr)
 {
     const std::string strRoot(m_strDataPath.c_str());
 

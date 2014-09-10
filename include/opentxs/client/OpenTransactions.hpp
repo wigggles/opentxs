@@ -756,7 +756,7 @@ public:
                                             const OTIdentifier& USER_ID) const;
 
     EXPORT bool ClearExpired(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& USER_ID, const int32_t nIndex,
+                             const OTIdentifier& USER_ID, int32_t nIndex,
                              bool bClearAll =
                                  false // if true, nIndex is ignored.
                              ) const;

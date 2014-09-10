@@ -1024,7 +1024,7 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
 // contain 3 keypairs: signing, authentication, and encryption.
 //
 bool OTCredential::AddNewSubkey(
-    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr
+    int32_t nBits,                    // Ignored unless pmapPrivate is nullptr
     const OTString::Map* pmapPrivate, // Public keys are derived from
                                       // the private.
     const OTPasswordData* pPWData,    // The master key will sign the subkey.
@@ -1182,7 +1182,7 @@ bool OTCredential::AddNewSubcredential(
 // static
 OTCredential* OTCredential::CreateMaster(
     const OTString& strSourceForNymID,
-    const int32_t nBits,              // Ignored unless pmapPrivate is nullptr.
+    int32_t nBits,                    // Ignored unless pmapPrivate is nullptr.
     const OTString::Map* pmapPrivate, // If nullptr, then the keys are
                                       // generated in here.
     const OTString::Map* pmapPublic,  // In the case of key credentials,

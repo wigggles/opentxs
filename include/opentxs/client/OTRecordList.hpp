@@ -176,9 +176,9 @@ public:
  class OTNameLookupIPhone : public OTNameLookup
  {
  public:
-    virtual std::string GetNymName(const std::string & str_id) const;
-    virtual std::string GetAcctName(const std::string & str_id) const;
-    virtual std::string GetAddressName(const std::string & str_id) const; //
+    virtual std::string GetNymName(const std::string& str_id) const;
+    virtual std::string GetAcctName(const std::string& str_id) const;
+    virtual std::string GetAddressName(const std::string& str_id) const; //
  Used for Bitmessage and other special addresses.
  };
  */
@@ -272,11 +272,11 @@ public:
         return s_strTextFrom.c_str();
     }
 
-    EXPORT static void setTextTo(const std::string text)
+    EXPORT static void setTextTo(std::string text)
     {
         s_strTextTo = text;
     }
-    EXPORT static void setTextFrom(const std::string text)
+    EXPORT static void setTextFrom(std::string text)
     {
         s_strTextFrom = text;
     }
@@ -286,23 +286,23 @@ public:
     }
     // SETUP:
 
-    EXPORT void SetServerID(const std::string str_id); // Set the default server
-                                                       // here.
-    EXPORT void AddServerID(const std::string str_id); // Unless you have many
-                                                       // servers, then use
-                                                       // this.
-    EXPORT void ClearServers();                        // Also clears m_contents
+    EXPORT void SetServerID(std::string str_id); // Set the default server
+                                                 // here.
+    EXPORT void AddServerID(std::string str_id); // Unless you have many
+                                                 // servers, then use
+                                                 // this.
+    EXPORT void ClearServers();                  // Also clears m_contents
 
-    EXPORT void SetAssetID(const std::string str_id); // Etc.
-    EXPORT void AddAssetID(const std::string str_id);
+    EXPORT void SetAssetID(std::string str_id); // Etc.
+    EXPORT void AddAssetID(std::string str_id);
     EXPORT void ClearAssets(); // Also clears m_contents
 
-    EXPORT void SetNymID(const std::string str_id);
-    EXPORT void AddNymID(const std::string str_id);
+    EXPORT void SetNymID(std::string str_id);
+    EXPORT void AddNymID(std::string str_id);
     EXPORT void ClearNyms(); // Also clears m_contents
 
-    EXPORT void SetAccountID(const std::string str_id);
-    EXPORT void AddAccountID(const std::string str_id);
+    EXPORT void SetAccountID(std::string str_id);
+    EXPORT void AddAccountID(std::string str_id);
     EXPORT void ClearAccounts(); // Also clears m_contents
 
     EXPORT const list_of_strings& GetNyms() const;
@@ -340,7 +340,7 @@ public:
                                          // with contents, before passing here.
         const std::string& str_address, const std::string& str_other_address,
         const std::string& str_type, const std::string& str_type_display,
-        const std::string str_my_nym_id = "", time64_t tDate = OT_TIME_ZERO);
+        std::string str_my_nym_id = "", time64_t tDate = OT_TIME_ZERO);
     // RETRIEVE:
     //
     EXPORT int32_t size() const;

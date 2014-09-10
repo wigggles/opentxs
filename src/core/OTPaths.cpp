@@ -330,7 +330,7 @@ const OTString& OTPaths::ScriptsFolder()
 bool OTPaths::LoadSetPrefixFolder    // eg. /usr/local/
     (OTSettings& config,             // optional
      const OTString& strPrefixFolder // optional
-     // const bool & bIsRelative (cannot be relative);
+     // const bool& bIsRelative (cannot be relative);
      )
 {
     /*

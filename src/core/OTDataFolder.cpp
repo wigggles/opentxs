@@ -310,7 +310,7 @@ bool OTDataFolder::Cleanup()
 }
 
 // static
-const OTString OTDataFolder::Get()
+OTString OTDataFolder::Get()
 {
     if (!OTDataFolder::IsInitialized()) {
         OT_FAIL;

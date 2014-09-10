@@ -204,7 +204,7 @@ public:
     // Whereas Encrypt/Decrypt is for symmetric key crypto (With
     // OTSymmetricKey.)
     EXPORT bool Seal_or_Encrypt(OTEnvelope& outputEnvelope,
-                                const OTString strInput,
+                                const OTString& strInput,
                                 const OTString* pstrDisplay = nullptr);
     EXPORT bool Open_or_Decrypt(const OTEnvelope& inputEnvelope,
                                 OTString& strOutput,

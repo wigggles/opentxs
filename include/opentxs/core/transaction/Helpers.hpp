@@ -161,16 +161,15 @@ EXPORT bool VerifyBoxReceiptExists(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
     const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
     // pass USER_ID in this field also.
-    const int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
+    int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum);
 
 OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger);
 
 EXPORT OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
-                                     const int64_t lLedgerType);
+                                     int64_t lLedgerType);
 
-bool SetupBoxReceiptFilename(const int64_t lLedgerType,
-                             OTTransaction& theTransaction,
+bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
                              const char* szCaller, OTString& strFolder1name,
                              OTString& strFolder2name, OTString& strFolder3name,
                              OTString& strFilename);
@@ -180,7 +179,7 @@ bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
                              OTString& strFolder2name, OTString& strFolder3name,
                              OTString& strFilename);
 
-bool SetupBoxReceiptFilename(const int64_t lLedgerType,
+bool SetupBoxReceiptFilename(int64_t lLedgerType,
                              const OTString& strUserOrAcctID,
                              const OTString& strServerID,
                              const int64_t& lTransactionNum,

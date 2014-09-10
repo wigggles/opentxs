@@ -161,7 +161,7 @@ public:
         const std::string& strMyAcctID, const std::string& strIndices,
         const std::string& strPaymentType);
     EXPORT OT_COMMANDS_OT static int32_t accept_inbox_items(
-        const std::string& strMyAcctID, const int32_t nItemType,
+        const std::string& strMyAcctID, int32_t nItemType,
         const std::string& strIndices);
     EXPORT OT_COMMANDS_OT static int32_t details_accept_invoices(
         const std::string& strMyAcctID, const std::string& strIndices);
@@ -181,17 +181,17 @@ public:
         const std::string& strServerID, const std::string& strMyNymID,
         const std::string& strMyAcctID);
     EXPORT OT_COMMANDS_OT static int32_t details_confirm_plan(
-        const std::string& strPlan, const int32_t nIndex);
+        const std::string& strPlan, int32_t nIndex);
     EXPORT OT_COMMANDS_OT static int32_t details_confirm_smart_contract(
-        std::string& strSmartContract, const int32_t nIndex);
+        std::string& strSmartContract, int32_t nIndex);
     EXPORT OT_COMMANDS_OT static int32_t details_create_nym(
-        const int32_t nKeybits, const std::string& strName,
+        int32_t nKeybits, const std::string& strName,
         const std::string& strSourceForNymID,
         const std::string& strAltLocation);
     EXPORT OT_COMMANDS_OT static int32_t details_create_offer(
         const std::string& strScale, const std::string& strMinIncrement,
         const std::string& strQuantity, const std::string& strPrice,
-        const bool bSelling, const std::string& strLifespan);
+        bool bSelling, const std::string& strLifespan);
     EXPORT OT_COMMANDS_OT static int32_t details_del_mail(
         const std::string& strMyNymID, const std::string& strIndices);
     EXPORT OT_COMMANDS_OT static int32_t details_del_outmail(
@@ -210,7 +210,7 @@ public:
         const std::string& strServer, const std::string& strMyNym,
         const std::string& strIndices);
     EXPORT OT_COMMANDS_OT static int32_t details_download_box_receipt(
-        const std::string& strID, const int32_t nBoxType);
+        const std::string& strID, int32_t nBoxType);
     EXPORT OT_COMMANDS_OT static int32_t details_download_contract(
         const std::string& strServerID, const std::string& strNymID,
         const std::string& strContractID);
@@ -220,7 +220,7 @@ public:
     EXPORT OT_COMMANDS_OT static std::string details_export_cash(
         const std::string& strServerID, const std::string& strFromNymID,
         const std::string& strAssetTypeID, std::string& strHisNymID,
-        const std::string& strIndices, const bool bPasswordProtected,
+        const std::string& strIndices, bool bPasswordProtected,
         std::string& strRetainedCopy);
     EXPORT OT_COMMANDS_OT static std::string details_export_nym(
         const std::string& strNymID);
@@ -231,7 +231,7 @@ public:
     EXPORT OT_COMMANDS_OT static bool details_import_nym(
         const std::string& strNymImportFile, std::string& strOutNymID);
     EXPORT OT_COMMANDS_OT static int32_t details_import_purse(
-        const std::string& strInstrument, const bool bHasPassword,
+        const std::string& strInstrument, bool bHasPassword,
         const std::string& strPurseOwner);
     EXPORT OT_COMMANDS_OT static int32_t details_kill_offer(
         const std::string& strServerID, const std::string& strNymID,
@@ -251,13 +251,13 @@ public:
         const std::string& strExpiry);
     EXPORT OT_COMMANDS_OT static bool details_refresh_nym(
         const std::string& strServerID, const std::string& strMyNymID,
-        const bool bForceDownload);
+        bool bForceDownload);
     EXPORT OT_COMMANDS_OT static int32_t details_send_cash(
         std::string& strResponse, const std::string& strServerID,
         const std::string& strAssetTypeID, const std::string& strMyNymID,
         const std::string& strMyAcctID, std::string& strHisNymID,
         const std::string& strMemo, const std::string& strAmount,
-        std::string& strIndices, const bool bPasswordProtected);
+        std::string& strIndices, bool bPasswordProtected);
     EXPORT OT_COMMANDS_OT static int32_t details_send_transfer(
         const std::string& strMyAcctID, const std::string& strHisAcctID,
         const std::string& strAmount, const std::string& strNote);
@@ -268,7 +268,7 @@ public:
         const std::string& strMyNymID);
     EXPORT OT_COMMANDS_OT static int32_t details_show_expired(
         const std::string& strServerID, const std::string& strMyNymID,
-        const int32_t nIndex, const std::string& strExpiredBox);
+        int32_t nIndex, const std::string& strExpiredBox);
     EXPORT OT_COMMANDS_OT static int32_t details_show_expired_records(
         const std::string& strServerID, const std::string& strMyNymID);
     EXPORT OT_COMMANDS_OT static int32_t details_show_market_offers(
@@ -277,7 +277,7 @@ public:
         const std::string& strServerID, const std::string& strNymID);
     EXPORT OT_COMMANDS_OT static int32_t details_show_record(
         const std::string& strServerID, const std::string& strMyNymID,
-        const std::string& strMyAcctID, const int32_t nIndex,
+        const std::string& strMyAcctID, int32_t nIndex,
         const std::string& strRecordBox);
     EXPORT OT_COMMANDS_OT static int32_t details_show_records(
         const std::string& strServerID, const std::string& strMyNymID,
@@ -289,18 +289,18 @@ public:
         const std::string& strTransNum, const std::string& strClause,
         const std::string& strParam);
     EXPORT OT_COMMANDS_OT static int32_t details_withdraw_cash(
-        const std::string& strMyAcctID, const int64_t lAmount);
+        const std::string& strMyAcctID, int64_t lAmount);
     EXPORT OT_COMMANDS_OT static int32_t details_withdraw_voucher(
         std::string& strOutput);
     EXPORT OT_COMMANDS_OT static int32_t details_write_cheque(
-        std::string& strCheque, const bool bIsInvoice); // strCheque is output.
+        std::string& strCheque, bool bIsInvoice); // strCheque is output.
     EXPORT OT_COMMANDS_OT static int32_t download_acct_files();
     EXPORT OT_COMMANDS_OT static std::string find_masterID_for_subcred(
         const std::string& strMyNymID, const std::string& strInputID);
     EXPORT OT_COMMANDS_OT static std::string find_revokedID_for_subcred(
         const std::string& strMyNymID, const std::string& strInputID);
     EXPORT OT_COMMANDS_OT static int32_t handle_payment_index(
-        const std::string& strMyAcctID, const int32_t nIndex,
+        const std::string& strMyAcctID, int32_t nIndex,
         const std::string& strPaymentType,
         const std::string& strInbox); // (If nIndex is -1, then it will ask user
                                       // to
@@ -318,37 +318,34 @@ public:
                                   // (And
                                   // vice-versa.);
     EXPORT OT_COMMANDS_OT static bool show_mail_message(
-        const std::string& strMyNymID, const int32_t nIndex,
-        const bool bShowContents);
+        const std::string& strMyNymID, int32_t nIndex, bool bShowContents);
     EXPORT OT_COMMANDS_OT static bool show_outmail_message(
-        const std::string& strMyNymID, const int32_t nIndex,
-        const bool bShowContents);
+        const std::string& strMyNymID, int32_t nIndex, bool bShowContents);
     EXPORT OT_COMMANDS_OT static bool show_outpayment(
-        const std::string& strMyNym, const int32_t nIndex,
-        const bool bShowInFull);
+        const std::string& strMyNym, int32_t nIndex, bool bShowInFull);
     EXPORT OT_COMMANDS_OT static bool show_unconfirmed_parties(
         const std::string& strSmartContract, int32_t& nPartyCount);
     EXPORT OT_COMMANDS_OT static int32_t stat_basket_accounts(
-        const std::string& strServer, const std::string& strNym,
-        const bool bFilter, const std::string& strBasketType);
+        const std::string& strServer, const std::string& strNym, bool bFilter,
+        const std::string& strBasketType);
     EXPORT OT_COMMANDS_OT static bool stat_partyaccount(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const std::string& strAcctName, const int32_t nCurrentAccount);
+        const std::string& strAcctName, int32_t nCurrentAccount);
     EXPORT OT_COMMANDS_OT static bool stat_partyaccount_index(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const int32_t nCurrentAccount);
+        int32_t nCurrentAccount);
     EXPORT OT_COMMANDS_OT static bool stat_partyaccounts(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const int32_t nDepth);
+        int32_t nDepth);
     EXPORT OT_COMMANDS_OT static bool stat_partyagent(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const std::string& strAgentName, const int32_t nIndex);
+        const std::string& strAgentName, int32_t nIndex);
     EXPORT OT_COMMANDS_OT static bool stat_partyagent_index(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const int32_t nCurrentAgent);
+        int32_t nCurrentAgent);
     EXPORT OT_COMMANDS_OT static bool stat_partyagents(
         const std::string& strSmartContract, const std::string& strPartyName,
-        const int32_t nDepth);
+        int32_t nDepth);
     EXPORT OT_COMMANDS_OT static bool withdraw_and_send_cash(
         const std::string& strMyAcctID, std::string& strHisNymID,
         const std::string& strMemo, const std::string& strAmount);

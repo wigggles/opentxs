@@ -495,7 +495,7 @@ bool OTLog::LogToFile(const OTString& strOutput)
     return bSuccess;
 }
 
-const OTString OTLog::GetMemlogAtIndex(const int32_t nIndex)
+OTString OTLog::GetMemlogAtIndex(int32_t nIndex)
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -530,7 +530,7 @@ int32_t OTLog::GetMemlogSize()
     return static_cast<int32_t>(OTLog::pLogger->logDeque.size());
 }
 
-const OTString OTLog::PeekMemlogFront()
+OTString OTLog::PeekMemlogFront()
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -550,7 +550,7 @@ const OTString OTLog::PeekMemlogFront()
         return "";
 }
 
-const OTString OTLog::PeekMemlogBack()
+OTString OTLog::PeekMemlogBack()
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -897,7 +897,7 @@ void OTLog::Errno(const char* szLocation) // stderr
 // String Helpers
 
 bool OTLog::StringFill(OTString& out_strString, const char* szString,
-                       const int32_t iLength, const char* szAppend)
+                       int32_t iLength, const char* szAppend)
 {
     std::string strString(szString);
 
@@ -1127,7 +1127,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 // This version DOES do demangling.
 //
 /*
-void crit_err_hdlr(int32_t sig_num, siginfo_t * info, void * ucontext)
+void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 {
     sig_ucontext_t * uc = (sig_ucontext_t *)ucontext;
 

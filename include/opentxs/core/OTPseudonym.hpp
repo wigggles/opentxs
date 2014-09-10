@@ -319,10 +319,10 @@ public:
         OTString& strOutputMasterCredID, // The new ID, upon success, is
                                          // returned here.
         const OTString* pstrSourceForNymID =
-            nullptr,                // If nullptr, it uses the Nym's
-                                    // (presumed) existing pubkey
-                                    // as the source.
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
+            nullptr,          // If nullptr, it uses the Nym's
+                              // (presumed) existing pubkey
+                              // as the source.
+        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const OTString::Map* pmapPrivate =
             nullptr, // If nullptr, then the keys are generated in here.
         const OTString::Map* pmapPublic = nullptr, // In the case of key
@@ -347,7 +347,7 @@ public:
 
     EXPORT bool AddNewSubkey(
         const OTIdentifier& idMasterCredential,
-        const int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
+        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const OTString::Map* pmapPrivate =
             nullptr, // If nullptr, then the keys are generated in here.
         const OTPasswordData* pPWData =
@@ -510,8 +510,8 @@ public:
     // Use this to actually generate a new key pair and assorted nym files.
     //
     EXPORT bool GenerateNym(int32_t nBits = 1024, bool bCreateFile = true,
-                            const std::string str_id_source = "",
-                            const std::string str_alt_location = "");
+                            std::string str_id_source = "",
+                            std::string str_alt_location = "");
     // Some messages require "transaction agreement" as opposed to "balance
     // agreement."
     // That is, cases where only transactions change and not balances.
@@ -549,7 +549,7 @@ public:
                                              const char* szFuncName = nullptr);
 
     EXPORT static OTPseudonym* LoadPrivateNym(
-        const OTIdentifier& NYM_ID, const bool bChecking = false,
+        const OTIdentifier& NYM_ID, bool bChecking = false,
         const OTString* pstrName = nullptr, const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
@@ -615,7 +615,7 @@ public:
                                                                     // function.
     EXPORT bool CertfileExists(); // on the client side, this means it's a
                                   // private Nym.
-    EXPORT bool Loadx509CertAndPrivateKey(const bool bChecking = false,
+    EXPORT bool Loadx509CertAndPrivateKey(bool bChecking = false,
                                           const OTPasswordData* pPWData =
                                               nullptr,
                                           const OTPassword* pImportPassword =
@@ -740,7 +740,7 @@ public:
     } // This one actually stores request numbers.
 
     EXPORT void RemoveAllNumbers(const OTString* pstrServerID = nullptr,
-                                 const bool bRemoveHighestNum =
+                                 bool bRemoveHighestNum =
                                      true); // for transaction numbers
     EXPORT void RemoveReqNumbers(const OTString* pstrServerID =
                                      nullptr); // for request numbers (entirely
@@ -878,7 +878,7 @@ public:
                                      int32_t nIndex) const; // index
 
     EXPORT bool AddTransactionNum(const OTString& strServerID,
-                                  const int64_t lTransNum); // doesn't save
+                                  int64_t lTransNum); // doesn't save
 
     EXPORT bool RemoveTransactionNum(OTPseudonym& SIGNER_NYM,
                                      const OTString& strServerID,
@@ -991,7 +991,7 @@ public:
 
     EXPORT bool AddGenericNum(mapOfTransNums& THE_MAP,
                               const OTString& strServerID,
-                              const int64_t lTransNum); // doesn't save
+                              int64_t lTransNum); // doesn't save
 
     EXPORT int32_t GetGenericNumCount(const mapOfTransNums& THE_MAP,
                                       const OTIdentifier& theServerID) const;
@@ -1009,11 +1009,11 @@ public:
                                                 // Nymbox of recipient (me).
     EXPORT int32_t GetMailCount() const; // How many mail messages does this Nym
                                          // currently store?
-    EXPORT OTMessage* GetMailByIndex(const int32_t nIndex) const; // Get a
-                                                                  // specific
+    EXPORT OTMessage* GetMailByIndex(int32_t nIndex) const; // Get a
+                                                            // specific
     // piece of mail, at
     // a specific index.
-    EXPORT bool RemoveMailByIndex(const int32_t nIndex); // if returns false,
+    EXPORT bool RemoveMailByIndex(int32_t nIndex); // if returns false,
     // mail index was bad
     // (or something else
     // must have gone
@@ -1029,18 +1029,18 @@ public:
     EXPORT int32_t
     GetOutmailCount() const; // How many outmail messages does this Nym
                              // currently store?
-    EXPORT OTMessage* GetOutmailByIndex(const int32_t nIndex) const; // Get a
-                                                                     // specific
-                                                                     // piece of
+    EXPORT OTMessage* GetOutmailByIndex(int32_t nIndex) const; // Get a
+                                                               // specific
+                                                               // piece of
     // outmail, at a
     // specific
     // index.
-    EXPORT bool RemoveOutmailByIndex(const int32_t nIndex); // if returns false,
-                                                            // outmail index was
-                                                            // bad (or something
-                                                            // else must have
-                                                            // gone seriously
-                                                            // wrong.)
+    EXPORT bool RemoveOutmailByIndex(int32_t nIndex); // if returns false,
+                                                      // outmail index was
+                                                      // bad (or something
+                                                      // else must have
+                                                      // gone seriously
+                                                      // wrong.)
 
     EXPORT void ClearOutmail(); // called by the destructor. (Not intended to
                                 // erase messages from local storage.)
@@ -1053,10 +1053,10 @@ public:
     EXPORT int32_t
     GetOutpaymentsCount() const; // How many outpayments messages does
                                  // this Nym currently store?
-    EXPORT OTMessage* GetOutpaymentsByIndex(const int32_t nIndex)
+    EXPORT OTMessage* GetOutpaymentsByIndex(int32_t nIndex)
         const; // Get a specific piece of outpayments, at a
                // specific index.
-    EXPORT bool RemoveOutpaymentsByIndex(const int32_t nIndex,
+    EXPORT bool RemoveOutpaymentsByIndex(int32_t nIndex,
                                          bool bDeleteIt =
                                              true); // if returns false,
                                                     // outpayments index was bad

@@ -532,7 +532,7 @@ OTAccount* OTAccount::GenerateNewAccount(const OTIdentifier& userId,
                                          const OTIdentifier& serverId,
                                          const OTPseudonym& serverNym,
                                          const OTMessage& message,
-                                         const OTAccount::AccountType acctType,
+                                         OTAccount::AccountType acctType,
                                          int64_t stashTransNum)
 {
     OTAccount* account = new OTAccount(userId, serverId);
@@ -559,7 +559,7 @@ message.m_strServerID;
  */
 bool OTAccount::GenerateNewAccount(const OTPseudonym& server,
                                    const OTMessage& message,
-                                   const OTAccount::AccountType acctType,
+                                   OTAccount::AccountType acctType,
                                    int64_t stashTransNum)
 {
     // First we generate a secure random number into a binary object...

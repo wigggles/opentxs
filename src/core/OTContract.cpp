@@ -545,7 +545,7 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
                         m_strSigHashType, pPWData);
 }
 
-// Normally you'd use OTContract::SignContract(const OTPseudonym & theNym)...
+// Normally you'd use OTContract::SignContract(const OTPseudonym& theNym)...
 // Normally you WOULDN'T use this function SignWithKey.
 // But this is here anyway for those peculiar places where you need it. For
 // example,

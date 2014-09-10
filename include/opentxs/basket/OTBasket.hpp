@@ -219,7 +219,7 @@ public:
     EXPORT virtual ~OTBasket();
 
     virtual void UpdateContents();
-    //    virtual bool SaveContractWallet(FILE * fl);
+    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
@@ -233,7 +233,7 @@ public:
     {
         return m_nTransferMultiple;
     }
-    inline void SetTransferMultiple(const int32_t nTransferMultiple)
+    inline void SetTransferMultiple(int32_t nTransferMultiple)
     {
         m_nTransferMultiple = nTransferMultiple;
     }
@@ -247,7 +247,7 @@ public:
     {
         return m_bExchangingIn;
     }
-    inline void SetExchangingIn(const bool bDirection)
+    inline void SetExchangingIn(bool bDirection)
     {
         m_bExchangingIn = bDirection;
     }
@@ -306,7 +306,7 @@ public:
     //
     EXPORT void HarvestClosingNumbers(OTPseudonym& theNym,
                                       const OTIdentifier& theServerID,
-                                      const bool bSave = true);
+                                      bool bSave = true);
 };
 
 } // namespace opentxs

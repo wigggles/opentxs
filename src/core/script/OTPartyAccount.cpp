@@ -161,7 +161,7 @@ OTPartyAccount::OTPartyAccount()
 // transaction #
 // provided, for the finalReceipt for that account.
 //
-OTPartyAccount::OTPartyAccount(const std::string str_account_name,
+OTPartyAccount::OTPartyAccount(std::string str_account_name,
                                const OTString& strAgentName,
                                OTAccount& theAccount, int64_t lClosingTransNo)
     : m_pForParty(nullptr)

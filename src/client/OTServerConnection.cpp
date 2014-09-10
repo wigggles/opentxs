@@ -275,10 +275,10 @@ bool OTServerConnection::SetFocus(OTPseudonym& theNym,
     return true;
 }
 
-// bool OTServerConnection::Connect(OTPseudonym & theNym, OTServerContract &
+// bool OTServerConnection::Connect(OTPseudonym& theNym, OTServerContract&
 // theServerContract,
-//                                 OTString & strCA_FILE, OTString &
-// strKEY_FILE, OTString & strKEY_PASSWORD)
+//                                 OTString& strCA_FILE, OTString&
+// strKEY_FILE, OTString& strKEY_PASSWORD)
 //{
 //    //// We're already connected!
 //    //if (IsConnected())
@@ -373,8 +373,8 @@ bool OTServerConnection::GetServerID(OTIdentifier& theID) const
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-// OTServerConnection::OTServerConnection(OTWallet & theWallet, OTClient &
-// theClient, SFSocket * pSock)
+// OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient&
+// theClient, SFSocket* pSock)
 //{
 //    m_pSocket            = pSock;
 //    m_pCallback            = nullptr;
@@ -410,7 +410,7 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
 // theServerReply will contain that message after a successful call to this
 // function.
 // TCP / SSL mode.
-// bool OTServerConnection::ProcessInBuffer(OTMessage & theServerReply)
+// bool OTServerConnection::ProcessInBuffer(OTMessage& theServerReply)
 //{
 ////    int32_t  err;
 ////    uint32_t nread;

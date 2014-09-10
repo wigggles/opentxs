@@ -232,7 +232,7 @@ public:
     // balance
     // agreement.  We also store a list of issued transactions, the new balance,
     // and the outbox hash.
-    EXPORT OTItem* GenerateBalanceStatement(const int64_t lAdjustment,
+    EXPORT OTItem* GenerateBalanceStatement(int64_t lAdjustment,
                                             const OTTransaction& theOwner,
                                             OTPseudonym& theNym,
                                             const OTAccount& theAccount,
@@ -247,12 +247,12 @@ public:
                                                           // found.
 
     EXPORT OTTransaction* GetTransaction(
-        const OTTransaction::transactionType theType);
+        OTTransaction::transactionType theType);
     EXPORT OTTransaction* GetTransaction(int64_t lTransactionNum) const;
     EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex) const;
     EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
-    EXPORT OTTransaction* GetChequeReceipt(const int64_t lChequeNum,
+    EXPORT OTTransaction* GetChequeReceipt(int64_t lChequeNum,
                                            OTCheque** ppChequeOut =
                                                nullptr); // CALLER RESPONSIBLE
                                                          // TO
@@ -332,8 +332,7 @@ public:
     {
         return static_cast<int32_t>(m_mapTransactions.size());
     }
-    EXPORT int32_t
-    GetTransactionCountInRefTo(const int64_t lReferenceNum) const;
+    EXPORT int32_t GetTransactionCountInRefTo(int64_t lReferenceNum) const;
     EXPORT int64_t GetTotalPendingValue(); // for inbox only, allows you to
                                            // lookup the total value of pending
                                            // transfers within.
@@ -361,13 +360,12 @@ public:
     EXPORT static OTLedger* GenerateLedger(const OTIdentifier& theUserID,
                                            const OTIdentifier& theAcctID,
                                            const OTIdentifier& theServerID,
-                                           const ledgerType theType,
+                                           ledgerType theType,
                                            bool bCreateFile = false);
 
     EXPORT bool GenerateLedger(const OTIdentifier& theAcctID,
                                const OTIdentifier& theServerID,
-                               const ledgerType theType,
-                               bool bCreateFile = false);
+                               ledgerType theType, bool bCreateFile = false);
 
     EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT static char const* _GetTypeString(ledgerType theType);

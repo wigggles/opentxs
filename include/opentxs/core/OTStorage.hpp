@@ -427,8 +427,8 @@ EndInterface
     }
 #endif // (not) SWIG
 
-    //    static const CLASS_NAME    *    ot_dynamic_cast(const    Storable
-    // *pObject) { return dynamic_cast<const T *>(pObject); }
+    //    static const CLASS_NAME    *    ot_dynamic_cast( Storable // *pObject)
+    // { return dynamic_cast<const T *>(pObject); }
 
     //
     // STORABLE
@@ -862,12 +862,12 @@ EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
 
 /*
 typedef template<class T>
-T * OT_DYNAMIC_CAST(Storable * pObject)
+T * OT_DYNAMIC_CAST(Storable* pObject)
 {
     return dynamic_cast<T *>(pObject);
 }
 template<class T>
-const T * OT_DYNAMIC_CONST_CAST(const Storable * pObject)
+const T * OT_DYNAMIC_CONST_CAST(const Storable* pObject)
 {
     return dynamic_cast<const T *>(pObject);
 }
@@ -877,6 +877,7 @@ const T * OT_DYNAMIC_CONST_CAST(const Storable * pObject)
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+                                                                               \
 public:                                                                        \
     size_t Get##name##Count();                                                 \
     name* Get##name(size_t nIndex);                                            \
@@ -889,6 +890,7 @@ public:                                                                        \
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+                                                                               \
 public:                                                                        \
     EXPORT size_t Get##name##Count();                                          \
     EXPORT name* Get##name(size_t nIndex);                                     \
@@ -1794,25 +1796,23 @@ protected:
 
     // Confirms if a file exists.  If it exists at path; return length.
     int64_t ConstructAndConfirmPath(std::string& strOutput,
-                                    const std::string strFolder,
-                                    const std::string oneStr = "",
-                                    const std::string twoStr = "",
-                                    const std::string threeStr = "");
+                                    std::string strFolder,
+                                    std::string oneStr = "",
+                                    std::string twoStr = "",
+                                    std::string threeStr = "");
 
     // Verifies whether path exists AND creates folders where necessary.
     int64_t ConstructAndCreatePath(std::string& strOutput,
-                                   const std::string strFolder,
-                                   const std::string oneStr = "",
-                                   const std::string twoStr = "",
-                                   const std::string threeStr = "");
+                                   std::string strFolder,
+                                   std::string oneStr = "",
+                                   std::string twoStr = "",
+                                   std::string threeStr = "");
 
 private:
-    int64_t ConstructAndConfirmPathImp(const bool bMakePath,
-                                       std::string& strOutput,
-                                       const std::string zeroStr,
-                                       const std::string oneStr,
-                                       const std::string twoStr,
-                                       const std::string threeStr);
+    int64_t ConstructAndConfirmPathImp(bool bMakePath, std::string& strOutput,
+                                       std::string zeroStr, std::string oneStr,
+                                       std::string twoStr,
+                                       std::string threeStr);
 
 protected:
     // If you wish to make your own subclass of OTDB::Storage, then use
@@ -1901,7 +1901,7 @@ public:
 
     // Store/Retrieve an object. (Storable.)
 
-    bool StoreObject(Storable & theContents, std::string strFolder,
+    bool StoreObject(Storable& theContents, std::string strFolder,
     std::string oneStr="", std::string twoStr="", std::string threeStr="");
 
     // Use %newobject OTDB::Storage::Query();

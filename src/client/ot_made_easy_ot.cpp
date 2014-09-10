@@ -1046,7 +1046,7 @@ MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
 {
     OTAPI_Func ot_Msg;
 
-    //  int32_t OTAPI_Wrap::triggerClause(const char * SERVER_ID,
+    //  int32_t OTAPI_Wrap::triggerClause(const char* SERVER_ID,
     //                                    const char * USER_ID,
     //                                    const char * TRANSACTION_NUMBER,
     //                                    const char * CLAUSE_NAME,
@@ -1134,7 +1134,7 @@ MadeEasy::get_market_list(const string& SERVER_ID, const string& NYM_ID)
     return strResponse;
 }
 
-// int32_t OTAPI_Wrap::getMarketOffers(const char * SERVER_ID,
+// int32_t OTAPI_Wrap::getMarketOffers(const char* SERVER_ID,
 //                           const char * USER_ID,
 //                           const char * MARKET_ID,
 //                           const char * MAX_DEPTH)

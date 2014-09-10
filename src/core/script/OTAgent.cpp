@@ -285,7 +285,7 @@ OTAgent::OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
 {
 }
 
-OTAgent::OTAgent(const std::string str_agent_name, OTPseudonym& theNym,
+OTAgent::OTAgent(std::string str_agent_name, OTPseudonym& theNym,
                  bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : m_bNymRepresentsSelf(bNymRepresentsSelf),

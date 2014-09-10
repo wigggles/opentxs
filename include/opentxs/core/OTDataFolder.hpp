@@ -157,7 +157,7 @@ public:
 
     EXPORT static bool Cleanup();
 
-    EXPORT static const OTString Get();
+    EXPORT static OTString Get();
     EXPORT static bool Get(OTString& strDataFolder);
 
     EXPORT static bool GetConfigFilePath(OTString& strConfigFilePath);

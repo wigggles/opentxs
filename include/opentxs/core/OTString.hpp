@@ -193,9 +193,9 @@ public:
     EXPORT bool operator==(const OTString& rhs) const;
 
     EXPORT static std::string& trim(std::string& str);
-    EXPORT static const std::string replace_chars(const std::string& str,
-                                                  const std::string& charsFrom,
-                                                  const char& charTo);
+    EXPORT static std::string replace_chars(const std::string& str,
+                                            const std::string& charsFrom,
+                                            const char& charTo);
 #ifdef _WIN32
     EXPORT static std::wstring s2ws(const std::string& s);
     EXPORT static std::string ws2s(const std::wstring& s);
@@ -279,8 +279,8 @@ protected:
 
 // bool operator >(const OTString& s1, const OTString& s2);
 // bool operator <(const OTString& s1, const OTString& s2);
-// bool operator >=(const OTString &s1, const OTString& s2);
-// bool operator <=(const OTString &s1, const OTString& s2);
+// bool operator >=(const OTString& s1, const OTString& s2);
+// bool operator <=(const OTString& s1, const OTString& s2);
 
 } // namespace opentxs
 

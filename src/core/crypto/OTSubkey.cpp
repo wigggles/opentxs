@@ -332,7 +332,7 @@ bool OTSubkey::VerifySignedByMaster()
         // Otherwise I would have to load up the master-signed version anytime
         // the server-side wanted to
         // mess with any of the keys.
-        // Thus: copy the public info from master signed, to *this, if the above
+        // Thus: copy the public info from master signed, to* this, if the above
         // call was successful
         if (verifiedWithKey && GetPublicMap().size() == 0) {
             // For master credential.

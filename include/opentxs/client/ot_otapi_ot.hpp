@@ -163,23 +163,22 @@ find_strange_offers(const opentxs::OTDB::OfferDataNym& offer_data,
                                                     // nIndex will be 0..9
 EXPORT OT_OTAPI_OT int32_t
 iterate_nymoffers_maps(MapOfMaps& map_of_maps,
-                       const LambdaFunc the_lambda); // low level. map_of_maps
-                                                     // must be
-                                                     // good. (assumed.)
+                       LambdaFunc the_lambda); // low level. map_of_maps
+                                               // must be
+                                               // good. (assumed.)
 EXPORT OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps, const LambdaFunc the_lambda,
+iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
                        the_lambda_struct& extra_vals); // low level. map_of_maps
                                                        // must be good.
                                                        // (assumed.)
 
 EXPORT OT_OTAPI_OT int32_t
 iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
-                          const LambdaFunc the_lambda);
+                          LambdaFunc the_lambda);
 
 EXPORT OT_OTAPI_OT int32_t
 iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
-                          const LambdaFunc the_lambda,
-                          the_lambda_struct& extra_vals);
+                          LambdaFunc the_lambda, the_lambda_struct& extra_vals);
 
 EXPORT OT_OTAPI_OT opentxs::OTDB::OfferListNym* loadNymOffers(
     const std::string& serverID, const std::string& nymID);
@@ -280,38 +279,38 @@ public:
     int32_t nRequestNum;
 
     OTAPI_Func();
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID); // 3 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID,
                const std::string& p_strParam); // 4 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_strParam,
                int64_t p_lData); // 5 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_strParam,
                const std::string& p_strData); // 5 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_nymID2,
                const std::string& p_strData,
                const std::string& p_strData2); // 6 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_accountID,
                const std::string& p_strParam, int64_t p_lData,
                const std::string& p_strData2); // 7 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_accountID,
                const std::string& p_strParam, const std::string& p_strData,
                int64_t p_lData2); // 7 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_accountID,
                const std::string& p_strParam, const std::string& p_strData,
                const std::string& p_strData2); // 7 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& p_assetID,
                const std::string& p_basket, const std::string& p_accountID,
                bool p_bBool, int32_t p_nTransNumsNeeded); // 8 args
-    OTAPI_Func(const OTAPI_Func_Type theType, const std::string& p_serverID,
+    OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_serverID,
                const std::string& p_nymID, const std::string& assetAccountID,
                const std::string& currencyAcctID, const std::string& scale,
                const std::string& minIncrement, const std::string& quantity,

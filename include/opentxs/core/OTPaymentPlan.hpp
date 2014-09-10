@@ -208,10 +208,10 @@ public:
     // From parent:  (This must be called first, before the other two methods
     // below can be called.)
     //
-    //    bool        SetAgreement(const int64_t & lTransactionNum,    const
-    // OTString & strConsideration,
-    //                             const time64_t & VALID_FROM=0,    const
-    // time64_t & VALID_TO=0);
+    //    bool        SetAgreement(const int64_t& lTransactionNum,    const
+    // OTString& strConsideration,
+    //                             const time64_t& VALID_FROM=0,    const
+    // time64_t& VALID_TO=0);
 
     // Then call one (or both) of these:
 
@@ -459,16 +459,16 @@ private: // These are NOT stored as part of the payment plan. They are merely
 public:
     // From OTAgreement (parent class of this)
     /*
-     inline OTIdentifier &    GetRecipientAcctID()        { return
+     inline OTIdentifier&    GetRecipientAcctID()        { return
      m_RECIPIENT_ACCT_ID; }
-     inline OTIdentifier &    GetRecipientUserID()        { return
+     inline OTIdentifier&    GetRecipientUserID()        { return
      m_RECIPIENT_USER_ID; }
-     inline void            SetRecipientAcctID(OTIdentifier & ACCT_ID)    {
+     inline void            SetRecipientAcctID(OTIdentifier& ACCT_ID)    {
      m_RECIPIENT_ACCT_ID = ACCT_ID; }
-     inline void            SetRecipientUserID(OTIdentifier & USER_ID)    {
+     inline void            SetRecipientUserID(OTIdentifier& USER_ID)    {
      m_RECIPIENT_USER_ID = USER_ID; }
 
-     const OTString &  GetConsideration() const { return m_strConsideration; }
+     const OTString&  GetConsideration() const { return m_strConsideration; }
      */
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -478,11 +478,11 @@ public:
     // From OTCronItem (parent class of OTAgreement, parent class of this)
 
     /*
-     inline void SetCronPointer(OTCron & theCron) { m_pCron = &theCron; }
+     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-     inline void SetCreationDate(const time64_t & CREATION_DATE) {
+     inline void SetCreationDate(const time64_t& CREATION_DATE) {
      m_CREATION_DATE = CREATION_DATE; }
-     inline const time64_t & GetCreationDate() const { return m_CREATION_DATE; }
+     inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
      */
 
     // From OTTrackable (parent class of OTCronItem, parent class of
@@ -492,28 +492,28 @@ public:
      inline void SetTransactionNum(int64_t lTransactionNum) { m_lTransactionNum
      = lTransactionNum; }
 
-     inline const   OTIdentifier &    GetSenderAcctID()               { return
+     inline const   OTIdentifier&    GetSenderAcctID()               { return
      m_SENDER_ACCT_ID; }
-     inline const   OTIdentifier &    GetSenderUserID()               { return
+     inline const   OTIdentifier&    GetSenderUserID()               { return
      m_SENDER_USER_ID; }
-     inline void    SetSenderAcctID(const OTIdentifier & ACCT_ID)    {
+     inline void    SetSenderAcctID(const OTIdentifier& ACCT_ID)    {
      m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void    SetSenderUserID(const OTIdentifier & USER_ID)    {
+     inline void    SetSenderUserID(const OTIdentifier& USER_ID)    {
      m_SENDER_USER_ID = USER_ID; }
      */
 
     // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of
     // OTAgreement, parent of this)
     /*
-     OTInstrument(const OTIdentifier & SERVER_ID, const OTIdentifier & ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
      : OTContract()
 
-     inline const OTIdentifier & GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier & GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
 
-     inline void SetAssetID(const OTIdentifier & ASSET_ID)  { m_AssetTypeID    =
+     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
      ASSET_ID; }
-     inline void SetServerID(const OTIdentifier & SERVER_ID) { m_ServerID    =
+     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
      SERVER_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
