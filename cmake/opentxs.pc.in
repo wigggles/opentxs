@@ -7,6 +7,6 @@ Name: @CMAKE_PROJECT_NAME@
 Description: @CPACK_PACKAGE_DESCRIPTION@
 Version: @VERSION@
 
-Libs: -L${libdir} -llibopentxs-client -llibopentxs-core -llibopentxs-ext
+Libs: -L${libdir} -lopentxs-client -lopentxs-core -lopentxs-ext
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}
