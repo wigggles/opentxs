@@ -10,9 +10,9 @@ if(GIT_FOUND)
     string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" VERSION_MAJOR "${GIT_VERSION}")
     string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${GIT_VERSION}")
     string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_BUGFIX "${GIT_VERSION}")
-    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${GIT_VERSION}")
+    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+-(.*)" "\\1" VERSION_SHA1 "${GIT_VERSION}")
     if (DEFINED VERSION_SHA1)
-        set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}.${VERSION_SHA1}")
+        set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}-${VERSION_SHA1}")
     else()
         set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}")
     endif()
@@ -245,8 +245,6 @@ if(WIN32)
     add_definitions(-DOT_PROMPT_NAME="Open Transactions Prompt")
 endif()
 
-add_definitions(-DOT_VERSION="${VERSION_STRING}")
-
 if(SIGNAL_HANLDER)
   add_definitions(-DOT_SIGNAL_HANDLING)
 endif()
@@ -284,6 +282,11 @@ else()
   add_definitions(-DEXPORT=)
 endif()
 
+
+#-----------------------------------------------------------------------------
+# Set in-source Version
+configure_file("include/opentxs/core/Version.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/include/opentxs/core/Version.hpp" @ONLY)
+execute_process(COMMAND git "update-index" "--assume-unchanged" "include/opentxs/core/Version.hpp" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 #-----------------------------------------------------------------------------
 # Build source

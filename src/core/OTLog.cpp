@@ -135,6 +135,7 @@
 #include "OTLog.hpp"
 #include "OTPaths.hpp"
 #include "util/stacktrace.h"
+#include "Version.hpp"
 
 #include <mutex>
 
@@ -249,7 +250,7 @@ namespace opentxs
 
 OTLog* OTLog::pLogger = nullptr;
 
-const OTString OTLog::m_strVersion = OT_VERSION;
+const OTString OTLog::m_strVersion = OPENTXS_VERSION_STRING;
 const OTString OTLog::m_strPathSeparator = "/";
 
 OTLOG_IMPORT OTLogStream otErr(-1); // logs using otErr << )
