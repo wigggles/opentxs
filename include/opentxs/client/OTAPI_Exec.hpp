@@ -155,8 +155,6 @@ public:
 
     EXPORT OT_API* OTAPI() const;
 
-    //    EXPORT virtual bool& Cleanup();
-
     EXPORT virtual int64_t StringToLong(const std::string& strNumber) const;
     EXPORT virtual std::string LongToString(const int64_t& lNumber) const;
 
@@ -167,8 +165,6 @@ public:
     INITIALIZE the OTAPI library
 
     Call this once per run of the application.
-
-
     */
     EXPORT virtual bool AppInit(); // Call this ONLY ONCE, when your App first
                                    // starts up.
