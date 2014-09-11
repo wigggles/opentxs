@@ -166,55 +166,7 @@ typedef std::set<OTIdentifier> setOfIdentifiers;
 
 class OTWallet
 {
-private:
-    mapOfNyms m_mapNyms;
-    mapOfContracts m_mapContracts;
-    mapOfServers m_mapServers;
-    mapOfAccounts m_mapAccounts;
-
-    setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master
-                                           // key are listed here (makes it easy
-                                           // to see which ones are converted
-                                           // already.)
-
-    OTString m_strName;
-    OTString m_strVersion;
-
-    // Let's say you have some private data that you want to store safely.
-    // For example, your Bitmessage user/pass. Perhaps you want to throw
-    // your Bitmessage connect string into your client-side sql*lite DB.
-    // But you can't leave the password there in plaintext form! So instead,
-    // you create a symmetric key to encrypt it with (stored here on this
-    // map.)
-    // Therefore your data, such as your Bitmessage password, is stored in
-    // encrypted form to a symmetric key stored in the wallet. Then that
-    // symmetric key is encrypted to the master password in the wallet.
-    // If the master password ever changes, the symmetric keys on this map
-    // can be re-encrypted to the new master password. Meanwhile the Bitmessage
-    // connection string ITSELF, in your sql*lite DB, doesn't need to be re-
-    // encrypted at all, since it's encrypted to the symmetric key, which,
-    // though itself may be re-encrypted to another master password, the actual
-    // contents of the symmetric key haven't changed.
-    //
-    // (This way you can change the wallet master passphrase, WITHOUT having
-    // to go through your sql*lite database re-encrypting all the crap in there
-    // that you might have encrypted previously before you changed your wallet
-    // password.)
-    //
-    // That's why these are "extra" keys -- because you can create as many of
-    // them as you want, and just use them for encrypting various data on the
-    // client side.
-    //
-    mapOfSymmetricKeys m_mapExtraKeys;
-
-    // While waiting on server response to withdrawal,
-    // store private coin data here for unblinding
-    Purse* m_pWithdrawalPurse;
-
 public:
-    OTString m_strFilename;
-    OTString m_strDataFolder;
-
     EXPORT OTWallet();
     ~OTWallet();
 
@@ -360,6 +312,55 @@ public:
 
 private:
     void Release();
+
+private:
+    mapOfNyms m_mapNyms;
+    mapOfContracts m_mapContracts;
+    mapOfServers m_mapServers;
+    mapOfAccounts m_mapAccounts;
+
+    setOfIdentifiers m_setNymsOnCachedKey; // All the Nyms that use the Master
+                                           // key are listed here (makes it easy
+                                           // to see which ones are converted
+                                           // already.)
+
+    OTString m_strName;
+    OTString m_strVersion;
+
+    // Let's say you have some private data that you want to store safely.
+    // For example, your Bitmessage user/pass. Perhaps you want to throw
+    // your Bitmessage connect string into your client-side sql*lite DB.
+    // But you can't leave the password there in plaintext form! So instead,
+    // you create a symmetric key to encrypt it with (stored here on this
+    // map.)
+    // Therefore your data, such as your Bitmessage password, is stored in
+    // encrypted form to a symmetric key stored in the wallet. Then that
+    // symmetric key is encrypted to the master password in the wallet.
+    // If the master password ever changes, the symmetric keys on this map
+    // can be re-encrypted to the new master password. Meanwhile the Bitmessage
+    // connection string ITSELF, in your sql*lite DB, doesn't need to be re-
+    // encrypted at all, since it's encrypted to the symmetric key, which,
+    // though itself may be re-encrypted to another master password, the actual
+    // contents of the symmetric key haven't changed.
+    //
+    // (This way you can change the wallet master passphrase, WITHOUT having
+    // to go through your sql*lite database re-encrypting all the crap in there
+    // that you might have encrypted previously before you changed your wallet
+    // password.)
+    //
+    // That's why these are "extra" keys -- because you can create as many of
+    // them as you want, and just use them for encrypting various data on the
+    // client side.
+    //
+    mapOfSymmetricKeys m_mapExtraKeys;
+
+    // While waiting on server response to withdrawal,
+    // store private coin data here for unblinding
+    Purse* m_pWithdrawalPurse;
+
+public:
+    OTString m_strFilename;
+    OTString m_strDataFolder;
 };
 
 } // namespace opentxs
