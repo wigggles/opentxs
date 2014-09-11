@@ -2747,13 +2747,11 @@ bool OTTransaction::VerifyBalanceReceipt(
     // balance is what would be expected.
     //
     // -1099                    // -99 (example of 1000 absolute difference)
+
+    // How much money came out? (Or went in, if the chequeReceipt was for
+    // an invoice...) 901 -99 (example of 1000 absolute difference)
     const int64_t lAbsoluteDifference =
-        abs(lInboxBalanceChange - lReceiptBalanceChange); // How much money came
-                                                          // out? (Or went in,
-                                                          // if the
-                                                          // chequeReceipt was
-                                                          // for an invoice...)
-    // 901                        // -99 (example of 1000 absolute difference)
+        std::abs(lInboxBalanceChange - lReceiptBalanceChange);
     const int64_t lNegativeDifference = (lAbsoluteDifference * (-1));
 
     // The new (current) inbox has a larger overall value than the balance in
