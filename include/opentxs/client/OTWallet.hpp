@@ -216,9 +216,8 @@ public:
     OTString m_strDataFolder;
 
     EXPORT OTWallet();
-    virtual ~OTWallet();
-    virtual void Release();
-    void Release_Wallet();
+    ~OTWallet();
+
     EXPORT bool IsNymOnCachedKey(const OTIdentifier& needle) const; // needle
                                                                     // and
                                                                     // haystack.
@@ -358,6 +357,9 @@ public:
     //
     EXPORT bool RemoveAccount(const OTIdentifier& theTargetID);
     EXPORT bool RemoveNym(const OTIdentifier& theTargetID);
+
+private:
+    void Release();
 };
 
 } // namespace opentxs
