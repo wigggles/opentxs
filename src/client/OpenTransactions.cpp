@@ -410,10 +410,6 @@ bool OT_API::InitOTApp()
         if (!OTLog::Init("client")) {
             assert(false);
         }
-
-        otOut << "\n\nWelcome to Open Transactions -- version "
-              << OTLog::Version() << "\n";
-
         otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
 
 #ifdef OT_ZMQ_2_MODE
