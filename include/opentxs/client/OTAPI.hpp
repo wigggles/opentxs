@@ -143,15 +143,6 @@ class OTAPI_Exec;
 
 class OTAPI_Wrap
 {
-private:
-    // cannot instantiate this class
-    OTAPI_Wrap()
-    {
-    }
-    ~OTAPI_Wrap()
-    {
-    }
-
 public:
     EXPORT static OTAPI_Exec* SetExecutor(OTAPI_Exec* exec);
 
@@ -4028,6 +4019,12 @@ public:
     */
     EXPORT static std::string Message_GetNymboxHash(
         const std::string& THE_MESSAGE);
+
+private:
+    OTAPI_Wrap();
+    ~OTAPI_Wrap()
+    {
+    }
 };
 
 } // namespace opentxs
