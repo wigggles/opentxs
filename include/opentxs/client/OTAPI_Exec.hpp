@@ -142,13 +142,6 @@ class OT_API;
 
 class OTAPI_Exec
 {
-
-protected:
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
-
-    OT_API* p_OTAPI;
-
 public:
     EXPORT OTAPI_Exec();
     EXPORT virtual ~OTAPI_Exec();
@@ -4082,6 +4075,12 @@ public:
     */
     EXPORT virtual std::string Message_GetNymboxHash(
         const std::string& THE_MESSAGE) const;
+
+protected:
+    static bool bInitOTApp;
+    static bool bCleanupOTApp;
+
+    OT_API* p_OTAPI;
 };
 
 } // namespace opentxs
