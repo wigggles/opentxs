@@ -1,32 +1,5 @@
-#see http://shanesbrain.net/2008/7/9/using-xcode-with-git
-# xcode noise
+# build noise
 build/*
-*.log
-*.trs
-*.xcconfig
-*.xcclassmodel/*
-*.o
-*.o-*
-*.a
-*.dylib 
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.pch
-*.perspectivev3
-*.jnilib
-*.exe
-*.user
-*.suo
-*.sdf
-*.opensdf
-xcuserdata/
-*.deps/
-
-*.jar
-
-# old skool
-.svn
 
 # osx noise
 .DS_Store
@@ -35,91 +8,17 @@ profile
 # emacs noise
 *~
 
-# cmake noise
-CMakeCache.txt
-CMakeFiles/
-CPackConfig.cmake
-CPackSourceConfig.cmake
-_CPack_Packages/
-cmake_install.cmake
-install_manifest.txt
-opentxs-server-0.0.1-1.x86_64.rpm
-opentxs-server.spec
-src/CMakeFiles/
-src/cmake_install.cmake
-src/createmint/CMakeFiles/
-src/createmint/cmake_install.cmake
-src/createmint/createmint
-Makefile
-
-
-# protobuf output
-include/otlib/*.pb*
-src/otlib/*.pb*
-
 # visual studio noise
 *.user
 *.sdf
 *ipch/
 *.userprefs
 
-# targets
-
-build/
-lib/
-obj/
-bin/
-
-
-# includes
-include/chaiscript/
-include/zeromq/
-include/otapi/OTAPI_wrap.h
-include/zmq.h
-include/zmq.hpp
-include/zmq_utils.h
-include/google
-
-# swig temp files
-swig/otapi/OTAPI_wrap.h
-
-
-# linux configure noise
-build-aux/csharpcomp.sh
-Makefile
-config.h
-ot_config.h
-config.log
-config.status
-libtool
-stamp-h1
-src/opentxs.pc
-src/.deps/
-src/otapi/.deps/
-src/otlib/.deps/
-src/otlib/bigint/.deps/
-src/otlib/irrxml/.deps/
-src/otlib/lucre/.deps/
-src/otlib/protobOT/.deps/
-
-# linux build noise
-*.lo
-*.la
-.dirstamp
-.libs
 *.pb.cc
-src/createmint
-src/ot
-src/otserver
-unittests_*
 Bitcoin.cc
 Generics.cc
 Markets.cc
 Moneychanger.cc
-
-# Qt Creator .pro files
-project-Qt/
-build-OpenTransactions*
 
 # KDE Dolphin (file manager) noise
 .directory
