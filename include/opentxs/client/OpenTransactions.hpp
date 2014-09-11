@@ -186,10 +186,9 @@ public:
     EXPORT bool operator()(OTServerContract&, OTEnvelope&);
 };
 
-class OT_API // The C++ high-level interface to the Open Transactions
-             // client-side.
+// The C++ high-level interface to the Open Transactions client-side.
+class OT_API
 {
-    // Static
 private:
     OT_API(const OT_API&);
     OT_API& operator=(const OT_API&);
@@ -197,12 +196,9 @@ private:
     static bool bCleanupOTApp;
 
 public:
-    // Static
-    EXPORT static bool InitOTApp();    // Once per run. calls
-                                       // OTLog::Init("client");
-    EXPORT static bool CleanupOTApp(); // As the application shuts down
-                                       // gracefully...
-                                       // Member
+    EXPORT static bool InitOTApp();
+    EXPORT static bool CleanupOTApp();
+
 private:
     class Pid
     {
@@ -217,6 +213,7 @@ private:
         void ClosePid();
         bool IsPidOpen() const;
     };
+
     Pid* const m_pPid; // only one pid reference per instance, must not change
 
     bool m_bInitialized;
@@ -237,14 +234,17 @@ private:
 public:
     EXPORT OT_API();  // calls Init();
     EXPORT ~OT_API(); // calls Cleanup();
+
 private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
+
 public:
     EXPORT bool IsInitialized() const
     {
         return m_bInitialized;
     }
+
     EXPORT bool SetTransportCallback(TransportCallback* pTransportCallback);
     EXPORT TransportCallback* GetTransportCallback() const;
     EXPORT bool TransportFunction(const OTServerContract& theServerContract,
@@ -252,10 +252,12 @@ public:
     EXPORT bool GetWalletFilename(OTString& strPath) const;
     EXPORT bool SetWalletFilename(const OTString& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
+
     inline OTClient* GetClient() const
     {
         return m_pClient;
     }
+
     EXPORT bool LoadConfigFile();
     EXPORT bool SetWallet(const OTString& strFilename);
     EXPORT bool WalletExists() const;
@@ -288,7 +290,6 @@ public:
                            OTString& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
-    //
     EXPORT OTPseudonym* GetNym(const OTIdentifier& NYM_ID,
                                const char* szFuncName = nullptr) const;
     EXPORT OTServerContract* GetServer(const OTIdentifier& THE_ID,
@@ -336,7 +337,6 @@ public:
                                        const char* szFuncName = nullptr) const;
     // The name is basically just a client-side label.
     // This function lets you change it.
-    //
     EXPORT bool SetNym_Name(const OTIdentifier& NYM_ID,
                             const OTIdentifier& SIGNER_NYM_ID,
                             const OTString& NYM_NEW_NAME) const;
@@ -352,7 +352,6 @@ public:
                                const OTString& STR_NEW_NAME) const;
     // Accessing local storage...
     // (Caller responsible to delete.)
-    //
     EXPORT OTPseudonym* LoadPublicNym(const OTIdentifier& NYM_ID,
                                       const char* szFuncName = nullptr) const;
     EXPORT OTPseudonym* LoadPrivateNym(const OTIdentifier& NYM_ID,
@@ -376,7 +375,6 @@ public:
     // "get request number" since that's what locks in the clients ability to be
     // able to tell
     // that it's registered there.
-    //
     EXPORT bool IsNym_RegisteredAtServer(const OTIdentifier& NYM_ID,
                                          const OTIdentifier& SERVER_ID) const;
     EXPORT bool Wallet_ChangePassphrase() const;
@@ -394,7 +392,6 @@ public:
     // object (in base64-encoded form) and then import it again.
     //
     // Returns bool on success, and strOutput will contain the exported data.
-    //
     EXPORT bool Wallet_ExportNym(const OTIdentifier& NYM_ID,
                                  OTString& strOutput) const;
     // OT has the capability to export a Nym (normally stored in several files)
@@ -406,7 +403,6 @@ public:
     // Also on failure, if the Nym was already there with that ID, and if pNymID
     // is passed,
     // then it will be set to the ID that was already there.
-    //
     EXPORT bool Wallet_ImportNym(const OTString& FILE_CONTENTS,
                                  OTIdentifier* pNymID = nullptr) const;
     // In this case, instead of importing a special "OT Nym all-in-one exported"
@@ -422,13 +418,11 @@ public:
     // Also on failure, if the Nym was already there with that ID, and if pNymID
     // is passed,
     // then it will be set to the ID that was already there.
-    //
     EXPORT bool Wallet_ImportCert(const OTString& DISPLAY_NAME,
                                   const OTString& FILE_CONTENTS,
                                   OTIdentifier* pNymID = nullptr) const;
     // Removes master key and sets a normal passphrase on the Cert.
     // Similar to ExportNym except it only exports the Cert portion.
-    //
     EXPORT bool Wallet_ExportCert(const OTIdentifier& NYM_ID,
                                   OTString& strOutput) const;
     // First three arguments denote the existing purse.
@@ -522,11 +516,10 @@ public:
     /// its own last signed receipt.
     /// Obviously this will fail for any new account that hasn't done any
     /// transactions yet, and thus has no receipts.
-    ///
     EXPORT bool VerifyAccountReceipt(const OTIdentifier& SERVER_ID,
                                      const OTIdentifier& USER_ID,
                                      const OTIdentifier& ACCOUNT_ID) const;
-    //
+
     // Returns an OTCheque pointer, or nullptr.
     // (Caller responsible to delete.)
     EXPORT OTCheque* WriteCheque(
@@ -535,9 +528,9 @@ public:
         const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_USER_ID,
         const OTString& CHEQUE_MEMO,
         const OTIdentifier* pRECIPIENT_USER_ID = nullptr) const;
+
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)
-
     EXPORT bool DiscardCheque(const OTIdentifier& SERVER_ID,
                               const OTIdentifier& USER_ID,
                               const OTIdentifier& ACCT_ID,
@@ -555,7 +548,6 @@ public:
     // Payment Plan Length, and Payment Plan Max Payments, both default to 0,
     // which means
     // no maximum length and no maximum number of payments.
-    //
     EXPORT OTPaymentPlan* ProposePaymentPlan(
         const OTIdentifier& SERVER_ID,
         const time64_t& VALID_FROM, // 0 defaults to the current time in seconds
@@ -582,10 +574,8 @@ public:
             OT_TIME_ZERO,                     // after the length (in seconds)
         int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0 // expires, or after the maximum
         ) const;                              // number of payments. These last
-    // ----------------------------------------------------
-    // // two arguments are optional.
+
     // CONFIRM PAYMENT PLAN (called by Customer)
-    //
     EXPORT bool ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& SENDER_USER_ID,
                                    const OTIdentifier& SENDER_ACCT_ID,
@@ -606,7 +596,6 @@ public:
     // This is a low-level utility function. Probably should
     // make this private so people don't confuse it with the API.
     // All the purse functions use this.
-    //
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
         const OTIdentifier& theServerID, const OTIdentifier& theAssetTypeID,
         const OTString& strPurse, Purse& thePurse, // output
@@ -735,7 +724,6 @@ public:
     // LoadRecordBox
     // Note: depending on the record type, the Account ID may contain the User
     // ID.
-    //
     EXPORT OTLedger* LoadRecordBox(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
                                    const OTIdentifier& ACCOUNT_ID) const;
@@ -771,7 +759,6 @@ public:
                                // saved.
     // So the client side knows which ones he has in storage, vs which ones he
     // still needs to download.
-    //
     EXPORT bool DoesBoxReceiptExist(
         const OTIdentifier& SERVER_ID,
         const OTIdentifier& USER_ID,    // Unused here for now, but still
@@ -781,13 +768,11 @@ public:
         int32_t nBoxType,               // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum) const;
     // Incoming
-    //
     EXPORT OTMessage* PopMessageBuffer(const int64_t& lRequestNumber,
                                        const OTIdentifier& SERVER_ID,
                                        const OTIdentifier& USER_ID) const;
     void FlushMessageBuffer();
     // Outgoing
-    //
     EXPORT OTMessage* GetSentMessage(const int64_t& lRequestNumber,
                                      const OTIdentifier& SERVER_ID,
                                      const OTIdentifier& USER_ID) const;
@@ -953,7 +938,6 @@ public:
     // -1 if error.
     //  0 if Nymbox is empty.
     //  1 or more: Count of items in Nymbox before processing.
-    //
     EXPORT int32_t processNymbox(const OTIdentifier& SERVER_ID,
                                  const OTIdentifier& USER_ID) const;
 
@@ -1176,15 +1160,11 @@ public:
     EXPORT int32_t getNym_MarketOffers(const OTIdentifier& SERVER_ID,
                                        const OTIdentifier& USER_ID) const;
     // For cancelling market offers and payment plans.
-    //
     EXPORT int32_t cancelCronItem(const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& USER_ID,
                                   const OTIdentifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
 
-    // EXPORT int32_t getOffer_Trades(const OTIdentifier& SERVER_ID,
-    //                               const OTIdentifier& USER_ID,
-    //                               const int64_t& lTransactionNum);
     EXPORT void AddServerContract(const OTServerContract& pContract) const;
     EXPORT void AddAssetContract(const OTAssetContract& theContract) const;
 };
