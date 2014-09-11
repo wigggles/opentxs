@@ -155,31 +155,6 @@ class OTVariable;
 
 class OT_ME
 {
-private:
-    OT_ME(const OT_ME&);
-    OT_ME& operator=(const OT_ME&);
-
-    static OT_ME* s_pMe;
-
-    OT_ME* r_pPrev; // For reference only. Do not delete.
-    std::shared_ptr<OTScript> m_pScript;
-    OTMeCpp* m_pImplementation;
-
-    bool HaveWorkingScript();
-
-    bool Register_OTDB_With_Script();
-    bool Register_CLI_With_Script();
-    bool Register_API_With_Script();
-    bool Register_Headers_With_Script();
-
-#ifdef OT_USE_SCRIPT_CHAI
-    bool SetupScriptObject();
-    bool Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const;
-    bool Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const;
-    bool Register_API_With_Script_Chai(const OTScriptChai& theScript) const;
-    bool Register_Headers_With_Script_Chai(const OTScriptChai& theScript) const;
-#endif
-
 public:
     EXPORT OT_ME();
     EXPORT ~OT_ME();
@@ -471,6 +446,31 @@ public:
     EXPORT std::string adjust_usage_credits(
         const std::string& SERVER_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
+
+private:
+    OT_ME(const OT_ME&);
+    OT_ME& operator=(const OT_ME&);
+
+    static OT_ME* s_pMe;
+
+    OT_ME* r_pPrev; // For reference only. Do not delete.
+    std::shared_ptr<OTScript> m_pScript;
+    OTMeCpp* m_pImplementation;
+
+    bool HaveWorkingScript();
+
+    bool Register_OTDB_With_Script();
+    bool Register_CLI_With_Script();
+    bool Register_API_With_Script();
+    bool Register_Headers_With_Script();
+
+#ifdef OT_USE_SCRIPT_CHAI
+    bool SetupScriptObject();
+    bool Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const;
+    bool Register_CLI_With_Script_Chai(const OTScriptChai& theScript) const;
+    bool Register_API_With_Script_Chai(const OTScriptChai& theScript) const;
+    bool Register_Headers_With_Script_Chai(const OTScriptChai& theScript) const;
+#endif
 };
 
 } // namespace opentxs
