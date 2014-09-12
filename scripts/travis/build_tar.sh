@@ -31,6 +31,7 @@ cp scripts/tests/ot_test.opentxs opentxs/tests/
 cp scripts/ot/*.ot opentxs/tests/
 
 git fetch --tags origin
+git fetch origin
 version=$(git describe)
 compiler=${CXX}
 package="opentxs-${version%%-*}-${os}-${compiler}.tar.gz"
