@@ -30,11 +30,8 @@ cp -r deps/irrxml opentxs/include/
 cp scripts/tests/ot_test.opentxs opentxs/tests/
 cp scripts/ot/*.ot opentxs/tests/
 
-# tag is only visible on develop and not on PR branch
-commit_sha1=$(git rev-parse HEAD)
-git checkout develop
+git fetch --tags origin
 version=$(git describe)
-git checkout $commit_sha1
 compiler=${CXX}
 package="opentxs-${version%%-*}-${os}-${compiler}.tar.gz"
 
