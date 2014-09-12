@@ -326,20 +326,10 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     // Generate derived key from passphrase.
     //
     std::unique_ptr<OTPassword> pDerivedKey(
-        CalculateNewDerivedKeyFromPassphrase(thePassphrase)); // asserts
-                                                              // already.
+        CalculateNewDerivedKeyFromPassphrase(thePassphrase));
 
-    if (nullptr !=
-        ppDerivedKey) // A pointerpointer was passed in... (caller will
-                      // be responsible then, to delete.)
-    {
-        *ppDerivedKey = pDerivedKey.get();
-    }
-    else // We only clean it up in this case, where the caller didn't want the
-           // pointer passed back.
-    {
-        pDerivedKey.reset();
-    }
+    OT_ASSERT(nullptr != pDerivedKey);
+
     // Below this point, pDerivedKey is NOT null. (And we only clean it up later
     // if we created it.)
 
@@ -372,6 +362,11 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     otInfo << "  End: " << __FUNCTION__
            << ": (GENERATING keys and passwords...) "
            << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
+
+    // return the pDerivedKey, if wanted.
+    if (nullptr != ppDerivedKey) {
+        *ppDerivedKey = pDerivedKey.release();
+    }
 
     return m_bIsGenerated;
 }
