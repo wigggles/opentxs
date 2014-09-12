@@ -5052,11 +5052,13 @@ OpenSSL_BIO::OpenSSL_BIO(BIO* pBIO)
 OpenSSL_BIO::~OpenSSL_BIO()
 {
     if (bCleanup) {
-        if (bFreeOnly) {
-            BIO_free(&m_refBIO);
-        }
-        else {
-            BIO_free_all(&m_refBIO);
+        if (nullptr != &m_refBIO) {
+            if (bFreeOnly) {
+                BIO_free(&m_refBIO);
+            }
+            else {
+                BIO_free_all(&m_refBIO);
+            }
         }
     }
 }
