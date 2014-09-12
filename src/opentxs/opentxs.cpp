@@ -147,6 +147,7 @@
 #include "opentxs/core/OTPaths.hpp"
 #include "opentxs/core/OTPseudonym.hpp"
 #include "opentxs/core/OTServerContract.hpp"
+#include "opentxs/core/Version.hpp"
 
 #include <anyoption/anyoption.hpp>
 
@@ -682,8 +683,6 @@ int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
         }
     }
 
-    otOut << "\n";
-
     if (serverContract != nullptr && myNym != nullptr) {
         OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
             *serverContract, *myNym,
@@ -720,6 +719,12 @@ int Opentxs::opentxsCommand(const string& command)
 {
     if ("exit" == command || "quit" == command) {
         return -2;
+    }
+
+    if ("version" == command) {
+        otOut << "opentxs " << OPENTXS_VERSION_STRING << "\n";
+        otOut << "Copyright (C) 2014 Open Transactions Developers\n";
+        return 0;
     }
 
     if ("list" == command) {

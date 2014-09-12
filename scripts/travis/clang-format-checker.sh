@@ -5,7 +5,8 @@ if [ "$(uname)" != "Linux" ]; then
     exit 0
 fi
 
-files=$(git ls-files | grep -E '^(src|include/opentxs)' | grep pp$)
+files=$(git ls-files | grep -E '^(src|include/opentxs)' | grep pp$ \
+        | grep -v -- "include/opentxs/core/Version.hpp")
 diffs=$(./scripts/travis/clang-format-wrapper.sh "$files")
 [ "$diffs" ] || exit 0
 echo Found C++ code style formatting issues:

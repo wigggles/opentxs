@@ -10,11 +10,11 @@ if(GIT_FOUND)
     string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" VERSION_MAJOR "${GIT_VERSION}")
     string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${GIT_VERSION}")
     string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_BUGFIX "${GIT_VERSION}")
-    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${GIT_VERSION}")
-    if (DEFINED VERSION_SHA1)
-        set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}.${VERSION_SHA1}")
-    else()
+    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+-(.*)" "\\1" VERSION_SHA1 "${GIT_VERSION}")
+    if("${VERSION_SHA1}" STREQUAL "")
         set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}")
+    else()
+        set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}-${VERSION_SHA1}")
     endif()
 else()
   message(FATAL_ERROR "Git not found.")
@@ -245,8 +245,6 @@ if(WIN32)
     add_definitions(-DOT_PROMPT_NAME="Open Transactions Prompt")
 endif()
 
-add_definitions(-DOT_VERSION="${VERSION_STRING}")
-
 if(SIGNAL_HANLDER)
   add_definitions(-DOT_SIGNAL_HANDLING)
 endif()
@@ -284,6 +282,11 @@ else()
   add_definitions(-DEXPORT=)
 endif()
 
+
+#-----------------------------------------------------------------------------
+# Set in-source Version
+configure_file("include/opentxs/core/Version.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/include/opentxs/core/Version.hpp" @ONLY)
+execute_process(COMMAND git "update-index" "--assume-unchanged" "include/opentxs/core/Version.hpp" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 #-----------------------------------------------------------------------------
 # Build source
@@ -374,10 +377,9 @@ set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 
 set(CPACK_PACKAGE_VERSION ${VERSION_STRING})
 set(CPACK_PACKAGE_NAME "opentxs")
-set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Lucas Betschart")
 set(CPACK_PACKAGE_VENDOR "Monetas AG")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Transactions library and command line client")
 set(CPACK_PACKAGE_DESCRIPTION "
 Open-Transactions democratizes financial and monetary actions.
