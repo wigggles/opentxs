@@ -135,6 +135,7 @@
 #include "OTAPI_Exec.hpp"
 #include "OpenTransactions.hpp"
 #include "OTWallet.hpp"
+#include "TransportCallback.hpp"
 #include "Helpers.hpp"
 
 #include "../ext/OTPayment.hpp"

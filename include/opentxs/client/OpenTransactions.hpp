@@ -152,6 +152,7 @@
 namespace opentxs
 {
 
+class TransportCallback;
 class OT_API;
 class OTAccount;
 class OTAssetContract;
@@ -173,18 +174,6 @@ class OTWallet;
 class Mint;
 class Purse;
 class Token;
-
-struct TransportCallback
-    : public std::binary_function<OTServerContract&, OTEnvelope&, bool>
-{
-private:
-    OT_API& m_refOT_API;
-
-public:
-    EXPORT TransportCallback(OT_API& refOT_API);
-    EXPORT ~TransportCallback();
-    EXPORT bool operator()(OTServerContract&, OTEnvelope&);
-};
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API

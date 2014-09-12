@@ -136,6 +136,7 @@
 #include "OpenTransactions.hpp"
 #include "OTClient.hpp"
 #include "OTWallet.hpp"
+#include "TransportCallback.hpp"
 
 #include "../core/OTAssetContract.hpp"
 #include "../core/OTDataCheck.hpp"

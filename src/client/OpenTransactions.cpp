@@ -138,6 +138,7 @@
 #include "OTServerConnection.hpp"
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
+#include "TransportCallback.hpp"
 
 #include "../ext/InstantiateContract.hpp"
 #include "../ext/OTPayment.hpp"
@@ -380,24 +381,6 @@ bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
 bool OT_API::bInitOTApp = false;
 // static
 bool OT_API::bCleanupOTApp = false;
-
-TransportCallback::TransportCallback(OT_API& refOT_API) : m_refOT_API(refOT_API)
-{
-}
-
-TransportCallback::~TransportCallback()
-{
-}
-
-// Transport Callback Main Operator
-bool TransportCallback::operator()(OTServerContract& theserverContract,
-                                   OTEnvelope& theEnvelope)
-{
-    if (m_refOT_API.IsInitialized())
-        return m_refOT_API.TransportFunction(theserverContract, theEnvelope);
-    else
-        return false;
-}
 
 // Call this once per run of the software. (enforced by a static value)
 //

@@ -139,8 +139,7 @@
 namespace opentxs
 {
 
-struct TransportCallback;
-
+class TransportCallback;
 class OTAccount;
 class OTAssetContract;
 class OTLedger;
