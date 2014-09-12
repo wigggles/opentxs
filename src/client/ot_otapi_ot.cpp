@@ -1398,15 +1398,16 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
     if (nCount > 0) {
         for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
             nTemp = nIndex;
-            OTDB::OfferDataNym& offerData = *offerList.GetOfferDataNym(nTemp);
+            OTDB::OfferDataNym* offerDataPtr = offerList.GetOfferDataNym(nTemp);
 
-            if (nullptr == &offerData) {
+            if (!offerDataPtr) {
                 otOut << strLocation << ": Unable to reference (nym) offerData "
                                         "on offerList, at index: " << nIndex
                       << "\n";
                 return map_of_maps;
             }
 
+            OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
             string strAssetTypeID = offerData.asset_type_id;
             string strCurrencyTypeID = offerData.currency_type_id;
@@ -1668,7 +1669,8 @@ iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
     //
     // var range_sub_map = sub_map.range();
 
-    if (nullptr == &sub_map) {
+    SubMap* sub_mapPtr = &sub_map;
+    if (!sub_mapPtr) {
         otOut << strLocation << ": No range retrieved from sub_map. It must be "
                                 "non-existent, I guess.\n";
         return -1;
@@ -1697,12 +1699,6 @@ iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
         }
 
         OTDB::OfferDataNym& offer_data = *it->second;
-        if (nullptr == &offer_data) {
-            otOut << strLocation
-                  << ": Error: offer_data is not an OTDB::OfferDataNym.\n";
-            return -1;
-        }
-
         int32_t nLambda =
             (*the_lambda)(offer_data, nIndex, map_of_maps, sub_map,
                           extra_vals); // if 10 offers are printed for the SAME
@@ -1748,7 +1744,8 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
     // market therein...
     //
     // var range_map_of_maps = map_of_maps.range();
-    if (nullptr == &map_of_maps) {
+    MapOfMaps* map_of_mapsPtr = &map_of_maps;
+    if (!map_of_mapsPtr) {
         otOut << strLocation << ": No range retrieved from map_of_maps.\n";
         return -1;
     }
@@ -1772,12 +1769,6 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
         string strMapKey = it->first;
 
         SubMap& sub_map = *it->second;
-        if (nullptr == &sub_map) {
-            otOut << strLocation << ": Error: Sub_map is not a map. (Then how "
-                                    "is it even here?? Submaps are only added "
-                                    "based on existing offers.)\n";
-            return -1;
-        }
         if (sub_map.empty()) {
             otOut << strLocation << ": Error: Sub_map is empty (Then how is it "
                                     "even here?? Submaps are only added based "

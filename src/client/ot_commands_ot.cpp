@@ -4743,9 +4743,10 @@ OT_Command::details_create_offer(const string& strScale,
     This is done here:
     */
 
-    OTDB::OfferListNym& offerList = *loadNymOffers(strMyServerID, strMyNymID);
+    OTDB::OfferListNym* offerListPtr = loadNymOffers(strMyServerID, strMyNymID);
+    OTDB::OfferListNym& offerList = *offerListPtr;
 
-    if (nullptr == &offerList) {
+    if (!offerListPtr) {
         otOut << strLocation << ": Unable to load up a (nym) offerList from "
                                 "local storage. Probably doesn't exist.\n";
     }
@@ -6832,12 +6833,12 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
 OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
 {
     if (VerifyExists("Server")) {
-        OTDB::MarketList& marketList = *loadMarketList(Server);
-
-        if (nullptr == &marketList) {
+        OTDB::MarketList* marketListPtr = loadMarketList(Server);
+        if (!marketListPtr) {
             otOut << "Unable to load up marketlist from local storage.\n";
             return -1;
         }
+        OTDB::MarketList& marketList = *marketListPtr;
 
         // LOOP THROUGH THE MARKETS AND PRINT THEM OUT.
 
@@ -6855,13 +6856,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
                      "cy\n";
 
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                OTDB::MarketData& marketData =
-                    *marketList.GetMarketData(nIndex);
-                if (nullptr == &marketData) {
+                OTDB::MarketData* marketDataPtr =
+                    marketList.GetMarketData(nIndex);
+                if (!marketDataPtr) {
                     otOut << "Unable to reference marketData on marketList, at "
                              "index: " << nIndex << "\n";
                     return -1;
                 }
+                OTDB::MarketData& marketData = *marketDataPtr;
 
                 // OUTPUT THE MARKET DATA...
                 cout << nIndex << "\t" << marketData.scale << "\tM "
@@ -6935,13 +6937,14 @@ OT_COMMANDS_OT int32_t
 OT_Command::details_show_market_offers(const string& strServerID,
                                        const string& strMarketID)
 {
-    OTDB::OfferListMarket& offerList =
-        *loadMarketOffers(strServerID, strMarketID);
+    OTDB::OfferListMarket* offerListPtr =
+        loadMarketOffers(strServerID, strMarketID);
 
-    if (nullptr == &offerList) {
+    if (!offerListPtr) {
         otOut << "Unable to load up a (market) offerList from local storage.\n";
         return -1;
     }
+    OTDB::OfferListMarket& offerList = *offerListPtr;
 
     // LOOP THROUGH THE BIDS AND PRINT THEM OUT.
     int32_t nBidCount = offerList.GetBidDataCount();
@@ -6951,12 +6954,13 @@ OT_Command::details_show_market_offers(const string& strServerID,
         otOut << "\n** BIDS **\n\nIndex\tTrans#\tPrice\tAvailable\n";
 
         for (int32_t nIndex = 0; nIndex < nBidCount; ++nIndex) {
-            OTDB::BidData& offerData = *offerList.GetBidData(nIndex);
-            if (nullptr == &offerData) {
+            OTDB::BidData* offerDataPtr = offerList.GetBidData(nIndex);
+            if (!offerDataPtr) {
                 otOut << "Unable to reference bidData on offerList, at index: "
                       << nIndex << "\n";
                 return -1;
             }
+            OTDB::BidData& offerData = *offerDataPtr;
 
             // OUTPUT THE BID OFFER DATA...
             cout << nIndex << "\t" << offerData.transaction_id << "\t"
@@ -6973,13 +6977,14 @@ OT_Command::details_show_market_offers(const string& strServerID,
 
         for (int32_t nIndex = 0; nIndex < nAskCount; ++nIndex) {
             nTemp = nIndex;
-            OTDB::AskData& offerData = *offerList.GetAskData(nTemp);
+            OTDB::AskData* offerDataPtr = offerList.GetAskData(nTemp);
 
-            if (nullptr == &offerData) {
+            if (!offerDataPtr) {
                 otOut << "Unable to reference askData on offerList, at index: "
                       << nIndex << "\n";
                 return -1;
             }
+            OTDB::AskData& offerData = *offerDataPtr;
 
             // OUTPUT THE ASK OFFER DATA...
             cout << nIndex << "\t" << offerData.transaction_id << "\t"
@@ -7213,13 +7218,14 @@ OT_Command::details_show_nym_offers(const string& strServerID,
 {
     string strLocation = "details_show_nym_offers";
 
-    OTDB::OfferListNym& offerList = *loadNymOffers(strServerID, strNymID);
+    OTDB::OfferListNym* offerListPtr = loadNymOffers(strServerID, strNymID);
 
-    if (nullptr == &offerList) {
+    if (!offerListPtr) {
         otOut << strLocation << ": Unable to load up a (nym) offerList from "
                                 "local storage. Probably doesn't exist.\n";
         return -1;
     }
+    OTDB::OfferListNym& offerList = *offerListPtr;
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
     // scale-assetID-currencyID
@@ -7227,13 +7233,14 @@ OT_Command::details_show_nym_offers(const string& strServerID,
     // value: the offer data itself.
     int32_t nCount = offerList.GetOfferDataNymCount();
     if (nCount > 0) {
-        MapOfMaps& map_of_maps = *convert_offerlist_to_maps(offerList);
+        MapOfMaps* map_of_mapsPtr = convert_offerlist_to_maps(offerList);
 
-        if (nullptr == &map_of_maps) {
+        if (!map_of_mapsPtr) {
             otOut << strLocation << ": Unable to convert offer list to map of "
                                     "offers. Perhaps it's empty?\n";
             return -1;
         }
+        MapOfMaps& map_of_maps = *map_of_mapsPtr;
 
         // output_nymoffer_data is called for each offer, for this nym,
         // as it iterates through the maps.
