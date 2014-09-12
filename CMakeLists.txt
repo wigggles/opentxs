@@ -285,8 +285,11 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Set in-source Version
-configure_file("include/opentxs/core/Version.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/include/opentxs/core/Version.hpp" @ONLY)
-execute_process(COMMAND git "update-index" "--assume-unchanged" "include/opentxs/core/Version.hpp" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+configure_file("include/opentxs/core/Version.hpp" "${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/core/Version.hpp" @ONLY)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/opentxs/core/Version.hpp
+        DESTINATION include/opentxs/core/
+        COMPONENT dev)
 
 #-----------------------------------------------------------------------------
 # Build source
@@ -330,7 +333,9 @@ endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
         DESTINATION include
-        COMPONENT dev)
+        COMPONENT dev
+        FILES_MATCHING PATTERN "*.hpp"
+        PATTERN "Version.hpp" EXCLUDE)
 
 install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/containers/simple_ptr.hpp
