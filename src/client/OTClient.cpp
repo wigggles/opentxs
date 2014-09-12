@@ -13640,8 +13640,6 @@ int32_t OTClient::ProcessUserCommand(
     } // Get out og the big switch statement!
 
     return CalcReturnVal(lReturnValue);
-
-    //    return bSendCommand;
 }
 
 /// used for testing.
@@ -13692,8 +13690,6 @@ bool OTClient::SetFocusToServerAndNym(OTServerContract& theServerContract,
 /// Need to call this before using.
 bool OTClient::InitClient(OTWallet& theWallet)
 {
-    // only run once.
-    //
     if (m_bInitialized) {
         otWarn
             << "OTClient::InitClient: Already initialized. (Returning true.)\n";
@@ -13701,26 +13697,8 @@ bool OTClient::InitClient(OTWallet& theWallet)
     }
     m_bInitialized = true;
 
-    // UPDATE: SSL is now initialized in OTLog::OT_Init(), not in
-    // OTServerConnection.
-    //
-    // Old:
-    // SSL gets initialized in the OTServerConnection, so no need to do it here
-    // twice.
-    // BUT warning: don't load any private keys until this happens, or that
-    // won't work.
-    //    SSL_library_init();
-    //    SSL_load_error_strings();   // UPDATE: Moved to OTLog::OT_Init();
-
     m_pConnection = new OTServerConnection(theWallet, *this);
     m_pWallet = &theWallet;
-
-    // openssl initialization
-    // UPDATE: Moved to OTLog::OT_Init()
-    //
-    //    ERR_load_crypto_strings();  // Todo deal with error logging mechanism
-    // later.
-    //    OpenSSL_add_all_algorithms();
 
     return true;
 }
@@ -13738,8 +13716,6 @@ OTClient::~OTClient()
 {
     if (nullptr != m_pConnection) delete m_pConnection;
     m_pConnection = nullptr;
-
-    // (FYI, Moved openssl cleanup to OT_Cleanup.)
 }
 
 } // namespace opentxs
