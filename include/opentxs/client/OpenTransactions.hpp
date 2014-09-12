@@ -189,20 +189,7 @@ public:
     EXPORT static bool CleanupOTApp();
 
 private:
-    class Pid
-    {
-    private:
-        bool m_bIsPidOpen;
-        OTString m_strPidFilePath;
-
-    public:
-        Pid();
-        ~Pid();
-        void OpenPid(const OTString& strPidFilePath);
-        void ClosePid();
-        bool IsPidOpen() const;
-    };
-
+    class Pid;
     Pid* const m_pPid; // only one pid reference per instance, must not change
 
     bool m_bInitialized;
