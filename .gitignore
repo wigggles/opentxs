@@ -25,6 +25,3 @@ Moneychanger.cc
 
 #Doxygen Documentation
 docs/html/
-
-#Version-File gets updated by cmake
-include/opentxs/core/Version.hpp
