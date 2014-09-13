@@ -152,6 +152,32 @@
 #include <memory>
 #include <algorithm>
 
+namespace
+{
+
+const std::string Instrument_TypeStrings[] = {
+    // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
+    // which is
+    // derived from OTScriptable, which is derived from OTContract.
+    "cheque",  // A cheque drawn on a user's account.
+    "voucher", // A cheque drawn on a server account (cashier's cheque aka
+               // banker's cheque)
+    "invoice", // A cheque with a negative amount. (Depositing this causes a
+               // payment out, instead of a deposit in.)
+    "payment plan",   // An OTCronItem-derived OTPaymentPlan, related to a
+                      // recurring payment plan.
+    "smart contract", // An OTCronItem-derived OTSmartContract, related to a
+                      // smart contract.
+    "cash", // An OTContract-derived OTPurse containing a list of cash OTTokens.
+    "ERROR_STATE"};
+
+const std::string& GetTypeString(int theType)
+{
+    return Instrument_TypeStrings[theType];
+}
+
+} // namespace
+
 namespace opentxs
 {
 
@@ -672,7 +698,7 @@ bool OTRecordList::PerformAutoAccept()
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
 
-                            str_type = OTRecord_GetTypeString(nType);
+                            str_type = GetTypeString(nType);
                             // For now, we only accept cash, cheques and
                             // vouchers.
                             //
@@ -1264,7 +1290,7 @@ bool OTRecordList::Populate()
                 //
                 int32_t nType = static_cast<int32_t>(theOutPayment.GetType());
 
-                const std::string& str_type = OTRecord_GetTypeString(nType);
+                const std::string& str_type = GetTypeString(nType);
                 // CREATE A OTRecord AND POPULATE IT...
                 //
                 otOut << __FUNCTION__
@@ -1714,7 +1740,7 @@ bool OTRecordList::Populate()
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
 
-                            str_type = OTRecord_GetTypeString(nType);
+                            str_type = GetTypeString(nType);
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {
@@ -2143,7 +2169,7 @@ bool OTRecordList::Populate()
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
 
-                            str_type = OTRecord_GetTypeString(nType);
+                            str_type = GetTypeString(nType);
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {
@@ -2574,7 +2600,7 @@ bool OTRecordList::Populate()
                             int32_t nType =
                                 static_cast<int32_t>(pPayment->GetType());
 
-                            str_type = OTRecord_GetTypeString(nType);
+                            str_type = GetTypeString(nType);
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {

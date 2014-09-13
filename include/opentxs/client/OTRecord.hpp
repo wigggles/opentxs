@@ -138,17 +138,6 @@
 namespace opentxs
 {
 
-const std::string& OTRecord_GetTypeString(int32_t theType);
-
-/*
- Could you add this to OTRecord:
-
- - Sender Nym, Account Ids
- - Accept & reject actions
- - Delete action
-
- */
-
 class OTRecord
 {
 public:

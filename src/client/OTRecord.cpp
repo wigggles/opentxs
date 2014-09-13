@@ -150,25 +150,6 @@
 namespace opentxs
 {
 
-const std::string Instrument_TypeStrings[] = {
-    // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
-    // which is
-    // derived from OTScriptable, which is derived from OTContract.
-    "cheque",  // A cheque drawn on a user's account.
-    "voucher", // A cheque drawn on a server account (cashier's cheque aka
-               // banker's cheque)
-    "invoice", // A cheque with a negative amount. (Depositing this causes a
-               // payment out, instead of a deposit in.)
-    "payment plan",   // An OTCronItem-derived OTPaymentPlan, related to a
-                      // recurring payment plan.
-    "smart contract", // An OTCronItem-derived OTSmartContract, related to a
-                      // smart contract.
-    "cash", // An OTContract-derived OTPurse containing a list of cash OTTokens.
-    "ERROR_STATE"};
-const std::string& OTRecord_GetTypeString(int theType)
-{
-    return Instrument_TypeStrings[theType];
-}
 bool OTRecord::FormatAmount(std::string& str_output) const
 {
     if (m_str_amount.empty() ||

@@ -143,15 +143,6 @@ class OTAPI_Exec;
 
 class OTAPI_Wrap
 {
-private:
-    // cannot instantiate this class
-    OTAPI_Wrap()
-    {
-    }
-    ~OTAPI_Wrap()
-    {
-    }
-
 public:
     EXPORT static OTAPI_Exec* SetExecutor(OTAPI_Exec* exec);
 
@@ -159,7 +150,6 @@ public:
     EXPORT static OTAPI_Exec* It();
 
     EXPORT static OT_API* OTAPI();
-    //    EXPORT static bool& Cleanup();
 
     EXPORT static int64_t StringToLong(const std::string& strNumber);
     EXPORT static std::string LongToString(const int64_t& lNumber);
@@ -171,8 +161,6 @@ public:
      INITIALIZE the OTAPI library
 
      Call this once per run of the application.
-
-
      */
     EXPORT static bool AppInit();    // Call this ONLY ONCE, when your App first
                                      // starts up.
@@ -188,7 +176,6 @@ public:
     // if you override AppBinary folder to, say, "res/raw"
     // (Android does something like that) then even though the prefix remains
     // as /usr/local, the scripts folder will be res/raw
-    //
     //
     EXPORT static void SetAppBinaryFolder(const std::string& strFolder);
 
@@ -4032,6 +4019,12 @@ public:
     */
     EXPORT static std::string Message_GetNymboxHash(
         const std::string& THE_MESSAGE);
+
+private:
+    OTAPI_Wrap();
+    ~OTAPI_Wrap()
+    {
+    }
 };
 
 } // namespace opentxs

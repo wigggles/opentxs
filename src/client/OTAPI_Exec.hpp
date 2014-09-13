@@ -142,20 +142,11 @@ class OT_API;
 
 class OTAPI_Exec
 {
-
-protected:
-    static bool bInitOTApp;
-    static bool bCleanupOTApp;
-
-    OT_API* p_OTAPI;
-
 public:
     EXPORT OTAPI_Exec();
     EXPORT virtual ~OTAPI_Exec();
 
     EXPORT OT_API* OTAPI() const;
-
-    //    EXPORT virtual bool& Cleanup();
 
     EXPORT virtual int64_t StringToLong(const std::string& strNumber) const;
     EXPORT virtual std::string LongToString(const int64_t& lNumber) const;
@@ -167,8 +158,6 @@ public:
     INITIALIZE the OTAPI library
 
     Call this once per run of the application.
-
-
     */
     EXPORT virtual bool AppInit(); // Call this ONLY ONCE, when your App first
                                    // starts up.
@@ -4086,6 +4075,12 @@ public:
     */
     EXPORT virtual std::string Message_GetNymboxHash(
         const std::string& THE_MESSAGE) const;
+
+protected:
+    static bool bInitOTApp;
+    static bool bCleanupOTApp;
+
+    OT_API* p_OTAPI;
 };
 
 } // namespace opentxs
