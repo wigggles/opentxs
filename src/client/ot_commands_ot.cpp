@@ -4743,75 +4743,83 @@ OT_Command::details_create_offer(const string& strScale,
     This is done here:
     */
 
-    OTDB::OfferListNym& offerList = *loadNymOffers(strMyServerID, strMyNymID);
+    OTDB::OfferListNym* offerListPtr = loadNymOffers(strMyServerID, strMyNymID);
+    OTDB::OfferListNym& offerList = *offerListPtr;
 
-    // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
-    // scale-assetID-currencyID
-    // the value for each key is a sub-map, with the key: transaction ID and
-    // value: the offer data itself.
-    int32_t nCount = offerList.GetOfferDataNymCount();
-    if (nCount > 0) {
-        MapOfMaps* map_of_maps = convert_offerlist_to_maps(offerList);
-
-        if (nullptr == map_of_maps) {
-            otOut << strLocation << ": Unable to convert offer list to map "
-                                    "of offers. Perhaps it's empty?\n";
-        }
-        else {
-            // find_strange_offers is called for each offer, for this nym,
-            // as it iterates through the maps. When it's done,
-            // extra_vals.the_vector
-            // will contain a vector of all the transaction numbers for
-            // offers that we
-            // should cancel, before placing the new offer. (Such as an
-            // offer to sell for
-            // 30 clams when our new offer buys for 40...)
-            the_lambda_struct extra_vals;
-
-            extra_vals.the_asset_acct = MyAcct;
-            extra_vals.the_currency_acct = HisAcct;
-            extra_vals.the_scale = strScale;
-            extra_vals.the_price = strPrice;
-            extra_vals.bSelling = bSelling;
-
-            int32_t nIterated = iterate_nymoffers_maps(
-                *map_of_maps, find_strange_offers, extra_vals);
-
-            if (-1 == nIterated) {
-                otOut << strLocation
-                      << ": Error trying to iterate nym's offers.\n";
-                return -1;
-            }
-
-            // Okay -- if there are any offers we need to cancel,
-            // extra_vals.the_vector now contains
-            // the transaction number for each one. Let's remove them from
-            // the market before
-            // starting up the new offer...
-
-            if (extra_vals.the_vector.size() > 0) {
-                otOut << strLocation
-                      << ": FYI, about to cancel at least one market "
-                         "offer, before placing the new one, due to price "
-                         "inconsistencies between the two...\n";
-            }
-
-            for (size_t i = 0; i < extra_vals.the_vector.size(); i++) {
-                otOut << strLocation
-                      << ": Canceling market offer with transaction number: "
-                      << extra_vals.the_vector[i] << "\n";
-
-                OT_Command::details_kill_offer(strMyServerID, strMyNymID,
-                                               MyAcct,
-                                               extra_vals.the_vector[i]);
-            }
-            extra_vals.the_vector.clear();
-        }
+    if (!offerListPtr) {
+        otOut << strLocation << ": Unable to load up a (nym) offerList from "
+                                "local storage. Probably doesn't exist.\n";
     }
     else {
-        otOut << strLocation << ": FYI, there don't seem to be any "
-                                "existing offers for this nym, so I won't "
-                                "be erasing any older ones.\n";
+        // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
+        // scale-assetID-currencyID
+        // the value for each key is a sub-map, with the key: transaction ID and
+        // value: the offer data itself.
+        int32_t nCount = offerList.GetOfferDataNymCount();
+        if (nCount > 0) {
+            MapOfMaps* map_of_maps = convert_offerlist_to_maps(offerList);
+
+            if (nullptr == map_of_maps) {
+                otOut << strLocation << ": Unable to convert offer list to map "
+                                        "of offers. Perhaps it's empty?\n";
+            }
+            else {
+                // find_strange_offers is called for each offer, for this nym,
+                // as it iterates through the maps. When it's done,
+                // extra_vals.the_vector
+                // will contain a vector of all the transaction numbers for
+                // offers that we
+                // should cancel, before placing the new offer. (Such as an
+                // offer to sell for
+                // 30 clams when our new offer buys for 40...)
+                the_lambda_struct extra_vals;
+
+                extra_vals.the_asset_acct = MyAcct;
+                extra_vals.the_currency_acct = HisAcct;
+                extra_vals.the_scale = strScale;
+                extra_vals.the_price = strPrice;
+                extra_vals.bSelling = bSelling;
+
+                int32_t nIterated = iterate_nymoffers_maps(
+                    *map_of_maps, find_strange_offers, extra_vals);
+
+                if (-1 == nIterated) {
+                    otOut << strLocation
+                          << ": Error trying to iterate nym's offers.\n";
+                    return -1;
+                }
+
+                // Okay -- if there are any offers we need to cancel,
+                // extra_vals.the_vector now contains
+                // the transaction number for each one. Let's remove them from
+                // the market before
+                // starting up the new offer...
+
+                if (extra_vals.the_vector.size() > 0) {
+                    otOut << strLocation
+                          << ": FYI, about to cancel at least one market "
+                             "offer, before placing the new one, due to price "
+                             "inconsistencies between the two...\n";
+                }
+
+                for (size_t i = 0; i < extra_vals.the_vector.size(); i++) {
+                    otOut
+                        << strLocation
+                        << ": Canceling market offer with transaction number: "
+                        << extra_vals.the_vector[i] << "\n";
+
+                    OT_Command::details_kill_offer(strMyServerID, strMyNymID,
+                                                   MyAcct,
+                                                   extra_vals.the_vector[i]);
+                }
+                extra_vals.the_vector.clear();
+            }
+        }
+        else {
+            otOut << strLocation << ": FYI, there don't seem to be any "
+                                    "existing offers for this nym, so I won't "
+                                    "be erasing any older ones.\n";
+        }
     }
 
     // OKAY! Now that we've cleaned out any undesirable offers, let's place the
@@ -6825,7 +6833,12 @@ OT_COMMANDS_OT OTDB::MarketList* OT_Command::loadMarketList(
 OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
 {
     if (VerifyExists("Server")) {
-        OTDB::MarketList& marketList = *loadMarketList(Server);
+        OTDB::MarketList* marketListPtr = loadMarketList(Server);
+        if (!marketListPtr) {
+            otOut << "Unable to load up marketlist from local storage.\n";
+            return -1;
+        }
+        OTDB::MarketList& marketList = *marketListPtr;
 
         // LOOP THROUGH THE MARKETS AND PRINT THEM OUT.
 
@@ -6843,8 +6856,14 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMarkets()
                      "cy\n";
 
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                OTDB::MarketData& marketData =
-                    *marketList.GetMarketData(nIndex);
+                OTDB::MarketData* marketDataPtr =
+                    marketList.GetMarketData(nIndex);
+                if (!marketDataPtr) {
+                    otOut << "Unable to reference marketData on marketList, at "
+                             "index: " << nIndex << "\n";
+                    return -1;
+                }
+                OTDB::MarketData& marketData = *marketDataPtr;
 
                 // OUTPUT THE MARKET DATA...
                 cout << nIndex << "\t" << marketData.scale << "\tM "
@@ -6918,8 +6937,14 @@ OT_COMMANDS_OT int32_t
 OT_Command::details_show_market_offers(const string& strServerID,
                                        const string& strMarketID)
 {
-    OTDB::OfferListMarket& offerList =
-        *loadMarketOffers(strServerID, strMarketID);
+    OTDB::OfferListMarket* offerListPtr =
+        loadMarketOffers(strServerID, strMarketID);
+
+    if (!offerListPtr) {
+        otOut << "Unable to load up a (market) offerList from local storage.\n";
+        return -1;
+    }
+    OTDB::OfferListMarket& offerList = *offerListPtr;
 
     // LOOP THROUGH THE BIDS AND PRINT THEM OUT.
     int32_t nBidCount = offerList.GetBidDataCount();
@@ -6929,7 +6954,13 @@ OT_Command::details_show_market_offers(const string& strServerID,
         otOut << "\n** BIDS **\n\nIndex\tTrans#\tPrice\tAvailable\n";
 
         for (int32_t nIndex = 0; nIndex < nBidCount; ++nIndex) {
-            OTDB::BidData& offerData = *offerList.GetBidData(nIndex);
+            OTDB::BidData* offerDataPtr = offerList.GetBidData(nIndex);
+            if (!offerDataPtr) {
+                otOut << "Unable to reference bidData on offerList, at index: "
+                      << nIndex << "\n";
+                return -1;
+            }
+            OTDB::BidData& offerData = *offerDataPtr;
 
             // OUTPUT THE BID OFFER DATA...
             cout << nIndex << "\t" << offerData.transaction_id << "\t"
@@ -6946,7 +6977,14 @@ OT_Command::details_show_market_offers(const string& strServerID,
 
         for (int32_t nIndex = 0; nIndex < nAskCount; ++nIndex) {
             nTemp = nIndex;
-            OTDB::AskData& offerData = *offerList.GetAskData(nTemp);
+            OTDB::AskData* offerDataPtr = offerList.GetAskData(nTemp);
+
+            if (!offerDataPtr) {
+                otOut << "Unable to reference askData on offerList, at index: "
+                      << nIndex << "\n";
+                return -1;
+            }
+            OTDB::AskData& offerData = *offerDataPtr;
 
             // OUTPUT THE ASK OFFER DATA...
             cout << nIndex << "\t" << offerData.transaction_id << "\t"
@@ -7180,7 +7218,14 @@ OT_Command::details_show_nym_offers(const string& strServerID,
 {
     string strLocation = "details_show_nym_offers";
 
-    OTDB::OfferListNym& offerList = *loadNymOffers(strServerID, strNymID);
+    OTDB::OfferListNym* offerListPtr = loadNymOffers(strServerID, strNymID);
+
+    if (!offerListPtr) {
+        otOut << strLocation << ": Unable to load up a (nym) offerList from "
+                                "local storage. Probably doesn't exist.\n";
+        return -1;
+    }
+    OTDB::OfferListNym& offerList = *offerListPtr;
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
     // scale-assetID-currencyID
@@ -7188,7 +7233,14 @@ OT_Command::details_show_nym_offers(const string& strServerID,
     // value: the offer data itself.
     int32_t nCount = offerList.GetOfferDataNymCount();
     if (nCount > 0) {
-        MapOfMaps& map_of_maps = *convert_offerlist_to_maps(offerList);
+        MapOfMaps* map_of_mapsPtr = convert_offerlist_to_maps(offerList);
+
+        if (!map_of_mapsPtr) {
+            otOut << strLocation << ": Unable to convert offer list to map of "
+                                    "offers. Perhaps it's empty?\n";
+            return -1;
+        }
+        MapOfMaps& map_of_maps = *map_of_mapsPtr;
 
         // output_nymoffer_data is called for each offer, for this nym,
         // as it iterates through the maps.
