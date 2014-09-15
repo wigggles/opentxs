@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTServerConnection.hpp
+ *  TransortCallback.cpp
  *
  */
 
@@ -130,93 +130,29 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
-#define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
-
-#include "opentxs/client/OTMessageBuffer.hpp"
+#include "TransportCallback.hpp"
+#include "OpenTransactions.hpp"
+#include "opentxs/core/OTServerContract.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 
 namespace opentxs
 {
 
-class TransportCallback;
-class OTClient;
-class OTIdentifier;
-class OTPseudonym;
-class OTServerContract;
-class OTWallet;
-
-class OTServerConnection
+TransportCallback::TransportCallback(OT_API& api) : api_(api)
 {
-    static void Initialize();
-    static bool s_bInitialized;
+}
 
-    OTMessageBuffer m_listIn;
-    OTMessageBuffer m_listOut;
+TransportCallback::~TransportCallback()
+{
+}
 
-    bool m_bFocused;
-    TransportCallback* m_pCallback;
-
-    OTPseudonym* m_pNym;
-    OTServerContract* m_pServerContract;
-    OTWallet* m_pWallet;
-    OTClient* m_pClient;
-
-public:
-    OTServerConnection(OTWallet& theWallet, OTClient& theClient);
-
-    EXPORT ~OTServerConnection()
-    {
-    }
-
-    bool GetServerID(OTIdentifier& theID) const;
-
-    inline OTPseudonym* GetNym() const
-    {
-        return m_pNym;
-    }
-    inline OTServerContract* GetServerContract() const
-    {
-        return m_pServerContract;
-    }
-    inline OTWallet* GetWallet() const
-    {
-        return m_pWallet;
-    }
-
-    inline bool IsFocused() const
-    {
-        return m_bFocused;
-    }
-
-    // SetFocus() is for RPC / HTTP mode.
-    bool SetFocus(OTPseudonym& theNym, OTServerContract& theServerContract,
-                  TransportCallback* pCallback);
-
-    // Connect() is for TCP / SSL mode.
-    EXPORT inline bool Connect(const OTPseudonym&, const OTServerContract&,
-                               const OTString&, const OTString&,
-                               const OTString&) const
-    {
+bool TransportCallback::operator()(OTServerContract& contract,
+                                   OTEnvelope& envelope)
+{
+    if (api_.IsInitialized())
+        return api_.TransportFunction(contract, envelope);
+    else
         return false;
-    }
-
-    void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
-
-    void ProcessMessageOut(const char* buf, const int32_t* pnExpectReply);
-    void ProcessMessageOut(const OTMessage& theMessage) const;
-
-    EXPORT inline bool ProcessInBuffer(const OTMessage&) const
-    {
-        return false;
-    }
-    bool ProcessReply(u_header& theCMD, OTMessage& theServerReply);
-    bool ProcessType1Cmd(u_header& theCMD, OTMessage& theServerReply) const;
-
-    // Assuming we are connected, then we have the nym for signing and we
-    // have the connection for sending.
-    bool SignAndSend(OTMessage& theMessage) const;
-};
+}
 
 } // namespace opentxs
-
-#endif // OPENTXS_CLIENT_OTSERVERCONNECTION_HPP

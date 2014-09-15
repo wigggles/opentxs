@@ -138,6 +138,7 @@
 #include "OTServerConnection.hpp"
 #include "Helpers.hpp"
 #include "OTWallet.hpp"
+#include "TransportCallback.hpp"
 
 #include "../ext/InstantiateContract.hpp"
 #include "../ext/OTPayment.hpp"
@@ -381,168 +382,19 @@ bool OT_API::bInitOTApp = false;
 // static
 bool OT_API::bCleanupOTApp = false;
 
-TransportCallback::TransportCallback(OT_API& refOT_API) : m_refOT_API(refOT_API)
+class OT_API::Pid
 {
-}
+public:
+    Pid();
+    ~Pid();
+    void OpenPid(const OTString& strPidFilePath);
+    void ClosePid();
+    bool IsPidOpen() const;
 
-TransportCallback::~TransportCallback()
-{
-}
-
-// Transport Callback Main Operator
-bool TransportCallback::operator()(OTServerContract& theserverContract,
-                                   OTEnvelope& theEnvelope)
-{
-    if (m_refOT_API.IsInitialized())
-        return m_refOT_API.TransportFunction(theserverContract, theEnvelope);
-    else
-        return false;
-}
-
-// Call this once per run of the software. (enforced by a static value)
-//
-// static
-bool OT_API::InitOTApp()
-{
-    OT_ASSERT(!OT_API::bCleanupOTApp);
-
-    if (!OT_API::bInitOTApp) {
-        if (!OTLog::Init("client")) {
-            assert(false);
-        }
-        otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
-
-#ifdef OT_ZMQ_2_MODE
-#ifdef _WIN32
-        WSADATA wsaData;
-        WORD wVersionRequested = MAKEWORD(2, 2);
-        int32_t err = WSAStartup(wVersionRequested, &wsaData);
-
-        /* Tell the user that we could not find a usable        */
-        /* Winsock DLL.                                            */
-
-        OT_ASSERT_MSG((err == 0), "WSAStartup failed!\n");
-
-        /*    Confirm that the WinSock DLL supports 2.2.            */
-        /*    Note that if the DLL supports versions greater        */
-        /*    than 2.2 in addition to 2.2, it will still return    */
-        /*    2.2 in wVersion since that is the version we        */
-        /*    requested.                                            */
-
-        bool bWinsock =
-            (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2);
-
-        /* Tell the user that we could not find a usable */
-        /* WinSock DLL.                                  */
-
-        if (!bWinsock) WSACleanup(); // do cleanup.
-        OT_ASSERT_MSG((!bWinsock),
-                      "Could not find a usable version of Winsock.dll\n");
-
-        /* The Winsock DLL is acceptable. Proceed to use it. */
-        /* Add network programming using Winsock here */
-        /* then call WSACleanup when done using the Winsock dll */
-        otWarn << "The Winsock 2.2 dll was found okay\n";
-#endif
-#endif
-// SIGNALS
-//
-#if defined(OT_SIGNAL_HANDLING)
-        //
-        OTLog::SetupSignalHandler(); // <===== SIGNALS
-                                     //
-// This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
-//  option, and plus, the internals only execute once anyway. (It keeps count.)
-#endif
-        OTCrypto::It()->Init(); // (OpenSSL gets initialized here.)
-        // TODO in the case of Windows, figure err into this return val somehow.
-        // (Or log it or something.)
-        //
-
-        OT_API::bInitOTApp = true;
-        return true;
-    }
-    else {
-        otErr << __FUNCTION__
-              << ": ERROR: This function can only be called once.\n";
-        return false;
-    }
-}
-
-// static
-bool OT_API::CleanupOTApp()
-{
-    if (!OT_API::bInitOTApp) {
-        otErr << __FUNCTION__ << ": WARNING: Never Successfully called:  "
-              << "OT_API::InitCTX()"
-              << "\n";
-        OT_API::bInitOTApp = true;
-        return false;
-    }
-
-    if (!OT_API::bCleanupOTApp) {
-        OTCachedKey::Cleanup(); // it has a static list of dynamically allocated
-                                // master keys that need to be cleaned up, if
-                                // the application is shutting down.
-
-        // We clean these up in reverse order from the Init function, which just
-        // seems
-        // like the best default, in absence of any brighter ideas.
-        //
-        OTCrypto::It()->Cleanup(); // (OpenSSL gets cleaned up here.)
-
-        return true;
-    }
-    else {
-        otErr << __FUNCTION__
-              << ": ERROR: This function can only be called once.\n";
-        return false;
-    }
-}
-
-// The API begins here...
-OT_API::OT_API()
-    : m_pPid(new Pid())
-    , m_bInitialized(false)
-    , m_pTransportCallback(nullptr)
-    , m_pSocket(new OTSocket_ZMQ_4())
-    , m_strDataPath("")
-    , m_strWalletFilename("")
-    , m_strWalletFilePath("")
-    , m_strConfigFilename("")
-    , m_strConfigFilePath("")
-    , m_pWallet(nullptr)
-    , m_pClient(nullptr)
-
-{
-    if (!Init()) {
-        Cleanup();
-    }
-}
-
-OT_API::~OT_API()
-{
-    // DELETE AND SET nullptr
-    //
-    if (nullptr != m_pSocket) delete m_pSocket;
-    m_pSocket = nullptr;
-
-    if (nullptr != m_pTransportCallback) delete m_pTransportCallback;
-    m_pTransportCallback = nullptr;
-    if (nullptr != m_pWallet) delete m_pWallet;
-    m_pWallet = nullptr;
-    if (nullptr != m_pClient) delete m_pClient;
-    m_pClient = nullptr;
-
-    if (m_bInitialized)
-        if (!(Cleanup())) // we only cleanup if we need to
-        {
-            OT_FAIL;
-        }
-
-    // this must be last!
-    if (nullptr != m_pPid) delete m_pPid;
-}
+private:
+    bool m_bIsPidOpen;
+    OTString m_strPidFilePath;
+};
 
 OT_API::Pid::Pid()
     : m_bIsPidOpen(false)
@@ -696,6 +548,155 @@ void OT_API::Pid::ClosePid()
 bool OT_API::Pid::IsPidOpen() const
 {
     return m_bIsPidOpen;
+}
+
+// Call this once per run of the software. (enforced by a static value)
+//
+// static
+bool OT_API::InitOTApp()
+{
+    OT_ASSERT(!OT_API::bCleanupOTApp);
+
+    if (!OT_API::bInitOTApp) {
+        if (!OTLog::Init("client")) {
+            assert(false);
+        }
+
+        otOut << "\n\nWelcome to Open Transactions -- version "
+              << OTLog::Version() << "\n";
+
+        otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
+
+#ifdef OT_ZMQ_2_MODE
+#ifdef _WIN32
+        WSADATA wsaData;
+        WORD wVersionRequested = MAKEWORD(2, 2);
+        int32_t err = WSAStartup(wVersionRequested, &wsaData);
+
+        /* Tell the user that we could not find a usable        */
+        /* Winsock DLL.                                            */
+
+        OT_ASSERT_MSG((err == 0), "WSAStartup failed!\n");
+
+        /*    Confirm that the WinSock DLL supports 2.2.            */
+        /*    Note that if the DLL supports versions greater        */
+        /*    than 2.2 in addition to 2.2, it will still return    */
+        /*    2.2 in wVersion since that is the version we        */
+        /*    requested.                                            */
+
+        bool bWinsock =
+            (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2);
+
+        /* Tell the user that we could not find a usable */
+        /* WinSock DLL.                                  */
+
+        if (!bWinsock) WSACleanup(); // do cleanup.
+        OT_ASSERT_MSG((!bWinsock),
+                      "Could not find a usable version of Winsock.dll\n");
+
+        /* The Winsock DLL is acceptable. Proceed to use it. */
+        /* Add network programming using Winsock here */
+        /* then call WSACleanup when done using the Winsock dll */
+        otWarn << "The Winsock 2.2 dll was found okay\n";
+#endif
+#endif
+// SIGNALS
+//
+#if defined(OT_SIGNAL_HANDLING)
+        //
+        OTLog::SetupSignalHandler(); // <===== SIGNALS
+                                     //
+// This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
+//  option, and plus, the internals only execute once anyway. (It keeps count.)
+#endif
+        OTCrypto::It()->Init(); // (OpenSSL gets initialized here.)
+        // TODO in the case of Windows, figure err into this return val somehow.
+        // (Or log it or something.)
+        //
+
+        OT_API::bInitOTApp = true;
+        return true;
+    }
+    else {
+        otErr << __FUNCTION__
+              << ": ERROR: This function can only be called once.\n";
+        return false;
+    }
+}
+
+// static
+bool OT_API::CleanupOTApp()
+{
+    if (!OT_API::bInitOTApp) {
+        otErr << __FUNCTION__ << ": WARNING: Never Successfully called:  "
+              << "OT_API::InitCTX()"
+              << "\n";
+        OT_API::bInitOTApp = true;
+        return false;
+    }
+
+    if (!OT_API::bCleanupOTApp) {
+        OTCachedKey::Cleanup(); // it has a static list of dynamically allocated
+                                // master keys that need to be cleaned up, if
+                                // the application is shutting down.
+
+        // We clean these up in reverse order from the Init function, which just
+        // seems
+        // like the best default, in absence of any brighter ideas.
+        //
+        OTCrypto::It()->Cleanup(); // (OpenSSL gets cleaned up here.)
+
+        return true;
+    }
+    else {
+        otErr << __FUNCTION__
+              << ": ERROR: This function can only be called once.\n";
+        return false;
+    }
+}
+
+// The API begins here...
+OT_API::OT_API()
+    : m_pPid(new Pid())
+    , m_bInitialized(false)
+    , m_pTransportCallback(nullptr)
+    , m_pSocket(new OTSocket_ZMQ_4())
+    , m_strDataPath("")
+    , m_strWalletFilename("")
+    , m_strWalletFilePath("")
+    , m_strConfigFilename("")
+    , m_strConfigFilePath("")
+    , m_pWallet(nullptr)
+    , m_pClient(nullptr)
+
+{
+    if (!Init()) {
+        Cleanup();
+    }
+}
+
+OT_API::~OT_API()
+{
+    // DELETE AND SET nullptr
+    //
+    if (nullptr != m_pSocket) delete m_pSocket;
+    m_pSocket = nullptr;
+
+    if (nullptr != m_pTransportCallback) delete m_pTransportCallback;
+    m_pTransportCallback = nullptr;
+    if (nullptr != m_pWallet) delete m_pWallet;
+    m_pWallet = nullptr;
+    if (nullptr != m_pClient) delete m_pClient;
+    m_pClient = nullptr;
+
+    if (m_bInitialized)
+        if (!(Cleanup())) // we only cleanup if we need to
+        {
+            OT_FAIL;
+        }
+
+    // this must be last!
+    if (nullptr != m_pPid) delete m_pPid;
 }
 
 // Call this once per INSTANCE of OT_API.

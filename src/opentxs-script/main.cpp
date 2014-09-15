@@ -138,6 +138,7 @@
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/ot_otapi_ot.hpp"
+#include "opentxs/client/TransportCallback.hpp"
 
 #include "opentxs/cash/Purse.hpp"
 

@@ -2,6 +2,7 @@
 
 set(cxx-sources
   Helpers.cpp
+  TransportCallback.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
   OpenTransactions.cpp

@@ -139,8 +139,7 @@
 namespace opentxs
 {
 
-struct TransportCallback;
-
+class TransportCallback;
 class OTAccount;
 class OTAssetContract;
 class OTLedger;
@@ -176,7 +175,6 @@ private:
     // wasn't used to startup, (which would mean we're executing a script) then
     // it's A-Okay to fire those auto messages.
 
-public:
     /// Any time a message is sent to the server, its request number is copied
     /// here.
     /// Most server message functions return int32_t, but technically a request
@@ -188,6 +186,8 @@ public:
     /// in string form, or whatever is easiest.
     ///
     int64_t m_lMostRecentRequestNumber;
+
+public:
     int32_t CalcReturnVal(const int64_t& lRequestNumber);
     bool IsRunningAsScript() const
     {

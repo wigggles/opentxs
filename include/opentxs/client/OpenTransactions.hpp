@@ -152,6 +152,7 @@
 namespace opentxs
 {
 
+class TransportCallback;
 class OT_API;
 class OTAccount;
 class OTAssetContract;
@@ -174,18 +175,6 @@ class Mint;
 class Purse;
 class Token;
 
-struct TransportCallback
-    : public std::binary_function<OTServerContract&, OTEnvelope&, bool>
-{
-private:
-    OT_API& m_refOT_API;
-
-public:
-    EXPORT TransportCallback(OT_API& refOT_API);
-    EXPORT ~TransportCallback();
-    EXPORT bool operator()(OTServerContract&, OTEnvelope&);
-};
-
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API
 {
@@ -200,20 +189,7 @@ public:
     EXPORT static bool CleanupOTApp();
 
 private:
-    class Pid
-    {
-    private:
-        bool m_bIsPidOpen;
-        OTString m_strPidFilePath;
-
-    public:
-        Pid();
-        ~Pid();
-        void OpenPid(const OTString& strPidFilePath);
-        void ClosePid();
-        bool IsPidOpen() const;
-    };
-
+    class Pid;
     Pid* const m_pPid; // only one pid reference per instance, must not change
 
     bool m_bInitialized;
