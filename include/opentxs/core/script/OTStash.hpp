@@ -174,7 +174,7 @@ public:
     bool CreditStash(std::string str_asset_type_id, const int64_t& lAmount);
     bool DebitStash(std::string str_asset_type_id, const int64_t& lAmount);
 
-    void Serialize(OTString& strAppend);
+    void Serialize(OTString& strAppend) const;
     int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                             const OTString& strStashName,
                             const OTString& strItemCount);

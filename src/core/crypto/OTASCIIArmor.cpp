@@ -944,7 +944,7 @@ bool OTASCIIArmor::WriteArmoredFile(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped)
+    bool bEscaped) const
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
@@ -983,7 +983,7 @@ bool OTASCIIArmor::WriteArmoredString(
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
-    bool bEscaped)
+    bool bEscaped) const
 {
     const char* szEscape = "- ";
 

@@ -222,7 +222,7 @@ public:
 
     virtual ~OTAgent();
 
-    void Serialize(OTString& strAppend);
+    void Serialize(OTString& strAppend) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't
@@ -411,7 +411,7 @@ public:
     //
     bool GetPartyID(OTIdentifier& theOutput) const;
 
-    OTParty* GetParty()
+    OTParty* GetParty() const
     {
         return m_pForParty;
     }

@@ -280,7 +280,7 @@ public:
                       OTVariable_Access theAccess = Var_Persistent);
     EXPORT virtual ~OTVariable();
 
-    void Serialize(OTString& strAppend, bool bCalculatingID = false);
+    void Serialize(OTString& strAppend, bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

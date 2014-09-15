@@ -173,7 +173,8 @@ OTCallback::~OTCallback()
 
 // Asks for password once. (For authentication when using nym.)
 //
-void OTCallback::runOne(const char*, OTPassword&) // child class will override.
+void OTCallback::runOne(const char*,
+                        OTPassword&) const // child class will override.
 {
     OT_FAIL_MSG("OTCallback::runOne: ASSERT (The child class was supposed to "
                 "override this method.)\n");
@@ -182,7 +183,8 @@ void OTCallback::runOne(const char*, OTPassword&) // child class will override.
 // Asks for password twice. (For confirmation when changing password or creating
 // nym.)
 //
-void OTCallback::runTwo(const char*, OTPassword&) // child class will override.
+void OTCallback::runTwo(const char*,
+                        OTPassword&) const // child class will override.
 {
     OT_FAIL_MSG("OTCallback::runTwo: ASSERT (The child class was supposed to "
                 "override this method.)\n");

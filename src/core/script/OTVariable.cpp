@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID)
+void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID) const
 {
 
     std::string str_access("");

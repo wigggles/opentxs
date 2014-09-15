@@ -578,9 +578,9 @@ bool OTAssetContract::SaveContractWallet(FILE* fl)
 // accounts,
 // or cash reserve accounts, are not included on this list.
 //
-bool OTAssetContract::ForEachAccountRecord(
-    OTAcctFunctor& theAction) // Loops through all the accounts for a given
-                              // asset type, and calls Functor on each.
+bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
+    const // Loops through all the accounts for a given
+          // asset type, and calls Functor on each.
 {
     // Load up account list stringmap
     // if success, iterate through map and trigger theAction.
@@ -695,14 +695,15 @@ bool OTAssetContract::ForEachAccountRecord(
     }
 }
 
-bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
-                                                                    // account
-                                                                    // to the
-                                                                    // list.
-                                                                    // (When
-                                                                    // account
-                                                                    // is
-                                                                    // created.)
+bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount)
+    const // adds the
+          // account
+          // to the
+          // list.
+          // (When
+          // account
+          // is
+          // created.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.
@@ -806,9 +807,9 @@ bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount) // adds the
     return true;
 }
 
-bool OTAssetContract::EraseAccountRecord(
-    const OTIdentifier& theAcctID) // removes the account from the list. (When
-                                   // account is deleted.)
+bool OTAssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
+    const // removes the account from the list. (When
+          // account is deleted.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Erase it, if it is.

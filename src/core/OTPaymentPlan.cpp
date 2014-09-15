@@ -455,7 +455,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 // they are the same,
 // and properly signed.
 bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
-                                    OTPseudonym& SENDER_NYM)
+                                    OTPseudonym& SENDER_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy;

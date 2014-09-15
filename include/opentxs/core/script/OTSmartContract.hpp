@@ -288,7 +288,7 @@ public:
     // make sure that none of
     // the vital terms, values, clauses, etc are different between the two.
     //
-    virtual bool Compare(OTScriptable& rhs);
+    virtual bool Compare(OTScriptable& rhs) const;
     // From OTCronItem (parent class of this)
     virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
 

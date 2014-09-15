@@ -180,7 +180,7 @@ public:
     EXPORT void Assign(const void* data, uint32_t size);
     EXPORT void Concatenate(const void* data, uint32_t size);
     EXPORT bool Randomize(uint32_t size);
-    EXPORT void zeroMemory();
+    EXPORT void zeroMemory() const;
     EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
 
     inline void reset()

@@ -224,7 +224,7 @@ void OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::SetKeyAsCopyOf(
 }
 
 EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
-    GetKeyLowLevel()
+    GetKeyLowLevel() const
 {
     return m_pKey;
 }

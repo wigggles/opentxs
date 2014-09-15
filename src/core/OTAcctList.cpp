@@ -172,7 +172,7 @@ OTAcctList::~OTAcctList()
     Release_AcctList();
 }
 
-void OTAcctList::Serialize(OTString& append)
+void OTAcctList::Serialize(OTString& append) const
 {
     OTString acctType;
     TranslateAccountTypeToString(acctType_, acctType);

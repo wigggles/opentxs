@@ -288,7 +288,7 @@ public:
         return m_PROCESS_INTERVAL;
     }
 
-    inline OTCron* GetCron()
+    inline OTCron* GetCron() const
     {
         return m_pCron;
     }

@@ -741,7 +741,7 @@ int64_t OTString::ToLong() const
  // zero it out similarly.
  */
 
-void OTString::zeroMemory()
+void OTString::zeroMemory() const
 {
     if (nullptr != data_) {
         OTPassword::zeroMemory(data_, length_);
@@ -1168,7 +1168,7 @@ void OTString::OTfgets(std::istream& ifs)
     }
 }
 
-void OTString::ConvertToLowerCase()
+void OTString::ConvertToLowerCase() const
 {
     if (data_ == nullptr) {
         return;
@@ -1179,7 +1179,7 @@ void OTString::ConvertToLowerCase()
     }
 }
 
-void OTString::ConvertToUpperCase()
+void OTString::ConvertToUpperCase() const
 {
     if (data_ == nullptr) {
         return;

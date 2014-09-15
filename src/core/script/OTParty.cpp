@@ -1720,7 +1720,7 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
 }
 
 void OTParty::Serialize(OTString& strAppend, bool bCalculatingID,
-                        bool bSpecifyAssetID, bool bSpecifyParties)
+                        bool bSpecifyAssetID, bool bSpecifyParties) const
 {
     strAppend.Concatenate(
         "<party\n name=\"%s\"\n"

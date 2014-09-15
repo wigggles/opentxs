@@ -264,9 +264,9 @@ public:
     // (And we will make it mandatory for Nyms who use credentials.)
     // PROTECTED MEMBER FUNCTIONS
 protected:
-    void ReleaseKeyLowLevel();                  // call this.
-    virtual void ReleaseKeyLowLevel_Hook() = 0; // override this.
-                                                // CONSTRUCTION (PROTECTED)
+    void ReleaseKeyLowLevel();                        // call this.
+    virtual void ReleaseKeyLowLevel_Hook() const = 0; // override this.
+    // CONSTRUCTION (PROTECTED)
     EXPORT OTAsymmetricKey();
 
 public: // DESTRUCTION
@@ -408,7 +408,7 @@ public: // DESTRUCTION
         OTString& strOutput, const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
-                                     bool bImporting) = 0;
+                                     bool bImporting) const = 0;
     // PUBLIC KEY
 
     // * Get the public key in ASCII-armored format                 --

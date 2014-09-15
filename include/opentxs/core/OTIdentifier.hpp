@@ -199,7 +199,7 @@ public:
                                 const OTString& strHashAlgorithm);
     EXPORT bool CalculateDigest(const OTData& dataInput,
                                 const OTString& strHashAlgorithm);
-    EXPORT bool XOR(const OTIdentifier& theInput);
+    EXPORT bool XOR(const OTIdentifier& theInput) const;
     EXPORT void CopyTo(uint8_t* szNewLocation) const;
     // If someone passes in the pretty string of hex digits,
     // convert it to the actual binary hash and set it internally.

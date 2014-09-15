@@ -214,8 +214,7 @@ protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     EXPORT virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     //    virtual bool SignContract(const EVP_PKEY* pkey, OTSignature&
-    // theSignature,
-    //                              const OTString& strHashType);
+    // theSignature, const OTString& strHashType);
     //    bool VerifySignature(const EVP_PKEY* pkey, const OTSignature&
     // theSignature,
     //                         const OTString& strHashType) const;

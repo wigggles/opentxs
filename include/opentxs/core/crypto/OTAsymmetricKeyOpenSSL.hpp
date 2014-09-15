@@ -224,7 +224,7 @@ public:
         const OTASCIIArmor& strKey); // does NOT handle bookends.
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
-                                     bool bImporting);
+                                     bool bImporting) const;
 
     class OTAsymmetricKey_OpenSSLPrivdp;
     OTAsymmetricKey_OpenSSLPrivdp* dp;
@@ -238,7 +238,7 @@ public: // DERSTRUCTION
     void Release_AsymmetricKey_OpenSSL();
 
 protected:
-    virtual void ReleaseKeyLowLevel_Hook();
+    virtual void ReleaseKeyLowLevel_Hook() const;
 };
 
 #elif defined(OT_CRYPTO_USING_GPG)

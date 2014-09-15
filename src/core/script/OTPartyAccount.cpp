@@ -440,7 +440,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
 }
 
 void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
-                               bool bSpecifyAssetID)
+                               bool bSpecifyAssetID) const
 {
     strAppend.Concatenate(
         "<assetAccount\n name=\"%s\"\n"

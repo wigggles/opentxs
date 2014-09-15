@@ -228,7 +228,8 @@ public:
                                    // would contain ==> "LEDGER" <==
         std::string str_type, // There's no default, to force you to enter the
                               // right string.
-        bool bEscaped = false);
+        bool bEscaped = false) const;
+
     EXPORT bool WriteArmoredFile(const OTString& foldername,
                                  const OTString& filename,
                                  const // for "-----BEGIN OT LEDGER-----",
@@ -237,7 +238,8 @@ public:
                                  std::string str_type, // There's no default, to
                                                        // force you to enter the
                                                        // right string.
-                                 bool bEscaped = false);
+                                 bool bEscaped = false) const;
+
     // This function will base64 DECODE the string contents (This class is a
     // string)
     // and return them as BINARY in theData

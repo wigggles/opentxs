@@ -144,7 +144,7 @@
 namespace opentxs
 {
 
-void OTStash::Serialize(OTString& strAppend)
+void OTStash::Serialize(OTString& strAppend) const
 {
     strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
                           m_str_stash_name.c_str(), m_mapStashItems.size());

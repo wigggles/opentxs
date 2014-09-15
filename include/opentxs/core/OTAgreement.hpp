@@ -208,7 +208,7 @@ public:
     {
         m_strMerchantSignedCopy = strMerchantCopy;
     }
-    const OTString& GetMerchantSignedCopy()
+    const OTString& GetMerchantSignedCopy() const
     {
         return m_strMerchantSignedCopy;
     }
@@ -339,7 +339,7 @@ public:
     // the vital terms, values, clauses, etc are different between the two.
     //
     virtual bool VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
-                                 OTPseudonym& SENDER_NYM) = 0;
+                                 OTPseudonym& SENDER_NYM) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -456,12 +456,12 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    virtual bool VerifyNymAsAgent(OTPseudonym& theNym,
-                                  OTPseudonym& theSignerNym,
-                                  mapOfNyms* pmap_ALREADY_LOADED = nullptr);
+    virtual bool VerifyNymAsAgent(
+        OTPseudonym& theNym, OTPseudonym& theSignerNym,
+        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                            OTAccount& theAccount);
+                                            OTAccount& theAccount) const;
 
     /*
      From OTContract, I have:
@@ -475,7 +475,8 @@ public:
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const OTString& strReference, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
+        OTString* pstrAttachment = nullptr,
+        OTPseudonym* pActualNym = nullptr) const;
 
     EXPORT static bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
@@ -504,7 +505,7 @@ public:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
+    // is where the ledger saves its contents
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 

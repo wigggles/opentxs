@@ -463,7 +463,7 @@ bool OTIdentifier::CalculateDigest(const OTData& dataInput,
 // "SHA256", and you'll
 // instantly have a doubled hash output size  :-)
 //
-bool OTIdentifier::XOR(const OTIdentifier& theInput)
+bool OTIdentifier::XOR(const OTIdentifier& theInput) const
 {
     // Go with the smallest of the two
     const int64_t lSize =

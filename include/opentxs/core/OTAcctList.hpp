@@ -165,7 +165,7 @@ public:
 
     EXPORT void Release_AcctList();
 
-    EXPORT void Serialize(OTString& append);
+    EXPORT void Serialize(OTString& append) const;
     EXPORT int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                                    const OTString& acctType,
                                    const OTString& acctCount);
@@ -179,7 +179,7 @@ public:
         OTPseudonym& serverNym, const OTIdentifier& ACCOUNT_OWNER_ID,
         const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
-                              // created here. Otherwise set to false;
+        // created here. Otherwise set to false;
         int64_t stashTransNum = 0);
 
 private:
