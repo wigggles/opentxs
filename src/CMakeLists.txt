@@ -13,6 +13,7 @@ include_directories(SYSTEM
 )
 
 include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}/../include
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 

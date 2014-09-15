@@ -135,7 +135,7 @@
 #include "OTLog.hpp"
 #include "OTPaths.hpp"
 #include "util/stacktrace.h"
-#include "Version.hpp"
+#include "opentxs/core/Version.hpp"
 
 #include <mutex>
 
