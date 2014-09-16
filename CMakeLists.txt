@@ -324,7 +324,8 @@ if(NOT WIN32)
 	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
 	include(GNUInstallDirs)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
-		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+		COMPONENT main)
 endif()
 
 
@@ -361,7 +362,7 @@ if(AUTOCOMPLETION)
   install(FILES
           ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bash_completion.d/opentxs-bash-completion.sh
 	  DESTINATION /etc/bash_completion.d/
-          COMPONENT)
+          COMPONENT main)
 endif()
 
 

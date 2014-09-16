@@ -39,4 +39,4 @@ endif()
 
 install(TARGETS opentxs
         DESTINATION bin
-        COMPONENT)
+        COMPONENT main)
