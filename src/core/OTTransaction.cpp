@@ -6029,8 +6029,6 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
-    OTCronItem* pCronItem = nullptr;
-    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6052,10 +6050,11 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                       << ": Failed trying to get paymentReceipt item from "
                          "paymentReceipt transaction.\n";
 
-            pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-            theCronItemAngel.reset(pCronItem);
+            std::unique_ptr<OTCronItem> pCronItem(
+                OTCronItem::NewCronItem(strUpdatedCronItem));
 
-            OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
+            OTSmartContract* pSmart =
+                dynamic_cast<OTSmartContract*>(pCronItem.get());
 
             if (nullptr != pSmart) // if it's a smart contract...
             {
@@ -6221,7 +6220,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
-    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6240,11 +6238,12 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.reset(pCronItem);
+        std::unique_ptr<OTCronItem> pCronItem(
+            OTCronItem::NewCronItem(strUpdatedCronItem));
 
-        OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
+        OTSmartContract* pSmart =
+            dynamic_cast<OTSmartContract*>(pCronItem.get());
+        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
         if (nullptr != pSmart) // if it's a smart contract...
         {
@@ -6414,8 +6413,6 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
-    OTCronItem* pCronItem = nullptr;
-    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6434,10 +6431,11 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.reset(pCronItem);
+        std::unique_ptr<OTCronItem> pCronItem(
+            OTCronItem::NewCronItem(strUpdatedCronItem));
 
-        OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
+        OTSmartContract* pSmart =
+            dynamic_cast<OTSmartContract*>(pCronItem.get());
 
         if (nullptr != pSmart) // if it's a smart contract...
         {
@@ -6552,7 +6550,6 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
 
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
-    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6569,11 +6566,12 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.reset(pCronItem);
+        std::unique_ptr<OTCronItem> pCronItem(
+            OTCronItem::NewCronItem(strUpdatedCronItem));
 
-        OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
+        OTSmartContract* pSmart =
+            dynamic_cast<OTSmartContract*>(pCronItem.get());
+        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
         if (nullptr != pSmart) // if it's a smart contract...
         {
@@ -6682,7 +6680,6 @@ bool OTTransaction::GetMemo(OTString& strMemo)
 
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
-    std::unique_ptr<OTCronItem> theCronItemAngel;
 
     OTString strReference;
     GetReferenceString(strReference);
@@ -6699,11 +6696,12 @@ bool OTTransaction::GetMemo(OTString& strMemo)
                   << ": Failed trying to get paymentReceipt item from "
                      "paymentReceipt transaction.\n";
 
-        OTCronItem* pCronItem = OTCronItem::NewCronItem(strUpdatedCronItem);
-        theCronItemAngel.reset(pCronItem);
+        std::unique_ptr<OTCronItem> pCronItem(
+            OTCronItem::NewCronItem(strUpdatedCronItem));
 
-        OTSmartContract* pSmart = dynamic_cast<OTSmartContract*>(pCronItem);
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem);
+        OTSmartContract* pSmart =
+            dynamic_cast<OTSmartContract*>(pCronItem.get());
+        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
         if (nullptr != pSmart) // if it's a smart contract...
         {
