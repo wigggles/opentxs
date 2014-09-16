@@ -38,4 +38,4 @@ endif()
 
 install(TARGETS ot
         DESTINATION bin
-        COMPONENT)
+        COMPONENT main)

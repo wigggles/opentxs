@@ -75,5 +75,5 @@ if (NOT WIN32)
   include(GNUInstallDirs)
   install(TARGETS bigint lucre
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          COMPONENT)
+          COMPONENT main)
 endif()
