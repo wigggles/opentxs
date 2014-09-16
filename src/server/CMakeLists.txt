@@ -59,3 +59,10 @@ if(WIN32)
     "${CMAKE_BINARY_DIR}/lib/$<CONFIGURATION>/opentxs-server.pdb"
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/opentxs-server.pdb")
 endif()
+
+if(NOT WIN32)
+  include(GNUInstallDirs)
+  install(TARGETS opentxs-server
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          COMPONENT main)
+endif()
