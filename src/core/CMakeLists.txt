@@ -116,6 +116,7 @@ else()
 endif()
 
 target_link_libraries(opentxs-core otprotob opentxs-cron opentxs-script opentxs-trade bigint irrxml ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+set_target_properties(opentxs-core PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
 
 if(WIN32)
   add_custom_command(TARGET opentxs-core POST_BUILD
