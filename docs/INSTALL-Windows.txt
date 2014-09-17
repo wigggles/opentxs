@@ -32,21 +32,25 @@ Dependencies (installed):
      "Use Git and optional Unix tools from the Windows Command Prompt"
      since OT uses tools like 'sed' in its Cmaake build files.
 
-3. OpenSSL 1.0.1: Download and follow instructions for win32.
-    http://slproweb.com/products/Win32OpenSSL.html
-    Install "Win32 OpenSSL v1.0,1h" or higher with default settings to the default locations.
-
-4. Cmake 3.0.0: 
+3. Cmake 3.0.0: 
     This is the current build system for OT
     http://www.cmake.org/cmake/resources/software.html
     During install 'Add to Windows PATH'
+
+4. OpenSSL 1.0.1: Download and follow instructions for win32.
+    http://slproweb.com/products/Win32OpenSSL.html
+    Install "Win32 OpenSSL v1.0,1h" or higher with default settings to the default locations.
     
-4. LLVM 3.4.1: (This exact version for now)
+5. ZeroMQ 4.0.4:
+    http://zeromq.org/distro:microsoft-windows
+    Install "x86 build for Windows XP SP3 and newer" with default settings to the default locations.
+    
+6. LLVM 3.4.1: (This exact version for now)
     This will install the clang-format auto-reformatter
     http://llvm.org/releases/download.html
     During install 'Add to Windows PATH'
     
-6. Java (Optional, not recommended unless needed):
+7. Java (Optional, not recommended unless needed):
     http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 
 Dependencies (packaged):
@@ -62,24 +66,15 @@ Dependencies (packaged):
 
 
 Note:
- How to ‘install’ these dependancies.
- To make use of the compile dependancies you need to copy, (as they are), the following
+ How to install these dependencies.
+ To make use of the compile dependencies you need to copy, (as they are), the following
  folders into your Open-Transactions folder.
-   “include” and “lib”
+   include and lib
 
 
 
 ## Open Transactions ##
 
-   using the command prompt: open up ..\dev\ folder.
-
-$ git clone https://github.com/monetas/opentxs.git
-$ cd opentxs
-$ git submodule update --init --recursive 
-
-# to clean and reset to HEAD:
-$ git clean -fxd && git submodule foreach git clean -fxd
-$ git reset --hard HEAD && git submodule foreach git reset --hard HEAD
 
 Make sure the Cmake environment variables are set up correctly so it can find the
 externally installed dependencies:
@@ -91,7 +86,7 @@ CMAKE_INCLUDE_PATH needs to point to the external include folders for
 - ZeroMQ
 
 Example:
-CMAKE_INCLUDE_PATH=D:\Work\Monetas\protobuf-2.5.0\include;C:\OpenSSL-Win32\include;C:\Program Files (x86)\GnuWin32\include;C:\Program Files\ZeroMQ 4.0.4\include
+CMAKE_INCLUDE_PATH=D:\Work\Monetas\protobuf-2.5.0\include;C:\OpenSSL-Win32\include;C:\Program Files (x86)\GnuWin32\include;C:\Program Files (x86)\ZeroMQ 4.0.4\include
 
 CMAKE_LIBRARY_PATH needs to point to the external library folders for
 - protobuf
@@ -100,18 +95,27 @@ CMAKE_LIBRARY_PATH needs to point to the external library folders for
 - ZeroMQ
 
 Example:
-CMAKE_LIBRARY_PATH=D:\Work\Monetas\protobuf-2.5.0\lib\win32\debug;C:\OpenSSL-Win32\lib\VC;C:\Program Files (x86)\GnuWin32\lib;C:\Program File\ZeroMQ 4.0.4\lib
+CMAKE_LIBRARY_PATH=D:\Work\Monetas\protobuf-2.5.0\lib\win32\debug;C:\OpenSSL-Win32\lib\VC;C:\Program Files (x86)\GnuWin32\lib;C:\Program Files (x86)\ZeroMQ 4.0.4\lib
 
+
+Also make sure the Windows PATH environment variable can find the ZeroMQ and zlib dll's
+
+Example:
+PATH %PATH%;C:\Program File (x86)\ZeroMQ 4.0.4\bin;C:\Program Files (x86)\GnuWin32\bin
+
+
+
+Using the command prompt: open up ..\dev\ folder.
+
+$ git clone http://github.com/Open-Transactions/opentxs.git
+$ cd opentxs
 $ md build
 $ cd build
 $ cmake ..
 
-   open the project solution: ..\build\opentxs.sln
-   build OT.
-
-the output is in the directory:
-
-..\build\bin\Debug\..
+open the project solution: .\build\opentxs.sln
+and build all (F7)
+the output is in the directory .\build\bin\Debug
 
 
 ## Running OT ##
@@ -120,18 +124,8 @@ the output is in the directory:
 
 Create folders and config files on first run:
 
-a. In Visual Studio open ‘ot Property Pages’ and select the debugging tab.
-
-Select Configuration: All Configurations.
-Select Platform: All Platforms.
-
-Set: Command Arguments: “scripts\opentxs”
-     Working Directory: “$(SolutionDir)..\”
-
-
-Apply Changes, and set ’ot’ project as the startup project.
-
-b. Press the F5 or select ‘start debugging’ to start OT.
+a. In Visual Studio open set project "opentxs" as the startup project.
+b. Press F5 or select "start debugging" to start opentxs.
 
 ## When you load up the first time it will not load. ##
 
@@ -139,21 +133,17 @@ b. Press the F5 or select ‘start debugging’ to start OT.
 2. Setting the script directory to your development folder:
 
 a. In the file explorer open up you AppData/Roaming folder.
-b. Navigate to the newly created ‘OpenTransactions’ folder.
-c. Open the ‘ot_init.cfg’ in WordPad
+b. Navigate to the newly created OpenTransactions folder.
+c. Open the ot_init.cfg in notepad
 d. Under [paths] change:
      scripts_is_relative = false
      scripts = Full path to:  ..\dev\Open-Transactions\scripts\ot
 
-^^ replace with the actual full path…
+^^ replace with the actual full path
 
 3.  Now you should be fine to run OT.
 
-To run ‘ot’ from the console, run:
-
-$ lib\Win32\Debug\ot scripts\opentxs
-
-If OT ever doesn’t exit cleanly you will need to delete the pid file.
+If OT ever doesn't exit cleanly you will need to delete the pid file.
  
   
 
