@@ -7,6 +7,6 @@ Name: @CMAKE_PROJECT_NAME@
 Description: @CPACK_PACKAGE_DESCRIPTION@
 Version: @VERSION_STRING@
 
-Libs: -L${libdir} -lopentxs-client -lopentxs-core -lopentxs-ext
+Libs: -L${libdir} -lopentxs-server -lopentxs-client -lopentxs-ext -lopentxs-core
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}
