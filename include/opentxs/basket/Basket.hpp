@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTBasket.hpp
+ *  Basket.hpp
  *
  */
 
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_BASKET_OTBASKET_HPP
-#define OPENTXS_BASKET_OTBASKET_HPP
+#ifndef OPENTXS_BASKET_BASKET_HPP
+#define OPENTXS_BASKET_BASKET_HPP
 
 #include "OTBasketItem.hpp"
 #include "opentxs/core/OTContract.hpp"
@@ -187,7 +187,7 @@
 namespace opentxs
 {
 
-class OTBasket : public OTContract
+class Basket : public OTContract
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
@@ -214,9 +214,9 @@ protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
 public:
-    EXPORT OTBasket();
-    EXPORT OTBasket(int32_t nCount, int64_t lMinimumTransferAmount);
-    EXPORT virtual ~OTBasket();
+    EXPORT Basket();
+    EXPORT Basket(int32_t nCount, int64_t lMinimumTransferAmount);
+    EXPORT virtual ~Basket();
 
     virtual void UpdateContents();
     //    virtual bool SaveContractWallet(FILE* fl);
@@ -311,4 +311,4 @@ public:
 
 } // namespace opentxs
 
-#endif // OPENTXS_BASKET_OTBASKET_HPP
+#endif // OPENTXS_BASKET_BASKET_HPP

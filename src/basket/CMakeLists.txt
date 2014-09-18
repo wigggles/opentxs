@@ -2,7 +2,7 @@
 
 set(cxx-sources
   BasketContract.cpp
-  OTBasket.cpp
+  Basket.cpp
   OTBasketItem.cpp
 )
 
