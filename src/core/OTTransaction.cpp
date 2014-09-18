@@ -142,7 +142,6 @@
 #include "OTPaymentPlan.hpp"
 #include "OTStorage.hpp"
 #include "script/OTSmartContract.hpp"
-#include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -936,9 +935,9 @@ bool OTTransaction::HarvestClosingNumbers(
                          "to find "
                          "marketOffer item in marketOffer transaction.\n";
             }
-            else // pItem is good. Let's load up the OTTrade object...
+            else // pItem is good. Let's load up the OTCronIteam object...
             {
-                OTTrade theTrade;
+                OTCronItem theTrade;
                 OTString strTrade;
                 pItem->GetAttachment(strTrade);
 

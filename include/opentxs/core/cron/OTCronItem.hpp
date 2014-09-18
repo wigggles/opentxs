@@ -150,6 +150,9 @@ class OTString;
 
 class OTCronItem : public OTTrackable
 {
+public:
+    OTCronItem();
+
 private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
 
@@ -167,7 +170,6 @@ protected:
                                                // transaction. (finalReceipt.)
 
 protected:
-    OTCronItem();
     OTCronItem(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
     OTCronItem(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
                const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
