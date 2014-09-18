@@ -138,13 +138,13 @@
 namespace opentxs
 {
 
-class OTBasket;
+class Basket;
 class OTPseudonym;
 
 class BasketContract : public OTAssetContract
 {
 public:
-    EXPORT BasketContract(OTBasket& basket, OTPseudonym& signer);
+    EXPORT BasketContract(Basket& basket, OTPseudonym& signer);
     virtual ~BasketContract();
 
     virtual void CreateContents();

@@ -156,7 +156,7 @@ class TransportCallback;
 class OT_API;
 class OTAccount;
 class OTAssetContract;
-class OTBasket;
+class Basket;
 class OTCheque;
 class OTClient;
 class OTEnvelope;
@@ -845,14 +845,14 @@ public:
                                    const OTIdentifier& USER_ID,
                                    const OTIdentifier& ACCT_ID) const;
 
-    EXPORT OTBasket* GenerateBasketCreation(const OTIdentifier& USER_ID,
-                                            int64_t MINIMUM_TRANSFER)
+    EXPORT Basket* GenerateBasketCreation(const OTIdentifier& USER_ID,
+                                          int64_t MINIMUM_TRANSFER)
         const; // Must be above zero. If <= 0,
                // defaults to 10.
 
     EXPORT bool AddBasketCreationItem(
         const OTIdentifier& USER_ID,       // for signature.
-        OTBasket& theBasket,               // created in above call.
+        Basket& theBasket,                 // created in above call.
         const OTIdentifier& ASSET_TYPE_ID, // Adding an asset type to the new
                                            // basket.
         int64_t MINIMUM_TRANSFER) const;   // The amount of the asset type
@@ -863,7 +863,7 @@ public:
                                const OTIdentifier& USER_ID,
                                const OTString& BASKET_INFO) const;
 
-    EXPORT OTBasket* GenerateBasketExchange(
+    EXPORT Basket* GenerateBasketExchange(
         const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
         const OTIdentifier& BASKET_ASSET_TYPE_ID,
         const OTIdentifier& BASKET_ASSET_ACCT_ID,
@@ -872,7 +872,7 @@ public:
 
     EXPORT bool AddBasketExchangeItem(const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& USER_ID,
-                                      OTBasket& theBasket,
+                                      Basket& theBasket,
                                       const OTIdentifier& ASSET_TYPE_ID,
                                       const OTIdentifier& ASSET_ACCT_ID) const;
 

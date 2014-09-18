@@ -139,8 +139,8 @@
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
-#include <opentxs/basket/OTBasketItem.hpp>
-#include <opentxs/basket/OTBasket.hpp>
+#include <opentxs/basket/BasketItem.hpp>
+#include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/OTPaymentPlan.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
@@ -5812,7 +5812,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
 
             // Here's the request from the user.
             OTString strBasket;
-            OTBasket theBasket, theRequestBasket;
+            Basket theBasket, theRequestBasket;
 
             pItem->GetAttachment(strBasket);
 

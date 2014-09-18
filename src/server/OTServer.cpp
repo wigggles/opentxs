@@ -141,7 +141,7 @@
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
-#include <opentxs/basket/OTBasket.hpp>
+#include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/OTAccount.hpp>
 #include <opentxs/core/OTAssetContract.hpp>

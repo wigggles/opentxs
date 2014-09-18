@@ -144,7 +144,7 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
-#include "../basket/OTBasket.hpp"
+#include "../basket/Basket.hpp"
 
 #include "../core/OTAccount.hpp"
 #include "../core/script/OTAgent.hpp"
@@ -7669,7 +7669,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         OTPseudonym* pNym =
             OTAPI()->GetOrLoadPrivateNym(theUserID, false, __FUNCTION__);
         if (nullptr == pNym) return false;
-        OTBasket theRequestBasket;
+        Basket theRequestBasket;
 
         if (theRequestBasket.LoadContractFromString(strBasket)) {
             if (!theRequestBasket.IsExchanging()) {
@@ -13930,7 +13930,7 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
 
-    std::unique_ptr<OTBasket> pBasket(OTAPI()->GenerateBasketCreation(
+    std::unique_ptr<Basket> pBasket(OTAPI()->GenerateBasketCreation(
         theUserID, static_cast<int64_t>(lMinimumTransfer))); // Must be above
                                                              // zero. If <= 0,
                                                              // defaults to 10.
@@ -13984,7 +13984,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     OTString strBasket(THE_BASKET);
     const OTIdentifier theUserID(USER_ID), theAssetTypeID(ASSET_TYPE_ID);
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
-    OTBasket theBasket;
+    Basket theBasket;
 
     bool bAdded = false;
 
@@ -14094,7 +14094,7 @@ std::string OTAPI_Exec::GenerateBasketExchange(
     int32_t nTransferMultiple = 1; // Just a default value.
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
-    std::unique_ptr<OTBasket> pBasket(OTAPI()->GenerateBasketExchange(
+    std::unique_ptr<Basket> pBasket(OTAPI()->GenerateBasketExchange(
         theServerID, theUserID, theBasketAssetTypeID, theBasketAssetAcctID,
         nTransferMultiple)); // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
@@ -14148,7 +14148,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     OTString strBasket(THE_BASKET);
     const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAssetTypeID(ASSET_TYPE_ID), theAssetAcctID(ASSET_ACCT_ID);
-    OTBasket theBasket;
+    Basket theBasket;
 
     bool bAdded = false;
 

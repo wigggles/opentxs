@@ -133,7 +133,7 @@
 #ifndef OPENTXS_BASKET_BASKET_HPP
 #define OPENTXS_BASKET_BASKET_HPP
 
-#include "OTBasketItem.hpp"
+#include "BasketItem.hpp"
 #include "opentxs/core/OTContract.hpp"
 
 /*
@@ -170,7 +170,7 @@
  denominated in the dollar asset
  specified in the contract, 1 denominiated in the gold asset, and so on.
 
- The OTAssetBasket contract (with sub-issuers) and the OTBasketAccount (issuer
+ The OTAssetBasket contract (with sub-issuers) and the BasketAccount (issuer
  account) objects handle all the
  details of converting between the sub-accounts and the main account.
 

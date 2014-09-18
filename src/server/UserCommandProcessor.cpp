@@ -136,7 +136,7 @@
 #include "Macros.hpp"
 #include "ServerSettings.hpp"
 #include <opentxs/basket/BasketContract.hpp>
-#include <opentxs/basket/OTBasket.hpp>
+#include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
@@ -2964,7 +2964,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
         SERVER_USER_ID(server_->m_nymServer);
 
     OTString strBasket(MsgIn.m_ascPayload);
-    OTBasket theBasket;
+    Basket theBasket;
 
     if (!theBasket.LoadContractFromString(strBasket)) {
         OTLog::vError("%s: Failed trying to load basket from string.\n",
@@ -3120,7 +3120,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                     //
                     // BUT!! Because we can also generate a hash of
                     // theBasket.m_xmlUnsigned (which is what
-                    // OTBasket::CalculateContractID
+                    // Basket::CalculateContractID
                     // does) then we have a way of obtaining a number that will
                     // be the same from server to server, for cross-server
                     // transfers of basket assets.
