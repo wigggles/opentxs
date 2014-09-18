@@ -5349,20 +5349,6 @@ OTSmartContract::OTSmartContract(const OTIdentifier& SERVER_ID)
     InitSmartContract();
 }
 
-OTSmartContract::OTSmartContract(const OTIdentifier& SERVER_ID,
-                                 const OTIdentifier& ASSET_ID,
-                                 const OTIdentifier& SENDER_ACCT_ID,
-                                 const OTIdentifier& SENDER_USER_ID,
-                                 const OTIdentifier&, const OTIdentifier&)
-    : ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID)
-    , m_StashAccts(OTAccount::stash)
-    , m_tNextProcessDate(OT_TIME_ZERO)
-{
-    InitSmartContract();
-
-    // More can go here.
-}
-
 OTSmartContract::~OTSmartContract()
 {
     Release_SmartContract();

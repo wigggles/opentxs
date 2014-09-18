@@ -467,12 +467,6 @@ public:
                            OTStash& theStash);
     EXPORT OTSmartContract();
     EXPORT OTSmartContract(const OTIdentifier& SERVER_ID);
-    EXPORT OTSmartContract(const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_ID,
-                           const OTIdentifier& SENDER_ACCT_ID,
-                           const OTIdentifier& SENDER_USER_ID,
-                           const OTIdentifier& RECIPIENT_ACCT_ID,
-                           const OTIdentifier& RECIPIENT_USER_ID);
 
     // User edits the smart contracts in this folder until they are ISSUED onto
     // a server.
