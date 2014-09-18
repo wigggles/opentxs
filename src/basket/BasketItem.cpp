@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTBasketItem.hpp
+ *  BasketItem.cpp
  *
  */
 
@@ -130,44 +130,17 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_BASKET_OTBASKETITEM_HPP
-#define OPENTXS_BASKET_OTBASKETITEM_HPP
+#include "opentxs/core/stdafx.hpp"
 
-#include "opentxs/core/OTIdentifier.hpp"
-
-#include <deque>
+#include "BasketItem.hpp"
 
 namespace opentxs
 {
 
-class BasketItem;
-
-typedef std::deque<BasketItem*> dequeOfBasketItems;
-
-class BasketItem
+BasketItem::BasketItem()
+    : lMinimumTransferAmount(0)
+    , lClosingTransactionNo(0)
 {
-public:
-    OTIdentifier SUB_CONTRACT_ID;
-    OTIdentifier SUB_ACCOUNT_ID;
-
-    int64_t lMinimumTransferAmount;
-
-    // lClosingTransactionNo:
-    // Used when EXCHANGING a basket (NOT USED when first creating one.)
-    // A basketReceipt must be dropped into each asset account during
-    // an exchange, to account for the change in balance. Until that
-    // receipt is accepted, lClosingTransactionNo will remain open as
-    // an issued transaction number (an open transaction) on that Nym.
-    // (One must be supplied for EACH asset account during an exchange.)
-    //
-    int64_t lClosingTransactionNo;
-
-    BasketItem();
-    ~BasketItem()
-    {
-    }
-};
+}
 
 } // namespace opentxs
-
-#endif // OPENTXS_BASKET_OTBASKETITEM_HPP
