@@ -136,6 +136,7 @@
 #ifndef OPENTXS_CORE_TRADE_OTTRADE_HPP
 #define OPENTXS_CORE_TRADE_OTTRADE_HPP
 
+#include "OTMarket.hpp"
 #include "OTOffer.hpp"
 #include "../cron/OTCronItem.hpp"
 

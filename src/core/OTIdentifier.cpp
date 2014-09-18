@@ -133,11 +133,11 @@
 #include "stdafx.hpp"
 
 #include "OTIdentifier.hpp"
+#include "OTContract.hpp"
 #include "crypto/OTCachedKey.hpp"
 #include "crypto/OTCrypto.hpp"
 #include "OTPseudonym.hpp"
 #include "crypto/OTSymmetricKey.hpp"
-#include "trade/OTMarket.hpp"
 
 namespace opentxs
 {
@@ -190,12 +190,6 @@ OTIdentifier::OTIdentifier(const OTPseudonym& theNym)
     : OTData() // Get the Nym's ID into this identifier.
 {
     (const_cast<OTPseudonym&>(theNym)).GetIdentifier(*this);
-}
-
-OTIdentifier::OTIdentifier(const OTMarket& theMarket)
-    : OTData() // Get the Market ID into this identifier.
-{
-    (const_cast<OTMarket&>(theMarket)).GetIdentifier(*this);
 }
 
 OTIdentifier::OTIdentifier(const OTSymmetricKey& theKey)

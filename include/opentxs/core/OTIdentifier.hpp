@@ -146,7 +146,6 @@ namespace opentxs
 
 class OTCachedKey;
 class OTContract;
-class OTMarket;
 class OTPseudonym;
 class OTString;
 class OTSymmetricKey;
@@ -176,7 +175,6 @@ public:
     EXPORT OTIdentifier(const OTPseudonym& theNym);
     EXPORT OTIdentifier(const OTContract& theContract); // Get the contract's ID
                                                         // into this identifier.
-    EXPORT OTIdentifier(const OTMarket& theMarket);
     EXPORT OTIdentifier(const OTSymmetricKey& theKey);
     EXPORT OTIdentifier(const OTCachedKey& theKey);
 
