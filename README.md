@@ -53,11 +53,22 @@ clang-format each time you push or commit. To do so type in the repo directory:
     ln -s ../../scripts/git_hooks/pre-push
     ln -s ../../scripts/git_hooks/pre-commit
 
-To check your code without pushing the following command can be used:  
+To check your code without pushing the following command can be used:
 
     git push -n
 
 ### Build Instructions
+
+OpenTransactions uses the CMake build system. The basic steps are
+
+    mkdir build
+    cd build
+    cmake ..
+    make
+    make install
+
+
+More detailed instructions are listed below
 
 #### Linux
 
@@ -73,8 +84,3 @@ To check your code without pushing the following command can be used:
 #### Windows
 
  * [Windows (Vista SP2+)](docs/INSTALL-Windows.txt)
-
-#### Android
-
- * [Android](https://github.com/monetas/ot-android)
-
