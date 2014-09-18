@@ -309,7 +309,6 @@ public:
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& nym,
                                             OTAccount& account) const;
     EXPORT OTTrade();
-    OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId);
     EXPORT OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
                    const OTIdentifier& assetAcctId, const OTIdentifier& userId,
                    const OTIdentifier& currencyId,

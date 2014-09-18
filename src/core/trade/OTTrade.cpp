@@ -1332,25 +1332,6 @@ OTTrade::OTTrade()
     InitTrade();
 }
 
-OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId)
-    : ot_super(serverId, assetId)
-    , offer_(nullptr)
-    , hasTradeActivated_(false)
-    , stopPrice_(0)
-    , stopSign_(0)
-    , stopActivated_(false)
-    , tradesAlreadyDone_(0)
-{
-    //    offer_            = nullptr;    // NOT responsible to clean this up.
-    // Just keeping the pointer for convenience.
-    // You might ask, "but what if it goes bad?" Actually only THIS object
-    // should ever decide that.
-    // Only the Trade object decides when to add or remove an offer from any
-    // market.
-
-    InitTrade();
-}
-
 OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
                  const OTIdentifier& assetAcctId, const OTIdentifier& userId,
                  const OTIdentifier& currencyId,
