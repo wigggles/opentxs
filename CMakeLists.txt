@@ -161,6 +161,16 @@ else()
   find_path(ZMQ_INCLUDE_DIR zmq.h)
   message(STATUS "Found ZeroMQ: ${ZMQ_LIB}")
 endif()
+file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_MAJOR REGEX "^#define ZMQ_VERSION_MAJOR [0-9]$")
+string(REGEX REPLACE "^#define ZMQ_VERSION_MAJOR ([0-9])$" "\\1" ZMQ_VERSION_MAJOR "${ZMQ_VERSION_MAJOR}")
+file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_MINOR REGEX "^#define ZMQ_VERSION_MINOR [0-9]$")
+string(REGEX REPLACE "^#define ZMQ_VERSION_MINOR ([0-9])$" "\\1" ZMQ_VERSION_MINOR "${ZMQ_VERSION_MINOR}")
+file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_PATCH REGEX "^#define ZMQ_VERSION_PATCH [0-9]$")
+string(REGEX REPLACE "^#define ZMQ_VERSION_PATCH ([0-9])$" "\\1" ZMQ_VERSION_PATCH "${ZMQ_VERSION_PATCH}")
+set(ZMQ_VERSION "${ZMQ_VERSION_MAJOR}.${ZMQ_VERSION_MINOR}.${ZMQ_VERSION_PATCH}")
+if (NOT ZMQ_VERSION STREQUAL "4.0.4")
+  message(FATAL_ERROR "Wrong ZeroMQ version ${ZMQ_VERSION}. Required version is 4.0.4")
+endif()
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
