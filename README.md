@@ -49,10 +49,32 @@ if either of them finds problems.
 For convenience please enable the git hooks which will trigger cppcheck and
 clang-format each time you push or commit. To do so type in the repo directory:
 
-    cd .git/hooks  
+    cd .git/hooks
     ln -s ../../scripts/git_hooks/pre-push
     ln -s ../../scripts/git_hooks/pre-commit
- 
+
 To check your code without pushing the following command can be used:  
 
     git push -n
+
+### Build Instructions
+
+#### Linux
+
+ * [Generic Linux](docs/INSTALL-MEMO-Linux.txt)
+ * [Debian and Ubuntu](docs/INSTALL-Debian_Ubuntu.txt)
+ * [Fedora](docs/INSTALL-Fedora.txt)
+ * [OpenSUSE](docs/INSTALL-openSUSE.txt)
+
+#### OSX
+
+ * [OSX Homebrew](docs/INSTALL-OSX-Homebrew.txt)
+
+#### Windows
+
+ * [Windows (Vista SP2+)](docs/INSTALL-Windows.txt)
+
+#### Android
+
+ * [Android](https://github.com/monetas/ot-android)
+
