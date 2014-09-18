@@ -189,11 +189,6 @@ namespace opentxs
 
 class Basket : public OTContract
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
-
-    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
-
 protected:
     int32_t m_nSubCount;
     int64_t m_lMinimumTransfer;  // used in the actual basket
@@ -307,6 +302,9 @@ public:
     EXPORT void HarvestClosingNumbers(OTPseudonym& theNym,
                                       const OTIdentifier& theServerID,
                                       bool bSave = true);
+
+private:
+    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 };
 
 } // namespace opentxs

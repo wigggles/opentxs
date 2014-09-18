@@ -478,7 +478,7 @@ void Basket::CalculateContractID(OTIdentifier& newID) const
 }
 
 Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
-    : ot_super()
+    : OTContract()
     , m_nSubCount(nCount)
     , m_lMinimumTransfer(lMinimumTransferAmount)
     , m_nTransferMultiple(0)
@@ -489,7 +489,7 @@ Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
 }
 
 Basket::Basket()
-    : ot_super()
+    : OTContract()
     , m_nSubCount(0)
     , m_lMinimumTransfer(0)
     , m_nTransferMultiple(0)
@@ -526,7 +526,7 @@ void Basket::Release()
 {
     Release_Basket();
 
-    ot_super::Release();
+    OTContract::Release();
 }
 
 bool Basket::SaveContractWallet(std::ofstream&) const
