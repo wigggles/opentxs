@@ -214,7 +214,6 @@ public:
     EXPORT virtual ~Basket();
 
     virtual void UpdateContents();
-    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
@@ -269,7 +268,7 @@ public:
     inline void IncrementSubCount()
     {
         m_nSubCount++;
-    } // Used to abstract away this detail in the API.
+    }
 
     // For generating a user request to exchange in/out of a basket.
     // Assumes that SetTransferMultiple has already been called.
@@ -288,9 +287,6 @@ public:
 
     virtual void Release();
     void Release_Basket();
-
-    //
-    // NOTE: Experimental / new (here):
 
     // The basket itself only stores the CLOSING numbers.
     // For the opening number, you have to go deal with the exchangeBasket

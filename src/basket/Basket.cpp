@@ -209,11 +209,7 @@ void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
             theServerID, lClosingTransNo, false); // bSave=false
 
         if (bClawedBack) bNeedToSave = true;
-        //        else
-        //            otErr << "Basket::HarvestClosingNumbers: Number (%lld)
-        // failed as issued. (Thus didn't bother 'adding it back'.)\n",
-        //                          lClosingTransNo);
-    } // for
+    }
     // Then the BASKET currency itself...
     //
     const int64_t lClosingTransNo = GetClosingNum();
@@ -222,8 +218,8 @@ void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
     // place.
     // (Verifies it is on issued list first, before adding to available list.)
     //
-    const bool bClawedBack = theNym.ClawbackTransactionNumber(
-        theServerID, lClosingTransNo, false); // bSave=false
+    const bool bClawedBack =
+        theNym.ClawbackTransactionNumber(theServerID, lClosingTransNo, false);
 
     if (bClawedBack) bNeedToSave = true;
 
@@ -253,7 +249,6 @@ void Basket::AddRequestSubContract(const OTIdentifier& SUB_CONTRACT_ID,
     // Also there is no multiple on the item, only on the basket as a whole.
     // ALL items are multiplied by the same multiple. Even the basket amount
     // itself is also.
-
     m_dequeItems.push_back(pItem);
 
     pItem->SUB_CONTRACT_ID = SUB_CONTRACT_ID;
@@ -276,8 +271,6 @@ void Basket::AddSubContract(const OTIdentifier& SUB_CONTRACT_ID,
                   "Error allocating memory in Basket::AddSubContract\n");
 
     pItem->SUB_CONTRACT_ID = SUB_CONTRACT_ID;
-    // server adds this later. Client can't know it in advance.
-    //    pItem->SUB_ACCOUNT_ID            = SUB_ACCOUNT_ID;
     pItem->lMinimumTransferAmount = lMinimumTransferAmount;
 
     m_dequeItems.push_back(pItem);
@@ -313,19 +306,6 @@ int32_t Basket::Count() const
 {
     return static_cast<int32_t>(m_dequeItems.size());
 }
-
-/*
- struct BasketItem
- {
- OTIdentifier SUB_CONTRACT_ID;
- OTIdentifier SUB_ACCOUNT_ID;
- int64_t        lMinimumTransferAmount;
-
- BasketItem() { lMinimumTransferAmount = 0; }
- ~BasketItem();
- };
-
- */
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
