@@ -1,6 +1,6 @@
 ## Open-Transactions Library Project
 
-[![Build Status](https://travis-ci.org/Open-Transactions/opentxs.svg?branch=develop)](https://travis-ci.org/Open-Transactions/opentxs)[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)[![tip for next commit](https://tip4commit.com/projects/915.svg)](https://tip4commit.com/github/Open-Transactions/opentxs)
+[![Build Status](https://travis-ci.org/Open-Transactions/opentxs.svg?branch=develop)](https://travis-ci.org/Open-Transactions/opentxs)[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)
 
 
 The Open-Transactions project is a collaborative effort to develop
@@ -49,10 +49,38 @@ if either of them finds problems.
 For convenience please enable the git hooks which will trigger cppcheck and
 clang-format each time you push or commit. To do so type in the repo directory:
 
-    cd .git/hooks  
+    cd .git/hooks
     ln -s ../../scripts/git_hooks/pre-push
     ln -s ../../scripts/git_hooks/pre-commit
- 
-To check your code without pushing the following command can be used:  
+
+To check your code without pushing the following command can be used:
 
     git push -n
+
+### Build Instructions
+
+OpenTransactions uses the CMake build system. The basic steps are
+
+    mkdir build
+    cd build
+    cmake ..
+    make
+    make install
+
+
+More detailed instructions are listed below
+
+#### Linux
+
+ * [Generic Linux](docs/INSTALL-MEMO-Linux.txt)
+ * [Debian and Ubuntu](docs/INSTALL-Debian_Ubuntu.txt)
+ * [Fedora](docs/INSTALL-Fedora.txt)
+ * [OpenSUSE](docs/INSTALL-openSUSE.txt)
+
+#### OSX
+
+ * [OSX Homebrew](docs/INSTALL-OSX-Homebrew.txt)
+
+#### Windows
+
+ * [Windows (Vista SP2+)](docs/INSTALL-Windows.txt)
