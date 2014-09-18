@@ -165,7 +165,6 @@ namespace opentxs
 OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 {
     static char buf[45] = "";
-    OTCronItem* pItem = nullptr;
 
     if (!strCronItem.Exists()) {
         otErr << __FUNCTION__
@@ -175,9 +174,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 
     OTString strContract(strCronItem);
 
-    if (false == strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
-                                                     // by default.
-    {
+    if (false == strContract.DecodeIfArmored(false)) {
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
               << strCronItem << "\n";
@@ -191,8 +188,8 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
     if (!bGotLine) return nullptr;
 
     OTString strFirstLine(buf);
-    strContract.reset(); // set the "file" pointer within this string back to
-                         // index 0.
+    // set the "file" pointer within this string back to index 0.
+    strContract.reset();
 
     // Now I feel pretty safe -- the string I'm examining is within
     // the first 45 characters of the beginning of the contract, and
@@ -203,41 +200,27 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
     // By this point we know already that it's not escaped.
     // BUT it might still be ARMORED!
 
-    if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) // this
-                                                                      // string
-                                                                      // is 35
-                                                                      // chars
-                                                                      // long.
-    {
-        pItem = new OTPaymentPlan();
-        OT_ASSERT(nullptr != pItem);
+    std::unique_ptr<OTCronItem> pItem;
+    // this string is 35 chars long.
+    if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
+        pItem.reset(new OTPaymentPlan());
     }
-    else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) // this
-                                                                      // string
-                                                                      // is 28
-                                                                      // chars
-                                                                      // long.
-    {
-        pItem = new OTTrade();
-        OT_ASSERT(nullptr != pItem);
+    // this string is 28 chars long.
+    else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
+        pItem.reset(new OTTrade());
     }
-    else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED SMARTCONTRACT-----")) // this string is 36
-                                                            // chars long.
-    {
-        pItem = new OTSmartContract();
-        OT_ASSERT(nullptr != pItem);
+    // this string is 36 chars long.
+    else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
+        pItem.reset(new OTSmartContract());
     }
-
-    // The string didn't match any of the options in the factory.
-    if (nullptr == pItem) return nullptr;
+    else {
+        return nullptr;
+    }
 
     // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract))
-        return pItem;
-    else
-        delete pItem;
-
+    if (pItem->LoadContractFromString(strContract)) {
+        return pItem.release();
+    }
     return nullptr;
 }
 
