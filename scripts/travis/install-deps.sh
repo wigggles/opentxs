@@ -33,7 +33,7 @@ os=$1
 case "$os" in
     osx)
         brew update
-	set_openssl_formula
+        set_openssl_formula
         brew unlink cmake
         brew install protobuf-c protobuf boost cppcheck cmake zeromq pstree
         ;;
@@ -45,7 +45,7 @@ case "$os" in
         sudo apt-get -qq update
         sudo apt-get -qq install g++-4.8
         sudo apt-get install libprotobuf-dev protobuf-compiler \
-            libboost-all-dev doxygen libzmq3
+            libboost-all-dev doxygen libzmq3-dev
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
         wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
