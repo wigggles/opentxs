@@ -468,12 +468,6 @@ public:
     EXPORT OTSmartContract();
     EXPORT OTSmartContract(const OTIdentifier& SERVER_ID);
 
-    // User edits the smart contracts in this folder until they are ISSUED onto
-    // a server.
-    //
-    EXPORT bool LoadEditable(const OTString& strName);
-    EXPORT bool SaveEditable(const OTString& strName);
-
     EXPORT virtual ~OTSmartContract();
 
     void InitSmartContract();
