@@ -137,10 +137,10 @@
 
 #include "../cash/Purse.hpp"
 
+#include "../core/recurring/OTPaymentPlan.hpp"
+#include "../core/script/OTSmartContract.hpp"
 #include "../core/OTCheque.hpp"
 #include "../core/OTLog.hpp"
-#include "../core/OTPaymentPlan.hpp"
-#include "../core/script/OTSmartContract.hpp"
 
 #include <irrxml/irrXML.hpp>
 

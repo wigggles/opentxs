@@ -132,8 +132,8 @@
 
 #include "stdafx.hpp"
 
+#include "../recurring/OTAgreement.hpp"
 #include "OTAgent.hpp"
-#include "OTAgreement.hpp"
 #include "OTLog.hpp"
 #include "OTParty.hpp"
 #include "OTPartyAccount.hpp"

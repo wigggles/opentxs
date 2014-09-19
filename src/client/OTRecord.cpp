@@ -140,9 +140,9 @@
 
 #include "../ext/OTPayment.hpp"
 
+#include "../core/recurring/OTPaymentPlan.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
-#include "../core/OTPaymentPlan.hpp"
 
 #include <memory>
 #include <algorithm>

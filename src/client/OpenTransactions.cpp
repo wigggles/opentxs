@@ -150,6 +150,7 @@
 
 #include "../basket/Basket.hpp"
 
+#include "../core/recurring/OTPaymentPlan.hpp"
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
 #include "../core/script/OTParty.hpp"
@@ -175,7 +176,6 @@
 #include "../core/OTPaths.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTIdentifier.hpp"
-#include "../core/OTPaymentPlan.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
