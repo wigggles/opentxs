@@ -148,7 +148,7 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
-#include "../basket/OTBasket.hpp"
+#include "../basket/Basket.hpp"
 
 #include "../core/script/OTAgent.hpp"
 #include "../core/script/OTBylaw.hpp"
@@ -8546,8 +8546,8 @@ bool OT_API::IsBasketCurrency(const OTIdentifier& BASKET_ASSET_TYPE_ID)
         GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // No need to cleanup pContract.
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8575,8 +8575,8 @@ int32_t OT_API::GetBasketMemberCount(const OTIdentifier& BASKET_ASSET_TYPE_ID)
         GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8605,8 +8605,8 @@ bool OT_API::GetBasketMemberType(const OTIdentifier& BASKET_ASSET_TYPE_ID,
         GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // No need to cleanup pContract.
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8645,8 +8645,8 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
         GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8689,8 +8689,8 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
         GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8710,8 +8710,8 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 //
 // (Caller is responsible to delete.)
 //
-OTBasket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
-                                         int64_t MINIMUM_TRANSFER)
+Basket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
+                                       int64_t MINIMUM_TRANSFER)
     const // Must be above zero. If <= 0, defaults to
           // 10.
 {
@@ -8722,7 +8722,7 @@ OTBasket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
     int64_t lMinimumTransferAmount = 10;
 
     if (MINIMUM_TRANSFER > 0) lMinimumTransferAmount = MINIMUM_TRANSFER;
-    OTBasket* pBasket = new OTBasket(0, lMinimumTransferAmount);
+    Basket* pBasket = new Basket(0, lMinimumTransferAmount);
     OT_ASSERT_MSG(nullptr != pBasket, "OT_API::GenerateBasketCreation: Error "
                                       "allocating memory in the OT API");
 
@@ -8737,7 +8737,7 @@ OTBasket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
 // Used for creating a request to generate a new basket currency.
 bool OT_API::AddBasketCreationItem(const OTIdentifier& USER_ID, // for
                                                                 // signature.
-                                   OTBasket& theBasket,
+                                   Basket& theBasket,
                                    const OTIdentifier& ASSET_TYPE_ID,
                                    int64_t MINIMUM_TRANSFER) const
 {
@@ -8821,12 +8821,12 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
 //
 // (Caller is responsible to delete.)
 //
-OTBasket* OT_API::GenerateBasketExchange(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
-    const OTIdentifier& BASKET_ASSET_TYPE_ID,
-    const OTIdentifier& BASKET_ASSET_ACCT_ID,
-    int32_t TRANSFER_MULTIPLE) const // 1            2             3
-{                                    // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
+Basket* OT_API::GenerateBasketExchange(const OTIdentifier& SERVER_ID,
+                                       const OTIdentifier& USER_ID,
+                                       const OTIdentifier& BASKET_ASSET_TYPE_ID,
+                                       const OTIdentifier& BASKET_ASSET_ACCT_ID,
+                                       int32_t TRANSFER_MULTIPLE) const
+{
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
@@ -8859,9 +8859,9 @@ OTBasket* OT_API::GenerateBasketExchange(
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
 
-    // Next load the OTBasket object out of that contract.
-    OTBasket theBasket;
-    OTBasket* pRequestBasket = nullptr;
+    // Next load the Basket object out of that contract.
+    Basket theBasket;
+    Basket* pRequestBasket = nullptr;
 
     // todo perhaps verify the basket here, even though I already verified the
     // asset contract itself...
@@ -8880,7 +8880,7 @@ OTBasket* OT_API::GenerateBasketExchange(
         }
         else {
             pRequestBasket =
-                new OTBasket(theBasket.Count(), theBasket.GetMinimumTransfer());
+                new Basket(theBasket.Count(), theBasket.GetMinimumTransfer());
             OT_ASSERT_MSG(nullptr != pRequestBasket,
                           "OT_API::GenerateBasketExchange: Error allocating "
                           "memory in the OT API");
@@ -8894,7 +8894,7 @@ OTBasket* OT_API::GenerateBasketExchange(
             pRequestBasket->SetRequestAccountID(
                 BASKET_ASSET_ACCT_ID); // This stays too
 
-            // Export the OTBasket object into a string, add it as
+            // Export the Basket object into a string, add it as
             // a payload on my request, and send to server.
             pRequestBasket->SignContract(*pNym);
             pRequestBasket->SaveContract();
@@ -8914,7 +8914,7 @@ OTBasket* OT_API::GenerateBasketExchange(
 //
 bool OT_API::AddBasketExchangeItem(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
-                                   OTBasket& theBasket,
+                                   Basket& theBasket,
                                    const OTIdentifier& ASSET_TYPE_ID,
                                    const OTIdentifier& ASSET_ACCT_ID) const
 {
@@ -9127,9 +9127,9 @@ int32_t OT_API::exchangeBasket(
     // need to cleanup.)
     const OTString strServerID(SERVER_ID), strUserID(USER_ID);
 
-    // Next load the OTBasket object out of that contract, and load the
+    // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
-    OTBasket theBasket, theRequestBasket;
+    Basket theBasket, theRequestBasket;
 
     if (pContract->GetBasketInfo().GetLength() &&
         theBasket.LoadContractFromString(pContract->GetBasketInfo()) &&
@@ -9228,7 +9228,7 @@ int32_t OT_API::exchangeBasket(
                     theRequestBasket.SignContract(*pNym);
                     theRequestBasket.SaveContract();
 
-                    // Export the OTBasket object into a string, add it as
+                    // Export the Basket object into a string, add it as
                     // a payload on my request, and send to server.
                     OTString strBasketInfo;
                     theRequestBasket.SaveContractRaw(strBasketInfo);

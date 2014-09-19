@@ -2,8 +2,8 @@
 
 set(cxx-sources
   BasketContract.cpp
-  OTBasket.cpp
-  OTBasketItem.cpp
+  Basket.cpp
+  BasketItem.cpp
 )
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/basket/*.hpp")

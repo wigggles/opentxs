@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTBasket.hpp
+ *  Basket.hpp
  *
  */
 
@@ -130,10 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_BASKET_OTBASKET_HPP
-#define OPENTXS_BASKET_OTBASKET_HPP
+#ifndef OPENTXS_BASKET_BASKET_HPP
+#define OPENTXS_BASKET_BASKET_HPP
 
-#include "OTBasketItem.hpp"
+#include "BasketItem.hpp"
 #include "opentxs/core/OTContract.hpp"
 
 /*
@@ -170,7 +170,7 @@
  denominated in the dollar asset
  specified in the contract, 1 denominiated in the gold asset, and so on.
 
- The OTAssetBasket contract (with sub-issuers) and the OTBasketAccount (issuer
+ The OTAssetBasket contract (with sub-issuers) and the BasketAccount (issuer
  account) objects handle all the
  details of converting between the sub-accounts and the main account.
 
@@ -187,13 +187,8 @@
 namespace opentxs
 {
 
-class OTBasket : public OTContract
+class Basket : public OTContract
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
-
-    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
-
 protected:
     int32_t m_nSubCount;
     int64_t m_lMinimumTransfer;  // used in the actual basket
@@ -214,12 +209,11 @@ protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
 public:
-    EXPORT OTBasket();
-    EXPORT OTBasket(int32_t nCount, int64_t lMinimumTransferAmount);
-    EXPORT virtual ~OTBasket();
+    EXPORT Basket();
+    EXPORT Basket(int32_t nCount, int64_t lMinimumTransferAmount);
+    EXPORT virtual ~Basket();
 
     virtual void UpdateContents();
-    //    virtual bool SaveContractWallet(FILE* fl);
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
@@ -274,7 +268,7 @@ public:
     inline void IncrementSubCount()
     {
         m_nSubCount++;
-    } // Used to abstract away this detail in the API.
+    }
 
     // For generating a user request to exchange in/out of a basket.
     // Assumes that SetTransferMultiple has already been called.
@@ -294,9 +288,6 @@ public:
     virtual void Release();
     void Release_Basket();
 
-    //
-    // NOTE: Experimental / new (here):
-
     // The basket itself only stores the CLOSING numbers.
     // For the opening number, you have to go deal with the exchangeBasket
     // TRANSACTION.
@@ -307,8 +298,11 @@ public:
     EXPORT void HarvestClosingNumbers(OTPseudonym& theNym,
                                       const OTIdentifier& theServerID,
                                       bool bSave = true);
+
+private:
+    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_BASKET_OTBASKET_HPP
+#endif // OPENTXS_BASKET_BASKET_HPP

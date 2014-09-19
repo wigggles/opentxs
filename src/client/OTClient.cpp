@@ -143,7 +143,7 @@
 #include "../cash/Purse.hpp"
 #include "../cash/Token.hpp"
 
-#include "../basket/OTBasket.hpp"
+#include "../basket/Basket.hpp"
 
 #include "../core/OTAccount.hpp"
 #include "../core/OTAssetContract.hpp"
@@ -2223,7 +2223,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
                         if (nullptr != pOriginalItem) {
                             OTString strBasket;
-                            OTBasket theRequestBasket;
+                            Basket theRequestBasket;
 
                             pOriginalItem->GetAttachment(strBasket);
 
@@ -9472,8 +9472,8 @@ int32_t OTClient::ProcessUserCommand(
         OT_ASSERT(nullptr != pContract);
 
         if (pContract->LoadContract() && pContract->VerifyContract()) {
-            // Next load the OTBasket object out of that contract.
-            OTBasket theBasket;
+            // Next load the Basket object out of that contract.
+            Basket theBasket;
 
             // todo perhaps verify the basket here, even though I just verified
             // the asset contract itself...
@@ -9554,7 +9554,7 @@ int32_t OTClient::ProcessUserCommand(
                         else {
                             int32_t nTransferMultiple = 0;
 
-                            OTBasket theRequestBasket(
+                            Basket theRequestBasket(
                                 theBasket.Count(),
                                 theBasket.GetMinimumTransfer());
 
@@ -9654,7 +9654,7 @@ int32_t OTClient::ProcessUserCommand(
                             theRequestBasket.SetRequestAccountID(
                                 MAIN_ACCOUNT_ID);
 
-                            // Export the OTBasket object into a string, add it
+                            // Export the Basket object into a string, add it
                             // as
                             // a payload on my request, and send to server.
                             theRequestBasket.SignContract(theNym);
@@ -9811,7 +9811,7 @@ int32_t OTClient::ProcessUserCommand(
 
         // ADD THESE VALUES TO A BASKET OBJECT HERE SO I CAN RE-USE
         // lMinimumTransferAmount for the loop below.
-        OTBasket theBasket(nBasketCount, lMinimumTransferAmount);
+        Basket theBasket(nBasketCount, lMinimumTransferAmount);
 
         // Collect all the contract IDs for the above contracts
         for (int32_t i = 0; i < nBasketCount; i++) {
@@ -9842,7 +9842,7 @@ int32_t OTClient::ProcessUserCommand(
             // times.)
         }
 
-        // Export the OTBasket object into a string, add it as
+        // Export the Basket object into a string, add it as
         // a payload on message, and send to server.
         theBasket.SignContract(theNym);
         theBasket.SaveContractRaw(strBasketInfo);
