@@ -154,41 +154,41 @@ typedef int32_t (*LambdaFunc)(const opentxs::OTDB::OfferDataNym& offer_data,
 
 EXPORT OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(
     opentxs::OTDB::OfferListNym& offerList);
+EXPORT OT_OTAPI_OT int32_t find_strange_offers(
+    const opentxs::OTDB::OfferDataNym& offer_data, int32_t nIndex,
+    const MapOfMaps& map_of_maps, const SubMap& sub_map,
+    the_lambda_struct& extra_vals); // if 10 offers are printed
+                                    // for the SAME market,
+                                    // nIndex will be 0..9
 EXPORT OT_OTAPI_OT int32_t
-find_strange_offers(const opentxs::OTDB::OfferDataNym& offer_data,
-                    int32_t nIndex, const MapOfMaps& map_of_maps,
-                    const SubMap& sub_map,
-                    the_lambda_struct& extra_vals); // if 10 offers are printed
-                                                    // for the SAME market,
-                                                    // nIndex will be 0..9
+    iterate_nymoffers_maps(MapOfMaps& map_of_maps,
+                           LambdaFunc the_lambda); // low level. map_of_maps
+                                                   // must be
+                                                   // good. (assumed.)
 EXPORT OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps,
-                       LambdaFunc the_lambda); // low level. map_of_maps
-                                               // must be
-                                               // good. (assumed.)
-EXPORT OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
-                       the_lambda_struct& extra_vals); // low level. map_of_maps
-                                                       // must be good.
-                                                       // (assumed.)
+    iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
+                           the_lambda_struct& extra_vals); // low level.
+                                                           // map_of_maps
+                                                           // must be good.
+                                                           // (assumed.)
 
 EXPORT OT_OTAPI_OT int32_t
-iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
-                          LambdaFunc the_lambda);
+    iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
+                              LambdaFunc the_lambda);
 
 EXPORT OT_OTAPI_OT int32_t
-iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
-                          LambdaFunc the_lambda, the_lambda_struct& extra_vals);
+    iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
+                              LambdaFunc the_lambda,
+                              the_lambda_struct& extra_vals);
 
 EXPORT OT_OTAPI_OT opentxs::OTDB::OfferListNym* loadNymOffers(
     const std::string& serverID, const std::string& nymID);
-EXPORT OT_OTAPI_OT int32_t
-output_nymoffer_data(const opentxs::OTDB::OfferDataNym& offer_data,
-                     int32_t nIndex, const MapOfMaps& map_of_maps,
-                     const SubMap& sub_map,
-                     the_lambda_struct& extra_vals); // if 10 offers are printed
-                                                     // for the SAME market,
-                                                     // nIndex will be 0..9
+EXPORT OT_OTAPI_OT int32_t output_nymoffer_data(
+    const opentxs::OTDB::OfferDataNym& offer_data, int32_t nIndex,
+    const MapOfMaps& map_of_maps, const SubMap& sub_map,
+    the_lambda_struct& extra_vals); // if 10 offers are printed
+                                    // for the SAME market,
+                                    // nIndex will be 0..9
 
 extern std::string Args;
 extern std::string HisAcct;
@@ -323,8 +323,8 @@ public:
     OT_OTAPI_OT std::string SendRequest(OTAPI_Func& theFunction,
                                         const std::string& IN_FUNCTION) const;
     OT_OTAPI_OT int32_t
-    SendRequestLowLevel(OTAPI_Func& theFunction,
-                        const std::string& IN_FUNCTION) const;
+        SendRequestLowLevel(OTAPI_Func& theFunction,
+                            const std::string& IN_FUNCTION) const;
     OT_OTAPI_OT std::string SendRequestOnce(OTAPI_Func& theFunction,
                                             const std::string& IN_FUNCTION,
                                             bool bIsTransaction,

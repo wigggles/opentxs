@@ -159,11 +159,13 @@ void TranslateAccountTypeToString(OTAccount::AccountType type,
 OTAccount::AccountType TranslateAccountTypeStringToEnum(
     const OTString& acctType);
 
-OTAcctList::OTAcctList() : acctType_(OTAccount::voucher)
+OTAcctList::OTAcctList()
+    : acctType_(OTAccount::voucher)
 {
 }
 
-OTAcctList::OTAcctList(OTAccount::AccountType acctType) : acctType_(acctType)
+OTAcctList::OTAcctList(OTAccount::AccountType acctType)
+    : acctType_(acctType)
 {
 }
 
@@ -302,8 +304,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
 
         // FOUND the weak ptr to the account! Maybe it's already loaded
         if (mapWeakAccts_.end() != weakIt) {
-            try
-            {
+            try {
                 std::shared_ptr<OTAccount> weakAccount(weakIt->second);
 
                 // If success, then we have a shared pointer. But it's worrying
@@ -328,8 +329,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
                     return weakAccount;
                 }
             }
-            catch (...)
-            {
+            catch (...) {
             }
 
             // Though the weak pointer was there, the resource must have since

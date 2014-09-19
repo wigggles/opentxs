@@ -156,7 +156,8 @@ namespace opentxs
 
 #if defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
 
-Token_Lucre::Token_Lucre() : ot_super()
+Token_Lucre::Token_Lucre()
+    : ot_super()
 {
 }
 
@@ -166,7 +167,8 @@ Token_Lucre::Token_Lucre(const OTIdentifier& SERVER_ID,
 {
 }
 
-Token_Lucre::Token_Lucre(const Purse& thePurse) : ot_super(thePurse)
+Token_Lucre::Token_Lucre(const Purse& thePurse)
+    : ot_super(thePurse)
 {
 }
 

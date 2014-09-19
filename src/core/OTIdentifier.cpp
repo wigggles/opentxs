@@ -151,27 +151,32 @@ std::ostream& operator<<(std::ostream& os, const OTIdentifier& obj)
     return os;
 }
 
-OTIdentifier::OTIdentifier() : OTData()
+OTIdentifier::OTIdentifier()
+    : OTData()
 {
 }
 
-OTIdentifier::OTIdentifier(const OTIdentifier& theID) : OTData(theID)
+OTIdentifier::OTIdentifier(const OTIdentifier& theID)
+    : OTData(theID)
 {
 }
 
-OTIdentifier::OTIdentifier(const char* szStr) : OTData()
+OTIdentifier::OTIdentifier(const char* szStr)
+    : OTData()
 {
     OT_ASSERT(nullptr != szStr);
     SetString(szStr);
 }
 
-OTIdentifier::OTIdentifier(const std::string& theStr) : OTData()
+OTIdentifier::OTIdentifier(const std::string& theStr)
+    : OTData()
 {
     OT_ASSERT(!theStr.empty());
     SetString(theStr.c_str());
 }
 
-OTIdentifier::OTIdentifier(const OTString& theStr) : OTData()
+OTIdentifier::OTIdentifier(const OTString& theStr)
+    : OTData()
 {
     SetString(theStr);
 }

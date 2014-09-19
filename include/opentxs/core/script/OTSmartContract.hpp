@@ -297,8 +297,8 @@ public:
     virtual void HarvestClosingNumbers(OTPseudonym& theNym); // Used on
                                                              // client-side.
 
-    void CloseoutOpeningNumbers(OTPseudonym* pSignerNym =
-                                    nullptr); // Server-side. Similar to below:
+    void CloseoutOpeningNumbers(
+        OTPseudonym* pSignerNym = nullptr); // Server-side. Similar to below:
     void HarvestClosingNumbers(OTPseudonym* pSignerNym = nullptr,
                                std::set<OTParty*>* pFailedParties =
                                    nullptr); // Used on server-side. Assumes the

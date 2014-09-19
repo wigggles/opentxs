@@ -446,17 +446,16 @@ public:
         int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
         OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
-        int64_t lOutboxTrnsNum =
-            0); // Used in special case of transfers (the user
-                // didn't know the outbox trans# when constructing
-                // the original request.) Unused when 0.
-                // server-side
-    EXPORT bool VerifyTransactionStatement(OTPseudonym& THE_NYM,
-                                           OTTransaction& TARGET_TRANSACTION,
-                                           bool bIsRealTransaction =
-                                               true); // We use this when the
-                                                      // trans# is 0 (like when
-                                                      // processing Nymbox.)
+        int64_t lOutboxTrnsNum = 0); // Used in special case of transfers (the
+                                     // user
+    // didn't know the outbox trans# when constructing
+    // the original request.) Unused when 0.
+    // server-side
+    EXPORT bool VerifyTransactionStatement(
+        OTPseudonym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
+        bool bIsRealTransaction = true); // We use this when the
+                                         // trans# is 0 (like when
+                                         // processing Nymbox.)
     inline OTItem::itemStatus GetStatus() const
     {
         return m_Status;

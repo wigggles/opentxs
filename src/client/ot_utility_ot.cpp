@@ -262,8 +262,8 @@ OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
 }
 
 OT_UTILITY_OT int32_t
-VerifyMsgTrnxSuccess(const string& SERVER_ID, const string& USER_ID,
-                     const string& ACCOUNT_ID, const string& strMessage)
+    VerifyMsgTrnxSuccess(const string& SERVER_ID, const string& USER_ID,
+                         const string& ACCOUNT_ID, const string& strMessage)
 {
     if (!VerifyMessage(strMessage)) {
         return -1;
@@ -297,10 +297,11 @@ VerifyMsgTrnxSuccess(const string& SERVER_ID, const string& USER_ID,
 //
 // This code was repeating a lot, so I just added a function for it.
 //
-OT_UTILITY_OT int32_t
-InterpretTransactionMsgReply(const string& SERVER_ID, const string& USER_ID,
-                             const string& ACCOUNT_ID, const string& strAttempt,
-                             const string& strResponse)
+OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& SERVER_ID,
+                                                   const string& USER_ID,
+                                                   const string& ACCOUNT_ID,
+                                                   const string& strAttempt,
+                                                   const string& strResponse)
 {
     int32_t nMessageSuccess = VerifyMessageSuccess(strResponse);
     if (-1 == nMessageSuccess) {
@@ -480,7 +481,7 @@ OT_UTILITY_OT void Utility::setLastReplyReceived(const string& strReply)
 }
 
 OT_UTILITY_OT int32_t
-Utility::getNymboxLowLevel(const string& serverID, const string& nymID)
+    Utility::getNymboxLowLevel(const string& serverID, const string& nymID)
 {
     bool bWasSent = false;
     return getNymboxLowLevel(serverID, nymID, bWasSent);
@@ -594,7 +595,7 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& serverID,
 }
 
 OT_UTILITY_OT int32_t
-Utility::getNymbox(const string& serverID, const string& nymID)
+    Utility::getNymbox(const string& serverID, const string& nymID)
 {
     bool bForceDownload = false;
     return getNymbox(serverID, nymID, bForceDownload);
@@ -863,12 +864,10 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
 // bWasMsgSent, bForceDownload, nRequestNumber, bFoundNymboxItem,
 // bHarvestingForRetry, the_foursome);
 
-OT_UTILITY_OT int32_t
-Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
-                               bool& bWasMsgSent, bool bForceDownload,
-                               int32_t nRequestNumber, bool& bFoundNymboxItem,
-                               bool bHarvestingForRetry,
-                               const OTfourbool& bMsgFoursome)
+OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
+    const string& serverID, const string& nymID, bool& bWasMsgSent,
+    bool bForceDownload, int32_t nRequestNumber, bool& bFoundNymboxItem,
+    bool bHarvestingForRetry, const OTfourbool& bMsgFoursome)
 {
     string strLocation = "Utility::getAndProcessNymbox";
 
@@ -1484,9 +1483,9 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
         // failure (replystatus = failed) then we harvest the numbers;
         //
         if (bProcessAllSuccess)
-            //          return getNymbox(serverID, nymID, true);
-            // //bForceDownload = true. Since we DID process it successfully,
-            // then we grab it again.
+        //          return getNymbox(serverID, nymID, true);
+        // //bForceDownload = true. Since we DID process it successfully,
+        // then we grab it again.
         {
             return 1;
         } // We don't need the sent message after this, and we've already
@@ -1520,8 +1519,8 @@ Utility::getAndProcessNymbox_8(const string& serverID, const string& nymID,
 // bWasMsgSent, boolean bForceDownload)
 //
 OT_UTILITY_OT int32_t
-Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
-                               bool& bWasMsgSent, bool bForceDownload)
+    Utility::getAndProcessNymbox_4(const string& serverID, const string& nymID,
+                                   bool& bWasMsgSent, bool bForceDownload)
 {
     string strLocation = "Utility::getAndProcessNymbox_4";
 
@@ -1583,10 +1582,11 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_3(const string& serverID,
 //                                OTInteger nTransSuccessOut)
 
 OT_UTILITY_OT int32_t
-Utility::processNymbox(const string& serverID, const string& nymID,
-                       bool& bWasMsgSent, int32_t& nMsgSentRequestNumOut,
-                       int32_t& nReplySuccessOut, int32_t& nBalanceSuccessOut,
-                       int32_t& nTransSuccessOut)
+    Utility::processNymbox(const string& serverID, const string& nymID,
+                           bool& bWasMsgSent, int32_t& nMsgSentRequestNumOut,
+                           int32_t& nReplySuccessOut,
+                           int32_t& nBalanceSuccessOut,
+                           int32_t& nTransSuccessOut)
 {
     bWasMsgSent = false;
     string strLocation = "Utility::processNymbox";
@@ -1734,10 +1734,10 @@ OT_UTILITY_OT int32_t Utility::sendProcessNymboxLowLevel(
 //  1 for server reply of success
 //
 OT_UTILITY_OT int32_t
-Utility::receiveReplySuccessLowLevel(const string& serverID18,
-                                     const string& nymID,
-                                     int32_t nRequestNumber7,
-                                     const string& IN_FUNCTION)
+    Utility::receiveReplySuccessLowLevel(const string& serverID18,
+                                         const string& nymID,
+                                         int32_t nRequestNumber7,
+                                         const string& IN_FUNCTION)
 {
     string strReply = ReceiveReplyLowLevel(
         serverID18, nymID, nRequestNumber7,
@@ -1788,7 +1788,7 @@ OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& serverID17,
 }
 
 OT_UTILITY_OT int32_t
-Utility::getRequestNumber(const string& serverID, const string& nymID)
+    Utility::getRequestNumber(const string& serverID, const string& nymID)
 {
     bool bWasSent = false;
     return getRequestNumber(serverID, nymID, bWasSent);
@@ -1806,9 +1806,9 @@ Utility::getRequestNumber(const string& serverID, const string& nymID)
 // server reply, AND its status.
 // DONE
 OT_UTILITY_OT int32_t
-Utility::getRequestNumber(const string& serverID, const string& nymID,
-                          bool& bWasSent) // bWasSent is an output param
-                                          // allowing to return whether;
+    Utility::getRequestNumber(const string& serverID, const string& nymID,
+                              bool& bWasSent) // bWasSent is an output param
+                                              // allowing to return whether;
 {
     string strLocation = "Utility::getRequestNumber";
 
@@ -2371,8 +2371,9 @@ const string TRANSACTION_NUMBER);
 //
 
 OT_UTILITY_OT int32_t
-Utility::getTransactionNumLowLevel(const string& serverID, const string& nymID,
-                                   bool& bWasSent) // bWasSent is OTBool
+    Utility::getTransactionNumLowLevel(const string& serverID,
+                                       const string& nymID,
+                                       bool& bWasSent) // bWasSent is OTBool
 {
     string strLocation = "Utility::getTransactionNumLowLevel";
 
@@ -3104,9 +3105,9 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
 // NOTE: This is a new version that uses the new server message, getAccountFiles
 // (Which combines getAccount, getInbox, and getOutbox into a single message.)
 OT_UTILITY_OT int32_t
-Utility::getInboxAccount(const string& serverID, const string& nymID,
-                         const string& accountID, bool& bWasSentInbox,
-                         bool& bWasSentAccount, const bool)
+    Utility::getInboxAccount(const string& serverID, const string& nymID,
+                             const string& accountID, bool& bWasSentInbox,
+                             bool& bWasSentAccount, const bool)
 {
     string strLocation = "Utility::getInboxAccount";
 
@@ -3279,9 +3280,9 @@ OT_UTILITY_OT bool Utility::getInboxOutboxAccount(
 // version.)
 // DONE
 OT_UTILITY_OT int32_t
-Utility::getInboxAccount(const string& serverID, const string& nymID,
-                         const string& accountID, bool& bWasSentInbox,
-                         bool& bWasSentAccount)
+    Utility::getInboxAccount(const string& serverID, const string& nymID,
+                             const string& accountID, bool& bWasSentInbox,
+                             bool& bWasSentAccount)
 {
     bool bForceDownload = false;
     return getInboxAccount(serverID, nymID, accountID, bWasSentInbox,
@@ -3290,10 +3291,10 @@ Utility::getInboxAccount(const string& serverID, const string& nymID,
 
 // DEPRECATED
 OT_UTILITY_OT int32_t
-Utility::getInboxAccount_old(const string& serverID, const string& nymID,
-                             const string& accountID, bool& bWasSentInbox,
-                             bool& bWasSentAccount,
-                             bool bForceDownload) // bForceDownload=false
+    Utility::getInboxAccount_old(const string& serverID, const string& nymID,
+                                 const string& accountID, bool& bWasSentInbox,
+                                 bool& bWasSentAccount,
+                                 bool bForceDownload) // bForceDownload=false
 {
     string strLocation = "Utility::getInboxAccount_old";
 
@@ -3416,8 +3417,8 @@ Utility::getInboxAccount_old(const string& serverID, const string& nymID,
 //
 // DEPRECATED
 OT_UTILITY_OT int32_t
-Utility::getInboxLowLevel(const string& serverID, const string& nymID,
-                          const string& accountID, bool& bWasSent)
+    Utility::getInboxLowLevel(const string& serverID, const string& nymID,
+                              const string& accountID, bool& bWasSent)
 {
     bool bForceDownload = false;
     return getInboxLowLevel(serverID, nymID, accountID, bWasSent,
@@ -3426,9 +3427,9 @@ Utility::getInboxLowLevel(const string& serverID, const string& nymID,
 
 // DEPRECATED
 OT_UTILITY_OT int32_t
-Utility::getInboxLowLevel(const string& serverID, const string& nymID,
-                          const string& accountID, bool& bWasSent,
-                          bool bForce) // bForce defaults to FALSE
+    Utility::getInboxLowLevel(const string& serverID, const string& nymID,
+                              const string& accountID, bool& bWasSent,
+                              bool bForce) // bForce defaults to FALSE
 {
     string strLocation = "Utility::getInboxLowLevel";
 
@@ -3567,8 +3568,8 @@ Utility::getInboxLowLevel(const string& serverID, const string& nymID,
 //
 // DEPRECATED
 OT_UTILITY_OT int32_t
-Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
-                           const string& accountID, bool& bWasSent)
+    Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
+                               const string& accountID, bool& bWasSent)
 {
     bool bForceDownload = false;
     return getOutboxLowLevel(serverID, nymID, accountID, bWasSent,
@@ -3579,9 +3580,9 @@ Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
 // public static int32_t getOutboxLowLevel(String serverID, String nymID, String
 // accountID, OTBool bWasSent, boolean bForce) // bForce defaults to FALSE
 OT_UTILITY_OT int32_t
-Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
-                           const string& accountID, bool& bWasSent,
-                           bool bForce) // bForce defaults to FALSE
+    Utility::getOutboxLowLevel(const string& serverID, const string& nymID,
+                               const string& accountID, bool& bWasSent,
+                               bool bForce) // bForce defaults to FALSE
 {
     bWasSent = false;
 

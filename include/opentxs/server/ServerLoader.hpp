@@ -15,7 +15,8 @@ namespace opentxs
 class ServerLoader
 {
 public:
-    ServerLoader() : server_(nullptr)
+    ServerLoader()
+        : server_(nullptr)
     {
 // This is optional! (I, of course, am using it in this test app...)
 #if defined(OT_SIGNAL_HANDLING)

@@ -1120,8 +1120,9 @@ bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
                      "to do this.\n";
             return false;
         }
-        else if (false == m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
-                                                          lTransactionNumber)) {
+        else if (false ==
+                   m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
+                                                 lTransactionNumber)) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
                      "unable to get a transaction number, even though "
                      "supposedly one was there.\n";
@@ -1176,8 +1177,9 @@ bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
                      "to do this.\n";
             return false;
         }
-        else if (false == m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
-                                                          lTransactionNumber)) {
+        else if (false ==
+                   m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
+                                                 lTransactionNumber)) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "
                      "unable to get a transaction number, even though "
                      "supposedly one was there.\n";

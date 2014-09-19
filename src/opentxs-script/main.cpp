@@ -806,7 +806,7 @@ int32_t main(int32_t argc, char* argv[])
     if (!(opt->getArgc() > 0) && (false == bIsCommandProvided)) // If no command
                                                                 // was provided
                                                                 // (though other
-        // command-line options may have been...)
+    // command-line options may have been...)
     { // then we expect a script to come in through stdin, and we run it
         // through the script interpreter!
         otOut << "\n\nYou probably don't want to do this... Use CTRL-C, "
@@ -1280,9 +1280,9 @@ int32_t main(int32_t argc, char* argv[])
 
             if ((nullptr != pHisNym) || (str_HisNym.size() > 0)) // Even if we
                                                                  // didn't find
-                // him, we still
-                // let
-                // the ID through, if there is one.
+            // him, we still
+            // let
+            // the ID through, if there is one.
             {
                 const std::string str_party_name("HisNym");
 
@@ -2484,7 +2484,7 @@ int32_t main(int32_t argc, char* argv[])
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::processEntireInbox, theMessage, *pMyNym,
                         *pServerContract, nullptr)) // have to allow this to be
-                // defaulted at some point...
+            // defaulted at some point...
             {
                 bSendCommand = true;
             }

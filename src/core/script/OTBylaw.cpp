@@ -369,7 +369,7 @@ bool OTBylaw::Compare(OTBylaw& rhs)
                 return false;
             }
             else if (!(pCallbackClause->GetName().Compare(
-                            pCallbackClause2->GetName()))) {
+                           pCallbackClause2->GetName()))) {
                 otOut << "OTBylaw::Compare: Failed: Callback ("
                       << str_callback_name << ") clause (" << str_clause_name
                       << ") on rhs has a different name ("
@@ -920,7 +920,8 @@ const char* OTBylaw::GetLanguage() const
                                             // files. no hardcoding.
 }
 
-OTBylaw::OTBylaw() : m_pOwnerAgreement(nullptr)
+OTBylaw::OTBylaw()
+    : m_pOwnerAgreement(nullptr)
 {
 }
 

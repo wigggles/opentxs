@@ -146,9 +146,7 @@
 namespace opentxs
 {
 
-enum {
-    TradeProcessIntervalSeconds = 10
-};
+enum { TradeProcessIntervalSeconds = 10 };
 
 // This class is like: you are placing an order to do a trade.
 // Your order will continue processing until it is complete.

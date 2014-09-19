@@ -162,11 +162,11 @@
 #endif
 
 #ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
 
 #ifndef S_ISREG
-#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
+#define S_ISREG(mode) (((mode)&S_IFMT) == S_IFREG)
 #endif
 
 #ifdef _WIN32
@@ -401,8 +401,8 @@ bool OTPaths::LoadSetPrefixFolder    // eg. /usr/local/
                 return false;
             }
             if (!config.CheckSet_bool(
-                     "paths", strPrefixPathOverride, false, bPrefixPathOverride,
-                     bIsNew, "; This will force the prefix not to change")) {
+                    "paths", strPrefixPathOverride, false, bPrefixPathOverride,
+                    bIsNew, "; This will force the prefix not to change")) {
                 return false;
             }
 

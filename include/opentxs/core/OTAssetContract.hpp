@@ -195,15 +195,16 @@ public:
                                       const char* szDecimalPoint = ".");
     // For parsing and formatting amounts based on the currency contract.
     //
-    EXPORT bool FormatAmount(const OTAmount& theInput, std::string& str_output)
-        const; // Convert 545 to $5.45.
+    EXPORT bool FormatAmount(const OTAmount& theInput,
+                             std::string& str_output) const; // Convert 545 to
+                                                             // $5.45.
     EXPORT bool StringToAmount(OTAmount& theOutput,
                                const std::string& str_input) const; // Convert
                                                                     // $5.45 to
                                                                     // 545.
     EXPORT int64_t
-    GetDollarsOnly(const OTAmount& theInput) const; // Given input of 545,
-                                                    // GetDollarsOnly returns 5
+        GetDollarsOnly(const OTAmount& theInput) const; // Given input of 545,
+    // GetDollarsOnly returns 5
     EXPORT int64_t CentsOnly(const OTAmount& theInput) const; // Given input of
                                                               // 545,
                                                               // GetCentsOnly

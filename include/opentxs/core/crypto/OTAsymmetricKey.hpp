@@ -396,11 +396,10 @@ public: // DESTRUCTION
         const OTPassword* pImportPassword = nullptr) = 0; // DOES handle
                                                           // bookends, AND
                                                           // escapes.
-    bool LoadPublicKeyFromCertFile(const OTString& strFoldername,
-                                   const OTString& strFilename,
-                                   const OTString* pstrReason = nullptr,
-                                   const OTPassword* pImportPassword =
-                                       nullptr); // DOES handle bookends.
+    bool LoadPublicKeyFromCertFile(
+        const OTString& strFoldername, const OTString& strFilename,
+        const OTString* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
     virtual bool SaveCertToString(
         OTString& strOutput, const OTString* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;

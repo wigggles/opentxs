@@ -142,11 +142,13 @@ namespace opentxs
 class OTAmount
 {
 public:
-    EXPORT OTAmount(int64_t amount = 0) : amount_(amount)
+    EXPORT OTAmount(int64_t amount = 0)
+        : amount_(amount)
     {
     }
 
-    EXPORT OTAmount(const OTAmount& other) : amount_(other.amount_)
+    EXPORT OTAmount(const OTAmount& other)
+        : amount_(other.amount_)
     {
     }
 

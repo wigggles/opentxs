@@ -155,7 +155,8 @@ namespace opentxs
 
 OT_ME* OT_ME::s_pMe = nullptr;
 
-OT_ME::OT_ME() : r_pPrev(nullptr)
+OT_ME::OT_ME()
+    : r_pPrev(nullptr)
 {
     r_pPrev = s_pMe;
     s_pMe = this;
@@ -940,17 +941,17 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
     int32_t nStatus = OTAPI_Wrap::Message_GetSuccess(str_Message);
 
     switch (nStatus) {
-    case(-1) :
+    case (-1):
         otOut << __FUNCTION__
               << ": Error calling OT_API_Message_GetSuccess, for message:\n"
               << str_Message << "\n";
         break;
-    case(0) :
+    case (0):
         otWarn << __FUNCTION__
                << ": Reply received: success == FALSE. Reply message:\n"
                << str_Message << "\n";
         break;
-    case(1) :
+    case (1):
         otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
@@ -979,17 +980,17 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
         SERVER_ID, USER_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
-    case(-1) :
+    case (-1):
         otOut << __FUNCTION__
               << ": Error calling Msg_GetBlnceAgrmntSuccess, for message:\n"
               << str_Message << "\n";
         break;
-    case(0) :
+    case (0):
         otWarn << __FUNCTION__
                << ": Reply received: success == FALSE. Reply message:\n"
                << str_Message << "\n";
         break;
-    case(1) :
+    case (1):
         otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
@@ -1019,17 +1020,17 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
         SERVER_ID, USER_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
-    case(-1) :
+    case (-1):
         otOut << __FUNCTION__
               << ": Error calling Msg_GetTransactionSuccess, for message:\n"
               << str_Message << "\n";
         break;
-    case(0) :
+    case (0):
         otWarn << __FUNCTION__
                << ": Reply received: success == FALSE. Reply message:\n"
                << str_Message << "\n";
         break;
-    case(1) :
+    case (1):
         otWarn << __FUNCTION__ << ": Reply received: success == TRUE.\n";
         break;
     default:
@@ -2578,8 +2579,8 @@ bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
 // Note: Private method. Assumes theScript is m_pScript (but now as
 // a specific type, aka OTScriptChai, vs just being an OTScript.)
 //
-bool OT_ME::Register_Headers_With_Script_Chai(const OTScriptChai& theScript)
-    const
+bool OT_ME::Register_Headers_With_Script_Chai(
+    const OTScriptChai& theScript) const
 {
     using namespace chaiscript;
     {
@@ -2663,13 +2664,11 @@ bool OT_ME::Register_Headers_With_Script_Chai(const OTScriptChai& theScript)
             return false;
         }
 
-        try
-        {
+        try {
             theScript.chai->use(strHeaderFilePath_01.Get());
             theScript.chai->use(strHeaderFilePath_02.Get());
         }
-        catch (const chaiscript::exception::eval_error& ee)
-        {
+        catch (const chaiscript::exception::eval_error& ee) {
             // Error in script parsing / execution
             otErr << __FUNCTION__
                   << ": Caught chaiscript::exception::eval_error : "
@@ -2708,8 +2707,7 @@ bool OT_ME::Register_Headers_With_Script_Chai(const OTScriptChai& theScript)
             std::cout << std::endl;
             return false;
         }
-        catch (const chaiscript::exception::bad_boxed_cast& e)
-        {
+        catch (const chaiscript::exception::bad_boxed_cast& e) {
             // Error unboxing return value
             otErr << __FUNCTION__
                   << ": Caught chaiscript::exception::bad_boxed_cast : "
@@ -2718,8 +2716,7 @@ bool OT_ME::Register_Headers_With_Script_Chai(const OTScriptChai& theScript)
                   << ".\n";
             return false;
         }
-        catch (const std::exception& e)
-        {
+        catch (const std::exception& e) {
             // Error explicitly thrown from script
             otErr << __FUNCTION__ << ": Caught std::exception exception: "
                   << ((e.what() != nullptr) ? e.what()
@@ -2728,8 +2725,7 @@ bool OT_ME::Register_Headers_With_Script_Chai(const OTScriptChai& theScript)
             return false;
         }
         //          catch (chaiscript::Boxed_Value bv) {}
-        catch (...)
-        {
+        catch (...) {
             otErr << __FUNCTION__ << ": Caught exception.\n";
             return false;
         }

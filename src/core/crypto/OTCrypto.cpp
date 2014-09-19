@@ -219,11 +219,10 @@ public:
                                  OTSignature& theSignature, // output
                                  const OTPasswordData* pPWData = nullptr) const;
 
-    bool VerifyContractDefaultHash(const OTString& strContractToVerify,
-                                   const EVP_PKEY* pkey,
-                                   const OTSignature& theSignature,
-                                   const OTPasswordData* pPWData =
-                                       nullptr) const;
+    bool VerifyContractDefaultHash(
+        const OTString& strContractToVerify, const EVP_PKEY* pkey,
+        const OTSignature& theSignature,
+        const OTPasswordData* pPWData = nullptr) const;
 
     // Sign or verify using the actual OpenSSL EVP_PKEY
     //
@@ -637,7 +636,7 @@ OTCrypto* OTCrypto::It()
 #ifdef OT_CRYPTO_USING_OPENSSL
         OTCrypto_OpenSSL
 #endif
-    s_theSingleton; // For now we're only allowing a single instance.
+            s_theSingleton; // For now we're only allowing a single instance.
 
     return &s_theSingleton;
 }
@@ -2257,10 +2256,10 @@ bool OTCrypto_OpenSSL::Encrypt(
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
 
     if (!EVP_EncryptInit(
-             &ctx, cipher_type,
-             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-             static_cast<uint8_t*>(
-                 const_cast<void*>(theIV.GetPayloadPointer())))) {
+            &ctx, cipher_type,
+            const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
+            static_cast<uint8_t*>(
+                const_cast<void*>(theIV.GetPayloadPointer())))) {
         otErr << szFunc << ": EVP_EncryptInit: failed.\n";
         return false;
     }
@@ -2285,10 +2284,10 @@ bool OTCrypto_OpenSSL::Encrypt(
                 : OTCryptoConfig::SymmetricBufferSize()); // 4096
 
         if (!EVP_EncryptUpdate(
-                 &ctx, &vBuffer_out.at(0), &len_out,
-                 const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
-                     &(szInput[lCurrentIndex]))),
-                 len)) {
+                &ctx, &vBuffer_out.at(0), &len_out,
+                const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
+                    &(szInput[lCurrentIndex]))),
+                len)) {
             otErr << szFunc << ": EVP_EncryptUpdate: failed.\n";
             return false;
         }
@@ -2382,10 +2381,10 @@ bool OTCrypto_OpenSSL::Decrypt(
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc();
 
     if (!EVP_DecryptInit(
-             &ctx, cipher_type,
-             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-             static_cast<uint8_t*>(
-                 const_cast<void*>(theIV.GetPayloadPointer())))) {
+            &ctx, cipher_type,
+            const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
+            static_cast<uint8_t*>(
+                const_cast<void*>(theIV.GetPayloadPointer())))) {
         otErr << szFunc << ": EVP_DecryptInit: failed.\n";
         return false;
     }
@@ -2410,19 +2409,20 @@ bool OTCrypto_OpenSSL::Decrypt(
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
-                 &ctx, &vBuffer_out.at(0), &len_out,
-                 const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
-                     &(szInput[lCurrentIndex]))),
-                 len)) {
+                &ctx, &vBuffer_out.at(0), &len_out,
+                const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(
+                    &(szInput[lCurrentIndex]))),
+                len)) {
             otErr << szFunc << ": EVP_DecryptUpdate: failed.\n";
             return false;
         }
         lCurrentIndex += len;
 
         if (len_out > 0)
-            if (false == theDecryptedOutput.Concatenate(
-                             reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                             static_cast<uint32_t>(len_out))) {
+            if (false ==
+                theDecryptedOutput.Concatenate(
+                    reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                    static_cast<uint32_t>(len_out))) {
                 otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
                                    "enough for the decrypted output (1).\n";
                 return false;
@@ -2437,9 +2437,10 @@ bool OTCrypto_OpenSSL::Decrypt(
     // This is the "final" piece that is added from DecryptFinal just above.
     //
     if (len_out > 0)
-        if (false == theDecryptedOutput.Concatenate(
-                         reinterpret_cast<void*>(&vBuffer_out.at(0)),
-                         static_cast<uint32_t>(len_out))) {
+        if (false ==
+            theDecryptedOutput.Concatenate(
+                reinterpret_cast<void*>(&vBuffer_out.at(0)),
+                static_cast<uint32_t>(len_out))) {
             otErr << szFunc << ": Failure: theDecryptedOutput isn't large "
                                "enough for the decrypted output (2).\n";
             return false;
@@ -2745,17 +2746,17 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
     // array of integers.
 
     if (!EVP_SealInit(
-             &ctx, cipher_type, ek,
-             eklen, // array of buffers for output of encrypted copies of the
-                    // symmetric "session key". (Plus array of ints, to receive
-                    // the size of each key.)
-             iv,    // A buffer where the generated IV is written. Must contain
-                    // room for the corresponding cipher's IV, as determined by
-                    // (for example) EVP_CIPHER_iv_length(type).
-             array_pubkey,
-             static_cast<int32_t>(RecipPubKeys.size()))) // array of public keys
-                                                         // we are addressing
-                                                         // this envelope to.
+            &ctx, cipher_type, ek,
+            eklen, // array of buffers for output of encrypted copies of the
+                   // symmetric "session key". (Plus array of ints, to receive
+                   // the size of each key.)
+            iv,    // A buffer where the generated IV is written. Must contain
+                   // room for the corresponding cipher's IV, as determined by
+                   // (for example) EVP_CIPHER_iv_length(type).
+            array_pubkey,
+            static_cast<int32_t>(RecipPubKeys.size()))) // array of public keys
+                                                        // we are addressing
+                                                        // this envelope to.
     {
         otErr << szFunc << ": EVP_SealInit: failed.\n";
         return false;
@@ -3494,11 +3495,11 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     //          EVP_PKEY *priv);
 
     //  if (!EVP_OpenInit(&ctx, cipher_type, ek, eklen, iv, private_key))
-    if (!EVP_OpenInit(&ctx, cipher_type,
-                      static_cast<const uint8_t*>(
-                          theRawEncryptedKey.GetPayloadPointer()),
-                      static_cast<int32_t>(theRawEncryptedKey.GetSize()),
-                      static_cast<const uint8_t*>(iv), private_key)) {
+    if (!EVP_OpenInit(
+            &ctx, cipher_type,
+            static_cast<const uint8_t*>(theRawEncryptedKey.GetPayloadPointer()),
+            static_cast<int32_t>(theRawEncryptedKey.GetSize()),
+            static_cast<const uint8_t*>(iv), private_key)) {
 
         // EVP_OpenInit() initializes a cipher context ctx for decryption with
         // cipher type. It decrypts the encrypted
@@ -4781,8 +4782,9 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(nullptr != pkey);
 
-    if (false == dp->SignContract(strContractUnsigned, pkey, theSignature,
-                                  strHashType, pPWData)) {
+    if (false ==
+        dp->SignContract(strContractUnsigned, pkey, theSignature, strHashType,
+                         pPWData)) {
         otErr << "OTCrypto_OpenSSL::SignContract: "
               << "SignContract returned false.\n";
         return false;
@@ -4805,8 +4807,9 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
     OT_ASSERT(nullptr != pkey);
 
-    if (false == dp->VerifySignature(strContractToVerify, pkey, theSignature,
-                                     strHashType, pPWData)) {
+    if (false ==
+        dp->VerifySignature(strContractToVerify, pkey, theSignature,
+                            strHashType, pPWData)) {
         otLog3 << "OTCrypto_OpenSSL::VerifySignature: "
                << "VerifySignature returned false.\n";
         return false;

@@ -211,8 +211,10 @@ public:
                                             // the asset account,
         // AND must verify the cheque signature with that user's key.
         const OTString& strMemo, // Optional memo field.
-        const OTIdentifier* pRECIPIENT_USER_ID =
-            nullptr); // Recipient optional. (Might be a blank cheque.)
+        const OTIdentifier* pRECIPIENT_USER_ID = nullptr); // Recipient
+                                                           // optional. (Might
+                                                           // be a blank
+                                                           // cheque.)
 
     EXPORT void CancelCheque(); // You still need to re-sign the cheque after
                                 // doing this.

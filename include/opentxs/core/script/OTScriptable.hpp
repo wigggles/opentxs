@@ -261,23 +261,19 @@ public:
     EXPORT OTClause* GetClause(std::string str_clause_name) const;
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
-    EXPORT OTParty* FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
-                                               OTAgent** ppAgent =
-                                                   nullptr) const;
-    EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
-                                                   OTAgent** ppAgent =
-                                                       nullptr) const;
-    OTParty* FindPartyBasedOnAccount(OTAccount& theAccount,
-                                     OTPartyAccount** ppPartyAccount =
-                                         nullptr) const;
+    EXPORT OTParty* FindPartyBasedOnNymAsAgent(
+        OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
+    EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
+        OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
+    OTParty* FindPartyBasedOnAccount(
+        OTAccount& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID,
                                           OTAgent** ppAgent = nullptr) const;
-    OTParty* FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier& theNymID,
-                                              OTAgent** ppAgent =
-                                                  nullptr) const;
-    OTParty* FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
-                                       OTPartyAccount** ppPartyAccount =
-                                           nullptr) const;
+    OTParty* FindPartyBasedOnNymIDAsAuthAgent(
+        const OTIdentifier& theNymID, OTAgent** ppAgent = nullptr) const;
+    OTParty* FindPartyBasedOnAccountID(
+        const OTIdentifier& theAcctID,
+        OTPartyAccount** ppPartyAccount = nullptr) const;
     OTAgent* GetAgent(std::string str_agent_name) const;
     OTPartyAccount* GetPartyAccount(std::string str_acct_name) const;
     OTPartyAccount* GetPartyAccountByID(const OTIdentifier& theAcctID) const;
@@ -290,7 +286,7 @@ public:
     // authorized agent.)
     //
     EXPORT int32_t
-    GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
+        GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a
     // payment plan, OR
@@ -328,12 +324,12 @@ public:
         // too. UNLESS you pass a map here, in which case they will
         // instead be added to this map. (But if you do that, then you
         // must delete them yourself after calling this function.)
-        bool bBurnTransNo =
-            false); // In OTServer::VerifySmartContract(), it not only wants to
-                    // verify the # is properly issued, but it additionally
-                    // wants to see that it hasn't been USED yet -- AND it wants
-                    // to burn it, so it can't be used again!  This bool allows
-                    // you to tell the function whether or not to do that.
+        bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
+                                    // not only wants to
+    // verify the # is properly issued, but it additionally
+    // wants to see that it hasn't been USED yet -- AND it wants
+    // to burn it, so it can't be used again!  This bool allows
+    // you to tell the function whether or not to do that.
 
     bool VerifyPartyAcctAuthorization(
         OTPartyAccount& thePartyAcct, // The party is assumed to have been
@@ -343,13 +339,13 @@ public:
                                    // Nym
         const OTString& strServerID, // For verifying issued num, need the
                                      // serverID the # goes with.
-        bool bBurnTransNo =
-            false); // In OTServer::VerifySmartContract(), it not only wants to
-                    // verify the closing # is properly issued, but it
-                    // additionally wants to see that it hasn't been USED yet --
-                    // AND it wants to burn it, so it can't be used again!  This
-                    // bool allows you to tell the function whether or not to do
-                    // that.
+        bool bBurnTransNo = false);  // In OTServer::VerifySmartContract(), it
+                                     // not only wants to
+    // verify the closing # is properly issued, but it
+    // additionally wants to see that it hasn't been USED yet --
+    // AND it wants to burn it, so it can't be used again!  This
+    // bool allows you to tell the function whether or not to do
+    // that.
     EXPORT bool VerifyThisAgainstAllPartiesSignedCopies();
     EXPORT bool AllPartiesHaveSupposedlyConfirmed();
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level

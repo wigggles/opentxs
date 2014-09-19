@@ -145,10 +145,7 @@ namespace opentxs
 //
 struct split
 {
-    enum empties_t {
-        empties_ok,
-        no_empties
-    };
+    enum empties_t { empties_ok, no_empties };
 };
 
 template <typename Container>

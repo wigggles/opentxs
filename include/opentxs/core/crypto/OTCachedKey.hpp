@@ -367,8 +367,8 @@ public:
     // if you pass in a master key ID, it will look it up on an existing cached
     // map of master keys. Otherwise it will use "the" global Master Key
     // (the one used for the Nyms.)
-    EXPORT static std::shared_ptr<OTCachedKey> It(OTIdentifier* pIdentifier =
-                                                      nullptr);
+    EXPORT static std::shared_ptr<OTCachedKey> It(
+        OTIdentifier* pIdentifier = nullptr);
 
     // if you pass in a master key, it will look it up on an existing cached map
     // of master keys, based on the ID of the master key passed in. If not

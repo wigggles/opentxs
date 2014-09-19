@@ -196,15 +196,15 @@ std::stringstream& operator<<(const std::stringstream& str, const time64_t& t);
 
 EXPORT time64_t OTTimeGetCurrentTime(); // { return time(nullptr); }
 EXPORT time64_t
-OTTimeGetTimeFromSeconds(int64_t seconds); // { return seconds; }
-EXPORT time64_t
-OTTimeGetTimeFromSeconds(const char* pSeconds); // { return std::stol(pSeconds);
-                                                // }
+    OTTimeGetTimeFromSeconds(int64_t seconds); // { return seconds; }
+EXPORT time64_t OTTimeGetTimeFromSeconds(const char* pSeconds); // { return
+// std::stol(pSeconds);
+// }
 EXPORT int64_t OTTimeGetSecondsFromTime(time64_t time); // { return time; }
 EXPORT int64_t
-OTTimeGetTimeInterval(time64_t lhs, time64_t rhs); // { return lhs - rhs; }
+    OTTimeGetTimeInterval(time64_t lhs, time64_t rhs); // { return lhs - rhs; }
 EXPORT time64_t
-OTTimeAddTimeInterval(time64_t lhs, int64_t rhs); // { return lhs + rhs; }
+    OTTimeAddTimeInterval(time64_t lhs, int64_t rhs); // { return lhs + rhs; }
 #else
 typedef int64_t time64_t;
 

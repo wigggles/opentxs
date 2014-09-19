@@ -195,7 +195,8 @@ protected:
     OTNameLookup* _callback;
 
 public:
-    EXPORT OTLookupCaller() : _callback(nullptr)
+    EXPORT OTLookupCaller()
+        : _callback(nullptr)
     {
     }
     EXPORT ~OTLookupCaller();
@@ -208,15 +209,15 @@ public:
     EXPORT void setCallback(OTNameLookup* cb);
     EXPORT bool isCallbackSet() const;
 
-    EXPORT std::string GetNymName(const std::string& str_id, // NymID
-                                  const std::string* p_server_id =
-                                      nullptr) const;
+    EXPORT std::string GetNymName(
+        const std::string& str_id, // NymID
+        const std::string* p_server_id = nullptr) const;
 
-    EXPORT std::string GetAcctName(const std::string& str_id, // AcctID
-                                   const std::string* p_nym_id = nullptr,
-                                   const std::string* p_server_id = nullptr,
-                                   const std::string* p_asset_id =
-                                       nullptr) const;
+    EXPORT std::string GetAcctName(
+        const std::string& str_id, // AcctID
+        const std::string* p_nym_id = nullptr,
+        const std::string* p_server_id = nullptr,
+        const std::string* p_asset_id = nullptr) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
 };

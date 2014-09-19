@@ -143,7 +143,8 @@ class OTStringXML::OTStringXMLPvt : public irr::io::IFileReadCallBack
 {
 
 public:
-    OTStringXMLPvt(OTStringXML* ptr) : super(ptr)
+    OTStringXMLPvt(OTStringXML* ptr)
+        : super(ptr)
     {
     }
 

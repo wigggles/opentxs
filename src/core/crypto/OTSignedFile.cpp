@@ -342,7 +342,8 @@ void OTSignedFile::SetFilename(const OTString& LOCAL_SUBDIR,
     // Finished Product:    "transaction/nyms/5bf9a88c.nym"
 }
 
-OTSignedFile::OTSignedFile() : ot_super()
+OTSignedFile::OTSignedFile()
+    : ot_super()
 {
     m_strContractType.Set("FILE");
 }

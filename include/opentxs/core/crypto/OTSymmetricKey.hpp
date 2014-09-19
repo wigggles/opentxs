@@ -242,10 +242,9 @@ public:
     // encrypted form, via its passphrase being used to derive a key for that
     // purpose.
     //
-    EXPORT bool GetRawKeyFromPassphrase(const OTPassword& thePassphrase,
-                                        OTPassword& theRawKeyOutput,
-                                        OTPassword* pDerivedKey =
-                                            nullptr) const;
+    EXPORT bool GetRawKeyFromPassphrase(
+        const OTPassword& thePassphrase, OTPassword& theRawKeyOutput,
+        OTPassword* pDerivedKey = nullptr) const;
 
     // Assumes key is already generated. Tries to get the raw clear key
     // from its encrypted form, via a derived key.
@@ -257,10 +256,10 @@ public:
     // stored in encrypted form, based on a derived key from that password.
     //
     EXPORT bool GenerateKey(const OTPassword& thePassphrase,
-                            OTPassword** ppDerivedKey =
-                                nullptr); // If you want, I
-                                          // can pass this
-                                          // back to you.
+                            OTPassword** ppDerivedKey = nullptr); // If you
+                                                                  // want, I
+    // can pass this
+    // back to you.
     // Changes the passphrase on an existing symmetric key.
     //
     EXPORT bool ChangePassphrase(const OTPassword& oldPassphrase,

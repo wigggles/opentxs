@@ -154,7 +154,8 @@
 namespace opentxs
 {
 
-OTWallet::OTWallet() : m_strDataFolder(OTDataFolder::Get())
+OTWallet::OTWallet()
+    : m_strDataFolder(OTDataFolder::Get())
 {
     m_pWithdrawalPurse = nullptr;
 }
@@ -1859,9 +1860,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         (false == IsNymOnCachedKey(theNymID));
 
                     if (bIsOldStyleNym && !(OTCachedKey::It()->isPaused()))
-                        //                  if (m_strVersion.Compare("1.0")) //
-                        // This means this Nym has not been converted yet to
-                        // master password.
+                    //                  if (m_strVersion.Compare("1.0")) //
+                    // This means this Nym has not been converted yet to
+                    // master password.
                     {
                         OTCachedKey::It()->Pause();
                     }

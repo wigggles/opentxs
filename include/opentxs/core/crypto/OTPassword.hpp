@@ -211,14 +211,14 @@ public:
     EXPORT OTPassword(BlockSize blockSize = DEFAULT_SIZE);
     EXPORT OTPassword(const OTPassword& rhs);
     EXPORT OTPassword(const char* input, uint32_t size,
-                      BlockSize blockSize =
-                          DEFAULT_SIZE); // text   / password stored.
+                      BlockSize blockSize = DEFAULT_SIZE); // text   / password
+                                                           // stored.
     EXPORT OTPassword(const uint8_t* input, uint32_t size,
-                      BlockSize blockSize =
-                          DEFAULT_SIZE); // text   / password stored.
+                      BlockSize blockSize = DEFAULT_SIZE); // text   / password
+                                                           // stored.
     EXPORT OTPassword(const void* input, uint32_t size,
-                      BlockSize blockSize =
-                          DEFAULT_SIZE); // binary / symmetric key stored.
+                      BlockSize blockSize = DEFAULT_SIZE); // binary / symmetric
+                                                           // key stored.
     EXPORT ~OTPassword();
     EXPORT OTPassword& operator=(const OTPassword& rhs);
 

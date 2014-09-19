@@ -396,15 +396,15 @@ public:
     // These functions are for command processing:
 
     EXPORT int32_t
-    ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-                       OTMessage& theMessage, OTPseudonym& theNym,
-                       // OTAssetContract& theContract,
-                       const OTServerContract& theServer,
-                       const OTAccount* pAccount = nullptr,
-                       int64_t lTransactionAmount = 0,
-                       OTAssetContract* pMyAssetContract = nullptr,
-                       const OTIdentifier* pHisNymID = nullptr,
-                       const OTIdentifier* pHisAcctID = nullptr);
+        ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
+                           OTMessage& theMessage, OTPseudonym& theNym,
+                           // OTAssetContract& theContract,
+                           const OTServerContract& theServer,
+                           const OTAccount* pAccount = nullptr,
+                           int64_t lTransactionAmount = 0,
+                           OTAssetContract* pMyAssetContract = nullptr,
+                           const OTIdentifier* pHisNymID = nullptr,
+                           const OTIdentifier* pHisAcctID = nullptr);
 
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is

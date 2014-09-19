@@ -812,8 +812,8 @@ OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
     return nullptr;
 }
 
-OTPartyAccount* OTScriptable::GetPartyAccountByID(const OTIdentifier& theAcctID)
-    const
+OTPartyAccount* OTScriptable::GetPartyAccountByID(
+    const OTIdentifier& theAcctID) const
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -1138,8 +1138,9 @@ bool OTScriptable::VerifyPartyAuthorization(
         // been USED
         // yet -- AND the caller wants you to BURN IT HERE.
         else if (bBurnTransNo) {
-            if (false == pAuthorizingAgent->VerifyTransactionNumber(
-                             lOpeningNo, strServerID)) {
+            if (false ==
+                pAuthorizingAgent->VerifyTransactionNumber(lOpeningNo,
+                                                           strServerID)) {
                 otErr << __FUNCTION__ << ": Opening trans number " << lOpeningNo
                       << " doesn't "
                          "verify as available for use, for the "
@@ -1590,8 +1591,9 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
         // yet -- AND the caller wants you to BURN IT HERE.
         //
         else if (bBurnTransNo) {
-            if (false == pAuthorizedAgent->VerifyTransactionNumber(
-                             lClosingNo, strServerID)) {
+            if (false ==
+                pAuthorizedAgent->VerifyTransactionNumber(lClosingNo,
+                                                          strServerID)) {
                 otOut << "OTScriptable::" << __FUNCTION__
                       << ": Closing trans number " << lClosingNo
                       << " doesn't "
@@ -2499,7 +2501,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 }
 
                                 if (!OTScriptable::ValidateName(
-                                         strAgentName.Get())) {
+                                        strAgentName.Get())) {
                                     otErr << szFunc
                                           << ": Failed loading agent due to "
                                              "Invalid name: " << strAgentName
@@ -2673,10 +2675,10 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable for all the accounts on the
                                 // already-loaded parties.
 
-                                if (false == pParty->AddAccount(
-                                                 strAgentName, strAcctName,
-                                                 strAcctID, strAssetTypeID,
-                                                 lClosingTransNo)) {
+                                if (false ==
+                                    pParty->AddAccount(
+                                        strAgentName, strAcctName, strAcctID,
+                                        strAssetTypeID, lClosingTransNo)) {
                                     otErr << szFunc << ": Failed adding "
                                                        "account to party.\n";
                                     delete pParty;
@@ -3133,8 +3135,9 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     return (-1);
                                 }
 
-                                if (false == pBylaw->AddHook(strHookName.Get(),
-                                                             strClause.Get())) {
+                                if (false ==
+                                    pBylaw->AddHook(strHookName.Get(),
+                                                    strClause.Get())) {
                                     otErr << szFunc
                                           << ": Failed adding hook to bylaw.\n";
                                     delete pBylaw;

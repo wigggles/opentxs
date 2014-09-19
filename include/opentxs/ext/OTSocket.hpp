@@ -205,7 +205,7 @@ protected:
     virtual bool HandleReceivingError() = 0;
 
 public:
-    virtual ~OTSocket() {};
+    virtual ~OTSocket(){};
 
     EXPORT std::mutex* GetMutex();
 

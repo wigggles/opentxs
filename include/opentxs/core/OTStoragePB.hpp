@@ -226,8 +226,9 @@ namespace OTDB
 
 // Interface:    IStorablePB
 //
-DeclareBasedInterface(IStorablePB, IStorable)
-virtual ::google::protobuf::MessageLite* getPBMessage();
+DeclareBasedInterface(IStorablePB,
+                      IStorable) virtual ::google::protobuf::MessageLite
+    * getPBMessage();
 virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
 virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
 OT_USING_ISTORABLE_HOOKS;
@@ -325,7 +326,7 @@ public:
     // ProtobufSubclass<theBaseType, theInternalType, theObjectType>(*this));}
 
     virtual theBaseType* clone(void) const
-    {/*std::cout << "Cloning a " << m_Type << std::endl;*/
+    { /*std::cout << "Cloning a " << m_Type << std::endl;*/
         return dynamic_cast<theBaseType*>(do_clone());
     }
 
@@ -334,9 +335,9 @@ public:
         Storable* pNewStorable =
             Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
         if (nullptr == pNewStorable) OT_FAIL;
-        CopyToObject(
-            *(dynamic_cast<ProtobufSubclass<theBaseType, theInternalType,
-                                            theObjectType>*>(pNewStorable)));
+        CopyToObject(*(dynamic_cast<
+            ProtobufSubclass<theBaseType, theInternalType, theObjectType>*>(
+            pNewStorable)));
         return dynamic_cast<IStorable*>(pNewStorable);
     }
 
@@ -357,7 +358,7 @@ public:
     void ProtobufSubclass<theBaseType, theInternalType,                        \
                           theObjectType>::hookAfterUnpack();                   \
     typedef ProtobufSubclass<theBaseType, theInternalType, theObjectType>      \
-    theNewType
+        theNewType
 
 // THE ACTUAL SUBCLASSES:
 

@@ -320,8 +320,9 @@ bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
             szFoldername, strServerID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
-            if (false == strNumlist.DecodeIfArmored(
-                             false)) // bEscapedIsAllowed=true by default.
+            if (false ==
+                strNumlist.DecodeIfArmored(false)) // bEscapedIsAllowed=true by
+                                                   // default.
             {
                 otErr << __FUNCTION__
                       << ": List of recurring transactions; string apparently "
@@ -367,8 +368,9 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
             szFoldername, strServerID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
-            if (false == strNumlist.DecodeIfArmored(
-                             false)) // bEscapedIsAllowed=true by default.
+            if (false ==
+                strNumlist.DecodeIfArmored(false)) // bEscapedIsAllowed=true by
+                                                   // default.
             {
                 otErr << __FUNCTION__
                       << ": List of recurring transactions; string apparently "
@@ -399,8 +401,9 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
             OTString strFinal;
             OTASCIIArmor ascTemp(strNumlist);
 
-            if (false == ascTemp.WriteArmoredString(
-                             strFinal, "ACTIVE CRON ITEMS")) // todo hardcoding
+            if (false ==
+                ascTemp.WriteArmoredString(
+                    strFinal, "ACTIVE CRON ITEMS")) // todo hardcoding
             {
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error re-saving recurring IDs (failed writing "
@@ -485,8 +488,9 @@ bool OTCronItem::SaveActiveCronReceipt(
                 szFoldername, strServerID.Get(), strListFilename.Get()));
 
             if (strNumlist.Exists()) {
-                if (false == strNumlist.DecodeIfArmored(
-                                 false)) // bEscapedIsAllowed=true by default.
+                if (false ==
+                    strNumlist.DecodeIfArmored(false)) // bEscapedIsAllowed=true
+                                                       // by default.
                 {
                     otErr << __FUNCTION__
                           << ": Input string apparently was encoded and then"
@@ -506,8 +510,9 @@ bool OTCronItem::SaveActiveCronReceipt(
             OTString strFinal;
             OTASCIIArmor ascTemp(strNumlist);
 
-            if (false == ascTemp.WriteArmoredString(
-                             strFinal, "ACTIVE CRON ITEMS")) // todo hardcoding
+            if (false ==
+                ascTemp.WriteArmoredString(
+                    strFinal, "ACTIVE CRON ITEMS")) // todo hardcoding
             {
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error saving recurring IDs (failed writing armored "

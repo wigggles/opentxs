@@ -321,8 +321,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
         //      chai->add_global_const(const_var(m_mapParties),
         // "Parties");
 
-        try
-        {
+        try {
             if (nullptr == pReturnVar) // Nothing to return.
                 chai->eval(m_str_script.c_str(),
                            exception_specification<const std::exception&>(),
@@ -363,8 +362,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                 } // switch
             }     // else return variable.
         }         // try
-        catch (const chaiscript::exception::eval_error& ee)
-        {
+        catch (const chaiscript::exception::eval_error& ee) {
             // Error in script parsing / execution
             otErr << "OTScriptChai::ExecuteScript: \n Caught "
                      "chaiscript::exception::eval_error: \n " << ee.reason
@@ -413,8 +411,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
 
             return false;
         }
-        catch (const chaiscript::exception::bad_boxed_cast& e)
-        {
+        catch (const chaiscript::exception::bad_boxed_cast& e) {
             // Error unboxing return value
             otErr << "OTScriptChai::ExecuteScript: Caught "
                      "chaiscript::exception::bad_boxed_cast : "
@@ -423,8 +420,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
                   << ".\n";
             return false;
         }
-        catch (const std::exception& e)
-        {
+        catch (const std::exception& e) {
             // Error explicitly thrown from script
             otErr << "OTScriptChai::ExecuteScript: Caught std::exception "
                      "exception: " << ((e.what() != nullptr)
@@ -434,8 +430,7 @@ bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
             return false;
         }
         //      catch (chaiscript::Boxed_Value bv)
-        catch (...)
-        {
+        catch (...) {
             //          int32_t i = chaiscript::boxed_cast<int32_t>(bv);
             otErr << "OTScriptChai::ExecuteScript: Caught exception.\n";
             return false;

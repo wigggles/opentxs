@@ -146,7 +146,8 @@ namespace opentxs
  const OTString& GetAssetTypeID() { return m_strAssetTypeID; }
  */
 
-OTStashItem::OTStashItem() : m_lAmount(0)
+OTStashItem::OTStashItem()
+    : m_lAmount(0)
 {
 }
 

@@ -1249,8 +1249,8 @@ bool OTString::DecodeIfArmored(bool bEscapedIsAllowed)
                 // The below szOverride sub-string determines where the content
                 // starts, when loading.
                 OT_BEGIN_ARMORED))) // Default is:       "-----BEGIN"
-            // We're doing this: "-----BEGIN OT ARMORED" (Should worked for
-            // escaped as well, here.)
+        // We're doing this: "-----BEGIN OT ARMORED" (Should worked for
+        // escaped as well, here.)
         {
             otErr << __FUNCTION__ << ": Error loading string contents from "
                                      "ascii-armored encoding. "

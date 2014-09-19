@@ -591,10 +591,10 @@ bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
         break;
 
     default:
-    case OTPayment::PAYMENT_PLAN
-        : // Should never happen. (Handled already above.)
-    case OTPayment::SMART_CONTRACT
-        : // Should never happen. (Handled already above.)
+    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already
+                                    // above.)
+    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already
+                                    // above.)
         otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -665,10 +665,10 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
         break;
 
     default:
-    case OTPayment::PAYMENT_PLAN
-        : // Should never happen. (Handled already above.)
-    case OTPayment::SMART_CONTRACT
-        : // Should never happen. (Handled already above.)
+    case OTPayment::PAYMENT_PLAN:   // Should never happen. (Handled already
+                                    // above.)
+    case OTPayment::SMART_CONTRACT: // Should never happen. (Handled already
+                                    // above.)
         otErr << "OTPayment::" << __FUNCTION__ << ": Bad payment type!\n";
         break;
     }
@@ -1209,8 +1209,8 @@ bool OTPayment::GetRecipientAcctID(OTIdentifier& theOutput) const
     case OTPayment::VOUCHER:
     case OTPayment::INVOICE:
     case OTPayment::SMART_CONTRACT:
-    case OTPayment::PURSE
-        : // A purse might have a recipient USER, but never a recipient ACCOUNT.
+    case OTPayment::PURSE: // A purse might have a recipient USER, but never a
+                           // recipient ACCOUNT.
         bSuccess = false;
         break;
 

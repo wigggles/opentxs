@@ -263,8 +263,8 @@ public:
         const int64_t& lTransactionNum,   // The transaction number authorizing
                                           // this trade.
         const time64_t& VALID_FROM = OT_TIME_ZERO, // defaults to RIGHT NOW
-        const time64_t& VALID_TO =
-            OT_TIME_ZERO); // defaults to 24 hours (a "Day Order")
+        const time64_t& VALID_TO = OT_TIME_ZERO);  // defaults to 24 hours (a
+                                                   // "Day Order")
     inline void IncrementFinishedSoFar(const int64_t& lFinishedSoFar)
     {
         m_lFinishedSoFar += lFinishedSoFar;

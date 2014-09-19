@@ -192,7 +192,8 @@ const int32_t OT_ERROR = (-1);
 bool OTAPI_Exec::bInitOTApp = false;
 bool OTAPI_Exec::bCleanupOTApp = false;
 
-OTAPI_Exec::OTAPI_Exec() : p_OTAPI(nullptr)
+OTAPI_Exec::OTAPI_Exec()
+    : p_OTAPI(nullptr)
 {
 }
 
@@ -670,8 +671,8 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     return str_return;
 }
 
-std::string OTAPI_Exec::GetNym_AltSourceLocation(const std::string& NYM_ID)
-    const
+std::string OTAPI_Exec::GetNym_AltSourceLocation(
+    const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
@@ -2614,9 +2615,9 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 
 // Returns NymboxHash (based on ServerID)
 //
-std::string OTAPI_Exec::GetNym_NymboxHash(const std::string& SERVER_ID,
-                                          const std::string& NYM_ID)
-    const // Returns NymboxHash (based on ServerID)
+std::string OTAPI_Exec::GetNym_NymboxHash(
+    const std::string& SERVER_ID,
+    const std::string& NYM_ID) const // Returns NymboxHash (based on ServerID)
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -2665,9 +2666,9 @@ std::string OTAPI_Exec::GetNym_NymboxHash(const std::string& SERVER_ID,
 
 // Returns RecentHash (based on ServerID)
 //
-std::string OTAPI_Exec::GetNym_RecentHash(const std::string& SERVER_ID,
-                                          const std::string& NYM_ID)
-    const // Returns RecentHash (based on ServerID)
+std::string OTAPI_Exec::GetNym_RecentHash(
+    const std::string& SERVER_ID,
+    const std::string& NYM_ID) const // Returns RecentHash (based on ServerID)
 {
     if (NYM_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
@@ -3448,8 +3449,8 @@ int64_t OTAPI_Exec::Instrmnt_GetAmount(const std::string& THE_INSTRUMENT) const
     return thePayment.GetAmount(lOutput) ? lOutput : OT_ERROR_AMOUNT;
 }
 
-int64_t OTAPI_Exec::Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT)
-    const
+int64_t OTAPI_Exec::Instrmnt_GetTransNum(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3480,8 +3481,8 @@ int64_t OTAPI_Exec::Instrmnt_GetTransNum(const std::string& THE_INSTRUMENT)
     return bGotData ? lOutput : -1;
 }
 
-time64_t OTAPI_Exec::Instrmnt_GetValidFrom(const std::string& THE_INSTRUMENT)
-    const
+time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3514,8 +3515,8 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(const std::string& THE_INSTRUMENT)
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
 
-time64_t OTAPI_Exec::Instrmnt_GetValidTo(const std::string& THE_INSTRUMENT)
-    const
+time64_t OTAPI_Exec::Instrmnt_GetValidTo(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3548,8 +3549,8 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(const std::string& THE_INSTRUMENT)
     return bGotData ? tOutput : OTTimeGetTimeFromSeconds(-1);
 }
 
-std::string OTAPI_Exec::Instrmnt_GetType(const std::string& THE_INSTRUMENT)
-    const
+std::string OTAPI_Exec::Instrmnt_GetType(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3585,8 +3586,8 @@ std::string OTAPI_Exec::Instrmnt_GetType(const std::string& THE_INSTRUMENT)
     return "";
 }
 
-std::string OTAPI_Exec::Instrmnt_GetMemo(const std::string& THE_INSTRUMENT)
-    const
+std::string OTAPI_Exec::Instrmnt_GetMemo(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3623,8 +3624,8 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(const std::string& THE_INSTRUMENT)
     return "";
 }
 
-std::string OTAPI_Exec::Instrmnt_GetServerID(const std::string& THE_INSTRUMENT)
-    const
+std::string OTAPI_Exec::Instrmnt_GetServerID(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -3662,8 +3663,8 @@ std::string OTAPI_Exec::Instrmnt_GetServerID(const std::string& THE_INSTRUMENT)
     return "";
 }
 
-std::string OTAPI_Exec::Instrmnt_GetAssetID(const std::string& THE_INSTRUMENT)
-    const
+std::string OTAPI_Exec::Instrmnt_GetAssetID(
+    const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_INSTRUMENT passed in!\n";
@@ -4502,9 +4503,9 @@ std::string OTAPI_Exec::SymmetricEncrypt(const std::string& SYMMETRIC_KEY,
 
 // Returns the PLAINTEXT.
 //
-std::string OTAPI_Exec::SymmetricDecrypt(const std::string& SYMMETRIC_KEY,
-                                         const std::string& CIPHERTEXT_ENVELOPE)
-    const
+std::string OTAPI_Exec::SymmetricDecrypt(
+    const std::string& SYMMETRIC_KEY,
+    const std::string& CIPHERTEXT_ENVELOPE) const
 {
     if (SYMMETRIC_KEY.empty()) {
         otErr << __FUNCTION__ << ": Null: SYMMETRIC_KEY passed in!\n";
@@ -4727,8 +4728,9 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     const OTIdentifier theSignerID(SIGNER_ID);
     OTString strOutput;
 
-    if (false == OTAPI()->VerifyAndRetrieveXMLContents(strContract, theSignerID,
-                                                       strOutput)) {
+    if (false ==
+        OTAPI()->VerifyAndRetrieveXMLContents(strContract, theSignerID,
+                                              strOutput)) {
         otOut << __FUNCTION__ << ": Failure: "
                                  "OTAPI()->VerifyAndRetrieveXMLContents() "
                                  "returned false.\n";
@@ -4830,8 +4832,8 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 
 // Returns an account's asset type ID.
 // (Which is a hash of the contract used to issue the asset type.)
-std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(const std::string& THE_ID)
-    const
+std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(
+    const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
@@ -4855,8 +4857,8 @@ std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(const std::string& THE_ID)
 
 // Returns an account's Server ID.
 // (Which is a hash of the server contract.)
-std::string OTAPI_Exec::GetAccountWallet_ServerID(const std::string& THE_ID)
-    const
+std::string OTAPI_Exec::GetAccountWallet_ServerID(
+    const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
@@ -5970,8 +5972,8 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
     return pBuf;
 }
 
-bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(const std::string& THE_CONTRACT)
-    const // true or false?
+bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
+    const std::string& THE_CONTRACT) const // true or false?
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -6024,11 +6026,11 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(const std::string& THE_CONTRACT)
     return false;
 }
 
-bool OTAPI_Exec::Smart_IsPartyConfirmed(const std::string& THE_CONTRACT,
-                                        const std::string& PARTY_NAME)
-    const // true
-          // or
-          // false?
+bool OTAPI_Exec::Smart_IsPartyConfirmed(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME) const // true
+                                         // or
+                                         // false?
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7053,13 +7055,13 @@ int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
     return (-1);
 }
 
-std::string OTAPI_Exec::Party_GetID(const std::string& THE_CONTRACT,
-                                    const std::string& PARTY_NAME)
-    const // returns
-          // either
-          // NymID or
-          // Entity ID.
-          // (If
+std::string OTAPI_Exec::Party_GetID(
+    const std::string& THE_CONTRACT,
+    const std::string& PARTY_NAME) const // returns
+                                         // either
+                                         // NymID or
+                                         // Entity ID.
+                                         // (If
 // there is one... Contract might not be
 // signed yet.)
 {
@@ -7797,8 +7799,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 // Users will most likely store public keys of OTHER users, and they will need
 // to load those from time to time, especially to verify signatures, etc.
 //
-std::string OTAPI_Exec::LoadPubkey_Encryption(const std::string& USER_ID)
-    const // returns "", or a public key.
+std::string OTAPI_Exec::LoadPubkey_Encryption(
+    const std::string& USER_ID) const // returns "", or a public key.
 {
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
@@ -7813,8 +7815,9 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(const std::string& USER_ID)
                                            // load as public, then tries to load
                                            // as private.
     if (nullptr == pNym) return "";
-    if (false == pNym->GetPublicEncrKey().GetPublicKey(
-                     strPubkey, false)) // bEscaped defaults to true. 6/13/12
+    if (false ==
+        pNym->GetPublicEncrKey().GetPublicKey(
+            strPubkey, false)) // bEscaped defaults to true. 6/13/12
     {
         OTString strNymID(NYM_ID);
         otOut << __FUNCTION__
@@ -7829,8 +7832,8 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(const std::string& USER_ID)
     return "";
 }
 
-std::string OTAPI_Exec::LoadPubkey_Signing(const std::string& USER_ID)
-    const // returns "", or a public key.
+std::string OTAPI_Exec::LoadPubkey_Signing(
+    const std::string& USER_ID) const // returns "", or a public key.
 {
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
@@ -7845,8 +7848,9 @@ std::string OTAPI_Exec::LoadPubkey_Signing(const std::string& USER_ID)
                                            // load as public, then tries to load
                                            // as private.
     if (nullptr == pNym) return "";
-    if (false == pNym->GetPublicSignKey().GetPublicKey(
-                     strPubkey, false)) // bEscaped defaults to true. 6/13/12
+    if (false ==
+        pNym->GetPublicSignKey().GetPublicKey(
+            strPubkey, false)) // bEscaped defaults to true. 6/13/12
     {
         OTString strNymID(NYM_ID);
         otOut << __FUNCTION__
@@ -7865,8 +7869,8 @@ std::string OTAPI_Exec::LoadPubkey_Signing(const std::string& USER_ID)
 //
 // (return as STRING)
 //
-std::string OTAPI_Exec::LoadUserPubkey_Encryption(const std::string& USER_ID)
-    const // returns "", or a public key.
+std::string OTAPI_Exec::LoadUserPubkey_Encryption(
+    const std::string& USER_ID) const // returns "", or a public key.
 {
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
@@ -7891,8 +7895,8 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(const std::string& USER_ID)
     return "";
 }
 
-std::string OTAPI_Exec::LoadUserPubkey_Signing(const std::string& USER_ID)
-    const // returns "", or a public key.
+std::string OTAPI_Exec::LoadUserPubkey_Signing(
+    const std::string& USER_ID) const // returns "", or a public key.
 {
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
@@ -7923,9 +7927,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(const std::string& USER_ID)
 //
 // Loads the user's private key, verifies, then returns true or false.
 //
-bool OTAPI_Exec::VerifyUserPrivateKey(const std::string& USER_ID)
-    const // returns
-          // bool
+bool OTAPI_Exec::VerifyUserPrivateKey(
+    const std::string& USER_ID) const // returns
+                                      // bool
 {
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
@@ -7972,11 +7976,11 @@ bool OTAPI_Exec::Mint_IsStillGood(const std::string& SERVER_ID,
     return false;
 }
 
-std::string OTAPI_Exec::LoadMint(const std::string& SERVER_ID,
-                                 const std::string& ASSET_TYPE_ID)
-    const // returns
-          // "", or a
-          // mint
+std::string OTAPI_Exec::LoadMint(
+    const std::string& SERVER_ID,
+    const std::string& ASSET_TYPE_ID) const // returns
+                                            // "", or a
+                                            // mint
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -8007,8 +8011,8 @@ std::string OTAPI_Exec::LoadMint(const std::string& SERVER_ID,
     return "";
 }
 
-std::string OTAPI_Exec::LoadAssetContract(const std::string& ASSET_TYPE_ID)
-    const // returns "", or an asset contract
+std::string OTAPI_Exec::LoadAssetContract(
+    const std::string& ASSET_TYPE_ID) const // returns "", or an asset contract
 {
     if (ASSET_TYPE_ID.empty()) {
         otErr << __FUNCTION__ << ": Null ASSET_TYPE_ID passed in!\n";
@@ -8036,8 +8040,8 @@ std::string OTAPI_Exec::LoadAssetContract(const std::string& ASSET_TYPE_ID)
     return "";
 }
 
-std::string OTAPI_Exec::LoadServerContract(const std::string& SERVER_ID)
-    const // returns "", or an asset contract
+std::string OTAPI_Exec::LoadServerContract(
+    const std::string& SERVER_ID) const // returns "", or an asset contract
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null SERVER_ID passed in!\n";
@@ -8338,9 +8342,9 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& SERVER_ID,
     return "";
 }
 
-std::string OTAPI_Exec::LoadNymboxNoVerify(const std::string& SERVER_ID,
-                                           const std::string& USER_ID)
-    const // Returns "", or an inbox.
+std::string OTAPI_Exec::LoadNymboxNoVerify(
+    const std::string& SERVER_ID,
+    const std::string& USER_ID) const // Returns "", or an inbox.
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -8576,9 +8580,9 @@ std::string OTAPI_Exec::LoadPaymentInbox(
     return "";
 }
 
-std::string OTAPI_Exec::LoadPaymentInboxNoVerify(const std::string& SERVER_ID,
-                                                 const std::string& USER_ID)
-    const // Returns "", or a paymentInbox.
+std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
+    const std::string& SERVER_ID,
+    const std::string& USER_ID) const // Returns "", or a paymentInbox.
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -8722,9 +8726,9 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& SERVER_ID,
     return "";
 }
 
-std::string OTAPI_Exec::LoadExpiredBoxNoVerify(const std::string& SERVER_ID,
-                                               const std::string& USER_ID)
-    const // Returns nullptr, or a ExpiredBox.
+std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
+    const std::string& SERVER_ID,
+    const std::string& USER_ID) const // Returns nullptr, or a ExpiredBox.
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -10465,11 +10469,11 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
                                 setOfRefNumbers.size()) != // IS NOT EQUAL TO...
                             theInbox.GetTransactionCountInRefTo(
                                 pServerTransaction->GetReferenceToNum()))
-                            /* todo: Notice I'm not making sure the count is
-                            entirely composed of ACCEPTED receipts. (vs
-                            DISPUTED...)
-                            I probably should add code to GetItemCountInRefTo()
-                            so it only counts ACCEPTED receipts.*/
+                        /* todo: Notice I'm not making sure the count is
+                        entirely composed of ACCEPTED receipts. (vs
+                        DISPUTED...)
+                        I probably should add code to GetItemCountInRefTo()
+                        so it only counts ACCEPTED receipts.*/
                         {
                             otOut
                                 << __FUNCTION__
@@ -10604,8 +10608,9 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
         int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
         theListOfInboxReceiptsBeingRemoved.pop_front();
 
-        if (false == theInbox.RemoveTransaction(
-                         static_cast<int64_t>(lTemp))) // <================
+        if (false ==
+            theInbox.RemoveTransaction(
+                static_cast<int64_t>(lTemp))) // <================
             otErr << __FUNCTION__
                   << ": Failed removing receipt from temporary Inbox: " << lTemp
                   << " \n";
@@ -13187,8 +13192,8 @@ bool OTAPI_Exec::IsBasketCurrency(const std::string& ASSET_TYPE_ID) const
 // Returns the number of asset types that make up this basket.
 // (Or zero.)
 //
-int32_t OTAPI_Exec::Basket_GetMemberCount(const std::string& ASSET_TYPE_ID)
-    const
+int32_t OTAPI_Exec::Basket_GetMemberCount(
+    const std::string& ASSET_TYPE_ID) const
 {
     if (ASSET_TYPE_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
@@ -13411,8 +13416,8 @@ int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
 //           setting for usage credits, which enables him to operate as if he
 //           has unlimited usage credits.
 //
-int64_t OTAPI_Exec::Message_GetUsageCredits(const std::string& THE_MESSAGE)
-    const
+int64_t OTAPI_Exec::Message_GetUsageCredits(
+    const std::string& THE_MESSAGE) const
 {
     if (THE_MESSAGE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
@@ -13589,21 +13594,20 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendUserInstrument(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& USER_ID_RECIPIENT,
-                                       const std::string& RECIPIENT_PUBKEY,
-                                       const std::string& THE_INSTRUMENT,
-                                       const std::string& INSTRUMENT_FOR_SENDER)
-    const // Can be empty. Special version
-          // for the sender's outpayments
-          // box. Only used for cash:
-          // THE_INSTRUMENT contains tokens
-          // already encrypted to the
-          // recipient's key. So this
-          // version contains tokens
-          // encrypted to the sender's key
-          // instead.
+int32_t OTAPI_Exec::sendUserInstrument(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& USER_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
+    const std::string& THE_INSTRUMENT,
+    const std::string& INSTRUMENT_FOR_SENDER) const // Can be empty. Special
+                                                    // version
+// for the sender's outpayments
+// box. Only used for cash:
+// THE_INSTRUMENT contains tokens
+// already encrypted to the
+// recipient's key. So this
+// version contains tokens
+// encrypted to the sender's key
+// instead.
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -14197,13 +14201,12 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 
-int32_t OTAPI_Exec::exchangeBasket(const std::string& SERVER_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& BASKET_ASSET_ID,
-                                   const std::string& THE_BASKET,
-                                   const bool& BOOL_EXCHANGE_IN_OR_OUT)
-    const // exchanging in == true (1), out ==
-          // false (0).
+int32_t OTAPI_Exec::exchangeBasket(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& BASKET_ASSET_ID, const std::string& THE_BASKET,
+    const bool& BOOL_EXCHANGE_IN_OR_OUT) const // exchanging in == true (1), out
+                                               // ==
+                                               // false (0).
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -15679,8 +15682,8 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
 // This function allows you to get the new account ID out of the
 // server reply message.
 //
-std::string OTAPI_Exec::Message_GetNewAcctID(const std::string& THE_MESSAGE)
-    const
+std::string OTAPI_Exec::Message_GetNewAcctID(
+    const std::string& THE_MESSAGE) const
 {
     if (THE_MESSAGE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
@@ -15726,8 +15729,8 @@ std::string OTAPI_Exec::Message_GetNewAcctID(const std::string& THE_MESSAGE)
 // also allows the client to query the server for this information
 // for syncronicity purposes.
 //
-std::string OTAPI_Exec::Message_GetNymboxHash(const std::string& THE_MESSAGE)
-    const
+std::string OTAPI_Exec::Message_GetNymboxHash(
+    const std::string& THE_MESSAGE) const
 {
     if (THE_MESSAGE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";

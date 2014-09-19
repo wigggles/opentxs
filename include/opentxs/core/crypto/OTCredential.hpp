@@ -259,16 +259,16 @@ private:
     bool GenerateMasterkey(int32_t nBits = 1024); // CreateMaster is able to
                                                   // create keys from scratch
                                                   // (by calling this function.)
-    bool SignNewMaster(const OTPasswordData* pPWData =
-                           nullptr); // SignMaster is used
+    bool SignNewMaster(const OTPasswordData* pPWData = nullptr); // SignMaster
+                                                                 // is used
     // when creating master
     // credential.
     bool SignNewSubcredential(OTSubcredential& theSubCred,
                               OTIdentifier& theSubCredID_out,
-                              const OTPasswordData* pPWData =
-                                  nullptr); // Used when
-                                            // creating a new
-                                            // subcredential.
+                              const OTPasswordData* pPWData = nullptr); // Used
+                                                                        // when
+    // creating a new
+    // subcredential.
 public:
     EXPORT const OTPassword* GetImportPassword() const
     {
@@ -299,29 +299,28 @@ public:
     EXPORT bool Load_Master(const OTString& strNymID,
                             const OTString& strMasterCredID,
                             const OTPasswordData* pPWData = nullptr);
-    EXPORT bool Load_MasterFromString(const OTString& strInput,
-                                      const OTString& strNymID,
-                                      const OTString& strMasterCredID,
-                                      const OTPasswordData* pPWData = nullptr,
-                                      const OTPassword* pImportPassword =
-                                          nullptr);
+    EXPORT bool Load_MasterFromString(
+        const OTString& strInput, const OTString& strNymID,
+        const OTString& strMasterCredID,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
     // For subcredentials that are specifically *subkeys*. Meaning it will
     // contain 3 keypairs: signing, authentication, and encryption.
     //
     EXPORT bool AddNewSubkey(
         int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
-        const OTString::Map* pmapPrivate =
-            nullptr, // Public keys are derived from the private.
-        const OTPasswordData* pPWData =
-            nullptr,                    // The master key will sign the subkey.
-        OTSubkey* *ppSubkey = nullptr); // output
+        const OTString::Map* pmapPrivate = nullptr, // Public keys are derived
+                                                    // from the private.
+        const OTPasswordData* pPWData = nullptr, // The master key will sign the
+                                                 // subkey.
+        OTSubkey* *ppSubkey = nullptr);          // output
     // For non-key credentials, such as for 3rd-party authentication.
     //
     EXPORT bool AddNewSubcredential(
         const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
-        const OTPasswordData* pPWData =
-            nullptr, // The master key will sign the subcredential.
-        OTSubcredential* *ppSubcred = nullptr); // output
+        const OTPasswordData* pPWData = nullptr, // The master key will sign the
+                                                 // subcredential.
+        OTSubcredential* *ppSubcred = nullptr);  // output
     EXPORT bool ReEncryptPrivateCredentials(const OTPassword& theExportPassword,
                                             bool bImporting); // Like for when
                                                               // you are
@@ -330,14 +329,12 @@ public:
                                                               // wallet.
     EXPORT bool LoadSubkey(const OTString& strSubID);
     EXPORT bool LoadSubcredential(const OTString& strSubID);
-    EXPORT bool LoadSubkeyFromString(const OTString& strInput,
-                                     const OTString& strSubID,
-                                     const OTPassword* pImportPassword =
-                                         nullptr);
-    EXPORT bool LoadSubcredentialFromString(const OTString& strInput,
-                                            const OTString& strSubID,
-                                            const OTPassword* pImportPassword =
-                                                nullptr);
+    EXPORT bool LoadSubkeyFromString(
+        const OTString& strInput, const OTString& strSubID,
+        const OTPassword* pImportPassword = nullptr);
+    EXPORT bool LoadSubcredentialFromString(
+        const OTString& strInput, const OTString& strSubID,
+        const OTPassword* pImportPassword = nullptr);
     EXPORT size_t GetSubcredentialCount() const;
     EXPORT const OTSubcredential* GetSubcredential(
         const OTString& strSubID,
@@ -375,13 +372,12 @@ public:
     {
         return m_Masterkey;
     }
-    EXPORT int32_t
-    GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
-                             const OTSignature& theSignature,
-                             char cKeyType = '0') const; // 'S' (signing key) or
-                                                         // 'E' (encryption key)
-                                                         // or 'A'
-                                                         // (authentication key)
+    EXPORT int32_t GetPublicKeysBySignature(
+        listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
+        char cKeyType = '0') const; // 'S' (signing key) or
+                                    // 'E' (encryption key)
+                                    // or 'A'
+                                    // (authentication key)
     EXPORT const OTAsymmetricKey& GetPublicAuthKey(
         const OTString::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPublicEncrKey(

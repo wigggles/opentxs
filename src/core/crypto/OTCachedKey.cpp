@@ -450,7 +450,7 @@ OTCachedKey::~OTCachedKey()
     LowLevelReleaseThread();
 
     if (nullptr != m_pMasterPassword) // Only stored temporarily, the purpose of
-        // this class is to destoy it after a timer.
+    // this class is to destoy it after a timer.
     {
         OTPassword* pPassword = m_pMasterPassword;
 
@@ -887,8 +887,8 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         {
 
             if (!OTAsymmetricKey::GetPasswordCallback()(
-                     nullptr, 0, bVerifyTwice ? 1 : 0,
-                     static_cast<void*>(&thePWData))) {
+                    nullptr, 0, bVerifyTwice ? 1 : 0,
+                    static_cast<void*>(&thePWData))) {
                 otErr << __FUNCTION__ << ": Failed to get password from user!";
                 return false;
             }
@@ -963,8 +963,8 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                              // nullptr)
                     {
                         if (!OTAsymmetricKey::GetPasswordCallback()(
-                                 nullptr, 0, false,
-                                 static_cast<void*>(&thePWData))) {
+                                nullptr, 0, false,
+                                static_cast<void*>(&thePWData))) {
                             otErr << "\n\n" << __FUNCTION__
                                   << ": Failed to get password from user!\n\n";
                             return false;
@@ -984,7 +984,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                          "new password!!) \n";
 
                 if (!OTAsymmetricKey::GetPasswordCallback()(
-                         nullptr, 0, true, static_cast<void*>(&thePWData))) {
+                        nullptr, 0, true, static_cast<void*>(&thePWData))) {
                     otErr << __FUNCTION__
                           << ": Failed to get password from user!";
                     return false;

@@ -252,13 +252,14 @@ public:
     EXPORT OTTransaction* GetTransactionByIndex(int32_t nIndex) const;
     EXPORT OTTransaction* GetFinalReceipt(int64_t lReferenceNum);
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
-    EXPORT OTTransaction* GetChequeReceipt(int64_t lChequeNum,
-                                           OTCheque** ppChequeOut =
-                                               nullptr); // CALLER RESPONSIBLE
-                                                         // TO
-                                                         // DELETE.
-    EXPORT int32_t
-    GetTransactionIndex(int64_t lTransactionNum); // if not found, returns -1
+    EXPORT OTTransaction* GetChequeReceipt(
+        int64_t lChequeNum,
+        OTCheque** ppChequeOut = nullptr); // CALLER RESPONSIBLE
+                                           // TO
+                                           // DELETE.
+    EXPORT int32_t GetTransactionIndex(int64_t lTransactionNum); // if not
+                                                                 // found,
+                                                                 // returns -1
     EXPORT OTTransaction* GetReplyNotice(const int64_t& lRequestNum);
 
     // This calls OTTransactionType::VerifyAccount(), which calls
@@ -288,23 +289,23 @@ public:
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     EXPORT bool DeleteBoxReceipt(const int64_t& lTransactionNum);
     EXPORT bool LoadInbox();
-    EXPORT bool SaveInbox(OTIdentifier* pInboxHash =
-                              nullptr); // If you pass the
-                                        // identifier in,
-                                        // the hash is
-                                        // recorded there
+    EXPORT bool SaveInbox(OTIdentifier* pInboxHash = nullptr); // If you pass
+                                                               // the
+                                                               // identifier in,
+                                                               // the hash is
+                                                               // recorded there
     EXPORT bool LoadNymbox();
-    EXPORT bool SaveNymbox(OTIdentifier* pNymboxHash =
-                               nullptr); // If you pass the
-                                         // identifier in,
-                                         // the hash is
-                                         // recorded there.
+    EXPORT bool SaveNymbox(OTIdentifier* pNymboxHash = nullptr); // If you pass
+                                                                 // the
+    // identifier in,
+    // the hash is
+    // recorded there.
     EXPORT bool LoadOutbox();
-    EXPORT bool SaveOutbox(OTIdentifier* pOutboxHash =
-                               nullptr); // If you pass the
-                                         // identifier in,
-                                         // the hash is
-                                         // recorded there
+    EXPORT bool SaveOutbox(OTIdentifier* pOutboxHash = nullptr); // If you pass
+                                                                 // the
+    // identifier in,
+    // the hash is
+    // recorded there
 
     EXPORT bool CalculateHash(OTIdentifier& theOutput);
     EXPORT bool CalculateInboxHash(OTIdentifier& theOutput);

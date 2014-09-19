@@ -216,11 +216,12 @@ bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput,
 
         int32_t nNymOfferCount = 0;
 
-        if (false == pMarket->GetNym_OfferList(NYM_ID, *pOfferList,
-                                               nNymOfferCount)) // appends to
-                                                                // *pOfferList,
-                                                                // each
-                                                                // iteration.
+        if (false ==
+            pMarket->GetNym_OfferList(NYM_ID, *pOfferList,
+                                      nNymOfferCount)) // appends to
+                                                       // *pOfferList,
+                                                       // each
+                                                       // iteration.
         {
             // may wish to add a log later. Anyway, keep iterationg and
             // appending, then send back whatever we have.
@@ -797,8 +798,8 @@ bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
         //
         if (bSaveReceipt) // This executes only the first time that an item is
                           // added to Cron.
-            // (versus when it's just being reloaded from file and added back to
-            // the internal list.)
+        // (versus when it's just being reloaded from file and added back to
+        // the internal list.)
         {
             // Now that a copy of the cronitem is safely stored, I can release
             // the signature on it
@@ -1040,8 +1041,8 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
         //
         if (bSaveMarketFile) // This executes only the first time that a market
                              // is added to Cron.
-            // (versus when it's just being reloaded from file and added back to
-            // the internal list.)
+        // (versus when it's just being reloaded from file and added back to
+        // the internal list.)
         {
             // Since we added a market to the Cron, we SAVE it.
             bSuccess = SaveCron(); // If we're loading from file, and

@@ -526,12 +526,14 @@ bool OTMasterkey::VerifySource_Pubkey(const OTString) const
     return true;
 }
 
-OTMasterkey::OTMasterkey() : ot_super()
+OTMasterkey::OTMasterkey()
+    : ot_super()
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
 }
 
-OTMasterkey::OTMasterkey(OTCredential& theOwner) : ot_super(theOwner)
+OTMasterkey::OTMasterkey(OTCredential& theOwner)
+    : ot_super(theOwner)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
 }

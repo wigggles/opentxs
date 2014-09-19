@@ -180,7 +180,8 @@ public:
                             const OTString& strItemCount);
 
     OTStash();
-    OTStash(std::string str_stash_name) : m_str_stash_name(str_stash_name)
+    OTStash(std::string str_stash_name)
+        : m_str_stash_name(str_stash_name)
     {
     }
     OTStash(const OTString& strAssetTypeID, int64_t lAmount = 0);

@@ -180,15 +180,15 @@ public:
     }
     EXPORT const char* GetLanguage() const;
     EXPORT bool AddVariable(OTVariable& theVariable);
-    EXPORT bool AddVariable(std::string str_Name, std::string str_Value,
-                            OTVariable::OTVariable_Access theAccess =
-                                OTVariable::Var_Persistent);
-    EXPORT bool AddVariable(std::string str_Name, int32_t nValue,
-                            OTVariable::OTVariable_Access theAccess =
-                                OTVariable::Var_Persistent);
-    EXPORT bool AddVariable(std::string str_Name, bool bValue,
-                            OTVariable::OTVariable_Access theAccess =
-                                OTVariable::Var_Persistent);
+    EXPORT bool AddVariable(
+        std::string str_Name, std::string str_Value,
+        OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
+    EXPORT bool AddVariable(
+        std::string str_Name, int32_t nValue,
+        OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
+    EXPORT bool AddVariable(
+        std::string str_Name, bool bValue,
+        OTVariable::OTVariable_Access theAccess = OTVariable::Var_Persistent);
     EXPORT bool AddClause(OTClause& theClause);
     EXPORT bool AddClause(const char* szName, const char* szCode);
     EXPORT bool AddHook(std::string str_HookName,

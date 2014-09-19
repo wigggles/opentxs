@@ -2929,7 +2929,7 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
         if (bHasCredentials &&
             !pNym->ReEncryptPrivateCredentials(true, &thePWDataLoad,
                                                pExportPassphrase.get()))
-            // Handles OTCachedKey internally, no need for pausing for this call
+        // Handles OTCachedKey internally, no need for pausing for this call
         {
             otErr
                 << __FUNCTION__
@@ -2958,9 +2958,9 @@ bool OT_API::Wallet_ImportNym(const OTString& FILE_CONTENTS,
             // Insert to wallet's list of Nyms.
             pWallet->AddNym(*(pNym.release()));
             if (!pWallet->ConvertNymToCachedKey(
-                     *pNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
-                             // (Or saves credentials, too, whichever is
-                             // applicable.)
+                    *pNym)) // This also calls SaveX509CertAndPrivateKey, FYI.
+                            // (Or saves credentials, too, whichever is
+                            // applicable.)
             {
                 otErr << __FUNCTION__
                       << ": Failed while calling "
@@ -3786,8 +3786,9 @@ bool OT_API::SmartContract_AddAccount(
     const OTString strAgentName, strAcctName(str_name.c_str()), strAcctID,
         strAssetTypeID(str_asset_id.c_str());
 
-    if (false == pParty->AddAccount(strAgentName, strAcctName, strAcctID,
-                                    strAssetTypeID, 0)) {
+    if (false ==
+        pParty->AddAccount(strAgentName, strAcctName, strAcctID, strAssetTypeID,
+                           0)) {
         otOut << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account (" << str_name << ") to party: " << str_party_name
               << " \n";
@@ -6276,8 +6277,8 @@ Mint* OT_API::LoadMint(const OTIdentifier& SERVER_ID,
 //
 // Caller is responsible to delete.
 //
-OTServerContract* OT_API::LoadServerContract(const OTIdentifier& SERVER_ID)
-    const
+OTServerContract* OT_API::LoadServerContract(
+    const OTIdentifier& SERVER_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     OTString strServerID(SERVER_ID);
@@ -7870,10 +7871,11 @@ bool OT_API::RecordPayment(
                                                 USER_ID, theAcctID, SERVER_ID);
 
                                             const bool
-                                            bSuccessLoadingSenderInbox =
-                                                (theSenderInbox.LoadInbox() &&
-                                                 theSenderInbox.VerifyAccount(
-                                                     *pNym));
+                                                bSuccessLoadingSenderInbox =
+                                                    (theSenderInbox
+                                                         .LoadInbox() &&
+                                                     theSenderInbox
+                                                         .VerifyAccount(*pNym));
                                             if (bSuccessLoadingSenderInbox) {
                                                 // Loop through the inbox and
                                                 // see if there are any receipts
@@ -7886,7 +7888,7 @@ bool OT_API::RecordPayment(
                                                         nullptr) ||
                                                     theSenderInbox
                                                         .GetFinalReceipt(
-                                                             lPaymentTransNum)) {
+                                                            lPaymentTransNum)) {
                                                     bFoundReceiptInInbox = true;
                                                     break;
                                                 }
@@ -8076,8 +8078,8 @@ bool OT_API::RecordPayment(
                         *pActualBox, OTTransaction::notice, lPaymentTransNum);
 
                 if (nullptr != pNewTransaction) // The above has an OT_ASSERT
-                    // within, but I just like to check
-                    // my pointers.
+                // within, but I just like to check
+                // my pointers.
                 {
                     pNewTransaction->SetReferenceToNum(
                         lPaymentTransNum); // referencing myself here. We'll see
@@ -8537,8 +8539,8 @@ bool OT_API::HaveAlreadySeenReply(const OTIdentifier& SERVER_ID,
 //
 // Tells you whether or not a given asset type is actually a basket currency.
 //
-bool OT_API::IsBasketCurrency(const OTIdentifier& BASKET_ASSET_TYPE_ID)
-    const // returns true or false.
+bool OT_API::IsBasketCurrency(
+    const OTIdentifier& BASKET_ASSET_TYPE_ID) const // returns true or false.
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8566,8 +8568,8 @@ bool OT_API::IsBasketCurrency(const OTIdentifier& BASKET_ASSET_TYPE_ID)
 // Returns the number of asset types that make up this basket.
 // (Or zero.)
 //
-int32_t OT_API::GetBasketMemberCount(const OTIdentifier& BASKET_ASSET_TYPE_ID)
-    const
+int32_t OT_API::GetBasketMemberCount(
+    const OTIdentifier& BASKET_ASSET_TYPE_ID) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -8710,10 +8712,10 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 //
 // (Caller is responsible to delete.)
 //
-Basket* OT_API::GenerateBasketCreation(const OTIdentifier& USER_ID,
-                                       int64_t MINIMUM_TRANSFER)
-    const // Must be above zero. If <= 0, defaults to
-          // 10.
+Basket* OT_API::GenerateBasketCreation(
+    const OTIdentifier& USER_ID,
+    int64_t MINIMUM_TRANSFER) const // Must be above zero. If <= 0, defaults to
+                                    // 10.
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
@@ -10912,7 +10914,7 @@ int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
                 return (-1);
             }
             else if (!thePlan.CancelBeforeActivation(
-                            *pNym)) // releases signatures, signs, saves.
+                           *pNym)) // releases signatures, signs, saves.
             {
                 otErr << __FUNCTION__
                       << ": Error: attempted to cancel (pre-emptively, "
@@ -11227,8 +11229,8 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
                 return (-1);
             }
             else if (!theContract.CancelBeforeActivation(
-                            *pNym)) // sets as canceler, releases signatures,
-                                    // signs, saves.
+                           *pNym)) // sets as canceler, releases signatures,
+                                   // signs, saves.
             {
                 otErr << __FUNCTION__
                       << ": Error: attempted to cancel (pre-emptively, "
@@ -12384,8 +12386,7 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
             // (server can't sign something inaccurate!) So I throw a dummy on
             // there before generating balance statement.
             //
-            OTTransaction*
-            pOutboxTransaction = OTTransaction::GenerateTransaction(
+            OTTransaction* pOutboxTransaction = OTTransaction::GenerateTransaction(
                 *pOutbox, OTTransaction::pending,
                 1 /*todo pick some number that everyone agrees doesn't matter, like 1. The referring-to is the important
                                                                                        number in this case, and perhaps server should update this value too before signing and returning.*/); // todo use a constant instead of '1'
@@ -13807,8 +13808,8 @@ int32_t OT_API::sendUserInstrument(
             // of this same instrument here anyway. We can erase the old one.
             //
             if (!pNym->RemoveOutpaymentsByIndex(
-                     lOutpaymentsIndex)) // <==== REMOVED! (So the one added
-                                         // below isn't a duplicate.)
+                    lOutpaymentsIndex)) // <==== REMOVED! (So the one added
+                                        // below isn't a duplicate.)
             {
                 otErr << __FUNCTION__
                       << ": Error calling RemoveOutpaymentsByIndex for Nym: "

@@ -148,7 +148,7 @@ EXPORT OTPayment* GetInstrument(const OTPseudonym& theNym,
                                 const int32_t& nIndex, OTLedger& ledger);
 
 EXPORT int32_t
-GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum);
+    GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum);
 
 } // namespace opentxs
 

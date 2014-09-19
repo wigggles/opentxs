@@ -147,16 +147,16 @@ void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID) const
     std::string str_access("");
 
     switch (m_Access) {
-    case OTVariable::Var_Constant
-        : // This cannot be changed from inside the script.
+    case OTVariable::Var_Constant: // This cannot be changed from inside the
+                                   // script.
         str_access = "constant";
         break;
-    case OTVariable::Var_Persistent
-        : // This can be changed without notifying the parties.
+    case OTVariable::Var_Persistent: // This can be changed without notifying
+                                     // the parties.
         str_access = "persistent";
         break;
-    case OTVariable::Var_Important
-        : // This cannot be changed without notifying the parties.
+    case OTVariable::Var_Important: // This cannot be changed without notifying
+                                    // the parties.
         str_access = "important";
         break;
     default:

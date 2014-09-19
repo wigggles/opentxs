@@ -772,8 +772,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
 }
 
 OT_OTAPI_OT int32_t
-OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
-                                const string& IN_FUNCTION) const
+    OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
+                                    const string& IN_FUNCTION) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestLowLevel: " + IN_FUNCTION;
@@ -829,8 +829,8 @@ OTAPI_Func::SendRequestLowLevel(OTAPI_Func& theFunction,
     return theFunction.nRequestNum;
 }
 
-OT_OTAPI_OT string
-OTAPI_Func::SendTransaction(OTAPI_Func& theFunction, const string& IN_FUNCTION)
+OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
+                                               const string& IN_FUNCTION)
 {
     int32_t nTotalRetries = 2;
     return SendTransaction(theFunction, IN_FUNCTION, nTotalRetries);
@@ -1010,10 +1010,11 @@ OT_OTAPI_OT string OTAPI_Func::SendRequest(OTAPI_Func& theFunction,
     return strResult;
 }
 
-OT_OTAPI_OT string
-OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction, const string& IN_FUNCTION,
-                            bool bIsTransaction, bool bWillRetryAfterThis,
-                            bool& bCanRetryAfterThis) const
+OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
+                                               const string& IN_FUNCTION,
+                                               bool bIsTransaction,
+                                               bool bWillRetryAfterThis,
+                                               bool& bCanRetryAfterThis) const
 {
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendRequestOnce: " + IN_FUNCTION;
@@ -1249,8 +1250,8 @@ OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction, const string& IN_FUNCTION,
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                         theFunction.serverID, theFunction.nymID,
-                         theFunction.accountID, bForceDownload)) {
+                        theFunction.serverID, theFunction.nymID,
+                        theFunction.accountID, bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "
                                             "the transaction. Thus, I give "
@@ -1473,10 +1474,10 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 }
 
 OT_OTAPI_OT int32_t
-output_nymoffer_data(const OTDB::OfferDataNym& offer_data, int32_t nIndex,
-                     const MapOfMaps&, const SubMap&,
-                     the_lambda_struct&) // if 10 offers are printed for the
-                                         // SAME market, nIndex will be 0..9
+    output_nymoffer_data(const OTDB::OfferDataNym& offer_data, int32_t nIndex,
+                         const MapOfMaps&, const SubMap&,
+                         the_lambda_struct&) // if 10 offers are printed for the
+                                             // SAME market, nIndex will be 0..9
 { // extra_vals unused in this function, but not in others that share this
     // parameter profile.
     // (It's used as a lambda.)
@@ -1533,11 +1534,12 @@ output_nymoffer_data(const OTDB::OfferDataNym& offer_data, int32_t nIndex,
 // removed AFTER
 
 OT_OTAPI_OT int32_t
-find_strange_offers(const OTDB::OfferDataNym& offer_data, const int32_t,
-                    const MapOfMaps&, const SubMap&,
-                    the_lambda_struct& extra_vals) // if 10 offers are printed
-                                                   // for the SAME market,
-                                                   // nIndex will be 0..9
+    find_strange_offers(const OTDB::OfferDataNym& offer_data, const int32_t,
+                        const MapOfMaps&, const SubMap&,
+                        the_lambda_struct& extra_vals) // if 10 offers are
+                                                       // printed
+                                                       // for the SAME market,
+                                                       // nIndex will be 0..9
 {
     string strLocation = "find_strange_offers";
     /*
@@ -1651,9 +1653,10 @@ OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
 // extra_vals allows you to pass any extra data you want into your
 // lambda, for when it is called. (Like a functor.)
 //
-OT_OTAPI_OT int32_t
-iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
-                          LambdaFunc the_lambda, the_lambda_struct& extra_vals)
+OT_OTAPI_OT int32_t iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps,
+                                              SubMap& sub_map,
+                                              LambdaFunc the_lambda,
+                                              the_lambda_struct& extra_vals)
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:
@@ -1714,10 +1717,10 @@ iterate_nymoffers_sub_map(const MapOfMaps& map_of_maps, SubMap& sub_map,
 }
 
 OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps,
-                       LambdaFunc the_lambda) // low level. map_of_maps
-                                              // must be
-                                              // good. (assumed.)
+    iterate_nymoffers_maps(MapOfMaps& map_of_maps,
+                           LambdaFunc the_lambda) // low level. map_of_maps
+                                                  // must be
+                                                  // good. (assumed.)
 {
     the_lambda_struct extra_vals;
     return iterate_nymoffers_maps(map_of_maps, the_lambda, extra_vals);
@@ -1727,10 +1730,11 @@ iterate_nymoffers_maps(MapOfMaps& map_of_maps,
 // lambda, for when it is called. (Like a functor.)
 //
 OT_OTAPI_OT int32_t
-iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
-                       the_lambda_struct& extra_vals) // low level. map_of_maps
-                                                      // must be good.
-                                                      // (assumed.)
+    iterate_nymoffers_maps(MapOfMaps& map_of_maps, LambdaFunc the_lambda,
+                           the_lambda_struct& extra_vals) // low level.
+                                                          // map_of_maps
+                                                          // must be good.
+                                                          // (assumed.)
 {
     // the_lambda must be good (assumed) and must have the parameter profile
     // like this sample:

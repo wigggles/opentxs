@@ -417,9 +417,9 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
 // (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
 // point of ".")
 //
-bool OTAssetContract::StringToAmount(OTAmount& theOutput,
-                                     const std::string& str_input)
-    const // Convert $5.45 to amount 545.
+bool OTAssetContract::StringToAmount(
+    OTAmount& theOutput,
+    const std::string& str_input) const // Convert $5.45 to amount 545.
 {
     int64_t lValue = 0;
 
@@ -695,15 +695,15 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
     }
 }
 
-bool OTAssetContract::AddAccountRecord(const OTAccount& theAccount)
-    const // adds the
-          // account
-          // to the
-          // list.
-          // (When
-          // account
-          // is
-          // created.)
+bool OTAssetContract::AddAccountRecord(
+    const OTAccount& theAccount) const // adds the
+                                       // account
+                                       // to the
+                                       // list.
+                                       // (When
+                                       // account
+                                       // is
+                                       // created.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.

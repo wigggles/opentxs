@@ -615,10 +615,10 @@ bool OTKeyring::IOS_StoreSecret(const OTString& strUser,
         nullptr, thePassword.getMemory_uint8(), thePassword.getMemorySize(),
         kCFAllocatorNull);
 
-    const void* keys[] = {kSecClass,       kSecAttrService,
-                          kSecAttrAccount, kSecValueData};
+    const void* keys[] = {kSecClass, kSecAttrService, kSecAttrAccount,
+                          kSecValueData};
     const void* values[] = {kSecClassGenericPassword, service_name,
-                            account_name,             vData};
+                            account_name, vData};
     CFDictionaryRef item =
         CFDictionaryCreate(nullptr, keys, values, 4, nullptr, nullptr);
 
@@ -648,10 +648,10 @@ bool OTKeyring::IOS_RetrieveSecret(const OTString& strUser,
                                                          kCFStringEncodingUTF8);
     CFDataRef vData = nullptr;
 
-    const void* keys[] = {kSecClass,       kSecAttrService,
-                          kSecAttrAccount, kSecReturnData};
+    const void* keys[] = {kSecClass, kSecAttrService, kSecAttrAccount,
+                          kSecReturnData};
     const void* values[] = {kSecClassGenericPassword, service_name,
-                            account_name,             kCFBooleanTrue};
+                            account_name, kCFBooleanTrue};
     CFDictionaryRef query =
         CFDictionaryCreate(nullptr, keys, values, 4, nullptr, nullptr);
 
@@ -1004,12 +1004,12 @@ KWallet::Wallet* OTKeyring::OpenKWallet()
 
         //
         if (!OTKeyring::s_pWallet->setFolder(
-                 QString::fromAscii("opentxs"))) // todo hardcoding.
+                QString::fromAscii("opentxs"))) // todo hardcoding.
         {
             OTKeyring::s_pWallet->createFolder(QString::fromAscii("opentxs"));
 
             if (!OTKeyring::s_pWallet->setFolder(
-                     QString::fromAscii("opentxs"))) {
+                    QString::fromAscii("opentxs"))) {
                 otErr << "OTKeyring::OpenKWallet: Failed calling: "
                          "KWallet::Wallet::setFolder"
                       << "(QString::fromAscii(\"opentxs\")) -- Tried creating "

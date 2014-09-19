@@ -139,7 +139,8 @@
 
 Assert* Assert::s_pAssert = new Assert(Assert::doAssert);
 
-Assert::Assert(fpt_Assert_sz_n_sz& fp1) : m_fpt_Assert(fp1)
+Assert::Assert(fpt_Assert_sz_n_sz& fp1)
+    : m_fpt_Assert(fp1)
 {
 }
 

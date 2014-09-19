@@ -211,9 +211,9 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             if (pOffer->LoadContractFromString(strData) &&
                 AddOffer(nullptr, *pOffer, false, tDateAdded)) // bSaveMarket =
-                // false (Don't SAVE
-                // -- we're loading
-                // right now!)
+            // false (Don't SAVE
+            // -- we're loading
+            // right now!)
             {
                 otWarn << "Successfully loaded offer and added to market.\n";
             }
