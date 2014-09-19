@@ -256,26 +256,30 @@ public:
     EXPORT virtual bool AddParty(OTParty& theParty);     // Takes ownership.
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);     // takes ownership.
     EXPORT virtual bool ConfirmParty(OTParty& theParty); // Takes ownership.
-    EXPORT OTParty* GetParty(std::string str_party_name);
-    EXPORT OTBylaw* GetBylaw(std::string str_bylaw_name);
-    EXPORT OTClause* GetClause(std::string str_clause_name);
-    EXPORT OTParty* GetPartyByIndex(int32_t nIndex);
-    EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex);
+    EXPORT OTParty* GetParty(std::string str_party_name) const;
+    EXPORT OTBylaw* GetBylaw(std::string str_bylaw_name) const;
+    EXPORT OTClause* GetClause(std::string str_clause_name) const;
+    EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
+    EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
-                                               OTAgent** ppAgent = nullptr);
+                                               OTAgent** ppAgent =
+                                                   nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
-                                                   OTAgent** ppAgent = nullptr);
+                                                   OTAgent** ppAgent =
+                                                       nullptr) const;
     OTParty* FindPartyBasedOnAccount(OTAccount& theAccount,
-                                     OTPartyAccount** ppPartyAccount = nullptr);
+                                     OTPartyAccount** ppPartyAccount =
+                                         nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID,
                                           OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(const OTIdentifier& theNymID,
-                                              OTAgent** ppAgent = nullptr);
+                                              OTAgent** ppAgent =
+                                                  nullptr) const;
     OTParty* FindPartyBasedOnAccountID(const OTIdentifier& theAcctID,
                                        OTPartyAccount** ppPartyAccount =
-                                           nullptr);
-    OTAgent* GetAgent(std::string str_agent_name);
-    OTPartyAccount* GetPartyAccount(std::string str_acct_name);
+                                           nullptr) const;
+    OTAgent* GetAgent(std::string str_agent_name) const;
+    OTPartyAccount* GetPartyAccount(std::string str_acct_name) const;
     OTPartyAccount* GetPartyAccountByID(const OTIdentifier& theAcctID) const;
     // This function returns the count of how many trans#s a Nym needs in order
     // to confirm as
@@ -285,7 +289,8 @@ public:
     // which agent is the
     // authorized agent.)
     //
-    EXPORT int32_t GetCountTransNumsNeededForAgent(std::string str_agent_name);
+    EXPORT int32_t
+    GetCountTransNumsNeededForAgent(std::string str_agent_name) const;
     // Verifies that Nym is actually an agent for this agreement.
     // (Verifies that Nym has signed this agreement, if it's a trade or a
     // payment plan, OR
@@ -295,7 +300,7 @@ public:
     //
     EXPORT virtual bool VerifyNymAsAgent(
         OTPseudonym& theNym, OTPseudonym& theSignerNym,
-        mapOfNyms* pmap_ALREADY_LOADED = nullptr);
+        mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -305,7 +310,7 @@ public:
     // ACCOUNT.
     //
     EXPORT virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                                   OTAccount& theAccount);
+                                                   OTAccount& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty, // The party that supposedly is authorized for this
                            // supposedly executed agreement.
@@ -393,7 +398,8 @@ public:
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const OTString& strReference, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
+        OTString* pstrAttachment = nullptr,
+        OTPseudonym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.
@@ -419,7 +425,7 @@ public:
                          OTVariable& varReturnVal);
 
     EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
-    EXPORT virtual bool Compare(OTScriptable& rhs);
+    EXPORT virtual bool Compare(OTScriptable& rhs) const;
     EXPORT static OTScriptable* InstantiateScriptable(const OTString& strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'

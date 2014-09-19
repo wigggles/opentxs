@@ -221,7 +221,8 @@ public:
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
     void Serialize(OTString& strAppend, bool bCalculatingID = false,
-                   bool bSpecifyAssetID = false, bool bSpecifyParties = false);
+                   bool bSpecifyAssetID = false,
+                   bool bSpecifyParties = false) const;
 
     // Clears temp pointers when I'm done with them, so I don't get stuck
     // with bad addresses.

@@ -1206,7 +1206,7 @@ bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
     return false;
 }
 
-void OTAgent::Serialize(OTString& strAppend)
+void OTAgent::Serialize(OTString& strAppend) const
 {
     //    strAppend.Concatenate("<agent>\n\n");
 

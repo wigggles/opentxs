@@ -143,7 +143,7 @@
 namespace opentxs
 {
 
-void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID)
+void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID) const
 {
     strAppend.Concatenate("<bylaw\n name=\"%s\"\n"
                           " numVariables=\"%d\"\n"
@@ -620,7 +620,7 @@ OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
     return nullptr;
 }
 
-OTClause* OTBylaw::GetClause(std::string str_clause_name)
+OTClause* OTBylaw::GetClause(std::string str_clause_name) const
 {
     if (!OTScriptable::ValidateName(str_clause_name)) {
         otErr << "OTBylaw::GetClause:  Error: empty str_clause_name.\n";

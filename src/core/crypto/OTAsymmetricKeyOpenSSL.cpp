@@ -209,7 +209,7 @@ void OTAsymmetricKey_OpenSSL::Release_AsymmetricKey_OpenSSL()
     // Release any dynamically allocated members here. (Normally.)
 }
 
-void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook()
+void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 {
     // Release the instantiated OpenSSL key (unsafe to store in this form.)
     //
@@ -505,7 +505,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 // Used when importing / exporting Nym to/from the wallet.
 //
 bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
-    const OTPassword& theExportPassword, bool bImporting)
+    const OTPassword& theExportPassword, bool bImporting) const
 {
     OT_ASSERT(m_p_ascKey != nullptr);
     OT_ASSERT(IsPrivate());

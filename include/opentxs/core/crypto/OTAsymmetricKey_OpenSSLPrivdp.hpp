@@ -204,9 +204,9 @@ private:
                         const OTPassword* pImportPassword = nullptr);
     // LOW LEVEL (internal) METHODS
     //
-    EVP_PKEY* GetKeyLowLevel();
+    EVP_PKEY* GetKeyLowLevel() const;
 
-    X509* GetX509()
+    X509* GetX509() const
     {
         return m_pX509;
     }

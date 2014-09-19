@@ -502,7 +502,7 @@ public:
         const OTIdentifier* pDestinationAcctID = nullptr);
     EXPORT static void GetStringFromType(OTItem::itemType theType,
                                          OTString& strType);
-    inline void GetTypeString(OTString& strType)
+    inline void GetTypeString(OTString& strType) const
     {
         GetStringFromType(GetType(), strType);
     }

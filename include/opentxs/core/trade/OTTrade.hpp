@@ -206,7 +206,7 @@ protected:
     virtual void onRemovalFromCron();
 
 public:
-    EXPORT bool VerifyOffer(OTOffer& offer);
+    EXPORT bool VerifyOffer(OTOffer& offer) const;
     EXPORT bool IssueTrade(OTOffer& offer, char stopSign = 0,
                            int64_t stopPrice = 0);
 
@@ -302,10 +302,10 @@ public:
     // see if theNym has signed *this.
     //
     virtual bool VerifyNymAsAgent(OTPseudonym& nym, OTPseudonym& signerNym,
-                                  mapOfNyms* preloadedMap = nullptr);
+                                  mapOfNyms* preloadedMap = nullptr) const;
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                            OTAccount& account);
+                                            OTAccount& account) const;
     EXPORT OTTrade();
     OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId);
     EXPORT OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,

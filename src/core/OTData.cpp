@@ -235,7 +235,7 @@ uint32_t OTData::OTfread(uint8_t* data, uint32_t size)
     return sizeToRead;
 }
 
-void OTData::zeroMemory()
+void OTData::zeroMemory() const
 {
     if (data_ != nullptr) {
         OTPassword::zeroMemory(data_, size_);

@@ -170,7 +170,7 @@ public:
     OTClause(const char* szName, const char* szCode);
     virtual ~OTClause();
 
-    void Serialize(OTString& strAppend);
+    void Serialize(OTString& strAppend) const;
 };
 
 } // namespace opentxs

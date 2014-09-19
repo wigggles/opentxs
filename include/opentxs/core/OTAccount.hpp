@@ -268,7 +268,7 @@ public:
     EXPORT bool GetOutboxHash(OTIdentifier& output);
     EXPORT static char const* _GetTypeString(AccountType accountType);
 
-    EXPORT char const* GetTypeString()
+    EXPORT char const* GetTypeString() const
     {
         return _GetTypeString(acctType_);
     }

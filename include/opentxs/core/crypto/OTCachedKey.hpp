@@ -383,7 +383,7 @@ public:
     EXPORT bool GetIdentifier(OTString& strIdentifier) const;
     EXPORT bool IsGenerated();
     EXPORT bool HasHashCheck();
-    EXPORT bool IsUsingSystemKeyring()
+    EXPORT bool IsUsingSystemKeyring() const
     {
         return m_bUse_System_Keyring;
     }

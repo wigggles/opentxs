@@ -252,7 +252,7 @@ public:
     // the vital terms, values, clauses, etc are different between the two.
     //
     virtual bool VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
-                                 OTPseudonym& SENDER_NYM);
+                                 OTPseudonym& SENDER_NYM) const;
     virtual bool CompareAgreement(const OTAgreement& rh) const;
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************

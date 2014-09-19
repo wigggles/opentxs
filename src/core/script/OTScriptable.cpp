@@ -660,7 +660,7 @@ bool OTScriptable::SendNoticeToAllParties(
     // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
-    OTPseudonym* pActualNym)
+    OTPseudonym* pActualNym) const
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
@@ -766,7 +766,7 @@ void OTScriptable::SetAsClean()
 // authorized agent for any party's accounts.
 //
 int32_t OTScriptable::GetCountTransNumsNeededForAgent(
-    std::string str_agent_name)
+    std::string str_agent_name) const
 {
     int32_t nReturnVal = 0;
 
@@ -794,7 +794,7 @@ int32_t OTScriptable::GetCountTransNumsNeededForAgent(
     return nReturnVal;
 }
 
-OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name)
+OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
 {
     if (false == OTScriptable::ValidateName(str_acct_name)) // this logs, FYI.
     {
@@ -841,7 +841,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
-    const OTIdentifier& theNymID, OTAgent** ppAgent)
+    const OTIdentifier& theNymID, OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -854,7 +854,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnAccountID(
-    const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount)
+    const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -868,7 +868,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
-                                                  OTAgent** ppAgent)
+                                                  OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -880,7 +880,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
-                                                      OTAgent** ppAgent)
+                                                      OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -891,8 +891,8 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnAccount(OTAccount& theAccount,
-                                               OTPartyAccount** ppPartyAccount)
+OTParty* OTScriptable::FindPartyBasedOnAccount(
+    OTAccount& theAccount, OTPartyAccount** ppPartyAccount) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -1269,7 +1269,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 //
 bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
                                     OTPseudonym& theSignerNym,
-                                    mapOfNyms* pmap_ALREADY_LOADED)
+                                    mapOfNyms* pmap_ALREADY_LOADED) const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1635,7 +1635,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 // aren't proving nearly as much. ALWAYS call it first.
 //
 bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                              OTAccount& theAccount)
+                                              OTAccount& theAccount) const
 {
 
     // Lookup the party via the ACCOUNT.
@@ -1841,7 +1841,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
 // Find the first (and hopefully the only) clause on this scriptable object,
 // with a given name. (Searches ALL Bylaws on *this.)
 //
-OTClause* OTScriptable::GetClause(std::string str_clause_name)
+OTClause* OTScriptable::GetClause(std::string str_clause_name) const
 {
     if (false == OTScriptable::ValidateName(str_clause_name)) // this logs, FYI.
     {
@@ -1862,7 +1862,7 @@ OTClause* OTScriptable::GetClause(std::string str_clause_name)
     return nullptr;
 }
 
-OTAgent* OTScriptable::GetAgent(std::string str_agent_name)
+OTAgent* OTScriptable::GetAgent(std::string str_agent_name) const
 {
     if (false == OTScriptable::ValidateName(str_agent_name)) // this logs, FYI.
     {
@@ -1883,7 +1883,7 @@ OTAgent* OTScriptable::GetAgent(std::string str_agent_name)
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name)
+OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name) const
 {
     if (false == OTScriptable::ValidateName(str_bylaw_name)) // this logs, FYI.
     {
@@ -1904,7 +1904,7 @@ OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name)
     return pBylaw;
 }
 
-OTParty* OTScriptable::GetParty(std::string str_party_name)
+OTParty* OTScriptable::GetParty(std::string str_party_name) const
 {
     if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
@@ -1925,7 +1925,7 @@ OTParty* OTScriptable::GetParty(std::string str_party_name)
     return pParty;
 }
 
-OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex)
+OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex) const
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapParties.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
@@ -1946,7 +1946,7 @@ OTParty* OTScriptable::GetPartyByIndex(int32_t nIndex)
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylawByIndex(int32_t nIndex)
+OTBylaw* OTScriptable::GetBylawByIndex(int32_t nIndex) const
 {
     if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(m_mapBylaws.size()))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
@@ -2201,7 +2201,7 @@ bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
  </party>
  */
 
-bool OTScriptable::Compare(OTScriptable& rhs)
+bool OTScriptable::Compare(OTScriptable& rhs) const
 {
     const char* szFunc = "OTScriptable::Compare";
     //

@@ -220,7 +220,7 @@ class OTPartyAccount
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);
 
-    OTParty* GetParty()
+    OTParty* GetParty() const
     {
         return m_pForParty;
     }
@@ -288,7 +288,7 @@ public:
     virtual ~OTPartyAccount();
 
     void Serialize(OTString& strAppend, bool bCalculatingID = false,
-                   bool bSpecifyAssetID = false);
+                   bool bSpecifyAssetID = false) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't

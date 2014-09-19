@@ -644,7 +644,7 @@ OTCrypto* OTCrypto::It()
 
 // Currently called by OTLog::OT_Init();
 
-void OTCrypto::Init()
+void OTCrypto::Init() const
 {
     // This is only supposed to happen once per run.
     //
@@ -676,7 +676,7 @@ void OTCrypto::Init()
 
 // Currently called by OTLog::OT_Cleanup();
 
-void OTCrypto::Cleanup()
+void OTCrypto::Cleanup() const
 {
     // This is only supposed to happen once per run.
     //
@@ -695,14 +695,14 @@ void OTCrypto::Cleanup()
 }
 
 // virtual (Should never get called.)
-void OTCrypto::Init_Override()
+void OTCrypto::Init_Override() const
 {
     otErr << "OTCrypto::Init_Override: ERROR: This function should NEVER be "
              "called (you should be overriding it...)\n";
 }
 
 // virtual (Should never get called.)
-void OTCrypto::Cleanup_Override()
+void OTCrypto::Cleanup_Override() const
 {
     otErr << "OTCrypto::Cleanup_Override: ERROR: This function should NEVER be "
              "called (you should be overriding it...)\n";
@@ -846,7 +846,7 @@ void OTCrypto_Decrypt_Output::Release()
 }
 
 // This is just a wrapper class.
-void OTCrypto_Decrypt_Output::Release_Envelope_Decrypt_Output()
+void OTCrypto_Decrypt_Output::Release_Envelope_Decrypt_Output() const
 {
     if (nullptr != m_pPassword) m_pPassword->zeroMemory();
 
@@ -854,7 +854,7 @@ void OTCrypto_Decrypt_Output::Release_Envelope_Decrypt_Output()
 }
 
 bool OTCrypto_Decrypt_Output::Concatenate(const void* pAppendData,
-                                          uint32_t lAppendSize)
+                                          uint32_t lAppendSize) const
 {
     OT_ASSERT((m_pPassword != nullptr) || (m_pPayload != nullptr));
 
@@ -1771,7 +1771,7 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
 
 // done
 
-void OTCrypto_OpenSSL::thread_setup()
+void OTCrypto_OpenSSL::thread_setup() const
 {
     OTCrypto_OpenSSL::s_arrayMutex = new std::mutex[CRYPTO_num_locks()];
 
@@ -1801,7 +1801,7 @@ void OTCrypto_OpenSSL::thread_setup()
 
 // done
 
-void OTCrypto_OpenSSL::thread_cleanup()
+void OTCrypto_OpenSSL::thread_cleanup() const
 {
     CRYPTO_set_locking_callback(nullptr);
 
@@ -1812,7 +1812,7 @@ void OTCrypto_OpenSSL::thread_cleanup()
     OTCrypto_OpenSSL::s_arrayMutex = nullptr;
 }
 
-void OTCrypto_OpenSSL::Init_Override()
+void OTCrypto_OpenSSL::Init_Override() const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Init_Override";
 
@@ -2120,7 +2120,7 @@ void OTCrypto_OpenSSL::Init_Override()
  ERR_free_strings(), EVP_cleanup() and CRYPTO_cleanup_all_ex_data().
  */
 
-void OTCrypto_OpenSSL::Cleanup_Override()
+void OTCrypto_OpenSSL::Cleanup_Override() const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Cleanup_Override";
 

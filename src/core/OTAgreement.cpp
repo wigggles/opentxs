@@ -153,7 +153,7 @@ bool OTAgreement::SendNoticeToAllParties(
     //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
-    OTPseudonym* pActualNym)
+    OTPseudonym* pActualNym) const
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
@@ -509,7 +509,7 @@ void OTAgreement::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 //
 bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
                                    OTPseudonym&, // Not needed in this override.
-                                   mapOfNyms*)
+                                   mapOfNyms*) const
 {
     return VerifySignature(theNym);
 }
@@ -517,7 +517,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
 // This is an override. See note above.
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                             OTAccount& theAccount)
+                                             OTAccount& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
 }

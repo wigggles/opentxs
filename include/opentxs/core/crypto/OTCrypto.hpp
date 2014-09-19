@@ -217,10 +217,11 @@ public:
     EXPORT OTCrypto_Decrypt_Output& operator=(
         OTCrypto_Decrypt_Output other); // passed by value.
 
-    EXPORT bool Concatenate(const void* pAppendData, uint32_t lAppendSize);
+    EXPORT bool Concatenate(const void* pAppendData,
+                            uint32_t lAppendSize) const;
 
     EXPORT void Release(); // Someday make this virtual, if we ever subclass it.
-    EXPORT void Release_Envelope_Decrypt_Output();
+    EXPORT void Release_Envelope_Decrypt_Output() const;
 };
 
 // OT CRYPTO -- ABSTRACT INTERFACE
@@ -235,8 +236,8 @@ private:
 protected:
     OTCrypto();
 
-    virtual void Init_Override();
-    virtual void Cleanup_Override();
+    virtual void Init_Override() const;
+    virtual void Cleanup_Override() const;
 
 public:
     virtual ~OTCrypto();
@@ -385,8 +386,8 @@ public:
         const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT static OTCrypto* It();
 
-    EXPORT void Init();
-    EXPORT void Cleanup();
+    EXPORT void Init() const;
+    EXPORT void Cleanup() const;
 };
 
 // OTCrypto (above) is the abstract base class which is used as an
@@ -408,8 +409,8 @@ class OTCrypto_OpenSSL : public OTCrypto
 
 protected:
     OTCrypto_OpenSSL();
-    virtual void Init_Override();
-    virtual void Cleanup_Override();
+    virtual void Init_Override() const;
+    virtual void Cleanup_Override() const;
 
     class OTCrypto_OpenSSLdp;
     OTCrypto_OpenSSLdp* dp;
@@ -512,8 +513,8 @@ public:
                                  const std::string& strCertFileContents,
                                  const OTSignature& theSignature,
                                  const OTPasswordData* pPWData = nullptr) const;
-    void thread_setup();
-    void thread_cleanup();
+    void thread_setup() const;
+    void thread_cleanup() const;
 
     virtual ~OTCrypto_OpenSSL();
 };

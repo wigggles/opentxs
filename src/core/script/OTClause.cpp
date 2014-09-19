@@ -179,7 +179,7 @@ const char* OTClause::GetCode() const
     return "print(\"(Empty script.)\")"; // todo hardcoding
 }
 
-void OTClause::Serialize(OTString& strAppend)
+void OTClause::Serialize(OTString& strAppend) const
 {
     if (m_strCode.GetLength() > 2) {
         OTASCIIArmor ascCode;

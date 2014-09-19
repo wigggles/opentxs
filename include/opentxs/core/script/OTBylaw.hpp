@@ -218,7 +218,7 @@ public:
                                                           // bad? todo:
                                                           // research
                                                           // that.
-    EXPORT OTClause* GetClause(std::string str_Name);
+    EXPORT OTClause* GetClause(std::string str_Name) const;
     EXPORT OTClause* GetCallback(std::string str_CallbackName);
     EXPORT bool GetHooks(std::string str_HookName,
                          mapOfClauses& theResults); // Look up all clauses
@@ -271,7 +271,8 @@ public:
 
     EXPORT bool Compare(OTBylaw& rhs);
 
-    EXPORT void Serialize(OTString& strAppend, bool bCalculatingID = false);
+    EXPORT void Serialize(OTString& strAppend,
+                          bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

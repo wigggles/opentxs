@@ -167,14 +167,15 @@ enum {
 bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
                                OTPseudonym&, // Not needed in this version of
                                              // the override.
-                               mapOfNyms*)
+                               mapOfNyms*) const
 {
     return VerifySignature(nym);
 }
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym, OTAccount& account)
+bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym,
+                                         OTAccount& account) const
 {
     return account.VerifyOwner(nym);
 }
@@ -387,7 +388,7 @@ void OTTrade::UpdateContents()
 // between this trade and the offer, in order to fully verify the offer's
 // authenticity.
 //
-bool OTTrade::VerifyOffer(OTOffer& offer)
+bool OTTrade::VerifyOffer(OTOffer& offer) const
 {
     // At this point, I have a working, loaded, model of the Offer.
     // Let's verify the thing.

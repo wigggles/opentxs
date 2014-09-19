@@ -5427,7 +5427,7 @@ int32_t OTSmartContract::GetCountStashAccts() const
 // Before we can make sure that ALL parties have signed equivalent versions,
 // we must be able to compare TWO versions.  The below function does that.
 //
-bool OTSmartContract::Compare(OTScriptable& rhs)
+bool OTSmartContract::Compare(OTScriptable& rhs) const
 {
     if (false == OTScriptable::Compare(rhs)) return false;
 
