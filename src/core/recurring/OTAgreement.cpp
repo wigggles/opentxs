@@ -132,10 +132,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTAgreement.hpp"
+#include "recurring/OTAgreement.hpp"
+#include "cron/OTCron.hpp"
 
 #include "OTAccount.hpp"
-#include "cron/OTCron.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"

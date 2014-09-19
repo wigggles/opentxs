@@ -142,7 +142,7 @@
 #include <opentxs/basket/BasketItem.hpp>
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTPaymentPlan.hpp>
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/OTCheque.hpp>

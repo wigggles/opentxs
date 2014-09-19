@@ -132,16 +132,16 @@
 
 #include "stdafx.hpp"
 
+#include "recurring/OTPaymentPlan.hpp"
+#include "script/OTSmartContract.hpp"
+#include "trade/OTTrade.hpp"
 #include "cron/OTCronItem.hpp"
 #include "cron/OTCron.hpp"
 #include "OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
-#include "OTPaymentPlan.hpp"
 #include "OTPseudonym.hpp"
 #include "OTStorage.hpp"
-#include "script/OTSmartContract.hpp"
-#include "trade/OTTrade.hpp"
 
 #include <irrxml/irrXML.hpp>
 

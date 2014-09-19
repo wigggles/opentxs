@@ -132,6 +132,8 @@
 
 #include "stdafx.hpp"
 
+#include "recurring/OTPaymentPlan.hpp"
+#include "script/OTSmartContract.hpp"
 #include "OTTransaction.hpp"
 #include "OTCheque.hpp"
 #include "OTFolders.hpp"
@@ -139,9 +141,7 @@
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 #include "OTPseudonym.hpp"
-#include "OTPaymentPlan.hpp"
 #include "OTStorage.hpp"
-#include "script/OTSmartContract.hpp"
 
 #include <irrxml/irrXML.hpp>
 

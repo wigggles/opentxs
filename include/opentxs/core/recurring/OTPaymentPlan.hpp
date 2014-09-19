@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTPAYMENTPLAN_HPP
 #define OPENTXS_CORE_OTPAYMENTPLAN_HPP
 
-#include "OTAgreement.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
 
 namespace opentxs
 {

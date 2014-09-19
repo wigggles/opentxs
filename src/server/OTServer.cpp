@@ -161,7 +161,7 @@
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTPaths.hpp>
-#include <opentxs/core/OTPaymentPlan.hpp>
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
