@@ -863,17 +863,17 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay)); // bAskTwice=false by default.
     }
-    else
-        pPassUserInput.reset(const_cast<OTPassword*>(pAlreadyHavePW));
 
     bool bSuccess = false;
 
-    if (nullptr != pPassUserInput) // Success retrieving the passphrase from the
-                                   // user. (Now let's decrypt...)
+    if (pPassUserInput || // Success retrieving the passphrase from the
+        pAlreadyHavePW)   // user, or passphrase was provided out of scope.
     {
         OTEnvelope theEnvelope(ascArmor);
 
-        if (theEnvelope.Decrypt(strOutput, theKey, *pPassUserInput)) {
+        if (theEnvelope.Decrypt(strOutput, theKey, pPassUserInput
+                                                       ? *pPassUserInput
+                                                       : *pAlreadyHavePW)) {
             bSuccess = true;
         }
         else {
