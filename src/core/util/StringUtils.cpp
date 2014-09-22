@@ -191,23 +191,4 @@ bool len_cmp(const char* s1, const char* s2)
     return true;
 }
 
-// Note: this version doesn't take a length for str,
-// which is a security problem. todo.
-// (Do we use this anymore anyway?)
-//
-char* str_dup1(const char* str)
-{
-    char* str_new = new char[strlen(str) + 1];
-
-    OT_ASSERT(nullptr != str_new);
-
-#ifdef _WIN32
-    strcpy_s(str_new, strlen(str), str);
-#else
-    strlcpy(str_new, str, strlen(str));
-#endif
-
-    return str_new;
-}
-
 } // namespace opentxs

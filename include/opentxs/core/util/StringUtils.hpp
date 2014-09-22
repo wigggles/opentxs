@@ -177,7 +177,6 @@ static Container& split_byChar(Container& result,
 // you can pass the length to str_hsh or str_dup
 // and save it the trouble.
 //
-char* str_dup1(const char* str);
 char* str_dup2(const char* str, uint32_t length);
 int32_t len_cmp(char* s1, char* s2);
 
