@@ -178,7 +178,6 @@ static Container& split_byChar(Container& result,
 // and save it the trouble.
 //
 char* str_dup2(const char* str, uint32_t length);
-int32_t len_cmp(char* s1, char* s2);
 
 template <typename T>
 inline std::string to_string(const T& t)
