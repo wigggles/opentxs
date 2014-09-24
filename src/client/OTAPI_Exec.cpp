@@ -4296,11 +4296,6 @@ std::string OTAPI_Exec::Encode(const std::string& strPlaintext,
         OT_FAIL;
     }
 
-    if ((true != bLineBreaks) && (false != bLineBreaks)) {
-        otErr << __FUNCTION__ << ": Bad: bLineBreaks \n";
-        OT_FAIL;
-    }
-
     const OTString otstrPlaintext(strPlaintext);
     OTString strOutput;
 
@@ -4332,11 +4327,6 @@ std::string OTAPI_Exec::Decode(const std::string& strEncoded,
 {
     if (strEncoded.empty()) {
         otErr << __FUNCTION__ << ": Null: strEncoded passed in!\n";
-        OT_FAIL;
-    }
-
-    if ((true != bLineBreaks) && (false != bLineBreaks)) {
-        otErr << __FUNCTION__ << ": Bad: bLineBreaks \n";
         OT_FAIL;
     }
 
@@ -7579,36 +7569,6 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     }
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
-        OT_FAIL;
-    }
-    if ((true != bHarvestingForRetry) && (false != bHarvestingForRetry)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bHarvestingForRetry"
-              << " \n";
-        OT_FAIL;
-    }
-    if ((true != bReplyWasSuccess) && (false != bReplyWasSuccess)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bReplyWasSuccess"
-              << " \n";
-        OT_FAIL;
-    }
-    if ((true != bReplyWasFailure) && (false != bReplyWasFailure)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bReplyWasFailure"
-              << " \n";
-        OT_FAIL;
-    }
-    if ((true != bTransactionWasSuccess) && (false != bTransactionWasSuccess)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bTransactionWasSuccess"
-              << " \n";
-        OT_FAIL;
-    }
-    if ((true != bTransactionWasFailure) && (false != bTransactionWasFailure)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bTransactionWasFailure"
-              << " \n";
         OT_FAIL;
     }
     const OTIdentifier theUserID(USER_ID);
@@ -14225,14 +14185,6 @@ int32_t OTAPI_Exec::exchangeBasket(
         OT_FAIL;
     }
 
-    if ((true != BOOL_EXCHANGE_IN_OR_OUT) &&
-        (false != BOOL_EXCHANGE_IN_OR_OUT)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "BOOL_EXCHANGE_IN_OR_OUT"
-              << " \n";
-        OT_FAIL;
-    }
-
     OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
         theBasketAssetID(BASKET_ASSET_ID);
 
@@ -15276,14 +15228,6 @@ void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
                                    const std::string& USER_ID,
                                    const std::string& THE_NYMBOX) const
 {
-    if ((true != bHarvestingForRetry) && (false != bHarvestingForRetry)) {
-        otErr << __FUNCTION__ << ": Bad: "
-              << "bHarvestingForRetry"
-              << " \n";
-        OT_FAIL;
-        return;
-    }
-
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         OT_FAIL;
