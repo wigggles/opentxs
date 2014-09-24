@@ -625,7 +625,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
                 it.second; // Containing the asset type ID. (Just in case
                            // someone copied the wrong file here...)
 
-            if (false == strAssetTypeID.Compare(str_asset_id.c_str())) {
+            if (!strAssetTypeID.Compare(str_asset_id.c_str())) {
                 otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong "
                          "asset type ID (" << str_asset_id
                       << ") when expecting: " << strAssetTypeID << "\n";
@@ -793,8 +793,8 @@ bool OTAssetContract::AddAccountRecord(
 
     // Then save it back to local storage:
     //
-    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
-                                   strAcctRecordFile.Get())) {
+    if (!OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
+                           strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for asset type: " << strAssetTypeID
@@ -869,8 +869,8 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
 
     // Then save it back to local storage:
     //
-    if (false == OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
-                                   strAcctRecordFile.Get())) {
+    if (!OTDB::StoreObject(*pMap, OTFolders::Contract().Get(),
+                           strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for asset type: " << strAssetTypeID

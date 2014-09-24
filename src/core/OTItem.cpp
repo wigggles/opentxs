@@ -1858,7 +1858,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetDestinationAcctID(DESTINATION_ACCOUNT);
         SetUserID(USER_ID);
 
-        if (false == m_bLoadSecurely) {
+        if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
             SetRealServerID(SERVER_ID);
         }
@@ -1888,7 +1888,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (!strcmp("note", xml->getNodeName())) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_ascNote)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_ascNote)) {
             otErr << "Error in OTItem::ProcessXMLNode: note field without "
                      "value.\n";
             return (-1); // error condition
@@ -1907,7 +1907,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (!strcmp("attachment", xml->getNodeName())) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_ascAttachment)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_ascAttachment)) {
             otErr << "Error in OTItem::ProcessXMLNode: attachment field "
                      "without value.\n";
             return (-1); // error condition

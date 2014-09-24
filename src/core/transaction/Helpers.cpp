@@ -374,11 +374,11 @@ bool VerifyBoxReceiptExists(
     // --------------------------------------------------------------------
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == SetupBoxReceiptFilename(
-                     lLedgerType, // nBoxType is lLedgerType
-                     strUserOrAcctID, strServerID, lTransactionNum,
-                     "OTTransaction::VerifyBoxReceiptExists", strFolder1name,
-                     strFolder2name, strFolder3name, strFilename))
+    if (!SetupBoxReceiptFilename(lLedgerType, // nBoxType is lLedgerType
+                                 strUserOrAcctID, strServerID, lTransactionNum,
+                                 "OTTransaction::VerifyBoxReceiptExists",
+                                 strFolder1name, strFolder2name, strFolder3name,
+                                 strFilename))
         return false; // This already logs -- no need to log twice, here.
     // --------------------------------------------------------------------
     // See if the box receipt exists before trying to save over it...
@@ -412,7 +412,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     // Can only load abbreviated transactions (so they'll become their full
     // form.)
     //
-    if (false == theAbbrev.IsAbbreviated()) {
+    if (!theAbbrev.IsAbbreviated()) {
         otOut << __FUNCTION__ << ": Unable to load box receipt "
               << theAbbrev.GetTransactionNum()
               << ": "
@@ -425,17 +425,16 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == SetupBoxReceiptFilename(
-                     lLedgerType, theAbbrev,
-                     __FUNCTION__, // "OTTransaction::LoadBoxReceipt",
-                     strFolder1name, strFolder2name, strFolder3name,
-                     strFilename))
+    if (!SetupBoxReceiptFilename(
+            lLedgerType, theAbbrev,
+            __FUNCTION__, // "OTTransaction::LoadBoxReceipt",
+            strFolder1name, strFolder2name, strFolder3name, strFilename))
         return nullptr; // This already logs -- no need to log twice, here.
 
     // See if the box receipt exists before trying to load it...
     //
-    if (false == OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
-                              strFolder3name.Get(), strFilename.Get())) {
+    if (!OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
+                      strFolder3name.Get(), strFilename.Get())) {
         otWarn << __FUNCTION__
                << ": Box receipt does not exist: " << strFolder1name
                << OTLog::PathSeparator() << strFolder2name
@@ -459,7 +458,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 
     OTString strRawFile(strFileContents.c_str());
 
-    if (false == strRawFile.Exists()) {
+    if (!strRawFile.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file (resulting output "
                                  "string is empty): " << strFolder1name
               << OTLog::PathSeparator() << strFolder2name
@@ -505,7 +504,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 
     bool bSuccess = theAbbrev.VerifyBoxReceipt(*pBoxReceipt);
 
-    if (false == bSuccess) {
+    if (!bSuccess) {
         otErr << __FUNCTION__ << ": Failed verifying Box Receipt:\n"
               << strFolder1name << OTLog::PathSeparator() << strFolder2name
               << OTLog::PathSeparator() << strFolder3name

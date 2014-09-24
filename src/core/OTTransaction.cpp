@@ -176,7 +176,7 @@ bool OTTransaction::VerifyAccount(const OTPseudonym& theNym)
 
     // Make sure that the supposed AcctID matches the one read from the file.
     //
-    if (false == VerifyContractID()) {
+    if (!VerifyContractID()) {
         otErr << __FUNCTION__ << ": Error verifying account ID.\n";
         return false;
     }
@@ -1488,7 +1488,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     const char* szFilename =
         strFilename.Get(); // receipts/SERVER_ID/USER_ID.success
 
-    if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt:\n " << szFilename
                << "\n";
@@ -2936,16 +2936,15 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
 {
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == SetupBoxReceiptFilename(theLedger, *this,
-                                         "OTTransaction::DeleteBoxReceipt",
-                                         strFolder1name, strFolder2name,
-                                         strFolder3name, strFilename))
+    if (!SetupBoxReceiptFilename(
+            theLedger, *this, "OTTransaction::DeleteBoxReceipt", strFolder1name,
+            strFolder2name, strFolder3name, strFilename))
         return false; // This already logs -- no need to log twice, here.
 
     // See if the box receipt exists before trying to save over it...
     //
-    if (false == OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
-                              strFolder3name.Get(), strFilename.Get())) {
+    if (!OTDB::Exists(strFolder1name.Get(), strFolder2name.Get(),
+                      strFolder3name.Get(), strFilename.Get())) {
         otInfo
             << __FUNCTION__
             << ": Box receipt already doesn't exist, thus no need to delete: "
@@ -2992,7 +2991,7 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
     bool bDeleted = OTDB::StorePlainString(
         strOutput.Get(), strFolder1name.Get(), strFolder2name.Get(),
         strFolder3name.Get(), strFilename.Get());
-    if (false == bDeleted)
+    if (!bDeleted)
         otErr << __FUNCTION__
               << ": Error deleting (writing over) file: " << strFolder1name
               << OTLog::PathSeparator() << strFolder2name
@@ -3019,10 +3018,9 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 
     OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
 
-    if (false == SetupBoxReceiptFilename(lLedgerType, *this,
-                                         "OTTransaction::SaveBoxReceipt",
-                                         strFolder1name, strFolder2name,
-                                         strFolder3name, strFilename))
+    if (!SetupBoxReceiptFilename(
+            lLedgerType, *this, "OTTransaction::SaveBoxReceipt", strFolder1name,
+            strFolder2name, strFolder3name, strFilename))
         return false; // This already logs -- no need to log twice, here.
 
     // See if the box receipt exists before trying to save over it...
@@ -3056,7 +3054,7 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
         strFinal.Get(), strFolder1name.Get(), strFolder2name.Get(),
         strFolder3name.Get(), strFilename.Get());
 
-    if (false == bSaved)
+    if (!bSaved)
         otErr << __FUNCTION__ << ": Error writing file: " << strFolder1name
               << OTLog::PathSeparator() << strFolder2name
               << OTLog::PathSeparator() << strFolder3name
@@ -3193,12 +3191,12 @@ bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 
         if (NYM_ID != pItem->GetUserID()) return false;
 
-        if (false == pItem->VerifySignature(theNym)) // NO need to call
-                                                     // VerifyAccount since
-                                                     // VerifyContractID is
-                                                     // ALREADY called and now
-                                                     // here's
-                                                     // VerifySignature().
+        if (!pItem->VerifySignature(theNym)) // NO need to call
+                                             // VerifyAccount since
+                                             // VerifyContractID is
+                                             // ALREADY called and now
+                                             // here's
+                                             // VerifySignature().
             return false;
     }
 
@@ -4240,7 +4238,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // sub-items will still
         // be expected to be correct with their parent items.)
         //
-        if (false == m_bLoadSecurely) {
+        if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
             SetRealServerID(SERVER_ID);
         }
@@ -4306,12 +4304,12 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             OTItem* pItem = new OTItem(GetUserID(), *this);
             OT_ASSERT(nullptr != pItem);
 
-            if (false == m_bLoadSecurely) pItem->SetLoadInsecure();
+            if (!m_bLoadSecurely) pItem->SetLoadInsecure();
 
             // If we're able to successfully base64-decode the string and load
             // it up as
             // a transaction, then add it to the ledger's list of transactions
-            if (false == pItem->LoadContractFromString(strData)) {
+            if (!pItem->LoadContractFromString(strData)) {
                 otErr << "ERROR: OTTransaction failed loading item from "
                          "string: \n\n"
                       << (strData.Exists() ? strData.Get() : "") << "\n\n";
@@ -4319,7 +4317,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 pItem = nullptr;
                 return (-1);
             }
-            else if (false == pItem->VerifyContractID()) {
+            else if (!pItem->VerifyContractID()) {
                 otErr << "ERROR: Failed verifying transaction Item in "
                          "OTTransaction::ProcessXMLNode: \n\n" << strData
                       << "\n\n";
@@ -6784,8 +6782,8 @@ bool OTTransaction::GetMemo(OTString& strMemo)
             OTString strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
-            if (false == ((strCheque.GetLength() > 2) &&
-                          theCheque.LoadContractFromString(strCheque))) {
+            if (!((strCheque.GetLength() > 2) &&
+                  theCheque.LoadContractFromString(strCheque))) {
                 otErr << __FUNCTION__
                       << ": Error loading cheque or voucher from string:\n"
                       << strCheque << "\n";

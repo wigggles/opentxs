@@ -254,7 +254,7 @@ bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
     //
     OTPayload theIV;
 
-    if (false == theIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!theIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed trying to randomly generate IV.\n";
         return false;
     }

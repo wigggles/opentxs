@@ -174,7 +174,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 
     OTString strContract(strCronItem);
 
-    if (false == strContract.DecodeIfArmored(false)) {
+    if (!strContract.DecodeIfArmored(false)) {
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
               << strCronItem << "\n";
@@ -232,7 +232,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
@@ -269,7 +269,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (false == OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
@@ -431,7 +431,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     // Now that the list is updated, let's go ahead and erase the actual cron
     // item itself.
     //
-    if (false == OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
@@ -705,7 +705,7 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
     // related closing number)
     // signed out to him on his last receipt...
     //
-    if (false == theNym.CompareID(GetSenderUserID())) {
+    if (!theNym.CompareID(GetSenderUserID())) {
         otLog5 << "OTCronItem::CanRemoveItem: theNym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
@@ -722,7 +722,7 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
 
     const OTString strServerID(GetServerID());
 
-    if (false == theNym.VerifyIssuedNum(strServerID, GetClosingNum())) {
+    if (!theNym.VerifyIssuedNum(strServerID, GetClosingNum())) {
         otOut << "OTCronItem::CanRemoveItemFromCron: Closing number didn't "
                  "verify (for removal from cron).\n";
         return false;
@@ -939,7 +939,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
 
             theOriginatorNym.SetIdentifier(NYM_ID);
 
-            if (false == theOriginatorNym.LoadPublicKey()) {
+            if (!theOriginatorNym.LoadPublicKey()) {
                 OTString strNymID(NYM_ID);
                 otErr << "OTCronItem::HookRemovalFromCron: Failure loading "
                          "Sender's public key:\n" << strNymID << "\n";
@@ -1069,10 +1069,10 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         {    // it ourselves (so we can update its NymboxHash value.)
             theActualNym.SetIdentifier(ACTUAL_NYM_ID);
 
-            if (false == theActualNym.LoadPublicKey()) // Note: this step may be
-                                                       // unnecessary since we
-                                                       // are only updating his
-                                                       // Nymfile, not his key.
+            if (!theActualNym.LoadPublicKey()) // Note: this step may be
+                                               // unnecessary since we
+                                               // are only updating his
+                                               // Nymfile, not his key.
             {
                 OTString strNymID(ACTUAL_NYM_ID);
                 otErr << __FUNCTION__
@@ -1101,10 +1101,9 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (false == DropFinalReceiptToNymbox(GetSenderUserID(),
-                                              lNewTransactionNumber,
-                                              strOrigCronItem, nullptr, // note
-                                              pstrAttachment, pActualNym)) {
+        if (!DropFinalReceiptToNymbox(GetSenderUserID(), lNewTransactionNumber,
+                                      strOrigCronItem, nullptr, // note
+                                      pstrAttachment, pActualNym)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
         }
@@ -1119,13 +1118,12 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         theOriginator.VerifyIssuedNum(strServerID, lClosingNumber)) {
         // SENDER only. (CronItem has no recipient. That's in the subclass.)
         //
-        if (false == DropFinalReceiptToInbox(
-                         GetSenderUserID(), GetSenderAcctID(),
-                         lNewTransactionNumber,
-                         lClosingNumber, // The closing transaction number to
-                                         // put on the receipt.
-                         strOrigCronItem, nullptr, // note
-                         pstrAttachment)) // pActualAcct = nullptr by default.
+        if (!DropFinalReceiptToInbox(
+                GetSenderUserID(), GetSenderAcctID(), lNewTransactionNumber,
+                lClosingNumber,           // The closing transaction number to
+                                          // put on the receipt.
+                strOrigCronItem, nullptr, // note
+                pstrAttachment))          // pActualAcct = nullptr by default.
                                           // (This call will load it up in order
                                           // to update the inbox hash.)
             otErr << __FUNCTION__ << ": Failure dropping receipt into inbox.\n";
@@ -1190,7 +1188,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     //        bSuccessLoading        = theInbox.GenerateLedger(ACCOUNT_ID,
     // GetServerID(), OTLedger::inbox, true); // bGenerateFile=true
 
-    if (false == bSuccessLoading) {
+    if (!bSuccessLoading) {
         otErr << szFunc << ": ERROR loading or generating an inbox. (FAILED "
                            "WRITING RECEIPT!!) \n";
         return false;
@@ -1374,7 +1372,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
     //        bSuccessLoading        = theLedger.GenerateLedger(USER_ID,
     // GetServerID(), OTLedger::nymbox, true); // bGenerateFile=true
 
-    if (false == bSuccessLoading) {
+    if (!bSuccessLoading) {
         otErr << szFunc << ": ERROR loading or generating a nymbox. (FAILED "
                            "WRITING RECEIPT!!) \n";
         return false;
@@ -1507,12 +1505,12 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
             else {
                 theActualNym.SetIdentifier(ACTUAL_NYM_ID);
 
-                if (false == theActualNym.LoadPublicKey()) // Note: this step
-                                                           // may be unnecessary
-                                                           // since we are only
-                                                           // updating his
-                                                           // Nymfile, not his
-                                                           // key.
+                if (!theActualNym.LoadPublicKey()) // Note: this step
+                                                   // may be unnecessary
+                                                   // since we are only
+                                                   // updating his
+                                                   // Nymfile, not his
+                                                   // key.
                 {
                     OTString strNymID(ACTUAL_NYM_ID);
                     otErr << szFunc << ": Failure loading public key for Nym: "

@@ -498,7 +498,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // and thus save myself the trouble of verifying the signature EVERY
             // ITERATION of ProcessCron().
             //
-            if (false == pItem->VerifySignature(*m_pServerNym)) {
+            if (!pItem->VerifySignature(*m_pServerNym)) {
                 otErr << "OTCron::ProcessXMLNode: ERROR SECURITY: Server "
                          "signature failed to "
                          "verify on a cron item while loading: "

@@ -886,7 +886,7 @@ int32_t main(int32_t argc, char* argv[])
         // the message is set up.)
         //
 
-        //      if (false == pServerContract->GetConnectInfo(strServerHostname,
+        //      if (!pServerContract->GetConnectInfo(strServerHostname,
         // nServerPort))
         //      {
         //          otErr << "Failed retrieving connection info from server "
@@ -1824,9 +1824,9 @@ int32_t main(int32_t argc, char* argv[])
         if (strLine.compare(0, 4, "load") == 0) {
             otOut << "User has instructed to load wallet.xml...\n";
 
-            if (false == SetupPointersForWalletMyNymAndServerContract(
-                             str_ServerID, str_MyNym, pMyNym, pWallet,
-                             pServerContract)) {
+            if (!SetupPointersForWalletMyNymAndServerContract(
+                    str_ServerID, str_MyNym, pMyNym, pWallet,
+                    pServerContract)) {
                 return 0;
             }
 
@@ -2112,7 +2112,7 @@ int32_t main(int32_t argc, char* argv[])
         //
         // int32_t nServerPort = 0;
         // OTString strServerHostname;
-        // if (false == pServerContract->GetConnectInfo(strServerHostname,
+        // if (!pServerContract->GetConnectInfo(strServerHostname,
         //     nServerPort))
         // {
         //     otErr << "Failed retrieving connection info from"

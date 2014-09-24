@@ -429,7 +429,7 @@ bool OTPaymentPlan::SetInitialPayment(const int64_t& lAmount,
 
 bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 {
-    if (false == ot_super::CompareAgreement(rhs)) return false;
+    if (!ot_super::CompareAgreement(rhs)) return false;
 
     // Compare OTPaymentPlan specific info here.
     const OTPaymentPlan* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
@@ -757,7 +757,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         theSenderNym.SetIdentifier(
             SENDER_USER_ID); // theSenderNym is pSenderNym
 
-        if (false == theSenderNym.LoadPublicKey()) {
+        if (!theSenderNym.LoadPublicKey()) {
             OTString strNymID(SENDER_USER_ID);
             otErr << "Failure loading Sender Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
@@ -797,7 +797,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     {
         theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
 
-        if (false == theRecipientNym.LoadPublicKey()) {
+        if (!theRecipientNym.LoadPublicKey()) {
             OTString strNymID(RECIPIENT_USER_ID);
             otErr << "Failure loading Recipient Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
@@ -1476,7 +1476,7 @@ bool OTPaymentPlan::ProcessCron()
     // a chance to check its stuff.
     // Currently it calls OTCronItem::ProcessCron, which checks IsExpired().
     //
-    if (false == ot_super::ProcessCron()) {
+    if (!ot_super::ProcessCron()) {
         otLog3 << "Cron job has expired.\n";
         return false; // It's expired or flagged for removal--remove it from
                       // Cron.

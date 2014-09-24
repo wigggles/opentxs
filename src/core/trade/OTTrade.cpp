@@ -296,7 +296,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         returnVal = 1;
     }
     else if (!strcmp("offer", xml->getNodeName())) {
-        if (false == OTContract::LoadEncodedTextField(xml, marketOffer_)) {
+        if (!OTContract::LoadEncodedTextField(xml, marketOffer_)) {
             otErr << "Error in OTTrade::ProcessXMLNode: offer field without "
                      "value.\n";
             return (-1); // error condition
@@ -822,7 +822,7 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
     // related closing #s)
     // signed out to him on his last receipt...
     //
-    if (false == nym.CompareID(GetSenderUserID())) {
+    if (!nym.CompareID(GetSenderUserID())) {
         otLog5 << "OTTrade::CanRemoveItem: nym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
@@ -841,13 +841,13 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
 
     const OTString serverID(GetServerID());
 
-    if (false == nym.VerifyIssuedNum(serverID, GetAssetAcctClosingNum())) {
+    if (!nym.VerifyIssuedNum(serverID, GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for asset account.\n";
         return false;
     }
 
-    if (false == nym.VerifyIssuedNum(serverID, GetCurrencyAcctClosingNum())) {
+    if (!nym.VerifyIssuedNum(serverID, GetCurrencyAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for currency account.\n";
         return false;
@@ -1014,10 +1014,10 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
         {    // it ourselves (so we can update its NymboxHash value.)
             theActualNym.SetIdentifier(actualNymId);
 
-            if (false == theActualNym.LoadPublicKey()) // Note: this step may be
-                                                       // unnecessary since we
-                                                       // are only updating his
-                                                       // Nymfile, not his key.
+            if (!theActualNym.LoadPublicKey()) // Note: this step may be
+                                               // unnecessary since we
+                                               // are only updating his
+                                               // Nymfile, not his key.
             {
                 OTString strNymID(actualNymId);
                 otErr << szFunc
@@ -1048,9 +1048,9 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             }
         }
 
-        if (false == DropFinalReceiptToNymbox(
-                         GetSenderUserID(), newTransactionNumber,
-                         strOrigCronItem, note, attachment, actualNym)) {
+        if (!DropFinalReceiptToNymbox(GetSenderUserID(), newTransactionNumber,
+                                      strOrigCronItem, note, attachment,
+                                      actualNym)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
         }
     }
@@ -1157,7 +1157,7 @@ bool OTTrade::ProcessCron()
     // PAST END DATE?
     // First call the parent's version (which this overrides) so it has
     // a chance to check its stuff. Currently it checks IsExpired().
-    if (false == ot_super::ProcessCron())
+    if (!ot_super::ProcessCron())
         return false; // It's expired or flagged for removal--remove it from
                       // Cron.
 

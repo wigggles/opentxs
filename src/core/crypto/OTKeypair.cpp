@@ -348,9 +348,8 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
                                                 // this maybe should select a
                                                 // random number too.
 
-        if (false == OTDB::StorePlainString(strOutput.Get(),
-                                            OTFolders::Cert().Get(),
-                                            strFilename.Get())) // temp.nym
+        if (!OTDB::StorePlainString(strOutput.Get(), OTFolders::Cert().Get(),
+                                    strFilename.Get())) // temp.nym
         {
             otErr << __FUNCTION__
                   << ": Failure storing new cert in temp file: " << strFilename
@@ -358,9 +357,8 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
             return false;
         }
 
-        if (false == LoadBothKeysFromCertFile(OTFolders::Cert().Get(),
-                                              strFilename, pstrReason,
-                                              pImportPassword))
+        if (!LoadBothKeysFromCertFile(OTFolders::Cert().Get(), strFilename,
+                                      pstrReason, pImportPassword))
             return false; // LoadBothKeysFromCertFile already has error logs, no
                           // need to log twice at this point.
 

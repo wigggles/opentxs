@@ -744,7 +744,7 @@ void OTServerConnection::ProcessMessageOut(const char* buf, const int32_t*)
     // AND theClient object is able to process that request into
     // a payload, THEN we create the header and send it all down the pipe.
 
-    if (false == bHandledIt && m_pNym && m_pServerContract) {
+    if (!bHandledIt && m_pNym && m_pServerContract) {
         // check server ID command
         if (buf[0] == 'c') {
             otOut << "(User has instructed to send a checkServerID "
@@ -1482,7 +1482,7 @@ void OTServerConnection::ProcessMessageOut(const char* buf, const int32_t*)
             return;
         }
     }
-    else if (false == bHandledIt) {
+    else if (!bHandledIt) {
         otOut << "\n";
     }
 

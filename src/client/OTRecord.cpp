@@ -533,7 +533,7 @@ bool OTRecord::CanDeleteRecord() const
 {
     if (IsMail()) return true;
 
-    if (false == IsRecord()) return false;
+    if (!IsRecord()) return false;
 
     if (IsPending()) // This may be superfluous given the above 'if'
                      // statement.
@@ -603,11 +603,11 @@ bool OTRecord::CanDiscardOutgoingCash() const // For OUTgoing cash. (No way to
                                               // this lets you erase the record
                                               // of sending it.)
 {
-    if (false == IsOutgoing()) return false;
+    if (!IsOutgoing()) return false;
 
-    if (false == IsPending()) return false;
+    if (!IsPending()) return false;
 
-    if (false == IsCash()) return false;
+    if (!IsCash()) return false;
 
     if (!(GetBoxIndex() >= 0)) return false;
 
@@ -617,12 +617,12 @@ bool OTRecord::CanDiscardOutgoingCash() const // For OUTgoing cash. (No way to
 //
 bool OTRecord::CanCancelOutgoing() const
 {
-    if (false == IsOutgoing()) return false;
+    if (!IsOutgoing()) return false;
 
     if (IsCanceled()) // It's already canceled!
         return false;
 
-    if (false == IsPending()) return false;
+    if (!IsPending()) return false;
 
     if (IsMail()) return false;
 

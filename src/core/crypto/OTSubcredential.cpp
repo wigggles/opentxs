@@ -371,7 +371,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loading nymIDSource...\n";
 
         OTASCIIArmor ascTemp;
-        if (false == OTContract::LoadEncodedTextField(xml, ascTemp)) {
+        if (!OTContract::LoadEncodedTextField(xml, ascTemp)) {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected nymIDSource field.\n";
             return (-1); // error condition
@@ -431,9 +431,9 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
 
-                if (false == OTContract::LoadEncodedTextFieldByName(
-                                 xml, strPublicInfo, pElementExpected,
-                                 &temp_MapAttributes)) // </publicInfo>
+                if (!OTContract::LoadEncodedTextFieldByName(
+                        xml, strPublicInfo, pElementExpected,
+                        &temp_MapAttributes)) // </publicInfo>
                 {
                     otErr << __FUNCTION__ << ": Error: Expected "
                           << pElementExpected << " element with text field.\n";
@@ -495,8 +495,8 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("publicCredential")) {
-        if (false == OTContract::LoadEncodedTextField(
-                         xml, m_strContents)) // <========= m_strContents.
+        if (!OTContract::LoadEncodedTextField(
+                xml, m_strContents)) // <========= m_strContents.
         {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected public credential while "
@@ -530,9 +530,9 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
 
-                if (false == OTContract::LoadEncodedTextFieldByName(
-                                 xml, strPrivateInfo, pElementExpected,
-                                 &temp_MapAttributes)) // </privateInfo>
+                if (!OTContract::LoadEncodedTextFieldByName(
+                        xml, strPrivateInfo, pElementExpected,
+                        &temp_MapAttributes)) // </privateInfo>
                 {
                     otErr << __FUNCTION__ << ": Error: Expected "
                           << pElementExpected << " element with text field.\n";
@@ -645,7 +645,7 @@ bool OTSubcredential::VerifyNymID() const
     OT_ASSERT(bCalculate);
 
     const OTString strNymID(theTempID);
-    if (false == m_strNymID.Compare(strNymID)) {
+    if (!m_strNymID.Compare(strNymID)) {
         otOut << __FUNCTION__
               << ": Failure: When the NymID's source is hashed, the result "
                  "doesn't match the expected NymID.\n"
@@ -669,11 +669,11 @@ bool OTSubcredential::VerifyInternally()
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
-    if (false == VerifyNymID()) return false;
+    if (!VerifyNymID()) return false;
 
     // Verify that m_pOwner->GetMasterkey() and *this have the same NymID.
     //
-    if (false == m_strNymID.Compare(m_pOwner->GetMasterkey().GetNymID())) {
+    if (!m_strNymID.Compare(m_pOwner->GetMasterkey().GetNymID())) {
         otOut << __FUNCTION__
               << ": Failure: The actual master credential's NymID doesn't "
                  "match the NymID on this subcredential.\n"
@@ -693,7 +693,7 @@ bool OTSubcredential::VerifyInternally()
     OT_ASSERT(bCalcMasterCredID);
     const OTString strActualMasterID(theActualMasterID);
 
-    if (false == m_strMasterCredID.Compare(strActualMasterID)) {
+    if (!m_strMasterCredID.Compare(strActualMasterID)) {
         otOut << __FUNCTION__
               << ": Failure: When the actual Master Credential is hashed, the "
                  "result doesn't match the expected Master Credential ID.\n"
@@ -726,7 +726,7 @@ bool OTSubcredential::VerifyInternally()
     // * Any OTSubcredential must also be signed by its master. (Except masters,
     // which already sign themselves.)
     //
-    if (false == VerifySignedByMaster()) {
+    if (!VerifySignedByMaster()) {
         otOut << __FUNCTION__ << ": Failure: This subcredential hasn't been "
                                  "signed by its master credential.\n";
         return false;
@@ -743,13 +743,13 @@ bool OTSubcredential::VerifySignedByMaster()
 
 bool OTSubcredential::VerifyContract()
 {
-    if (false == VerifyContractID()) {
+    if (!VerifyContractID()) {
         otWarn << __FUNCTION__ << ": Failed verifying credential ID against "
                                   "whatever it was expected to be.\n";
         return false;
     }
 
-    if (false == VerifyInternally()) // Logs copiously.
+    if (!VerifyInternally()) // Logs copiously.
         return false;
 
     return true;

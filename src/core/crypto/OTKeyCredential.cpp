@@ -265,12 +265,12 @@ int32_t OTKeyCredential::GetPublicKeysBySignature(
 bool OTKeyCredential::VerifyInternally()
 {
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-    if (false == ot_super::VerifyInternally()) return false;
+    if (!ot_super::VerifyInternally()) return false;
 
     // Any OTKeyCredential (both master and subkeys, but no other credentials)
     // must ** sign itself.**
     //
-    if (false == VerifySignedBySelf()) {
+    if (!VerifySignedBySelf()) {
         otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
                                  "signed by itself (its own signing key.)\n";
         return false;
@@ -437,7 +437,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 
         OTString strKey;
         strKey.Set(itAuth->second.c_str());
-        if (false == m_AuthentKey.SetPublicKey(strKey)) {
+        if (!m_AuthentKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public authentication key based "
                      "on string:\n" << strKey << "\n";
@@ -446,7 +446,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 
         strKey.Release();
         strKey.Set(itEncr->second.c_str());
-        if (false == m_EncryptKey.SetPublicKey(strKey)) {
+        if (!m_EncryptKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public encryption key based on "
                      "string:\n" << strKey << "\n";
@@ -455,7 +455,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 
         strKey.Release();
         strKey.Set(itSign->second.c_str());
-        if (false == m_SigningKey.SetPublicKey(strKey)) {
+        if (!m_SigningKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set public signing key based on "
                      "string:\n" << strKey << "\n";
@@ -642,7 +642,7 @@ bool OTKeyCredential::SetPrivateContents(
                 std::pair<std::string, std::string>("S", strPublic.Get()));
         }
 
-        if (false == ot_super::SetPublicContents(mapPublic)) {
+        if (!ot_super::SetPublicContents(mapPublic)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: While trying to call: "
                      "ot_super::SetPublicContents(mapPublic)\n"; // Should never

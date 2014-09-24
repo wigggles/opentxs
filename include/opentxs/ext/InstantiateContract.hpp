@@ -259,7 +259,7 @@ opentxs::OTContract* InstantiateContract(opentxs::OTString strInput)
                   << ": Object type not yet supported by class factory: "
                   << strFirstLine << "\n";
         // Does the contract successfully load from the string passed in?
-        else if (false == pContract->LoadContractFromString(strContract)) {
+        else if (!pContract->LoadContractFromString(strContract)) {
             otOut << __FUNCTION__
                   << ": Failed loading contract from string (first line): "
                   << strFirstLine << "\n";

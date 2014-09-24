@@ -1143,7 +1143,7 @@ std::string OTAPI_Exec::CreateServerContract(
                                  "first. Failure.)\n";
         return "";
     }
-    else if (false == pNym->CompareID(*pContractKeyNym)) {
+    else if (!pNym->CompareID(*pContractKeyNym)) {
         otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
                                  "text value, but it apparently does NOT "
                                  "contain the public cert or public key of the "
@@ -1173,7 +1173,7 @@ std::string OTAPI_Exec::CreateServerContract(
     OTString strHostname;
     int32_t nPort = 0;
 
-    if (false == pContract->GetConnectInfo(strHostname, nPort)) {
+    if (!pContract->GetConnectInfo(strHostname, nPort)) {
         otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
                                  "this contract. Please fix that first; see "
                                  "the sample data. (Failure.)\n";
@@ -1243,7 +1243,7 @@ std::string OTAPI_Exec::CreateAssetContract(
                                  "first. Failure.)\n";
         return "";
     }
-    else if (false == pNym->CompareID(*pContractKeyNym)) {
+    else if (!pNym->CompareID(*pContractKeyNym)) {
         otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
                                  "text value, but it apparently does NOT "
                                  "contain the public cert or public key of the "
@@ -1609,7 +1609,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& SERVER_ID) const
     }
 
     // Make sure there aren't any dependent accounts..
-    if (false == OTAPI_Exec::Wallet_CanRemoveServer(SERVER_ID)) return false;
+    if (!OTAPI_Exec::Wallet_CanRemoveServer(SERVER_ID)) return false;
 
     // TODO: the above call proves that there are no accounts laying around
     // for this server ID. (No need to worry about "orphaned accounts.")
@@ -1710,7 +1710,7 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(const std::string& ASSET_ID) const
     }
 
     // Make sure there aren't any dependent accounts..
-    if (false == OTAPI_Exec::Wallet_CanRemoveAssetType(ASSET_ID)) return false;
+    if (!OTAPI_Exec::Wallet_CanRemoveAssetType(ASSET_ID)) return false;
 
     OTWallet* pWallet = OTAPI()->GetWallet(__FUNCTION__);
 
@@ -1848,7 +1848,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
     // cleaner for the server side, who otherwise has to expired unused nyms
     // based on some rule
     // presumably to be found in the server contract.
-    if (false == OTAPI_Exec::Wallet_CanRemoveNym(NYM_ID)) return false;
+    if (!OTAPI_Exec::Wallet_CanRemoveNym(NYM_ID)) return false;
 
     OTWallet* pWallet = OTAPI()->GetWallet(__FUNCTION__);
 
@@ -2084,7 +2084,7 @@ int32_t OTAPI_Exec::deleteAssetAccount(const std::string& SERVER_ID,
         OT_FAIL;
     }
 
-    if (false == OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
+    if (!OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
 
     OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
@@ -5368,7 +5368,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     bool bConfirmed = OTAPI()->ConfirmPaymentPlan(theServerID, theSenderUserID,
                                                   theSenderAcctID,
                                                   theRecipientUserID, thePlan);
-    if (false == bConfirmed) {
+    if (!bConfirmed) {
         otOut << __FUNCTION__
               << ": failed in OTAPI_Exec::ConfirmPaymentPlan().\n";
         return "";
@@ -5992,7 +5992,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             pScriptable->AllPartiesHaveSupposedlyConfirmed();
         const bool bVerified =
             pScriptable->VerifyThisAgainstAllPartiesSignedCopies();
-        if (false == bConfirmed) {
+        if (!bConfirmed) {
             //          otOut << __FUNCTION__ << ": Smart contract loaded up,
             // but all
             // parties are NOT confirmed:\n\n" << strContract << "\n\n";
@@ -6059,7 +6059,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
         {
             //...is he confirmed?
             //
-            if (false == pParty->GetMySignedCopy().Exists()) {
+            if (!pParty->GetMySignedCopy().Exists()) {
                 otWarn << __FUNCTION__
                        << ": Smart contract loaded up, and party " << PARTY_NAME
                        << " was found, but didn't find a signed copy of the "
@@ -6081,7 +6081,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
                              "executed?\n";
                 }
                 else {
-                    if (false == pScriptable->Compare(*pPartySignedCopy)) {
+                    if (!pScriptable->Compare(*pPartySignedCopy)) {
                         const std::string current_party_name(
                             pParty->GetPartyName());
                         otErr << __FUNCTION__ << ": Suspicious: Party's ("
@@ -7716,7 +7716,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
         return false;
     }
-    else if (false == theMessage.LoadContractFromString(strMsg)) {
+    else if (!theMessage.LoadContractFromString(strMsg)) {
         otErr << __FUNCTION__
               << ": Failed trying to load message from string.\n";
         return false;
@@ -7881,7 +7881,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return "";
-    if (false == pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
+    if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
         OTString strNymID(NYM_ID);
         otOut << __FUNCTION__
               << ": Failure retrieving encryption pubkey from Nym: " << strNymID
@@ -7907,7 +7907,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return "";
-    if (false == pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
+    if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         OTString strNymID(NYM_ID);
         otOut << __FUNCTION__
               << ": Failure retrieving signing pubkey from Nym: " << strNymID
@@ -8907,7 +8907,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& SERVER_ID,
     OTString strLedger(THE_LEDGER);
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -8956,7 +8956,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     OTString strOriginalLedger(ORIGINAL_LEDGER);
     OTLedger theOriginalLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theOriginalLedger.LoadLedgerFromString(strOriginalLedger)) {
+    if (!theOriginalLedger.LoadLedgerFromString(strOriginalLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -8964,7 +8964,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
         return "";
     }
 
-    if (false == theOriginalLedger.VerifyAccount(*pNym)) {
+    if (!theOriginalLedger.VerifyAccount(*pNym)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error verifying original ledger. Acct ID: " << strAcctID
@@ -9164,7 +9164,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -9357,7 +9357,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         //
         OTString strPaymentContents;
 
-        if (false == pPayment->GetPaymentContents(strPaymentContents)) {
+        if (!pPayment->GetPaymentContents(strPaymentContents)) {
             otOut << __FUNCTION__ << ": Failed retrieving payment instrument "
                                      "from OTPayment object.\n";
             return "";
@@ -9448,7 +9448,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -9525,14 +9525,14 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
     }
-    else if (false == theLedger.VerifyAccount(*pNym)) {
+    else if (!theLedger.VerifyAccount(*pNym)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error verifying ledger in "
@@ -9552,7 +9552,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         OT_FAIL;
     }
 
-    if (false == pTransaction->LoadContractFromString(strTransaction)) {
+    if (!pTransaction->LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -9561,7 +9561,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         pTransaction = nullptr;
         return "";
     }
-    else if (false == pTransaction->VerifyAccount(*pNym)) {
+    else if (!pTransaction->VerifyAccount(*pNym)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error verifying transaction. Acct ID: " << strAcctID
@@ -9653,14 +9653,14 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // cleanup.)
     OTLedger theLedger(theUserID, theAcctID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
     }
-    else if (false == theLedger.VerifyAccount(*pNym)) {
+    else if (!theLedger.VerifyAccount(*pNym)) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
@@ -9673,7 +9673,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // generate on his behalf.)
     OTTransaction theTransaction(theUserID, theAcctID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -9744,7 +9744,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         bool bGotTransNum =
             pNym->GetNextTransactionNum(*pNym, strServerID, lTransactionNumber);
 
-        if (false == bGotTransNum) {
+        if (!bGotTransNum) {
             OTString strNymID(theUserID);
             otOut << __FUNCTION__
                   << ": User is all out of transaction numbers:\n" << strNymID
@@ -10038,14 +10038,14 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
     // cleanup.)
     OTLedger theLedger(theUserID, theAcctID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
               << "\n";
         return "";
     }
-    else if (false == theLedger.VerifyAccount(*pNym)) {
+    else if (!theLedger.VerifyAccount(*pNym)) {
         OTString strAcctID(theAcctID);
         otErr << __FUNCTION__
               << ": Error verifying ledger. Acct ID: " << strAcctID << "\n";
@@ -10595,7 +10595,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
             } // else if pServerTransaction NOT "".
         }     // If acceptCronReceipt/acceptFinalReceipt/acceptBasketReceipt
     }
-    if (false == bSuccessFindingAllTransactions) // failure.
+    if (!bSuccessFindingAllTransactions) // failure.
     {
         otOut << __FUNCTION__ << ": transactions in processInbox message do "
                                  "not match actual inbox.\n";
@@ -10748,7 +10748,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -10840,7 +10840,7 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -10935,7 +10935,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
     // cleanup.)
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11047,7 +11047,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11142,7 +11142,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__ << ": Error loading transaction from string in "
                                  "OTAPI_Exec::Transaction_GetRecipientAcctID. "
@@ -11244,7 +11244,7 @@ std::string OTAPI_Exec::Pending_GetNote(
     if (nullptr == pNym) return "";
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11361,7 +11361,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11451,7 +11451,7 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11500,7 +11500,7 @@ std::string OTAPI_Exec::Transaction_GetType(
     if (nullptr == pNym) return "";
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11554,7 +11554,7 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strUserID(theUserID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. User ID: "
@@ -11612,7 +11612,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11667,7 +11667,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
     // cleanup.)
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11757,7 +11757,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
     // cleanup.)
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11862,7 +11862,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
     // cleanup.)
     OTTransaction theTransaction(theUserID, theAccountID, theServerID);
 
-    if (false == theTransaction.LoadContractFromString(strTransaction)) {
+    if (!theTransaction.LoadContractFromString(strTransaction)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading transaction from string. Acct ID: "
@@ -11986,7 +11986,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadLedgerFromString(strLedger)) {
+    if (!theLedger.LoadLedgerFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -12211,7 +12211,7 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
     OTString strPurse(THE_PURSE);
     Purse thePurse(theServerID, theAssetTypeID);
 
-    if (false == thePurse.LoadContractFromString(strPurse)) {
+    if (!thePurse.LoadContractFromString(strPurse)) {
         OTString strAssetTypeID(theAssetTypeID);
         otErr << __FUNCTION__
               << ": Error loading purse from string. Asset Type ID: "
@@ -13229,7 +13229,7 @@ std::string OTAPI_Exec::Basket_GetMemberType(
 
     bool bGotType = OTAPI()->GetBasketMemberType(theAssetTypeID, nIndex,
                                                  theOutputMemberType);
-    if (false == bGotType) return "";
+    if (!bGotType) return "";
 
     OTString strOutput(theOutputMemberType);
 
@@ -13437,14 +13437,14 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
         return -2;
     }
 
-    if (false == theMessage.m_bSuccess) {
+    if (!theMessage.m_bSuccess) {
         otErr << __FUNCTION__ << ": Message success == false, thus unable to "
                                  "report Usage Credits balance. (Returning "
                                  "-2.)\n";
         return -2;
     }
 
-    if (false == theMessage.m_strCommand.Compare("@usageCredits")) {
+    if (!theMessage.m_strCommand.Compare("@usageCredits")) {
         otErr << __FUNCTION__ << ": THE_MESSAGE is supposed to be of command "
                                  "type \"@usageCredits\", but instead it's a: "
               << theMessage.m_strCommand << "\n (Failure. Returning -2.)";
@@ -14005,7 +14005,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
                                                      // basket (per).
     }
 
-    if (false == bAdded) return "";
+    if (!bAdded) return "";
     OTString strOutput(theBasket); // Extract the updated basket to string form.
 
     std::string pBuf = strOutput.Get();
@@ -14164,7 +14164,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
             theServerID, theUserID, theBasket, theAssetTypeID, theAssetAcctID);
     }
 
-    if (false == bAdded) return "";
+    if (!bAdded) return "";
 
     OTString strOutput(theBasket); // Extract the updated basket to string form.
 
@@ -15373,13 +15373,13 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     if (nullptr == pNym) return false;
     OTMessage theMessage;
 
-    if (false == theMessage.LoadContractFromString(strMessage)) {
+    if (!theMessage.LoadContractFromString(strMessage)) {
         otErr << __FUNCTION__ << ": Failed trying to load @createUserAccount() "
                                  "message from string (it's a server reply.) "
                                  "Contents:\n\n" << strMessage << "\n\n";
         return false;
     }
-    if (false == strNymID.Compare(theMessage.m_strNymID)) {
+    if (!strNymID.Compare(theMessage.m_strNymID)) {
         otErr << __FUNCTION__
               << ": Failed. Though success loading message from string, it had "
                  "the wrong NymID. (Expected " << strNymID << ", but found "
@@ -15387,7 +15387,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
               << strMessage << "\n\n";
         return false;
     }
-    if (false == theMessage.m_strCommand.Compare("@createUserAccount")) {
+    if (!theMessage.m_strCommand.Compare("@createUserAccount")) {
         otErr << __FUNCTION__ << ": Failed. Though success loading message "
                                  "from string, it had the wrong command type. "
                                  "(Expected @createUserAccount, but found "
@@ -15395,7 +15395,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
               << strMessage << "\n\n";
         return false;
     }
-    if (false == theMessage.m_ascPayload.Exists()) {
+    if (!theMessage.m_ascPayload.Exists()) {
         otErr << __FUNCTION__
               << ": Failed. Though success loading @createUserAccount() "
                  "message, the payload was empty. (Expected theMessageNym to "
@@ -15405,7 +15405,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     }
     OTString strMessageNym;
 
-    if (false == theMessage.m_ascPayload.GetString(strMessageNym)) {
+    if (!theMessage.m_ascPayload.GetString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed decoding message payload in server "
                                  "reply: @createUserAccount(). (Expected "
                                  "theMessageNym to be there, so I could "
@@ -15415,7 +15415,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     }
     OTPseudonym theMessageNym; // <====================
 
-    if (false == theMessageNym.LoadFromString(strMessageNym)) {
+    if (!theMessageNym.LoadFromString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
                                  "string. String contents:\n\n" << strMessageNym
               << "\n\n";
@@ -15656,7 +15656,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     // contain
     // in that case, now do I?)
     //
-    if (false == theMessage.m_strCommand.Compare("@issueAssetType")) {
+    if (!theMessage.m_strCommand.Compare("@issueAssetType")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15704,7 +15704,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
     // contain a new account ID anyway, right? (Don't want to pass back whatever
     // it DOES contain in that case, now do I?)
     //
-    if (false == theMessage.m_strCommand.Compare("@createAccount")) {
+    if (!theMessage.m_strCommand.Compare("@createAccount")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15926,7 +15926,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadContractFromString(strLedger)) {
+    if (!theLedger.LoadContractFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID
@@ -16022,7 +16022,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
     OTLedger theLedger(theUserID, theAccountID, theServerID);
 
-    if (false == theLedger.LoadContractFromString(strLedger)) {
+    if (!theLedger.LoadContractFromString(strLedger)) {
         OTString strAcctID(theAccountID);
         otErr << __FUNCTION__
               << ": Error loading ledger from string. Acct ID: " << strAcctID

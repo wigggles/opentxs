@@ -279,7 +279,7 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("memo", xml->getNodeName())) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_strMemo)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_strMemo)) {
             otErr << "Error in OTCheque::ProcessXMLNode: memo field without "
                      "value.\n";
             return (-1); // error condition

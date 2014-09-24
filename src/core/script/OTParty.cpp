@@ -348,7 +348,7 @@ bool OTParty::AddAccount(const OTString& strAgentName, const OTString& strName,
         strName, strAgentName, strAcctID, strAssetTypeID, lClosingTransNo);
     OT_ASSERT(nullptr != pPartyAccount);
 
-    if (false == AddAccount(*pPartyAccount)) {
+    if (!AddAccount(*pPartyAccount)) {
         delete pPartyAccount;
         return false;
     }
@@ -363,7 +363,7 @@ bool OTParty::AddAccount(const OTString& strAgentName, const char* szAcctName,
         szAcctName, strAgentName, theAccount, lClosingTransNo);
     OT_ASSERT(nullptr != pPartyAccount);
 
-    if (false == AddAccount(*pPartyAccount)) {
+    if (!AddAccount(*pPartyAccount)) {
         delete pPartyAccount;
         return false;
     }
@@ -629,8 +629,8 @@ OTAgent* OTParty::GetAgent(const std::string& str_agent_name) const
 ///
 OTAgent* OTParty::GetAgentByIndex(int32_t nIndex) const
 {
-    if (false == ((nIndex >= 0) &&
-                  (nIndex < static_cast<int64_t>(m_mapAgents.size())))) {
+    if (!((nIndex >= 0) &&
+          (nIndex < static_cast<int64_t>(m_mapAgents.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
@@ -676,8 +676,8 @@ OTPartyAccount* OTParty::GetAccount(const std::string& str_acct_name) const
 ///
 OTPartyAccount* OTParty::GetAccountByIndex(int32_t nIndex)
 {
-    if (false == ((nIndex >= 0) &&
-                  (nIndex < static_cast<int64_t>(m_mapPartyAccounts.size())))) {
+    if (!((nIndex >= 0) &&
+          (nIndex < static_cast<int64_t>(m_mapPartyAccounts.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
@@ -909,7 +909,7 @@ OTPseudonym* OTParty::LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
 
             OTPseudonym* pNym = nullptr;
 
-            if (false == pAgent->IsAnIndividual())
+            if (!pAgent->IsAnIndividual())
                 otErr << "OTParty::LoadAuthorizingAgentNym: This agent is not "
                          "an individual--there's no Nym to load.\n";
             else if (nullptr == (pNym = pAgent->LoadNym(theSignerNym)))
@@ -1399,9 +1399,9 @@ bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                            // yet -- AND it wants to burn it, so it can't be
                            // used again!  This bool allows you to tell the
                            // function whether or not to do that.
-        if (false == bVerified) // This mechanism is here because we still want
-                                // to let them ALL verify, before returning
-                                // false.
+        if (!bVerified)    // This mechanism is here because we still want
+                           // to let them ALL verify, before returning
+                           // false.
         {
             bAllSuccessful = false; // That is, we don't want to return at the
                                     // first failure, but let them all go

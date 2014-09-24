@@ -197,7 +197,7 @@ bool OTCredential::VerifyInternally() const
     theActualMasterCredID.CalculateDigest(m_Masterkey.GetPubCredential());
     const OTString strActualMasterCredID(theActualMasterCredID);
 
-    if (false == m_strNymID.Compare(m_Masterkey.GetNymID())) {
+    if (!m_strNymID.Compare(m_Masterkey.GetNymID())) {
         otOut << __FUNCTION__
               << ": NymID did not match its "
                  "counterpart in m_Masterkey (failed to verify): " << GetNymID()
@@ -205,7 +205,7 @@ bool OTCredential::VerifyInternally() const
         return false;
     }
 
-    if (false == m_strMasterCredID.Compare(strActualMasterCredID)) {
+    if (!m_strMasterCredID.Compare(strActualMasterCredID)) {
         otOut << __FUNCTION__
               << ": Master Credential ID did not match its "
                  "counterpart in m_Masterkey:\nExpected Master Credential ID: "
@@ -216,7 +216,7 @@ bool OTCredential::VerifyInternally() const
         return false;
     }
 
-    if (false == const_cast<OTMasterkey&>(m_Masterkey).VerifyContract()) {
+    if (!const_cast<OTMasterkey&>(m_Masterkey).VerifyContract()) {
         otOut << __FUNCTION__
               << ": Master Credential failed to verify: " << GetMasterCredID()
               << "\nNymID: " << GetNymID() << "\n";
@@ -228,7 +228,7 @@ bool OTCredential::VerifyInternally() const
         OTSubcredential* pSub = it.second;
         OT_ASSERT(nullptr != pSub);
 
-        if (false == pSub->VerifyContract()) {
+        if (!pSub->VerifyContract()) {
             otOut << __FUNCTION__
                   << ": Subcredential failed to verify: " << str_sub_id
                   << "\nNymID: " << GetNymID() << "\n";
@@ -244,7 +244,7 @@ bool OTCredential::VerifyAgainstSource() const
     // * Any OTMasterkey must (at some point, and/or regularly) verify against
     // its own source.
     //
-    if (false == m_Masterkey.VerifyAgainstSource()) {
+    if (!m_Masterkey.VerifyAgainstSource()) {
         otWarn
             << __FUNCTION__
             << ": Failed verifying master credential against its own source.\n";
@@ -878,7 +878,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
 
     SetImportPassword(pImportPassword); // might be nullptr.
 
-    if (false == pSub->LoadContractFromString(strInput)) {
+    if (!pSub->LoadContractFromString(strInput)) {
         otErr << __FUNCTION__
               << ": Failed trying to load keyCredential from string.\n";
         return false;
@@ -902,7 +902,7 @@ bool OTCredential::LoadSubkey(const OTString& strSubID)
         OTFolders::Credential().Get(); // Try private credential first. If that
                                        // fails, then public.
 
-    if (false == OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
+    if (!OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
         str_Folder = OTFolders::Pubcred().Get();
 
         if (false ==
@@ -916,7 +916,7 @@ bool OTCredential::LoadSubkey(const OTString& strSubID)
     OTString strFileContents(
         OTDB::QueryPlainString(str_Folder, GetNymID().Get(), strSubID.Get()));
 
-    if (false == strFileContents.Exists()) {
+    if (!strFileContents.Exists()) {
         otErr << __FUNCTION__
               << ": Failed trying to load keyCredential from local storage.\n";
         return false;
@@ -966,7 +966,7 @@ bool OTCredential::LoadSubcredentialFromString(
 
     SetImportPassword(pImportPassword); // might be nullptr.
 
-    if (false == pSub->LoadContractFromString(strInput)) {
+    if (!pSub->LoadContractFromString(strInput)) {
         otErr << __FUNCTION__
               << ": Failed trying to load subCredential from string.\n";
         return false;
@@ -989,7 +989,7 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
         OTFolders::Credential().Get(); // Try private credential first. If that
                                        // fails, then public.
 
-    if (false == OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
+    if (!OTDB::Exists(str_Folder, GetNymID().Get(), strSubID.Get())) {
         str_Folder = OTFolders::Pubcred().Get();
 
         if (false ==
@@ -1124,14 +1124,14 @@ bool OTCredential::AddNewSubcredential(
                                               // (onto this new
                                               // subcredential...)
 
-    if (false == pSub->SetPublicContents(mapPublic)) {
+    if (!pSub->SetPublicContents(mapPublic)) {
         otErr << "In " << __FILE__ << ", line " << __LINE__
               << ": Failed while calling pSub->SetPublicContents.\n";
         delete pSub;
         pSub = nullptr;
         return false;
     }
-    else if (false == pSub->SetPrivateContents(mapPrivate)) {
+    else if (!pSub->SetPrivateContents(mapPrivate)) {
         otErr << "In " << __FILE__ << ", line " << __LINE__
               << ": Failed while trying to pSub->SetPrivateContents.\n";
         delete pSub;
@@ -1210,7 +1210,7 @@ OTCredential* OTCredential::CreateMaster(
                                   // you also pass private
                                   // info.
     {
-        if (false == pCredential->SetPublicContents(*pmapPublic)) {
+        if (!pCredential->SetPublicContents(*pmapPublic)) {
             otErr << "In " << __FILE__ << ", line " << __LINE__
                   << ": Failed trying to call pCredential->SetPublicContents\n";
             delete pCredential;

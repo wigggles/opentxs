@@ -953,9 +953,9 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
     // This line (commented out) shows how the line below it would have looked
     // if I had ended
     // up using polymorphic templates:
-    //    if (false == makeTStorablepStorable->pack(*pBuffer))
+    //    if (!makeTStorablepStorable->pack(*pBuffer))
 
-    if (false == pStorable->onPack(*pBuffer, inObj)) {
+    if (!pStorable->onPack(*pBuffer, inObj)) {
         delete pBuffer;
         return nullptr;
     }
@@ -980,7 +980,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
     // If we're unable to unpack the contents of inBuf
     // into outObj, return false.
     //
-    if (false == pStorable->onUnpack(inBuf, outObj)) {
+    if (!pStorable->onUnpack(inBuf, outObj)) {
         return false;
     }
 
@@ -999,7 +999,7 @@ PackedBuffer* OTPacker::Pack(std::string& inObj)
 
     // Must delete pBuffer, or return it, below this point.
 
-    if (false == pBuffer->PackString(inObj)) {
+    if (!pBuffer->PackString(inObj)) {
         delete pBuffer;
         return nullptr;
     }
@@ -1014,7 +1014,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
     // If we're unable to unpack the contents of inBuf
     // into outObj, return false.
     //
-    if (false == inBuf.UnpackString(outObj)) return false;
+    if (!inBuf.UnpackString(outObj)) return false;
 
     return true;
 }
@@ -1364,7 +1364,7 @@ template <class theBaseType, class theInternalType,
     return (&__pb_obj);
 }
 
-//    if (false == makeTStorablepStorable->pack(*pBuffer))
+//    if (!makeTStorablepStorable->pack(*pBuffer))
 //::google::protobuf::MessageLite& IStorablePB::getPBMessage()
 //{
 //    return makeTStorablePBgetPBMessage();
@@ -1383,8 +1383,7 @@ bool IStorablePB::onPack(PackedBuffer& theBuffer,
 
     if (nullptr == pMessage) return false;
 
-    if (false == pMessage->SerializeToString(&(pBuffer->m_buffer)))
-        return false;
+    if (!pMessage->SerializeToString(&(pBuffer->m_buffer))) return false;
 
     return true;
 }
@@ -1402,7 +1401,7 @@ bool IStorablePB::onUnpack(PackedBuffer& theBuffer,
 
     if (nullptr == pMessage) return false;
 
-    if (false == pMessage->ParseFromString(pBuffer->m_buffer)) return false;
+    if (!pMessage->ParseFromString(pBuffer->m_buffer)) return false;
 
     return true;
 }
@@ -1431,7 +1430,7 @@ bool BufferPB::PackString(std::string& theString)
 
     pBuffer->set_value(theString);
 
-    if (false == pBuffer->SerializeToString(&m_buffer)) return false;
+    if (!pBuffer->SerializeToString(&m_buffer)) return false;
 
     return true;
 }
@@ -1449,7 +1448,7 @@ bool BufferPB::UnpackString(std::string& theString)
     if (nullptr == pBuffer) // Buffer is wrong type!!
         return false;
 
-    if (false == pBuffer->ParseFromString(m_buffer)) return false;
+    if (!pBuffer->ParseFromString(m_buffer)) return false;
 
     theString = pBuffer->value();
 
@@ -2321,7 +2320,7 @@ bool Storage::StoreObject(Storable& theContents, std::string strFolder,
     bool bSuccess =
         onStorePackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
 
-    if (false == bSuccess) {
+    if (!bSuccess) {
         otErr << "Storing failed in Storage::StoreObject (calling "
                  "onStorePackedBuffer) \n";
         return false;
@@ -2492,7 +2491,7 @@ bool Storage::EraseValueByKey(std::string strFolder, std::string oneStr,
 {
     bool bSuccess = onEraseValueByKey(strFolder, oneStr, twoStr, threeStr);
 
-    if (false == bSuccess)
+    if (!bSuccess)
         otErr << "Storage::EraseValueByKey: Failed trying to erase a value "
                  "(while calling onEraseValueByKey) \n";
 

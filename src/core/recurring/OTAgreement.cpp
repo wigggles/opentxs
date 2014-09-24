@@ -175,7 +175,7 @@ bool OTAgreement::SendNoticeToAllParties(
         const OTIdentifier NYM_ID(GetRecipientUserID());
         theRecipientNym.SetIdentifier(NYM_ID);
 
-        if (false == theRecipientNym.LoadPublicKey()) {
+        if (!theRecipientNym.LoadPublicKey()) {
             const OTString strNymID(NYM_ID);
             otErr << __FUNCTION__
                   << ": Failure loading Recipient's public key: " << strNymID
@@ -216,7 +216,7 @@ bool OTAgreement::SendNoticeToAllParties(
         const OTIdentifier NYM_ID(GetSenderUserID());
         theSenderNym.SetIdentifier(NYM_ID);
 
-        if (false == theSenderNym.LoadPublicKey()) {
+        if (!theSenderNym.LoadPublicKey()) {
             const OTString strNymID(NYM_ID);
             otErr << __FUNCTION__
                   << ": Failure loading Sender's public key: " << strNymID
@@ -246,23 +246,22 @@ bool OTAgreement::SendNoticeToAllParties(
     // (pRecipient and pSender are both good pointers by this point.)
 
     // Sender
-    if (false == OTAgreement::DropServerNoticeToNymbox(
-                     bSuccessMsg, // "success" notice? or "failure" notice?
-                     theServerNym, theServerID, GetSenderUserID(),
-                     lNewTransactionNumber,
-                     GetTransactionNum(), // in reference to
-                     strReference, pstrNote, pstrAttachment, pSender))
+    if (!OTAgreement::DropServerNoticeToNymbox(
+            bSuccessMsg, // "success" notice? or "failure" notice?
+            theServerNym, theServerID, GetSenderUserID(), lNewTransactionNumber,
+            GetTransactionNum(), // in reference to
+            strReference, pstrNote, pstrAttachment, pSender))
         bSuccess = false;
     // Notice I don't break here -- I still allow it to try to notice ALL
     // parties, even if one fails.
 
     // Recipient
-    if (false == OTAgreement::DropServerNoticeToNymbox(
-                     bSuccessMsg, // "success" notice? or "failure" notice?
-                     theServerNym, theServerID, GetRecipientUserID(),
-                     lNewTransactionNumber,
-                     GetRecipientOpeningNum(), // in reference to
-                     strReference, pstrNote, pstrAttachment, pRecipient))
+    if (!OTAgreement::DropServerNoticeToNymbox(
+            bSuccessMsg, // "success" notice? or "failure" notice?
+            theServerNym, theServerID, GetRecipientUserID(),
+            lNewTransactionNumber,
+            GetRecipientOpeningNum(), // in reference to
+            strReference, pstrNote, pstrAttachment, pRecipient))
         bSuccess = false;
 
     return bSuccess;
@@ -289,7 +288,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         bSuccessLoading = theLedger.GenerateLedger(
             USER_ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
 
-    if (false == bSuccessLoading) {
+    if (!bSuccessLoading) {
         otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. "
                                  "(FAILED WRITING RECEIPT!!) \n";
         return false;
@@ -402,12 +401,12 @@ bool OTAgreement::DropServerNoticeToNymbox(
             else {
                 theActualNym.SetIdentifier(ACTUAL_NYM_ID);
 
-                if (false == theActualNym.LoadPublicKey()) // Note: this step
-                                                           // may be unnecessary
-                                                           // since we are only
-                                                           // updating his
-                                                           // Nymfile, not his
-                                                           // key.
+                if (!theActualNym.LoadPublicKey()) // Note: this step
+                                                   // may be unnecessary
+                                                   // since we are only
+                                                   // updating his
+                                                   // Nymfile, not his
+                                                   // key.
                 {
                     OTString strNymID(ACTUAL_NYM_ID);
                     otErr << __FUNCTION__
@@ -585,7 +584,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         theRecipientNym.SetIdentifier(NYM_ID);
 
-        if (false == theRecipientNym.LoadPublicKey()) {
+        if (!theRecipientNym.LoadPublicKey()) {
             const OTString strNymID(NYM_ID);
             otErr << szFunc << ": Failure loading Recipient's public key:\n"
                   << strNymID << "\n";
@@ -673,10 +672,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         {    // it ourselves (so we can update its NymboxHash value.)
             theActualNym.SetIdentifier(ACTUAL_NYM_ID);
 
-            if (false == theActualNym.LoadPublicKey()) // Note: this step may be
-                                                       // unnecessary since we
-                                                       // are only updating his
-                                                       // Nymfile, not his key.
+            if (!theActualNym.LoadPublicKey()) // Note: this step may be
+                                               // unnecessary since we
+                                               // are only updating his
+                                               // Nymfile, not his key.
             {
                 OTString strNymID(ACTUAL_NYM_ID);
                 otErr << szFunc
@@ -707,10 +706,9 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (false == DropFinalReceiptToNymbox(GetSenderUserID(),
-                                              lNewTransactionNumber,
-                                              strOrigCronItem, nullptr,
-                                              pstrAttachment, pActualNym)) {
+        if (!DropFinalReceiptToNymbox(GetSenderUserID(), lNewTransactionNumber,
+                                      strOrigCronItem, nullptr, pstrAttachment,
+                                      pActualNym)) {
             otErr << szFunc
                   << ": Failure dropping sender final receipt into nymbox.\n";
         }
@@ -810,13 +808,13 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     //
     if ((nullptr != pRecipient) && (lRecipientClosingNumber > 0) &&
         pRecipient->VerifyIssuedNum(strServerID, lRecipientClosingNumber)) {
-        if (false == DropFinalReceiptToInbox(
-                         GetRecipientUserID(), GetRecipientAcctID(),
-                         lNewTransactionNumber,
-                         lRecipientClosingNumber, // The closing transaction
-                                                  // number to put on the
-                                                  // receipt.
-                         strOrigCronItem, nullptr, pstrAttachment))
+        if (!DropFinalReceiptToInbox(
+                GetRecipientUserID(), GetRecipientAcctID(),
+                lNewTransactionNumber,
+                lRecipientClosingNumber, // The closing transaction
+                                         // number to put on the
+                                         // receipt.
+                strOrigCronItem, nullptr, pstrAttachment))
             otErr << szFunc
                   << ": Failure dropping receipt into recipient's inbox.\n";
 
@@ -1067,7 +1065,7 @@ bool OTAgreement::CanRemoveItemFromCron(OTPseudonym& theNym)
     // check such things
     // HERE in this function (see below.)
     //
-    if (false == theNym.CompareID(GetRecipientUserID())) {
+    if (!theNym.CompareID(GetRecipientUserID())) {
         otOut << "OTAgreement::" << __FUNCTION__
               << " Weird: Nym tried to remove agreement (payment plan), even "
                  "though he apparently wasn't the sender OR recipient.\n";

@@ -887,9 +887,9 @@ bool OTMarket::SaveMarket()
         const char* szSubFolder = "recent"; // todo stop hardcoding.
 
         // If this fails, oh well. It's informational, anyway.
-        if (false == OTDB::StoreObject(*m_pTradeList, szFoldername, // markets
-                                       szSubFolder, // markets/recent
-                                       szFilename)) // markets/recent/Market_ID
+        if (!OTDB::StoreObject(*m_pTradeList, szFoldername, // markets
+                               szSubFolder,                 // markets/recent
+                               szFilename)) // markets/recent/Market_ID
             otErr << "Error saving recent trades for Market:\n" << szFoldername
                   << OTLog::PathSeparator() << szSubFolder
                   << OTLog::PathSeparator() << szFilename << "\n";
@@ -1132,7 +1132,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     {
         theNym.SetIdentifier(FIRST_NYM_ID); // theNym is pFirstNym
 
-        if (false == theNym.LoadPublicKey()) {
+        if (!theNym.LoadPublicKey()) {
             OTString strNymID(FIRST_NYM_ID);
             otErr << "Failure loading First Nym public key in OTMarket::"
                   << __FUNCTION__ << ": " << strNymID << "\n";
@@ -1173,7 +1173,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     {
         theOtherNym.SetIdentifier(OTHER_NYM_ID);
 
-        if (false == theOtherNym.LoadPublicKey()) {
+        if (!theOtherNym.LoadPublicKey()) {
             OTString strNymID(OTHER_NYM_ID);
             otErr << "Failure loading Other Nym public key in OTMarket::"
                   << __FUNCTION__ << ": " << strNymID << "\n";

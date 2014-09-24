@@ -448,7 +448,7 @@ bool OTASCIIArmor::GetAndUnpackString(
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pOTDBString);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Failed unpacking string in "
                      "OTASCIIArmor::GetAndUnpackString.\n";
 
@@ -527,7 +527,7 @@ bool OTASCIIArmor::GetAndUnpackStringMap(
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pStringMap);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Failed unpacking data in "
                      "OTASCIIArmor::GetAndUnpackStringMap.\n";
             delete[] pData;
@@ -663,7 +663,7 @@ bool OTASCIIArmor::GetAndUnpackData(OTData& theData,
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pBlob);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr
                 << "Failed unpacking data in OTASCIIArmor::GetAndUnpackData.\n";
             delete[] pData;
@@ -857,7 +857,7 @@ bool OTASCIIArmor::LoadFromFile(const OTString& foldername,
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
 
-    if (false == OTDB::Exists(foldername.Get(), filename.Get())) {
+    if (!OTDB::Exists(foldername.Get(), filename.Get())) {
         otErr << "OTASCIIArmor::LoadFromFile: File does not exist: "
               << foldername << "" << OTLog::PathSeparator() << "" << filename
               << "\n";

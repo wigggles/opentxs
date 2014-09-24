@@ -269,7 +269,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 
         return false;
     }
-    else if (false == theNymbox.VerifyAccount(theNym)) {
+    else if (!theNymbox.VerifyAccount(theNym)) {
         // If there aren't any notices in the nymbox, no point wasting a # to
         // process an empty box.
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
@@ -561,7 +561,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             for (auto& it : theNumbers) {
                 const int64_t lValue = it;
 
-                if (false == pNym->VerifyTentativeNum(strServerID, lValue))
+                if (!pNym->VerifyTentativeNum(strServerID, lValue))
                     otWarn << __FUNCTION__
                            << ": OTTransaction::successNotice: This wasn't on "
                               "my tentative list (" << lValue
@@ -673,7 +673,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     OTString strOriginalReply;
                     pItem->GetAttachment(strOriginalReply);
 
-                    if (false == strOriginalReply.Exists()) {
+                    if (!strOriginalReply.Exists()) {
                         otErr << __FUNCTION__ << ": Error loading original "
                                                  "server reply message from "
                                                  "replyNotice. (It appears to "
@@ -1933,7 +1933,7 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
     }
 
     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-    if (false == bSuccess)
+    if (!bSuccess)
         pNym->AddTransactionNum(*pNym, strServerID, lStoredTransactionNumber,
                                 true); // bSave=true
 
@@ -4055,7 +4055,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                     // verify, then we're safe to save the credentials to
                     // storage.
                     //
-                    else if (false == theTargetNym.VerifyPseudonym()) {
+                    else if (!theTargetNym.VerifyPseudonym()) {
                         otErr << __FUNCTION__ << ": @checkUser: Loaded nym "
                               << strNymID2 << " from credentials, but then it "
                                               "failed verifying.\n";
@@ -8440,7 +8440,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Process Server Reply: Failed unpacking data for "
                      "@getMarketList.\n";
             return true;
@@ -8519,7 +8519,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Failed unpacking data for process server reply, "
                      "@getMarketOffers.\n";
             return true;
@@ -8601,7 +8601,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pTradeList);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Failed unpacking data for process server reply, "
                      "@getMarketRecentTrades.\n";
             return true;
@@ -8678,7 +8678,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
 
-        if (false == bUnpacked) {
+        if (!bUnpacked) {
             otErr << "Failed unpacking data for process server reply, "
                      "@getNym_MarketOffers.\n";
             return true;
@@ -10578,10 +10578,10 @@ int32_t OTClient::ProcessUserCommand(
             bLoadedNymbox ? theNymbox.VerifyAccount(theNym) : false;
         bool bIsEmpty = theNymbox.GetTransactionCount() < 1;
 
-        if (false == bLoadedNymbox)
+        if (!bLoadedNymbox)
             otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
                      "Failed loading Nymbox: " << strNymID << " \n";
-        else if (false == bVerifiedNymbox)
+        else if (!bVerifiedNymbox)
             otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
                      "Failed verifying Nymbox: " << strNymID << " \n";
         else if (!bIsEmpty)
@@ -11399,7 +11399,7 @@ int32_t OTClient::ProcessUserCommand(
             bool bLoadedSourcePurse = theSourcePurse.LoadPurse(
                 strServerID.Get(), strNymID.Get(), strAssetTypeID.Get());
 
-            if (false == bLoadedSourcePurse) {
+            if (!bLoadedSourcePurse) {
                 otOut << "Deposit purse: Failure trying to load purse from "
                          "local storage:\nServer " << strServerID << "  Nym "
                       << strNymID << "  Asset Type " << strAssetTypeID << "\n";
@@ -12818,7 +12818,7 @@ int32_t OTClient::ProcessUserCommand(
                     lReturnValue = lRequestNumber;
                 }
 
-                if (false == bSendCommand) {
+                if (!bSendCommand) {
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
                     theNym.AddTransactionNum(theNym, strServerID,

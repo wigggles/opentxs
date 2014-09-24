@@ -1360,7 +1360,7 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
     // If it's not base62-encoded, then it doesn't validate.
     //
     const std::string strINPUT = strInput.Get();
-    if (false == IsBase62(strINPUT)) return;
+    if (!IsBase62(strINPUT)) return;
 
     // Todo there are try/catches in here, so need to handle those at some
     // point.
@@ -2820,7 +2820,7 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
         //        bool bCalculatedID = pPublicKey->CalculateID(theNymID); //
         // Only works for public keys.
         //
-        //        if (false == bCalculatedID)
+        //        if (!bCalculatedID)
         //        {
         //            otErr << "%s: Error trying to calculate ID of
         // recipient.\n", szFunc);
@@ -3346,7 +3346,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
         // counting
         // the bytes.
         //
-        if (false == bFoundKeyAlready) {
+        if (!bFoundKeyAlready) {
             // We have NOT found the right key yet, so let's see if this is the
             // one we're looking for.
 
@@ -3387,8 +3387,8 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
     } // for
 
-    if (false == bFoundKeyAlready) // Todo: AND if list of POTENTIAL matches is
-                                   // also empty...
+    if (!bFoundKeyAlready) // Todo: AND if list of POTENTIAL matches is
+                           // also empty...
     {
         otOut << __FUNCTION__
               << ": Sorry: Unable to find a session key for the Nym attempting "

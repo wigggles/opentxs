@@ -601,8 +601,8 @@ OTVariable* OTBylaw::GetVariable(std::string str_var_name) // not a
 ///
 OTVariable* OTBylaw::GetVariableByIndex(int32_t nIndex)
 {
-    if (false == ((nIndex >= 0) &&
-                  (nIndex < static_cast<int64_t>(m_mapVariables.size())))) {
+    if (!((nIndex >= 0) &&
+          (nIndex < static_cast<int64_t>(m_mapVariables.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
@@ -641,8 +641,8 @@ OTClause* OTBylaw::GetClause(std::string str_clause_name) const
 ///
 OTClause* OTBylaw::GetClauseByIndex(int32_t nIndex)
 {
-    if (false == ((nIndex >= 0) &&
-                  (nIndex < static_cast<int64_t>(m_mapClauses.size())))) {
+    if (!((nIndex >= 0) &&
+          (nIndex < static_cast<int64_t>(m_mapClauses.size())))) {
         otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
     }
     else {
@@ -796,7 +796,7 @@ bool OTBylaw::AddVariable(std::string str_Name, bool bValue,
     OTVariable* pVar = new OTVariable(str_Name, bValue, theAccess);
     OT_ASSERT(nullptr != pVar);
 
-    if (false == AddVariable(*pVar)) {
+    if (!AddVariable(*pVar)) {
         delete pVar;
         return false;
     }
@@ -810,7 +810,7 @@ bool OTBylaw::AddVariable(std::string str_Name, std::string str_Value,
     OTVariable* pVar = new OTVariable(str_Name, str_Value, theAccess);
     OT_ASSERT(nullptr != pVar);
 
-    if (false == AddVariable(*pVar)) {
+    if (!AddVariable(*pVar)) {
         delete pVar;
         return false;
     }
@@ -824,7 +824,7 @@ bool OTBylaw::AddVariable(std::string str_Name, int32_t nValue,
     OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);
     OT_ASSERT(nullptr != pVar);
 
-    if (false == AddVariable(*pVar)) {
+    if (!AddVariable(*pVar)) {
         delete pVar;
         return false;
     }
@@ -843,7 +843,7 @@ bool OTBylaw::AddClause(const char* szName, const char* szCode)
     OTClause* pClause = new OTClause(szName, szCode);
     OT_ASSERT(nullptr != pClause);
 
-    if (false == AddClause(*pClause)) {
+    if (!AddClause(*pClause)) {
         delete pClause;
         return false;
     }

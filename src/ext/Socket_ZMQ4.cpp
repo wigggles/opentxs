@@ -477,14 +477,14 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
                 OTLog::SleepMilliseconds(1);
 
                 if (!bSuccessSending) {
-                    if (false == HandleSendingError()) bKeepTrying = false;
+                    if (!HandleSendingError()) bKeepTrying = false;
                 }
                 else
                     break;            // (Success -- we're done in this loop.)
             }
             else if ((-1) == nPoll) // error.
             {
-                if (false == HandlePollingError()) bKeepTrying = false;
+                if (!HandlePollingError()) bKeepTrying = false;
             }
 
             --nSendTries;
@@ -598,7 +598,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
                 OTLog::SleepMilliseconds(1);
 
                 if (!bSuccessReceiving) {
-                    if (false == HandleReceivingError()) expect_reply = false;
+                    if (!HandleReceivingError()) expect_reply = false;
                 }
                 else
                     break; // (Success -- we're done in this loop.)
@@ -610,7 +610,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
             }
             else if ((-1) == nPoll) // error.
             {
-                if (false == HandlePollingError()) expect_reply = false;
+                if (!HandlePollingError()) expect_reply = false;
             }
 
             --nReceiveTries;

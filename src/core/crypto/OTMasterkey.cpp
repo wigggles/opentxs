@@ -253,9 +253,9 @@ bool OTMasterkey::VerifyInternally()
     // OTMasterkey. But this means if we need anything else that
     // OTKeyCredential::VerifyInternally
     // was doing, we will have to duplicate that here as well...
-    //  if (false == ot_super::VerifyInternally())
+    //  if (!ot_super::VerifyInternally())
     //      return false;
-    if (false == VerifyNymID()) return false;
+    if (!VerifyNymID()) return false;
 
     OT_ASSERT(nullptr != m_pOwner);
     // Verify that *this == m_pOwner->GetMasterkey() (the master credential.)
@@ -278,7 +278,7 @@ bool OTMasterkey::VerifyInternally()
     // Any OTKeyCredential (both master and subkeys, but no other credentials)
     // must ** sign itself.**
     //
-    if (false == VerifySignedBySelf()) {
+    if (!VerifySignedBySelf()) {
         otOut << __FUNCTION__ << ": Failed verifying master credential: it's "
                                  "not signed by itself (its own signing "
                                  "key.)\n";
