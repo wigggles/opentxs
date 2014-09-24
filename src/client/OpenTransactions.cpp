@@ -296,7 +296,7 @@ bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
     const char* szFilename =
         strFilename.Get(); // receipts/SERVER_ID/ACCT_ID.success
 
-    if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt.\n";
         return false;
@@ -703,7 +703,7 @@ bool OT_API::Init()
 
     static bool bConstruct = false;
 
-    if (false == bConstruct) {
+    if (!bConstruct) {
         bConstruct = true;
         m_pWallet = new OTWallet;
         m_pClient = new OTClient;
@@ -1553,7 +1553,7 @@ OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
     // list of
     // "master key nyms". Until that happens, the wallet has no idea.
     //
-    if (false == pWallet->ConvertNymToCachedKey(*pNym))
+    if (!pWallet->ConvertNymToCachedKey(*pNym))
         otErr << __FUNCTION__
               << ": Error: Failed in pWallet->ConvertNymToCachedKey \n";
     pWallet->SaveWallet(); // Since it just changed.
@@ -1909,7 +1909,7 @@ bool OT_API::Wallet_ChangePassphrase() const
                                  "OTCachedKey::It()->GetMasterPassword. "
                                  "(Setting it back to the old "
                                  "one.)\n";
-        if (false == OTCachedKey::It()->SerializeFrom(ascBackup))
+        if (!OTCachedKey::It()->SerializeFrom(ascBackup))
             otErr << __FUNCTION__
                   << ": Error: Failed while trying to restore master "
                      "key, in call: "
@@ -1986,10 +1986,9 @@ bool OT_API::Wallet_ChangePassphrase() const
                             strOutput,
                             "CREDENTIAL LIST") && // bEscaped=false by default.
                         strOutput.Exists()) {
-                        if (false == OTDB::StorePlainString(
-                                         strOutput.Get(),
-                                         OTFolders::Credential().Get(),
-                                         strFilename.Get())) {
+                        if (!OTDB::StorePlainString(
+                                strOutput.Get(), OTFolders::Credential().Get(),
+                                strFilename.Get())) {
                             otErr << __FUNCTION__
                                   << ": After converting credentials to "
                                      "new master key, failure trying to "
@@ -2010,10 +2009,10 @@ bool OT_API::Wallet_ChangePassphrase() const
                                 strOutput,
                                 "CREDENTIAL") && // bEscaped=false by default.
                             strOutput.Exists()) {
-                            if (false == OTDB::StorePlainString(
-                                             strOutput.Get(),
-                                             OTFolders::Credential().Get(),
-                                             strNymID.Get(), str_cred_id)) {
+                            if (!OTDB::StorePlainString(
+                                    strOutput.Get(),
+                                    OTFolders::Credential().Get(),
+                                    strNymID.Get(), str_cred_id)) {
                                 otErr << __FUNCTION__
                                       << ": After converting "
                                          "credentials to new master key, "
@@ -2571,7 +2570,7 @@ bool OT_API::Wallet_ExportNym(const OTIdentifier& NYM_ID,
     OTString strCertfile;
     bool bSavedCert = false;
     if (!bHasCredentials) {
-        if (false == OTCachedKey::It()->isPaused()) {
+        if (!OTCachedKey::It()->isPaused()) {
             OTCachedKey::It()->Pause();
         }
         bSavedCert = pNym->Savex509CertAndPrivateKeyToString(strCertfile,
@@ -3559,8 +3558,8 @@ bool OT_API::VerifySignature(const OTString& strContract,
     // Else, we will clean it up ourselves...
     else
         theAngel.reset(pContract);
-    //    if (false == pContract->VerifyContractID())
-    ////    if (false == pContract->VerifyContract())    // This calls
+    //    if (!pContract->VerifyContractID())
+    ////    if (!pContract->VerifyContract())    // This calls
     /// VerifyContractID(), then GetContractPublicNym(), then VerifySignature()
     ///(with that Nym)
     //    {                                            // Therefore it's only
@@ -3577,7 +3576,7 @@ bool OT_API::VerifySignature(const OTString& strContract,
     //        return false;
     //    }
 
-    if (false == pContract->VerifySignature(*pNym)) {
+    if (!pContract->VerifySignature(*pNym)) {
         OTString strSignerNymID(theSignerNymID);
         otOut << "OT_API::VerifySignature: For Nym (" << strSignerNymID
               << "), unable to "
@@ -3669,7 +3668,7 @@ bool OT_API::Create_SmartContract(
                   "OT_API::Create_SmartContract: ASSERT "
                   "while trying to instantiate blank smart "
                   "contract.\n");
-    if (false == pContract->SetDateRange(VALID_FROM, VALID_TO)) {
+    if (!pContract->SetDateRange(VALID_FROM, VALID_TO)) {
         otOut << "OT_API::Create_SmartContract: Failed trying to set date "
                  "range.\n";
         return false;
@@ -3721,7 +3720,7 @@ bool OT_API::SmartContract_AddParty(
                          true); // bCreateAgent=false by default.
     OT_ASSERT(nullptr != pParty);
 
-    if (false == pContract->AddParty(*pParty)) // takes ownership.
+    if (!pContract->AddParty(*pParty)) // takes ownership.
     {
         otOut << __FUNCTION__
               << ": Failed while trying to add party: " << PARTY_NAME << " \n";
@@ -3928,7 +3927,7 @@ bool OT_API::SmartContract_ConfirmAccount(const OTString& THE_CONTRACT,
     // being rejected later because
     // he accidentally set it up with the wrong Nym.
     //
-    if (false == pAccount->VerifyOwner(*pNym)) {
+    if (!pAccount->VerifyOwner(*pNym)) {
         const OTString strNymID(SIGNER_NYM_ID);
         otOut << __FUNCTION__ << ": Failed, since this nym (" << strNymID
               << ") isn't the owner of this account (" << str_name << ").\n";
@@ -4032,7 +4031,7 @@ bool OT_API::SmartContract_ConfirmParty(
                                             // match, in order to replace /
                                             // activate this party.
     OT_ASSERT(nullptr != pNewParty);
-    if (false == pParty->CopyAcctsToConfirmingParty(*pNewParty)) {
+    if (!pParty->CopyAcctsToConfirmingParty(*pNewParty)) {
         otOut << __FUNCTION__
               << ": Failed while trying to copy accounts, while "
                  "confirming party: " << PARTY_NAME << " \n";
@@ -4040,12 +4039,12 @@ bool OT_API::SmartContract_ConfirmParty(
         pNewParty = nullptr;
         return false;
     }
-    if (false == pContract->ConfirmParty(*pNewParty)) // takes ownership.
-                                                      // (Deletes the
-                                                      // theoretical version of
-                                                      // the party, replaced by
-                                                      // our actual version
-                                                      // pNewParty.)
+    if (!pContract->ConfirmParty(*pNewParty)) // takes ownership.
+                                              // (Deletes the
+                                              // theoretical version of
+                                              // the party, replaced by
+                                              // our actual version
+                                              // pNewParty.)
     {
         otOut << __FUNCTION__
               << ": Failed while trying to confirm party: " << PARTY_NAME
@@ -4127,7 +4126,7 @@ bool OT_API::SmartContract_AddBylaw(
     pBylaw = new OTBylaw(str_bylaw_name.c_str(), str_language.c_str());
     OT_ASSERT(nullptr != pBylaw);
 
-    if (false == pContract->AddBylaw(*pBylaw)) // takes ownership.
+    if (!pContract->AddBylaw(*pBylaw)) // takes ownership.
     {
         otOut << "OT_API::SmartContract_AddBylaw: Failed while trying "
                  "to add bylaw: " << BYLAW_NAME << " \n";
@@ -4184,7 +4183,7 @@ bool OT_API::SmartContract_AddHook(
     }
     const std::string str_name(HOOK_NAME.Get()), str_clause(CLAUSE_NAME.Get());
 
-    if (false == pBylaw->AddHook(str_name, str_clause)) {
+    if (!pBylaw->AddHook(str_name, str_clause)) {
         otOut << "OT_API::SmartContract_AddHook: Failed trying to add "
                  "hook (" << str_name << ", clause " << str_clause
               << ") to bylaw: " << str_bylaw_name << " \n";
@@ -4244,7 +4243,7 @@ bool OT_API::SmartContract_AddCallback(
               << ") already exists on bylaw: " << str_bylaw_name << " \n";
         return false;
     }
-    if (false == pBylaw->AddCallback(str_name.c_str(), str_clause.c_str())) {
+    if (!pBylaw->AddCallback(str_name.c_str(), str_clause.c_str())) {
         otOut << "OT_API::SmartContract_AddCallback: Failed trying to "
                  "add callback (" << str_name << ", clause " << str_clause
               << ") to bylaw: " << str_bylaw_name << " \n";
@@ -4304,7 +4303,7 @@ bool OT_API::SmartContract_AddClause(
                  "bylaw: " << str_bylaw_name << " \n";
         return false;
     }
-    if (false == pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
+    if (!pBylaw->AddClause(str_name.c_str(), str_code.c_str())) {
         otOut << "OT_API::SmartContract_AddClause: Failed trying to "
                  "add clause (" << str_name << ") to bylaw: " << str_bylaw_name
               << " \n";
@@ -4412,7 +4411,7 @@ bool OT_API::SmartContract_AddVariable(
         break;
     }
 
-    if (false == bAdded) {
+    if (!bAdded) {
         otOut << "OT_API::SmartContract_AddVariable: Failed trying to "
                  "add variable (" << str_name
               << ") to bylaw: " << str_bylaw_name << " \n";
@@ -4920,7 +4919,7 @@ OTCheque* OT_API::WriteCheque(
     bool bIssueCheque = pCheque->IssueCheque(
         CHEQUE_AMOUNT, lTransactionNumber, VALID_FROM, VALID_TO, SENDER_ACCT_ID,
         SENDER_USER_ID, CHEQUE_MEMO, pRECIPIENT_USER_ID);
-    if (false == bIssueCheque) {
+    if (!bIssueCheque) {
         otErr << __FUNCTION__ << ": Failure calling OTCheque::IssueCheque().\n";
         delete pCheque;
         pCheque = nullptr;
@@ -6285,7 +6284,7 @@ OTServerContract* OT_API::LoadServerContract(
 
     OTString strFoldername = OTFolders::Contract().Get();
     OTString strFilename = strServerID.Get();
-    if (false == OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
+    if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadServerContract: File does not exist: "
               << strFoldername.Get() << OTLog::PathSeparator() << strFilename
               << "\n";
@@ -6321,7 +6320,7 @@ OTAssetContract* OT_API::LoadAssetContract(const OTIdentifier& ASSET_ID) const
 
     OTString strFoldername = OTFolders::Contract().Get();
     OTString strFilename = strAssetTypeID.Get();
-    if (false == OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
+    if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadAssetContract: File does not exist: "
               << strFoldername.Get() << OTLog::PathSeparator() << strFilename
               << "\n";
@@ -6801,7 +6800,7 @@ bool OT_API::ClearExpired(const OTIdentifier& SERVER_ID,
     if (nullptr != pTransaction) {
         const int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
-        if (false == pExpiredBox->DeleteBoxReceipt(lTransactionNum)) {
+        if (!pExpiredBox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
                   << ": Failed trying to delete the box receipt for a "
                      "transaction being removed from a expired box: "
@@ -7120,7 +7119,7 @@ bool OT_API::RecordPayment(
         //
         const int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
-        if (false == pPaymentInbox->DeleteBoxReceipt(lTransactionNum)) {
+        if (!pPaymentInbox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
                   << ": Failed trying to delete the box receipt for a "
                      "transaction being removed from the payment inbox: "
@@ -7193,7 +7192,7 @@ bool OT_API::RecordPayment(
                 // opening number) then we will
                 // get the different number here.
                 //
-                if (false == thePayment.GetTransactionNum(lPaymentTransNum)) {
+                if (!thePayment.GetTransactionNum(lPaymentTransNum)) {
                     otErr << __FUNCTION__
                           << ": Should never happen! "
                              "Failed to get transaction num from payment "
@@ -8242,7 +8241,7 @@ bool OT_API::ClearRecord(
     if (nullptr != pTransaction) {
         const int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
-        if (false == pRecordBox->DeleteBoxReceipt(lTransactionNum)) {
+        if (!pRecordBox->DeleteBoxReceipt(lTransactionNum)) {
             otErr << __FUNCTION__
                   << ": Failed trying to delete the box receipt for a "
                      "transaction being removed from a record box: "
@@ -8281,7 +8280,7 @@ bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, const OTLedger& theNymbox,
                  "but you passed in a " << theNymbox.GetTypeString() << ".\n";
         return false;
     }
-    if (false == theNym.CompareID(theNymbox.GetUserID())) {
+    if (!theNym.CompareID(theNymbox.GetUserID())) {
         const OTString id1(theNym.GetConstID()), id2(theNymbox.GetUserID());
         otErr << "OT_API::ResyncNymWithServer: Error: NymID of Nym (" << id1
               << ") "
@@ -8289,7 +8288,7 @@ bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, const OTLedger& theNymbox,
                  "(" << id2 << ").\n";
         return false;
     }
-    //    if (false == theNym.CompareID(theMessageNym))
+    //    if (!theNym.CompareID(theMessageNym))
     //    {
     //        const OTString id1(theNym.GetConstID()),
     // id2(theMessageNym.GetConstID());
@@ -9416,8 +9415,8 @@ int32_t OT_API::notarizeWithdrawal(const OTIdentifier& SERVER_ID,
     OTString strContractID, strServerID(SERVER_ID);
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
-    if (false == OTDB::Exists(OTFolders::Mint().Get(), strServerID.Get(),
-                              strContractID.Get())) {
+    if (!OTDB::Exists(OTFolders::Mint().Get(), strServerID.Get(),
+                      strContractID.Get())) {
         otErr << "OT_API::notarizeWithdrawal: File does not exist: "
               << OTFolders::Mint() << OTLog::PathSeparator() << strServerID
               << OTLog::PathSeparator() << strContractID << "\n";
@@ -11408,7 +11407,7 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
         // order to save changes.)
         theContract.ReleaseSignatures();
 
-        if (false == pAgent->SignContract(theContract)) // RE-SIGN HERE.
+        if (!pAgent->SignContract(theContract)) // RE-SIGN HERE.
         {
             otErr << __FUNCTION__
                   << ": Failed re-signing contract, after calling "
@@ -12694,10 +12693,10 @@ int32_t OT_API::processNymbox(const OTIdentifier& SERVER_ID,
         bool bVerifiedNymbox =
             bLoadedNymbox ? theNymbox.VerifyAccount(theNym) : false;
 
-        if (false == bLoadedNymbox)
+        if (!bLoadedNymbox)
             otOut << "OT_API::processNymbox: Failed loading Nymbox: "
                   << strNymID << " \n";
-        else if (false == bVerifiedNymbox)
+        else if (!bVerifiedNymbox)
             otOut << "OT_API::processNymbox: Failed verifying Nymbox: "
                   << strNymID << " \n";
         else {

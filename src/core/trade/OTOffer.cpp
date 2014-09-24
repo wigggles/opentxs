@@ -272,7 +272,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                       // the 0 here causes the
                                                       // below error to fire.
 
-        if (false == isPowerOfTen(lScale)) {
+        if (!isPowerOfTen(lScale)) {
             otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be "
                      "1, or a power of 10. Instead I got: " << lScale << ".\n";
             return (-1);

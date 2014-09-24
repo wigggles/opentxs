@@ -303,7 +303,7 @@ bool OTPartyAccount::VerifyOwnership() const
         return false;
     } // todo maybe turn the above into OT_ASSERT()s.
 
-    if (false == m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
+    if (!m_pForParty->VerifyOwnershipOfAccount(*m_pAccount)) {
         otOut << "OTPartyAccount::VerifyOwnership: Party %s doesn't verify as "
                  "the ACTUAL owner of account: " << m_strName << " \n";
         return false;
@@ -332,7 +332,7 @@ bool OTPartyAccount::VerifyAgency()
         return false;
     }
 
-    if (false == pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
+    if (!pAgent->VerifyAgencyOfAccount(*m_pAccount)) {
         otOut << "OTPartyAccount::VerifyAgency: Agent " << GetAgentName()
               << " doesn't verify as ACTUALLY having rights over account "
               << GetName() << " with ID: " << GetAcctID() << " \n";

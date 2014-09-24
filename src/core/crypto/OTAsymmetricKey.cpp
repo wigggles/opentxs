@@ -638,7 +638,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         }
     }
 
-    if (false == bGotPassword) {
+    if (!bGotPassword) {
         otOut << __FUNCTION__
               << ": Failure: (false == bGotPassword.) (Returning 0.)\n";
         return 0;
@@ -1190,7 +1190,7 @@ bool OTAsymmetricKey::LoadPrivateKey(
     OT_ASSERT(strFoldername.Exists());
     OT_ASSERT(strFilename.Exists());
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otOut << "OTAsymmetricKey::LoadPrivateKey: Unable to find private key "
                  "file: " << szFoldername << OTLog::PathSeparator()
               << szFilename << "\n";
@@ -1270,7 +1270,7 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
     OT_ASSERT(strFoldername.Exists());
     OT_ASSERT(strFilename.Exists());
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;

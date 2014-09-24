@@ -409,7 +409,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
             else if (nullptr == pOutbox) {
                 OTLog::Error("Error loading or verifying outbox.\n");
             }
-            else if (false == bSuccessLoadingInbox ||
+            else if (!bSuccessLoadingInbox ||
                        false == bSuccessLoadingOutbox) {
                 OTLog::Error(
                     "ERROR generating ledger in Notary::NotarizeTransfer.\n");
@@ -730,8 +730,8 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
     // and that pItem points to the good one. Therefore next, let's verify
     // permissions:
     // This permission has to do with ALL withdrawals (cash or voucher)
-    else if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                     ServerSettings::__transact_withdrawal)) {
+    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+                             ServerSettings::__transact_withdrawal)) {
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
                           "this transaction (All withdrawals are disallowed in "
                           "server.cfg)\n",
@@ -1540,8 +1540,8 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
     //
     // This permission has to do with ALL withdrawals from an account
     // (cash / voucher / dividends)
-    else if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                     ServerSettings::__transact_withdrawal)) {
+    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+                             ServerSettings::__transact_withdrawal)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction (All withdrawals are "
                "disallowed in server.cfg, even for paying dividends with.)\n",
@@ -1666,7 +1666,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                               "shares-based. Asset type ID: %s\n",
                               szFunc, strSharesType.Get());
             }
-            else if (false == pSharesContract->VerifySignature(theNym)) {
+            else if (!pSharesContract->VerifySignature(theNym)) {
                 const OTString strSharesType(SHARES_ASSET_ID);
                 OTLog::vError("%s: ERROR unable to verify signature for Nym "
                               "(%s) on shares contract "
@@ -1697,7 +1697,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                     "%s: ERROR failed trying to verify issuer account: %s\n",
                     szFunc, strIssuerAcctID.Get());
             }
-            else if (false == pSharesIssuerAccount->VerifyOwner(theNym)) {
+            else if (!pSharesIssuerAccount->VerifyOwner(theNym)) {
                 const OTString strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 OTLog::vOutput(
                     0, "%s: ERROR verifying signer's ownership of shares "
@@ -2327,8 +2327,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
     // permissions:
 
     // This permission has to do with ALL deposits (cash or cheque)
-    else if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                     ServerSettings::__transact_deposit)) {
+    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+                             ServerSettings::__transact_deposit)) {
         OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
                           "transaction (All deposits are disallowed in "
                           "server.cfg)\n",
@@ -2460,7 +2460,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
             }
             // See if the cheque is already expired or otherwise not within it's
             // valid date range.
-            else if (false == theCheque.VerifyCurrentDate()) {
+            else if (!theCheque.VerifyCurrentDate()) {
                 const OTString strSenderUserID(theCheque.GetSenderUserID());
                 const OTString strRecipientUserID(
                     theCheque.GetRecipientUserID());
@@ -2534,7 +2534,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                 }
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
-                else if (false == theCheque.VerifySignature(theNym)) {
+                else if (!theCheque.VerifySignature(theNym)) {
                     OTLog::vOutput(0,
                                    "%s: Failure verifying cheque signature for "
                                    "sender ID: %s\nRecipient User ID: %s\n "
@@ -2983,7 +2983,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
 
                 // See if the Nym ID (User ID) that we have matches the message
                 // digest of his public key.
-                else if (false == pSenderNym->VerifyPseudonym()) {
+                else if (!pSenderNym->VerifyPseudonym()) {
                     OTLog::vOutput(
                         0, "Notary::%s: Failure verifying %s: "
                            "Bad Sender User ID (fails hash check of pubkey)"
@@ -4353,7 +4353,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                                                              // LoadPublicKey is
                                                              // removed.
 
-                        if (false == bLoadedNym) {
+                        if (!bLoadedNym) {
                             OTString strNymID(RECIPIENT_USER_ID);
                             OTLog::vError("%s: Failure loading Recipient Nym "
                                           "public key: %s\n",
@@ -5572,8 +5572,8 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                ServerSettings::__transact_cancel_cron_item)) {
+    if (!NYM_IS_ALLOWED(strUserID.Get(),
+                        ServerSettings::__transact_cancel_cron_item)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction "
                "(CancelCronItem messages are disallowed in server.cfg)\n",
@@ -5621,8 +5621,8 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
             pItem->GetTransactionNum()); // This response item is IN RESPONSE to
                                          // pItem and its Owner Transaction.
 
-        if (false == (pBalanceItem->VerifyTransactionStatement(
-                         theNym, tranIn))) // isRealTransaction=true
+        if (!(pBalanceItem->VerifyTransactionStatement(
+                theNym, tranIn))) // isRealTransaction=true
         {
             OTLog::vOutput(0, "ERROR verifying transaction statement in "
                               "NotarizeCancelCronItem.\n");
@@ -5764,8 +5764,8 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                                             // now.
     bool bSuccess = false;
 
-    if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                ServerSettings::__transact_exchange_basket)) {
+    if (!NYM_IS_ALLOWED(strUserID.Get(),
+                        ServerSettings::__transact_exchange_basket)) {
         OTLog::vOutput(0, "Notary::NotarizeExchangeBasket: User %s cannot do "
                           "this transaction (All basket exchanges are "
                           "disallowed in server.cfg)\n",
@@ -6654,8 +6654,8 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                ServerSettings::__transact_market_offer)) {
+    if (!NYM_IS_ALLOWED(strUserID.Get(),
+                        ServerSettings::__transact_market_offer)) {
         OTLog::vOutput(
             0,
             "Notary::NotarizeMarketOffer: User %s cannot do this transaction "
@@ -6716,8 +6716,8 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
             pItem->GetTransactionNum()); // This response item is IN RESPONSE to
                                          // pItem and its Owner Transaction.
 
-        if (false == (pBalanceItem->VerifyTransactionStatement(
-                         theNym, tranIn))) // bIsRealTransaction = true;
+        if (!(pBalanceItem->VerifyTransactionStatement(
+                theNym, tranIn))) // bIsRealTransaction = true;
         {
             OTLog::vOutput(0, "ERROR verifying transaction statement in "
                               "NotarizeMarketOffer.\n");
@@ -7432,7 +7432,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
     bool bNymboxHashRegenerated = false;
     OTIdentifier NYMBOX_HASH; // In case the Nymbox hash is updated, we will
                               // have the updated version here.
-    if (false == bSuccessLoadingNymbox) {
+    if (!bSuccessLoadingNymbox) {
         OTLog::vOutput(
             0, "Notary::%s: Failed loading or verifying Nymbox for user:\n%s\n",
             __FUNCTION__, strNymID.Get());
@@ -7508,7 +7508,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                     // numbers that differ from the
                     // actual ones in the Nymbox.)
                     //
-                    if (false == listNumbersNymbox.Verify(listNumbersUserItem))
+                    if (!listNumbersNymbox.Verify(listNumbersUserItem))
                         OTLog::Error(
                             "Notary::NotarizeProcessNymbox: Failed "
                             "verifying: The numbers on the actual blank "
@@ -7574,7 +7574,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
         // transaction numbers on the NYM as a result of this.)
         //
 
-        if (false == bSuccessFindingAllTransactions) {
+        if (!bSuccessFindingAllTransactions) {
             OTLog::vOutput(0, "%s: transactions in processNymbox message do "
                               "not match actual nymbox.\n",
                            __FUNCTION__);
@@ -8123,8 +8123,8 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (false == NYM_IS_ALLOWED(strUserID.Get(),
-                                ServerSettings::__transact_process_inbox)) {
+    if (!NYM_IS_ALLOWED(strUserID.Get(),
+                        ServerSettings::__transact_process_inbox)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction (All \"process inbox\" "
                "transactions are disallowed in server.cfg)\n",
@@ -8596,7 +8596,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                 break;
         } // for loop (list of "process inbox" items)
 
-        if (false == bSuccessFindingAllTransactions) {
+        if (!bSuccessFindingAllTransactions) {
             OTLog::vOutput(0, "%s: transactions in processInbox message do not "
                               "match actual inbox.\n",
                            __FUNCTION__);
@@ -8656,7 +8656,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
             // (They are removed for real at the bottom of this function, IF
             // everything is successful between now and then.)
 
-            if (false == bVerifiedBalanceStatement) {
+            if (!bVerifiedBalanceStatement) {
                 OTLog::vOutput(0, "Notary::NotarizeProcessInbox: ERROR "
                                   "verifying balance statement for transaction "
                                   "%ld.\n",
@@ -8789,7 +8789,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
 
                         OTTransaction* pServerTransaction = nullptr;
 
-                        if (false == theInbox.LoadInbox()) {
+                        if (!theInbox.LoadInbox()) {
                             OTLog::Error(
                                 "Error loading inbox during processInbox\n");
                         }
@@ -9190,7 +9190,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                                                      "outbox in "
                                                      "Notary::"
                                                      "NotarizeProcessInbox.\n");
-                                    if (false == bSuccessLoadingInbox ||
+                                    if (!bSuccessLoadingInbox ||
                                         false == bSuccessLoadingOutbox) {
                                         OTLog::Error("ERROR loading 'from' "
                                                      "inbox or outbox in "

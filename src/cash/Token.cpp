@@ -940,7 +940,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("tokenID")) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_ascSpendable)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_ascSpendable)) {
             otErr << "Error in Token::ProcessXMLNode: token ID without "
                      "value.\n";
             return (-1); // error condition
@@ -949,7 +949,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("tokenSignature")) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_Signature)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_Signature)) {
             otErr << "Error in Token::ProcessXMLNode: token Signature "
                      "without value.\n";
             return (-1); // error condition

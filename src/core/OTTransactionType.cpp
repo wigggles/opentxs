@@ -403,12 +403,12 @@ bool OTTransactionType::VerifyAccount(const OTPseudonym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
-    if (false == VerifyContractID()) {
+    if (!VerifyContractID()) {
         otErr << "Error verifying account ID in "
                  "OTTransactionType::VerifyAccount\n";
         return false;
     }
-    else if (false == VerifySignature(theNym)) {
+    else if (!VerifySignature(theNym)) {
         otErr << "Error verifying signature in "
                  "OTTransactionType::VerifyAccount.\n";
         return false;

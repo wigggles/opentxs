@@ -243,7 +243,7 @@ bool MainFile::SaveMainFile()
     //
     OTString strMainFile;
 
-    if (false == SaveMainFileToString(strMainFile)) {
+    if (!SaveMainFileToString(strMainFile)) {
         OTLog::vError(
             "%s: Error saving to string. (Giving up on save attempt.)\n",
             __FUNCTION__);
@@ -606,8 +606,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     // (It wasn't that way in version 1, before we had master
                     // keys.)
                     //
-                    if (false == m_strVersion.Compare("1.0")) // This is, for
-                                                              // example, 2.0
+                    if (!m_strVersion.Compare("1.0")) // This is, for
+                                                      // example, 2.0
                     {
                         if (!LoadServerUserAndContract()) {
                             OTLog::vError("%s: Failed calling "

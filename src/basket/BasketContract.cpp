@@ -221,7 +221,7 @@ int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("basketInfo")) {
-        if (false == OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
+        if (!OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
             otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
                      "field without value.\n";
             return (-1); // error condition

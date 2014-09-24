@@ -723,7 +723,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         OT_ASSERT(nullptr != m_pSymmetricKey);
     }
 
-    if (false == m_pSymmetricKey->IsGenerated()) // doesn't already exist.
+    if (!m_pSymmetricKey->IsGenerated()) // doesn't already exist.
     {
         otWarn << szFunc << ": Master key didn't exist. Need to collect a "
                             "passphrase from the user, "

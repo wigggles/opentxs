@@ -408,7 +408,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
     const char* szFilename =
         strFilename.Get(); // "mints/SERVER_ID/ASSET_TYPE_ID<szAppend>"
 
-    if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
               << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename << "\n";
@@ -509,12 +509,12 @@ bool Mint::VerifyMint(const OTPseudonym& theOperator)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
-    if (false == VerifyContractID()) {
+    if (!VerifyContractID()) {
         otErr << "Error comparing Mint ID to Asset Contract ID in "
                  "Mint::VerifyMint\n";
         return false;
     }
-    else if (false == VerifySignature(theOperator)) {
+    else if (!VerifySignature(theOperator)) {
         otErr << "Error verifying signature on mint in Mint::VerifyMint.\n";
         return false;
     }
@@ -778,7 +778,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("mintPublicKey")) {
         OTASCIIArmor armorPublicKey;
 
-        if (false == OTContract::LoadEncodedTextField(xml, armorPublicKey) ||
+        if (!OTContract::LoadEncodedTextField(xml, armorPublicKey) ||
             !armorPublicKey.Exists()) {
             otErr << "Error in Mint::ProcessXMLNode: mintPublicKey field "
                      "without value.\n";

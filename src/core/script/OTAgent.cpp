@@ -232,7 +232,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
 
         pNym->SetIdentifier(theAgentNymID);
 
-        if (false == pNym->LoadPublicKey()) {
+        if (!pNym->LoadPublicKey()) {
             OTString strNymID(theAgentNymID);
             otErr << "OTAgent::LoadNym: Failure loading "
                      "agent's public key:\n" << strNymID << "\n";
@@ -301,7 +301,7 @@ OTAgent::OTAgent(std::string str_agent_name, OTPseudonym& theNym,
 
     //
 
-    if (false == bNymRepresentsSelf) {
+    if (!bNymRepresentsSelf) {
         // Todo: if the Nym represents an Entity, then RoleID should
         // be passed in, and set here.  I WILL PROBABLY make that part into a
         // SEPARATE CONSTRUCTOR.

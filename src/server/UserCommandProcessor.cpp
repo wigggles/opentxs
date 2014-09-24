@@ -485,7 +485,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                     // verify, then we're safe to save the credentials to
                     // storage.
                     //
-                    else if (false == pNym->VerifyPseudonym()) {
+                    else if (!pNym->VerifyPseudonym()) {
                         OTLog::vError(
                             "%s: @createUserAccount: Loaded nym %s "
                             "from credentials, but then it failed verifying.\n",
@@ -720,7 +720,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                 // -- or not. (generation might have failed, or
                                 // verification.)
                                 //
-                                if (false == bSuccessLoadingNymbox) {
+                                if (!bSuccessLoadingNymbox) {
                                     OTLog::vError("Error during user account "
                                                   "re-registration. Failed "
                                                   "verifying or generating "
@@ -818,7 +818,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                     // exists -- or not. (generation might have
                                     // failed, or verification.)
 
-                                    if (false == bSuccessLoadingNymbox) {
+                                    if (!bSuccessLoadingNymbox) {
                                         OTLog::vError(
                                             "Error during user account "
                                             "registration. Failed verifying or "
@@ -1717,7 +1717,7 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, OTMessage& MsgIn,
     }
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
-    else if (false == msgOut.m_bSuccess) {
+    else if (!msgOut.m_bSuccess) {
         OTString tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
@@ -1772,7 +1772,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&,
 
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
-    if (false == msgOut.m_bSuccess) {
+    if (!msgOut.m_bSuccess) {
         OTString tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
@@ -1825,7 +1825,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
 
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
-    if (false == msgOut.m_bSuccess) {
+    if (!msgOut.m_bSuccess) {
         OTString tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
@@ -1870,7 +1870,7 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
     }
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
-    if (false == msgOut.m_bSuccess) {
+    if (!msgOut.m_bSuccess) {
         OTString tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
@@ -2024,11 +2024,11 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
                 lFirstTransNum = lTransNum;
         }
 
-        if (false == bSuccess) {
+        if (!bSuccess) {
             // Apparently nothing. Also, plenty of logs just above already, if
             // this ever happens.
         }
-        else if (false == theLedger.LoadNymbox()) {
+        else if (!theLedger.LoadNymbox()) {
             OTLog::Error("Error loading Nymbox in "
                          "UserCommandProcessor::UserCmdGetTransactionNum\n");
         }
@@ -2463,10 +2463,10 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
             pNym = &nym2;
         }
     }
-    if (false == MsgIn.m_strNymID.Compare(MsgIn.m_strNymID2)) // If the Nym is
-                                                              // not performing
-                                                              // this on
-                                                              // himself...
+    if (!MsgIn.m_strNymID.Compare(MsgIn.m_strNymID2)) // If the Nym is
+                                                      // not performing
+                                                      // this on
+                                                      // himself...
     {
         // Either this is a Nym performing the action on himself (which is
         // read-only.)
@@ -2480,12 +2480,12 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
         // ...Then we KNOW, if that's true, that the Nym had BETTER have special
         // powers, or there's an error.
         //
-        if (false == ((ServerSettings::GetOverrideNymID().size() > 0) &&
-                      (0 ==
-                       ServerSettings::GetOverrideNymID().compare(
-                           (MsgIn.m_strNymID.Get()))))) // ...And if he's
-                                                        // not the special
-                                                        // "override Nym"...
+        if (!((ServerSettings::GetOverrideNymID().size() > 0) &&
+              (0 ==
+               ServerSettings::GetOverrideNymID().compare(
+                   (MsgIn.m_strNymID.Get()))))) // ...And if he's
+                                                // not the special
+                                                // "override Nym"...
         {
             OTLog::vError("%s: Failed attempt by a normal Nym to view or "
                           "adjust usage credits on a different Nym (you're "
@@ -2837,7 +2837,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                                 }
                             }
                         }
-                        if (false == bSuccessLoadingInbox) {
+                        if (!bSuccessLoadingInbox) {
                             OTString strNewAcctID(theNewAccountID);
 
                             OTLog::vError("ERROR generating inbox ledger in "
@@ -2846,7 +2846,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                                           "s\n",
                                           strNewAcctID.Get());
                         }
-                        else if (false == bSuccessLoadingOutbox) {
+                        else if (!bSuccessLoadingOutbox) {
                             OTString strNewAcctID(theNewAccountID);
 
                             OTLog::vError("ERROR generating outbox ledger in "
@@ -3379,13 +3379,13 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
             }
         }
 
-        if (false == bSuccessLoadingInbox) {
+        if (!bSuccessLoadingInbox) {
             const OTString strNewAcctID(theNewAccountID);
 
             OTLog::vError("%s: ERROR generating inbox ledger: %s\n", szFunc,
                           strNewAcctID.Get());
         }
-        else if (false == bSuccessLoadingOutbox) {
+        else if (!bSuccessLoadingOutbox) {
             const OTString strNewAcctID(theNewAccountID);
 
             OTLog::vError("%s: ERROR generating outbox ledger: %s\n", szFunc,
@@ -4322,7 +4322,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     const bool bSuccessLoadNymbox =
         (theLedger.LoadNymbox() &&
          theLedger.VerifyAccount(server_->m_nymServer));
-    if (false == bSuccessLoadNymbox) {
+    if (!bSuccessLoadNymbox) {
         OTLog::Output(3, "Tried to delete Nym, but failed loading or verifying "
                          "the Nymbox.\n");
         msgOut.m_bSuccess = false;
@@ -4396,7 +4396,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     }
 
     // Send the user's command back to him (success or failure.)
-    //  if (false == msgOut.m_bSuccess)
+    //  if (!msgOut.m_bSuccess)
     {
         OTString tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
@@ -4648,7 +4648,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // Send the user's command back to him (success or failure.)
-    //  if (false == msgOut.m_bSuccess)
+    //  if (!msgOut.m_bSuccess)
     {
         const OTString tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
@@ -4784,7 +4784,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     } // pAccount verifies.
 
     // Send the user's command back to him (success or failure.)
-    //  if (false == msgOut.m_bSuccess)
+    //  if (!msgOut.m_bSuccess)
     {
         OTString tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
@@ -5856,7 +5856,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     // theNymbox.VerifyAccount(server_->m_nymServer);
     // // make sure it's all good.
 
-    if (false == bSuccessLoadingNymbox) {
+    if (!bSuccessLoadingNymbox) {
         const OTString strNymID(USER_ID);
         OTLog::vOutput(0, "OTServer::DropReplyNoticeToNymbox: Failed loading "
                           "or verifying Nymbox for user: %s\n",

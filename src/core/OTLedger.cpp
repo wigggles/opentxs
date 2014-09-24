@@ -223,13 +223,13 @@ bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
-    if (false == VerifyContractID())
+    if (!VerifyContractID())
     {
         otErr << "Error verifying account ID in
 OTTransactionType::VerifyAccount\n";
         return false;
     }
-    else if (false == VerifySignature(theNym))
+    else if (!VerifySignature(theNym))
     {
         otErr << "Error verifying signature in
 OTTransactionType::VerifyAccount.\n";
@@ -260,9 +260,9 @@ bool OTLedger::SaveBoxReceipts() // For ALL full transactions, save the actual
         // abbreviated versions.
         // (If it's not abbreviated, therefore it's the full version.)
         //
-        if (false == pTransaction->IsAbbreviated()) // This way we won't see an
-                                                    // error if it's not
-                                                    // abbreviated.
+        if (!pTransaction->IsAbbreviated()) // This way we won't see an
+                                            // error if it's not
+                                            // abbreviated.
             bRetVal = pTransaction->SaveBoxReceipt(*this);
 
         if (!bRetVal) {
@@ -576,7 +576,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
 
     const OTString strServerID(GetRealServerID());
 
-    if (false == m_strFilename.Exists())
+    if (!m_strFilename.Exists())
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
@@ -597,7 +597,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
         strRawFile.Set(*pString);
     else // Loading FROM A FILE.
     {
-        if (false == OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+        if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
             otLog3 << pszType << " does not exist in OTLedger::Load" << pszType
                    << ": " << szFolder1name << OTLog::PathSeparator()
                    << szFolder2name << OTLog::PathSeparator() << szFilename
@@ -623,7 +623,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
     // NOTE: No need to deal with OT ARMORED INBOX file format here, since
     //       LoadContractFromString already handles that automatically.
 
-    if (false == strRawFile.Exists()) {
+    if (!strRawFile.Exists()) {
         otErr << "OTLedger::LoadGeneric: Unable to load box (" << szFolder1name
               << OTLog::PathSeparator() << szFolder2name
               << OTLog::PathSeparator() << szFilename
@@ -633,7 +633,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
 
     bool bSuccess = LoadContractFromString(strRawFile);
 
-    if (false == bSuccess) {
+    if (!bSuccess) {
         otErr << "Failed loading " << pszType << " "
               << ((nullptr != pString) ? "from string" : "from file")
               << " in OTLedger::Load" << pszType << ": " << szFolder1name
@@ -691,7 +691,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
     GetIdentifier(strID);
     const OTString strServerID(GetRealServerID());
 
-    if (false == m_strFilename.Exists())
+    if (!m_strFilename.Exists())
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
@@ -758,7 +758,7 @@ bool OTLedger::CalculateHash(OTIdentifier& theOutput)
     theOutput.Release();
 
     bool bCalcDigest = theOutput.CalculateDigest(m_xmlUnsigned);
-    if (false == bCalcDigest) {
+    if (!bCalcDigest) {
         theOutput.Release();
         otErr << "OTLedger::CalculateHash: Failed trying to calculate hash "
                  "(for a " << GetTypeString() << ")\n";
@@ -1444,8 +1444,8 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
             OT_ASSERT(nullptr != pCheque);
             std::unique_ptr<OTCheque> theChequeAngel(pCheque);
 
-            if (false == ((strCheque.GetLength() > 2) &&
-                          pCheque->LoadContractFromString(strCheque))) {
+            if (!((strCheque.GetLength() > 2) &&
+                  pCheque->LoadContractFromString(strCheque))) {
                 otErr << __FUNCTION__ << ": Error loading cheque from string:\n"
                       << strCheque << "\n";
             }
@@ -1989,7 +1989,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetPurportedServerID(SERVER_ID);
         SetUserID(USER_ID);
 
-        if (false == m_bLoadSecurely) {
+        if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
             SetRealServerID(SERVER_ID);
             //            OTString str1(GetRealAccountID()),
@@ -2059,7 +2059,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             //
             while (nPartialRecordCount-- > 0) {
                 //                xml->read(); // <==================
-                if (false == SkipToElement(xml)) {
+                if (!SkipToElement(xml)) {
                     otOut << szFunc << ": Failure: Unable to find element when "
                                        "one was expected (" << strExpected
                           << ") "
@@ -2268,7 +2268,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // go to the next node and read the text.
         //        xml->read(); // <==================
-        if (false == SkipToTextField(xml)) {
+        if (!SkipToTextField(xml)) {
             otOut << __FUNCTION__
                   << ": Failure: Unable to find expected text field "
                      "containing receipt transaction in box. \n";
@@ -2326,7 +2326,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             // Need this set before the LoadContractFromString().
             //
-            if (false == m_bLoadSecurely) pTransaction->SetLoadInsecure();
+            if (!m_bLoadSecurely) pTransaction->SetLoadInsecure();
 
             // If we're able to successfully base64-decode the string and load
             // it up as
@@ -2395,8 +2395,8 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                               // field also.
                             nBoxType, // 0/nymbox, 1/inbox, 2/outbox
                             pTransaction->GetTransactionNum());
-                    if (false == bBoxReceiptAlreadyExists) // Doesn't already
-                                                           // exist separately.
+                    if (!bBoxReceiptAlreadyExists) // Doesn't already
+                                                   // exist separately.
                     {
                         // Okay then, let's create it...
                         //

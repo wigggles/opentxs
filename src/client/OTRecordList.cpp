@@ -1575,7 +1575,7 @@ bool OTRecordList::Populate()
                     std::string str_sender_nym_id;
                     std::string str_sender_acct_id;
 
-                    if (false == pBoxTrans->IsAbbreviated()) {
+                    if (!pBoxTrans->IsAbbreviated()) {
                         OTIdentifier theSenderID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
@@ -1830,7 +1830,7 @@ bool OTRecordList::Populate()
                     std::string str_other_nym_id;
                     std::string str_other_acct_id;
 
-                    if (false == pBoxTrans->IsAbbreviated()) {
+                    if (!pBoxTrans->IsAbbreviated()) {
                         OTIdentifier theSenderID, theSenderAcctID;
                         OTIdentifier theRecipientID, theRecipientAcctID;
 
@@ -2262,7 +2262,7 @@ bool OTRecordList::Populate()
                     std::string str_other_nym_id;
                     std::string str_other_acct_id;
 
-                    if (false == pBoxTrans->IsAbbreviated()) {
+                    if (!pBoxTrans->IsAbbreviated()) {
                         OTIdentifier theSenderID, theSenderAcctID;
                         OTIdentifier theRecipientID, theRecipientAcctID;
 
@@ -2767,7 +2767,7 @@ bool OTRecordList::Populate()
                 std::string str_other_acct_id;
                 std::string str_memo;
 
-                if (false == pBoxTrans->IsAbbreviated()) {
+                if (!pBoxTrans->IsAbbreviated()) {
                     OTString strMemo;
 
                     if (pBoxTrans->GetMemo(strMemo)) str_memo = strMemo.Get();
@@ -3028,7 +3028,7 @@ bool OTRecordList::Populate()
                 std::string str_other_acct_id;
                 std::string str_memo;
 
-                if (false == pBoxTrans->IsAbbreviated()) {
+                if (!pBoxTrans->IsAbbreviated()) {
                     OTIdentifier theRecipientID, theRecipientAcctID;
 
                     if (pBoxTrans->GetRecipientUserIDForDisplay(
@@ -3199,7 +3199,7 @@ bool OTRecordList::Populate()
                 std::string str_other_acct_id;
                 std::string str_memo;
 
-                if (false == pBoxTrans->IsAbbreviated()) {
+                if (!pBoxTrans->IsAbbreviated()) {
                     OTIdentifier theSenderID, theSenderAcctID;
                     OTIdentifier theRecipientID, theRecipientAcctID;
 

@@ -257,7 +257,7 @@ OTPayment* GetInstrument(const OTPseudonym& theNym, const int32_t& nIndex,
             OT_FAIL;
         }
 
-        if (false == pMsg->LoadContractFromString(strMsg)) {
+        if (!pMsg->LoadContractFromString(strMsg)) {
             otOut << __FUNCTION__
                   << ": Failed trying to load OTMessage from string:\n\n"
                   << strMsg << "\n\n";

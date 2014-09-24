@@ -159,7 +159,7 @@ bool OTContract::DearmorAndTrim(const OTString& strInput, OTString& strOutput,
                                 OTString& strFirstLine)
 {
 
-    if (false == strInput.Exists()) {
+    if (!strInput.Exists()) {
         otErr << __FUNCTION__ << ": Input string is empty.\n";
         return false;
     }
@@ -331,7 +331,7 @@ bool OTContract::VerifyContract()
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
-    if (false == VerifyContractID()) {
+    if (!VerifyContractID()) {
         otWarn << __FUNCTION__ << ": Failed verifying contract ID.\n";
         return false;
     }
@@ -346,7 +346,7 @@ bool OTContract::VerifyContract()
         return false;
     }
 
-    if (false == VerifySignature(*pNym)) {
+    if (!VerifySignature(*pNym)) {
         const OTIdentifier theNymID(*pNym);
         const OTString strNymID(theNymID);
         otOut << __FUNCTION__ << ": Failed verifying the contract's signature "
@@ -689,7 +689,7 @@ bool OTContract::SignContract(const char* szFoldername,
 
     const char* szFunc = "OTContract::SignContract";
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << szFunc << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -754,7 +754,7 @@ bool OTContract::VerifySignature(
     otInfo << szFunc << ": Reading public key from certfile in order to verify "
                         "signature...\n";
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << szFunc << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -1272,7 +1272,7 @@ bool OTContract::LoadContractRawFile()
 
     if (!m_strFoldername.Exists() || !m_strFilename.Exists()) return false;
 
-    if (false == OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -1281,7 +1281,7 @@ bool OTContract::LoadContractRawFile()
     OTString strFileContents(OTDB::QueryPlainString(
         szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
 
-    if (false == strFileContents.Exists()) {
+    if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
@@ -1909,7 +1909,7 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
 
         // move to the next node which SHOULD be the expected text field.
         //
-        if (false == SkipToTextField(xml)) {
+        if (!SkipToTextField(xml)) {
             otOut << szFunc
                   << ": Failure: Unable to find expected text field.\n";
             return false;
@@ -1945,7 +1945,7 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
 
             // The below call won't advance any further if it's ALREADY on the
             // closing tag (e.g. from the above xml->read() call.)
-            if (false == SkipAfterLoadingField(xml)) {
+            if (!SkipAfterLoadingField(xml)) {
                 otOut << "*** " << szFunc
                       << ": Bad data? Expected EXN_ELEMENT_END here, but "
                          "didn't get it. Returning false.\n";
@@ -2002,7 +2002,7 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
     {
         // move to the next node which SHOULD be the expected name.
         //
-        if (false == SkipToElement(xml)) {
+        if (!SkipToElement(xml)) {
             otOut << __FUNCTION__
                   << ": Failure: Unable to find expected element: " << szName
                   << ". \n";
@@ -2052,7 +2052,7 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
                 // Update: Above, LoadEncodedTextField() already does this
                 // (below).
                 //
-                //                if (false == SkipAfterLoadingField(xml))
+                //                if (!SkipAfterLoadingField(xml))
                 //                { otOut << "*** %s: Bad data? Expected
                 // EXN_ELEMENT_END here, but "
                 //                                "didn't get it. Returning
@@ -2158,7 +2158,7 @@ bool OTContract::CreateContract(const OTString& strContract,
                 pNym->SetNymIDSource(theSigner.GetNymIDSource());
                 pNym->SetAltLocation(theSigner.GetAltLocation());
 
-                if (false == pNym->LoadFromString(strCredList, &mapCredFiles)) {
+                if (!pNym->LoadFromString(strCredList, &mapCredFiles)) {
                     otErr << __FUNCTION__ << ": Failure loading nym "
                           << strSignerNymID << " from credential string.\n";
                 }
@@ -2169,7 +2169,7 @@ bool OTContract::CreateContract(const OTString& strContract,
                 // we
                 // verify, then we're safe to add the Nym to the contract.
                 //
-                else if (false == pNym->VerifyPseudonym()) {
+                else if (!pNym->VerifyPseudonym()) {
                     otErr
                         << __FUNCTION__ << ": Loaded nym " << strSignerNymID
                         << " from credentials, but then it failed verifying.\n";
@@ -2194,7 +2194,7 @@ bool OTContract::CreateContract(const OTString& strContract,
         OTPasswordData thePWData("OTContract::CreateContract needs the private "
                                  "key to sign the contract...");
 
-        if (false == SignContract(theSigner, &thePWData)) {
+        if (!SignContract(theSigner, &thePWData)) {
             otErr << __FUNCTION__ << ": SignContract failed.\n";
             return false;
         }
@@ -2419,7 +2419,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
         strConditionName = xml->getAttributeValue("name");
 
-        if (false == SkipToTextField(xml)) {
+        if (!SkipToTextField(xml)) {
             otOut << "OTContract::ProcessXMLNode: Failure: Unable to find "
                      "expected text field for xml node named: "
                   << xml->getNodeName() << "\n";
@@ -2462,7 +2462,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
         bool bHasCredentials = strHasCredentials.Compare("true");
         const bool bHasAltLocation = strAltLocation.Exists();
 
-        if (false == strSignerNymID.Exists()) {
+        if (!strSignerNymID.Exists()) {
             otErr << "Error in " << __FUNCTION__
                   << ": "
                      "Expected nymID attribute on signer element.\n";
@@ -2473,8 +2473,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
         const char* pElementExpected = "nymIDSource";
         otWarn << __FUNCTION__ << ": Loading " << pElementExpected << "...\n";
-        if (false == OTContract::LoadEncodedTextFieldByName(
-                         xml, strSignerSource, pElementExpected)) {
+        if (!OTContract::LoadEncodedTextFieldByName(xml, strSignerSource,
+                                                    pElementExpected)) {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected " << pElementExpected
                   << " field:\n\n" << m_xmlUnsigned << "\n\n\n";
@@ -2483,7 +2483,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
         // TODO: hash the source right here and compare it to the NymID, just to
         // be safe.
 
-        if (false == bHasCredentials) {
+        if (!bHasCredentials) {
             // If there are no credentials provided (which is proper) then we
             // should
             // just download them from the source.
@@ -2544,8 +2544,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
         {
             pElementExpected = "credentialList";
 
-            if (false == OTContract::LoadEncodedTextFieldByName(
-                             xml, ascArmor, pElementExpected)) {
+            if (!OTContract::LoadEncodedTextFieldByName(xml, ascArmor,
+                                                        pElementExpected)) {
                 otErr << "Error in " << __FUNCTION__ << ": "
                                                         "Expected "
                       << pElementExpected << " element with text field.\n";
@@ -2554,8 +2554,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
             pElementExpected = "credentials";
 
-            if (false == OTContract::LoadEncodedTextFieldByName(
-                             xml, ascArmor2, pElementExpected)) {
+            if (!OTContract::LoadEncodedTextFieldByName(xml, ascArmor2,
+                                                        pElementExpected)) {
                 otErr << "Error in " << __FUNCTION__ << ": "
                                                         "Expected "
                       << pElementExpected << " element with text field.\n";
@@ -2607,7 +2607,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
                     // pseudonym. If we
                     // verify, then we're safe to add the Nym to the contract.
                     //
-                    else if (false == pNym->VerifyPseudonym()) {
+                    else if (!pNym->VerifyPseudonym()) {
                         otErr << __FUNCTION__ << ": Loaded nym "
                               << strSignerNymID
                               << " from credentials, but then it failed "
@@ -2638,7 +2638,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
         strKeyName = xml->getAttributeValue("name");
 
-        if (false == SkipToTextField(xml)) {
+        if (!SkipToTextField(xml)) {
             otOut << "OTContract::ProcessXMLNode: Failure: Unable to find "
                      "expected text "
                      "field for xml node named: " << xml->getNodeName() << "\n";

@@ -458,7 +458,7 @@ bool Purse::Merge(const OTPseudonym& theSigner,
         // merged in. We reassign them from New ==> TO OLD. (And we only bother
         // if they aren't the same Nym.)
         //
-        //      if (false == theNewNym.CompareID(theOldNym)) // Not the same
+        //      if (!theNewNym.CompareID(theOldNym)) // Not the same
         // Nym!!
         //
         // UPDATE: the above line was moved INSIDE OTToken::ReassignOwnership,

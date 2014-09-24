@@ -236,7 +236,7 @@ bool OTNumList::Add(const char* szNumbers) // if false, means the numbers were
                                             // the next.)
         {
             if ((lNum > 0) || (bStartedANumber && (0 == lNum))) {
-                if (false == Add(lNum)) // <=========
+                if (!Add(lNum)) // <=========
                 {
                     bSuccess = false; // We still go ahead and try to add them
                                       // all, and then return this sort of
@@ -356,7 +356,7 @@ bool OTNumList::Verify(const OTNumList& rhs) const
     // Verify each value on *this is also found on rhs.
     //
     for (auto& it : m_setData) {
-        if (false == rhs.Verify(it)) return false;
+        if (!rhs.Verify(it)) return false;
     }
 
     return true;

@@ -794,7 +794,7 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
     const OTIdentifier theNymID(theNym);
     const OTString strNymID(theNymID);
 
-    if (false == theAcct.VerifyOwner(theNym)) // Verifies Ownership.
+    if (!theAcct.VerifyOwner(theNym)) // Verifies Ownership.
     {
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Nym (ID: " << strNymID
@@ -878,7 +878,7 @@ OTAccount* OTWallet::LoadAccount(const OTPseudonym& theNym,
         bool bVerified =
             VerifyAssetAccount(theNym, *pAccount, SERVER_ID, strAcctID, szFunc);
 
-        if (false == bVerified) {
+        if (!bVerified) {
             delete pAccount;
             pAccount = nullptr;
             return nullptr; // No need to log, since VerifyAssetAccount()
@@ -1006,7 +1006,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
     {
 
         // ...yet he doesn't have a public key (Weird!)
-        if (false == pNym->HasPublicKey())
+        if (!pNym->HasPublicKey())
             otErr << __FUNCTION__ << " " << szFuncName
                   << ": Found nym, but he has no public key: " << strNymID
                   << "\n";
@@ -1016,7 +1016,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
         // my public key loaded (without the private one) from some earlier
         // action.
         //
-        if (false == pNym->HasPrivateKey()) {
+        if (!pNym->HasPrivateKey()) {
             otWarn
                 << __FUNCTION__ << " " << szFuncName
                 << ": Found nym in wallet (" << strNymID
@@ -1639,7 +1639,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         szFilename = m_strFilename.Get(); // (We know existing string is there,
                                           // in this case.)
 
-    if (false == OTDB::Exists(".", szFilename)) {
+    if (!OTDB::Exists(".", szFilename)) {
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename
               << ". Creating...\n";
 
@@ -1667,7 +1667,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
     OTString strFileContents(OTDB::QueryPlainString(
         ".", szFilename)); // <=== LOADING FROM DATA STORE.
 
-    if (false == strFileContents.Exists()) {
+    if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading wallet file: " << szFilename
               << "\n";
         return false;
@@ -2079,7 +2079,7 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
 {
     // If he's not ALREADY on the master key...
     //
-    if (false == IsNymOnCachedKey(theNym.GetConstID())) {
+    if (!IsNymOnCachedKey(theNym.GetConstID())) {
         bool bConverted = false;
         // The Nym has credentials.
         //
@@ -2099,9 +2099,9 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
                     strOutput,
                     "CREDENTIAL LIST") && // bEscaped=false by default.
                 strOutput.Exists()) {
-                if (false == OTDB::StorePlainString(
-                                 strOutput.Get(), OTFolders::Credential().Get(),
-                                 strFilename.Get())) {
+                if (!OTDB::StorePlainString(strOutput.Get(),
+                                            OTFolders::Credential().Get(),
+                                            strFilename.Get())) {
                     otErr << __FUNCTION__ << ": Failure trying to store "
                           << (theNym.HasPrivateKey() ? "private" : "public")
                           << " credential list for Nym: " << strNymID << "\n";

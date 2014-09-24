@@ -182,13 +182,13 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
                                // keypair is eliminated.
 
     // First load the public key
-    if (false == bLoadedKey)
+    if (!bLoadedKey)
         otWarn << __FUNCTION__ << ": " << szFunc
                << ": Unable to find nym: " << strNymID << "\n";
-    else if (false == pNym->VerifyPseudonym())
+    else if (!pNym->VerifyPseudonym())
         otErr << __FUNCTION__ << ": " << szFunc
               << ": Security: Failure verifying Nym: " << strNymID << "\n";
-    else if (false == pNym->LoadSignedNymfile(*pNym)) {
+    else if (!pNym->LoadSignedNymfile(*pNym)) {
         otLog4 << "OTPseudonym::LoadPublicNym " << szFunc
                << ": Usually normal: There's no Nymfile (" << strNymID
                << "), though there IS a public "
@@ -318,7 +318,7 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
     //<====================
 
     // Error loading x509CertAndPrivateKey.
-    if (false == bLoadedKey)
+    if (!bLoadedKey)
         OTLog::vOutput(
             bChecking ? 1 : 0,
             "%s: %s: (%s: is %s).  Unable to load credentials, "
@@ -327,15 +327,15 @@ OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
             strNymID.Get());
     // success loading x509CertAndPrivateKey,
     // failure verifying pseudonym public key.
-    else if (false == pNym->VerifyPseudonym()) // <====================
+    else if (!pNym->VerifyPseudonym()) // <====================
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure verifying Nym public key: " << strNymID << "\n";
     // success verifying pseudonym public key.
     // failure loading signed nymfile.
-    else if (false == pNym->LoadSignedNymfile(*pNym)) // Unlike with public key,
-                                                      // with private key we DO
-                                                      // expect nymfile to be
-                                                      // here.
+    else if (!pNym->LoadSignedNymfile(*pNym)) // Unlike with public key,
+                                              // with private key we DO
+                                              // expect nymfile to be
+                                              // here.
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
     else // ultimate success.
@@ -842,7 +842,7 @@ bool OTPseudonym::AddNewMasterCredential(
     OTString strNymID;
     GetIdentifier(strNymID);
 
-    if (false == pMaster->VerifyInternally()) {
+    if (!pMaster->VerifyInternally()) {
         OTIdentifier theTempID;
         theTempID.CalculateDigest(*pstrSourceToUse);
         const OTString strTempID(theTempID);
@@ -937,7 +937,7 @@ bool OTPseudonym::AddNewSubkey(
     const bool bAdded =
         pMaster->AddNewSubkey(nBits, pmapPrivate, pPWData, &pSubkey);
 
-    if (false == bAdded) {
+    if (!bAdded) {
         otOut
             << __FUNCTION__
             << ": Failed trying to add key credential to master credential.\n";
@@ -945,7 +945,7 @@ bool OTPseudonym::AddNewSubkey(
     }
     OT_ASSERT(nullptr != pSubkey);
 
-    if (false == pSubkey->VerifyInternally()) {
+    if (!pSubkey->VerifyInternally()) {
 
         otErr << "NYM::ADD_NEW_SUBKEY:   2.5 \n";
 
@@ -1025,14 +1025,14 @@ bool OTPseudonym::AddNewSubcredential(
     const bool bAdded = pMaster->AddNewSubcredential(*pmapPrivate, *pmapPublic,
                                                      pPWData, &pSubcredential);
 
-    if (false == bAdded) {
+    if (!bAdded) {
         otOut << __FUNCTION__
               << ": Failed trying to add subcredential to master credential.\n";
         return false;
     }
     OT_ASSERT(nullptr != pSubcredential);
 
-    if (false == pSubcredential->VerifyInternally()) {
+    if (!pSubcredential->VerifyInternally()) {
         otErr << __FUNCTION__
               << ": Failed trying to verify the new subcredential.\n";
         // todo: remove it again, since it failed to verify.
@@ -1378,7 +1378,7 @@ bool OTPseudonym::Savex509CertAndPrivateKey(bool bCreateFile,
 
         // (or) NYM ID based on PUBLIC SIGNING KEY
         //
-        else if (false == SetIdentifierByPubkey()) {
+        else if (!SetIdentifierByPubkey()) {
             otErr << __FUNCTION__ << ": Error calculating Nym ID (as a digest "
                                      "of Nym's public (signing) key.)\n";
             return false;
@@ -2031,10 +2031,10 @@ bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
     for (int32_t n1 = 0; n1 < nIssuedNumCount; ++n1) {
         const int64_t lNum = theMessageNym.GetIssuedNum(theServerID, n1);
 
-        if (false == AddIssuedNum(strServerID, lNum)) // Add to list of
-                                                      // numbers that
-                                                      // haven't been
-                                                      // closed yet.
+        if (!AddIssuedNum(strServerID, lNum)) // Add to list of
+                                              // numbers that
+                                              // haven't been
+                                              // closed yet.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
                      "IssuedNum (" << lNum << ") onto *this nym: " << strNymID
@@ -2053,9 +2053,9 @@ bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
     for (int32_t n2 = 0; n2 < nTransNumCount; ++n2) {
         const int64_t lNum = theMessageNym.GetTransactionNum(theServerID, n2);
 
-        if (false == AddTransactionNum(strServerID, lNum)) // Add to list of
-                                                           // available-to-use
-                                                           // numbers.
+        if (!AddTransactionNum(strServerID, lNum)) // Add to list of
+                                                   // available-to-use
+                                                   // numbers.
         {
             otErr << "OTPseudonym::ResyncWithServer: Failed trying to add "
                      "TransactionNum (" << lNum
@@ -2095,7 +2095,7 @@ bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
                                                // new transaction # that should
                                                // be on my tentative list.
 
-        if (false == AddTentativeNum(strServerID, lNum)) // Add to list of
+        if (!AddTentativeNum(strServerID, lNum)) // Add to list of
         // tentatively-being-added
         // numbers.
         {
@@ -3011,7 +3011,7 @@ bool OTPseudonym::GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
     }
 
     if (bRetVal && bSave) {
-        if (false == SaveSignedNymfile(SIGNER_NYM))
+        if (!SaveSignedNymfile(SIGNER_NYM))
             otErr << "Error saving signed NymFile in "
                      "OTPseudonym::GetNextTransactionNum\n";
     }
@@ -3535,7 +3535,7 @@ bool OTPseudonym::VerifyPseudonym() const
             OT_ASSERT(nullptr != pCredential);
 
             const OTIdentifier theCredentialNymID(pCredential->GetNymID());
-            if (false == CompareID(theCredentialNymID)) {
+            if (!CompareID(theCredentialNymID)) {
                 OTString strNymID;
                 GetIdentifier(strNymID);
                 otOut << __FUNCTION__ << ": Credential NymID ("
@@ -3544,7 +3544,7 @@ bool OTPseudonym::VerifyPseudonym() const
                 return false;
             }
 
-            if (false == pCredential->VerifyInternally()) {
+            if (!pCredential->VerifyInternally()) {
                 otOut << __FUNCTION__ << ": Credential ("
                       << pCredential->GetMasterCredID()
                       << ") failed its own internal verification.\n";
@@ -3559,9 +3559,9 @@ bool OTPseudonym::VerifyPseudonym() const
             // server can just sign
             // another one.
             //
-            if (false == pCredential->VerifyAgainstSource()) // todo optimize,
-                                                             // warning:
-                                                             // time-intensive.
+            if (!pCredential->VerifyAgainstSource()) // todo optimize,
+                                                     // warning:
+                                                     // time-intensive.
             {
                 otOut
                     << __FUNCTION__
@@ -3865,8 +3865,8 @@ bool OTPseudonym::LoadPublicKey()
 
     OTString strID;
 
-    if (false == Server_PubKeyExists(&strID)) // strID will contain *this
-                                              // nymID after this call.
+    if (!Server_PubKeyExists(&strID)) // strID will contain *this
+                                      // nymID after this call.
     {
         // Code will call this in order to see if there is a PublicKey to be
         // loaded.
@@ -4274,8 +4274,8 @@ bool OTPseudonym::SaveCredentialList()
                                          ? OTFolders::Credential().Get()
                                          : OTFolders::Pubcred().Get();
 
-            if (false == OTDB::StorePlainString(strOutput.Get(), str_Folder,
-                                                strFilename.Get())) {
+            if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
+                                        strFilename.Get())) {
                 otErr << __FUNCTION__ << ": Failure trying to store "
                       << (HasPrivateKey() ? "private" : "public")
                       << " credential list for Nym: " << strNymID << "\n";
@@ -5075,8 +5075,8 @@ bool OTPseudonym::LoadFromString(
                         m_strAltLocation,
                         false); // bLineBreaks=true by default.
 
-                if (false == OTContract::LoadEncodedTextField(
-                                 xml, m_strSourceForNymID)) {
+                if (!OTContract::LoadEncodedTextField(xml,
+                                                      m_strSourceForNymID)) {
                     otErr << "Error in " << __FILE__ << " line " << __LINE__
                           << ": failed loading expected nymIDSource field.\n";
                     return false; // error condition
@@ -5823,7 +5823,7 @@ bool OTPseudonym::LoadSignedNymfile(OTPseudonym& SIGNER_NYM)
     // local directory ("nyms")
     OTSignedFile theNymfile(OTFolders::Nym(), nymID);
 
-    if (false == theNymfile.LoadFile()) {
+    if (!theNymfile.LoadFile()) {
         otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID
                << "\n\n";
     }
@@ -5833,11 +5833,11 @@ bool OTPseudonym::LoadSignedNymfile(OTPseudonym& SIGNER_NYM)
     // 2. That the local subdir and filename match the versions inside the file.
     // 3. That the signature matches for the signer nym who was passed in.
     //
-    else if (false == theNymfile.VerifyFile()) {
+    else if (!theNymfile.VerifyFile()) {
         otErr << __FUNCTION__ << ": Failed verifying nymfile: " << nymID
               << "\n\n";
     }
-    else if (false == theNymfile.VerifySignature(SIGNER_NYM)) {
+    else if (!theNymfile.VerifySignature(SIGNER_NYM)) {
         OTString strSignerNymID;
         SIGNER_NYM.GetIdentifier(strSignerNymID);
         otErr << __FUNCTION__
@@ -6077,7 +6077,7 @@ bool OTPseudonym::LoadNymfile(const char* szFilename)
         m_strNymfile = szFilename;
     }
 
-    if (false == OTDB::Exists(szFoldername, m_strNymfile.Get())) {
+    if (!OTDB::Exists(szFoldername, m_strNymfile.Get())) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << OTLog::PathSeparator() << m_strNymfile << "\n";
         return false;

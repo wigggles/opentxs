@@ -203,14 +203,14 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // the symmetric key itself, whereas the content has its own IV in
     // OTEnvelope.
     //
-    if (false == dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed generating iv for changing "
                                  "passphrase on a symmetric key. (Returning "
                                  "false.)\n";
         return false;
     }
 
-    if (false == dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
+    if (!dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
         otErr << __FUNCTION__ << ": Failed generating random salt for changing "
                                  "passphrase on a symmetric key. (Returning "
                                  "false.)\n";
@@ -288,13 +288,13 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     otInfo << "  Begin: " << __FUNCTION__
            << ": GENERATING keys and passwords...\n";
 
-    if (false == m_dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!m_dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed generating iv for encrypting a "
                                  "symmetric key. (Returning false.)\n";
         return false;
     }
 
-    if (false == m_dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
+    if (!m_dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
         otErr << __FUNCTION__
               << ": Failed generating random salt. (Returning false.)\n";
         return false;
@@ -720,7 +720,7 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 
     OTSymmetricKey theKey;
 
-    if (false == theKey.SerializeFrom(strKey)) {
+    if (!theKey.SerializeFrom(strKey)) {
         otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
                                   "string. (Returning false.)\n";
         return false;
@@ -816,7 +816,7 @@ bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
 
     OTSymmetricKey theKey;
 
-    if (false == theKey.SerializeFrom(strKey)) {
+    if (!theKey.SerializeFrom(strKey)) {
         otWarn << __FUNCTION__ << ": Failed trying to load symmetric key from "
                                   "string. (Returning false.)\n";
         return false;

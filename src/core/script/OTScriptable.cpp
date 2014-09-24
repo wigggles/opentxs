@@ -174,15 +174,15 @@ OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
 {
     static char buf[45] = "";
 
-    if (false == strInput.Exists()) {
+    if (!strInput.Exists()) {
         otErr << __FUNCTION__ << ": Failure: Input string is empty.\n";
         return nullptr;
     }
 
     OTString strContract(strInput);
 
-    if (false == strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
-                                                     // by default.
+    if (!strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
+                                             // by default.
     {
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
@@ -586,7 +586,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 
         pScript->SetDisplayFilename(m_strLabel.Get());
 
-        if (false == pScript->ExecuteScript(&varReturnVal)) {
+        if (!pScript->ExecuteScript(&varReturnVal)) {
             otErr << "OTScriptable::ExecuteCallback: Error while running "
                      "callback on scriptable: " << m_strLabel << "\n";
         }
@@ -796,7 +796,7 @@ int32_t OTScriptable::GetCountTransNumsNeededForAgent(
 
 OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
 {
-    if (false == OTScriptable::ValidateName(str_acct_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_acct_name)) // this logs, FYI.
     {
         otErr << "OTScriptable::GetPartyAccount:  Error: invalid name.\n";
         return nullptr;
@@ -992,7 +992,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 
     // This party hasn't signed the contract??
     //
-    if (false == theParty.GetMySignedCopy().Exists()) {
+    if (!theParty.GetMySignedCopy().Exists()) {
         otOut << __FUNCTION__ << ": Unable to find party's signed copy of this "
                                  "contract. Has it been executed?\n";
         return false;
@@ -1318,7 +1318,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
 
     // This party hasn't signed the contract??
     //
-    if (false == pParty->GetMySignedCopy().Exists()) {
+    if (!pParty->GetMySignedCopy().Exists()) {
         otOut << "OTScriptable::VerifyNymAsAgent: Unable to find party's ("
               << pParty->GetPartyName()
               << ") signed copy of this contract. Has it been executed?\n";
@@ -1655,7 +1655,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
 
     // Verify ownership.
     //
-    if (false == pParty->VerifyOwnershipOfAccount(theAccount)) {
+    if (!pParty->VerifyOwnershipOfAccount(theAccount)) {
         otOut << "OTScriptable::VerifyNymAsAgentForAccount: pParty is not the "
                  "owner of theAccount.\n";
         pParty->ClearTemporaryPointers(); // Just in case.
@@ -1686,13 +1686,13 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
     // return true to IsValidSigner when passed theNym,
     // assuming theNym really is the agent that partyAcct was talking about.
     //
-    if (false == pAgent->IsValidSigner(theNym)) {
+    if (!pAgent->IsValidSigner(theNym)) {
         otOut << "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a "
                  "valid signer for pAgent.\n";
         pParty->ClearTemporaryPointers(); // Just in case.
         return false;
     }
-    if (false == pAgent->VerifyAgencyOfAccount(theAccount)) {
+    if (!pAgent->VerifyAgencyOfAccount(theAccount)) {
         otOut << "OTScriptable::VerifyNymAsAgentForAccount: theNym is not a "
                  "valid agent for theAccount.\n";
         pParty->ClearTemporaryPointers(); // Just in case.
@@ -1845,7 +1845,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
 //
 OTClause* OTScriptable::GetClause(std::string str_clause_name) const
 {
-    if (false == OTScriptable::ValidateName(str_clause_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_clause_name)) // this logs, FYI.
     {
         otErr << __FUNCTION__ << ": Error: invalid name.\n";
         return nullptr;
@@ -1866,7 +1866,7 @@ OTClause* OTScriptable::GetClause(std::string str_clause_name) const
 
 OTAgent* OTScriptable::GetAgent(std::string str_agent_name) const
 {
-    if (false == OTScriptable::ValidateName(str_agent_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_agent_name)) // this logs, FYI.
     {
         otErr << __FUNCTION__ << ": Error: invalid name.\n";
         return nullptr;
@@ -1887,7 +1887,7 @@ OTAgent* OTScriptable::GetAgent(std::string str_agent_name) const
 
 OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name) const
 {
-    if (false == OTScriptable::ValidateName(str_bylaw_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_bylaw_name)) // this logs, FYI.
     {
         otErr << __FUNCTION__ << ": Error: invalid name.\n";
         return nullptr;
@@ -1908,7 +1908,7 @@ OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name) const
 
 OTParty* OTScriptable::GetParty(std::string str_party_name) const
 {
-    if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
         otErr << __FUNCTION__ << ": Error: invalid name.\n";
         return nullptr;
@@ -2034,7 +2034,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
 {
     const std::string str_party_name = theParty.GetPartyName();
 
-    if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
         otErr << "OTScriptable::ConfirmParty:  Error: invalid name.\n";
         return false;
@@ -2046,7 +2046,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
     // This is in order to make sure that I am signing the same thing that
     // everyone else signed, before I actually sign it.
     //
-    if (false == VerifyThisAgainstAllPartiesSignedCopies())
+    if (!VerifyThisAgainstAllPartiesSignedCopies())
         return false; // This already logs on failure.
 
     // BY THIS POINT, we know that, of all the parties who have already signed,
@@ -2136,7 +2136,7 @@ bool OTScriptable::AddParty(OTParty& theParty)
 {
     const std::string str_party_name = theParty.GetPartyName();
 
-    if (false == OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_party_name)) // this logs, FYI.
     {
         otErr << "OTScriptable::AddParty:  Error: invalid name.\n";
         return false;
@@ -2163,7 +2163,7 @@ bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
 {
     const std::string str_name = theBylaw.GetName().Get();
 
-    if (false == OTScriptable::ValidateName(str_name)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_name)) // this logs, FYI.
     {
         otErr << "OTScriptable::AddBylaw:  Error: invalid name.\n";
         return false;
@@ -2379,7 +2379,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (nPartyCount > 0) {
             while (nPartyCount-- > 0) {
                 //                xml->read(); // <==================
-                if (false == SkipToElement(xml)) {
+                if (!SkipToElement(xml)) {
                     otOut << szFunc << ": Failure: Unable to find expected "
                                        "element for party. \n";
                     return (-1);
@@ -2446,7 +2446,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         while (nAgentCount-- > 0) {
                             //                          xml->read(); //
                             // <==================
-                            if (false == SkipToElement(xml)) {
+                            if (!SkipToElement(xml)) {
                                 otOut << szFunc << ": Failure: Unable to find "
                                                    "expected element for "
                                                    "agent. \n";
@@ -2554,7 +2554,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     strNymID, strRoleID, strGroupName);
                                 OT_ASSERT(nullptr != pAgent);
 
-                                if (false == pParty->AddAgent(*pAgent)) {
+                                if (!pParty->AddAgent(*pAgent)) {
                                     delete pAgent;
                                     pAgent = nullptr;
                                     delete pParty;
@@ -2589,7 +2589,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              : 0;
                     if (nAcctCount > 0) {
                         while (nAcctCount-- > 0) {
-                            if (false == OTContract::SkipToElement(xml)) {
+                            if (!OTContract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for party "
                                                    "account.\n";
@@ -2745,7 +2745,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
         if (nBylawCount > 0) {
             while (nBylawCount-- > 0) {
-                if (false == SkipToElement(xml)) {
+                if (!SkipToElement(xml)) {
                     otOut << szFunc << ": Failure: Unable to find expected "
                                        "element for bylaw. \n";
                     return (-1);
@@ -2779,7 +2779,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                          : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
-                            if (false == OTContract::SkipToElement(xml)) {
+                            if (!OTContract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for "
                                                    "variable.\n";
@@ -2975,7 +2975,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     return (-1);
                                 }
 
-                                if (false == bAddedVar) {
+                                if (!bAddedVar) {
                                     otErr << szFunc << ": Failed adding "
                                                        "variable to bylaw.\n";
                                     delete pBylaw;
@@ -3016,10 +3016,9 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             temp_MapAttributes.insert(
                                 std::pair<std::string, std::string>("name",
                                                                     ""));
-                            if (false == OTContract::LoadEncodedTextFieldByName(
-                                             xml, strTextExpected,
-                                             pElementExpected,
-                                             &temp_MapAttributes)) // </clause>
+                            if (!OTContract::LoadEncodedTextFieldByName(
+                                    xml, strTextExpected, pElementExpected,
+                                    &temp_MapAttributes)) // </clause>
                             {
                                 otErr << szFunc << ": Error: Expected "
                                       << pElementExpected
@@ -3106,7 +3105,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             //                          xml->read();
-                            if (false == SkipToElement(xml)) {
+                            if (!SkipToElement(xml)) {
                                 otOut << szFunc << ": Failure: Unable to find "
                                                    "expected element.\n";
                                 delete pBylaw;
@@ -3163,7 +3162,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             //                          xml->read();
-                            if (false == SkipToElement(xml)) {
+                            if (!SkipToElement(xml)) {
                                 otOut << szFunc << ": Failure: Unable to find "
                                                    "expected element.\n";
                                 delete pBylaw;
@@ -3278,7 +3277,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //
 OTVariable* OTScriptable::GetVariable(std::string str_VarName)
 {
-    if (false == OTScriptable::ValidateName(str_VarName)) // this logs, FYI.
+    if (!OTScriptable::ValidateName(str_VarName)) // this logs, FYI.
     {
         otErr << "OTScriptable::GetVariable:  Error: invalid name.\n";
         return nullptr;

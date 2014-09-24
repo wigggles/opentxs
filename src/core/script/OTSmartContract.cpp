@@ -1228,7 +1228,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         return 0;
     }
 
-    if (false == pFromAgent->IsAnIndividual()) {
+    if (!pFromAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::GetAcctBalance: error: authorized agent ("
               << pFromAcct->GetAgentName() << ") for from_acct ("
               << from_acct_name << ") is not an active agent.\n";
@@ -1279,7 +1279,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     //    RetrieveNymPointers(map_Nyms_Already_Loaded);
     //
     //
-    //    if (false == VerifyPartyAuthorization(*pFromParty, *pServerNym,
+    //    if (!VerifyPartyAuthorization(*pFromParty, *pServerNym,
     // strServerID, &map_Nyms_Already_Loaded))
     //    {
     //        otErr << "OTSmartContract::GetAcctBalance: error: 'From' Party
@@ -1443,7 +1443,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
         return str_return_value;
     }
 
-    if (false == pFromAgent->IsAnIndividual()) {
+    if (!pFromAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::GetAssetTypeIDofAcct: error: authorized "
                  "agent (" << pFromAcct->GetAgentName() << ") for from_acct ("
               << from_acct_name << ") is not an active agent.\n";
@@ -1496,7 +1496,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     //    RetrieveNymPointers(map_Nyms_Already_Loaded);
     //
     //
-    //    if (false == VerifyPartyAuthorization(*pFromParty, *pServerNym,
+    //    if (!VerifyPartyAuthorization(*pFromParty, *pServerNym,
     // strServerID, &map_Nyms_Already_Loaded))
     //    {
     //        otErr << "OTSmartContract::GetAssetTypeIDofAcct: error: 'From'
@@ -1891,7 +1891,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
         return false;
     }
 
-    if (false == pFromAgent->IsAnIndividual()) {
+    if (!pFromAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::StashAcctFunds: error: authorized agent ("
               << pFromAcct->GetAgentName() << ") for from_acct ("
               << from_acct_name << ") is not an active agent.\n";
@@ -2143,7 +2143,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
         return false;
     }
 
-    if (false == pToAgent->IsAnIndividual()) {
+    if (!pToAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::UnstashAcctFunds: error: authorized agent ("
               << pToAcct->GetAgentName().Get() << ") for to_acct ("
               << to_acct_name << ") is not an active agent.\n";
@@ -2553,7 +2553,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     {
         thePartyNym.SetIdentifier(PARTY_USER_ID); // thePartyNym is pPartyNym
 
-        if (false == thePartyNym.LoadPublicKey()) {
+        if (!thePartyNym.LoadPublicKey()) {
             otErr << "OTSmartContract::StashFunds: Failure loading party Nym "
                      "public key: " << strPartyUserID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -2650,7 +2650,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, SERVER_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
-        if (false == bSuccessLoadingPartyInbox) {
+        if (!bSuccessLoadingPartyInbox) {
             otErr << "OTSmartContract::StashFunds: ERROR loading or generating "
                      "inbox ledger.\n";
         }
@@ -3203,13 +3203,13 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
         return false;
     }
 
-    if (false == pFromAgent->IsAnIndividual()) {
+    if (!pFromAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::MoveAcctFunds: error: authorized agent ("
               << pFromAcct->GetAgentName() << ") for from_acct ("
               << from_acct_name << ") is not an active agent.\n";
         return false;
     }
-    if (false == pToAgent->IsAnIndividual()) {
+    if (!pToAgent->IsAnIndividual()) {
         otOut << "OTSmartContract::MoveAcctFunds: error: authorized agent ("
               << pToAcct->GetAgentName() << ") for to_acct (" << to_acct_name
               << ") is not an active agent.\n";
@@ -3679,7 +3679,7 @@ bool OTSmartContract::ProcessCron()
     // a chance to check its stuff.
     // Currently it calls IsExpired().
     //
-    if (false == ot_super::ProcessCron()) {
+    if (!ot_super::ProcessCron()) {
         otLog3 << "Cron job has expired.\n";
         return false; // It's expired or flagged for removal--remove it from
                       // Cron.
@@ -3867,11 +3867,11 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
 
             pScript->SetDisplayFilename(m_strLabel.Get());
 
-            if (false == pScript->ExecuteScript()) // If I passed theReturnVal
-                                                   // in here, then it'd be
-                                                   // assumed a bool is expected
-                                                   // to be returned inside it.
-                                                   //            if (false ==
+            if (!pScript->ExecuteScript()) // If I passed theReturnVal
+                                           // in here, then it'd be
+                                           // assumed a bool is expected
+                                           // to be returned inside it.
+                                           //            if (false ==
             // pScript->ExecuteScript((str_clause_name.compare("process_clause")
             // == 0) ? &theReturnVal : nullptr))
             {
@@ -4560,7 +4560,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
         // server failure reply, whether their
         // opening number was to still be considered valid -- or not.
         //
-        if (false == bIsPartyAuthorized) {
+        if (!bIsPartyAuthorized) {
             otOut << __FUNCTION__ << ": Party " << str_party_name
                   << " does NOT verify as authorized! \n";
             bAreAnyInvalidParties = true; // We let them all go through, but we
@@ -4795,7 +4795,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                    // YOU must clean up afterwards.
         map_Nyms_Loaded_In_This_Function.insert(map_Nyms_NewlyLoaded.begin(),
                                                 map_Nyms_NewlyLoaded.end());
-        if (false == bAgentsLoaded) {
+        if (!bAgentsLoaded) {
             otOut << __FUNCTION__
                   << ": Failed trying to Load and Verify Agent Nyms for party: "
                   << str_party_name << "\n";
@@ -4828,7 +4828,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
 
         map_Accts_Loaded_In_This_Function.insert(map_Accts_NewlyLoaded.begin(),
                                                  map_Accts_NewlyLoaded.end());
-        if (false == bAcctsLoaded) {
+        if (!bAcctsLoaded) {
             otOut
                 << __FUNCTION__
                 << ": Failed trying to Load and Verify Asset Accts for party: "
@@ -4850,7 +4850,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
         const bool bAreAcctsVerified = pParty->VerifyAccountsWithTheirAgents(
             theServerNym, strServerID,
             bBurnTransNo); // bBurnTransNo=false by default.
-        if (false == bAreAcctsVerified) {
+        if (!bAreAcctsVerified) {
             otOut << __FUNCTION__
                   << ": Failed trying to Verify Asset Accts with their Agents, "
                      "for party: " << str_party_name << "\n";
@@ -5192,7 +5192,7 @@ void OTSmartContract::CleanupAccts(mapOfAccounts& theMap)
 //
 bool OTSmartContract::AddParty(OTParty& theParty)
 {
-    if (false == theParty.HasActiveAgent()) {
+    if (!theParty.HasActiveAgent()) {
         otOut << "OTSmartContract::AddParty: Party doesn't have an active "
                  "agent -- who will sign for this smart contract?\n";
         return false;
@@ -5201,7 +5201,7 @@ bool OTSmartContract::AddParty(OTParty& theParty)
     // MIGHT move this below (1).. OR this might turn out to be important going
     // first...
     //
-    if (false == OTScriptable::AddParty(theParty)) {
+    if (!OTScriptable::AddParty(theParty)) {
         otOut << "OTSmartContract::AddParty: Failed adding party.\n";
         return false;
     }
@@ -5229,7 +5229,7 @@ bool OTSmartContract::AddParty(OTParty& theParty)
 //
 bool OTSmartContract::ConfirmParty(OTParty& theParty)
 {
-    if (false == theParty.HasActiveAgent()) {
+    if (!theParty.HasActiveAgent()) {
         otOut << "OTSmartContract::ConfirmParty: Party doesn't have an active "
                  "agent -- who will sign for this smart contract?\n";
         return false;
@@ -5248,7 +5248,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // place already. If the confirmation fails, we will harvest the numbers
     // back again.
     //
-    if (false == theParty.ReserveTransNumsForConfirm(strServerID)) {
+    if (!theParty.ReserveTransNumsForConfirm(strServerID)) {
         otOut << "OTSmartContract::ConfirmParty: Failure trying to reserve "
                  "transaction numbers for "
                  "the smart contract. (Nym needs more numbers than he has.)\n";
@@ -5274,7 +5274,7 @@ bool OTSmartContract::ConfirmParty(OTParty& theParty)
     // THIS IS where the SIGNED COPY is SAVED, so all final changes must occur
     // ABOVE this point.
     //
-    if (false == OTScriptable::ConfirmParty(theParty)) {
+    if (!OTScriptable::ConfirmParty(theParty)) {
         otOut << "OTSmartContract::ConfirmParty: Failed confirming party.\n";
         SetCreationDate(OLD_TIME); // Might as well set this back.
         theParty.HarvestAllTransactionNumbers(strServerID); // If it failed,
@@ -5416,7 +5416,7 @@ int32_t OTSmartContract::GetCountStashAccts() const
 //
 bool OTSmartContract::Compare(OTScriptable& rhs) const
 {
-    if (false == OTScriptable::Compare(rhs)) return false;
+    if (!OTScriptable::Compare(rhs)) return false;
 
     if (GetCountStashes() > 0) {
         otErr << "OTSmartContract::Compare: Error: How is this function EVER "
@@ -5919,7 +5919,7 @@ bool OTSmartContract::MoveFunds(
         theSenderNym.SetIdentifier(
             SENDER_USER_ID); // theSenderNym is pSenderNym
 
-        if (false == theSenderNym.LoadPublicKey()) {
+        if (!theSenderNym.LoadPublicKey()) {
             OTString strNymID(SENDER_USER_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading Sender Nym public "
                      "key: " << strNymID << "\n";
@@ -5966,7 +5966,7 @@ bool OTSmartContract::MoveFunds(
     {
         theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
 
-        if (false == theRecipientNym.LoadPublicKey()) {
+        if (!theRecipientNym.LoadPublicKey()) {
             OTString strNymID(RECIPIENT_USER_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading Recipient Nym "
                      "public key: " << strNymID << "\n";

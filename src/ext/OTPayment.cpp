@@ -1402,7 +1402,7 @@ NOT contain a purse. "
 
 Purse* OTPayment::InstantiatePurse(const OTString& strPayment)
 {
-    if (false == SetPayment(strPayment))
+    if (!SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the "
                  "payment string based on "
                  "what was passed in:\n\n" << strPayment << "\n\n";
@@ -1420,7 +1420,7 @@ Purse* OTPayment::InstantiatePurse(const OTString& strPayment)
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
 OTString& strPayment)
 {
-    if (false == SetPayment(strPayment))
+    if (!SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
 payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
@@ -1438,7 +1438,7 @@ the "
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
 OTIdentifier& ASSET_ID, const OTString& strPayment)
 {
-    if (false == SetPayment(strPayment))
+    if (!SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
 payment string based on "
                       "what was passed in:\n\n%s\n\n", strPayment.Get());
@@ -1459,8 +1459,8 @@ bool OTPayment::SetPayment(const OTString& strPayment)
 
     OTString strContract(strPayment);
 
-    if (false == strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
-                                                     // by default.
+    if (!strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
+                                             // by default.
     {
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
                                  "then failed decoding. Contents: \n"
