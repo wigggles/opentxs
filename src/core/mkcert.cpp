@@ -2,8 +2,6 @@
 * operations.
 */
 
-//#include <stdafx.hpp>
-
 #include <OTString.hpp>
 
 #ifdef __cplusplus
@@ -40,39 +38,6 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
                int32_t days);
 int32_t add_ext(X509* cert, int32_t nid, char* value);
 
-/*
-int32_t main(int32_t argc, char **argv)
-        {
-        BIO *bio_err;
-        X509 *x509=nullptr;
-        EVP_PKEY *pkey=nullptr;
-
-        CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-
-        bio_err=BIO_new_fp(stderr, BIO_NOCLOSE);
-
-        mkcert(&x509,&pkey,512,0,365);
-
-        RSA_print_fp(stdout,pkey->pkey.rsa,0);
-        X509_print_fp(stdout,x509);
-
-        PEM_write_PrivateKey(stdout,pkey,EVP_des_ede3_cbc(),nullptr,0,nullptr,
-nullptr);
-        PEM_write_X509(stdout,x509);
-
-        X509_free(x509);
-        EVP_PKEY_free(pkey);
-
-#ifndef OPENSSL_NO_ENGINE
-        ENGINE_cleanup();
-#endif
-        CRYPTO_cleanup_all_ex_data();
-
-        CRYPTO_mem_leaks(bio_err);
-        return(0);
-        }
- */
-
 static void callback(int32_t p, int32_t, void*)
 {
     char c = 'B';
@@ -96,8 +61,7 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
 
     if ((pkeyp == nullptr) || (*pkeyp == nullptr)) {
         if ((pk = EVP_PKEY_new()) == nullptr) {
-            abort(); // todo
-                     // return(0); unneeded after abort.
+            abort();
         }
         bCreatedKey = true;
     }
@@ -115,7 +79,6 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     }
     else
         x = *x509p;
-//        pRsaKey = RSA_generate_key(1024, 0x010001, nullptr, nullptr);
 
 #ifdef ANDROID
     rsa = RSA_new();
@@ -123,7 +86,6 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
 
     if ((nullptr == rsa) || (nullptr == e1)) abort(); // todo
 
-    //      BN_set_word(e1, 65537);
     BN_set_word(e1, RSA_F4);
 
     if (!RSA_generate_key_ex(rsa, bits, e1, nullptr)) abort(); // todo
@@ -133,8 +95,7 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
     rsa = RSA_generate_key(bits, RSA_F4, callback, nullptr);
 #endif
     if (!EVP_PKEY_assign_RSA(pk, rsa)) {
-        abort(); // todo
-                 // return(0); undeeded after abort.
+        abort();
     }
     rsa = nullptr;
 
