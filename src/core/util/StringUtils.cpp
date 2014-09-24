@@ -171,43 +171,4 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
     return str_new;
 }
 
-// ***** Implementation *****
-
-// Checks if s2 is the first word in s1.
-// s1 ends at the first space character.
-// len_cmp("load wallet.xml", "load") returns true
-// used for USER INPUT ONLY.  And it's sloppy.
-bool len_cmp(const char* s1, const char* s2)
-{
-    OT_ASSERT(nullptr != s1);
-    OT_ASSERT(nullptr != s2);
-
-    for (; *s1 && *s2 && *s1 != ' '; s1++, s2++)
-        if (toupper(*s1) != toupper(*s2)) return false;
-
-    // bug: as long as it's a partial match while the loop continues,
-    // this function will for example return true even if the user entered
-    // "c" when the command was "continue"
-    return true;
-}
-
-// Note: this version doesn't take a length for str,
-// which is a security problem. todo.
-// (Do we use this anymore anyway?)
-//
-char* str_dup1(const char* str)
-{
-    char* str_new = new char[strlen(str) + 1];
-
-    OT_ASSERT(nullptr != str_new);
-
-#ifdef _WIN32
-    strcpy_s(str_new, strlen(str), str);
-#else
-    strlcpy(str_new, str, strlen(str));
-#endif
-
-    return str_new;
-}
-
 } // namespace opentxs
