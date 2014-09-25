@@ -173,14 +173,16 @@ uint32_t OTPayload::ReadBytesFrom(OTData& theData, uint32_t lSize)
     // The size requested to read MUST be less or equal to size of theData
     if (theData.GetSize() < lSize) abort();
 
-    OTPayload& refPayload = (OTPayload&)theData; // todo fix this cast.
+    OTPayload& refPayload = static_cast<OTPayload&>(theData);
 
     // Copy from theData to this, up until lSize
     Assign(refPayload.GetPayloadPointer(), lSize);
 
     // Create a temp var, starting from theData+lSize, copying to the end of
     // theData
-    OTData TEMPdata((uint8_t*)refPayload.GetPayloadPointer() + lSize,
+    OTData TEMPdata(static_cast<uint8_t*>(
+                        const_cast<void*>(refPayload.GetPayloadPointer())) +
+                        lSize,
                     theData.GetSize() - lSize);
 
     // theData is assigned to TEMPdata (thus removing from it the bytes that we
@@ -202,10 +204,12 @@ bool OTPayload::SetEnvelope(const OTEnvelope& theEnvelope)
             SetPayloadSize(lSize + 1); // +1 for the checksum byte.
 
             // Copy it in.
-            memcpy((void*)GetPointer(), theArmor.Get(), lSize);
+            memcpy(const_cast<void*>(GetPointer()), theArmor.Get(), lSize);
 
             // Add the checksum, success.
-            AppendChecksum((OT_BYTE*)GetPointer(), lSize);
+            AppendChecksum(
+                reinterpret_cast<OT_BYTE*>(const_cast<void*>(GetPointer())),
+                lSize);
             return true;
         }
     }
@@ -225,12 +229,14 @@ bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
     // (lSize-1 would be the location of the checksum at the end.)
     if (0 == lSize) return false;
 
-    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize)) {
+    if (IsChecksumValid(
+            reinterpret_cast<OT_BYTE*>(const_cast<void*>(GetPointer())),
+            static_cast<uint32_t>(lSize))) {
         // We add the null-terminator ourselves at this point, for security
         // reasons,
         // since we will process the data, soon after this function, as a
         // string.
-        ((OT_BYTE*)GetPointer())[lIndex] = 0;
+        reinterpret_cast<OT_BYTE*>(const_cast<void*>(GetPointer()))[lIndex] = 0;
 
         theEnvelope.m_dataContents.Release();
 
@@ -241,7 +247,7 @@ bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
         // (2) There place where the nullptr should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
-        theArmor.Set((const char*)GetPointer());
+        theArmor.Set(static_cast<const char*>(GetPointer()));
 
         // Todo NOTE: If I ever want to process bookends here instead of
         // assuming they aren't there,
@@ -271,11 +277,13 @@ bool OTPayload::GetMessagePayload(OTMessage& theMessage) const
     // (nSize-1 would be the location of the checksum at the end.)
     if (0 == lSize) return false;
 
-    if (IsChecksumValid((OT_BYTE*)GetPointer(), (uint32_t)lSize)) {
+    if (IsChecksumValid(
+            reinterpret_cast<OT_BYTE*>(const_cast<void*>(GetPointer())),
+            static_cast<uint32_t>(lSize))) {
         // We add the null-terminator ourselves at this point, for security
         // reasons,
         // since we will process the data, after this point, as a string.
-        ((OT_BYTE*)GetPointer())[lIndex] = 0;
+        reinterpret_cast<OT_BYTE*>(const_cast<void*>(GetPointer()))[lIndex] = 0;
 
         theMessage.Release();
 
@@ -285,7 +293,7 @@ bool OTPayload::GetMessagePayload(OTMessage& theMessage) const
         // (2) There place where the nullptr should be, I set to 0, by hand,
         // just above 2 lines. So when this set operation occurs, the
         // farthest it will go is to that 0.
-        theMessage.m_strRawFile.Set((const char*)GetPointer());
+        theMessage.m_strRawFile.Set(static_cast<const char*>(GetPointer()));
         return true;
     }
     else {

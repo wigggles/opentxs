@@ -2382,7 +2382,7 @@ int64_t OTPseudonym::GetGenericNum(const mapOfTransNums& THE_MAP,
                 // Let's loop through them and see if the culprit is there
                 for (uint32_t i = 0; i < pDeque->size(); i++) {
                     // Found it!
-                    if ((uint32_t)nIndex == i) {
+                    if (static_cast<uint32_t>(nIndex) == i) {
                         lRetVal = pDeque->at(i); // <==== Got the number here.
                         break;
                     }

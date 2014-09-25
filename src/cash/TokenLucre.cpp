@@ -272,7 +272,7 @@ bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
         req.WriteBIO(bioCoin);
 
         // write the public coin request to BIO
-        ((PublicCoinRequest*)&req)->WriteBIO(bioPublicCoin);
+        static_cast<PublicCoinRequest*>(&req)->WriteBIO(bioPublicCoin);
 
         // Convert the two bios to our format
         char privateCoinBuffer[4096],

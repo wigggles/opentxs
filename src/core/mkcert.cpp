@@ -112,10 +112,12 @@ int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
      * correct string type and performing checks on its length.
      * Normally we'd check the return value for errors...
      */
-    X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC, (const uint8_t*)"UK",
-                               -1, -1, 0);
-    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
-                               (const uint8_t*)"OpenSSL Group", -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC,
+                               reinterpret_cast<const uint8_t*>("UK"), -1, -1,
+                               0);
+    X509_NAME_add_entry_by_txt(
+        name, "CN", MBSTRING_ASC,
+        reinterpret_cast<const uint8_t*>("OpenSSL Group"), -1, -1, 0);
 
     /* Its self signed so set the issuer name to be the same as the
      * subject.

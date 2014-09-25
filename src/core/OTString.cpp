@@ -518,9 +518,7 @@ bool OTString::operator>=(const OTString& s2) const
 
 void fwrite_string(std::ostream& ofs, const char* str)
 {
-    char* pchar;
-
-    pchar = (char*)str;
+    char* pchar = const_cast<char*>(str);
 
     if (str)
         while (*pchar) {
@@ -1106,7 +1104,7 @@ bool OTString::Compare(const char* strCompare) const
     }
 
     char* s1 = data_;
-    char* s2 = (char*)strCompare;
+    char* s2 = const_cast<char*>(strCompare);
 
     for (; *s1 && *s2; s1++, s2++)
         if (*s1 != *s2) return false;
@@ -1386,7 +1384,7 @@ bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
     if (position_ >= length_) return false;
 
     uint32_t lIndex = 0;
-    char* pChar = (char*)(data_ + position_);
+    char* pChar = const_cast<char*>(data_ + position_);
 
     // while *pChar isn't at the end of the source string,
     // and lIndex hasn't reached the end of the destination buffer,
@@ -1447,7 +1445,7 @@ char OTString::sgetc(void)
     if (position_ >= length_) {
         return EOF;
     }
-    answer = (char)(*(data_ + position_));
+    answer = static_cast<char>(*(data_ + position_));
 
     ++position_;
 

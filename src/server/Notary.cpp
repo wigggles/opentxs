@@ -8066,10 +8066,10 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
 
             bOutSuccess = true; // the processNymbox was successful.
 
-            strPath.Format((char*)"%s.success", strNymID.Get());
+            strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());
         }
         else
-            strPath.Format((char*)"%s.fail", strNymID.Get());
+            strPath.Format(const_cast<char*>("%s.fail"), strNymID.Get());
 
         const char* szFoldername = OTFolders::Receipt().Get();
 
@@ -9510,10 +9510,10 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
         }
         theNym.SaveSignedNymfile(server_->m_nymServer);
         bOutSuccess = true; // the processInbox was successful.
-        strPath.Format((char*)"%s.success", strAcctID.Get());
+        strPath.Format(const_cast<char*>("%s.success"), strAcctID.Get());
     }
     else
-        strPath.Format((char*)"%s.fail", strAcctID.Get());
+        strPath.Format(const_cast<char*>("%s.fail"), strAcctID.Get());
 
     const char* szFoldername = OTFolders::Receipt().Get();
 

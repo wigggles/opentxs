@@ -145,6 +145,10 @@
 #include "crypto/OpenSSL_BIO.hpp"
 #endif
 
+// BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
+// use old style cast
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 namespace opentxs
 {
 
@@ -695,7 +699,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
                                                                // read.
     {
         buffer_x509[len] = '\0';
-        strx509.Set((const char*)buffer_x509);
+        strx509.Set(reinterpret_cast<const char*>(buffer_x509));
 
         EVP_PKEY* pPublicKey = X509_get_pubkey(x509);
         if (nullptr != pPublicKey) {
@@ -770,8 +774,7 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
                                                              // read.
     {
         buffer_pri[len] = '\0';
-        strOutput.Set((const char*)buffer_pri); // so I can write this string to
-                                                // file in a sec... todo cast
+        strOutput.Set(reinterpret_cast<const char*>(buffer_pri));
         bSuccess = true;
     }
     else
@@ -922,7 +925,7 @@ PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
                                                                // by OpenSSL
             {
                 int32_t pLen, gLen, yLen;
-                ELGAMAL* pKey = (ELGAMAL*)malloc(sizeof(ELGAMAL));
+                ELGAMAL* pKey = static_cast<ELGAMAL*>(malloc(sizeof(ELGAMAL)));
                 if (nullptr == pKey) {
                     otErr << __FUNCTION__ << ": Error: pKey is nullptr!";
                     OT_FAIL;
@@ -994,7 +997,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
     PgpKeys pgpKeys;
 
     OpenSSL_BIO b64 = BIO_new(BIO_f_base64());
-    OpenSSL_BIO bio = BIO_new_mem_buf((void*)strKey.Get(), -1);
+    OpenSSL_BIO bio = BIO_new_mem_buf(
+        reinterpret_cast<void*>(const_cast<char*>(strKey.Get())), -1);
     OpenSSL_BIO bio_out = BIO_new(BIO_s_mem());
     OpenSSL_BIO bioJoin = BIO_push(b64, bio);
     b64.release();
@@ -1006,8 +1010,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
     BIO_get_mem_ptr(bio_out, &bptr);
     bio_out.setFreeOnly();
 
-    pgpKeys =
-        ExportRsaKey((uint8_t*)bptr->data, static_cast<int32_t>(bptr->length));
+    pgpKeys = ExportRsaKey(reinterpret_cast<uint8_t*>(bptr->data),
+                           static_cast<int32_t>(bptr->length));
 
     if (!pgpKeys.pRsa) {
         otLog5 << "\nNo RSA public key found.\n\n";

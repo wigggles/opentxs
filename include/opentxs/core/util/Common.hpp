@@ -177,7 +177,7 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 #define OT_TIME_HOUR_IN_SECONDS OTTimeGetTimeFromSeconds(3600) // 60 * 60
 #define OT_TIME_MINUTE_IN_SECONDS OTTimeGetTimeFromSeconds(60) // 60
 
-#define OT_TIME_ZERO OTTimeGetTimeFromSeconds((int64_t)0)
+#define OT_TIME_ZERO OTTimeGetTimeFromSeconds(static_cast<int64_t>(0))
 
 //#define FORCE_COMPILE_ERRORS_TO_FIND_USAGE  // uncomment this line to find
 // non-localized time64_t usage

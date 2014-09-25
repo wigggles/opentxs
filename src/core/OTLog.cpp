@@ -1154,7 +1154,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
 #endif // lp64
 
     ot_ulong eip = 0;
-    ucontext_t* uc = (ucontext_t*)v;
+    ucontext_t* uc = static_cast<ucontext_t*>(v);
 
 #if defined(__APPLE__)
 #ifdef __arm__
@@ -1175,7 +1175,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
     mcontext_t* mc;
     struct sigcontext* ctx;
     mc = &uc->uc_mcontext;
-    ctx = (struct sigcontext*)mc;
+    ctx = reinterpret_cast<struct sigcontext*>(mc);
 #ifdef __i386__
     eip = ctx->eip;
 #else
@@ -1220,7 +1220,7 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
 #error "Unknown OS in sigsegv"
 #endif
 
-    void* caller_address = (void*)eip;
+    void* caller_address = reinterpret_cast<void*>(eip);
 
     std::cerr << "signal " << sig_num << " (" << strsignal(sig_num)
               << "), address is " << info->si_addr << " from " << caller_address

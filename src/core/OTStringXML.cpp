@@ -208,7 +208,7 @@ OTStringXML::operator irr::io::IFileReadCallBack*()
 int32_t OTStringXML::read(void* buffer, uint32_t sizeToRead)
 {
     if (buffer && sizeToRead && Exists()) {
-        char* pBuf = (char*)buffer;
+        char* pBuf = static_cast<char*>(buffer);
 
         int32_t nBytesToCopy =
             (sizeToRead > GetLength() ? GetLength() : sizeToRead);

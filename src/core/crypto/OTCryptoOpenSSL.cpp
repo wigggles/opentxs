@@ -572,8 +572,7 @@ uint8_t* ot_openssl_base64_decode(const char* input, size_t* out_len,
     if (b64) {
         if (!bLineBreaks) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
-        OpenSSL_BIO bmem =
-            BIO_new_mem_buf((char*)input, in_len); // todo casting.
+        OpenSSL_BIO bmem = BIO_new_mem_buf(const_cast<char*>(input), in_len);
         OT_ASSERT(nullptr != bmem);
 
         OpenSSL_BIO b64join = BIO_push(b64, bmem);
@@ -666,8 +665,9 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
     uint32_t nBigNumBytes = BN_num_bytes(pBigNum);
     theOutput.SetSize(nBigNumBytes);
 
-    const int32_t nConverted =
-        BN_bn2bin(pBigNum, (uint8_t*)(theOutput.GetPointer())); // Todo casting.
+    const int32_t nConverted = BN_bn2bin(
+        pBigNum,
+        static_cast<uint8_t*>(const_cast<void*>(theOutput.GetPointer())));
     OT_ASSERT(nConverted);
 
     // BN_bn2bin() converts the absolute value of param 1 into big-endian form
@@ -697,8 +697,8 @@ void OTCrypto_OpenSSL::SetBase62StringFromID(const OTIdentifier& theInput,
     BIGNUM* pBigNum = BN_new();
     OT_ASSERT(nullptr != pBigNum);
 
-    BN_bin2bn((uint8_t*)(theInput.GetPointer()), theInput.GetSize(),
-              pBigNum); // todo cast
+    BN_bin2bn(static_cast<uint8_t*>(const_cast<void*>(theInput.GetPointer())),
+              theInput.GetSize(), pBigNum);
 
     // Convert from BIGNUM to Hex String.
     //
@@ -1906,8 +1906,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
             // elements (each containing a pointer
             // to an EVP_PKEY that we must NOT clean up.)
             //
-            *m_array_pubkey =
-                (EVP_PKEY**)malloc(m_RecipPubKeys.size() * sizeof(EVP_PKEY*));
+            *m_array_pubkey = static_cast<EVP_PKEY**>(
+                malloc(m_RecipPubKeys.size() * sizeof(EVP_PKEY*)));
             OT_ASSERT(nullptr != *m_array_pubkey);
             memset(*m_array_pubkey, 0,
                    m_RecipPubKeys.size() *
@@ -1917,7 +1917,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
             // (*m_ek)[] array must have m_RecipPubKeys.size() no. of elements
             // (each will contain a pointer from OpenSSL that we must clean up.)
             //
-            *m_ek = (uint8_t**)malloc(m_RecipPubKeys.size() * sizeof(uint8_t*));
+            *m_ek = static_cast<uint8_t**>(
+                malloc(m_RecipPubKeys.size() * sizeof(uint8_t*)));
             if (nullptr == *m_ek) OT_FAIL;
             memset(*m_ek, 0, m_RecipPubKeys.size() *
                                  sizeof(uint8_t*)); // size of array length *
@@ -1973,10 +1974,10 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                 // the symmetric key will be encrypted to.) The space is left
                 // empty, for OpenSSL
                 // to populate.
-                //
-                (*m_ek)[nKeyIndex] = (uint8_t*)malloc(
-                    EVP_PKEY_size(public_key)); // (*m_ek)[i] must have room for
-                                                // EVP_PKEY_size(pubk[i]) bytes.
+
+                // (*m_ek)[i] must have room for EVP_PKEY_size(pubk[i]) bytes.
+                (*m_ek)[nKeyIndex] =
+                    static_cast<uint8_t*>(malloc(EVP_PKEY_size(public_key)));
                 OT_ASSERT(nullptr != (*m_ek)[nKeyIndex]);
                 memset((*m_ek)[nKeyIndex], 0, EVP_PKEY_size(public_key));
             }
@@ -3933,9 +3934,9 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
 
     //    else
     {
-        md = (EVP_MD*)
+        md = const_cast<EVP_MD*>(
             OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-                strHashType); // todo cast
+                strHashType));
     }
 
     // If it's not the default hash, then it's just a normal hash.
@@ -3978,8 +3979,9 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     uint8_t sig_buf[4096]; // Safe since we pass the size when we use it.
 
     int32_t sig_len = sizeof(sig_buf);
-    int32_t err = EVP_SignFinal(&md_ctx, sig_buf, (uint32_t*)&sig_len,
-                                (EVP_PKEY*)pkey); // todo cast
+    int32_t err =
+        EVP_SignFinal(&md_ctx, sig_buf, reinterpret_cast<uint32_t*>(&sig_len),
+                      const_cast<EVP_PKEY*>(pkey));
 
     if (err != 1) {
         otErr << szFunc << ": Error signing xml contents.\n";
@@ -4090,9 +4092,9 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
 
     //    else
     {
-        md = (EVP_MD*)
+        md = const_cast<EVP_MD*>(
             OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-                strHashType); // todo cast
+                strHashType));
     }
 
     if (!md) {
@@ -4136,8 +4138,9 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     // 0 for failure and -1 if some other error occurred.
     //
     int32_t nErr = EVP_VerifyFinal(
-        &ctx, (const uint8_t*)binSignature.GetPayloadPointer(), // todo cast
-        (uint32_t)binSignature.GetSize(), (EVP_PKEY*)pkey);     // todo cast
+        &ctx, static_cast<const uint8_t*>(binSignature.GetPayloadPointer()),
+        static_cast<uint32_t>(binSignature.GetSize()),
+        const_cast<EVP_PKEY*>(pkey));
 
     EVP_MD_CTX_cleanup(&ctx);
 
@@ -4165,8 +4168,9 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
 
     // Create a new memory buffer on the OpenSSL side
     //
-    OpenSSL_BIO bio =
-        BIO_new_mem_buf((void*)strCertFileContents.c_str(), -1); // todo cast.
+    OpenSSL_BIO bio = BIO_new_mem_buf(
+        reinterpret_cast<void*>(const_cast<char*>(strCertFileContents.c_str())),
+        -1);
     OT_ASSERT(nullptr != bio);
 
     // TODO security:
@@ -4226,8 +4230,8 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 
     // Create a new memory buffer on the OpenSSL side
     //
-    OpenSSL_BIO bio =
-        BIO_new_mem_buf((void*)strCertFileContents.c_str(), -1); // todo cast
+    OpenSSL_BIO bio = BIO_new_mem_buf(
+        static_cast<void*>(const_cast<char*>(strCertFileContents.c_str())), -1);
     OT_ASSERT(nullptr != bio);
 
     OTPasswordData thePWData("(OTCrypto_OpenSSL::VerifySignature is trying to "

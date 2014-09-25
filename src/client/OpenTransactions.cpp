@@ -9470,7 +9470,7 @@ int32_t OT_API::notarizeWithdrawal(const OTIdentifier& SERVER_ID,
 
     const OTIdentifier SERVER_USER_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
-        pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
+        pMint->VerifyMint(const_cast<OTPseudonym&>(*pServerNym))) {
         int64_t lRequestNumber = 0;
         Purse* pPurse = new Purse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
         Purse* pPurseMyCopy = new Purse(SERVER_ID, CONTRACT_ID, USER_ID);
@@ -11924,7 +11924,7 @@ int32_t OT_API::issueMarketOffer(
             // items...)
             OTItem* pItem = OTItem::CreateItemFromTransaction(
                 *pTransaction, OTItem::marketOffer,
-                (OTIdentifier*)(&CURRENCY_ACCT_ID));
+                const_cast<OTIdentifier*>((&CURRENCY_ACCT_ID)));
             // the "To" account (normally used for a TRANSFER transaction) is
             // used here
             // storing the Currency Acct ID. The Server will expect the Trade
