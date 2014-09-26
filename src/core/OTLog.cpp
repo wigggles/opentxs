@@ -294,7 +294,7 @@ int OTLogStream::overflow(int c)
     return 0;
 }
 
-//  OTLog Init, must run this befor useing any OTLog function.
+//  OTLog Init, must run this before using any OTLog function.
 
 // static
 bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
@@ -945,10 +945,6 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 //
 void ot_terminate()
 {
-    static std::mutex the_Mutex;
-
-    std::lock_guard<std::mutex> lock(the_Mutex);
-
     try {
         // try once to re-throw currently active exception
         static bool tried_throw = false;
