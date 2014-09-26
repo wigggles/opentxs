@@ -160,9 +160,7 @@ public:
     virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
 
     virtual void Release();
-    virtual void UpdateContents(); // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
+    virtual void UpdateContents();
 
     inline int64_t GetTransactionNum() const
     {

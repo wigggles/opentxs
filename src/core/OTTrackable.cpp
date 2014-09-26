@@ -206,9 +206,4 @@ void OTTrackable::UpdateContents()
 {
 }
 
-bool OTTrackable::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs
