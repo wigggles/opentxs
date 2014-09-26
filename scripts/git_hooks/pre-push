@@ -47,7 +47,9 @@ do
 				-r $remote/develop..HEAD | grep '^src/')
 	while read file; do
 		[ -e "$file" ] && exist_files="$exist_files $(printf %q "$file")"
-	done <<< $mod_files
+	done <<END
+		$(echo $mod_files)
+END
 	if [ -z "$exist_files" ]; then
 		echo "==> cppcheck successfull"
 		exit 0
