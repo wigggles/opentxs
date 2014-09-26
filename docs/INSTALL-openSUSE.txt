@@ -17,7 +17,7 @@ $ sudo zypper install --type pattern devel_basis
 $ sudo zypper in cmake zlib-devel googletest-devel
 
 # install Open-Transactions library dependencies
-$ sudo zypper in openssl libopenssl1_0_0 libopenssl-devel libprotobuf7 libprotobuf-lite7 protobuf-devel
+$ sudo zypper in openssl libopenssl1_0_0 libopenssl-devel libprotobuf7 libprotobuf-lite7 protobuf-devel zeromq-devel
 
 
 #########  Optional API dependencies  ##########
