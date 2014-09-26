@@ -273,28 +273,20 @@ void OTIdentifier::CopyTo(uint8_t* szNewLocation) const
 // of two reputable algorithms. This way, if one of them gets broken,
 // our signatures are still safe.
 // Smart, eh?  So I named it in his honor.
-// (I have chosen SHA-256 and RIPEMD-256.)
-// UPDATE: SHA-512 and WHIRLPOOL
-// UPDATE: SHA-256 and WHIRLPOOL
+// Using SHA-256 and WHIRLPOOL
 // We now have 256-bit keysize, though half of WHIRLPOOL output is still XORed
 // onto it.
 // We also now input/output the string values with Base62 instead of Hex. (More
 // compact.)
 //
 
-//#ifndef ANDROID
 const OTString OTIdentifier::DefaultHashAlgorithm("SAMY");
-//#else
-// const OTString OTIdentifier::DefaultHashAlgorithm("SHA256");
-//#endif // ANDROID
-
 const OTString OTIdentifier::HashAlgorithm1("SHA256");
 const OTString OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 
 // This method implements the SAMY hash
 bool OTIdentifier::CalculateDigest(const OTString& strInput)
 {
-    //#ifndef ANDROID // If NOT Android...
     OTIdentifier idSecondHash;
 
     if (idSecondHash.CalculateDigest(strInput, HashAlgorithm2) &&
@@ -305,12 +297,6 @@ bool OTIdentifier::CalculateDigest(const OTString& strInput)
         // Next we XOR them together for the final product.
         return XOR(idSecondHash);
     }
-    //#else // SHA256 on Android; no whirlpool until OpenSSL 1.0.0 is added.
-    //    if (CalculateDigest(strInput, HashAlgorithm1))
-    //    {
-    //        return true;
-    //    }
-    //#endif // ANDROID
 
     return false;
 }
@@ -318,8 +304,6 @@ bool OTIdentifier::CalculateDigest(const OTString& strInput)
 // This method implements the SAMY hash
 bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 {
-    //#ifndef ANDROID // SHA256 on Android; no whirlpool until OpenSSL 1.0.0 is
-    // added.
     OTIdentifier idSecondHash;
 
     if (idSecondHash.CalculateDigest(dataInput, HashAlgorithm2) &&
@@ -330,13 +314,6 @@ bool OTIdentifier::CalculateDigest(const OTData& dataInput)
         // Next we XOR them together for the final product.
         return XOR(idSecondHash);
     }
-    //#else // ANDROID
-    //    if (CalculateDigest(dataInput, HashAlgorithm1)) // SHA256 only until I
-    // add the new OpenSSL 1.0 for Android
-    //    {
-    //        return true;
-    //    }
-    //#endif // ANDROID
 
     return false;
 }
