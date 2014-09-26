@@ -143,7 +143,7 @@ namespace opentxs
 {
 
 OTTrackable::OTTrackable()
-    : ot_super()
+    : OTInstrument()
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -151,7 +151,7 @@ OTTrackable::OTTrackable()
 
 OTTrackable::OTTrackable(const OTIdentifier& SERVER_ID,
                          const OTIdentifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+    : OTInstrument(SERVER_ID, ASSET_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -161,7 +161,7 @@ OTTrackable::OTTrackable(const OTIdentifier& SERVER_ID,
                          const OTIdentifier& ASSET_ID,
                          const OTIdentifier& ACCT_ID,
                          const OTIdentifier& USER_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+    : OTInstrument(SERVER_ID, ASSET_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -203,9 +203,7 @@ void OTTrackable::Release_Trackable()
 void OTTrackable::Release()
 {
     Release_Trackable();
-
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    OTInstrument::Release();
 
     // Then I call this to re-initialize everything for myself.
     InitTrackable();
@@ -230,7 +228,7 @@ int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // In this case, I don't need to call the parent. But I'm going to
     // call the grand-grand-parent (scriptable.)
     //
-    nReturnVal = ot_super::ProcessXMLNode(xml);
+    nReturnVal = OTInstrument::ProcessXMLNode(xml);
 
     if (nReturnVal !=
         0) // -1 is error, and 1 is "found it". Either way, return.

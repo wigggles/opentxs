@@ -146,9 +146,6 @@ class OTNumList;
 //
 class OTTrackable : public OTInstrument
 {
-private: // Private prevents erroneous use by other classes.
-    typedef OTInstrument ot_super;
-
 protected:
     int64_t m_lTransactionNum;
     OTIdentifier m_SENDER_ACCT_ID; // The asset account the instrument is drawn
