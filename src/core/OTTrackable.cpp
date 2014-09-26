@@ -131,13 +131,8 @@
  **************************************************************/
 
 #include "stdafx.hpp"
-
 #include "OTTrackable.hpp"
-
 #include "OTNumList.hpp"
-
-// This class is like OTInstrument except with identifying info (such as
-// transaction number) added.
 
 namespace opentxs
 {
@@ -177,15 +172,14 @@ OTTrackable::~OTTrackable()
 
 void OTTrackable::InitTrackable()
 {
-    m_strContractType.Set("TRACKABLE"); // Should never happen in practice. A
-                                        // child class will override it.
-
+    // Should never happen in practice. A child class will override it.
+    m_strContractType.Set("TRACKABLE");
     m_lTransactionNum = 0;
 }
 
 bool OTTrackable::HasTransactionNum(const int64_t& lInput) const
 {
-    return (lInput == m_lTransactionNum);
+    return lInput == m_lTransactionNum;
 }
 
 void OTTrackable::GetAllTransactionNumbers(OTNumList& numlistOutput) const
@@ -195,7 +189,6 @@ void OTTrackable::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 
 void OTTrackable::Release_Trackable()
 {
-    // If there were any dynamically allocated objects, clean them up here.
     m_SENDER_ACCT_ID.Release();
     m_SENDER_USER_ID.Release();
 }
