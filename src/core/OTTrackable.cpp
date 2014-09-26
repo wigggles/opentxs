@@ -209,56 +209,6 @@ void OTTrackable::Release()
     InitTrackable();
 }
 
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTTrackable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    //    otErr << "OTTrackable::ProcessXMLNode...\n";
-
-    int32_t nReturnVal = 0;
-
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    //
-
-    // In this case, I don't need to call the parent. But I'm going to
-    // call the grand-grand-parent (scriptable.)
-    //
-    nReturnVal = OTInstrument::ProcessXMLNode(xml);
-
-    if (nReturnVal !=
-        0) // -1 is error, and 1 is "found it". Either way, return.
-        return nReturnVal; // 0 means "nothing happened, keep going."
-
-    // From OTCronItem (only as sample code.)
-    //
-    //    if (!strcmp("closingTransactionNumber", xml->getNodeName()))
-    //    {
-    //        OTString strClosingNumber = xml->getAttributeValue("value");
-    //
-    //        if (strClosingNumber.Exists())
-    //        {
-    //            const int64_t lClosingNumber = atol(strClosingNumber.Get());
-    //
-    //            AddClosingTransactionNo(lClosingNumber);
-    //        }
-    //        else
-    //        {
-    //            otErr << "Error in OTCronItem::ProcessXMLNode:
-    // closingTransactionNumber field without value.\n";
-    //            return (-1); // error condition
-    //        }
-    //
-    //        nReturnVal = 1;
-    //    }
-
-    return nReturnVal;
-}
-
 void OTTrackable::UpdateContents()
 {
 }
