@@ -151,29 +151,33 @@ public:
     OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
     OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
                 const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
+
     virtual ~OTTrackable();
 
     void InitTrackable();
     void Release_Trackable();
 
-    virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
-
     virtual void Release();
     virtual void UpdateContents();
+
+    virtual bool HasTransactionNum(const int64_t& lInput) const;
+    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
 
     inline int64_t GetTransactionNum() const
     {
         return m_lTransactionNum;
     }
+
     inline void SetTransactionNum(int64_t lTransactionNum)
     {
         m_lTransactionNum = lTransactionNum;
     }
+
     inline const OTIdentifier& GetSenderAcctID() const
     {
         return m_SENDER_ACCT_ID;
     }
+
     inline const OTIdentifier& GetSenderUserID() const
     {
         return m_SENDER_USER_ID;
@@ -184,6 +188,7 @@ protected:
     {
         m_SENDER_ACCT_ID = ACCT_ID;
     }
+
     inline void SetSenderUserID(const OTIdentifier& USER_ID)
     {
         m_SENDER_USER_ID = USER_ID;
