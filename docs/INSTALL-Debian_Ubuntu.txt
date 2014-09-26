@@ -7,7 +7,7 @@
 #########################################################################
 
 ## Supports Debian 7 or later
-## Supports Ubuntu 12.10 or later
+## Supports Ubuntu 14.04 or later
 
 ## To build opentxs you need a C++ 11 compiler (minimum GCC 4.7, 4.8 recommended)
 
@@ -16,7 +16,7 @@
 $ sudo aptitude install git build-essential cmake pkg-config
 
 # install Open-Transactions library dependencies
-$ sudo aptitude install libssl-dev protobuf-compiler libprotobuf-dev
+$ sudo aptitude install libssl-dev protobuf-compiler libprotobuf-dev libzmq3-dev
 
 (NB: may need "libprotoc" if "protobuf-compiler" pkg not available on debian-like sytems)
 
