@@ -146,25 +146,25 @@ class OTNumList;
 //
 class OTTrackable : public OTInstrument
 {
-protected:
-    int64_t m_lTransactionNum;
-    OTIdentifier m_SENDER_ACCT_ID; // The asset account the instrument is drawn
-                                   // on.
-    OTIdentifier m_SENDER_USER_ID; // This ID must match the user ID on that
-                                   // asset account,
-    // AND must verify the instrument's signature with that user's key.
-    inline void SetSenderAcctID(const OTIdentifier& ACCT_ID)
-    {
-        m_SENDER_ACCT_ID = ACCT_ID;
-    }
-    inline void SetSenderUserID(const OTIdentifier& USER_ID)
-    {
-        m_SENDER_USER_ID = USER_ID;
-    }
-
 public:
+    OTTrackable();
+    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
+                const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
+    virtual ~OTTrackable();
+
+    void InitTrackable();
+    void Release_Trackable();
+
     virtual bool HasTransactionNum(const int64_t& lInput) const;
     virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+
+    virtual void Release();
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual void UpdateContents(); // Before transmission or serialization, this
+                                   // is where the ledger saves its contents
+    virtual bool SaveContractWallet(std::ofstream& ofs) const;
+
     inline int64_t GetTransactionNum() const
     {
         return m_lTransactionNum;
@@ -182,18 +182,23 @@ public:
         return m_SENDER_USER_ID;
     }
 
-    OTTrackable();
-    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
-    virtual ~OTTrackable();
-    void InitTrackable();
-    virtual void Release();
-    void Release_Trackable();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual void UpdateContents(); // Before transmission or serialization, this
-                                   // is where the ledger saves its contents
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
+protected:
+    inline void SetSenderAcctID(const OTIdentifier& ACCT_ID)
+    {
+        m_SENDER_ACCT_ID = ACCT_ID;
+    }
+    inline void SetSenderUserID(const OTIdentifier& USER_ID)
+    {
+        m_SENDER_USER_ID = USER_ID;
+    }
+
+protected:
+    int64_t m_lTransactionNum;
+    // The asset account the instrument is drawn on.
+    OTIdentifier m_SENDER_ACCT_ID;
+    // This ID must match the user ID on that asset account,
+    // AND must verify the instrument's signature with that user's key.
+    OTIdentifier m_SENDER_USER_ID;
 };
 
 } // namespace opentxs
