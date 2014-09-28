@@ -940,9 +940,7 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 #endif
 }
 
-// This is our custom std::terminate handler for SIGABRT (and any
-// std::terminate() call)
-//
+// This is our custom std::terminate(). Also called for uncaught exceptions.
 void ot_terminate()
 {
     try {
