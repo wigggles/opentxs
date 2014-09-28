@@ -943,29 +943,26 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 // This is our custom std::terminate(). Also called for uncaught exceptions.
 void ot_terminate()
 {
-    try {
-        // try once to re-throw currently active exception
-        static bool tried_throw = false;
-        if (!tried_throw) {
-            tried_throw = true;
-            throw;
+    if (auto e = std::current_exception()) {
+        try {
+            std::rethrow_exception(e);
+        }
+        catch (const std::exception& e) {
+            std::cerr << "ot_terminate: " << __FUNCTION__
+                      << " caught unhandled exception."
+                      << " type: " << typeid(e).name()
+                      << " what(): " << e.what() << std::endl;
+        }
+        catch (...) {
+            std::cerr << "ot_terminate: " << __FUNCTION__
+                      << " caught unknown/unhandled exception." << std::endl;
         }
     }
-    catch (const std::exception& e) {
-        std::cerr << "ot_terminate: " << __FUNCTION__
-                  << " caught unhandled exception. type: " << typeid(e).name()
-                  << " what(): " << e.what() << std::endl;
-    }
-    catch (...) {
-        std::cerr << "ot_terminate: " << __FUNCTION__
-                  << " caught unknown/unhandled exception." << std::endl;
-    }
 
-// UNIX
-
-#if !defined(_WIN32) && !defined(ANDROID) // we don't have to deal with
-                                          // mangled_names on windows. (well I'm
-                                          // not going to attempt to.)
+#if !defined(_WIN32) && !defined(ANDROID)
+//  Print a stack trace to stderr.
+//  FIXME: this code is repeated multiple times in this file and should
+//         be put in a separate method.
 
     void* array[50];
     int32_t size = backtrace(array, 50);
@@ -1026,7 +1023,8 @@ void ot_terminate()
 
 #endif
 
-    abort();
+    // Call the default std::terminate() handler.
+    std::abort();
 }
 
 #ifdef _WIN32 // Windows SIGNALS
