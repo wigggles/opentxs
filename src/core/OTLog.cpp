@@ -294,7 +294,7 @@ int OTLogStream::overflow(int c)
     return 0;
 }
 
-//  OTLog Init, must run this befor useing any OTLog function.
+//  OTLog Init, must run this before using any OTLog function.
 
 // static
 bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
@@ -940,99 +940,29 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 #endif
 }
 
-// This is our custom std::terminate handler for SIGABRT (and any
-// std::terminate() call)
-//
+// This is our custom std::terminate(). Also called for uncaught exceptions.
 void ot_terminate()
 {
-    static std::mutex the_Mutex;
-
-    std::lock_guard<std::mutex> lock(the_Mutex);
-
-    try {
-        // try once to re-throw currently active exception
-        static bool tried_throw = false;
-        if (!tried_throw) {
-            tried_throw = true;
-            throw;
+    if (auto e = std::current_exception()) {
+        try {
+            std::rethrow_exception(e);
+        }
+        catch (const std::exception& e) {
+            std::cerr << "ot_terminate: " << __FUNCTION__
+                      << " caught unhandled exception."
+                      << " type: " << typeid(e).name()
+                      << " what(): " << e.what() << std::endl;
+        }
+        catch (...) {
+            std::cerr << "ot_terminate: " << __FUNCTION__
+                      << " caught unknown/unhandled exception." << std::endl;
         }
     }
-    catch (const std::exception& e) {
-        std::cerr << "ot_terminate: " << __FUNCTION__
-                  << " caught unhandled exception. type: " << typeid(e).name()
-                  << " what(): " << e.what() << std::endl;
-    }
-    catch (...) {
-        std::cerr << "ot_terminate: " << __FUNCTION__
-                  << " caught unknown/unhandled exception." << std::endl;
-    }
 
-// UNIX
+    print_stacktrace();
 
-#if !defined(_WIN32) && !defined(ANDROID) // we don't have to deal with
-                                          // mangled_names on windows. (well I'm
-                                          // not going to attempt to.)
-
-    void* array[50];
-    int32_t size = backtrace(array, 50);
-
-    char** messages = backtrace_symbols(array, size);
-
-    // skip first stack frame (points here)
-    for (int32_t i = 1; i < size && messages != nullptr; ++i) {
-        char* mangled_name = 0, *offset_begin = 0, *offset_end = 0;
-
-        // find parantheses and +address offset surrounding mangled name
-        for (char* p = messages[i]; *p; ++p) {
-            if (*p == '(') {
-                mangled_name = p;
-            }
-            else if (*p == '+') {
-                offset_begin = p;
-            }
-            else if (*p == ')') {
-                offset_end = p;
-                break;
-            }
-        }
-
-        // if the line could be processed, attempt to demangle the symbol
-        if (mangled_name && offset_begin && offset_end &&
-            mangled_name < offset_begin) {
-            *mangled_name++ = '\0';
-            *offset_begin++ = '\0';
-            *offset_end++ = '\0';
-
-            int32_t status;
-            char* real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
-
-            // if demangling is successful, output the demangled function name
-            if (status == 0) {
-                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-                          << real_name << "+" << offset_begin << offset_end
-                          << std::endl;
-
-            }
-            // otherwise, output the mangled function name
-            else {
-                std::cerr << "[bt]: (" << i << ") " << messages[i] << " : "
-                          << mangled_name << "+" << offset_begin << offset_end
-                          << std::endl;
-            }
-            if (nullptr != real_name) free(real_name);
-        }
-        // otherwise, print the whole line
-        else {
-            std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
-        }
-    }
-    std::cerr << std::endl;
-
-    free(messages);
-
-#endif
-
-    abort();
+    // Call the default std::terminate() handler.
+    std::abort();
 }
 
 #ifdef _WIN32 // Windows SIGNALS
