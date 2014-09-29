@@ -16,6 +16,9 @@ $ sudo yum install gcc autoconf automake libtool wget cmake zlib-devel gtest-dev
 # install Open-Transactions library dependencies
 $ sudo yum install zeromq-devel openssl-devel msgpack-devel protobuf-devel
 
+# install ZeroMQ (version >= 4.x)
+- Fedora 20: Build ZeroMQ from source.
+- Fedora < 20: Get the package with: $ sudo yum install zeromq3-devel
 
 #########  Optional API dependencies  ##########
 SWIG Version 3.0.0 or newer required.
