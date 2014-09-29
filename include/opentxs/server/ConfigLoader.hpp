@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_CONFIGLOADER_HPP__
-#define __OPENTXS_CONFIGLOADER_HPP__
+#ifndef OPENTXS_SERVER_CONFIGLOADER_HPP
+#define OPENTXS_SERVER_CONFIGLOADER_HPP
 
 namespace opentxs
 {
@@ -145,4 +145,4 @@ struct ConfigLoader
 
 } // namespace opentxs
 
-#endif // __OPENTXS_CONFIGLOADER_HPP__
+#endif // OPENTXS_SERVER_CONFIGLOADER_HPP

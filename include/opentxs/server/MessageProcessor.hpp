@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef __OPENTXS_MESSAGEPROCESSOR_HPP__
-#define __OPENTXS_MESSAGEPROCESSOR_HPP__
+#ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
+#define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
 #include <opentxs/ext/Socket_ZMQ4.hpp>
 #include <string>
@@ -159,4 +159,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_MESSAGEPROCESSOR_HPP__
+#endif // OPENTXS_SERVER_MESSAGEPROCESSOR_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_USERCOMMANDPROCESSOR_HPP__
-#define __OPENTXS_USERCOMMANDPROCESSOR_HPP__
+#ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
+#define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
 #include <opentxs/core/OTString.hpp>
 
@@ -243,4 +243,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_USERCOMMANDPROCESSOR_HPP__
+#endif // OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
