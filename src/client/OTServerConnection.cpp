@@ -598,56 +598,21 @@ void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
         SetupHeader(theCMD, CMD_TYPE_1, TYPE_1_CMD_1, thePayload);
     }
 
-    if (IsFocused()) // RPC / HTTP mode... ----------
-    {
-        OT_ASSERT(nullptr != m_pCallback);
-        OT_ASSERT(nullptr != m_pServerContract);
+    OT_ASSERT(IsFocused())
+    OT_ASSERT(nullptr != m_pCallback);
+    OT_ASSERT(nullptr != m_pServerContract);
 
-        // Call the callback here.
-        otOut << "\n=====>BEGIN Sending " << theMessage.m_strCommand
-              << " message via ZMQ... Request number: "
-              << theMessage.m_strRequestNum << "\n";
+    // Call the callback here.
+    otOut << "\n=====>BEGIN Sending " << theMessage.m_strCommand
+          << " message via ZMQ... Request number: "
+          << theMessage.m_strRequestNum << "\n";
 
-        m_pCallback->operator()(*m_pServerContract, theEnvelope);
+    (*m_pCallback)(*m_pServerContract, theEnvelope);
 
-        otWarn << "<=====END Finished sending " << theMessage.m_strCommand
-               << " message (and hopefully receiving "
-                  "a reply.)\nRequest number: " << theMessage.m_strRequestNum
-               << "\n\n";
-    }
-    else // TCP / SSL mode... -----------
-    {
-        const uint32_t nHeaderSize = OT_CMD_HEADER_SIZE;
-
-        int32_t err = 0;
-        for (uint32_t nwritten = 0; nwritten < nHeaderSize; nwritten += err) {
-
-#ifdef _WIN32
-            if (0 == err || SOCKET_ERROR == err) //  0 is disonnect. error is
-                                                 // error. >0 is bytes written.
-#else
-            if (err <= 0)
-#endif
-                break;
-        }
-
-        // At this point, we have sent the header across the pipe.
-        // Next we write the payload...
-
-        uint32_t nPayloadSize = thePayload.GetSize();
-
-        for (uint32_t nwritten = 0; nwritten < nPayloadSize; nwritten += err) {
-
-#ifdef _WIN32
-            if (0 == err || SOCKET_ERROR == err) //  0 is disonnect. error is
-                                                 // error. >0 is bytes written.
-#else
-            if (err <= 0)
-#endif
-                break;
-        }
-        otOut << "Message sent via TCP / SSL...\n\n";
-    }
+    otWarn << "<=====END Finished sending " << theMessage.m_strCommand
+           << " message (and hopefully receiving "
+              "a reply.)\nRequest number: " << theMessage.m_strRequestNum
+           << "\n\n";
 
     // At this point, we have sent the envelope to the server.
 }
