@@ -1,187 +1,115 @@
-# - C# module for CMake
-# Defines the following macros:
-#   CSHARP_ADD_EXECUTABLE(name [ files ])
-#     - Define C# executable with given name
-#   CSHARP_ADD_LIBRARY(name [ files ])
-#     - Define C# library with given name
-#   CSHARP_LINK_LIBRARIES(name [ libraries ])
-#     - Link libraries to csharp library
 #
-#  Copyright (c) 2006-2011 Mathieu Malaterre <mathieu.malaterre@gmail.com>
+# A CMake Module for finding and using C# (.NET and Mono).
 #
-#  Redistribution and use is allowed according to the terms of the New
-#  BSD license.
-#  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
+# The following global variables are assumed to exist:
+#   CSHARP_SOURCE_DIRECTORY - path to C# sources
+#   CSHARP_BINARY_DIRECTORY - path to place resultant C# binary files
 #
+# The following variables are set:
+#   CSHARP_TYPE - the type of the C# compiler (eg. ".NET" or "Mono")
+#   CSHARP_COMPILER - the path to the C# compiler executable (eg. "C:/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe")
+#   CSHARP_VERSION - the version number of the C# compiler (eg. "v4.0.30319")
+#
+# The following macros are defined:
+#   CSHARP_ADD_EXECUTABLE( name references [files] [output_dir] ) - Define C# executable with the given name
+#   CSHARP_ADD_LIBRARY( name references [files] [output_dir] ) - Define C# library with the given name
+#
+# Examples:
+#   CSHARP_ADD_EXECUTABLE( MyExecutable "" "Program.cs" )
+#   CSHARP_ADD_EXECUTABLE( MyExecutable "ref1.dll ref2.dll" "Program.cs File1.cs" )
+#   CSHARP_ADD_EXECUTABLE( MyExecutable "ref1.dll;ref2.dll" "Program.cs;File1.cs" )
+#
+# This file is based on the work of GDCM:
+#   http://gdcm.svn.sf.net/viewvc/gdcm/trunk/CMake/UseCSharp.cmake
+# Copyright (c) 2006-2010 Mathieu Malaterre <mathieu.malaterre@gmail.com>
+#
+# Also based on the work of Insight Segmentation and Registration Toolkit
+# Copyright 1999-2013 Insight Software Consortium
+# https://github.com/SimpleITK/SimpleITK
 
-# TODO:
-# http://www.cs.nuim.ie/~jpower/Research/csharp/Index.html
+# TODO: ADD SUPPORT FOR LINK LIBRARIES
 
-if(WIN32)
-  include(${DotNETFrameworkSDK_USE_FILE})
-  # remap
-  set(CMAKE_CSHARP1_COMPILER ${CSC_v1_EXECUTABLE})
-  set(CMAKE_CSHARP2_COMPILER ${CSC_v2_EXECUTABLE})
-  set(CMAKE_CSHARP3_COMPILER ${CSC_v3_EXECUTABLE})
-  set(CMAKE_CSHARP4_COMPILER ${CSC_v4_EXECUTABLE})
+# Check something was found
+if( NOT CSHARP_COMPILER )
+  message( WARNING "A C# compiler executable was not found on your system" )
+endif( NOT CSHARP_COMPILER )
 
-  #set(CMAKE_CSHARP3_INTERPRETER ${MONO_EXECUTABLE})
-else()
-  include(${MONO_USE_FILE})
-  set(CMAKE_CSHARP1_COMPILER ${MCS_EXECUTABLE})
-  set(CMAKE_CSHARP2_COMPILER ${GMCS_EXECUTABLE})
-  set(CMAKE_CSHARP3_COMPILER ${SMCS_EXECUTABLE})
-  set(CMAKE_CSHARP4_COMPILER ${SMCS_EXECUTABLE})
+# Include type-based USE_FILE
+if( CSHARP_TYPE MATCHES ".NET" )
+  include( ${DotNetFrameworkSdk_USE_FILE} )
+elseif ( CSHARP_TYPE MATCHES "Mono" )
+  include( ${Mono_USE_FILE} )
+endif ( CSHARP_TYPE MATCHES ".NET" )
 
-  set(CMAKE_CSHARP_INTERPRETER ${MONO_EXECUTABLE})
-endif()
+macro( CSHARP_ADD_LIBRARY name )
+  CSHARP_ADD_PROJECT( "library" ${name} ${ARGN} )
+endmacro( CSHARP_ADD_LIBRARY )
 
-set(DESIRED_CSHARP_COMPILER_VERSION 2 CACHE STRING "Pick a version for C# compiler to use: 1, 2, 3 or 4")
-mark_as_advanced(DESIRED_CSHARP_COMPILER_VERSION)
+macro( CSHARP_ADD_EXECUTABLE name )
+  CSHARP_ADD_PROJECT( "exe" ${name} ${ARGN} )
+endmacro( CSHARP_ADD_EXECUTABLE )
 
-# default to v1:
-if(DESIRED_CSHARP_COMPILER_VERSION MATCHES 1)
-  set(CMAKE_CSHARP_COMPILER ${CMAKE_CSHARP1_COMPILER})
-elseif(DESIRED_CSHARP_COMPILER_VERSION MATCHES 2)
-  set(CMAKE_CSHARP_COMPILER ${CMAKE_CSHARP2_COMPILER})
-elseif(DESIRED_CSHARP_COMPILER_VERSION MATCHES 3)
-  set(CMAKE_CSHARP_COMPILER ${CMAKE_CSHARP3_COMPILER})
-elseif(DESIRED_CSHARP_COMPILER_VERSION MATCHES 4)
-  set(CMAKE_CSHARP_COMPILER ${CMAKE_CSHARP4_COMPILER})
-else()
-  message(FATAL_ERROR "Do not know this version")
-endif()
+# Private macro
+macro( CSHARP_ADD_PROJECT type name )
+  set( refs "/reference:System.dll" )
+  set( sources )
+  set( sources_dep )
 
-# CMAKE_CSHARP_COMPILER /platform and anycpu
-if(WIN32)
-# There is a subttle issue when compiling on 64bits platform using a 32bits compiler
-# See bug ID: 3510023 (BadImageFormatException: An attempt was made to load a progr)
+  if( ${type} MATCHES "library" )
+    set( output "dll" )
+  elseif( ${type} MATCHES "exe" )
+    set( output "exe" )
+  endif( ${type} MATCHES "library" )
 
-set(CSC_ACCEPTS_PLATFORM_FLAG 0)
+  # Step through each argument
+  foreach( it ${ARGN} )
+    if( ${it} MATCHES "(.*)(dll)" )
+       # Argument is a dll, add reference
+       list( APPEND refs /reference:${it} )
+    else( )
+      # Argument is a source file
+      if( EXISTS ${it} )
+        list( APPEND sources ${it} )
+        list( APPEND sources_dep ${it} )
+      elseif( EXISTS ${CSHARP_SOURCE_DIRECTORY}/${it} )
+        list( APPEND sources ${CSHARP_SOURCE_DIRECTORY}/${it} )
+        list( APPEND sources_dep ${CSHARP_SOURCE_DIRECTORY}/${it} )
+      elseif( ${it} MATCHES "[*]" )
+        # For dependencies, we need to expand wildcards
+        FILE( GLOB it_glob ${it} )
+        list( APPEND sources ${it} )
+        list( APPEND sources_dep ${it_glob} )
+      endif( )
+    endif ( )
+  endforeach( )
 
-if(CMAKE_CSHARP_COMPILER)
-  execute_process(COMMAND "${CMAKE_CSHARP_COMPILER}" "/?" OUTPUT_VARIABLE CSC_HELP)
-  # when cmd locale is in French it displays: "/platform:<chaine>" in english: "/platform:<string>"
-  # so only regex match in /platform:
-  if("${CSC_HELP}" MATCHES "/platform:")
-    set(CSC_ACCEPTS_PLATFORM_FLAG 1)
-  endif()
-endif()
+  # Check we have at least one source
+  list( LENGTH sources_dep sources_length )
+  if ( ${sources_length} LESS 1 )
+    MESSAGE( SEND_ERROR "No C# sources were specified for ${type} ${name}" )
+  endif ()
+  list( SORT sources_dep )
 
-if(NOT DEFINED CSC_PLATFORM_FLAG)
-  set(CSC_PLATFORM_FLAG "")
-  if(CSC_ACCEPTS_PLATFORM_FLAG)
-    set(CSC_PLATFORM_FLAG "/platform:x86")
-    if("${CMAKE_SIZEOF_VOID_P}" GREATER 4)
-      set(CSC_PLATFORM_FLAG "/platform:x64")
-    endif()
-  endif()
-endif()
-endif()
+  # Perform platform specific actions
+  if (WIN32)
+    string( REPLACE "/" "\\" sources ${sources} )
+  else (UNIX)
+    string( REPLACE "\\" "/" sources ${sources} )
+  endif (WIN32)
 
-
-# Check something is found:
-if(NOT CMAKE_CSHARP_COMPILER)
-  # status message only for now:
-  message("Sorry C# v${DESIRED_CSHARP_COMPILER_VERSION} was not found on your system")
-else()
-  #if (NOT CSHARP_FIND_QUIETLY)
-  message(STATUS "Will be using C# v${DESIRED_CSHARP_COMPILER_VERSION}: ${CMAKE_CSHARP_COMPILER}")
-  #endif ()
-endif()
-
-macro(CSHARP_ADD_LIBRARY name)
-  set(csharp_cs_sources)
-  set(csharp_cs_sources_dep)
-  foreach(it ${ARGN})
-    if(EXISTS ${it})
-      set(csharp_cs_sources "${csharp_cs_sources} ${it}")
-      set(csharp_cs_sources_dep ${csharp_cs_sources_dep} ${it})
-    else()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${it})
-        set(csharp_cs_sources "${csharp_cs_sources} ${CMAKE_CURRENT_SOURCE_DIR}/${it}")
-        set(csharp_cs_sources_dep ${csharp_cs_sources_dep} ${CMAKE_CURRENT_SOURCE_DIR}/${it})
-      else()
-        #message("Could not find: ${it}")
-        set(csharp_cs_sources "${csharp_cs_sources} ${it}")
-      endif()
-    endif()
-  endforeach()
-
-  #set(SHARP #)
-  separate_arguments(csharp_cs_sources)
+  # Add custom target and command
+  MESSAGE( STATUS "Adding C# ${type} ${name}: '${CSHARP_COMPILER} /t:${type} /out:${name}.${output} /platform:${CSHARP_PLATFORM} ${CSHARP_SDK} ${refs} ${sources}'" )
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${name}.dll
-    COMMAND ${CMAKE_CSHARP_COMPILER}
-    ARGS "/t:library" "/out:${name}.dll" ${csharp_cs_sources}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS "${csharp_cs_sources_dep}"
-    COMMENT "Creating Csharp library ${name}.cs"
+    COMMENT "Compiling C# ${type} ${name}: '${CSHARP_COMPILER} /t:${type} /out:${name}.${output} /platform:${CSHARP_PLATFORM} ${CSHARP_SDK} ${refs} ${sources}'"
+    OUTPUT ${CSHARP_BINARY_DIRECTORY}/${name}.${output}
+    COMMAND ${CSHARP_COMPILER}
+    ARGS /t:${type} /out:${name}.${output} /platform:${CSHARP_PLATFORM} ${CSHARP_SDK} ${refs} ${sources}
+    WORKING_DIRECTORY ${CSHARP_BINARY_DIRECTORY}
+    DEPENDS ${sources_dep}
   )
-  add_custom_target(CSharp_${name} ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${name}.dll
+  add_custom_target(
+    ${name} ALL
+    DEPENDS ${CSHARP_BINARY_DIRECTORY}/${name}.${output}
+    SOURCES ${sources_dep}
   )
-endmacro()
-
-macro(CSHARP_ADD_EXECUTABLE name)
-  set(csharp_cs_sources)
-  foreach(it ${ARGN})
-    if(EXISTS ${it})
-      set(csharp_cs_sources "${csharp_cs_sources} ${it}")
-    else()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${it})
-        set(csharp_cs_sources "${csharp_cs_sources} ${CMAKE_CURRENT_SOURCE_DIR}/${it}")
-      else()
-        #message("Could not find: ${it}")
-        set(csharp_cs_sources "${csharp_cs_sources} ${it}")
-      endif()
-    endif()
-  endforeach()
-
-  set(CSHARP_EXECUTABLE_${name}_ARGS
-    #"/out:${name}.dll" ${csharp_cs_sources}
-    #"/r:gdcm_csharp.dll"
-    "/out:${name}.exe ${csharp_cs_sources}"
-  )
-
-endmacro()
-
-macro(CSHARP_LINK_LIBRARIES name)
-  set(csharp_libraries)
-  set(csharp_libraries_depends)
-  foreach(it ${ARGN})
-    #if(EXISTS ${it}.dll)
-      set(csharp_libraries "${csharp_libraries} /r:${it}.dll")
-    #  set(csharp_libraries_depends ${it}.dll)
-    #else()
-    #  if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${it}.dll)
-    #    set(csharp_libraries "${csharp_libraries} /r:${it}.dll")
-    #    set(csharp_libraries_depends ${CMAKE_CURRENT_BINARY_DIR}/${it}.dll)
-    #  else()
-    #    message("Could not find: ${it}")
-    #  endif()
-    #endif()
-  endforeach()
-  set(CSHARP_EXECUTABLE_${name}_ARGS " ${csharp_libraries} ${CSHARP_EXECUTABLE_${name}_ARGS}")
-  #message( "DEBUG: ${CSHARP_EXECUTABLE_${name}_ARGS}" )
-
-  # BAD DESIGN !
-  # This should be in the _ADD_EXECUTABLE...
-  separate_arguments(CSHARP_EXECUTABLE_${name}_ARGS)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${name}.exe
-    COMMAND ${CMAKE_CSHARP_COMPILER}
-    #ARGS "/r:gdcm_csharp.dll" "/out:${name}.exe" ${csharp_cs_sources}
-    ARGS ${CSHARP_EXECUTABLE_${name}_ARGS}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    #DEPENDS ${csharp_cs_sources}
-    COMMENT "Create HelloWorld.exe"
-  )
-
-  #message("DEBUG2:${csharp_libraries_depends}")
-  add_custom_target(CSHARP_EXECUTABLE_${name} ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${name}.exe
-            ${csharp_libraries_depends}
-  )
-
-endmacro()
+endmacro( CSHARP_ADD_PROJECT )
