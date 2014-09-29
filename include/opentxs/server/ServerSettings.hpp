@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_SERVERSETTINGS_HPP__
-#define __OPENTXS_SERVERSETTINGS_HPP__
+#ifndef OPENTXS_SERVER_SERVERSETTINGS_HPP
+#define OPENTXS_SERVER_SERVERSETTINGS_HPP
 
 #include <string>
 #include <cstdint>
@@ -244,4 +244,4 @@ struct ServerSettings
 
 } // namespace opentxs
 
-#endif // __OPENTXS_SERVERSETTINGS_HPP__
+#endif // OPENTXS_SERVER_SERVERSETTINGS_HPP

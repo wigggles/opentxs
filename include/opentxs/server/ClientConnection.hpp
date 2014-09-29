@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OT_CLIENT_CONNECTION_HPP__
-#define __OT_CLIENT_CONNECTION_HPP__
+#ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#define OPENTXS_SERVER_CLIENTCONNECTION_HPP
 
 namespace opentxs
 {
@@ -158,4 +158,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OT_CLIENT_CONNECTION_HPP__
+#endif // OPENTXS_SERVER_CLIENTCONNECTION_HPP

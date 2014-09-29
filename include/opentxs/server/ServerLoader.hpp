@@ -1,5 +1,5 @@
-#ifndef __OPENTXS_SERVERLOADER_HPP__
-#define __OPENTXS_SERVERLOADER_HPP__
+#ifndef OPENTXS_SERVER_SERVERLOADER_HPP
+#define OPENTXS_SERVER_SERVERLOADER_HPP
 
 #include "OTServer.hpp"
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -111,4 +111,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_SERVERLOADER_HPP__
+#endif // OPENTXS_SERVER_SERVERLOADER_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_HELPERS_HPP__
-#define __OPENTXS_HELPERS_HPP__
+#ifndef OPENTXS_SERVER_HELPERS_HPP
+#define OPENTXS_SERVER_HELPERS_HPP
 
 #include <opentxs/core/OTLog.hpp>
 #include <string>
@@ -226,4 +226,4 @@ inline std::string OT_CLI_ReadUntilEOF()
 
 } // namespace opentxs
 
-#endif // __OPENTXS_HELPERS_HPP__
+#endif // OPENTXS_SERVER_HELPERS_HPP

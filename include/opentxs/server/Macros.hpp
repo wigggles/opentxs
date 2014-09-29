@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_MACROS_HPP__
-#define __OPENTXS_MACROS_HPP__
+#ifndef OPENTXS_SERVER_MACROS_HPP
+#define OPENTXS_SERVER_MACROS_HPP
 
 #include "ServerSettings.hpp"
 #include <opentxs/core/OTLog.hpp>
@@ -163,4 +163,4 @@ namespace opentxs
 
 } // namespace opentxs
 
-#endif // __OPENTXS_MACROS_HPP__
+#endif // OPENTXS_SERVER_MACROS_HPP

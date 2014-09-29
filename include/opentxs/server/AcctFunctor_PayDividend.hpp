@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_ACCTFUNCTOR_PAYDIVIDEND_HPP__
-#define __OPENTXS_ACCTFUNCTOR_PAYDIVIDEND_HPP__
+#ifndef OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
+#define OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 
 #include <opentxs/core/OTAcctFunctor.hpp>
 
@@ -217,4 +217,4 @@ public:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_ACCTFUNCTOR_PAYDIVIDEND_HPP__
+#endif // OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP

@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_MAINFILE_HPP__
-#define __OPENTXS_MAINFILE_HPP__
+#ifndef OPENTXS_SERVER_MAINFILE_HPP
+#define OPENTXS_SERVER_MAINFILE_HPP
 
 #include <opentxs/core/OTString.hpp>
 
@@ -158,4 +158,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_MAINFILE_HPP__
+#endif // OPENTXS_SERVER_MAINFILE_HPP

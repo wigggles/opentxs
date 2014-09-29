@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef __OPENTXS_TRANSACTOR_HPP__
-#define __OPENTXS_TRANSACTOR_HPP__
+#ifndef OPENTXS_SERVER_TRANSACTOR_HPP
+#define OPENTXS_SERVER_TRANSACTOR_HPP
 
 #include <opentxs/core/OTAcctList.hpp>
 #include <string>
@@ -255,4 +255,4 @@ private:
 
 } // namespace opentxs
 
-#endif // __OPENTXS_TRANSACTOR_HPP__
+#endif // OPENTXS_SERVER_TRANSACTOR_HPP
