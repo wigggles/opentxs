@@ -133,7 +133,7 @@
 #ifndef OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 #define OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 
-#include <opentxs/core/OTAcctFunctor.hpp>
+#include <opentxs/core/AccountVisitor.hpp>
 
 #include <cstdint>
 
@@ -146,7 +146,7 @@ class OTServer;
 class OTString;
 
 // Note: from OTAssetContract.h and .cpp.
-// This is a subclass of OTAcctFunctor, which is used whenever OTAssetContract
+// This is a subclass of AccountVisitor, which is used whenever OTAssetContract
 // needs to
 // loop through all the accounts for a given asset type (its own.) This subclass
 // needs to
@@ -154,7 +154,7 @@ class OTString;
 // be defined
 // here in otserver (so it can see the methods that it needs...)
 //
-class AcctFunctor_PayDividend : public opentxs::OTAcctFunctor
+class AcctFunctor_PayDividend : public AccountVisitor
 {
     OTIdentifier* m_pUserID;
     OTIdentifier* m_pPayoutAssetID;

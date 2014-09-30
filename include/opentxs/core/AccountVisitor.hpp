@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAcctFunctor.hpp
+ *  AccountVisitor.hpp
  *
  */
 
@@ -144,17 +144,17 @@ class OTAccount;
 
 typedef std::map<std::string, OTAccount*> mapOfAccounts;
 
-class OTAcctFunctor
+class AccountVisitor
 {
 public:
-    EXPORT OTAcctFunctor(const OTIdentifier& serverId,
-                         mapOfAccounts* loadedAccounts = nullptr)
+    EXPORT AccountVisitor(const OTIdentifier& serverId,
+                          mapOfAccounts* loadedAccounts = nullptr)
         : serverId_(serverId)
         , loadedAccounts_(loadedAccounts)
     {
     }
 
-    EXPORT virtual ~OTAcctFunctor()
+    EXPORT virtual ~AccountVisitor()
     {
     }
 

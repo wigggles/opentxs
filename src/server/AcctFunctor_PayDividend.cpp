@@ -147,7 +147,7 @@ AcctFunctor_PayDividend::AcctFunctor_PayDividend(
     const OTIdentifier& thePayoutAssetID, const OTIdentifier& theVoucherAcctID,
     const OTString& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
-    : OTAcctFunctor(theServerID, pLoadedAccounts)
+    : AccountVisitor(theServerID, pLoadedAccounts)
     , m_pUserID(new OTIdentifier(theUserID))
     , m_pPayoutAssetID(new OTIdentifier(thePayoutAssetID))
     , m_pVoucherAcctID(new OTIdentifier(theVoucherAcctID))

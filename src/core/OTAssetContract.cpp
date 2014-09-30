@@ -134,7 +134,7 @@
 
 #include "OTAssetContract.hpp"
 #include "OTAccount.hpp"
-#include "OTAcctFunctor.hpp"
+#include "AccountVisitor.hpp"
 #include "OTAmount.hpp"
 #include "util/OTFolders.hpp"
 #include "OTLog.hpp"
@@ -575,7 +575,7 @@ bool OTAssetContract::SaveContractWallet(FILE* fl)
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool OTAssetContract::VisitAccountRecords(OTAcctFunctor& visitor) const
+bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 {
     OTString strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
