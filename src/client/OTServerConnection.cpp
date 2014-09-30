@@ -139,7 +139,7 @@
 #include "TransportCallback.hpp"
 
 #include "../core/OTAssetContract.hpp"
-#include "../core/OTDataCheck.hpp"
+#include "../core/util/OTDataCheck.hpp"
 #include "../core/crypto/OTEnvelope.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
