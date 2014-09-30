@@ -152,7 +152,7 @@ public:
     EXPORT OTStringXML();
     EXPORT OTStringXML(const OTString& value);
     EXPORT OTStringXML(const OTStringXML& value);
-    EXPORT ~OTStringXML();
+    EXPORT virtual ~OTStringXML();
 
     EXPORT operator irr::io::IFileReadCallBack*();
 
