@@ -142,18 +142,12 @@ class OTString;
 
 class OTServerContract : public OTContract
 {
-protected:
-    OTString m_strHostname;
-    int32_t m_nPort;
-    OTString m_strURL;
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-
 public:
     EXPORT OTServerContract();
     EXPORT OTServerContract(OTString& name, OTString& foldername,
                             OTString& filename, OTString& strID);
     EXPORT virtual ~OTServerContract();
+
     EXPORT bool GetConnectInfo(OTString& strHostname, int32_t& nPort) const;
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
@@ -164,6 +158,15 @@ public:
     virtual bool SaveContractWallet(OTString& strContents) const;
     virtual bool SaveContractWallet(std::ofstream& ofs) const;
     virtual bool DisplayStatistics(OTString& strContents) const;
+
+protected:
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+protected:
+    OTString m_strHostname;
+    int32_t m_nPort;
+    OTString m_strURL;
 };
 
 } // namespace opentxs
