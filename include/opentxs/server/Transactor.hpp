@@ -133,7 +133,7 @@
 #ifndef OPENTXS_SERVER_TRANSACTOR_HPP
 #define OPENTXS_SERVER_TRANSACTOR_HPP
 
-#include <opentxs/core/OTAcctList.hpp>
+#include <opentxs/core/AccountList.hpp>
 #include <string>
 #include <map>
 #include <memory>
@@ -246,7 +246,7 @@ private:
     // Need a way to look up a Basket Account ID using its Contract ID
     BasketsMap contractIdToBasketAccountId_;
     // The list of voucher accounts (see GetVoucherAccount below for details)
-    OTAcctList voucherAccounts_;
+    AccountList voucherAccounts_;
     // The mints for each asset type.
     MintsMap mintsMap_;
 

@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAcctList.hpp
+ *  AccountList.hpp
  *
  */
 
@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_OTACCTLIST_HPP
-#define OPENTXS_CORE_OTACCTLIST_HPP
+#ifndef OPENTXS_CORE_ACCOUNTLIST_HPP
+#define OPENTXS_CORE_ACCOUNTLIST_HPP
 
 #include "OTAccount.hpp" // only necessary because of OTAccount::AccountType
 #include <string>
@@ -149,12 +149,12 @@ class OTPseudonym;
 // Eventually will add expiration dates, possibly, to this class. (To have
 // series, just like cash already does now.)
 //
-class OTAcctList
+class AccountList
 {
 public:
-    EXPORT OTAcctList();
-    OTAcctList(OTAccount::AccountType acctType);
-    EXPORT ~OTAcctList();
+    EXPORT AccountList();
+    AccountList(OTAccount::AccountType acctType);
+    EXPORT ~AccountList();
 
     EXPORT int32_t GetCountAccountIDs() const
     {
@@ -197,4 +197,4 @@ private:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTACCTLIST_HPP
+#endif // OPENTXS_CORE_ACCOUNTLIST_HPP
