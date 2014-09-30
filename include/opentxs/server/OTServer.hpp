@@ -158,7 +158,7 @@ class OTServer
     friend class MessageProcessor;
     friend class UserCommandProcessor;
     friend class MainFile;
-    friend class AcctFunctor_PayDividend;
+    friend class PayDividendVisitor;
     friend class Notary;
 
 public:

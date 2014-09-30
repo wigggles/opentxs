@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAcctFunctor.hpp
+ *  PayDividendVisitor.hpp
  *
  */
 
@@ -128,56 +128,93 @@
  kamH0Y/n11lCvo1oQxM+
  =uSzz
  -----END PGP SIGNATURE-----
- **************************************************************/
+**************************************************************/
 
-#ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
-#define OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#ifndef OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
+#define OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP
 
-#include "OTIdentifier.hpp"
-#include <map>
-#include <string>
+#include <opentxs/core/AccountVisitor.hpp>
+
+#include <cstdint>
 
 namespace opentxs
 {
 
 class OTAccount;
+class OTIdentifier;
+class OTServer;
+class OTString;
 
-typedef std::map<std::string, OTAccount*> mapOfAccounts;
-
-// This class is used by ForEachAccountRecord (above) which loops through
-// all the "simple" accounts of a specific asset type, and calls this functor
-// for each one.
-class OTAcctFunctor
+// Note: from OTAssetContract.h and .cpp.
+// This is a subclass of AccountVisitor, which is used whenever OTAssetContract
+// needs to
+// loop through all the accounts for a given asset type (its own.) This subclass
+// needs to
+// call OTServer method to do its job, so it can't be defined in otlib, but must
+// be defined
+// here in otserver (so it can see the methods that it needs...)
+//
+class PayDividendVisitor : public AccountVisitor
 {
+    OTIdentifier* m_pUserID;
+    OTIdentifier* m_pPayoutAssetID;
+    OTIdentifier* m_pVoucherAcctID;
+    OTString* m_pstrMemo; // contains the original payDividend item from the
+                          // payDividend transaction request. (Stored in the
+                          // memo field for each voucher.)
+    OTServer* m_pServer;  // no need to cleanup. It's here for convenience only.
+    int64_t m_lPayoutPerShare;
+    int64_t m_lAmountPaidOut;  // as we pay each voucher out, we keep a running
+                               // count.
+    int64_t m_lAmountReturned; // as we pay each voucher out, we keep a running
+                               // count.
+
 public:
-    EXPORT OTAcctFunctor(const OTIdentifier& serverId,
-                         mapOfAccounts* loadedAccounts = nullptr)
-        : serverId_(serverId)
-        , loadedAccounts_(loadedAccounts)
+    PayDividendVisitor(const OTIdentifier& theServerID,
+                       const OTIdentifier& theUserID,
+                       const OTIdentifier& thePayoutAssetID,
+                       const OTIdentifier& theVoucherAcctID,
+                       const OTString& strMemo, OTServer& theServer,
+                       int64_t lPayoutPerShare,
+                       mapOfAccounts* pLoadedAccounts = nullptr);
+    virtual ~PayDividendVisitor();
+
+    OTIdentifier* GetUserID()
     {
+        return m_pUserID;
+    }
+    OTIdentifier* GetPayoutAssetID()
+    {
+        return m_pPayoutAssetID;
+    }
+    OTIdentifier* GetVoucherAcctID()
+    {
+        return m_pVoucherAcctID;
+    }
+    OTString* GetMemo()
+    {
+        return m_pstrMemo;
+    }
+    OTServer* GetServer()
+    {
+        return m_pServer;
+    }
+    int64_t GetPayoutPerShare()
+    {
+        return m_lPayoutPerShare;
+    }
+    int64_t GetAmountPaidOut()
+    {
+        return m_lAmountPaidOut;
+    }
+    int64_t GetAmountReturned()
+    {
+        return m_lAmountReturned;
     }
 
-    EXPORT virtual ~OTAcctFunctor()
-    {
-    }
-
-    EXPORT OTIdentifier* GetServerID()
-    {
-        return &serverId_;
-    }
-
-    EXPORT mapOfAccounts* GetLoadedAccts()
-    {
-        return loadedAccounts_;
-    }
-
-    EXPORT virtual bool Trigger(OTAccount& account) = 0;
-
-protected:
-    OTIdentifier serverId_;
-    mapOfAccounts* loadedAccounts_;
+    virtual bool Trigger(OTAccount& theAccount);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTACCTFUNCTOR_HPP
+#endif // OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP

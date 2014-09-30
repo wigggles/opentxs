@@ -134,7 +134,7 @@
 #include "OTServer.hpp"
 #include "Macros.hpp"
 #include "ServerSettings.hpp"
-#include "AcctFunctor_PayDividend.hpp"
+#include "PayDividendVisitor.hpp"
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
@@ -1955,7 +1955,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                         strVoucherAcctID.Get(),
                                         &theVoucherReserveAcct));
 
-                                AcctFunctor_PayDividend actionPayDividend(
+                                PayDividendVisitor actionPayDividend(
                                     SERVER_ID, USER_ID, PAYOUT_ASSET_ID,
                                     VOUCHER_ACCOUNT_ID,
                                     strInReferenceTo, // Memo for each voucher
@@ -1972,7 +1972,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                 // account.)
                                 //
                                 const bool bForEachAcct =
-                                    pSharesContract->ForEachAccountRecord(
+                                    pSharesContract->VisitAccountRecords(
                                         actionPayDividend); // <================
                                                             // pay all the
                                                             // dividends here.
@@ -1997,7 +1997,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                 // are already loaded in memory (such as
                                 // theSourceAccount)
                                 // and PASS THEM IN to the above
-                                // ForEachAccountRecord call. This way it would
+                                // VisitAccountRecords call. This way it would
                                 // have the option to use
                                 // the "already loaded" versions, where
                                 // appropriate, instead of loading them twice.

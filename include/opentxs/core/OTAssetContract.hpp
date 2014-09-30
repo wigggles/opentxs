@@ -139,7 +139,7 @@ namespace opentxs
 {
 
 class OTAccount;
-class OTAcctFunctor;
+class AccountVisitor;
 class OTAmount;
 class OTIdentifier;
 class OTPseudonym;
@@ -179,9 +179,7 @@ public:
     // removes the account from the list. (When account is deleted.)
     EXPORT bool EraseAccountRecord(const OTIdentifier& theAcctID) const;
 
-    // Loops through all the accounts for a given asset type, and calls Functor
-    // on each.
-    EXPORT bool ForEachAccountRecord(OTAcctFunctor& theAction) const;
+    EXPORT bool VisitAccountRecords(AccountVisitor& visitor) const;
 
     EXPORT static std::string formatLongAmount(
         int64_t lValue, int32_t nFactor = 100, int32_t nPower = 2,

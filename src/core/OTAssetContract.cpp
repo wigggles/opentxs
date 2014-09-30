@@ -134,7 +134,7 @@
 
 #include "OTAssetContract.hpp"
 #include "OTAccount.hpp"
-#include "OTAcctFunctor.hpp"
+#include "AccountVisitor.hpp"
 #include "OTAmount.hpp"
 #include "util/OTFolders.hpp"
 #include "OTLog.hpp"
@@ -573,20 +573,10 @@ bool OTAssetContract::SaveContractWallet(FILE* fl)
 */
 
 // currently only "simple" accounts (normal user asset accounts) are added to
-// this list
-// Any "special" accounts, such as basket reserve accounts, or voucher reserve
-// accounts,
-// or cash reserve accounts, are not included on this list.
-//
-bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
-    const // Loops through all the accounts for a given
-          // asset type, and calls Functor on each.
+// this list Any "special" accounts, such as basket reserve accounts, or voucher
+// reserve accounts, or cash reserve accounts, are not included on this list.
+bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    // Load up account list stringmap
-    // if success, iterate through map and trigger theAction.
-    // loop
-    //    theAction.Trigger(theAcct);
-
     OTString strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
@@ -595,17 +585,14 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
         OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(),
         strAcctRecordFile.Get()));
 
-    OTDB::StringMap* pMap =
-        (nullptr == pStorable)
-            ? nullptr
-            : dynamic_cast<OTDB::StringMap*>(pStorable.get());
+    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     // There was definitely a StringMap loaded from local storage.
     // (Even an empty one, possibly.) This is the only block that matters in
     // this function.
     //
     if (nullptr != pMap) {
-        OTIdentifier* pServerID = theAction.GetServerID();
+        OTIdentifier* pServerID = visitor.GetServerID();
         OT_ASSERT_MSG(nullptr != pServerID,
                       "Assert: nullptr Server ID on functor. "
                       "(How did you even construct the "
@@ -626,7 +613,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
                            // someone copied the wrong file here...)
 
             if (!strAssetTypeID.Compare(str_asset_id.c_str())) {
-                otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong "
+                otErr << "OTAssetContract::VisitAccountRecords: Error: wrong "
                          "asset type ID (" << str_asset_id
                       << ") when expecting: " << strAssetTypeID << "\n";
             }
@@ -638,10 +625,10 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
 
                 // Before loading it from local storage, let's first make sure
                 // it's not already loaded.
-                // (theAction functor has a list of 'already loaded' accounts,
+                // (visitor functor has a list of 'already loaded' accounts,
                 // just in case.)
                 //
-                mapOfAccounts* pLoadedAccounts = theAction.GetLoadedAccts();
+                mapOfAccounts* pLoadedAccounts = visitor.GetLoadedAccts();
 
                 if (nullptr !=
                     pLoadedAccounts) // there are some accounts already loaded,
@@ -671,10 +658,10 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
                     theAcctAngel.reset(pAccount);
                 }
 
-                const bool bSuccessLoadingAccount =
+                bool bSuccessLoadingAccount =
                     ((pAccount != nullptr) ? true : false);
                 if (bSuccessLoadingAccount) {
-                    const bool bTriggerSuccess = theAction.Trigger(*pAccount);
+                    bool bTriggerSuccess = visitor.Trigger(*pAccount);
                     if (!bTriggerSuccess)
                         otErr << __FUNCTION__ << ": Error: Trigger Failed.";
                 }
@@ -684,15 +671,8 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction)
             }
         }
         return true;
-    }    // if pMap != nullptr
-    else // nothing was loaded up from local storage. No String Map. It was
-         // nullptr.
-    {
-        // Therefore I couldn't possibly loop through "EachAccountRecord",
-        // if there ARE NO account records... right?
-        //
-        return true; //
     }
+    return true;
 }
 
 bool OTAssetContract::AddAccountRecord(

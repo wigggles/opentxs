@@ -135,7 +135,7 @@
 #include "ConfigLoader.hpp"
 #include "Macros.hpp"
 #include "ServerSettings.hpp"
-#include "AcctFunctor_PayDividend.hpp"
+#include "PayDividendVisitor.hpp"
 #include "Helpers.hpp"
 
 #include <opentxs/ext/OTPayment.hpp>

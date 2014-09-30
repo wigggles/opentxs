@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  AcctFunctor_PayDividend.cpp
+ *  PayDividendVisitor.cpp
  *
  */
 
@@ -130,7 +130,7 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "AcctFunctor_PayDividend.hpp"
+#include "PayDividendVisitor.hpp"
 #include "OTServer.hpp"
 
 #include <opentxs/core/OTAccount.hpp>
@@ -142,12 +142,12 @@
 namespace opentxs
 {
 
-AcctFunctor_PayDividend::AcctFunctor_PayDividend(
+PayDividendVisitor::PayDividendVisitor(
     const OTIdentifier& theServerID, const OTIdentifier& theUserID,
     const OTIdentifier& thePayoutAssetID, const OTIdentifier& theVoucherAcctID,
     const OTString& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
-    : OTAcctFunctor(theServerID, pLoadedAccounts)
+    : AccountVisitor(theServerID, pLoadedAccounts)
     , m_pUserID(new OTIdentifier(theUserID))
     , m_pPayoutAssetID(new OTIdentifier(thePayoutAssetID))
     , m_pVoucherAcctID(new OTIdentifier(theVoucherAcctID))
@@ -159,7 +159,7 @@ AcctFunctor_PayDividend::AcctFunctor_PayDividend(
 {
 }
 
-AcctFunctor_PayDividend::~AcctFunctor_PayDividend()
+PayDividendVisitor::~PayDividendVisitor()
 {
     if (nullptr != m_pUserID) delete m_pUserID;
     m_pUserID = nullptr;
@@ -178,10 +178,10 @@ AcctFunctor_PayDividend::~AcctFunctor_PayDividend()
 // For each "simple" account of a specific asset type, this function
 // is called in order to pay a dividend to the Nym who owns that account.
 
-// AcctFunctor_PayDividend::Trigger() is used in
-// OTAssetContract::ForEachAccountRecord()
+// PayDividendVisitor::Trigger() is used in
+// OTAssetContract::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
-bool AcctFunctor_PayDividend::Trigger(
+bool PayDividendVisitor::Trigger(
     OTAccount& theSharesAccount) // theSharesAccount is, say, a Pepsi shares
                                  // account.  Here, we'll send a dollars voucher
                                  // to its owner.
@@ -190,7 +190,7 @@ bool AcctFunctor_PayDividend::Trigger(
         (theSharesAccount.GetBalance() * GetPayoutPerShare());
 
     if (lPayoutAmount <= 0) {
-        OTLog::Output(0, "AcctFunctor_PayDividend::Trigger: nothing to pay, "
+        OTLog::Output(0, "PayDividendVisitor::Trigger: nothing to pay, "
                          "since this account owns no shares. (Returning "
                          "true.)");
         return true; // nothing to pay, since this account owns no shares.
@@ -304,7 +304,7 @@ bool AcctFunctor_PayDividend::Trigger(
         else {
             const OTString strPayoutAssetID(thePayoutAssetID),
                 strRecipientUserID(RECIPIENT_ID);
-            OTLog::vError("AcctFunctor_PayDividend::Trigger: ERROR failed "
+            OTLog::vError("PayDividendVisitor::Trigger: ERROR failed "
                           "issuing voucher (to send to dividend payout "
                           "recipient.) "
                           "WAS TRYING TO PAY %ld of asset type %s to Nym %s.\n",
@@ -363,7 +363,7 @@ bool AcctFunctor_PayDividend::Trigger(
             else {
                 const OTString strPayoutAssetID(thePayoutAssetID),
                     strSenderUserID(theSenderUserID);
-                OTLog::vError("AcctFunctor_PayDividend::Trigger: ERROR "
+                OTLog::vError("PayDividendVisitor::Trigger: ERROR "
                               "failed issuing voucher (to return back to "
                               "the dividend payout initiator, after a failed "
                               "payment attempt to the originally intended "
@@ -379,7 +379,7 @@ bool AcctFunctor_PayDividend::Trigger(
         const OTString strPayoutAssetID(thePayoutAssetID),
             strRecipientUserID(RECIPIENT_ID);
         OTLog::vError(
-            "AcctFunctor_PayDividend::Trigger: ERROR!! Failed issuing next "
+            "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
             "transaction "
             "number while trying to send a voucher (while paying dividends.) "
             "WAS TRYING TO PAY %ld of asset type %s to Nym %s.\n",
