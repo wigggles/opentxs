@@ -152,14 +152,13 @@ public:
     EXPORT OTStringXML();
     EXPORT OTStringXML(const OTString& value);
     EXPORT OTStringXML(const OTStringXML& value);
+
     EXPORT virtual ~OTStringXML();
 
     EXPORT operator irr::io::IFileReadCallBack*();
 
     EXPORT OTStringXML& operator=(const OTString& rhs);
     EXPORT OTStringXML& operator=(const OTStringXML& rhs);
-
-    using OTString::swap;
 
     int32_t read(void* buffer, uint32_t sizeToRead);
     int32_t getSize();
