@@ -135,7 +135,6 @@
 #include "OTAssetContract.hpp"
 #include "OTAccount.hpp"
 #include "AccountVisitor.hpp"
-#include "OTAmount.hpp"
 #include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
@@ -355,12 +354,10 @@ std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool OTAssetContract::FormatAmount(const OTAmount& theInput,
+bool OTAssetContract::FormatAmount(int64_t amount,
                                    std::string& str_output) const // Convert 545
                                                                   // to $5.45.
 {
-    int64_t lValue = static_cast<int64_t>(theInput.GetAmount());
-
     int32_t nFactor = atoi(
         m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
     if (nFactor < 1) nFactor = 1;
@@ -407,7 +404,7 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
     //    }
 
     str_output = OTAssetContract::formatLongAmount(
-        lValue, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
+        amount, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
         strDecimalPoint.Get());
     return true;
 }
@@ -418,11 +415,9 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
 // point of ".")
 //
 bool OTAssetContract::StringToAmount(
-    OTAmount& theOutput,
+    int64_t& amount,
     const std::string& str_input) const // Convert $5.45 to amount 545.
 {
-    int64_t lValue = 0;
-
     int32_t nFactor = atoi(
         m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
     if (nFactor < 1) nFactor = 1;
@@ -465,11 +460,9 @@ bool OTAssetContract::StringToAmount(
     // mp.decimal_point ());
     //    }
 
-    bool bSuccess = OTAssetContract::ParseFormatted(lValue, str_input, nFactor,
+    bool bSuccess = OTAssetContract::ParseFormatted(amount, str_input, nFactor,
                                                     nPower, strSeparator.Get(),
                                                     strDecimalPoint.Get());
-
-    if (bSuccess) theOutput.SetAmount(static_cast<int64_t>(lValue));
 
     return bSuccess;
 }
@@ -481,14 +474,14 @@ bool OTAssetContract::StringToAmount(
 
 // Given input of 545, GetDollarsOnly returns 5
 //
-int64_t OTAssetContract::GetDollarsOnly(const OTAmount&) const
+int64_t OTAssetContract::GetDollarsOnly(int64_t) const
 {
     return 0; // TODO
 }
 
 // Given input of 545, GetCentsOnly returns 45.
 
-int64_t OTAssetContract::CentsOnly(const OTAmount&) const
+int64_t OTAssetContract::CentsOnly(int64_t) const
 {
     return 0; // TODO
 }

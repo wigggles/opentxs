@@ -140,7 +140,6 @@ namespace opentxs
 
 class OTAccount;
 class AccountVisitor;
-class OTAmount;
 class OTIdentifier;
 class OTPseudonym;
 class OTString;
@@ -191,22 +190,15 @@ public:
                                       int32_t nFactor = 100, int32_t nPower = 2,
                                       const char* szThousandSeparator = ",",
                                       const char* szDecimalPoint = ".");
-    // For parsing and formatting amounts based on the currency contract.
-    //
-    EXPORT bool FormatAmount(const OTAmount& theInput,
-                             std::string& str_output) const; // Convert 545 to
-                                                             // $5.45.
-    EXPORT bool StringToAmount(OTAmount& theOutput,
-                               const std::string& str_input) const; // Convert
-                                                                    // $5.45 to
-                                                                    // 545.
-    EXPORT int64_t
-        GetDollarsOnly(const OTAmount& theInput) const; // Given input of 545,
-    // GetDollarsOnly returns 5
-    EXPORT int64_t CentsOnly(const OTAmount& theInput) const; // Given input of
-                                                              // 545,
-                                                              // GetCentsOnly
-                                                              // returns 45.
+
+    EXPORT bool FormatAmount(int64_t amount, std::string& str_output) const;
+
+    EXPORT bool StringToAmount(int64_t& amount,
+                               const std::string& str_input) const;
+
+    EXPORT int64_t GetDollarsOnly(int64_t amount) const;
+    EXPORT int64_t CentsOnly(int64_t amount) const;
+
     EXPORT const OTString& GetBasketInfo() const
     {
         return m_strBasketInfo;
