@@ -364,7 +364,9 @@ write_basic_package_version_file(
 install(EXPORT opentxsTargets
         DESTINATION ${CMAKE_CONFIG_DEST} FILE "opentxsTargets.cmake")
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxsConfigVersion.cmake"
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/opentxsConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/opentxsConfigVersion.cmake"
         DESTINATION ${CMAKE_CONFIG_DEST}
         COMPONENT dev)
 
