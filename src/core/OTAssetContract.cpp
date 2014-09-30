@@ -585,10 +585,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& visitor) const
         OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(),
         strAcctRecordFile.Get()));
 
-    OTDB::StringMap* pMap =
-        (nullptr == pStorable)
-            ? nullptr
-            : dynamic_cast<OTDB::StringMap*>(pStorable.get());
+    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     // There was definitely a StringMap loaded from local storage.
     // (Even an empty one, possibly.) This is the only block that matters in
