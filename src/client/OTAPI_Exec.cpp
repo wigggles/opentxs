@@ -4326,8 +4326,7 @@ std::string OTAPI_Exec::Decode(const std::string& strEncoded,
                                const bool& bLineBreaks) const
 {
     if (strEncoded.empty()) {
-        otErr << __FUNCTION__ << ": Null: strEncoded passed in!\n";
-        OT_FAIL;
+        return "";
     }
 
     const OTString otstrEncoded(strEncoded);
