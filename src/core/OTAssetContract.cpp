@@ -386,7 +386,7 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
     // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
     // variables.
     //
     // The best improvement I can think on that is to check locale and then use
@@ -442,7 +442,7 @@ bool OTAssetContract::StringToAmount(
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
     // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.h and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
     // variables.
     //
     // The best improvement I can think on that is to check locale and then use
