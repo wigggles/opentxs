@@ -140,7 +140,7 @@
 #include "../core/crypto/OTEnvelope.hpp"
 #include "../core/crypto/OTNymOrSymmetricKey.hpp"
 #include "../core/crypto/OTPassword.hpp"
-#include "../core/OTFolders.hpp"
+#include "../core/util/OTFolders.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTStorage.hpp"
 

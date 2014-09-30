@@ -132,10 +132,10 @@
 
 #include "stdafx.hpp"
 
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "OTLog.hpp"
 #ifdef _WIN32
-#include "util/OTWindowsRegistryTools.hpp"
+#include "OTWindowsRegistryTools.hpp"
 #endif
 #include "util/StringUtils.hpp"
 

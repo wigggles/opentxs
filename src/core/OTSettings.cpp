@@ -133,9 +133,8 @@
 #include "stdafx.hpp"
 
 #include "OTSettings.hpp"
-
 #include "OTLog.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 
 #include "simpleini/SimpleIni.h"
 

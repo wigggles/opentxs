@@ -133,7 +133,7 @@
 #include "ConfigLoader.hpp"
 #include "ServerSettings.hpp"
 #include <opentxs/core/OTString.hpp>
-#include <opentxs/core/OTDataFolder.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/OTLog.hpp>

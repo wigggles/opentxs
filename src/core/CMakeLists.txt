@@ -10,6 +10,9 @@ set(cxx-sources
   util/Timer.cpp
   util/Assert.cpp
   util/StringUtils.cpp
+  util/OTDataFolder.cpp
+  util/OTFolders.cpp
+  util/OTPaths.cpp
   transaction/Helpers.cpp
   mkcert.cpp
   OTAccount.cpp
@@ -28,9 +31,7 @@ set(cxx-sources
   crypto/OTCrypto.cpp
   OTData.cpp
   OTDataCheck.cpp
-  OTDataFolder.cpp
   crypto/OTEnvelope.cpp
-  OTFolders.cpp
   OTIdentifier.cpp
   OTInstrument.cpp
   OTItem.cpp
@@ -46,7 +47,6 @@ set(cxx-sources
   crypto/OTNymOrSymmetricKey.cpp
   crypto/OTPassword.cpp
   crypto/OTPasswordData.cpp
-  OTPaths.cpp
   OTPayload.cpp
   OTPseudonym.cpp
   OTServerContract.cpp

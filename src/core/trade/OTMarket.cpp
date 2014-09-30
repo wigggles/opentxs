@@ -136,10 +136,10 @@
 #include "trade/OTOffer.hpp"
 #include "trade/OTTrade.hpp"
 #include "OTAccount.hpp"
-#include "OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"
+#include "util/OTFolders.hpp"
 
 #include <irrxml/irrXML.hpp>
 

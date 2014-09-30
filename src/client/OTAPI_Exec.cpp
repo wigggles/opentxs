@@ -163,7 +163,7 @@
 #include "../core/script/OTParty.hpp"
 #include "../core/script/OTPartyAccount.hpp"
 #include "../core/crypto/OTPasswordData.hpp"
-#include "../core/OTPaths.hpp"
+#include "../core/util/OTPaths.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/crypto/OTSymmetricKey.hpp"

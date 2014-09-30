@@ -136,7 +136,7 @@
 #include "OTAccount.hpp"
 #include "OTAcctFunctor.hpp"
 #include "OTAmount.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 

@@ -136,9 +136,9 @@
 #include "OTAPI.hpp"
 #include "OTMeCpp.hpp"
 
-#include "../core/OTDataFolder.hpp"
+#include "../core/util/OTDataFolder.hpp"
 #include "../core/OTLog.hpp"
-#include "../core/OTPaths.hpp"
+#include "../core/util/OTPaths.hpp"
 #include "../core/OTStorage.hpp"
 #include "../core/script/OTVariable.hpp"
 

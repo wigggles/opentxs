@@ -147,7 +147,7 @@
 #include "stdafx.hpp"
 
 #include "crypto/OTCredential.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "crypto/OTPasswordData.hpp"
 #include "OTStorage.hpp"

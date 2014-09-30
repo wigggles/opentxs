@@ -151,7 +151,7 @@
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/OTCheque.hpp"
 #include "../core/crypto/OTEnvelope.hpp"
-#include "../core/OTFolders.hpp"
+#include "../core/util/OTFolders.hpp"
 #include "../core/OTLedger.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"

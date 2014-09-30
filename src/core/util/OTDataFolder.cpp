@@ -132,9 +132,9 @@
 
 #include "stdafx.hpp"
 
-#include "OTDataFolder.hpp"
+#include "util/OTDataFolder.hpp"
+#include "util/OTPaths.hpp"
 #include "OTLog.hpp"
-#include "OTPaths.hpp"
 
 #ifdef _WIN32
 #include <direct.h>

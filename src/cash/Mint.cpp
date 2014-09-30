@@ -137,7 +137,7 @@
 
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/OTAccount.hpp"
-#include "../core/OTFolders.hpp"
+#include "../core/util/OTFolders.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/OTStorage.hpp"

@@ -4,7 +4,7 @@
 #include "OTServer.hpp"
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTDataFolder.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 #define SERVER_CONFIG_KEY "server"

@@ -144,7 +144,7 @@
 #include "opentxs/core/OTAccount.hpp"
 #include "opentxs/core/OTAssetContract.hpp"
 #include "opentxs/core/OTLog.hpp"
-#include "opentxs/core/OTPaths.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/OTPseudonym.hpp"
 #include "opentxs/core/OTServerContract.hpp"
 #include "opentxs/core/Version.hpp"

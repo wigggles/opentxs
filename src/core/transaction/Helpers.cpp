@@ -133,7 +133,7 @@
 #include "OTTransaction.hpp"
 #include "OTLedger.hpp"
 #include "OTString.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
 #include "OTIdentifier.hpp"

@@ -136,7 +136,7 @@
 #include "OTAccount.hpp"
 #include "OTCheque.hpp"
 #include "crypto/OTEnvelope.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 #include "OTPseudonym.hpp"

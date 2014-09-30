@@ -150,7 +150,7 @@
 
 #include "crypto/OTAsymmetricKey.hpp"
 #include "OTContract.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "crypto/OTLowLevelKeyData.hpp"
 #include "crypto/OTSignature.hpp"

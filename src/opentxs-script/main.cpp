@@ -147,7 +147,7 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/OTLog.hpp"
 #include "opentxs/core/OTMessage.hpp"
-#include "opentxs/core/OTPaths.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/OTPseudonym.hpp"
 #include "opentxs/core/OTServerContract.hpp"
 #include "opentxs/core/script/OTVariable.hpp"

@@ -133,11 +133,10 @@
 #include "stdafx.hpp"
 
 #include "OTStorage.hpp"
-
 #include "crypto/OTASCIIArmor.hpp"
-#include "OTDataFolder.hpp"
+#include "util/OTDataFolder.hpp"
 #include "OTLog.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "OTPayload.hpp"
 #include "OTStoragePB.hpp"
 
