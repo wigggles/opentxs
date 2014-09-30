@@ -136,7 +136,7 @@
 #include "OTContract.hpp"
 #include "crypto/OTAsymmetricKey.hpp"
 #include "crypto/OTCrypto.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "crypto/OTPasswordData.hpp"
 #include "OTPseudonym.hpp"

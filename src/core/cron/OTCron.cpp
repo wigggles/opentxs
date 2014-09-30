@@ -133,7 +133,7 @@
 #include "cron/OTCron.hpp"
 #include "crypto/OTASCIIArmor.hpp"
 #include "cron/OTCronItem.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "trade/OTMarket.hpp"
 #include "util/Timer.hpp"

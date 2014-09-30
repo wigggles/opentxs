@@ -131,14 +131,14 @@
  **************************************************************/
 
 #include "OTMessageOutbuffer.hpp"
-#include "../core/OTDataFolder.hpp"
-#include "../core/OTPaths.hpp"
+#include "../core/util/OTDataFolder.hpp"
+#include "../core/util/OTPaths.hpp"
 #include "../core/OTStorage.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/OTTransaction.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTLog.hpp"
-#include "../core/OTFolders.hpp"
+#include "../core/util/OTFolders.hpp"
 
 #include <memory>
 

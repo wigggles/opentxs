@@ -139,7 +139,7 @@
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTString.hpp>
 #include <opentxs/core/OTSettings.hpp>
-#include <opentxs/core/OTDataFolder.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Timer.hpp>
 #include <opentxs/ext/OTSocket.hpp>

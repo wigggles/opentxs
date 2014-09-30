@@ -132,9 +132,9 @@
 
 #include "stdafx.hpp"
 
-#include "OTDataFolder.hpp"
+#include "util/OTDataFolder.hpp"
+#include "util/OTPaths.hpp"
 #include "OTLog.hpp"
-#include "OTPaths.hpp"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -164,7 +164,6 @@ namespace opentxs
 
 OTDataFolder* OTDataFolder::pDataFolder;
 
-// static
 bool OTDataFolder::Init(const OTString& strThreadContext)
 {
     if (nullptr != pDataFolder)
@@ -286,7 +285,6 @@ bool OTDataFolder::Init(const OTString& strThreadContext)
     return true;
 }
 
-// static
 bool OTDataFolder::IsInitialized()
 {
     if (nullptr == pDataFolder)
@@ -295,7 +293,6 @@ bool OTDataFolder::IsInitialized()
     return pDataFolder->m_bInitialized;
 }
 
-// static
 bool OTDataFolder::Cleanup()
 {
     if (nullptr != pDataFolder) {
@@ -309,7 +306,6 @@ bool OTDataFolder::Cleanup()
     }
 }
 
-// static
 OTString OTDataFolder::Get()
 {
     if (!OTDataFolder::IsInitialized()) {
@@ -326,7 +322,6 @@ OTString OTDataFolder::Get()
     }
 }
 
-// static
 bool OTDataFolder::Get(OTString& strDataFolder)
 {
     if (nullptr != pDataFolder) {
@@ -341,7 +336,6 @@ bool OTDataFolder::Get(OTString& strDataFolder)
     return false;
 }
 
-// static
 bool OTDataFolder::GetConfigFilePath(OTString& strConfigFilePath)
 {
     if (nullptr != pDataFolder) {

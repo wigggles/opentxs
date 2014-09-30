@@ -134,8 +134,8 @@
 
 #include "DigitalCash.hpp"
 
-#include "../core/OTDataFolder.hpp"
-#include "../core/OTPaths.hpp"
+#include "../core/util/OTDataFolder.hpp"
+#include "../core/util/OTPaths.hpp"
 
 #include <fstream>
 

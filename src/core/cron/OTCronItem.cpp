@@ -137,7 +137,7 @@
 #include "trade/OTTrade.hpp"
 #include "cron/OTCronItem.hpp"
 #include "cron/OTCron.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTPseudonym.hpp"

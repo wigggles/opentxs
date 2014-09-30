@@ -141,7 +141,7 @@
 #include "OTLog.hpp"
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "OTPseudonym.hpp"
 #include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"

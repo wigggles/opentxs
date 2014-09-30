@@ -147,9 +147,9 @@
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/OTCheque.hpp>
-#include <opentxs/core/OTDataFolder.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTFolders.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -160,7 +160,7 @@
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTPaths.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>

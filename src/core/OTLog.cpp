@@ -133,7 +133,7 @@
 #include "stdafx.hpp"
 
 #include "OTLog.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "util/stacktrace.h"
 #include "opentxs/core/Version.hpp"
 

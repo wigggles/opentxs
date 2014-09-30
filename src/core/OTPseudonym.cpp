@@ -134,7 +134,7 @@
 
 #include "OTPseudonym.hpp"
 #include "crypto/OTCredential.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"

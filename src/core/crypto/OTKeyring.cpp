@@ -142,7 +142,7 @@
 #include "crypto/OTCachedKey.hpp"
 #include "OTLog.hpp"
 #include "crypto/OTPassword.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "OTPayload.hpp"
 #include "OTStorage.hpp"
 

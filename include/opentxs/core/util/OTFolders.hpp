@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTDataFolder.hpp
+ *  OTFolders.hpp
  *
  */
 
@@ -130,39 +130,110 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_OTDATAFOLDER_HPP
-#define OPENTXS_CORE_OTDATAFOLDER_HPP
+#ifndef OPENTXS_CORE_OTFOLDERS_HPP
+#define OPENTXS_CORE_OTFOLDERS_HPP
 
-#include "OTString.hpp"
-#include "util/Assert.hpp"
+#include "opentxs/core/OTSettings.hpp"
+#include "opentxs/core/util/Assert.hpp"
+
+// This class is for storing the names of the folders.  A instance of it must be
+// made.
+// This function will store the folder-names automaticaly in the config file.
+//
 
 namespace opentxs
 {
 
-// cppcheck-suppress noConstructor
-class OTDataFolder
+class OTFolders
 {
 private:
-    static OTDataFolder* pDataFolder;
+    static bool GetSetAll();
 
-    bool m_bInitialized;
+    static inline bool GetSetFolderName(OTSettings& config,
+                                        std::string strKeyName,
+                                        std::string strDefaultName,
+                                        OTString& ret_strName)
+    {
+        if (ret_strName.Exists())
+            return true;
+        else {
+            if (strKeyName.empty() || strDefaultName.empty()) return false;
+            if (3 > strKeyName.size() || 3 > strDefaultName.size())
+                return false;
 
-    OTString m_strDataFolderPath;
-    OTString m_strDataConifgFilePath;
+            OTString strResult("");
+            bool bIsNew(false);
+
+            config.CheckSet_str("folders", strKeyName, strDefaultName,
+                                strResult, bIsNew);
+
+            if (!bIsNew)
+                ret_strName = strResult;
+            else
+                ret_strName = strDefaultName.c_str();
+
+            return true;
+        }
+    }
+
+    static inline const OTString& GetFolder(const OTString& strFolder)
+    {
+        if (!strFolder.Exists()) {
+            if (!GetSetAll()) {
+                OT_FAIL;
+            }
+        }
+        return strFolder;
+    }
+
+    static OTString s_strAccount;
+    static OTString s_strCert;
+    static OTString s_strContract;
+    static OTString s_strCredential;
+    static OTString s_strCron;
+    static OTString s_strInbox;
+    static OTString s_strMarket;
+    static OTString s_strMint;
+    static OTString s_strNym;
+    static OTString s_strNymbox;
+    static OTString s_strOutbox;
+    static OTString s_strPaymentInbox;
+    static OTString s_strPubcred;
+    static OTString s_strPubkey;
+    static OTString s_strPurse;
+    static OTString s_strReceipt;
+    static OTString s_strRecordBox;
+    static OTString s_strExpiredBox;
+    static OTString s_strScript;
+    static OTString s_strSmartContracts;
+    static OTString s_strSpent;
+    static OTString s_strUserAcct;
 
 public:
-    EXPORT static bool Init(const OTString& strThreadContext);
-
-    EXPORT static bool IsInitialized();
-
-    EXPORT static bool Cleanup();
-
-    EXPORT static OTString Get();
-    EXPORT static bool Get(OTString& strDataFolder);
-
-    EXPORT static bool GetConfigFilePath(OTString& strConfigFilePath);
+    EXPORT static const OTString& Account();
+    EXPORT static const OTString& Cert();
+    EXPORT static const OTString& Contract();
+    EXPORT static const OTString& Credential();
+    EXPORT static const OTString& Cron();
+    EXPORT static const OTString& Inbox();
+    EXPORT static const OTString& Market();
+    EXPORT static const OTString& Mint();
+    EXPORT static const OTString& Nym();
+    EXPORT static const OTString& Nymbox();
+    EXPORT static const OTString& Outbox();
+    EXPORT static const OTString& PaymentInbox();
+    EXPORT static const OTString& Pubcred();
+    EXPORT static const OTString& Pubkey();
+    EXPORT static const OTString& Purse();
+    EXPORT static const OTString& Receipt();
+    EXPORT static const OTString& RecordBox();
+    EXPORT static const OTString& ExpiredBox();
+    EXPORT static const OTString& Script();
+    EXPORT static const OTString& SmartContracts();
+    EXPORT static const OTString& Spent();
+    EXPORT static const OTString& UserAcct();
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTDATAFOLDER_HPP
+#endif // OPENTXS_CORE_OTFOLDERS_HPP

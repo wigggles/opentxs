@@ -133,13 +133,13 @@
 #include "stdafx.hpp"
 
 #include "OTAccount.hpp"
-#include "OTDataFolder.hpp"
-#include "OTFolders.hpp"
+#include "util/OTDataFolder.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 #include "OTStorage.hpp"
-#include "OTPaths.hpp"
+#include "util/OTPaths.hpp"
 #include "OTPayload.hpp"
 #include "OTPseudonym.hpp"
 

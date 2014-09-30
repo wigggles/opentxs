@@ -146,7 +146,7 @@
 #include <opentxs/core/OTString.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/OTFolders.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/cash/Mint.hpp>

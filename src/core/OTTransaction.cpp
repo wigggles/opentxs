@@ -136,7 +136,7 @@
 #include "script/OTSmartContract.hpp"
 #include "OTTransaction.hpp"
 #include "OTCheque.hpp"
-#include "OTFolders.hpp"
+#include "util/OTFolders.hpp"
 #include "OTLedger.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
