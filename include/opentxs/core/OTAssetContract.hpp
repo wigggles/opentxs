@@ -196,9 +196,6 @@ public:
     EXPORT bool StringToAmount(int64_t& amount,
                                const std::string& str_input) const;
 
-    EXPORT int64_t GetDollarsOnly(int64_t amount) const;
-    EXPORT int64_t CentsOnly(int64_t amount) const;
-
     EXPORT const OTString& GetBasketInfo() const
     {
         return m_strBasketInfo;

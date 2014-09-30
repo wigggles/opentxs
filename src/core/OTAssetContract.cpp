@@ -430,25 +430,6 @@ bool OTAssetContract::StringToAmount(
     return bSuccess;
 }
 
-// NOTE: the use of "dollars" and "cents" here is only metaphoric.
-// For example, if the currency type was Bitcoin, then "dollars" are actually
-// BTC,
-// and "cents" are actually satoshis or mBTC.
-
-// Given input of 545, GetDollarsOnly returns 5
-//
-int64_t OTAssetContract::GetDollarsOnly(int64_t) const
-{
-    return 0; // TODO
-}
-
-// Given input of 545, GetCentsOnly returns 45.
-
-int64_t OTAssetContract::CentsOnly(int64_t) const
-{
-    return 0; // TODO
-}
-
 OTAssetContract::OTAssetContract()
     : OTContract()
     , m_bIsCurrency(true)
