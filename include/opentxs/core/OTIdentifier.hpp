@@ -139,7 +139,6 @@
 
 // An Identifier is basically a 256 bit hash value.
 // This class makes it easy to convert IDs back and forth to strings.
-//
 
 namespace opentxs
 {
@@ -157,8 +156,7 @@ public:
                                            const OTString& obj);
 
     // Some digests are handled in special ways before they can call OpenSSL.
-    // They are internal,
-    // like SAMY hash.
+    // They are internal, like SAMY hash.
     EXPORT bool CalculateDigestInternal(const OTString& strInput,
                                         const OTString& strHashAlgorithm);
     EXPORT bool CalculateDigestInternal(const OTData& dataInput,
@@ -173,8 +171,7 @@ public:
     EXPORT OTIdentifier(const std::string& szStr);
     EXPORT OTIdentifier(const OTString& theStr);
     EXPORT OTIdentifier(const OTPseudonym& theNym);
-    EXPORT OTIdentifier(const OTContract& theContract); // Get the contract's ID
-                                                        // into this identifier.
+    EXPORT OTIdentifier(const OTContract& theContract);
     EXPORT OTIdentifier(const OTSymmetricKey& theKey);
     EXPORT OTIdentifier(const OTCachedKey& theKey);
 
@@ -204,11 +201,6 @@ public:
     // theStr will contain pretty hex string after call.
     EXPORT void GetString(OTString& theStr) const;
 };
-
-// bool operator > (const OTIdentifier& s1, const OTIdentifier& s2);
-// bool operator < (const OTIdentifier& s1, const OTIdentifier& s2);
-// bool operator >=(const OTIdentifier& s1, const OTIdentifier& s2);
-// bool operator <=(const OTIdentifier& s1, const OTIdentifier& s2);
 
 } // namespace opentxs
 
