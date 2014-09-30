@@ -179,7 +179,7 @@ AcctFunctor_PayDividend::~AcctFunctor_PayDividend()
 // is called in order to pay a dividend to the Nym who owns that account.
 
 // AcctFunctor_PayDividend::Trigger() is used in
-// OTAssetContract::ForEachAccountRecord()
+// OTAssetContract::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
 bool AcctFunctor_PayDividend::Trigger(
     OTAccount& theSharesAccount) // theSharesAccount is, say, a Pepsi shares

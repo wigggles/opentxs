@@ -575,7 +575,7 @@ bool OTAssetContract::SaveContractWallet(FILE* fl)
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& visitor) const
+bool OTAssetContract::VisitAccountRecords(OTAcctFunctor& visitor) const
 {
     OTString strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
@@ -613,7 +613,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& visitor) const
                            // someone copied the wrong file here...)
 
             if (!strAssetTypeID.Compare(str_asset_id.c_str())) {
-                otErr << "OTAssetContract::ForEachAccountRecord: Error: wrong "
+                otErr << "OTAssetContract::VisitAccountRecords: Error: wrong "
                          "asset type ID (" << str_asset_id
                       << ") when expecting: " << strAssetTypeID << "\n";
             }
