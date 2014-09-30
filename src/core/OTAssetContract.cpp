@@ -575,7 +575,7 @@ bool OTAssetContract::SaveContractWallet(FILE* fl)
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction) const
+bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& visitor) const
 {
     OTString strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
@@ -595,7 +595,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction) const
     // this function.
     //
     if (nullptr != pMap) {
-        OTIdentifier* pServerID = theAction.GetServerID();
+        OTIdentifier* pServerID = visitor.GetServerID();
         OT_ASSERT_MSG(nullptr != pServerID,
                       "Assert: nullptr Server ID on functor. "
                       "(How did you even construct the "
@@ -628,10 +628,10 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction) const
 
                 // Before loading it from local storage, let's first make sure
                 // it's not already loaded.
-                // (theAction functor has a list of 'already loaded' accounts,
+                // (visitor functor has a list of 'already loaded' accounts,
                 // just in case.)
                 //
-                mapOfAccounts* pLoadedAccounts = theAction.GetLoadedAccts();
+                mapOfAccounts* pLoadedAccounts = visitor.GetLoadedAccts();
 
                 if (nullptr !=
                     pLoadedAccounts) // there are some accounts already loaded,
@@ -664,7 +664,7 @@ bool OTAssetContract::ForEachAccountRecord(OTAcctFunctor& theAction) const
                 bool bSuccessLoadingAccount =
                     ((pAccount != nullptr) ? true : false);
                 if (bSuccessLoadingAccount) {
-                    bool bTriggerSuccess = theAction.Trigger(*pAccount);
+                    bool bTriggerSuccess = visitor.Trigger(*pAccount);
                     if (!bTriggerSuccess)
                         otErr << __FUNCTION__ << ": Error: Trigger Failed.";
                 }
