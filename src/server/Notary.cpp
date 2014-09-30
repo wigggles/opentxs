@@ -134,7 +134,7 @@
 #include "OTServer.hpp"
 #include "Macros.hpp"
 #include "ServerSettings.hpp"
-#include "AcctFunctor_PayDividend.hpp"
+#include "PayDividendVisitor.hpp"
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
@@ -1955,7 +1955,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                         strVoucherAcctID.Get(),
                                         &theVoucherReserveAcct));
 
-                                AcctFunctor_PayDividend actionPayDividend(
+                                PayDividendVisitor actionPayDividend(
                                     SERVER_ID, USER_ID, PAYOUT_ASSET_ID,
                                     VOUCHER_ACCOUNT_ID,
                                     strInReferenceTo, // Memo for each voucher

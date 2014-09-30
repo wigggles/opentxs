@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  AcctFunctor_PayDividend.hpp
+ *  PayDividendVisitor.hpp
  *
  */
 
@@ -154,7 +154,7 @@ class OTString;
 // be defined
 // here in otserver (so it can see the methods that it needs...)
 //
-class AcctFunctor_PayDividend : public AccountVisitor
+class PayDividendVisitor : public AccountVisitor
 {
     OTIdentifier* m_pUserID;
     OTIdentifier* m_pPayoutAssetID;
@@ -170,14 +170,14 @@ class AcctFunctor_PayDividend : public AccountVisitor
                                // count.
 
 public:
-    AcctFunctor_PayDividend(const OTIdentifier& theServerID,
-                            const OTIdentifier& theUserID,
-                            const OTIdentifier& thePayoutAssetID,
-                            const OTIdentifier& theVoucherAcctID,
-                            const OTString& strMemo, OTServer& theServer,
-                            int64_t lPayoutPerShare,
-                            mapOfAccounts* pLoadedAccounts = nullptr);
-    virtual ~AcctFunctor_PayDividend();
+    PayDividendVisitor(const OTIdentifier& theServerID,
+                       const OTIdentifier& theUserID,
+                       const OTIdentifier& thePayoutAssetID,
+                       const OTIdentifier& theVoucherAcctID,
+                       const OTString& strMemo, OTServer& theServer,
+                       int64_t lPayoutPerShare,
+                       mapOfAccounts* pLoadedAccounts = nullptr);
+    virtual ~PayDividendVisitor();
 
     OTIdentifier* GetUserID()
     {
