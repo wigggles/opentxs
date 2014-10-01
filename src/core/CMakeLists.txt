@@ -13,6 +13,7 @@ set(cxx-sources
   util/OTDataFolder.cpp
   util/OTFolders.cpp
   util/OTPaths.cpp
+  util/OTDataCheck.cpp
   transaction/Helpers.cpp
   mkcert.cpp
   OTAccount.cpp
@@ -30,7 +31,6 @@ set(cxx-sources
   crypto/OTCredential.cpp
   crypto/OTCrypto.cpp
   OTData.cpp
-  OTDataCheck.cpp
   crypto/OTEnvelope.cpp
   OTIdentifier.cpp
   OTInstrument.cpp
