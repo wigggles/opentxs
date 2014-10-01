@@ -82,14 +82,6 @@ union u_header
 #define OT_USE_CHAI_STDLIB
 #endif
 
-#ifndef OT_CRYPTO_USING_OPENSSL
-#define OT_CRYPTO_USING_OPENSSL 1
-#endif
-
-#ifndef OT_CASH_USING_LUCRE
-#define OT_CASH_USING_LUCRE 1
-#endif
-
 // for mac, this enables deprecated functions. (aka, for pthread)
 #ifdef _XOPEN_SOURCE
 #undef _XOPEN_SOURCE
