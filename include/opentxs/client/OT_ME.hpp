@@ -208,9 +208,9 @@ public:
                                   const std::string& NYM_ID,
                                   const std::string& TARGET_NYM_ID) const;
 
-    EXPORT std::string create_pseudonym(int32_t nKeybits,
-                                        const std::string& NYM_ID_SOURCE,
-                                        const std::string& ALT_LOCATION) const;
+    EXPORT std::string create_nym(int32_t nKeybits,
+                                  const std::string& NYM_ID_SOURCE,
+                                  const std::string& ALT_LOCATION) const;
 
     EXPORT std::string issue_asset_type(const std::string& SERVER_ID,
                                         const std::string& NYM_ID,

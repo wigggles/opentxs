@@ -168,11 +168,11 @@ std::string OTMeCpp::check_user(const std::string& SERVER_ID,
     return MadeEasy::check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
 
-std::string OTMeCpp::create_pseudonym(int32_t nKeybits,
-                                      const std::string& NYM_ID_SOURCE,
-                                      const std::string& ALT_LOCATION) const
+std::string OTMeCpp::create_nym(int32_t nKeybits,
+                                const std::string& NYM_ID_SOURCE,
+                                const std::string& ALT_LOCATION) const
 {
-    return MadeEasy::create_pseudonym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
+    return MadeEasy::create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
 std::string OTMeCpp::issue_asset_type(const std::string& SERVER_ID,

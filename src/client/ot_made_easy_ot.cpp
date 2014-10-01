@@ -271,11 +271,11 @@ OT_MADE_EASY_OT string MadeEasy::check_user(const string& SERVER_ID,
 //  CREATE NYM (pseudonym)
 //  returns new Nym ID
 //
-OT_MADE_EASY_OT string MadeEasy::create_pseudonym(int32_t nKeybits,
-                                                  const string& strNymIDSource,
-                                                  const string& strAltLocation)
+OT_MADE_EASY_OT string MadeEasy::create_nym(int32_t nKeybits,
+                                            const string& strNymIDSource,
+                                            const string& strAltLocation)
 {
-    string strLocation = "OT_ME_create_pseudonym";
+    string strLocation = "OT_ME_create_nym";
 
     string strNymID = OTAPI_Wrap::CreateNym(
         nKeybits, strNymIDSource, strAltLocation); // returns new Nym ID;

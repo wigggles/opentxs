@@ -2390,7 +2390,7 @@ OT_COMMANDS_OT int32_t
                                         cout << "------------------------------"
                                                 "------------------------------"
                                                 "------\n";
-                                        cout << " ** PSEUDONYMS (filtered by "
+                                        cout << " ** NYMS (filtered by "
                                                 "serverID: " << strServerID
                                              << "): \n\n";
 
@@ -5297,7 +5297,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowNyms()
 {
     cout << "------------------------------------------------------------------"
             "\n";
-    cout << " ** PSEUDONYMS: \n\n";
+    cout << " ** NYMS: \n\n";
 
     int32_t nNymCount = OTAPI_Wrap::GetNymCount();
 
@@ -5494,7 +5494,7 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowMint()
     return -1;
 }
 
-// Creates a new Pseudonym and adds it to the wallet.
+// Creates a new Nym and adds it to the wallet.
 // (And sets the display name for the new Nym, in the wallet.)
 // Prints the new NymID to stdout.
 //
@@ -5506,11 +5506,11 @@ OT_COMMANDS_OT int32_t
                                    const string& strAltLocation)
 {
     string strNymID =
-        MadeEasy::create_pseudonym(nKeybits, strSourceForNymID, strAltLocation);
+        MadeEasy::create_nym(nKeybits, strSourceForNymID, strAltLocation);
 
     if (!VerifyStringVal(strNymID)) {
         otOut << "details_create_nym: Failed in "
-                 "OT_ME::create_pseudonym(keybits == " << nKeybits << ")\n";
+                 "OT_ME::create_nym(keybits == " << nKeybits << ")\n";
         return -1;
     }
     otOut << "Success creating! " << nKeybits << " keybits, new ID: ";
