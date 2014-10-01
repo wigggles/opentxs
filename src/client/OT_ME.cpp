@@ -404,15 +404,14 @@ std::string OT_ME::check_user(const std::string& SERVER_ID,
     return m_pImplementation->check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
 
-// CREATE NYM (pseudonym)
+// CREATE NYM
 // returns new Nym ID
 //
-std::string OT_ME::create_pseudonym(int32_t nKeybits,
-                                    const std::string& NYM_ID_SOURCE,
-                                    const std::string& ALT_LOCATION) const
+std::string OT_ME::create_nym(int32_t nKeybits,
+                              const std::string& NYM_ID_SOURCE,
+                              const std::string& ALT_LOCATION) const
 {
-    return m_pImplementation->create_pseudonym(nKeybits, NYM_ID_SOURCE,
-                                               ALT_LOCATION);
+    return m_pImplementation->create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
 // ISSUE ASSET TYPE
