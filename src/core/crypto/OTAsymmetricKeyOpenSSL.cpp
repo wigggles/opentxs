@@ -311,11 +311,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
 
         EVP_PKEY* pkey = nullptr;
 
-        if (nullptr ==
-            pImportPassword) // pImportPassword is nullptr? Do it normally then.
+        if (!pImportPassword) // pImportPassword is nullptr? Do it normally then
         {
-            //          otOut << "%s: READING using WALLET password.\n",
-            // __FUNCTION__);
             pkey = PEM_read_bio_PrivateKey(
                 bio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
                 &thePWData);
@@ -323,16 +320,11 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
         else // Otherwise, use pImportPassword instead of the normal
                // OTCachedKey system.
         {
-            //          otOut << "%s: READING using EXPORT password.\n",
-            // __FUNCTION__);
             pkey = PEM_read_bio_PrivateKey(
                 bio, nullptr, 0,
                 const_cast<void*>(reinterpret_cast<const void*>(
                     pImportPassword->getPassword())));
         }
-
-        //      if (strWithBookends.GetLength() > 0)
-        //          OPENSSL_cleanse(bio, strWithBookends.GetLength());
 
         if (nullptr == pkey) {
             otErr << __FUNCTION__ << ": (pImportPassword size: "
@@ -340,15 +332,6 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
                           ? 0
                           : pImportPassword->getPasswordSize())
                   << ") Error reading private key from string.\n\n";
-            //            otErr << "%s: (pImportPassword is %s, size: %d) Error
-            // reading private key from string:\n%s\n\n",
-            //                          __FUNCTION__, nullptr == pImportPassword
-            // ?
-            // "nullptr" : pImportPassword->getPassword(),
-            //                          nullptr == pImportPassword ? 0 :
-            // pImportPassword->getPasswordSize(),
-            //                          strWithBookends.Get()
-            //                          );
             return false;
         }
         else {
@@ -712,7 +695,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
                                                                // read.
     {
         buffer_x509[len] = '\0';
-        strx509.Set((const char*)buffer_x509); // todo cast
+        strx509.Set((const char*)buffer_x509);
 
         EVP_PKEY* pPublicKey = X509_get_pubkey(x509);
         if (nullptr != pPublicKey) {
@@ -721,17 +704,14 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
                     ? "OTAsymmetricKey_OpenSSL::SaveCertToString"
                     : pstrReason->Get());
 
-            dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData,
-                               pImportPassword); // bool bIsPrivateKey=false;
+            dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData, pImportPassword);
             EVP_PKEY_free(pPublicKey);
             pPublicKey = nullptr;
         }
-        // else?
 
         bSuccess = true;
     }
 
-    //
     if (bSuccess) strOutput = strx509;
 
     return bSuccess;
@@ -1096,15 +1076,6 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
         CRYPTO_free(szYHex);
     }
 
-    /*
-    if (pgpKeys.pRsa)
-        RSA_free(pgpKeys.pRsa);
-    if (pgpKeys.pDsa)
-        DSA_free(pgpKeys.pDsa);
-    if (pgpKeys.pElgamal)
-        free(pgpKeys.pElgamal);
-    */
-
     bool bReturnValue = false;
     EVP_PKEY* pkey = EVP_PKEY_new();
     OT_ASSERT(nullptr != pkey);
@@ -1169,9 +1140,6 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
                     // pointer to nullptr here just for completeness.
 
     return bReturnValue;
-
-    //    EVP_cleanup(); // removes digests from the table
-    //    ERR_free_strings(); // removes error strings.
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

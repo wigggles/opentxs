@@ -1647,20 +1647,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                  "<wallet name=\"\" version=\"1.0\">\n"
                                  "\n"
                                  "</wallet>\n";
-        //        "<?xml version=\"1.0\"?>\n"
-        //        "<wallet name="" version=\"2.0\">\n"
-        //        "\n"
-        //        "<cachedKey>\n"
-        //        "CkwAAQCAAAD//wAAAAhVRpwTzc+1NAAAABCKe14aROG8v/ite3un3bBCAAAAINyw\n"
-        //        "HXTM/x449Al2z8zBHBTRF77jhHkYLj8MIgqrJ2Ep\n"
-        //        "</cachedKey>\n"
-        //        "\n"
-        //        "</wallet>\n"
 
         if (!OTDB::StorePlainString(szContents, ".", szFilename)) {
             otErr << __FUNCTION__
                   << ": Error: Unable to create blank wallet file.\n";
-            OT_FAIL; // the end.
+            OT_FAIL;
         }
     }
 
@@ -1678,10 +1669,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
     {
         OTStringXML xmlFileContents(strFileContents);
 
-        if (false ==
-            xmlFileContents.DecodeIfArmored()) // bEscapedIsAllowed=true by
-                                               // default.
-        {
+        if (!xmlFileContents.DecodeIfArmored()) {
             otErr << __FUNCTION__
                   << ": Input string apparently was encoded and then failed "
                      "decoding. Filename: " << szFilename << " \n"
