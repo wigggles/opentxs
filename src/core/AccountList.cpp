@@ -196,8 +196,8 @@ void AccountList::Serialize(OTString& append) const
 }
 
 int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                    const OTString& acctType,
-                                    const OTString& acctCount)
+                                     const OTString& acctType,
+                                     const OTString& acctCount)
 {
     if (!acctType.Exists()) {
         otErr << "AccountList::ReadFromXMLNode: Failed: Empty accountList "
@@ -218,8 +218,9 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     if (count > 0) {
         while (count-- > 0) {
             if (!OTContract::SkipToElement(xml)) {
-                otOut << "AccountList::ReadFromXMLNode: Failure: Unable to find "
-                         "expected element.\n";
+                otOut
+                    << "AccountList::ReadFromXMLNode: Failure: Unable to find "
+                       "expected element.\n";
                 return -1;
             }
 
@@ -282,8 +283,9 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
 
     if (OTAccount::stash == acctType_) {
         if (stashTransNum <= 0) {
-            otErr << "AccountList::GetOrCreateAccount: Failed attempt to create "
-                     "stash account without cron item #.\n";
+            otErr
+                << "AccountList::GetOrCreateAccount: Failed attempt to create "
+                   "stash account without cron item #.\n";
             return account;
         }
     }
