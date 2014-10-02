@@ -140,6 +140,8 @@
 
 #ifdef OT_CRYPTO_USING_OPENSSL
 #include "crypto/OTCryptoOpenSSL.hpp"
+#else // Apparently NO crypto engine is defined!
+// Perhaps error out here...
 #endif
 
 #include "OTLog.hpp"
@@ -168,6 +170,13 @@ extern "C" {
 
 namespace opentxs
 {
+
+    // Choose your OTCrypto implementation here.
+#ifdef OT_CRYPTO_USING_OPENSSL
+    typedef OTCrypto_OpenSSL OTCryptoImpl;
+#else // Apparently NO crypto engine is defined!
+// Perhaps error out here...
+#endif
 
 // class OTCrypto
 //
@@ -419,11 +428,7 @@ OTCrypto* OTCrypto::It()
     // Todo: someday, swapping the crypto lib should be as easy as changing this
     // compile flag to OT_CRYPTO_USING_GPG. We'll get there.
     //
-    static
-#ifdef OT_CRYPTO_USING_OPENSSL
-        OTCrypto_OpenSSL
-#endif
-            s_theSingleton; // For now we're only allowing a single instance.
+    static OTCryptoImpl s_theSingleton; // For now we're only allowing a single instance.
 
     return &s_theSingleton;
 }
