@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTCrypto.hpp
+ *  OTCryptoOpenSSL.hpp
  *
  */
 
@@ -130,9 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
-#define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
+#define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
+#include "OTCrypto.hpp"
 #include "../OTPayload.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
@@ -154,160 +155,59 @@ class OTPseudonym;
 class OTSettings;
 class OTSignature;
 
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-
-class OTCryptoConfig
-{
-private:
-    static bool GetSetAll();
-
-    static bool GetSetValue(OTSettings& config, std::string strKeyName,
-                            int32_t nDefaultValue, const int32_t*& out_nValue);
-
-    static const int32_t& GetValue(const int32_t*& pValue);
-
-    static const int32_t* sp_nIterationCount;
-    static const int32_t* sp_nSymmetricSaltSize;
-    static const int32_t* sp_nSymmetricKeySize;
-    static const int32_t* sp_nSymmetricKeySizeMax;
-    static const int32_t* sp_nSymmetricIvSize;
-    static const int32_t* sp_nSymmetricBufferSize;
-    static const int32_t* sp_nPublicKeysize;
-    static const int32_t* sp_nPublicKeysizeMax;
-    static const int32_t* sp_nDigest1Size;
-    static const int32_t* sp_nDigest2Size;
-
-public:
-    EXPORT static uint32_t IterationCount();
-    EXPORT static uint32_t SymmetricSaltSize();
-    EXPORT static uint32_t SymmetricKeySize();
-    EXPORT static uint32_t SymmetricKeySizeMax();
-    EXPORT static uint32_t SymmetricIvSize();
-    EXPORT static uint32_t SymmetricBufferSize();
-    EXPORT static uint32_t PublicKeysize();
-    EXPORT static uint32_t PublicKeysizeMax();
-    EXPORT static uint32_t Digest1Size();
-    EXPORT static uint32_t Digest2Size();
-};
-
-// Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
-// keys being decrypted) and sometimes I want to decrypt into an OTPayload
-// (For most other types of data.) This class allows me to do it either way
-// without duplicating the static Decrypt() function, by wrapping both
-// types.
+// OTCrypto (OTCrypto.hpp) is the abstract base class which is used as an
+// interface by the rest of OT.
 //
-class OTCrypto_Decrypt_Output
+// Whereas OTCrypto_OpenSSL (below) is the actual implementation, written using
+// the OpenSSL library. Theoretically, a new implementation could someday be
+// "swapped in" -- for example, using GPG or NaCl or Crypto++, etc.
+
+#if defined(OT_CRYPTO_USING_GPG)
+
+// Someday    }:-)        OTCrypto_GPG
+
+#elif defined(OT_CRYPTO_USING_OPENSSL)
+
+class OTCrypto_OpenSSL : public OTCrypto
 {
-private:
-    OTPassword* m_pPassword;
-    OTPayload* m_pPayload;
+    friend class OTCrypto;
 
-    OTCrypto_Decrypt_Output();
-
-public:
-    EXPORT ~OTCrypto_Decrypt_Output();
-
-    EXPORT OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output& rhs);
-
-    EXPORT OTCrypto_Decrypt_Output(OTPassword& thePassword);
-    EXPORT OTCrypto_Decrypt_Output(OTPayload& thePayload);
-
-    EXPORT void swap(OTCrypto_Decrypt_Output& other);
-
-    EXPORT OTCrypto_Decrypt_Output& operator=(
-        OTCrypto_Decrypt_Output other); // passed by value.
-
-    EXPORT bool Concatenate(const void* pAppendData,
-                            uint32_t lAppendSize) const;
-
-    EXPORT void Release(); // Someday make this virtual, if we ever subclass it.
-    EXPORT void Release_Envelope_Decrypt_Output() const;
-};
-
-// OT CRYPTO -- ABSTRACT INTERFACE
-//
-// We are now officially at the point where we can easily swap crypto libs!
-// Just make a subclass of OTCrypto (copy an existing subclass such as
-// OTCrypto_OpenSSL)
-class OTCrypto
-{
-private:
-    static int32_t s_nCount; // Instance count, should never exceed 1.
 protected:
-    OTCrypto();
-
+    OTCrypto_OpenSSL();
     virtual void Init_Override() const;
     virtual void Cleanup_Override() const;
 
+    class OTCrypto_OpenSSLdp;
+    OTCrypto_OpenSSLdp* dp;
+
 public:
-    virtual ~OTCrypto();
-    // InstantiateBinarySecret
+    static std::mutex* s_arrayMutex;
     // (To instantiate a text secret, just do this: OTPassword thePass;)
-    //
-    virtual OTPassword* InstantiateBinarySecret() const = 0;
-    // GET PASSPHRASE FROM CONSOLE
-    //
-    EXPORT bool GetPasswordFromConsole(OTPassword& theOutput,
-                                       bool bRepeat = false) const;
-    EXPORT bool GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
-                                               const char* szPrompt) const;
+    virtual OTPassword* InstantiateBinarySecret() const;
     // RANDOM NUMBERS
-    //
     virtual bool RandomizeMemory(uint8_t* szDestination,
-                                 uint32_t nNewSize) const = 0;
+                                 uint32_t nNewSize) const;
     // HASHING
-    //
     virtual bool CalculateDigest(const OTString& strInput,
                                  const OTString& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
+                                 OTIdentifier& theOutput) const;
     virtual bool CalculateDigest(const OTData& dataInput,
                                  const OTString& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
+                                 OTIdentifier& theOutput) const;
     // BASE 62 ENCODING  (for IDs)
-    //
-    bool IsBase62(const std::string& str) const;
-
     virtual void SetIDFromBase62String(const OTString& strInput,
-                                       OTIdentifier& theOutput) const = 0;
+                                       OTIdentifier& theOutput) const;
     virtual void SetBase62StringFromID(const OTIdentifier& theInput,
-                                       OTString& strOutput) const = 0;
+                                       OTString& strOutput) const;
     // BASE 64 ENCODING
-    //
-    virtual bool Base64Encode(const OTData& theInput, OTString& strOutput,
-                              bool bLineBreaks = true) const;
-    virtual bool Base64Decode(const OTString& strInput, OTData& theOutput,
-                              bool bLineBreaks = true) const;
-
     // Lower-level version:
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
-                               bool bLineBreaks) const = 0; // NOTE: the
-                                                            // 'int32_t' here is
-                                                            // very worrying to
-                                                            // me. The
-    // reason it's here is because that's what OpenSSL uses. So
-    // we may need to find another way of doing it, so we can use
-    // a safer parameter here than what it currently is. Todo
-    // security.
+                               bool bLineBreaks) const; // todo security
+                                                        // ('int32_t')
     virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
-                                  bool bLineBreaks) const = 0;
+                                  bool bLineBreaks) const;
     // KEY DERIVATION
-    //
-    // DeriveKey derives a 128-bit symmetric key from a passphrase.
-    //
-    // The OTPassword* returned is the actual derived key. (The result.)
-    //
-    // However, you would not use it directly for symmetric-key crypto, but
-    // instead you'd use the OTSymmetricKey class. This is because you still
-    // need an object to manage everything about the symmetric key. It stores
-    // the salt and the iteration count, as well as ONLY the ENCRYPTED version
-    // of the symmetric key, which is a completely random number and is only
-    // decrypted briefly for specific operations. The derived key (below) is
-    // what we use for briefly decrypting that actual (random) symmetric key.
-    //
-    // Therefore this function is mainly used INSIDE OTSymmetricKey as part of
-    // its internal operations.
-    //
     // userPassword argument contains the user's password which is used to
     // derive the key. Presumably you already obtained this passphrase...
     // Then the derived key is returned, or nullptr if failure. CALLER
@@ -317,17 +217,14 @@ public:
     virtual OTPassword* DeriveKey(
         const OTPassword& userPassword, const OTPayload& dataSalt,
         uint32_t uIterations,
-        const OTPayload& dataCheckHash = OTPayload()) const = 0;
+        const OTPayload& dataCheckHash = OTPayload()) const;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
                                      const OTPayload& dataSalt,
                                      uint32_t uIterations,
-                                     OTPayload& dataCheckHash) const = 0;
-
+                                     OTPayload& dataCheckHash) const;
     // ENCRYPT / DECRYPT
-    //
     // Symmetric (secret key) encryption / decryption
-    //
     virtual bool Encrypt(
         const OTPassword& theRawSymmetricKey, // The symmetric key, in clear
                                               // form.
@@ -335,7 +232,7 @@ public:
         uint32_t lInputLength,
         const OTPayload& theIV, // (We assume this IV is already generated and
                                 // passed in.)
-        OTPayload& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
+        OTPayload& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
 
     virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
                                                                // key, in clear
@@ -346,104 +243,54 @@ public:
                                                  // already generated and passed
                                                  // in.)
                          OTCrypto_Decrypt_Output theDecryptedOutput)
-        const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
-                   // OTPayload& here (either will work.)
-    // SEAL / OPEN (RSA envelopes...)
-    //
+        const; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
+               // OTPayload& here (either will work.)
+    // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
-    //
     virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                      const OTString& theInput, OTData& dataOutput) const = 0;
+                      const OTString& theInput, OTData& dataOutput) const;
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
                       OTString& theOutput,
-                      const OTPasswordData* pPWData = nullptr) const = 0;
+                      const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
-    //
     // Sign or verify using the Asymmetric Key itself.
-    //
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
                               const OTString& strHashType,
-                              const OTPasswordData* pPWData = nullptr) = 0;
+                              const OTPasswordData* pPWData = nullptr);
 
-    virtual bool VerifySignature(
-        const OTString& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const OTString& strHashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+    virtual bool VerifySignature(const OTString& strContractToVerify,
+                                 const OTAsymmetricKey& theKey,
+                                 const OTSignature& theSignature,
+                                 const OTString& strHashType,
+                                 const OTPasswordData* pPWData = nullptr) const;
     // Sign or verify using the contents of a Certfile.
-    //
     virtual bool SignContract(const OTString& strContractUnsigned,
                               const OTString& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr) = 0;
+                              const OTPasswordData* pPWData = nullptr);
 
-    virtual bool VerifySignature(
-        const OTString& strContractToVerify, const OTString& strSigHashType,
-        const std::string& strCertFileContents, const OTSignature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const = 0;
-    EXPORT static OTCrypto* It();
+    virtual bool VerifySignature(const OTString& strContractToVerify,
+                                 const OTString& strSigHashType,
+                                 const std::string& strCertFileContents,
+                                 const OTSignature& theSignature,
+                                 const OTPasswordData* pPWData = nullptr) const;
+    void thread_setup() const;
+    void thread_cleanup() const;
 
-    EXPORT void Init() const;
-    EXPORT void Cleanup() const;
+    virtual ~OTCrypto_OpenSSL();
 };
 
-/*
- ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-5v2/pkcs5v2_1.pdf
+#else // Apparently NO crypto engine is defined!
 
- 4.2 Iteration count
+// Perhaps error out here...
 
- An iteration count has traditionally served the purpose of increasing
- the cost of producing keys from a password, thereby also increasing
- the difficulty of attack. For the methods in this document, a minimum
- of 1000 iterations is recommended. This will increase the cost of
- exhaustive search for passwords significantly, without a noticeable
- impact in the cost of deriving individual keys.
+#endif // if defined (OT_CRYPTO_USING_OPENSSL), elif defined
+       // (OT_CRYPTO_USING_GPG), else, endif.
 
- Time the KDF on your systems and see how many iterations are practical
- without signficant resource impact on legitimate use cases. If it is
- practical to make the count configurable, do so, otherwise hard-code
- a sensible value that is at least 1000.
-
- The iteration count is a multiplier on the CPU cost of brute-force
- dictionary attacks. If you are not sure that users are choosing "strong"
- passwords (they rarely do), you want to make dictionary attacks difficult
- by making individual password->key calculations sufficiently slow thereby
- limiting the throughput of brute-force attacks.
-
- If no legitimate system is computing multiple password-based keys per
- second, you could set the iteration count to consume 10-100ms of CPU
- on 2008 processors, this is likely much more than 1000 iterations.
- At a guess 1000 iterations will be O(1ms) per key on a typical modern CPU.
- This is based on "openssl speed sha1" reporting:
-
- type             16 bytes     64 bytes    256 bytes   1024 bytes   8192 bytes
- sha1             18701.67k    49726.06k   104600.90k   141349.84k   157502.27k
-
- or about 10^6 16-byte SHA1 ops per second, doing 1000 iterations of HMAC
- is approximately 2000 SHA1 ops and so should take about 2ms. In many
- applications 10,000 or even 100,000 may be practical provided no
- legitimate "actor" needs to perform password->key comptutations at
- a moderately high rate.
-
- */
-
-/*
- int32_t PKCS5_PBKDF2_HMAC_SHA1    (
-    const void*     password,
-    size_t          password_len,
-
-    const void*     salt,
-    size_t          salt_len,
-
-    uint64_t     iter,
-
-    size_t          keylen,
-    void*          key
-)
-*/
 
 } // namespace opentxs
 
