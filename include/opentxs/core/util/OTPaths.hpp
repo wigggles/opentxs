@@ -282,6 +282,8 @@ public:
                                                                 // unable to
                                                                 // build path.
 
+private:
+    static void ConfigureDefaultSettings();
 }; // class OTPaths
 
 } // namespace opentxs

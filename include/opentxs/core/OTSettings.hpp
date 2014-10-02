@@ -167,6 +167,7 @@ public:
     EXPORT ~OTSettings();
 
     EXPORT void SetConfigFilePath(const OTString& strConfigFilePath);
+    EXPORT bool HasConfigFilePath();
 
     // Core (Public Load and Save)
     EXPORT bool Load();

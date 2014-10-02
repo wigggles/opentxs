@@ -209,12 +209,7 @@
 namespace opentxs
 {
 
-#ifdef ANDROID
 OTSettings OTPaths::s_settings;
-#else
-OTSettings OTPaths::s_settings(GlobalConfigFile()); // NOTE: This is BAD to call
-                                                    // this here. da2ce7 ??
-#endif
 
 OTString OTPaths::s_strAppBinaryFolder("");
 OTString OTPaths::s_strHomeFolder("");
@@ -351,6 +346,8 @@ bool OTPaths::LoadSetPrefixFolder    // eg. /usr/local/
     Users will need to set the override path flag in the configuration,
     if they want to manually set the prefix path.
     */
+
+    if (&config == &s_settings) ConfigureDefaultSettings();
 
     const bool bPreLoaded(config.IsLoaded());
 
@@ -506,6 +503,8 @@ bool OTPaths::LoadSetScriptsFolder // ie. PrefixFolder() + [ if (NOT Android)
      const bool& bIsRelative           // optional
      )
 {
+    if (&config == &s_settings) ConfigureDefaultSettings();
+
     const bool bPreLoaded(config.IsLoaded());
 
     if (!bPreLoaded) {
@@ -1415,6 +1414,12 @@ bool OTPaths::BuildFilePath(const OTString& strFolderPath,
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }
     return true;
+}
+
+void OTPaths::ConfigureDefaultSettings()
+{
+    if (!s_settings.HasConfigFilePath())
+        s_settings.SetConfigFilePath(GlobalConfigFile());
 }
 
 } // namespace opentxs
