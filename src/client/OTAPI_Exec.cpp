@@ -149,7 +149,6 @@
 #include "../core/recurring/OTPaymentPlan.hpp"
 #include "../core/OTAccount.hpp"
 #include "../core/script/OTAgent.hpp"
-#include "../core/OTAmount.hpp"
 #include "../core/OTAssetContract.hpp"
 #include "../core/crypto/OTAsymmetricKey.hpp"
 #include "../core/script/OTBylaw.hpp"
@@ -1339,9 +1338,9 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
         OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
-    OTAmount theResult;
+    int64_t theResult;
     bool bParsed = pContract->StringToAmount(theResult, str_input);
-    return bParsed ? theResult.GetAmount() : StringToLong(str_input);
+    return bParsed ? theResult : StringToLong(str_input);
 }
 
 // Returns formatted string for output, for a given amount, based on currency
@@ -1374,7 +1373,7 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const int64_t lAmount = THE_AMOUNT;
-    OTAmount theAmount(lAmount);
+    int64_t theAmount(lAmount);
     OTString strBackup(LongToString(THE_AMOUNT));
     std::string str_result;
     const bool bFormatted =

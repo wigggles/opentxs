@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAcctList.cpp
+ *  AccountList.cpp
  *
  */
 
@@ -132,7 +132,7 @@
 
 #include "stdafx.hpp"
 
-#include "OTAcctList.hpp"
+#include "AccountList.hpp"
 #include "OTLog.hpp"
 #include "OTMessage.hpp"
 #include "OTStorage.hpp"
@@ -159,22 +159,22 @@ void TranslateAccountTypeToString(OTAccount::AccountType type,
 OTAccount::AccountType TranslateAccountTypeStringToEnum(
     const OTString& acctType);
 
-OTAcctList::OTAcctList()
+AccountList::AccountList()
     : acctType_(OTAccount::voucher)
 {
 }
 
-OTAcctList::OTAcctList(OTAccount::AccountType acctType)
+AccountList::AccountList(OTAccount::AccountType acctType)
     : acctType_(acctType)
 {
 }
 
-OTAcctList::~OTAcctList()
+AccountList::~AccountList()
 {
     Release_AcctList();
 }
 
-void OTAcctList::Serialize(OTString& append) const
+void AccountList::Serialize(OTString& append) const
 {
     OTString acctType;
     TranslateAccountTypeToString(acctType_, acctType);
@@ -195,12 +195,12 @@ void OTAcctList::Serialize(OTString& append) const
     append.Concatenate("</accountList>\n\n");
 }
 
-int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                    const OTString& acctType,
-                                    const OTString& acctCount)
+int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
+                                     const OTString& acctType,
+                                     const OTString& acctCount)
 {
     if (!acctType.Exists()) {
-        otErr << "OTAcctList::ReadFromXMLNode: Failed: Empty accountList "
+        otErr << "AccountList::ReadFromXMLNode: Failed: Empty accountList "
                  "'type' attribute.\n";
         return -1;
     }
@@ -208,7 +208,7 @@ int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     acctType_ = TranslateAccountTypeStringToEnum(acctType);
 
     if (OTAccount::err_acct == acctType_) {
-        otErr << "OTAcctList::ReadFromXMLNode: Failed: accountList 'type' "
+        otErr << "AccountList::ReadFromXMLNode: Failed: accountList 'type' "
                  "attribute contains unknown value.\n";
         return -1;
     }
@@ -218,8 +218,9 @@ int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     if (count > 0) {
         while (count-- > 0) {
             if (!OTContract::SkipToElement(xml)) {
-                otOut << "OTAcctList::ReadFromXMLNode: Failure: Unable to find "
-                         "expected element.\n";
+                otOut
+                    << "AccountList::ReadFromXMLNode: Failure: Unable to find "
+                       "expected element.\n";
                 return -1;
             }
 
@@ -250,7 +251,7 @@ int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
     if (!OTContract::SkipAfterLoadingField(xml)) // </accountList>
     {
-        otOut << "*** OTAcctList::ReadFromXMLNode: Bad data? Expected "
+        otOut << "*** AccountList::ReadFromXMLNode: Bad data? Expected "
                  "EXN_ELEMENT_END here, but "
                  "didn't get it. Returning false.\n";
         return -1;
@@ -259,18 +260,18 @@ int32_t OTAcctList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     return 1;
 }
 
-void OTAcctList::Release_AcctList()
+void AccountList::Release_AcctList()
 {
     mapAcctIDs_.clear();
     mapWeakAccts_.clear();
 }
 
-void OTAcctList::Release()
+void AccountList::Release()
 {
     Release_AcctList();
 }
 
-std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
+std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
     OTPseudonym& serverNym, const OTIdentifier& accountOwnerId,
     const OTIdentifier& assetTypeId, const OTIdentifier& serverId,
     // this will be set to true if the acct is created here.
@@ -282,8 +283,9 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
 
     if (OTAccount::stash == acctType_) {
         if (stashTransNum <= 0) {
-            otErr << "OTAcctList::GetOrCreateAccount: Failed attempt to create "
-                     "stash account without cron item #.\n";
+            otErr
+                << "AccountList::GetOrCreateAccount: Failed attempt to create "
+                   "stash account without cron item #.\n";
             return account;
         }
     }
@@ -321,7 +323,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
                 // we're not walking on each other's toes.
                 if (weakAccount) {
                     otOut
-                        << "OTAcctList::GetOrCreateAccount: Warning: account ("
+                        << "AccountList::GetOrCreateAccount: Warning: account ("
                         << accountIdString
                         << ") was already in memory so I gave you a "
                            "pointer to the existing one. (But who else has a "
@@ -388,7 +390,7 @@ std::shared_ptr<OTAccount> OTAcctList::GetOrCreateAccount(
         accountOwnerId, serverId, serverNym, message, acctType_, stashTransNum);
 
     if (!createdAccount) {
-        otErr << " OTAcctList::GetOrCreateAccount: Failed trying to generate"
+        otErr << " AccountList::GetOrCreateAccount: Failed trying to generate"
               << acctTypeString
               << " account with asset type ID: " << assetTypeIdString << "\n";
     }

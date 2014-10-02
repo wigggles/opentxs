@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
-#include "../OTAcctList.hpp"
+#include "../AccountList.hpp"
 #include "../cron/OTCronItem.hpp"
 
 namespace opentxs
@@ -174,8 +174,9 @@ private:
     // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
     // have 5 asset types
     // in it, AND stash "bob" might also have 5 asset types stored in it.
-    OTAcctList m_StashAccts; // The actual accounts where stash funds are stored
-                             // (so they will turn up properly on an audit.)
+    AccountList m_StashAccts; // The actual accounts where stash funds are
+                              // stored
+                              // (so they will turn up properly on an audit.)
     // Assuming that Alice and Bob both use the same asset types, there will be
     // 5 stash accounts here,
     // not 10.  That's because, even if you create a thousand stashes, if they

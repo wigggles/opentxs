@@ -135,7 +135,6 @@
 #include "OTAssetContract.hpp"
 #include "OTAccount.hpp"
 #include "AccountVisitor.hpp"
-#include "OTAmount.hpp"
 #include "util/OTFolders.hpp"
 #include "OTLog.hpp"
 #include "OTStorage.hpp"
@@ -148,8 +147,6 @@
 
 using namespace irr;
 using namespace io;
-
-// static
 
 namespace opentxs
 {
@@ -216,17 +213,11 @@ bool OTAssetContract::ParseFormatted(int64_t& lResult,
             // Once a negative sign appears, it's negative, period.
             // If you put two or three negative signs in a row, it's STILL
             // negative.
-            //
-            //          std::string str_negative(1, theChar);
-            //          if (0 == str_negative.compare(mp.negative_sign()))
 
             if ('-' == theChar) {
                 lSign = -1;
                 continue;
             }
-            //          std::cout << "FYI, negative sign: " <<
-            // mp.negative_sign() << " str_negative: " << str_negative << "
-            // lSign: " << lSign << std::endl;
 
             // Okay, by this point, we know it's not numerical, and it's not a
             // separator or decimal point, or
@@ -277,7 +268,7 @@ bool OTAssetContract::ParseFormatted(int64_t& lResult,
         lDollars *=
             10; // Multiply existing dollars by 10, and then add the new digit.
         lDollars += static_cast<int64_t>(theChar - '0');
-    } // for
+    }
 
     // Time to put it all together...
     //
@@ -318,7 +309,6 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
-// static
 std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
                                               int32_t nPower,
                                               const char* szCurrencySymbol,
@@ -355,12 +345,10 @@ std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool OTAssetContract::FormatAmount(const OTAmount& theInput,
+bool OTAssetContract::FormatAmount(int64_t amount,
                                    std::string& str_output) const // Convert 545
                                                                   // to $5.45.
 {
-    int64_t lValue = static_cast<int64_t>(theInput.GetAmount());
-
     int32_t nFactor = atoi(
         m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
     if (nFactor < 1) nFactor = 1;
@@ -392,22 +380,8 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    //    static bool bFirstTime = true;
-    //
-    //    if (bFirstTime)
-    //    {
-    //        bFirstTime = false;
-    //        // TODO: Add ability to customize locale here, if necessary.
-    //        const std::moneypunct<char, false> &mp = std::use_facet<
-    // std::moneypunct<char, false> >(std::locale ()); // <=====
-    //        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' :
-    // mp.thousands_sep ());
-    //        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' :
-    // mp.decimal_point ());
-    //    }
-
     str_output = OTAssetContract::formatLongAmount(
-        lValue, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
+        amount, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
         strDecimalPoint.Get());
     return true;
 }
@@ -418,11 +392,9 @@ bool OTAssetContract::FormatAmount(const OTAmount& theInput,
 // point of ".")
 //
 bool OTAssetContract::StringToAmount(
-    OTAmount& theOutput,
+    int64_t& amount,
     const std::string& str_input) const // Convert $5.45 to amount 545.
 {
-    int64_t lValue = 0;
-
     int32_t nFactor = atoi(
         m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
     if (nFactor < 1) nFactor = 1;
@@ -451,46 +423,11 @@ bool OTAssetContract::StringToAmount(
     static OTString strSeparator(",");
     static OTString strDecimalPoint(".");
 
-    //    static bool bFirstTime = true;
-    //
-    //    if (bFirstTime)
-    //    {
-    //        bFirstTime = false;
-    //        // TODO: Add ability to customize locale here, if necessary.
-    //        const std::moneypunct<char, false> &mp = std::use_facet<
-    // std::moneypunct<char, false> >(std::locale ()); // <=====
-    //        strSeparator.   Format("%c", ('\0' == mp.thousands_sep ()) ? ',' :
-    // mp.thousands_sep ());
-    //        strDecimalPoint.Format("%c", ('\0' == mp.decimal_point ()) ? '.' :
-    // mp.decimal_point ());
-    //    }
-
-    bool bSuccess = OTAssetContract::ParseFormatted(lValue, str_input, nFactor,
+    bool bSuccess = OTAssetContract::ParseFormatted(amount, str_input, nFactor,
                                                     nPower, strSeparator.Get(),
                                                     strDecimalPoint.Get());
 
-    if (bSuccess) theOutput.SetAmount(static_cast<int64_t>(lValue));
-
     return bSuccess;
-}
-
-// NOTE: the use of "dollars" and "cents" here is only metaphoric.
-// For example, if the currency type was Bitcoin, then "dollars" are actually
-// BTC,
-// and "cents" are actually satoshis or mBTC.
-
-// Given input of 545, GetDollarsOnly returns 5
-//
-int64_t OTAssetContract::GetDollarsOnly(const OTAmount&) const
-{
-    return 0; // TODO
-}
-
-// Given input of 545, GetCentsOnly returns 45.
-
-int64_t OTAssetContract::CentsOnly(const OTAmount&) const
-{
-    return 0; // TODO
 }
 
 OTAssetContract::OTAssetContract()
@@ -510,10 +447,6 @@ OTAssetContract::OTAssetContract(OTString& name, OTString& foldername,
 
 OTAssetContract::~OTAssetContract()
 {
-    // OTContract::~OTContract is called here automatically, and it calls
-    // Release.
-    // So I don't need to call it here again when it's already called by the
-    // parent.
 }
 
 bool OTAssetContract::DisplayStatistics(OTString& strContents) const
@@ -558,19 +491,6 @@ bool OTAssetContract::SaveContractWallet(std::ofstream& ofs) const
 
     return false;
 }
-
-/*
-bool OTAssetContract::SaveContractWallet(FILE* fl)
-{
-    OTString strID(m_ID);
-
-    fprintf(fl, "<assetType name=\"%s\"\n assetTypeID=\"%s\"\n contract=\"%s\"
-/> "
-            "\n\n", m_strName.Get(), strID.Get(), m_strFilename.Get());
-
-    return true;
-}
-*/
 
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
