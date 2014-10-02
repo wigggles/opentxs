@@ -350,7 +350,7 @@ add_subdirectory(wrappers)
 
 include(CMakePackageConfigHelpers)
 set(CMAKE_CONFIG_DEST "share/cmake/Modules")
-set(OPENTXS_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/include")
+set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
 export(TARGETS opentxs-core opentxs-client opentxs-ext opentxs-cash opentxs-basket bigint lucre FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
 
