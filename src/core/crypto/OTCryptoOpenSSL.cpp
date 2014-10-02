@@ -1139,7 +1139,143 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
     return pNewKey;
 }
 
-// done
+
+/*
+extern "C"
+{
+void SetStdinEcho(int32_t enable)
+{
+#ifdef WIN32
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD mode;
+    GetConsoleMode(hStdin, &mode);
+
+    if( !enable )
+        mode &= ~ENABLE_ECHO_INPUT;
+    else
+        mode |= ENABLE_ECHO_INPUT;
+
+    SetConsoleMode(hStdin, mode );
+
+#else
+    struct termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    if( !enable )
+        tty.c_lflag &= ~ECHO;
+    else
+        tty.c_lflag |= ECHO;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+#endif
+}
+}
+*/
+
+/*
+int32_t _getch( void ); // windows only  #include <conio.h>
+
+int32_t main()
+{
+    std::string password;
+    char ch;
+    const char ENTER = 13;
+
+    std::cout << "enter the password: ";
+
+    while((ch = _getch()) != ENTER)
+    {
+        bool    addChar(char theChar);
+        password += ch;
+        std::cout << '*';
+    }
+}
+*/
+
+#ifndef _PASSWORD_LEN
+#define _PASSWORD_LEN 128
+#endif
+
+bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
+                                              const char* szPrompt) const
+{
+    OT_ASSERT(nullptr != szPrompt);
+
+#ifdef _WIN32
+    {
+        std::cout << szPrompt;
+
+        {
+            std::string strPassword = "";
+
+#ifdef UNICODE
+
+            const wchar_t enter[] = {L'\x000D', L'\x0000'}; // carrage return
+            const std::wstring wstrENTER = enter;
+
+            std::wstring wstrPass = L"";
+
+            for (;;) {
+                const wchar_t ch[] = {_getwch(), L'\x0000'};
+                const std::wstring wstrCH = ch;
+                if (wstrENTER == wstrCH) break;
+                wstrPass.append(wstrCH);
+            }
+            strPassword = OTString::ws2s(wstrPass);
+
+#else
+
+            const char enter[] = {'\x0D', '\x00'}; // carrage return
+            const std::string strENTER = enter;
+
+            std::string strPass = "";
+
+            for (;;) {
+                const char ch[] = {_getch(), '\x00'};
+                const std::string strCH = ch;
+                if (strENTER == strCH) break;
+                strPass.append(strCH);
+            }
+            strPassword = strPass;
+
+#endif
+            theOutput.setPassword(
+                strPassword.c_str(),
+                static_cast<int32_t>(strPassword.length() - 1));
+        }
+
+        std::cout << std::endl; // new line.
+        return true;
+    }
+#elif defined(OT_CRYPTO_USING_OPENSSL)
+    // todo security: might want to allow to set OTPassword's size and copy
+    // directly into it,
+    // so that we aren't using this temp buf in between, which, although we're
+    // zeroing it, could
+    // technically end up getting swapped to disk.
+    //
+    {
+        char buf[_PASSWORD_LEN + 10] = "", buff[_PASSWORD_LEN + 10] = "";
+
+        if (UI_UTIL_read_pw(buf, buff, _PASSWORD_LEN, szPrompt, 0) == 0) {
+            size_t nPassLength = OTString::safe_strlen(buf, _PASSWORD_LEN);
+            theOutput.setPassword_uint8(reinterpret_cast<uint8_t*>(buf),
+                                        nPassLength);
+            OTPassword::zeroMemory(buf, nPassLength);
+            OTPassword::zeroMemory(buff, nPassLength);
+            return true;
+        }
+        else
+            return false;
+    }
+#else
+    {
+        otErr << "__FUNCTION__: Open-Transactions is not compiled to collect "
+              << "the passphrase from the console!\n";
+        return false;
+    }
+#endif
+}
+
 
 void OTCrypto_OpenSSL::thread_setup() const
 {

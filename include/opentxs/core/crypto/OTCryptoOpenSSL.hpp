@@ -184,6 +184,10 @@ public:
     static std::mutex* s_arrayMutex;
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     virtual OTPassword* InstantiateBinarySecret() const;
+
+    virtual bool GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
+                                                const char* szPrompt) const;
+  
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const;
