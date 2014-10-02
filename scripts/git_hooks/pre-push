@@ -21,7 +21,7 @@ if ! command -v cppcheck >/dev/null; then
 	exit 1
 fi
 
-expected_version="$(cat ./scripts/travis/cppcheck_version)"
+expected_version="$(cat ./scripts/build/cppcheck_version)"
 version=$(cppcheck --version)
 if [ "$version" != "Cppcheck $expected_version" ]; then
     echo    "error: wrong version $version!"
@@ -55,7 +55,7 @@ END
 		exit 0
 	fi
 	echo "[$(date +%X)] starting cppcheck"
-	output=$(scripts/travis/cppcheck_wrapper.sh -j8 $exist_files 2>&1)
+	output=$(scripts/build/cppcheck_wrapper.sh -j8 $exist_files 2>&1)
 	echo "[$(date +%X)] done cppcheck"
 	error_code=$?
 	filter_string="(information) Cppcheck cannot find all the include files"
