@@ -138,7 +138,6 @@
 #include "OTLog.hpp"
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
-#include "util/OTPaths.hpp"
 #include "OTPseudonym.hpp"
 #include "crypto/OTSignature.hpp"
 #include "OTStorage.hpp"
@@ -152,13 +151,9 @@ extern "C" {
 #ifdef _WIN32
 #else
 #include <arpa/inet.h> // For htonl()
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/resource.h>
 #endif
 }
 
-#if defined(OT_CRYPTO_USING_OPENSSL)
 
 extern "C" {
 #include <openssl/bio.h>
@@ -185,12 +180,6 @@ extern "C" {
 
 #include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 #include "crypto/OpenSSL_BIO.hpp"
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else
-
-#endif
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

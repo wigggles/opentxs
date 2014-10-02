@@ -158,45 +158,9 @@
 extern "C" {
 #ifdef _WIN32
 #else
-#include <arpa/inet.h> // For htonl()
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/resource.h>
 #endif
 }
-
-#if defined(OT_CRYPTO_USING_OPENSSL)
-
-extern "C" {
-#include <openssl/bio.h>
-#include <openssl/buffer.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#include <openssl/err.h>
-#include <openssl/ui.h>
-#include <openssl/rand.h>
-#include <openssl/crypto.h>
-#include <openssl/asn1.h>
-#include <openssl/objects.h>
-#include <openssl/ssl.h>
-#include <openssl/sha.h>
-#include <openssl/conf.h>
-#include <openssl/x509v3.h>
-
-#ifndef OPENSSL_NO_ENGINE
-#include <openssl/engine.h>
-#endif
-}
-
-#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else
-
-#endif
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
