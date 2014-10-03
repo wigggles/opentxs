@@ -154,7 +154,6 @@ extern "C" {
 #endif
 }
 
-
 extern "C" {
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
@@ -231,7 +230,6 @@ public:
 
 #endif // if defined (OT_CRYPTO_USING_OPENSSL), elif defined
        // (OT_CRYPTO_USING_GPG), else, endif.
-
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
@@ -1128,7 +1126,6 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
     return pNewKey;
 }
 
-
 /*
 extern "C"
 {
@@ -1184,8 +1181,8 @@ int32_t main()
 #define _PASSWORD_LEN 128
 #endif
 
-bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
-                                              const char* szPrompt) const
+bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(
+    OTPassword& theOutput, const char* szPrompt) const
 {
     OT_ASSERT(nullptr != szPrompt);
 
@@ -1264,7 +1261,6 @@ bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
     }
 #endif
 }
-
 
 void OTCrypto_OpenSSL::thread_setup() const
 {

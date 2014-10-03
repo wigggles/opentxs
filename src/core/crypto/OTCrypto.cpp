@@ -171,9 +171,9 @@ extern "C" {
 namespace opentxs
 {
 
-    // Choose your OTCrypto implementation here.
+// Choose your OTCrypto implementation here.
 #ifdef OT_CRYPTO_USING_OPENSSL
-    typedef OTCrypto_OpenSSL OTCryptoImpl;
+typedef OTCrypto_OpenSSL OTCryptoImpl;
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif
@@ -428,7 +428,8 @@ OTCrypto* OTCrypto::It()
     // Todo: someday, swapping the crypto lib should be as easy as changing this
     // compile flag to OT_CRYPTO_USING_GPG. We'll get there.
     //
-    static OTCryptoImpl s_theSingleton; // For now we're only allowing a single instance.
+    static OTCryptoImpl s_theSingleton; // For now we're only allowing a single
+                                        // instance.
 
     return &s_theSingleton;
 }
@@ -664,6 +665,5 @@ bool OTCrypto_Decrypt_Output::Concatenate(const void* pAppendData,
     }
     return false;
 }
-
 
 } // namespace opentxs

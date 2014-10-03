@@ -187,7 +187,7 @@ public:
 
     virtual bool GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
                                                 const char* szPrompt) const;
-  
+
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const;
@@ -294,7 +294,6 @@ public:
 
 #endif // if defined (OT_CRYPTO_USING_OPENSSL), elif defined
        // (OT_CRYPTO_USING_GPG), else, endif.
-
 
 } // namespace opentxs
 
