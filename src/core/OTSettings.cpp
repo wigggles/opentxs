@@ -262,6 +262,11 @@ void OTSettings::SetConfigFilePath(const OTString& strConfigFilePath)
     m_strConfigurationFileExactPath.Set(strConfigFilePath.Get());
 }
 
+bool OTSettings::HasConfigFilePath()
+{
+    return m_strConfigurationFileExactPath.Exists();
+}
+
 OTSettings::OTSettings()
     : pvt(new OTSettingsPvt())
     , b_Loaded(false)
