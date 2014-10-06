@@ -18,6 +18,7 @@
 %include "std_map.i"
 %include "typemaps.i"
 
+typedef int64_t time64_t;
 
 %{
 #ifndef IMPORT
