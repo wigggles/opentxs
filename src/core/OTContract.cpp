@@ -1618,7 +1618,7 @@ bool OTContract::ParseRawFile()
     else if (bSignatureMode) {
         otErr << "Error in OTContract::ParseRawFile: EOF while reading "
                  "signature.\n";
-        OT_FAIL_MSG("gimme a call stack!");
+        return false;
     }
     else if (!LoadContractXML()) {
         otErr << "Error in OTContract::ParseRawFile: unable to load XML "
