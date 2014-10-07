@@ -202,7 +202,6 @@ public:
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(const char* buf, const int32_t* pnExpectReply);
     void ProcessMessageOut(const OTMessage& theMessage) const;
 
     // Assuming we are connected, then we have the nym for signing and we

@@ -390,7 +390,6 @@ public:
     bool InitClient(OTWallet& theWallet); // Need to call this before using.
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
-    void ProcessMessageOut(const char* buf, int32_t* pnExpectReply) const;
     void ProcessMessageOut(const OTMessage& theMessage);
     bool ProcessInBuffer(const OTMessage& theServerReply) const;
     // These functions are for command processing:

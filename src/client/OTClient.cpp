@@ -187,19 +187,6 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
                  // if needed.
 }
 
-void OTClient::ProcessMessageOut(const char* buf, int32_t* pnExpectReply) const
-{
-    //    otErr << "OTClient::ProcessMessageOut: \n\n" << buf << "\n\n";
-    //
-    //    const OTString strMessage(buf);
-    //    OTMessage tempMsg;
-    //    tempMsg.LoadContractFromString(strMessage);
-
-    m_pConnection->ProcessMessageOut(buf, pnExpectReply);
-
-    //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
-}
-
 void OTClient::ProcessMessageOut(const OTMessage& theMessage)
 {
     const OTString strMessage(theMessage);
