@@ -133,17 +133,11 @@
 #include "../core/stdafx.hpp"
 
 #include "OTServerConnection.hpp"
-#include "OpenTransactions.hpp"
-#include "OTClient.hpp"
-#include "OTWallet.hpp"
 #include "TransportCallback.hpp"
 
-#include "../core/OTAssetContract.hpp"
-#include "../core/util/OTDataCheck.hpp"
 #include "../core/crypto/OTEnvelope.hpp"
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
-#include "../core/OTPayload.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 
