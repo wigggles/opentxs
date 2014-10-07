@@ -205,13 +205,6 @@ public:
     void ProcessMessageOut(const char* buf, const int32_t* pnExpectReply);
     void ProcessMessageOut(const OTMessage& theMessage) const;
 
-    EXPORT inline bool ProcessInBuffer(const OTMessage&) const
-    {
-        return false;
-    }
-    bool ProcessReply(u_header& theCMD, OTMessage& theServerReply);
-    bool ProcessType1Cmd(u_header& theCMD, OTMessage& theServerReply) const;
-
     // Assuming we are connected, then we have the nym for signing and we
     // have the connection for sending.
     bool SignAndSend(OTMessage& theMessage) const;

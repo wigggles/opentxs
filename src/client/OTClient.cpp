@@ -244,15 +244,6 @@ void OTClient::ProcessMessageOut(const OTMessage& theMessage)
     //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
 }
 
-bool OTClient::ProcessInBuffer(const OTMessage& theServerReply) const
-{
-    OT_ASSERT_MSG(
-        nullptr != m_pConnection,
-        "OTClient::ProcessInBuffer: ASSERT: nullptr != m_pConnection\n");
-
-    return m_pConnection->ProcessInBuffer(theServerReply);
-}
-
 /// This is standard behavior for the Nymbox (NOT the inbox.)
 /// That is, to just accept everything there.
 //
