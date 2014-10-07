@@ -198,13 +198,13 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
     else {
         OTLog::Output(4, "Received valid Server ID with command request.\n");
     }
+
     // NYM WAS PASSED IN
     //
+    // If one wasn't passed in, we'll use the one constructed here.
     OTPseudonym theNym(theMessage.m_strNymID);
-
     if (nullptr == pNym)
-        pNym = &theNym; // If one wasn't passed in, we'll use the one
-                        // constructed here. (One line up.)
+        pNym = &theNym;
     else if (!pNym->CompareID(theNym)) {
         OTString strTempNymID;
         pNym->GetIdentifier(strTempNymID);
@@ -216,8 +216,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
             strTempNymID.Get(), theMessage.m_strNymID.Get());
         return false;
     }
-    // NYM IS ACTUALLY SERVER
 
+    // NYM IS ACTUALLY SERVER
+    //
     // For special cases where the Nym sending the transaction has the same
     // public key as
     // the server itself. (IE it IS the server Nym, then we'd want to use the
@@ -225,110 +226,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
     // server nym object instead of loading a fresh one, so the two don't
     // overwrite each other.)
     //
-    const bool bNymIsServerNym =
-        (server_->m_strServerUserID.Compare(theMessage.m_strNymID) ? true
-                                                                   : false);
-    //    OTPseudonym * pNym = &theNym; // this is now done higher up in this
-    // function.
+    bool bNymIsServerNym =
+        server_->m_strServerUserID.Compare(theMessage.m_strNymID);
 
     if (bNymIsServerNym) pNym = &server_->m_nymServer;
 
-    // This command is special because the User sent his public key, not just
-    // his ID.
-    // We have to verify the two together.
-    //
-    // At this point the user doesn't even have an account, so there is no
-    // public key
-    // to look up from the database.
-    //
-    // If the ServerID in the reply matches the ID calculated from the Server
-    // Contract,
-    // that means the user, without asking for the server's public key, can just
-    // extract
-    // the public key from the contract from which the serverID was first
-    // calculated. (The
-    // ID is a hash of the contract.)
-    //
-    // In other words, the user reads a contract. It's signed. The signature is
-    // verified
-    // by a public key that is embedded in the contract. If the server, a URL
-    // also embedded in
-    // the contract, acknowledges the ServerID, then the user can encrypt
-    // everything to the
-    // public key in the contract, without asking the server for a copy of that
-    // key.
-    //
-    // Only the private key who signed that contract will be able to read the
-    // communications from
-    // the user.
-    //
-    // I definitely have to build in an option for x509 certs to be used in lieu
-    // of public keys.
-    // Otherwise the key is not ever revokable -- yet it's in a contract!  What
-    // is the issuer supposed
-    // to do if that key is stolen? Make a public announcement?
-    //
-    // UPDATE ONE-LINE NOTE: THE TRUE SOLUTION TO THIS WHOLE ISSUE IS:   ***
-    // NAMECOIN ***
-    // (Now continuing back to my old comments from 18 months ago...)
-    //
-    // In such a case, the issuer would have to put a "check this URL to make
-    // sure contract still good"
-    // variable into the contract so that the users have the chance to make sure
-    // the contract is still
-    // good and the contract's private key hasn't been stolen. Well guess what?
-    // That's what x509 does.
-    // Therefore the appropriate solution is for the server to support x509s,
-    // and to look up the authority
-    // and verify certs, so that users have recourse in the event their private
-    // key is stolen. (They can
-    // just use their Cert to issue a new public key, which the transaction
-    // server would be smart enough
-    // to use, once the certificate authority signs off on it. (Since the user
-    // uses an x509 from a
-    // specific authority, then I can trust that whatever that authority says,
-    // that user wanted it to say.)
-    // Without knowing the authority itself, I can now trust it because the user
-    // has asked me to trust it.
-    // Fair enough!
-    //
-    // Similarly a user should be able to use his x509 Cert instead of his
-    // public key, and the server
-    // should verify that cert whenever it's used to make sure it's up to date.
-    // This takes the
-    // problem off of the user's hands by way of a trusted authority.
-    //
-    // In fact this transaction server is really just a transaction VERIFIER.
-    // It's just another form
-    // of trusted 3rd party. Just like Verisign is an authority who ceritifies
-    // an identity, so this
-    // server is an authority who certifies a transaction. It's like a
-    // timestamping server. In fact
-    // it should have timestamping built in as one of the functions.
-    //
-    // Transactions do not actually occur on the server, per se. They occur
-    // between the USERS.
-    // All the server does it certify that the numbers are correct. It's like
-    // accounting software.
-    // Ultimately the users are the ones making a transaction, and they are the
-    // ones who are
-    // responsible to back up their promises in real life and potentially in
-    // court. All the software
-    // does is CERTIFY that the users DID make certain agreements at certain
-    // times, and digitally sign
-    // those certifications.
-    //
-    // Thus, this server is very similar to Verisign. It is a trusted 3rd party
-    // who users can trust
-    // to authenticate their transactions. Instead of authenticating
-    // certifications like Verisign does,
-    // it authenticates transactions.
-    //
-    // UPDATE: May not want x509's after all, since it provides an opening for
-    // governments to
-    // serve warrants on the authority site and switch certs whenever they want
-    // to (BAD THING!)
-    //
     OTString strMsgNymID;
     pNym->GetIdentifier(strMsgNymID);
 
@@ -345,11 +247,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         OT_ASSERT(nullptr != pNymEncryptKey);
         OTAsymmetricKey& nymAuthentKey = *pNymAuthentKey;
         OTAsymmetricKey& nymEncryptionKey = *pNymEncryptKey;
-        const bool bIfNymPublicKey =
-            (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey,
-                                        true /*bEscaped*/) &&
-             nymEncryptionKey.SetPublicKey(theMessage.m_strNymID2,
-                                           true /*bEscaped*/));
+        bool bIfNymPublicKey =
+            (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey, true) &&
+             nymEncryptionKey.SetPublicKey(theMessage.m_strNymID2, true));
 
         if (bIfNymPublicKey) {
             if (theMessage.VerifyWithKey(nymAuthentKey)) // Not all contracts
@@ -388,27 +288,6 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
             return false;
         }
     }
-
-    // The below block is now COMPLETE. (For credentials new system.)
-    //
-    // Next, make sure the client side is properly forming the new version of
-    // this message,
-    // and make sure it creates credentials when necessary, if they don't
-    // already exist
-    // (Since this new server version ONLY accepts credentials, and not
-    // old-style public keys.)
-    //
-    // This command is also special because again, the User sent his public key,
-    // not just his ID.
-    // We have to verify the two together.
-    // UPDATE: now the Nym sends not a public key, but a full set of credentials
-    // along with
-    // a list of credential IDs. You load the list of credential IDs as if you
-    // are loading the Nym
-    // from a string. (It's like a nym that only contains the credential parts.)
-    // Then in the process
-    // of loading the Nym, it will load the credentials from the mapOfStrings.
-    //
     else if (theMessage.m_strCommand.Compare("createUserAccount")) {
         OTLog::vOutput(
             0, "\n==> Received a createUserAccount message. Nym: %s ...\n",
@@ -422,18 +301,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                           "fresh Nym to use. ***\n");
             return false;
         }
+        OTASCIIArmor& ascArmor = theMessage.m_ascPayload;
+        OTASCIIArmor& ascArmor2 = theMessage.m_ascPayload2;
         // First try to get Credentials, if there are any.
-        //
-        OTASCIIArmor& ascArmor = theMessage.m_ascPayload;   // credentialList
-                                                            // (New style!
-                                                            // Credentials.)
-        OTASCIIArmor& ascArmor2 = theMessage.m_ascPayload2; // credentials
         const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
-        if (bHasCredentials) // New style of doing things, for Nym keys.
-                             // Credentials!
-        {
-            // credentialList
-            //
+        if (bHasCredentials) {
             OTString strCredentialList(ascArmor);
 
             if (strCredentialList.Exists()) {
@@ -580,10 +452,9 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                                           "ID: %s\n",
                                                        str_cred_id.c_str());
                                 }
-                            } // else (bStoredList)
+                            }
                             // Make sure we are encrypting the message we send
                             // back, if possible.
-                            //
                             OTString strPublicEncrKey, strPublicSignKey;
                             OTAsymmetricKey& thePublicEncrKey =
                                 (OTAsymmetricKey&)
@@ -592,21 +463,17 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                 (OTAsymmetricKey&)
                                 pNym->GetPublicSignKey(); // todo cast
 
-                            thePublicEncrKey.GetPublicKey(
-                                strPublicEncrKey,
-                                false); // bEscaped=true by default
-                            thePublicSignKey.GetPublicKey(
-                                strPublicSignKey,
-                                false); // bEscaped=true by default
+                            thePublicEncrKey.GetPublicKey(strPublicEncrKey,
+                                                          false);
+                            thePublicSignKey.GetPublicKey(strPublicSignKey,
+                                                          false);
 
                             // We also (for now) set the Nym's keypair (which is
                             // being phased out entirely,
                             // and being replaced with credentials.)
                             //
                             if (strPublicSignKey.Exists())
-                                pNym->SetPublicKey(
-                                    strPublicSignKey,
-                                    false); // bEscaped=true by default
+                                pNym->SetPublicKey(strPublicSignKey, false);
 
                             // This is only for verified Nyms, (and we're
                             // verified in here!) We do this so that
@@ -645,10 +512,6 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                                         // the server
                                                         // contract.
                             msgOut.m_bSuccess = false;
-
-                            // already done, top of this function.
-                            //                          msgOut.m_strRequestNum.Set(theMessage.m_strRequestNum);
-                            // // to prevent replay attacks.
 
                             // We send the user's message back to him,
                             // ascii-armored,
@@ -689,17 +552,12 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                         (theNymbox.VerifyContractID() &&
                                          theNymbox.VerifyAccount(
                                              server_->m_nymServer));
-                                //                                    bSuccessLoadingNymbox
-                                // =
-                                // (theNymbox.VerifyAccount(server_->m_nymServer));
-                                // //
                                 // (No need here to load all the Box Receipts)
                                 else {
                                     bSuccessLoadingNymbox =
                                         theNymbox.GenerateLedger(
                                             theNewNymID, SERVER_ID,
-                                            OTLedger::nymbox,
-                                            true); // bGenerateFile=true
+                                            OTLedger::nymbox, true);
 
                                     if (bSuccessLoadingNymbox) {
                                         bSuccessLoadingNymbox =
@@ -733,18 +591,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                 msgOut.SaveContract();
                                 return true;
                             }
-                            else
-                            //                               ((pNym->IsMarkedForDeletion()
-                            // &&  (true == bLoadedPublicKey)) ||  // We
-                            // allow people to resurrect deleted Nyms.
-                            ////                              ((false ==
-                            /// bLoadedSignedNymfile)    && (false ==
-                            /// bLoadedPublicKey))     // It's like this now
-                            /// so unregistered Nyms
-                            //                                (false ==
-                            // bLoadedPublicKey))
-                            // // can still buy usage credits.
-                            {
+                            else {
                                 if (pNym->IsMarkedForDeletion())
                                     pNym->MarkAsUndeleted();
 
@@ -789,17 +636,13 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                             (theNymbox.VerifyContractID() &&
                                              theNymbox.VerifyAccount(
                                                  server_->m_nymServer));
-                                    //                                        bSuccessLoadingNymbox
-                                    // =
-                                    // (theNymbox.VerifyAccount(server_->m_nymServer));
-                                    // // (No need here to load all the Box
+                                    // (No need here to load all the Box
                                     // Receipts)
                                     else {
                                         bSuccessLoadingNymbox =
                                             theNymbox.GenerateLedger(
                                                 theNewNymID, SERVER_ID,
-                                                OTLedger::nymbox,
-                                                true); // bGenerateFile=true
+                                                OTLedger::nymbox, true);
                                         if (bSuccessLoadingNymbox) {
                                             bSuccessLoadingNymbox =
                                                 theNymbox.SignContract(
@@ -1294,15 +1137,15 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                 theMessage.m_AcknowledgedReplies.Verify(lAcknowledgedNum)) {
                 numlist_to_remove.Add(lAcknowledgedNum);
             }
-        } // for
+        }
         if (numlist_to_remove.Count() > 0) {
             std::set<int64_t> set_server_ack;
             if (numlist_to_remove.Output(set_server_ack)) {
                 for (auto& it : set_server_ack) {
                     const int64_t lRequestNum = it;
-                    if (pNym->RemoveAcknowledgedNum(
-                            server_->m_nymServer, server_->m_strServerID,
-                            lRequestNum, false)) // bSave=false
+                    if (pNym->RemoveAcknowledgedNum(server_->m_nymServer,
+                                                    server_->m_strServerID,
+                                                    lRequestNum, false))
                         bIsDirtyNym = true;
                 }
             }
@@ -1744,8 +1587,6 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&,
     msgOut.m_strCommand = "@getMarketOffers"; // reply to getMarketOffers
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // Market ID.
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     int64_t lDepth = MsgIn.m_lDepth;
     if (lDepth < 0) lDepth = 0;
@@ -1800,8 +1641,6 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
         "@getMarketRecentTrades";           // reply to getMarketRecentTrades
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // Market ID.
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     const OTIdentifier MARKET_ID(MsgIn.m_strNymID2);
 
@@ -1852,8 +1691,6 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@getNym_MarketOffers"; // reply to getMarketOffers
     msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     OTIdentifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
@@ -1892,16 +1729,10 @@ void UserCommandProcessor::UserCmdCheckServerID(OTPseudonym&, OTMessage& MsgIn,
                                                 OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@checkServerID"; // reply to checkServerID
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
+    msgOut.m_strCommand = "@checkServerID";
+    msgOut.m_strNymID = MsgIn.m_strNymID;
 
-    // already at the top of ProcessUserCommand, which calls this.
-    //  msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum);
-
-    if (MsgIn.m_strServerID ==
-        server_->m_strServerID) // ServerID, a hash of the server contract.
+    if (MsgIn.m_strServerID == server_->m_strServerID)
         msgOut.m_bSuccess = true;
     else
         msgOut.m_bSuccess = false;
@@ -1926,11 +1757,6 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@getTransactionNum"; // reply to getTransactionNum
     msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
-
-    // already at the top of ProcessUserCommand, which calls this.
-    //  msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum);
 
     const OTIdentifier SERVER_ID(server_->m_strServerID);
 
@@ -2009,8 +1835,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
 
             if (false ==
                 server_->transactor_.issueNextTransactionNumber(
-                    theNym, lTransNum, false)) // bool bStoreTheNumber = false
-            {
+                    theNym, lTransNum, false)) {
                 lTransNum = 0;
                 OTLog::Error("UserCommandProcessor::UserCmdGetTransactionNu: "
                              "Error issuing "
@@ -2033,16 +1858,14 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
                          "UserCommandProcessor::UserCmdGetTransactionNum\n");
         }
         // Drop in the Nymbox
-        else if ((msgOut.m_bSuccess = (
-                      //                                         theLedger.VerifyAccount(server_->m_nymServer)
-                      // &&    // This forces ALL box receipts to load.
-                      theLedger.VerifyContractID() && // We don't need them
-                                                      // right now, so we verify
-                      theLedger.VerifySignature(
-                          server_->m_nymServer) // everything else without
-                                                // loading them.
-                      )                         // if loaded and verified.
-                  ))                            // if success
+        else if ((msgOut.m_bSuccess =
+                      (theLedger.VerifyContractID() && // We don't need them
+                       // right now, so we verify
+                       theLedger.VerifySignature(
+                           server_->m_nymServer) // everything else without
+                                                 // loading them.
+                       )                         // if loaded and verified.
+                  ))                             // if success
         {
             // Note: I decided against adding newly-requested transaction
             // numbers to existing OTTransaction::blanks in the Nymbox.
@@ -2105,7 +1928,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
         for (auto& it : theList) {
             const int64_t lTransNum = it;
             server_->transactor_.removeTransactionNumber(theNym, lTransNum,
-                                                         false); // bSave=false
+                                                         false);
             server_->transactor_.removeIssuedNumber(
                 theNym, lTransNum, false); // I'll drop it in his
                                            // Nymbox -- he can
@@ -2154,8 +1977,6 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@getRequest";  // reply to getRequest
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum); // Outoing reply contains
                                                        // same request num
@@ -2176,9 +1997,7 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
     }
     else
         msgOut.m_lNewRequestNum = lReqNum;
-    //      msgOut.m_strRequestNum.Format("%ld", lReqNum); // This will now
-    // contain the same req num (1) that came in, with the new one stored in
-    // msgOut.m_lNewRequestNum instead.
+
     const OTIdentifier SERVER_ID(server_->m_strServerID);
     OTIdentifier EXISTING_NYMBOX_HASH;
     if (theNym.GetNymboxHashServerSide(SERVER_ID, EXISTING_NYMBOX_HASH))
@@ -2219,8 +2038,6 @@ void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
     msgOut.m_strCommand = "@sendUserMessage"; // reply to sendUserMessage
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // UserID of recipient pubkey
-    //    msgOut.m_strServerID    = m_strServerID;            // This is already
-    // set in ProcessUserCommand.
 
     const OTString strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
@@ -2260,8 +2077,6 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
     msgOut.m_strCommand = "@sendUserInstrument"; // reply to sendUserInstrument
     msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;      // UserID of recipient pubkey
-    //    msgOut.m_strServerID    = m_strServerID;            // This is already
-    // set in ProcessUserCommand.
 
     const OTString strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
@@ -2301,8 +2116,6 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, OTMessage& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     OTPseudonym nym2;
     nym2.SetIdentifier(MsgIn.m_strNymID2);
@@ -2401,8 +2214,6 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of user whose usage
                                             // credits are being examined /
                                             // adjusted.
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
     const bool bIsPrivilegedNym =
         ((ServerSettings::GetOverrideNymID().size() >
           0) && // And if there's an override Nym...
@@ -2502,8 +2313,8 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
         bSuccessLoadingNymbox = (theNymbox.VerifyContractID() &&
                                  theNymbox.VerifyAccount(server_->m_nymServer));
     else {
-        bSuccessLoadingNymbox = theNymbox.GenerateLedger(
-            nym2ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
+        bSuccessLoadingNymbox =
+            theNymbox.GenerateLedger(nym2ID, SERVER_ID, OTLedger::nymbox, true);
 
         if (bSuccessLoadingNymbox) {
             bSuccessLoadingNymbox =
@@ -2609,11 +2420,6 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;    // UserID
     msgOut.m_strAssetID =
         MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
-
-    // already at the top of ProcessUserCommand, which calls this.
-    //  msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum);
 
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         ASSET_TYPE_ID(MsgIn.m_strAssetID);
@@ -2681,32 +2487,6 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                     pNym->GetIdentifier(ASSET_USER_ID);
 
                     bSuccessCalculateDigest = true;
-
-                    //                    OTString strPublicKey;
-                    //                    bool bGotPublicKey =
-                    // pNym->GetPublicSignKey().GetPublicKey(strPublicKey);
-                    //
-                    //                    if (!bGotPublicKey)
-                    //                    {
-                    //                        OTLog::vError("%s: Error getting
-                    // public key in
-                    // UserCommandProcessor::UserCmdIssueAssetType.\n",
-                    //                                      szFunc);
-                    //                    }
-                    //                    else // success retrieving public key
-                    // from Nym
-                    //                    {
-                    //                        bSuccessCalculateDigest =
-                    // ASSET_USER_ID.CalculateDigest(strPublicKey);
-                    //
-                    //                        if (!bSuccessCalculateDigest)
-                    //                        {
-                    //                            OTLog::vError("%s: Error
-                    // calculating digest in
-                    // UserCommandProcessor::UserCmdIssueAssetType.\n",
-                    //                                          szFunc);
-                    //                        }
-                    //                    }
                 }
             }
         }
@@ -2794,7 +2574,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                         else {
                             bSuccessLoadingInbox = theInbox.GenerateLedger(
                                 theNewAccountID, SERVER_ID, OTLedger::inbox,
-                                true); // bGenerateFile=true
+                                true);
 
                             if (bSuccessLoadingInbox) {
                                 bSuccessLoadingInbox =
@@ -2821,7 +2601,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                         else {
                             bSuccessLoadingOutbox = theOutbox.GenerateLedger(
                                 theNewAccountID, SERVER_ID, OTLedger::outbox,
-                                true); // bGenerateFile=true
+                                true);
 
                             if (bSuccessLoadingOutbox) {
                                 bSuccessLoadingOutbox = theOutbox.SignContract(
@@ -2960,8 +2740,6 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@issueBasket"; // reply to issueBasket
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     // Either way, we need to send the user's command back to him as well.
     {
@@ -3062,28 +2840,6 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                 for (int32_t i = 0; i < theBasket.Count(); i++) {
                     BasketItem* pItem = theBasket.At(i);
                     OT_ASSERT(nullptr != pItem);
-
-                    /*
-                    // Just make sure theMessage has these members populated:
-                    //
-                    // theMessage.m_strNymID;
-                    // theMessage.m_strAssetID;
-                    // theMessage.m_strServerID;
-
-                    // static method (call it without an instance, using
-                    notation: OTAccount::GenerateNewAccount)
-                    OTAccount * OTAccount::GenerateNewAccount(    const
-                    OTIdentifier & theUserID,    const OTIdentifier &
-                    theServerID,
-                    const OTPseudonym & theServerNym,    const OTMessage &
-                    theMessage,
-                    const OTAccount::AccountType eAcctType=OTAccount::simple)
-
-                    // The above method uses this one internally...
-                    bool OTAccount::GenerateNewAccount(const OTPseudonym &
-                    theServer, const OTMessage & theMessage,
-                    const OTAccount::AccountType eAcctType=OTAccount::simple)
-                    */
 
                     OTAccount* pNewAccount = nullptr;
 
@@ -3278,8 +3034,6 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@createAccount"; // reply to createAccount
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     // Either way, we need to send the user's command back to him as well.
     OTString tempInMessage(MsgIn);
@@ -3319,9 +3073,6 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
         OTIdentifier theNewAccountID;
         pNewAccount->GetIdentifier(theNewAccountID);
 
-        //        OTLog::Error("DEBUG: GenerateNewAccount successfully returned
-        // account pointer. Contents:\n%s\n", tempPayload.Get());
-
         OTLedger theOutbox(USER_ID, theNewAccountID, SERVER_ID),
             theInbox(USER_ID, theNewAccountID, SERVER_ID);
 
@@ -3338,8 +3089,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
         // already exist???
         else {
             bSuccessLoadingInbox = theInbox.GenerateLedger(
-                theNewAccountID, SERVER_ID, OTLedger::inbox,
-                true); // bGenerateFile=true
+                theNewAccountID, SERVER_ID, OTLedger::inbox, true);
 
             if (bSuccessLoadingInbox) {
                 bSuccessLoadingInbox =
@@ -3362,8 +3112,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
         // already exist???
         else {
             bSuccessLoadingOutbox = theOutbox.GenerateLedger(
-                theNewAccountID, SERVER_ID, OTLedger::outbox,
-                true); // bGenerateFile=true
+                theNewAccountID, SERVER_ID, OTLedger::outbox, true);
 
             if (bSuccessLoadingOutbox) {
                 bSuccessLoadingOutbox =
@@ -3453,10 +3202,8 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, OTMessage& MsgIn,
                                              OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getAccount";  // reply to getAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
+    msgOut.m_strCommand = "@getAccount";    // reply to getAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -3506,9 +3253,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&,
     // (1) set up member variables
     msgOut.m_strCommand = "@getAccountFiles"; // reply to getAccountFiles
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    //    msgOut.m_strServerID    = m_strServerID;        // This is already set
-    // in ProcessUserCommand.
-    msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
+    msgOut.m_strAcctID = MsgIn.m_strAcctID;   // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -3727,10 +3472,8 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, OTMessage& MsgIn,
                                            OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getInbox";    // reply to getInbox
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;        // This is already set
-    // in ProcessUserCommand.
+    msgOut.m_strCommand = "@getInbox";      // reply to getInbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -3826,10 +3569,8 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, OTMessage& MsgIn,
                                             OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getOutbox";   // reply to getOutbox
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;        // This is already set
-    // in ProcessUserCommand.
+    msgOut.m_strCommand = "@getOutbox";     // reply to getOutbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -3860,11 +3601,6 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, OTMessage& MsgIn,
                                           // receipt as the old data is
                                           // loaded...)
         {
-            //            msgOut.m_bSuccess =
-            // theLedger.VerifyAccount(server_->m_nymServer);    // Then Verify,
-            // which
-            // forces a LoadBoxReceipts... (
-
             theLedger.ReleaseSignatures(); // UPDATE: We do NOT force the
                                            // loading here, since they aren't
                                            // needed.
@@ -3926,9 +3662,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&,
     // (1) set up member variables
     msgOut.m_strCommand = "@queryAssetTypes"; // reply to queryAssetTypes
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
-    msgOut.m_bSuccess = false; // so far.
+    msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.
     OTString tempInMessage(
@@ -4017,10 +3751,8 @@ void UserCommandProcessor::UserCmdGetContract(OTPseudonym&, OTMessage& MsgIn,
                                               OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getContract"; // reply to getContract
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
+    msgOut.m_strCommand = "@getContract";     // reply to getContract
+    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
@@ -4065,8 +3797,6 @@ void UserCommandProcessor::UserCmdGetContract(OTPseudonym&, OTMessage& MsgIn,
     msgOut.SaveContract();
 }
 
-// Done.
-//
 void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                                                 OTMessage& MsgIn,
                                                 OTMessage& msgOut)
@@ -4077,9 +3807,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@triggerClause"; // reply to triggerClause
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
-    msgOut.m_bSuccess = false; // Default value.
+    msgOut.m_bSuccess = false;              // Default value.
     const OTIdentifier SERVER_ID(server_->m_strServerID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
                                                  // sent by the client side
@@ -4136,14 +3864,8 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                 bool bSuccess = false;
                 const std::string str_clause_name = MsgIn.m_strNymID2.Get();
 
-                if (pSmartContract->CanExecuteClause(
-                        pParty->GetPartyName(),
-                        str_clause_name)) // This calls (if available) the
-                                          // scripted clause: bool
-                // party_may_execute_clause(party_name,
-                // clause_name)
-                {
-                    //
+                if (pSmartContract->CanExecuteClause(pParty->GetPartyName(),
+                                                     str_clause_name)) {
                     // Execute the clause.
                     //
                     mapOfClauses theMatchingClauses;
@@ -4159,8 +3881,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                             std::pair<std::string, OTClause*>(str_clause_name,
                                                               pClause));
 
-                        pSmartContract->ExecuteClauses(
-                            theMatchingClauses); // <============================================
+                        pSmartContract->ExecuteClauses(theMatchingClauses);
 
                         if (pSmartContract->IsFlaggedForRemoval()) {
                             OTLog::vOutput(0, "%s: Removing smart contract "
@@ -4205,9 +3926,9 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                                       "the clause wasn't found.)\n",
                                    __FUNCTION__, str_clause_name.c_str(),
                                    pParty->GetPartyName().c_str());
-            } // pParty != nullptr
-        }     // else found smart contract.
-    }         // NymboxHash matches.
+            }
+        } // else found smart contract.
+    }     // NymboxHash matches.
     bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, theSrvrNymboxHash);
 
@@ -4232,10 +3953,8 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, OTMessage& MsgIn,
                                           OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMint";     // reply to getMint
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
+    msgOut.m_strCommand = "@getMint";         // reply to getMint
+    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
@@ -4305,8 +4024,6 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@deleteUserAccount"; // reply to deleteUserAccount
     msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -4375,16 +4092,14 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
         //
         while (theNym.GetTransactionNumCount(SERVER_ID) > 0) {
             int64_t lTemp = theNym.GetTransactionNum(SERVER_ID, 0); // index 0
-            server_->transactor_.removeTransactionNumber(
-                theNym, lTemp, false); // bSave = false
+            server_->transactor_.removeTransactionNumber(theNym, lTemp, false);
         }
 
         while (theNym.GetIssuedNumCount(SERVER_ID) > 0) {
             int64_t lTemp = theNym.GetIssuedNum(SERVER_ID, 0); // index 0
-            server_->transactor_.removeIssuedNumber(theNym, lTemp,
-                                                    false); // bSave = false
+            server_->transactor_.removeIssuedNumber(theNym, lTemp, false);
         }
-        //
+
         theNym.MarkForDeletion(); // The nym isn't actually deleted yet, just
                                   // marked for deletion.
         //  It will get cleaned up later, during server maintenance.
@@ -4396,7 +4111,6 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     }
 
     // Send the user's command back to him (success or failure.)
-    //  if (!msgOut.m_bSuccess)
     {
         OTString tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
@@ -4455,8 +4169,6 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand = "@getBoxReceipt"; // reply to getBoxReceipt
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    //    msgOut.m_strServerID        = m_strServerID;            // This is
-    // already set in ProcessUserCommand.
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account ID
                                             // (inbox/outbox), or Nym ID
                                             // (nymbox)
@@ -4543,8 +4255,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
     // load the appropriate box receipt...
 
     if (bSuccessLoading && !bErrorCondition &&
-        //        pLedger->VerifyAccount(server_->m_nymServer)    &&    // This
-        // call
+        // This call
         // causes all the Box Receipts to be loaded up and we don't need them
         // here, except
         pLedger->VerifyContractID() && // for just one, so we're going to
@@ -4597,8 +4308,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
                 const OTString strBoxReceipt(*pTransaction);
                 OT_ASSERT(strBoxReceipt.Exists());
 
-                msgOut.m_ascPayload.SetString(
-                    strBoxReceipt); // <=================
+                msgOut.m_ascPayload.SetString(strBoxReceipt);
                 msgOut.m_bSuccess = true;
 
                 OTLog::vOutput(
@@ -4684,8 +4394,6 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@deleteAssetAccount"; // reply to deleteAssetAccount
     msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
@@ -4709,18 +4417,11 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
         std::unique_ptr<OTLedger> pOutbox(
             pAccount->LoadOutbox(server_->m_nymServer));
 
-        if (nullptr ==
-            pInbox) // || !pInbox->VerifyAccount(server_->m_nymServer)) // NOTE:
-                    // OTAccount::LoadInbox already verifies.
-        {
+        if (nullptr == pInbox) {
             OTLog::vError("%s: Error loading or verifying inbox: %s\n", szFunc,
                           MsgIn.m_strAcctID.Get());
         }
-        else if (nullptr ==
-                   pOutbox) // || !pOutbox->VerifyAccount(server_->m_nymServer))
-                            // // NOTE: OTAccount::LoadOutbox already
-                            // verifies.
-        {
+        else if (nullptr == pOutbox) {
             OTLog::vError("%s: Error loading or verifying outbox: %s\n", szFunc,
                           MsgIn.m_strAcctID.Get());
         }
@@ -4769,7 +4470,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
                     return; // error
                 }
             }
-            //
+
             pAccount->MarkForDeletion(); // The account isn't actually deleted
                                          // yet, just marked for deletion.
             //  It will get cleaned up later, during server maintenance.
@@ -4781,10 +4482,9 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
             pAccount->SaveContract();
             pAccount->SaveAccount();
         }
-    } // pAccount verifies.
+    }
 
     // Send the user's command back to him (success or failure.)
-    //  if (!msgOut.m_bSuccess)
     {
         OTString tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
@@ -4835,8 +4535,6 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@getNymbox";   // reply to getNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -4869,11 +4567,6 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym,
                                           // receipt as the old data is
                                           // loaded...)
         {
-            //            msgOut.m_bSuccess =
-            // theLedger.VerifyAccount(server_->m_nymServer);    // Then Verify,
-            // which
-            // forces a LoadBoxReceipts... (
-
             theLedger.ReleaseSignatures(); // UPDATE: We do NOT force the
                                            // loading here, since they aren't
                                            // needed.
@@ -4964,8 +4657,6 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "@processNymbox"; // reply to processNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
         SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
@@ -5198,10 +4889,8 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                                                OTMessage& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@processInbox"; // reply to processInbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;  // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
-    // ProcessUserCommand.
+    msgOut.m_strCommand = "@processInbox";  // reply to processInbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
@@ -5380,8 +5069,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                     //
                     if (false ==
                         server_->transactor_.removeTransactionNumber(
-                            theNym, lTransactionNumber, true)) // bSave=true
-                    {
+                            theNym, lTransactionNumber, true)) {
                         OTLog::Error(
                             "Error removing transaction number (as "
                             "available) from user nym in "
@@ -5400,16 +5088,14 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                         // agreement.)
 
                         if (!server_->transactor_.removeIssuedNumber(
-                                theNym, lTransactionNumber,
-                                true)) // bSave=true
-                        {
+                                theNym, lTransactionNumber, true)) {
                             OTLog::vError("%s: Error removing issued number "
                                           "from user nym.\n",
                                           __FUNCTION__);
                         }
                     }
                 }
-            } // if pTransaction not nullptr
+            }
 
             // DONE: should consider saving a copy of the response ledger here
             // on the server.
@@ -5522,8 +5208,6 @@ send_message:
                                          // Nym's copy here in
                                 // processInbox (I don't think.)
                                 bTransSuccess);
-        //      DropReplyNoticeToNymbox(SERVER_ID, USER_ID,
-        // strReplyMessage, lReqNum, bTransSuccess, &theNym);
     }
 }
 
@@ -5538,10 +5222,8 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "@notarizeTransactions";          // reply to notarizeTransactions
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
-    //    msgOut.m_strServerID    = m_strServerID;            // This is already
-    // set in ProcessUserCommand.
+        "@notarizeTransactions";            // reply to notarizeTransactions
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -5852,9 +5534,6 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
         bSuccessLoadingNymbox =
             (theNymbox.VerifyContractID() &&
              theNymbox.VerifySignature(server_->m_nymServer));
-    //        bSuccessLoadingNymbox    =
-    // theNymbox.VerifyAccount(server_->m_nymServer);
-    // // make sure it's all good.
 
     if (!bSuccessLoadingNymbox) {
         const OTString strNymID(USER_ID);
@@ -5865,8 +5544,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     else {
         int64_t lReplyNoticeTransNum = 0;
         bool bGotNextTransNum = server_->transactor_.issueNextTransactionNumber(
-            server_->m_nymServer, lReplyNoticeTransNum,
-            false); // bool bStoreTheNumber = false
+            server_->m_nymServer, lReplyNoticeTransNum, false);
 
         if (!bGotNextTransNum) {
             lReplyNoticeTransNum = 0;
@@ -5875,7 +5553,6 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
                          "OTTransaction::replyNotice.\n");
         }
         else { // Drop in the Nymbox
-            //
             OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
                 theNymbox, OTTransaction::replyNotice, lReplyNoticeTransNum);
             OT_ASSERT(nullptr != pReplyNotice);
