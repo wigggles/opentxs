@@ -159,38 +159,6 @@ extern "C" {
 namespace opentxs
 {
 
-int32_t allow_debug = 1;
-
-void SetupHeader(u_header& theCMD, int32_t nTypeID, int32_t nCmdID,
-                 OTPayload& thePayload)
-{
-    uint32_t lSize = thePayload.GetSize(); // outputting in normal byte order,
-                                           // but sent to network in network
-                                           // byte order.
-
-    theCMD.fields.type_id = (nTypeID > 0) ? static_cast<BYTE>(nTypeID) : '\0';
-    theCMD.fields.command_id = (nCmdID > 0) ? static_cast<BYTE>(nCmdID) : '\0';
-    ;
-    theCMD.fields.size =
-        htonl(lSize); // think this is causing problems.. maybe not...
-    theCMD.fields.checksum = CalcChecksum(theCMD.buf, OT_CMD_HEADER_SIZE - 1);
-
-    BYTE byChecksum = (BYTE)theCMD.fields.checksum;
-    int32_t nChecksum = byChecksum;
-
-    otLog4 << "OT_CMD_HEADER_SIZE: " << OT_CMD_HEADER_SIZE
-           << " -- CMD TYPE: " << nTypeID << " -- CMD NUM: " << nCmdID
-           << " -- (followed by 2 bytes of filler)\n"
-              "PAYLOAD SIZE: " << lSize << " -- CHECKSUM: " << nChecksum
-           << "\n";
-
-    otLog5 << "First 9 bytes are:";
-    for (int i = 0; i < 9; i++) {
-        otLog5 << " " << int(theCMD.buf[i]);
-    }
-    otLog5 << "\n";
-}
-
 bool OTServerConnection::s_bInitialized = false;
 
 void OTServerConnection::Initialize()
@@ -320,11 +288,7 @@ bool OTServerConnection::SignAndSend(OTMessage& theMessage) const
 
 void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
 {
-    u_header theCMD;
-    OTPayload thePayload;
-
-    // clear the header
-    memset((void*)theCMD.buf, 0, OT_CMD_HEADER_SIZE);
+    // todo SetMessagePayload?
 
     // Here is where we set up the Payload (so we have the size ready before the
     // header goes out)
@@ -333,32 +297,17 @@ void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
                             // envelopes.
 
     // Testing encrypted envelopes...
-    const OTPseudonym* pServerNym = nullptr;
+    const OTPseudonym* pServerNym = m_pServerContract->GetContractPublicNym();
 
-    if (m_pServerContract &&
-        (nullptr != (pServerNym = m_pServerContract->GetContractPublicNym()))) {
-        OTString strEnvelopeContents;
-        // Save the ready-to-go message into a string.
-        theMessage.SaveContractRaw(strEnvelopeContents);
+    // Make sure we can send encrypted envelopes.
+    OT_ASSERT(m_pServerContract && (nullptr != pServerNym));
 
-        // Seal the string up into an encrypted Envelope
-        theEnvelope.Seal(*pServerNym, strEnvelopeContents);
+    OTString strEnvelopeContents;
+    // Save the ready-to-go message into a string.
+    theMessage.SaveContractRaw(strEnvelopeContents);
 
-        // From here on out, theMessage is disposable. OTPayload takes over.
-        // OTMessage doesn't care about checksums and headers.
-        thePayload.SetEnvelope(theEnvelope);
-
-        // Now that the payload is ready, we'll set up the header.
-        SetupHeader(theCMD, CMD_TYPE_1, TYPE_1_CMD_2, thePayload);
-    }
-    // else, for whatever reason, we just send an UNencrypted message... (This
-    // shouldn't happen anymore...) TODO remove.
-    else {
-        thePayload.SetMessagePayload(theMessage);
-
-        // Now that the payload is ready, we'll set up the header.
-        SetupHeader(theCMD, CMD_TYPE_1, TYPE_1_CMD_1, thePayload);
-    }
+    // Seal the string up into an encrypted Envelope
+    theEnvelope.Seal(*pServerNym, strEnvelopeContents);
 
     OT_ASSERT(IsFocused())
     OT_ASSERT(nullptr != m_pCallback);

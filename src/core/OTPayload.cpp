@@ -212,22 +212,6 @@ bool OTPayload::SetEnvelope(const OTEnvelope& theEnvelope)
     return false;
 }
 
-bool OTPayload::SetMessagePayload(const OTMessage& theMessage)
-{
-    uint32_t lSize =
-        theMessage.m_strRawFile.GetLength() + 1; //+1 for the null terminater
-
-    if (theMessage.m_strRawFile.GetLength()) {
-        SetPayloadSize(lSize + 1); // +1 for the checksum byte.
-        memcpy((void*)GetPointer(), theMessage.m_strRawFile.Get(), lSize);
-
-        // Add the checksum
-        AppendChecksum((OT_BYTE*)GetPointer(), lSize);
-        return true;
-    }
-    return false;
-}
-
 // Envelope retrieved from payload.
 bool OTPayload::GetEnvelope(OTEnvelope& theEnvelope) const
 {
