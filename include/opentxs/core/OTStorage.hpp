@@ -133,14 +133,9 @@
 #ifndef OPENTXS_CORE_OTSTORAGE_HPP
 #define OPENTXS_CORE_OTSTORAGE_HPP
 
-// we now include this file in swig
-// we need to tell swig what parts to skip over.
-
 #ifndef SWIG
 
 #include "util/Assert.hpp"
-
-// credit:stlplus library.
 #include "containers/simple_ptr.hpp"
 
 #include <deque>
@@ -150,22 +145,9 @@
 #include <string>
 #include <cstdint>
 
-// Which storage mechanism are we building?
-// (Option is for both...)
-//
-
-//#ifndef _WIN32 // Until I get it working on Windows.
-////#define OTDB_MESSAGE_PACK   1 // Note: deactivating MsgPack for now, since
-/// we don't use it, and since I don't want to have to add it to the Android NDK
-/// build.
-//#endif
-
 #define OTDB_PROTOCOL_BUFFERS 1
-//#define OTDB_JSON_PACKING 1 // coming soon.
 
-//#define OTDB_DEFAULT_PACKER    OTDB::PACK_MESSAGE_PACK
 #define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
-
 #define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
 
 // JAVA-STYLE INTERFACES.
@@ -228,14 +210,10 @@ enum PackType            // PACKING TYPE
 //
 enum StorageType        // STORAGE TYPE
 { STORE_FILESYSTEM = 0, // Filesystem
-  //        STORE_COUCH_DB,            // Couch DB (not yet supported)
-  STORE_TYPE_SUBCLASS // (Subclass provided by API client via SWIG.)
+  STORE_TYPE_SUBCLASS   // (Subclass provided by API client via SWIG.)
 };
 
 #ifndef SWIG
-//
-// STORED OBJECT TYPES...
-//
 extern const char* StoredObjectTypeStrings[];
 #endif // (not) SWIG
 
@@ -389,11 +367,7 @@ EndInterface
 
 #endif // (not) SWIG
 
-//
-// use this without a semicolon:
-//
-
-#ifdef SWIG // swig version
+#ifdef SWIG
 #define DEFINE_OT_DYNAMIC_CAST(CLASS_NAME_A)                                   \
     CLASS_NAME_A* clone() const                                                \
     {                                                                          \
@@ -406,11 +380,9 @@ EndInterface
     {                                                                          \
         return dynamic_cast<CLASS_NAME_A*>(pObject);                           \
     }
-//    static const CLASS_NAME_A*    ot_dynamic_cast(const    Storable *pObject)
-// { return dynamic_cast<const CLASS_NAME_A *>(pObject); }
 #endif // SWIG
 
-#ifndef SWIG // normal version
+#ifndef SWIG
 #define DEFINE_OT_DYNAMIC_CAST(CLASS_NAME)                                     \
     virtual CLASS_NAME* clone() const                                          \
     {                                                                          \
@@ -425,10 +397,6 @@ EndInterface
     }
 #endif // (not) SWIG
 
-    //    static const CLASS_NAME    *    ot_dynamic_cast( Storable // *pObject)
-    // { return dynamic_cast<const T *>(pObject); }
-
-    //
     // STORABLE
     //
     // Abstract base class for OT serializable object types.
@@ -492,14 +460,8 @@ public:
 //
 // SUBCLASSES (the actual declarations are at the bottom of this file.)
 //
-//    typedef PackedBufferSubclass<PackerMsgpack, IStorableMsgpack,
-// msgpack::sbuffer>    BufferMsgpack;
 //    typedef PackedBufferSubclass<PackerPB,        IStorablePB,
 // std::string>        BufferPB;
-//
-// Coming soon:
-//    typedef PackedBufferSubclass<PackerJSON,    IStorableJSON,
-// std::string>        BufferJSON;
 //
 // They're all based on this template:
 //
@@ -544,15 +506,14 @@ class OTPacker
 protected:
     OTPacker()
     {
-    } // To instantiate: OTPacker * pPacker =
-      // OTPacker::Create(OTDB_DEFAULT_PACKER);
+    }
 
 public:
     virtual ~OTPacker()
     {
     }
 
-    static OTPacker* Create(PackType ePackType); // Factory.
+    static OTPacker* Create(PackType ePackType);
 
     PackType GetType() const;
 
@@ -595,17 +556,12 @@ public:
 //
 // (Actual declarations are at the bottom of the file.)
 //
-//    typedef PackerSubclass<BufferMsgpack>    PackerMsgpack;
 //    typedef PackerSubclass<BufferPB>        PackerPB;
 //
-// Coming soon:
-//    typedef PackerSubclass<BufferJSON>        PackerJSON;
-//
-
 #endif
+
 //
 // STORAGE  -- abstract base class
-//
 //
 class Storage
 {
@@ -696,11 +652,6 @@ public:
     //
     EXPORT OTPacker* GetPacker(PackType ePackType = OTDB_DEFAULT_PACKER);
 
-    // virtual bool Init(std::string oneStr="", std::string twoStr="",
-    // std::string threeStr="",
-    //                  std::string fourStr="", std::string fiveStr="",
-    // std::string sixStr="")=0;
-
     // See if the file is there.
     virtual bool Exists(std::string strFolder, std::string oneStr = "",
                         std::string twoStr = "", std::string threeStr = "") = 0;
@@ -785,7 +736,6 @@ public:
 //
 // OTDB Namespace PUBLIC INTERFACE
 //
-//
 
 EXPORT bool InitDefaultStorage(StorageType eStoreType, PackType ePackType);
 
@@ -797,11 +747,6 @@ EXPORT Storage* CreateStorageContext(StorageType eStoreType,
                                      PackType ePackType = OTDB_DEFAULT_PACKER);
 
 EXPORT Storable* CreateObject(StoredObjectType eType);
-
-// bool bSuccess = OTDB::StoreString(strInbox, "inbox", "lkjsdf908w345ljkvd");
-// bool bSuccess = OTDB::StoreString(strMint,  "mints", SERVER_ID, ASSET_ID);
-// bool bSuccess = OTDB::StoreString(strPurse, "purse", SERVER_ID, USER_ID,
-// ASSET_ID);
 
 // BELOW FUNCTIONS use the DEFAULT Storage context for the OTDB Namespace
 
@@ -863,20 +808,7 @@ EXPORT Storable* DecodeObject(StoredObjectType theObjectType,
 EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
                             std::string twoStr = "", std::string threeStr = "");
 
-/*
-typedef template<class T>
-T * OT_DYNAMIC_CAST(Storable* pObject)
-{
-    return dynamic_cast<T *>(pObject);
-}
-template<class T>
-const T * OT_DYNAMIC_CONST_CAST(const Storable* pObject)
-{
-    return dynamic_cast<const T *>(pObject);
-}
-*/
-
-#ifdef SWIG // swig version
+#ifdef SWIG
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
@@ -887,9 +819,9 @@ public:                                                                        \
     bool Remove##name(size_t nIndex##name);                                    \
     bool Add##name(name& disownObject)
 
-#endif // SWIG
-#ifndef SWIG
+#endif
 
+#ifndef SWIG
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
@@ -923,8 +855,7 @@ protected:
         , m_string(rhs)
     {
         m_Type = "OTDBString";
-    } // This is an abstract base class...so will this call ever actually
-      // happen?
+    }
 
 public:
     virtual ~OTDBString()
@@ -978,7 +909,7 @@ public:
     {
     }
 
-    std::map<std::string, std::string> the_map; // all strings, key/value pairs.
+    std::map<std::string, std::string> the_map;
 
     void SetValue(const std::string& strKey, const std::string& strValue)
     {
@@ -1139,9 +1070,6 @@ public:
 
     std::string transaction_id;
     std::string price_per_scale;
-
-    //        uint64_t total_assets;
-    //        uint64_t finished_so_far;
     std::string available_assets;
 
     // Each sale or purchase against (total_assets - finished_so_far) must be in
@@ -1875,15 +1803,6 @@ protected:
                                    std::string threeStr = "");
 
 public:
-    // virtual bool Init_Basic(OTString strWalletFilename);  // OTLog::Path must
-    // be first set to use this command
-
-    // virtual bool Init(std::string oneStr="", std::string twoStr="",
-    // std::string threeStr="",
-    //    std::string fourStr="", std::string fiveStr="", std::string
-    // sixStr="");
-
-    // See if the file is there.
     virtual bool Exists(std::string strFolder, std::string oneStr = "",
                         std::string twoStr = "", std::string threeStr = "");
 
@@ -1907,47 +1826,7 @@ public:
                                                             // data_folder
     bool ConfirmFile(const char* szFileName,
                      struct stat* pst = nullptr); // local to data_folder
-
-    /*
-    IN BASE CLASS:
-
-    // Store/Retrieve a string.
-
-    bool StoreString(std::string strContents, std::string strFolder,
-    std::string oneStr="", std::string twoStr="", std::string threeStr="");
-
-    std::string QueryString(std::string strFolder, std::string oneStr="",
-    std::string twoStr="", std::string threeStr="");
-
-    bool StorePlainString(std::string strContents, std::string strFolder,
-    std::string oneStr="", std::string twoStr="", std::string threeStr="");
-
-    std::string QueryPlainString(std::string strFolder, std::string oneStr="",
-    std::string twoStr="", std::string threeStr="");
-
-    // Store/Retrieve an object. (Storable.)
-
-    bool StoreObject(Storable& theContents, std::string strFolder,
-    std::string oneStr="", std::string twoStr="", std::string threeStr="");
-
-    // Use %newobject OTDB::Storage::Query();
-    Storable * QueryObject(StoredObjectType theObjectType,
-    std::string strFolder, std::string oneStr="",
-    std::string twoStr="", std::string threeStr="");
-    */
 };
-
-// Other storage subclasses may go here, for storing in SQL lite,
-// or couchDB, mongoDB, distributed DB, etc...
-
-// class StorageCouchDB
-// class CloudMagic
-// class SQL-LITE
-//
-// Etc.
-
-// Also, coders using the API should be able to subclass Storage in their own
-// language via SWIG.
 
 } // namespace OTDB
 
