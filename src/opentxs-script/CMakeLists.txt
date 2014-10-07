@@ -1,7 +1,6 @@
 # Copyright (c) Monetas AG, 2014
 
 set(cxx-sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/anyoption/anyoption.cpp
   main.cpp
 )
 
@@ -22,7 +21,7 @@ else()
   add_executable(${MODULE_NAME} ${cxx-sources})
 endif()
 
-target_link_libraries(ot opentxs-client)
+target_link_libraries(ot opentxs-client anyoption)
 
 if(WIN32 AND NOT ZMQ_LIB_FOUND)
   add_custom_command(TARGET opentxs POST_BUILD
