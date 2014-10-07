@@ -32,6 +32,8 @@ option(BUILD_SHARED_LIBS   "Build shared libraries." ON)
 
 option(RPM                 "Build a RPM" OFF)
 option(DEB                 "Build a DEB" OFF)
+set(PACKAGE_CONTACT        ""                             CACHE <TYPE>  "Package Maintainer")
+set(PACKAGE_VENDOR         "Open Transactions Developers" CACHE <TYPE>  "Package Vendor")
 option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
 
 option(SIGNAL_HANLDER      "Enable Signal Handler" OFF)
@@ -54,6 +56,11 @@ if(BUILD_VERBOSE)
   set(CMAKE_VERBOSE_MAKEFILE true)
 endif()
 
+if(RPM OR DEB)
+    if(NOT PACKAGE_CONTACT)
+        message(FATAL_ERROR "Specify a PACKAGE_CONTACT to build packages.")
+    endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Print system information and build options
@@ -71,6 +78,8 @@ message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
 message(STATUS "Build DEB:              ${DEB}")
+message(STATUS "Package Contact:        ${PACKAGE_CONTACT}")
+message(STATUS "Package Vendor:         ${PACKAGE_VENDOR}")
 
 message(STATUS "CL autocompletion:      ${AUTOCOMPLETION}")
 
@@ -442,8 +451,8 @@ set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 
 set(CPACK_PACKAGE_VERSION ${VERSION_STRING})
 set(CPACK_PACKAGE_NAME "opentxs")
-set(CPACK_PACKAGE_CONTACT "Lucas Betschart")
-set(CPACK_PACKAGE_VENDOR "Monetas AG")
+set(CPACK_PACKAGE_CONTACT ${PACKAGE_CONTACT})
+set(CPACK_PACKAGE_VENDOR ${PACKAGE_VENDOR})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Transactions library and command line client")
 set(CPACK_PACKAGE_DESCRIPTION "
@@ -465,7 +474,7 @@ if(DEB)
   set(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
   set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${OPEN_TRANSACTIONS_WEBSITE})
-  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Lucas Betschart")
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${PACKAGE_CONTACT})
 endif()
 
 include(CPack)
