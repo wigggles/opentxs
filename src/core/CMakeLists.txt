@@ -65,7 +65,12 @@ set(cxx-sources
   OTTransactionType.cpp
 )
 
-file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp")
+file(GLOB cxx-headers
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/crypto/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/transaction/*.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
+)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core
