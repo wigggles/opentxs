@@ -134,19 +134,6 @@
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #include "opentxs/core/util/Common.hpp"
-
-#ifndef SWIG
-#ifndef NOT_SWIG
-#define NOT_SWIG
-#endif
-#else
-#ifndef EXPORT
-#define EXPORT
-#endif
-#endif
-
-#ifdef NOT_SWIG
-
 #include <opentxs/core/OTString.hpp>
 
 namespace opentxs
@@ -1142,7 +1129,5 @@ public:
 };
 
 } // namespace opentxs
-
-#endif // NOT_SWIG
 
 #endif // OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
