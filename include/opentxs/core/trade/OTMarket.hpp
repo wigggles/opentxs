@@ -209,6 +209,13 @@ private:
     // two are technically
     // interchangeable.
 
+    void cleanup_four_accounts(OTAccount* p1, OTAccount* p2, OTAccount* p3,
+                               OTAccount* p4);
+    void rollback_four_accounts(OTAccount& p1, bool b1, const int64_t& a1,
+                                OTAccount& p2, bool b2, const int64_t& a2,
+                                OTAccount& p3, bool b3, const int64_t& a3,
+                                OTAccount& p4, bool b4, const int64_t& a4);
+
 public:
     bool ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason = nullptr);
 

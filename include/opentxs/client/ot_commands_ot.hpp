@@ -135,6 +135,9 @@
 
 #include "opentxs/core/util/Common.hpp"
 
+#include <vector>
+#include <string>
+
 #define OT_COMMANDS_OT
 
 namespace opentxs
@@ -453,6 +456,11 @@ public:
     EXPORT OT_COMMANDS_OT static int32_t mainWithdrawVoucher();
     EXPORT OT_COMMANDS_OT static int32_t mainWriteCheque();
     EXPORT OT_COMMANDS_OT static int32_t mainWriteInvoice();
+
+private:
+    static std::vector<std::string> tokenize(const std::string& str,
+                                             const std::string& delimiters,
+                                             bool trimEmpty);
 };
 
 } // namespace opentxs

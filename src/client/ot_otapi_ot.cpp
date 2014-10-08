@@ -158,7 +158,7 @@ string Server;
 * appropriate time. (That's what this is.)
 */
 
-string GetVariable(const char* name)
+string OTAPI_Func::GetVariable(const char* name)
 {
     OTVariable* pVar = OT_ME::FindVariable2(name);
     return pVar == nullptr ? "" : pVar->GetValueString();

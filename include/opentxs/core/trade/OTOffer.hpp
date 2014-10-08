@@ -194,6 +194,8 @@ SERVER_ID; }
      */
     time64_t m_tDateAddedToMarket;
 
+    bool isPowerOfTen(const int64_t& x);
+
 protected:
     OTTrade* m_pTrade; // If this offer is actually connected to a trade, it
                        // will have a pointer.

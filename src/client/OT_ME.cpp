@@ -2478,8 +2478,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 // (In D, this would be a nested function, but C++ doesn't support that
 // without using a nested class as a kludge.)
 //
-bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
-                     OTString& out_ScriptFilepath)
+bool OT_ME::NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
+                            OTString& out_ScriptFilepath) const
 {
     //
     // "so $(prefix)/lib/opentxs for the headers,

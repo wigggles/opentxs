@@ -233,7 +233,7 @@ void* ot_secure_memset(void* v, uint8_t c, uint32_t n)
 // "So that it won't get swapped to disk, where the secret
 // could be recovered maliciously from the swap file."
 //
-bool ot_lockPage(void* addr, size_t len)
+bool OTPassword::ot_lockPage(void* addr, size_t len)
 {
 #ifdef _WIN32
 // return VirtualLock(addr, len);
@@ -256,7 +256,7 @@ bool ot_lockPage(void* addr, size_t len)
 // used except where the user is running as a privileged process. (Because that
 // may be the only way we CAN use those functions...)
 
-bool ot_unlockPage(void* addr, size_t len)
+bool OTPassword::ot_unlockPage(void* addr, size_t len)
 {
 #ifdef _WIN32
 //    return VirtualUnlock(addr, len);

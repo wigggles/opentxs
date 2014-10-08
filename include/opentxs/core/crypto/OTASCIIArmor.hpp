@@ -268,6 +268,10 @@ public:
                                  bool bLineBreaks = true);
 
 private:
+    std::string compress_string(const std::string& str,
+                                int32_t compressionlevel) const;
+    std::string decompress_string(const std::string& str) const;
+
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 };
 

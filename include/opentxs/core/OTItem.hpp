@@ -518,6 +518,9 @@ public:
     virtual ~OTItem();
     //    OTItem& operator=(const OTItem& rhs);
     void InitItem();
+
+private:
+    OTItem::itemType GetItemTypeFromString(const OTString& strType);
 };
 
 } // namespace opentxs

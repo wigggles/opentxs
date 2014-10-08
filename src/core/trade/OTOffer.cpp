@@ -146,7 +146,7 @@
 namespace opentxs
 {
 
-bool isPowerOfTen(const int64_t& x)
+bool OTOffer::isPowerOfTen(const int64_t& x)
 {
     if (1 == x) return true;
 

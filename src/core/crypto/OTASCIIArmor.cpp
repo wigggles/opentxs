@@ -293,8 +293,8 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
 
 /** Compress a STL string using zlib with given compression level and return
  * the binary data. */
-std::string compress_string(const std::string& str,
-                            int32_t compressionlevel = Z_BEST_COMPRESSION)
+std::string OTASCIIArmor::compress_string(
+    const std::string& str, int32_t compressionlevel = Z_BEST_COMPRESSION) const
 {
     z_stream zs; // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -334,7 +334,7 @@ std::string compress_string(const std::string& str,
 }
 
 /** Decompress an STL string using zlib and return the original data. */
-std::string decompress_string(const std::string& str)
+std::string OTASCIIArmor::decompress_string(const std::string& str) const
 {
     z_stream zs; // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));

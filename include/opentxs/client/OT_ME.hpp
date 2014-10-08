@@ -138,6 +138,8 @@
 namespace opentxs
 {
 
+class OTString;
+
 EXPORT int32_t OT_CLI_GetArgsCount(const std::string& str_Args);
 EXPORT std::string OT_CLI_GetValueByKey(const std::string& str_Args,
                                         const std::string& str_key);
@@ -468,6 +470,8 @@ private:
     bool Register_API_With_Script_Chai(const OTScriptChai& theScript) const;
     bool Register_Headers_With_Script_Chai(const OTScriptChai& theScript) const;
 #endif
+    bool NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
+                         OTString& out_ScriptFilepath) const;
 };
 
 } // namespace opentxs

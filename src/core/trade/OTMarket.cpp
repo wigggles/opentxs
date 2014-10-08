@@ -961,8 +961,8 @@ int64_t OTMarket::GetLowestAskPrice()
 }
 
 // This utility function is used directly below (only).
-void cleanup_four_accounts(OTAccount* p1, OTAccount* p2, OTAccount* p3,
-                           OTAccount* p4)
+void OTMarket::cleanup_four_accounts(OTAccount* p1, OTAccount* p2,
+                                     OTAccount* p3, OTAccount* p4)
 {
     if (p1) delete p1;
     if (p2) delete p2;
@@ -983,10 +983,10 @@ void cleanup_four_accounts(OTAccount* p1, OTAccount* p2, OTAccount* p3,
 // NOT to try to credit the account again, since the money never left.  If b1 is
 // false, for each var, do nothing.
 // If true, try to roll it back.
-void rollback_four_accounts(OTAccount& p1, bool b1, const int64_t& a1,
-                            OTAccount& p2, bool b2, const int64_t& a2,
-                            OTAccount& p3, bool b3, const int64_t& a3,
-                            OTAccount& p4, bool b4, const int64_t& a4)
+void OTMarket::rollback_four_accounts(OTAccount& p1, bool b1, const int64_t& a1,
+                                      OTAccount& p2, bool b2, const int64_t& a2,
+                                      OTAccount& p3, bool b3, const int64_t& a3,
+                                      OTAccount& p4, bool b4, const int64_t& a4)
 {
     if (b1) p1.Credit(a1);
     if (b2) p2.Credit(a2);

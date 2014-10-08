@@ -172,6 +172,14 @@ using namespace opentxs;
 #define KEY_FILE "certs/special/client.pem"
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
+bool SetupPointersForWalletMyNymAndServerContract(
+    std::string& str_ServerID, std::string& str_MyNym, OTPseudonym*& pMyNym,
+    OTWallet*& pWallet, OTServerContract*& pServerContract);
+void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
+                              std::string& str_MyAcct, std::string& str_MyNym,
+                              std::string& str_MyPurse,
+                              std::string& str_HisAcct, std::string& str_HisNym,
+                              std::string& str_HisPurse);
 
 /*
 
