@@ -137,6 +137,8 @@
 #include "OTMessage.hpp"
 #include "OTStorage.hpp"
 
+#include "Helpers.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <string>
@@ -152,12 +154,6 @@ using namespace io;
 
 namespace opentxs
 {
-
-void TranslateAccountTypeToString(OTAccount::AccountType type,
-                                  OTString& acctType);
-
-OTAccount::AccountType TranslateAccountTypeStringToEnum(
-    const OTString& acctType);
 
 AccountList::AccountList()
     : acctType_(OTAccount::voucher)

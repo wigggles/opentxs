@@ -143,6 +143,8 @@
 #include "OTPayload.hpp"
 #include "OTPseudonym.hpp"
 
+#include "Helpers.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <fstream>
@@ -667,62 +669,6 @@ int64_t OTAccount::GetBalance() const
         return atol(balanceAmount_.Get());
     }
     return 0;
-}
-
-OTAccount::AccountType TranslateAccountTypeStringToEnum(
-    const OTString& acctTypeString)
-{
-    OTAccount::AccountType acctType = OTAccount::err_acct;
-
-    if (acctTypeString.Compare("simple"))
-        acctType = OTAccount::simple;
-    else if (acctTypeString.Compare("issuer"))
-        acctType = OTAccount::issuer;
-    else if (acctTypeString.Compare("basket"))
-        acctType = OTAccount::basket;
-    else if (acctTypeString.Compare("basketsub"))
-        acctType = OTAccount::basketsub;
-    else if (acctTypeString.Compare("mint"))
-        acctType = OTAccount::mint;
-    else if (acctTypeString.Compare("voucher"))
-        acctType = OTAccount::voucher;
-    else if (acctTypeString.Compare("stash"))
-        acctType = OTAccount::stash;
-    else
-        otErr << "Error: Unknown account type: " << acctTypeString << "\n";
-
-    return acctType;
-}
-
-void TranslateAccountTypeToString(OTAccount::AccountType type,
-                                  OTString& acctType)
-{
-    switch (type) {
-    case OTAccount::simple:
-        acctType.Set("simple");
-        break;
-    case OTAccount::issuer:
-        acctType.Set("issuer");
-        break;
-    case OTAccount::basket:
-        acctType.Set("basket");
-        break;
-    case OTAccount::basketsub:
-        acctType.Set("basketsub");
-        break;
-    case OTAccount::mint:
-        acctType.Set("mint");
-        break;
-    case OTAccount::voucher:
-        acctType.Set("voucher");
-        break;
-    case OTAccount::stash:
-        acctType.Set("stash");
-        break;
-    default:
-        acctType.Set("err_acct");
-        break;
-    }
 }
 
 bool OTAccount::DisplayStatistics(OTString& contents) const
