@@ -160,14 +160,6 @@ public:
     EXPORT void SetPayloadSize(uint32_t lNewSize);
     EXPORT const void* GetPayloadPointer() const;
 
-    // pass in an OTMessage and if the Payload
-    // contains a message, and checksum validates,
-    // it will set it for you and return true.
-    EXPORT bool SetMessagePayload(const OTMessage& theMessage); // Message
-                                                                // copied into
-                                                                // payload to
-                                                                // prepare for
-                                                                // sending.
     EXPORT bool GetMessagePayload(OTMessage& theMessage) const;
 
     EXPORT bool GetEnvelope(OTEnvelope& theEnvelope) const; // Envelope
