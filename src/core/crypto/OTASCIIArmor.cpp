@@ -309,7 +309,7 @@ std::string compress_string(const std::string& str,
     if (deflateInit(&zs, compressionlevel) != Z_OK)
         throw(std::runtime_error("deflateInit failed while compressing."));
 
-    zs.next_in = (Bytef*)str.data();
+    zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(str.data()));
     zs.avail_in = static_cast<uInt>(str.size()); // set the z_stream's input
 
     int32_t ret;
@@ -349,7 +349,7 @@ std::string decompress_string(const std::string& str)
     if (inflateInit(&zs) != Z_OK)
         throw(std::runtime_error("inflateInit failed while decompressing."));
 
-    zs.next_in = (Bytef*)str.data();
+    zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(str.data()));
     zs.avail_in = static_cast<uInt>(str.size());
 
     int32_t ret;
@@ -820,7 +820,7 @@ bool OTASCIIArmor::SetAndPackString(const OTString& strData,
         // TODO: remove static cast, add check for longer than 'int32_t' length?
         // (da2ce7)
         char* pString = OTCrypto::It()->Base64Encode(
-            (const uint8_t*)(str_compressed.data()),
+            reinterpret_cast<const uint8_t*>((str_compressed.data())),
             static_cast<int32_t>(str_compressed.size()), bLineBreaks);
 
         if (pString) {
@@ -1060,8 +1060,7 @@ bool OTASCIIArmor::LoadFromString(OTString& theStr, // input
         bIsEOF = !(theStr.sgets(buffer1, nBufSize2)); // 2048
 
         std::string line = buffer1;
-        const char* pConstBuf = line.c_str();
-        char* pBuf = (char*)pConstBuf;
+        const char* pBuf = line.c_str();
 
         // It's not a blank line.
         if (line.length() < 2) {

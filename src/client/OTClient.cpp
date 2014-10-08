@@ -2062,8 +2062,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     bool bSuccess =
         theLedger.LoadLedgerFromString(strLedger); // This is a MESSAGE ledger.
 
-    if (bSuccess) bSuccess = theLedger.VerifyAccount((OTPseudonym&)*pServerNym);
-
+    if (bSuccess) {
+        bSuccess =
+            theLedger.VerifyAccount(static_cast<OTPseudonym&>(*pServerNym));
+    }
     if (!bSuccess) {
         otErr << "ERROR loading ledger from message payload in "
                  "OTClient::ProcessIncomingTransactions.\n";
@@ -12269,7 +12271,7 @@ int32_t OTClient::ProcessUserCommand(
             Mint::MintFactory(strServerID, strContractID));
         OT_ASSERT(nullptr != pMint);
         if (pServerNym && pMint->LoadMint() &&
-            pMint->VerifyMint((OTPseudonym&)*pServerNym)) {
+            pMint->VerifyMint(const_cast<OTPseudonym&>(*pServerNym))) {
             Purse* pPurse = new Purse(SERVER_ID, CONTRACT_ID);
             Purse* pPurseMyCopy = new Purse(SERVER_ID, CONTRACT_ID);
 

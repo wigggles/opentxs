@@ -331,7 +331,7 @@ public:
     }
     inline void SetTrade(const OTTrade& theTrade)
     {
-        m_pTrade = &((OTTrade&)theTrade);
+        m_pTrade = &(const_cast<OTTrade&>(theTrade));
     }
     // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but
     // OTMarket sets/saves/loads it.

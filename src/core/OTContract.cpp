@@ -449,27 +449,8 @@ const OTAsymmetricKey* OTContract::GetContractPublicKey() const
             nullptr != pNym,
             "nullptr pseudonym pointer in OTContract::GetContractPublicKey.\n");
 
-        // We favor the new "credential" system over the old "public key"
-        // system.
-        // No one will ever actually put BOTH in a single contract. But if they
-        // do,
-        // we favor the new version over the old.
-        if (it.first ==
-            "signer") // TODO have a place for hardcoded values like this.
-        { // We're saying here that every contract has a key tag called
-            // "contract"
-            // where the official public key can be found for it and for any
-            // contract.
-            OTAsymmetricKey* pKey =
-                (OTAsymmetricKey*)&(pNym->GetPublicSignKey()); // todo fix this
-                                                               // cast.
-            return const_cast<OTAsymmetricKey*>(pKey);
-        }
-        else if (it.first == "contract") {
-            OTAsymmetricKey* pKey =
-                (OTAsymmetricKey*)&(pNym->GetPublicSignKey()); // todo fix this
-                                                               // cast.
-            return const_cast<OTAsymmetricKey*>(pKey);
+        if (it.first == "signer" || it.first == "contract") {
+            return &(pNym->GetPublicSignKey());
         }
     }
 
@@ -1409,8 +1390,7 @@ bool OTContract::ParseRawFile()
         bIsEOF = !(m_strRawFile.sgets(buffer1, 2048));
 
         line = buffer1;
-        const char* pConstBuf = line.c_str();
-        char* pBuf = (char*)pConstBuf;
+        const char* pBuf = line.c_str();
 
         if (line.length() < 2) {
             if (bSignatureMode) continue;

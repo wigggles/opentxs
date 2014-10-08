@@ -265,7 +265,7 @@ OTIdentifier::~OTIdentifier()
 void OTIdentifier::CopyTo(uint8_t* szNewLocation) const
 {
     if (GetSize()) {
-        memcpy((void*)GetPointer(), szNewLocation, GetSize()); // todo cast
+        memcpy(const_cast<void*>(GetPointer()), szNewLocation, GetSize());
     }
 }
 
@@ -441,8 +441,8 @@ bool OTIdentifier::XOR(const OTIdentifier& theInput) const
     for (int32_t i = 0; i < lSize; i++) {
         // When converting to BigInteger internally, this will be a bit more
         // efficient.
-        ((char*)GetPointer())[i] ^=
-            ((char*)theInput.GetPointer())[i]; // todo cast
+        (static_cast<char*>(const_cast<void*>(GetPointer())))[i] ^=
+            (static_cast<char*>(const_cast<void*>(theInput.GetPointer())))[i];
     }
 
     return true;

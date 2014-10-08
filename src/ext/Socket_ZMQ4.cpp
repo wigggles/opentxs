@@ -420,7 +420,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
     const int64_t lLatencySendMilliSec = m_lLatencySendMs;
 
     zmq::message_t zmq_message(ascEnvelope.GetLength());
-    memcpy((void*)zmq_message.data(), ascEnvelope.Get(),
+    memcpy(static_cast<void*>(zmq_message.data()), ascEnvelope.Get(),
            ascEnvelope.GetLength());
 
     bool bSuccessSending = false;

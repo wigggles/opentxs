@@ -457,11 +457,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                             // back, if possible.
                             OTString strPublicEncrKey, strPublicSignKey;
                             OTAsymmetricKey& thePublicEncrKey =
-                                (OTAsymmetricKey&)
-                                pNym->GetPublicEncrKey(); // todo cast
+                                const_cast<OTAsymmetricKey&>(
+                                    pNym->GetPublicEncrKey());
                             OTAsymmetricKey& thePublicSignKey =
-                                (OTAsymmetricKey&)
-                                pNym->GetPublicSignKey(); // todo cast
+                                const_cast<OTAsymmetricKey&>(
+                                    pNym->GetPublicSignKey());
 
                             thePublicEncrKey.GetPublicKey(strPublicEncrKey,
                                                           false);
@@ -3234,7 +3234,7 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3455,7 +3455,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&,
         }
     }
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3551,8 +3551,7 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(
-        (const OTPseudonym&)server_->m_nymServer); // todo const cast
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3643,7 +3642,7 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3735,7 +3734,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3784,8 +3783,7 @@ void UserCommandProcessor::UserCmdGetContract(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(
-        (const OTPseudonym&)server_->m_nymServer); /// todo fix cast.
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3936,8 +3934,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                                   // server side
         theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
     // (2) Sign the Message
-    msgOut.SignContract(
-        (const OTPseudonym&)server_->m_nymServer); // todo change this cast.
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3999,7 +3996,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4121,7 +4118,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4369,7 +4366,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4495,7 +4492,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract((const OTPseudonym&)server_->m_nymServer);
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4637,8 +4634,7 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(
-        (const OTPseudonym&)server_->m_nymServer); // todo const_cast
+    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)

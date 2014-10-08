@@ -237,7 +237,7 @@ void OTWallet::AddPendingWithdrawal(const Purse& thePurse)
 
     // TODO notice I don't check the pointer here to see if it's already set, I
     // just start using it.. Fix that.
-    m_pWithdrawalPurse = (Purse*)&thePurse;
+    m_pWithdrawalPurse = const_cast<Purse*>(&thePurse);
 } // TODO WARNING: If this data is lost before the transaction is completed,
   // the user will be unable to unblind his tokens and make them spendable.
   // So this data MUST be SAVED until the successful withdrawal is verified!
@@ -551,8 +551,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
     }
 
     const OTString strNymID(NYM_ID);
-    m_mapNyms[strNymID.Get()] =
-        (OTPseudonym*)&theNym; // Insert to wallet's list of Nyms.
+    m_mapNyms[strNymID.Get()] = const_cast<OTPseudonym*>(&theNym);
 
     if (strName.Exists())
         (const_cast<OTPseudonym&>(theNym)).SetNymName(strName);
@@ -577,7 +576,9 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
             OTString strName;
             pAccount->GetName(strName);
 
-            if (strName.Exists()) ((OTAccount&)theAcct).SetName(strName);
+            if (strName.Exists()) {
+                const_cast<OTAccount&>(theAcct).SetName(strName);
+            }
 
             m_mapAccounts.erase(it);
             delete pAccount;
@@ -588,7 +589,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
     }
 
     const OTString strAcctID(ACCOUNT_ID);
-    m_mapAccounts[strAcctID.Get()] = (OTAccount*)&theAcct;
+    m_mapAccounts[strAcctID.Get()] = const_cast<OTAccount*>(&theAcct);
 }
 
 // Look up an account by ID and see if it is in the wallet.
