@@ -14531,26 +14531,26 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& SERVER_ID,
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
-        OT_FAIL;
+        return -1;
     }
     if (USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
-        OT_FAIL;
+        return -1;
     }
     if (ACCT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
-        OT_FAIL;
+        return -1;
     }
     if (RECIPIENT_USER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: RECIPIENT_USER_ID passed in!\n";
-        OT_FAIL;
+        return -1;
     }
     //    if (CHEQUE_MEMO.empty())        { otErr << __FUNCTION__ << ": Null:
     // CHEQUE_MEMO passed
     // in!\n"; OT_FAIL; }
     if (0 > AMOUNT) {
         otErr << __FUNCTION__ << ": Negative: AMOUNT passed in!\n";
-        OT_FAIL;
+        return -1;
     }
 
     OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID),
