@@ -389,8 +389,8 @@ OT_MADE_EASY_OT string MadeEasy::create_asset_acct(const string& SERVER_ID,
 
 OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 {
-    string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
-    if (!VerifyStringVal(strName)) {
+    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
+    if (!VerifyStringVal(strNymID)) {
         otOut << "\nstat_asset_account: Cannot find account wallet for: "
               << ACCOUNT_ID << "\n";
         return "";
@@ -404,7 +404,7 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
         return "";
     }
 
-    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
+    string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
     string strServerID = OTAPI_Wrap::GetAccountWallet_ServerID(ACCOUNT_ID);
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
     string strAssetTypeName = OTAPI_Wrap::GetAssetType_Name(strAssetID);

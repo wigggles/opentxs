@@ -5422,13 +5422,6 @@ OT_COMMANDS_OT int32_t OT_Command::mainShowAccount()
 
 OT_COMMANDS_OT int32_t OT_Command::details_account_balance(const string& strID)
 {
-    string strName = OTAPI_Wrap::GetAccountWallet_Name(strID);
-    if (!VerifyStringVal(strName)) {
-        otOut << "\ndetails_account_balance: Cannot find account wallet for: "
-              << strID << "\n";
-        return -1;
-    }
-
     string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(strID);
     if (!VerifyStringVal(strAssetID)) {
         otOut << "\ndetails_account_balance: Cannot cannot determine asset "
@@ -5436,6 +5429,7 @@ OT_COMMANDS_OT int32_t OT_Command::details_account_balance(const string& strID)
         return -1;
     }
 
+    string strName = OTAPI_Wrap::GetAccountWallet_Name(strID);
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(strID);
 
     otOut << "\n    Balance: ";
