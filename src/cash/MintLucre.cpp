@@ -199,20 +199,15 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
     // Let's make sure it doesn't already exist
     OTASCIIArmor theArmor;
     if (GetPublic(theArmor, lDenomination)) {
-        // it already exists.
         otErr << "Error: Denomination public already exists in "
                  "OTMint::AddDenomination\n";
         return false;
     }
     if (GetPrivate(theArmor, lDenomination)) {
-        // it already exists.
         otErr << "Error: Denomination private already exists in "
                  "OTMint::AddDenomination\n";
         return false;
     }
-
-    //        otErr << "%s <size of bank prime in bits> <bank data file> <bank
-    // public data file>\n",
 
     if ((nPrimeLength / 8) < (MIN_COIN_LENGTH + DIGEST_LENGTH)) {
         otErr << "Prime must be at least "
@@ -291,8 +286,6 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
         m_pKeyPublic = theNotaryPubKey.ClonePubKey();
 
         m_nDenominationCount++;
-        // ---------------------------
-        // Success!
         bReturnValue = true;
         otWarn << "Successfully added denomination: " << lDenomination << "\n";
     }
@@ -301,40 +294,6 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
 }
 
 #endif // defined (OT_CASH_USING_LUCRE)
-
-/*
-
- enum tokenState {
- blankToken,
- protoToken,
- signedToken,
- spendableToken,
- verifiedToken,
- errorToken
- };
-
-
- Create a memory BIO and write some data to it:
-
- OpenSSL_BIO mem = BIO_new(BIO_s_mem());
- BIO_puts(mem, "Hello World\n");
-
-
- Create a read only memory BIO:
-
- char data[] = "Hello World";
- OpenSSL_BIO mem;
- mem = BIO_new_mem_buf(data, -1);
-
-
- Extract the BUF_MEM structure from a memory BIO and then free up the BIO:
-
- BUF_MEM *bptr;
- BIO_get_mem_ptr(mem, &bptr);
- BIO_set_close(mem, BIO_NOCLOSE); // So BIO_free() leaves BUF_MEM alone
- BIO_free(mem);
-
- */
 
 #if defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
 
@@ -345,12 +304,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 {
     bool bReturnValue = false;
 
-    // otErr << "%s <bank file> <coin request> <coin signature> [<signature
-    // repeats>]\n",
     LucreDumper setDumper;
-
-    //    otErr << "OTMint::SignToken!!\nnTokenIndex: %d\n Denomination:
-    // %lld\n", nTokenIndex, theToken.GetDenomination());
 
     OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());      // input
     OpenSSL_BIO bioRequest = BIO_new(BIO_s_mem());   // input
@@ -371,12 +325,8 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
     // copy strContents to a BIO
     BIO_puts(bioBank, strContents.Get());
 
-    //    otErr << "BANK CONTENTS:\n%s--------------------------------------\n",
-    // strContents.Get());
-
     // Instantiate the Bank with its private key
     Bank bank(bioBank);
-    //    otErr << "BANK INSTANTIATED.--------------------------------------\n";
 
     // I need the request. the prototoken.
     OTASCIIArmor ascPrototoken;
@@ -386,18 +336,11 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
         // base64-Decode the prototoken
         OTString strPrototoken(ascPrototoken);
 
-        //        otErr << "\n--------------------------------------\nDEBUG:
-        // PROTOTOKEN CONTENTS:\n"
-        //                "-----------------%s---------------------\n",
-        // strPrototoken.Get() );
-
         // copy strPrototoken to a BIO
         BIO_puts(bioRequest, strPrototoken.Get());
 
         // Load up the coin request from the bio (the prototoken)
         PublicCoinRequest req(bioRequest);
-        //        otErr << "PROTOTOKEN
-        // INSTANTIATED.--------------------------------------\n";
 
         // Sign it with the bank we previously instantiated.
         // results will be in bnSignature (BIGNUM)
@@ -408,8 +351,6 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
                      "MintLucre::SignToken\n";
         }
         else {
-            //            otErr << "BANK.SIGNREQUEST
-            // SUCCESSFUL.--------------------------------------\n";
 
             // Write the request contents, followed by the signature contents,
             // to the Signature bio. Then free the BIGNUM.
@@ -420,9 +361,6 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 
             // Read the signature bio into a C-style buffer...
             char sig_buf[1024]; // todo stop hardcoding these string lengths
-            //            memset(sig_buf, 0, 1024); // zero it out. (I had this
-            // commented out, but the size was 2048, so maybe it's safe now at
-            // 1024.)
 
             int32_t sig_len = BIO_read(bioSignature, sig_buf,
                                        1000); // cutting it a little short on
@@ -433,35 +371,16 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
             // Add the null terminator by hand (just in case.)
             sig_buf[sig_len] = '\0';
 
-            if (sig_len) { // ***********************************************
-                           //                otErr <<
-                           // "\n--------------------------------------\n"
-                //                        "*** Siglen is %d. sig_str_len is
-                // %d.\nsig buf:\n------------%s------------\nLAST "
-                //                        "CHARACTER IS '%c'  SECOND TO LAST
-                // CHARACTER IS '%c'\n",
-                //                        sig_len, sig_str_len, sig_buf,
-                // sig_buf[sig_str_len-1], sig_buf[sig_str_len-2]);
-
+            if (sig_len) {
                 // Copy the original coin request into the spendable field of
                 // the token object.
                 // (It won't actually be spendable until the client processes
                 // it, though.)
                 theToken.SetSpendable(ascPrototoken);
 
-                //                otErr << "***
-                // SPENDABLE:\n-----------%s---------------------\n",
-                // ascPrototoken.Get());
-
                 // Base64-encode the signature contents into
                 // theToken.m_Signature.
                 OTString strSignature(sig_buf);
-                //            strSignature.Set(sig_buf, sig_len-1); // sig_len
-                // includes null terminator, whereas Set() adds 1 for it.
-
-                //                otErr << "SIGNATURE:\n--------------------%s"
-                //                        "------------------\n",
-                // strSignature.Get());
 
                 // Here we pass the signature back to the caller.
                 // He will probably set it onto the token.
@@ -488,7 +407,6 @@ bool MintLucre::VerifyToken(OTPseudonym& theNotary, OTString& theCleartextToken,
                             int64_t lDenomination)
 {
     bool bReturnValue = false;
-    //    otErr << "%s <bank info> <coin>\n", argv[0]);
     LucreDumper setDumper;
 
     OpenSSL_BIO bioBank = BIO_new(BIO_s_mem()); // input
