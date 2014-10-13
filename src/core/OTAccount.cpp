@@ -725,17 +725,6 @@ bool OTAccount::SaveContractWallet(OTString& contents) const
     return true;
 }
 
-bool OTAccount::SaveContractWallet(std::ofstream& ofs) const
-{
-    OTString strOutput;
-
-    if (SaveContractWallet(strOutput)) {
-        ofs << strOutput;
-        return true;
-    }
-    return false;
-}
-
 // Most contracts do not override this function...
 // But OTAccount does, because IF THE SIGNER has chosen to SIGN the account
 // based on the current balances, then we need to update the m_xmlUnsigned

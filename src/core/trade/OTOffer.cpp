@@ -597,9 +597,4 @@ void OTOffer::InitOffer()
     SetScale(1);             // This must be 1 or greater. Enforced.
 }
 
-bool OTOffer::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

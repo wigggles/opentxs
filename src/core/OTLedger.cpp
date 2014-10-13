@@ -2473,9 +2473,4 @@ void OTLedger::Release()
                          // now...
 }
 
-bool OTLedger::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

@@ -1362,11 +1362,6 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return 0;
 }
 
-bool Purse::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 time64_t Purse::GetLatestValidFrom() const
 {
     return m_tLatestValidFrom;

@@ -1622,9 +1622,4 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return 0;
 }
 
-bool OTPayment::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

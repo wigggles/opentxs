@@ -202,18 +202,6 @@ bool OTServerContract::SaveContractWallet(OTString& strContents) const
     return true;
 }
 
-bool OTServerContract::SaveContractWallet(std::ofstream& ofs) const
-{
-    OTString strOutput;
-
-    if (SaveContractWallet(strOutput)) {
-        ofs << strOutput;
-        return true;
-    }
-
-    return false;
-}
-
 void OTServerContract::CreateContents()
 {
 

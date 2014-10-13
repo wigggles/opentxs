@@ -3948,20 +3948,4 @@ OTMessage::~OTMessage()
 {
 }
 
-// This actually saves to any file you want to pass it to.
-
-bool OTMessage::SaveContractWallet(std::ofstream& ofs) const
-{
-    OTString strContract;
-
-    if (SaveContractRaw(strContract)) {
-        ofs << strContract;
-
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
 } // namespace opentxs

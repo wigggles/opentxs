@@ -505,8 +505,7 @@ public:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this
-    // is where the ledger saves its contents
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
+                                   // is where the ledger saves its contents
 };
 
 } // namespace opentxs

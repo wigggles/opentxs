@@ -5767,11 +5767,6 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-bool OTSmartContract::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 // DONE: Make a GENERIC VERSION of the BELOW function, that script coders can
 // call
 // whenever they need to move money between two parties!!!! The more I look at

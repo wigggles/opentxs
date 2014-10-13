@@ -255,9 +255,6 @@ public:
     void Release_Cheque();
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the token saves its contents
-
-    //    virtual bool SaveContractWallet(FILE* fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

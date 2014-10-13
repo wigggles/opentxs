@@ -1747,9 +1747,4 @@ void OTPaymentPlan::Release()
     InitPaymentPlan();
 }
 
-bool OTPaymentPlan::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

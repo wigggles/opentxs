@@ -324,8 +324,6 @@ public:
 
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the ledger saves its contents
-
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs
