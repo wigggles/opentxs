@@ -230,13 +230,6 @@ OTASCIIArmor::OTASCIIArmor(const OTString& strValue)
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const OTPayload& theValue)
-    : OTString()
-{
-    SetData(theValue);
-}
-
-// encodes
 OTASCIIArmor::OTASCIIArmor(const OTData& theValue)
     : OTString()
 {

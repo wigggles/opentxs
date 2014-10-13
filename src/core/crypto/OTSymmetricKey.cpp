@@ -193,7 +193,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 
     if (!GetRawKeyFromPassphrase(oldPassphrase, theActualKey)) return false;
 
-    OTPayload dataIV, dataSalt;
+    OTData dataIV, dataSalt;
 
     // NOTE: I can't randomize the IV because then anything that was
     // encrypted with this key before, will fail to decrypt. (Ruining
@@ -246,7 +246,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     //
     // Encrypt theActualKey using pNewDerivedKey, which is clear/raw already.
     // (Both are OTPasswords.)
-    // Put the result into the OTPayload m_dataEncryptedKey.
+    // Put the result into the OTData m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OTCrypto::It()->Encrypt(
         *pNewDerivedKey, // pNewDerivedKey is a symmetric key, in clear form.
@@ -346,7 +346,7 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     //
     // Encrypt theActualKey using pDerivedKey, which is clear/raw already. (Both
     // are OTPasswords.)
-    // Put the result into the OTPayload m_dataEncryptedKey.
+    // Put the result into the OTData m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OTCrypto::It()->Encrypt(
         *pDerivedKey, // pDerivedKey is a symmetric key, in clear form. Used for
@@ -473,7 +473,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
     //  OT_ASSERT(thePassphrase.isPassword());
     OTPassword* pDerivedKey = nullptr;
 
-    OTPayload tmpDataHashCheck = m_dataHashCheck;
+    OTData tmpDataHashCheck = m_dataHashCheck;
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
@@ -605,7 +605,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         m_dataIV, // Created when *this symmetric key was generated. Both are
                   // already stored.
         theRawKeyOutput); // OUTPUT. (Recovered plaintext of symmetric key.) You
-                          // can pass OTPassword& OR OTPayload& here (either
+                          // can pass OTPassword& OR OTData& here (either
                           // will work.)
 
     otInfo << szFunc
@@ -914,7 +914,7 @@ bool OTSymmetricKey::SerializeFrom(const OTString& strInput, bool bEscaped)
 
 bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
 {
-    OTPayload theOutput;
+    OTData theOutput;
 
     if (SerializeTo(theOutput)) {
         ascOutput.SetData(theOutput);
@@ -926,7 +926,7 @@ bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
 
 bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
-    OTPayload theInput;
+    OTData theInput;
 
     if (ascInput.Exists() && ascInput.GetData(theInput)) {
         return SerializeFrom(theInput);
@@ -934,7 +934,7 @@ bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
     return false;
 }
 
-bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
+bool OTSymmetricKey::SerializeTo(OTData& theOutput) const
 {
 
     uint16_t from_bool_is_generated = (m_bIsGenerated ? 1 : 0);
@@ -1012,7 +1012,7 @@ bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
 // position, and let the CALLER reset first, if that's his
 // intention.
 //
-bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
+bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 {
     const char* szFunc = "OTSymmetricKey::SerializeFrom";
 

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
-#include "../OTPayload.hpp"
+#include "../OTData.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
 
@@ -149,7 +149,7 @@ class OTData;
 class OTIdentifier;
 class OTPassword;
 class OTPasswordData;
-class OTPayload;
+class OTData;
 class OTPseudonym;
 class OTSettings;
 class OTSignature;
@@ -191,7 +191,7 @@ public:
 };
 
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
-// keys being decrypted) and sometimes I want to decrypt into an OTPayload
+// keys being decrypted) and sometimes I want to decrypt into an OTData
 // (For most other types of data.) This class allows me to do it either way
 // without duplicating the static Decrypt() function, by wrapping both
 // types.
@@ -200,7 +200,7 @@ class OTCrypto_Decrypt_Output
 {
 private:
     OTPassword* m_pPassword;
-    OTPayload* m_pPayload;
+    OTData* m_pPayload;
 
     OTCrypto_Decrypt_Output();
 
@@ -210,7 +210,7 @@ public:
     EXPORT OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output& rhs);
 
     EXPORT OTCrypto_Decrypt_Output(OTPassword& thePassword);
-    EXPORT OTCrypto_Decrypt_Output(OTPayload& thePayload);
+    EXPORT OTCrypto_Decrypt_Output(OTData& thePayload);
 
     EXPORT void swap(OTCrypto_Decrypt_Output& other);
 
@@ -316,14 +316,13 @@ public:
     // Todo: return a smart pointer here.
     //
     virtual OTPassword* DeriveKey(
-        const OTPassword& userPassword, const OTPayload& dataSalt,
-        uint32_t uIterations,
-        const OTPayload& dataCheckHash = OTPayload()) const = 0;
+        const OTPassword& userPassword, const OTData& dataSalt,
+        uint32_t uIterations, const OTData& dataCheckHash = OTData()) const = 0;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
-                                     const OTPayload& dataSalt,
+                                     const OTData& dataSalt,
                                      uint32_t uIterations,
-                                     OTPayload& dataCheckHash) const = 0;
+                                     OTData& dataCheckHash) const = 0;
 
     // ENCRYPT / DECRYPT
     //
@@ -334,21 +333,21 @@ public:
                                               // form.
         const char* szInput,                  // This is the Plaintext.
         uint32_t lInputLength,
-        const OTPayload& theIV, // (We assume this IV is already generated and
-                                // passed in.)
-        OTPayload& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
+        const OTData& theIV, // (We assume this IV is already generated and
+                             // passed in.)
+        OTData& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
 
     virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
                                                                // key, in clear
                                                                // form.
                          const char* szInput, // This is the Ciphertext.
                          uint32_t lInputLength,
-                         const OTPayload& theIV, // (We assume this IV is
-                                                 // already generated and passed
-                                                 // in.)
+                         const OTData& theIV, // (We assume this IV is
+                                              // already generated and passed
+                                              // in.)
                          OTCrypto_Decrypt_Output theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
-                   // OTPayload& here (either will work.)
+                   // OTData& here (either will work.)
     // SEAL / OPEN (RSA envelopes...)
     //
     // Asymmetric (public key) encryption / decryption

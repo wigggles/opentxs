@@ -778,19 +778,18 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
 // Todo: return a smart pointer here.
 //
 OTPassword* OTCrypto_OpenSSL::DeriveKey(
-    const OTPassword& userPassword, const OTPayload& dataSalt,
-    uint32_t uIterations,
-    const OTPayload& dataCheckHash /*= OTPayload()*/) const
+    const OTPassword& userPassword, const OTData& dataSalt,
+    uint32_t uIterations, const OTData& dataCheckHash /*= OTData()*/) const
 {
-    OTPayload tempPayload = dataCheckHash;
+    OTData tempPayload = dataCheckHash;
     return OTCrypto_OpenSSL::DeriveNewKey(userPassword, dataSalt, uIterations,
                                           tempPayload);
 }
 
 OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
-                                           const OTPayload& dataSalt,
+                                           const OTData& dataSalt,
                                            uint32_t uIterations,
-                                           OTPayload& dataCheckHash) const
+                                           OTData& dataCheckHash) const
 {
     //  OT_ASSERT(userPassword.isPassword());
     OT_ASSERT(!dataSalt.IsEmpty());
@@ -829,7 +828,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     // For The HashCheck
     bool bHaveCheckHash = !dataCheckHash.IsEmpty();
 
-    OTPayload tmpHashCheck;
+    OTData tmpHashCheck;
     tmpHashCheck.SetSize(OTCryptoConfig::SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
@@ -1542,10 +1541,10 @@ void OTCrypto_OpenSSL::Cleanup_Override() const
 bool OTCrypto_OpenSSL::Encrypt(
     const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
     const char* szInput,                  // This is the Plaintext.
-    const uint32_t lInputLength, const OTPayload& theIV, // (We assume this IV
-                                                         // is already generated
-                                                         // and passed in.)
-    OTPayload& theEncryptedOutput) const // OUTPUT. (Ciphertext.)
+    const uint32_t lInputLength, const OTData& theIV, // (We assume this IV
+                                                      // is already generated
+                                                      // and passed in.)
+    OTData& theEncryptedOutput) const                 // OUTPUT. (Ciphertext.)
 {
     const char* szFunc = "OTCrypto_OpenSSL::Encrypt";
 
@@ -1664,13 +1663,13 @@ bool OTCrypto_OpenSSL::Encrypt(
 bool OTCrypto_OpenSSL::Decrypt(
     const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
     const char* szInput,                  // This is the Ciphertext.
-    const uint32_t lInputLength, const OTPayload& theIV, // (We assume this IV
-                                                         // is already generated
-                                                         // and passed in.)
-    OTCrypto_Decrypt_Output theDecryptedOutput) const    // OUTPUT. (Recovered
-                                                         // plaintext.) You can
-                                                         // pass OTPassword& OR
-// OTPayload& here (either
+    const uint32_t lInputLength, const OTData& theIV, // (We assume this IV
+                                                      // is already generated
+                                                      // and passed in.)
+    OTCrypto_Decrypt_Output theDecryptedOutput) const // OUTPUT. (Recovered
+                                                      // plaintext.) You can
+                                                      // pass OTPassword& OR
+// OTData& here (either
 // will work.)
 {
     const char* szFunc = "OTCrypto_OpenSSL::Decrypt";
@@ -2543,7 +2542,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     // IF we find the one we are looking for, then we set it onto this variable,
     // theRawEncryptedKey, so we have it available below this loop.
     //
-    OTPayload theRawEncryptedKey;
+    OTData theRawEncryptedKey;
     bool bFoundKeyAlready =
         false; // If we find it during the loop below, we'll set this to true.
 
@@ -3336,7 +3335,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     // the signature that was passed in.
     //
 
-    OTPayload binSignature;
+    OTData binSignature;
 
     // This will cause binSignature to contain the base64 decoded binary of the
     // signature that we're verifying. Unless the call fails of course...
@@ -4085,7 +4084,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
         return false;
     }
 
-    OTPayload binSignature;
+    OTData binSignature;
 
     // now binSignature contains the base64 decoded binary of the signature.
     // Unless the call failed of course...

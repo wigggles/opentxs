@@ -1438,7 +1438,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
         const std::string str_id = it.first;
         std::shared_ptr<OTSymmetricKey> pOldKey = it.second;
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if (pOldKey && pOldKey->SerializeTo(thePayload)) {
             std::shared_ptr<OTSymmetricKey> pNewKey(new OTSymmetricKey);

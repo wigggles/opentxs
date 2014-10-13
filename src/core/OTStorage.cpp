@@ -137,7 +137,7 @@
 #include "util/OTDataFolder.hpp"
 #include "OTLog.hpp"
 #include "util/OTPaths.hpp"
-#include "OTPayload.hpp"
+#include "OTData.hpp"
 #include "OTStoragePB.hpp"
 
 #include <fstream>
@@ -2458,7 +2458,7 @@ Storable* Storage::DecodeObject(StoredObjectType theObjectType,
 
     OTASCIIArmor theArmor;
     theArmor.Set(strInput.c_str(), static_cast<uint32_t>(strInput.size()));
-    const OTPayload thePayload(theArmor);
+    const OTData thePayload(theArmor);
 
     // Put thePayload's contents into pBuffer here.
     //

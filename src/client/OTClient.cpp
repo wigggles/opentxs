@@ -156,7 +156,7 @@
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/OTPayload.hpp"
+#include "../core/OTData.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
@@ -8391,7 +8391,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8469,7 +8469,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8550,7 +8550,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8626,7 +8626,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {

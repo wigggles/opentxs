@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
 #include "OTCrypto.hpp"
-#include "../OTPayload.hpp"
+#include "../OTData.hpp"
 #include "../OTString.hpp"
 #include "../util/Assert.hpp"
 
@@ -150,7 +150,7 @@ class OTData;
 class OTIdentifier;
 class OTPassword;
 class OTPasswordData;
-class OTPayload;
+class OTData;
 class OTPseudonym;
 class OTSettings;
 class OTSignature;
@@ -218,15 +218,14 @@ public:
     // IS RESPONSIBLE TO DELETE!
     // Todo: return a smart pointer here.
     //
-    virtual OTPassword* DeriveKey(
-        const OTPassword& userPassword, const OTPayload& dataSalt,
-        uint32_t uIterations,
-        const OTPayload& dataCheckHash = OTPayload()) const;
+    virtual OTPassword* DeriveKey(const OTPassword& userPassword,
+                                  const OTData& dataSalt, uint32_t uIterations,
+                                  const OTData& dataCheckHash = OTData()) const;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
-                                     const OTPayload& dataSalt,
+                                     const OTData& dataSalt,
                                      uint32_t uIterations,
-                                     OTPayload& dataCheckHash) const;
+                                     OTData& dataCheckHash) const;
     // ENCRYPT / DECRYPT
     // Symmetric (secret key) encryption / decryption
     virtual bool Encrypt(
@@ -234,21 +233,21 @@ public:
                                               // form.
         const char* szInput,                  // This is the Plaintext.
         uint32_t lInputLength,
-        const OTPayload& theIV, // (We assume this IV is already generated and
-                                // passed in.)
-        OTPayload& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
+        const OTData& theIV, // (We assume this IV is already generated and
+                             // passed in.)
+        OTData& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
 
     virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
                                                                // key, in clear
                                                                // form.
                          const char* szInput, // This is the Ciphertext.
                          uint32_t lInputLength,
-                         const OTPayload& theIV, // (We assume this IV is
-                                                 // already generated and passed
-                                                 // in.)
+                         const OTData& theIV, // (We assume this IV is
+                                              // already generated and passed
+                                              // in.)
                          OTCrypto_Decrypt_Output theDecryptedOutput)
         const; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
-               // OTPayload& here (either will work.)
+               // OTData& here (either will work.)
     // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
     virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys,

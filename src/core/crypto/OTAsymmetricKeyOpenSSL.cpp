@@ -138,7 +138,7 @@
 #include "OTLog.hpp"
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
-#include "OTPayload.hpp"
+#include "OTData.hpp"
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 #include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
@@ -502,8 +502,8 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc(); // todo should this algorithm be hardcoded?
 
-    OTPayload theData; // after base64-decoding the ascii-armored string, the
-                       // (encrypted) binary will be stored here.
+    OTData theData; // after base64-decoding the ascii-armored string, the
+                    // (encrypted) binary will be stored here.
 
     // This line base64 decodes the ascii-armored string into binary object
     // theData...
@@ -617,7 +617,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                 otLog5 << __FUNCTION__
                        << ": Success writing EVP_PKEY to memory buffer.\n";
 
-                OTPayload theNewData;
+                OTData theNewData;
                 char* pChar = nullptr;
 
                 // After the below call, pChar will point to the memory buffer

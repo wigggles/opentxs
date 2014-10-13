@@ -1134,7 +1134,7 @@ bool OT_API::LoadWallet() const
 // Whenever OT needs to pop a message on over to the server, it calls this so we
 // can do the work here.
 //
-// typedef bool (*OT_CALLBACK_MSG)(OTPayload & thePayload);
+// typedef bool (*OT_CALLBACK_MSG)(OTData & thePayload);
 //
 
 bool OT_API::TransportFunction(const OTServerContract& theServerContract,
