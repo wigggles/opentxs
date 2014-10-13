@@ -149,11 +149,6 @@ public:
     OTPayload(const void* pNewData, uint32_t nNewSize);
     OTPayload(const OTPayload& rhs);
     OTPayload(const OTASCIIArmor& theSource);
-
-    EXPORT virtual ~OTPayload();
-
-    using OTData::swap;
-    using OTData::operator=;
 };
 
 } // namespace opentxs

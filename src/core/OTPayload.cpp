@@ -162,8 +162,4 @@ OTPayload::OTPayload(const OTASCIIArmor& theSource)
 {
 }
 
-OTPayload::~OTPayload()
-{
-}
-
 } // namespace opentxs
