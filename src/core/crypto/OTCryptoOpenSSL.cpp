@@ -816,10 +816,10 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
         static_cast<const int32_t>(
             userPassword.isPassword()
                 ? userPassword.getPasswordSize()
-                : userPassword.getMemorySize()), // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPayloadPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()), // Salt Length
-        static_cast<const int32_t>(uIterations),        // Number Of Iterations
+                : userPassword.getMemorySize()),            // Password Length
+        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
+        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
+        static_cast<const int32_t>(uIterations), // Number Of Iterations
         static_cast<const int32_t>(
             pDerivedKey->getMemorySize()), // Output Length
         static_cast<uint8_t*>(
@@ -839,23 +839,21 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>(pDerivedKey->getMemory()), // Derived Key
         static_cast<const int32_t>(
-            pDerivedKey->getMemorySize()), // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPayloadPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()), // Salt Length
-        static_cast<const int32_t>(uIterations),        // Number Of Iterations
+            pDerivedKey->getMemorySize()),                  // Password Length
+        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
+        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
+        static_cast<const int32_t>(uIterations), // Number Of Iterations
         static_cast<const int32_t>(tmpHashCheck.GetSize()), // Output Length
         const_cast<uint8_t*>(static_cast<const uint8_t*>(
-            tmpHashCheck.GetPayloadPointer()))) // Output Key (not const!)
+            tmpHashCheck.GetPointer()))) // Output Key (not const!)
         ;
 
     if (bHaveCheckHash) {
         OTString strDataCheck, strTestCheck;
-        strDataCheck.Set(
-            static_cast<const char*>(dataCheckHash.GetPayloadPointer()),
-            dataCheckHash.GetSize());
-        strTestCheck.Set(
-            static_cast<const char*>(tmpHashCheck.GetPayloadPointer()),
-            tmpHashCheck.GetSize());
+        strDataCheck.Set(static_cast<const char*>(dataCheckHash.GetPointer()),
+                         dataCheckHash.GetSize());
+        strTestCheck.Set(static_cast<const char*>(tmpHashCheck.GetPointer()),
+                         tmpHashCheck.GetSize());
 
         if (!strDataCheck.Compare(strTestCheck)) {
             dataCheckHash.reset();
@@ -1607,8 +1605,7 @@ bool OTCrypto_OpenSSL::Encrypt(
     if (!EVP_EncryptInit(
             &ctx, cipher_type,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(
-                const_cast<void*>(theIV.GetPayloadPointer())))) {
+            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
         otErr << szFunc << ": EVP_EncryptInit: failed.\n";
         return false;
     }
@@ -1732,8 +1729,7 @@ bool OTCrypto_OpenSSL::Decrypt(
     if (!EVP_DecryptInit(
             &ctx, cipher_type,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(
-                const_cast<void*>(theIV.GetPayloadPointer())))) {
+            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
         otErr << szFunc << ": EVP_DecryptInit: failed.\n";
         return false;
     }
@@ -2832,11 +2828,10 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     //          EVP_PKEY *priv);
 
     //  if (!EVP_OpenInit(&ctx, cipher_type, ek, eklen, iv, private_key))
-    if (!EVP_OpenInit(
-            &ctx, cipher_type,
-            static_cast<const uint8_t*>(theRawEncryptedKey.GetPayloadPointer()),
-            static_cast<int32_t>(theRawEncryptedKey.GetSize()),
-            static_cast<const uint8_t*>(iv), private_key)) {
+    if (!EVP_OpenInit(&ctx, cipher_type, static_cast<const uint8_t*>(
+                                             theRawEncryptedKey.GetPointer()),
+                      static_cast<int32_t>(theRawEncryptedKey.GetSize()),
+                      static_cast<const uint8_t*>(iv), private_key)) {
 
         // EVP_OpenInit() initializes a cipher context ctx for decryption with
         // cipher type. It decrypts the encrypted
@@ -3388,7 +3383,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     int32_t status = RSA_public_decrypt(
         nSignatureSize, // length of signature, aka RSA_size(rsa)
         static_cast<const uint8_t*>(
-            binSignature.GetPayloadPointer()), // location of signature
+            binSignature.GetPointer()), // location of signature
         &vDecrypted.at(0), // Output--must be large enough to hold the md (which
                            // is smaller than RSA_size(rsa) - 11)
         pRsaKey,           // signer's public key
@@ -4125,7 +4120,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     // 0 for failure and -1 if some other error occurred.
     //
     int32_t nErr = EVP_VerifyFinal(
-        &ctx, static_cast<const uint8_t*>(binSignature.GetPayloadPointer()),
+        &ctx, static_cast<const uint8_t*>(binSignature.GetPointer()),
         static_cast<uint32_t>(binSignature.GetSize()),
         const_cast<EVP_PKEY*>(pkey));
 

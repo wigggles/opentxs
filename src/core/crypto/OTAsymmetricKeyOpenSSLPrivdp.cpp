@@ -313,8 +313,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
             theData.SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
-                (static_cast<char*>(const_cast<void*>(
-                    theData.GetPayloadPointer()))), // destination
+                (static_cast<char*>(
+                    const_cast<void*>(theData.GetPointer()))), // destination
                 theData.GetSize(), // size of destination buffer.
                 pChar,             // source
                 nSize);            // length of source.
@@ -323,10 +323,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio =
-                    BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(
-                                        theData.GetPayloadPointer())),
-                                    theData.GetSize());
+                OpenSSL_BIO keyBio = BIO_new_mem_buf(
+                    static_cast<char*>(const_cast<void*>(theData.GetPointer())),
+                    theData.GetSize());
                 OT_ASSERT_MSG(nullptr != keyBio,
                               "OTAsymmetricKey_OpenSSL::"
                               "CopyPublicKey: Assert: nullptr != "
@@ -451,8 +450,8 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
             theData.SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
-                (static_cast<char*>(const_cast<void*>(
-                    theData.GetPayloadPointer()))), // destination
+                (static_cast<char*>(
+                    const_cast<void*>(theData.GetPointer()))), // destination
                 theData.GetSize(), // size of destination buffer.
                 pChar,             // source
                 nSize);            // length of source.
@@ -464,10 +463,9 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio =
-                    BIO_new_mem_buf(static_cast<char*>(const_cast<void*>(
-                                        theData.GetPayloadPointer())),
-                                    theData.GetSize());
+                OpenSSL_BIO keyBio = BIO_new_mem_buf(
+                    static_cast<char*>(const_cast<void*>(theData.GetPointer())),
+                    theData.GetSize());
                 OT_ASSERT_MSG(nullptr != keyBio,
                               "OTAsymmetricKey_OpenSSL::"
                               "CopyPrivateKey: Assert: nullptr != "
@@ -555,8 +553,8 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 
             //            void * pv =
             OTPassword::safe_memcpy(
-                (static_cast<char*>(const_cast<void*>(
-                    theData.GetPayloadPointer()))), // destination
+                (static_cast<char*>(
+                    const_cast<void*>(theData.GetPointer()))), // destination
                 theData.GetSize(), // size of destination buffer.
                 pChar,             // source
                 nSize);            // length of source.
@@ -603,7 +601,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         // so OpenSSL can load the key out of it.
         //
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
+            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
             theData.GetSize());
         OT_ASSERT_MSG(nullptr != keyBio,
                       "OTAsymmetricKey_OpenSSL::"
@@ -674,7 +672,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     //
     if (theData.GetSize() > 0) {
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
+            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
             theData.GetSize()); // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(nullptr != keyBio,
                       "OTAsymmetricKey_OpenSSL::"
@@ -799,8 +797,8 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
 
             //            void * pv =
             OTPassword::safe_memcpy(
-                (static_cast<char*>(const_cast<void*>(
-                    theData.GetPayloadPointer()))), // destination
+                (static_cast<char*>(
+                    const_cast<void*>(theData.GetPointer()))), // destination
                 theData.GetSize(), // size of destination buffer.
                 pChar,             // source
                 nSize);            // length of source.

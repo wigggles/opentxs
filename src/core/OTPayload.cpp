@@ -166,9 +166,4 @@ OTPayload::~OTPayload()
 {
 }
 
-const void* OTPayload::GetPayloadPointer() const
-{
-    return GetPointer();
-}
-
 } // namespace opentxs

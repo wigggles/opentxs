@@ -154,8 +154,6 @@ public:
 
     using OTData::swap;
     using OTData::operator=;
-
-    EXPORT const void* GetPayloadPointer() const;
 };
 
 } // namespace opentxs

@@ -600,7 +600,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         // form of the symmetric key.
         //
         static_cast<const char*>(
-            m_dataEncryptedKey.GetPayloadPointer()), // The Ciphertext.
+            m_dataEncryptedKey.GetPointer()), // The Ciphertext.
         m_dataEncryptedKey.GetSize(),
         m_dataIV, // Created when *this symmetric key was generated. Both are
                   // already stored.
@@ -980,27 +980,27 @@ bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
     theOutput.Concatenate(reinterpret_cast<void*>(&n_salt_size),
                           static_cast<uint32_t>(sizeof(n_salt_size)));
 
-    OT_ASSERT(nullptr != m_dataSalt.GetPayloadPointer());
-    theOutput.Concatenate(m_dataSalt.GetPayloadPointer(), m_dataSalt.GetSize());
+    OT_ASSERT(nullptr != m_dataSalt.GetPointer());
+    theOutput.Concatenate(m_dataSalt.GetPointer(), m_dataSalt.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_iv_size),
                           static_cast<uint32_t>(sizeof(n_iv_size)));
 
-    OT_ASSERT(nullptr != m_dataIV.GetPayloadPointer());
-    theOutput.Concatenate(m_dataIV.GetPayloadPointer(), m_dataIV.GetSize());
+    OT_ASSERT(nullptr != m_dataIV.GetPointer());
+    theOutput.Concatenate(m_dataIV.GetPointer(), m_dataIV.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_enc_key_size),
                           static_cast<uint32_t>(sizeof(n_enc_key_size)));
 
-    OT_ASSERT(nullptr != m_dataEncryptedKey.GetPayloadPointer());
-    theOutput.Concatenate(m_dataEncryptedKey.GetPayloadPointer(),
+    OT_ASSERT(nullptr != m_dataEncryptedKey.GetPointer());
+    theOutput.Concatenate(m_dataEncryptedKey.GetPointer(),
                           m_dataEncryptedKey.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_hash_check_size),
                           static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
-    OT_ASSERT(nullptr != m_dataHashCheck.GetPayloadPointer());
-    theOutput.Concatenate(m_dataHashCheck.GetPayloadPointer(),
+    OT_ASSERT(nullptr != m_dataHashCheck.GetPointer());
+    theOutput.Concatenate(m_dataHashCheck.GetPointer(),
                           m_dataHashCheck.GetSize());
 
     return true;
@@ -1112,7 +1112,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
     m_dataSalt.SetSize(lSaltSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataSalt.GetPayloadPointer())),
+                                           m_dataSalt.GetPointer())),
                                        static_cast<uint32_t>(lSaltSize)))) {
         otErr << szFunc << ": Error reading salt for symmetric key.\n";
         return false;
@@ -1147,7 +1147,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
     m_dataIV.SetSize(lIVSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataIV.GetPayloadPointer())),
+                                           m_dataIV.GetPointer())),
                                        static_cast<uint32_t>(lIVSize)))) {
         otErr << szFunc << ": Error reading IV for symmetric key.\n";
         return false;
@@ -1183,10 +1183,9 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
     //
     m_dataEncryptedKey.SetSize(lEncKeySize);
 
-    if (0 ==
-        (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                      m_dataEncryptedKey.GetPayloadPointer())),
-                                  static_cast<uint32_t>(lEncKeySize)))) {
+    if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
+                                           m_dataEncryptedKey.GetPointer())),
+                                       static_cast<uint32_t>(lEncKeySize)))) {
         otErr << szFunc << ": Error reading encrypted symmetric key.\n";
         return false;
     }
@@ -1225,7 +1224,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     if (0 ==
         (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                      m_dataHashCheck.GetPayloadPointer())),
+                                      m_dataHashCheck.GetPointer())),
                                   static_cast<uint32_t>(lHashCheckSize)))) {
         otErr << szFunc << ": Error reading hash check data.\n";
         return false;

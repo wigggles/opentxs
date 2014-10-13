@@ -519,7 +519,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
         // BIO...
         //
         OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData.GetPayloadPointer())),
+            static_cast<char*>(const_cast<void*>(theData.GetPointer())),
             theData.GetSize()); // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(nullptr != keyBio,
                       "OTAsymmetricKey_OpenSSL::"
@@ -634,7 +634,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
                     //                  void * pv =
                     OTPassword::safe_memcpy(
                         (static_cast<char*>(const_cast<void*>(
-                            theNewData.GetPayloadPointer()))), // destination
+                            theNewData.GetPointer()))), // destination
                         theNewData.GetSize(), // size of destination buffer.
                         pChar,                // source
                         nSize);               // length of source.

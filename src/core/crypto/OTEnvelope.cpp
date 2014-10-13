@@ -343,12 +343,12 @@ bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
 
     // Write the IV itself.
     //
-    m_dataContents.Concatenate(theIV.GetPayloadPointer(),
+    m_dataContents.Concatenate(theIV.GetPointer(),
                                static_cast<uint32_t>(theIV.GetSize()));
 
     // Write the Ciphertext.
     //
-    m_dataContents.Concatenate(theCipherText.GetPayloadPointer(),
+    m_dataContents.Concatenate(theCipherText.GetPointer(),
                                static_cast<uint32_t>(theCipherText.GetSize()));
 
     // We don't write the size of the ciphertext before the ciphertext itself,
@@ -459,8 +459,7 @@ bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
     theIV.SetSize(iv_size_host_order);
 
     if (0 == (nRead = m_dataContents.OTfread(
-                  static_cast<uint8_t*>(
-                      const_cast<void*>(theIV.GetPayloadPointer())),
+                  static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())),
                   static_cast<uint32_t>(iv_size_host_order)))) {
         otErr << szFunc << ": Error reading initialization vector.\n";
         return false;
@@ -490,7 +489,7 @@ bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
     const bool bDecrypted = OTCrypto::It()->Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
-            theCipherText.GetPayloadPointer()), // This is the Ciphertext.
+            theCipherText.GetPointer()), // This is the Ciphertext.
         theCipherText.GetSize(),
         theIV, thePlaintext); // OUTPUT. (Recovered plaintext.) You can pass
                               // OTPassword& OR OTPayload& here (either will

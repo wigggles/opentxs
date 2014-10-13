@@ -2462,9 +2462,8 @@ Storable* Storage::DecodeObject(StoredObjectType theObjectType,
 
     // Put thePayload's contents into pBuffer here.
     //
-    pBuffer->SetData(
-        static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-        thePayload.GetSize());
+    pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                     thePayload.GetSize());
 
     // Now let's unpack it and return the Storable object.
 

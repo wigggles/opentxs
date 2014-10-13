@@ -8410,9 +8410,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::MarketList> pMarketList(
             dynamic_cast<OTDB::MarketList*>(
@@ -8489,9 +8488,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::OfferListMarket> pOfferList(
             dynamic_cast<OTDB::OfferListMarket*>(
@@ -8571,9 +8569,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::TradeListMarket> pTradeList(
             dynamic_cast<OTDB::TradeListMarket*>(
@@ -8648,9 +8645,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::OfferListNym> pOfferList(
             dynamic_cast<OTDB::OfferListNym*>(
