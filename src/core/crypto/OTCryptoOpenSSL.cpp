@@ -830,7 +830,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     bool bHaveCheckHash = !dataCheckHash.IsEmpty();
 
     OTPayload tmpHashCheck;
-    tmpHashCheck.SetPayloadSize(OTCryptoConfig::SymmetricKeySize());
+    tmpHashCheck.SetSize(OTCryptoConfig::SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
     // Compare that with the supplied one, (if there is one).
@@ -2822,19 +2822,6 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
     //
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
-    //
-    //  OTPayload
-    //  void   SetPayloadSize   (uint32_t lNewSize);
-    //    const
-    //  void * GetPayloadPointer() const;
-
-    //  OTData
-    //  inline
-    //  uint32_t     GetSize    () const { return m_lSize; }
-    //    bool         IsEmpty    () const;
-    //  virtual void Release    ();
-    //    void         Assign     (const void* pNewData, uint32_t lNewSize);
-    //    void         Concatenate(const void* pNewData, uint32_t lNewSize);
 
     // int32_t EVP_OpenInit(
     //          EVP_CIPHER_CTX *ctx,

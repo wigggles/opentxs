@@ -1109,7 +1109,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Salt itself.
     //
-    m_dataSalt.SetPayloadSize(lSaltSize);
+    m_dataSalt.SetSize(lSaltSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
                                            m_dataSalt.GetPayloadPointer())),
@@ -1144,7 +1144,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the IV itself.
     //
-    m_dataIV.SetPayloadSize(lIVSize);
+    m_dataIV.SetSize(lIVSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
                                            m_dataIV.GetPayloadPointer())),
@@ -1181,7 +1181,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Encrypted Key itself.
     //
-    m_dataEncryptedKey.SetPayloadSize(lEncKeySize);
+    m_dataEncryptedKey.SetSize(lEncKeySize);
 
     if (0 ==
         (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
@@ -1221,7 +1221,7 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Hashcheck itself.
     //
-    m_dataHashCheck.SetPayloadSize(lHashCheckSize);
+    m_dataHashCheck.SetSize(lHashCheckSize);
 
     if (0 ==
         (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(

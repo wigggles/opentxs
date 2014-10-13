@@ -155,7 +155,6 @@ public:
     using OTData::swap;
     using OTData::operator=;
 
-    EXPORT void SetPayloadSize(uint32_t lNewSize);
     EXPORT const void* GetPayloadPointer() const;
 };
 

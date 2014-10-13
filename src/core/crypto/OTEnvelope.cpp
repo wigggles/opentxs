@@ -456,7 +456,7 @@ bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
     // Then read the IV (initialization vector) itself.
     //
     OTPayload theIV;
-    theIV.SetPayloadSize(iv_size_host_order);
+    theIV.SetSize(iv_size_host_order);
 
     if (0 == (nRead = m_dataContents.OTfread(
                   static_cast<uint8_t*>(

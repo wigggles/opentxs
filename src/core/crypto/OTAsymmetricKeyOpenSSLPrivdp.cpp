@@ -310,7 +310,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
             OTPayload theData;
 
             // Set the buffer size in our own memory.
-            theData.SetPayloadSize(nSize);
+            theData.SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(const_cast<void*>(
@@ -448,7 +448,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
             OTPayload theData;
 
             // Set the buffer size in our own memory.
-            theData.SetPayloadSize(nSize);
+            theData.SetSize(nSize);
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(const_cast<void*>(
@@ -551,7 +551,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.
-            theData.SetPayloadSize(nSize);
+            theData.SetSize(nSize);
 
             //            void * pv =
             OTPassword::safe_memcpy(
@@ -795,7 +795,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.
-            theData.SetPayloadSize(nSize);
+            theData.SetSize(nSize);
 
             //            void * pv =
             OTPassword::safe_memcpy(

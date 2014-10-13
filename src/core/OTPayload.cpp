@@ -166,11 +166,6 @@ OTPayload::~OTPayload()
 {
 }
 
-void OTPayload::SetPayloadSize(uint32_t lNewSize)
-{
-    SetSize(lNewSize);
-}
-
 const void* OTPayload::GetPayloadPointer() const
 {
     return GetPointer();

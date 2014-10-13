@@ -629,7 +629,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 
                 if (nSize > 0) {
                     // Set the buffer size in our own memory.
-                    theNewData.SetPayloadSize(nSize);
+                    theNewData.SetSize(nSize);
 
                     //                  void * pv =
                     OTPassword::safe_memcpy(
