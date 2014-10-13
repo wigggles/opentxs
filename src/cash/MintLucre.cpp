@@ -173,10 +173,6 @@ MintLucre::~MintLucre()
 {
 }
 
-#endif // Lucre
-
-#if defined(OT_CASH_USING_LUCRE)
-
 // Todo: need to be saving these BIOs somewhere, and freeing them at
 // the end of the run of the application.
 //
@@ -293,9 +289,7 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
     return bReturnValue;
 }
 
-#endif // defined (OT_CASH_USING_LUCRE)
-
-#if defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
 // Lucre step 3: the mint signs the token
 //
@@ -465,6 +459,7 @@ bool MintLucre::VerifyToken(OTPseudonym& theNotary, OTString& theCleartextToken,
     return bReturnValue;
 }
 
-#endif // defined(OT_CASH_USING_LUCRE) && defined(OT_CRYPTO_USING_OPENSSL)
+#endif // defined(OT_CRYPTO_USING_OPENSSL)
+#endif // defined(OT_CASH_USING_LUCRE)
 
 } // namespace opentxs
