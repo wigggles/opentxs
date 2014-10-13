@@ -516,33 +516,6 @@ bool OTString::operator>=(const OTString& s2) const
     return (true);
 }
 
-void fwrite_string(std::ostream& ofs, const char* str)
-{
-    char* pchar = const_cast<char*>(str);
-
-    if (str)
-        while (*pchar) {
-            if (*pchar != '\r') ofs << *pchar;
-            pchar++;
-        }
-}
-
-/*
-void fwrite_string(FILE* fl, const char* str)
-{
-    char * pchar;
-
-    pchar  = (char *)str;
-
-    if(str)
-        while(*pchar) {
-            if(*pchar != '\r')
-                fputc(*pchar, fl);
-            pchar++;
-        }
-}
-*/
-
 // Note: UNIX-only (for now.)
 //
 bool OTString::TokenizeIntoKeyValuePairs(
@@ -1361,16 +1334,15 @@ void OTString::Concatenate(const OTString& strBuf)
 
 void OTString::WriteToFile(std::ostream& ofs) const
 {
-    fwrite_string(ofs, data_);
+    if (!data_) {
+        return;
+    }
+    char* pchar = const_cast<char*>(data_);
+    while (*pchar) {
+        if (*pchar != '\r') ofs << *pchar;
+        pchar++;
+    }
 }
-
-/*
-void OTString::WriteToFile(FILE* fl) const
-{
-    if (fl != nullptr)
-        fwrite_string(fl, data_);
-}
-*/
 
 // true  == there are more lines to read.
 // false == this is the last line. Like EOF.
