@@ -205,8 +205,7 @@ private:
     // This combines GetInbox, GetOutbox, and GetAccount.
     void UserCmdGetAccountFiles(OTPseudonym& nym, OTMessage& msgIn,
                                 OTMessage& msgOut);
-    void UserCmdGetContract(OTPseudonym& nym, OTMessage& msgIn,
-                            OTMessage& msgOut);
+    void UserCmdGetContract(OTMessage& msgIn, OTMessage& msgOut);
     void UserCmdGetMint(OTPseudonym& nym, OTMessage& msgIn, OTMessage& msgOut);
     void UserCmdProcessInbox(OTPseudonym& nym, OTMessage& msgIn,
                              OTMessage& msgOut);

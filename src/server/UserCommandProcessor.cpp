@@ -1428,7 +1428,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-        UserCmdGetContract(*pNym, theMessage, msgOut);
+        UserCmdGetContract(theMessage, msgOut);
 
         return true;
     }
@@ -3746,7 +3746,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetContract(OTPseudonym&, OTMessage& MsgIn,
+void UserCommandProcessor::UserCmdGetContract(OTMessage& MsgIn,
                                               OTMessage& msgOut)
 {
     // (1) set up member variables

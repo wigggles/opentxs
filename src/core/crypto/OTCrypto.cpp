@@ -148,14 +148,6 @@
 #include "crypto/OTPassword.hpp"
 #include "crypto/OTPasswordData.hpp"
 #include "util/OTPaths.hpp"
-#include "OTPseudonym.hpp"
-#include "crypto/OTSignature.hpp"
-#include "OTStorage.hpp"
-#include "util/stacktrace.h"
-
-#include <bigint/BigIntegerLibrary.hh>
-
-#include <thread>
 
 extern "C" {
 #ifdef _WIN32
