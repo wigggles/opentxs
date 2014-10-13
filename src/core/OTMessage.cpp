@@ -1693,10 +1693,10 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //      return nReturnVal;
 
     const OTString strNodeName(xml->getNodeName());
-    OTString strDepth;
     OTString strTransactionNum;
 
     if (strNodeName.Compare("ackReplies")) {
+        OTString strDepth;
         if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
             otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
                      "without value.\n";
@@ -1751,7 +1751,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        strDepth = xml->getAttributeValue("depth");
+        OTString strDepth = xml->getAttributeValue("depth");
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
@@ -1801,7 +1801,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strRequestNum = xml->getAttributeValue("requestNum");
         m_strNymID2 = xml->getAttributeValue("marketID");
 
-        strDepth = xml->getAttributeValue("depth");
+        OTString strDepth = xml->getAttributeValue("depth");
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
@@ -1821,7 +1821,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strNymID2 = xml->getAttributeValue("marketID");
 
-        strDepth = xml->getAttributeValue("depth");
+        OTString strDepth = xml->getAttributeValue("depth");
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
@@ -1889,7 +1889,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strNymID2 = xml->getAttributeValue("marketID");
 
-        strDepth = xml->getAttributeValue("depth");
+        OTString strDepth = xml->getAttributeValue("depth");
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
@@ -1954,7 +1954,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        strDepth = xml->getAttributeValue("depth");
+        OTString strDepth = xml->getAttributeValue("depth");
 
         if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
 
