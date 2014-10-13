@@ -1675,8 +1675,6 @@ void OTMessage::UpdateContents()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
-
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
     // then we just return either way.  But if it comes back
@@ -1714,7 +1712,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("acknowledgedReplies")) {
         otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
@@ -1724,7 +1722,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->read();
         }
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("OTmessage")) {
         m_strVersion = xml->getAttributeValue("version");
@@ -1735,7 +1733,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         otInfo << "\n===> Loading XML for Message into memory structures...\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getMarketList")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -1747,7 +1745,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getMarketList")) {
         //      std::cerr << m_xmlUnsigned << std::endl;
@@ -1804,7 +1802,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    << "\n ServerID: " << m_strServerID
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getMarketOffers")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -1822,7 +1820,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n Market ID: " << m_strNymID2
                << "\n Request #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getMarketOffers")) {
         strSuccess = xml->getAttributeValue("success");
@@ -1880,7 +1878,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    << "\n MarketID: " << m_strNymID2
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getMarketRecentTrades")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -1894,7 +1892,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n Market ID: " << m_strNymID2
                << "\n Request #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getMarketRecentTrades")) {
         strSuccess = xml->getAttributeValue("success");
@@ -1952,7 +1950,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    << "\n MarketID: " << m_strNymID2
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getNym_MarketOffers")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -1964,7 +1962,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getNym_MarketOffers")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2019,7 +2017,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    << "\n ServerID: " << m_strServerID
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("checkServerID")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2058,7 +2056,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n\n Public signing key:\n" << m_strNymPublicKey
                << "\nPublic encryption key:\n" << m_strNymID2 << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@checkServerID")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2077,7 +2075,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                   "ServerID: " << m_strServerID
                << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("createUserAccount")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2108,7 +2106,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
                << "\nServerID: " << m_strServerID << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@createUserAccount")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2152,7 +2150,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nNymID:    " << m_strNymID
                << "\nServerID: " << m_strServerID << "\n\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("deleteUserAccount")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2163,7 +2161,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
                << "\nServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@deleteUserAccount")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2193,7 +2191,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nNymID:    " << m_strNymID
                << "\nServerID: " << m_strServerID << "\n\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getRequest")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2204,7 +2202,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
                << "\nServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getRequest")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2231,7 +2229,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nRequest Number:    " << m_strRequestNum
                << "  New Number: " << m_lNewRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("outmailMessage") ||
                strNodeName.Compare("outpaymentsMessage")) {
@@ -2257,7 +2255,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("sendUserMessage")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2282,7 +2280,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@sendUserMessage")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2303,7 +2301,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("sendUserInstrument") ||
                strNodeName.Compare("payDividend")) // not a real message. Used
@@ -2332,7 +2330,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@sendUserInstrument")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2353,7 +2351,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("usageCredits")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2372,7 +2370,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nRequest #: " << m_strRequestNum
                << "\nAdjustment: " << m_lDepth << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@usageCredits")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2398,7 +2396,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID
                << "\nTotal Credits: " << m_lDepth << " \n\n";
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("checkUser")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2412,7 +2410,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@checkUser")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2495,7 +2493,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                       "ServerID: " << m_strServerID
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("issueAssetType")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2521,7 +2519,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nRequest#: " << m_strRequestNum << "\nAsset Type:\n"
                << m_strAssetID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@issueAssetType")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2593,7 +2591,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //    m_ascInReferenceTo.Get(),
         // acctContents.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("queryAssetTypes")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2617,7 +2615,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   "ServerID: " << m_strServerID
                << "\nRequest#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@queryAssetTypes")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2681,7 +2679,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n NymID:    " << m_strNymID
                << "\n ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("createAccount")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2696,7 +2694,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nRequest#: " << m_strRequestNum << "\nAsset Type:\n"
                << m_strAssetID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@createAccount")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2764,7 +2762,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //    m_ascInReferenceTo.Get(),
         // acctContents.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getBoxReceipt")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2804,7 +2802,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                                 : "outbox")
                << "\n\n"; // outbox is 2.);
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getBoxReceipt")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2889,7 +2887,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   "ServerID: " << m_strServerID << "\n\n";
         //    "****New Account****:\n%s\n",
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("deleteAssetAccount")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2905,7 +2903,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID
                << "\n Request#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@deleteAssetAccount")) {
         strSuccess = xml->getAttributeValue("success");
@@ -2955,7 +2953,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //    m_ascInReferenceTo.Get(),
         // acctContents.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("issueBasket")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -2991,7 +2989,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   "ServerID: " << m_strServerID
                << "\nRequest#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@issueBasket")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3038,7 +3036,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getTransactionNum")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3053,7 +3051,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID
                << "\n Request#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getTransactionNum")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3074,7 +3072,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   " ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("notarizeTransactions")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3105,7 +3103,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID
                << "\n Request#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@notarizeTransactions")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3173,7 +3171,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //    m_ascInReferenceTo.Get(),
         // acctContents.Get()
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getInbox")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3187,7 +3185,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAccountID:    " << m_strAcctID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getNymbox")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3199,7 +3197,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nServerID: " << m_strServerID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getInbox")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3243,7 +3241,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getNymbox")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3285,7 +3283,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                   "ServerID: " << m_strServerID
                << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getOutbox")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3299,7 +3297,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAccountID:    " << m_strAcctID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getOutbox")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3343,7 +3341,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getAccount")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3357,7 +3355,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAccountID:    " << m_strAcctID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getAccount")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3400,7 +3398,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getAccountFiles")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3414,7 +3412,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAccountID:    " << m_strAcctID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getAccountFiles")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3459,7 +3457,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getContract")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3473,7 +3471,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAsset Type:    " << m_strAssetID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@getContract")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3516,7 +3514,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("getMint")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3530,7 +3528,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nAsset Type:    " << m_strAssetID
                << "\nRequest #: " << m_strRequestNum << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
 
     // the Payload contains an ascii-armored OTMint object.
@@ -3575,7 +3573,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   "ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("triggerClause")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3613,7 +3611,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                             "Request #: " << m_strRequestNum
                << "\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@triggerClause")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3646,7 +3644,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\nNymID:    " << m_strNymID
                << "   ServerID: " << m_strServerID << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("processInbox")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3677,7 +3675,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID
                << "\n Request#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("processNymbox")) {
         m_strCommand = xml->getNodeName(); // Command
@@ -3706,7 +3704,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID
                << "\n Request#: " << m_strRequestNum << "\n\n";
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@processInbox")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3771,7 +3769,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n ServerID: " << m_strServerID << "\n\n";
         //    "****New Account****:\n%s\n",
 
-        nReturnVal = 1;
+        return 1;
     }
     else if (strNodeName.Compare("@processNymbox")) {
         strSuccess = xml->getAttributeValue("success");
@@ -3835,10 +3833,10 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " ServerID: " << m_strServerID << "\n\n";
         //    "****New Account****:\n%s\n",
 
-        nReturnVal = 1;
+        return 1;
     }
 
-    return nReturnVal;
+    return 0;
 }
 
 // Most contracts do not override this function...
