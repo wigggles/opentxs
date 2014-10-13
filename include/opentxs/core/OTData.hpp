@@ -154,9 +154,8 @@ public:
     EXPORT OTData(const OTASCIIArmor& source);
     EXPORT virtual ~OTData();
 
-    EXPORT virtual void Release();
+    EXPORT void Release();
 
-    EXPORT void Release_Data();
     void SetSize(uint32_t size);
 
     inline const void* GetPointer() const

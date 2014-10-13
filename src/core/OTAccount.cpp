@@ -140,7 +140,7 @@
 #include "OTMessage.hpp"
 #include "OTStorage.hpp"
 #include "util/OTPaths.hpp"
-#include "OTPayload.hpp"
+#include "OTData.hpp"
 #include "OTPseudonym.hpp"
 
 #include "Helpers.hpp"
@@ -565,7 +565,7 @@ bool OTAccount::GenerateNewAccount(const OTPseudonym& server,
                                    int64_t stashTransNum)
 {
     // First we generate a secure random number into a binary object...
-    OTPayload payload;
+    OTData payload;
     // TODO: hardcoding. Plus: is 100 bytes of random a little much here?
     if (!payload.Randomize(100)) {
         otErr << __FUNCTION__ << ": Failed trying to acquire random numbers.\n";

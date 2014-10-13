@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP
 
-#include "../OTPayload.hpp"
+#include "../OTData.hpp"
 
 namespace opentxs
 {
@@ -156,15 +156,15 @@ private:
                                 // probably be at least 2000. (Number of
                                 // iterations used while generating key from
                                 // passphrase.)
-    OTPayload m_dataSalt; // Stores the SALT (which is used with the password
-                          // for generating / retrieving the key from
-                          // m_dataEncryptedKey)
-    OTPayload m_dataIV;   // Stores the IV used internally for encrypting /
-                          // decrypting the actual key (using the derived key)
-                          // from m_dataEncryptedKey.
-    OTPayload m_dataEncryptedKey; // Stores only encrypted version of symmetric
-                                  // key.
-    OTPayload m_dataHashCheck;
+    OTData m_dataSalt; // Stores the SALT (which is used with the password
+                       // for generating / retrieving the key from
+                       // m_dataEncryptedKey)
+    OTData m_dataIV;   // Stores the IV used internally for encrypting /
+                       // decrypting the actual key (using the derived key)
+                       // from m_dataEncryptedKey.
+    OTData m_dataEncryptedKey; // Stores only encrypted version of symmetric
+                               // key.
+    OTData m_dataHashCheck;
 
 public:
     // The highest-level possible interface (used by the API)
@@ -208,8 +208,8 @@ public:
                                const OTString* pstrDisplay = nullptr,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
-    EXPORT bool SerializeTo(OTPayload& theOutput) const;
-    EXPORT bool SerializeFrom(OTPayload& theInput);
+    EXPORT bool SerializeTo(OTData& theOutput) const;
+    EXPORT bool SerializeFrom(OTData& theInput);
 
     EXPORT bool SerializeTo(OTASCIIArmor& ascOutput) const;
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);

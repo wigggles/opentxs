@@ -193,7 +193,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
 
     if (!GetRawKeyFromPassphrase(oldPassphrase, theActualKey)) return false;
 
-    OTPayload dataIV, dataSalt;
+    OTData dataIV, dataSalt;
 
     // NOTE: I can't randomize the IV because then anything that was
     // encrypted with this key before, will fail to decrypt. (Ruining
@@ -246,7 +246,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     //
     // Encrypt theActualKey using pNewDerivedKey, which is clear/raw already.
     // (Both are OTPasswords.)
-    // Put the result into the OTPayload m_dataEncryptedKey.
+    // Put the result into the OTData m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OTCrypto::It()->Encrypt(
         *pNewDerivedKey, // pNewDerivedKey is a symmetric key, in clear form.
@@ -346,7 +346,7 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     //
     // Encrypt theActualKey using pDerivedKey, which is clear/raw already. (Both
     // are OTPasswords.)
-    // Put the result into the OTPayload m_dataEncryptedKey.
+    // Put the result into the OTData m_dataEncryptedKey.
     //
     const bool bEncryptedKey = OTCrypto::It()->Encrypt(
         *pDerivedKey, // pDerivedKey is a symmetric key, in clear form. Used for
@@ -473,7 +473,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
     //  OT_ASSERT(thePassphrase.isPassword());
     OTPassword* pDerivedKey = nullptr;
 
-    OTPayload tmpDataHashCheck = m_dataHashCheck;
+    OTData tmpDataHashCheck = m_dataHashCheck;
 
     if (bCheckForHashCheck) {
         if (!HasHashCheck()) {
@@ -600,12 +600,12 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
         // form of the symmetric key.
         //
         static_cast<const char*>(
-            m_dataEncryptedKey.GetPayloadPointer()), // The Ciphertext.
+            m_dataEncryptedKey.GetPointer()), // The Ciphertext.
         m_dataEncryptedKey.GetSize(),
         m_dataIV, // Created when *this symmetric key was generated. Both are
                   // already stored.
         theRawKeyOutput); // OUTPUT. (Recovered plaintext of symmetric key.) You
-                          // can pass OTPassword& OR OTPayload& here (either
+                          // can pass OTPassword& OR OTData& here (either
                           // will work.)
 
     otInfo << szFunc
@@ -914,7 +914,7 @@ bool OTSymmetricKey::SerializeFrom(const OTString& strInput, bool bEscaped)
 
 bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
 {
-    OTPayload theOutput;
+    OTData theOutput;
 
     if (SerializeTo(theOutput)) {
         ascOutput.SetData(theOutput);
@@ -926,7 +926,7 @@ bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
 
 bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
-    OTPayload theInput;
+    OTData theInput;
 
     if (ascInput.Exists() && ascInput.GetData(theInput)) {
         return SerializeFrom(theInput);
@@ -934,7 +934,7 @@ bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
     return false;
 }
 
-bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
+bool OTSymmetricKey::SerializeTo(OTData& theOutput) const
 {
 
     uint16_t from_bool_is_generated = (m_bIsGenerated ? 1 : 0);
@@ -980,27 +980,27 @@ bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
     theOutput.Concatenate(reinterpret_cast<void*>(&n_salt_size),
                           static_cast<uint32_t>(sizeof(n_salt_size)));
 
-    OT_ASSERT(nullptr != m_dataSalt.GetPayloadPointer());
-    theOutput.Concatenate(m_dataSalt.GetPayloadPointer(), m_dataSalt.GetSize());
+    OT_ASSERT(nullptr != m_dataSalt.GetPointer());
+    theOutput.Concatenate(m_dataSalt.GetPointer(), m_dataSalt.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_iv_size),
                           static_cast<uint32_t>(sizeof(n_iv_size)));
 
-    OT_ASSERT(nullptr != m_dataIV.GetPayloadPointer());
-    theOutput.Concatenate(m_dataIV.GetPayloadPointer(), m_dataIV.GetSize());
+    OT_ASSERT(nullptr != m_dataIV.GetPointer());
+    theOutput.Concatenate(m_dataIV.GetPointer(), m_dataIV.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_enc_key_size),
                           static_cast<uint32_t>(sizeof(n_enc_key_size)));
 
-    OT_ASSERT(nullptr != m_dataEncryptedKey.GetPayloadPointer());
-    theOutput.Concatenate(m_dataEncryptedKey.GetPayloadPointer(),
+    OT_ASSERT(nullptr != m_dataEncryptedKey.GetPointer());
+    theOutput.Concatenate(m_dataEncryptedKey.GetPointer(),
                           m_dataEncryptedKey.GetSize());
 
     theOutput.Concatenate(reinterpret_cast<void*>(&n_hash_check_size),
                           static_cast<uint32_t>(sizeof(n_hash_check_size)));
 
-    OT_ASSERT(nullptr != m_dataHashCheck.GetPayloadPointer());
-    theOutput.Concatenate(m_dataHashCheck.GetPayloadPointer(),
+    OT_ASSERT(nullptr != m_dataHashCheck.GetPointer());
+    theOutput.Concatenate(m_dataHashCheck.GetPointer(),
                           m_dataHashCheck.GetSize());
 
     return true;
@@ -1012,7 +1012,7 @@ bool OTSymmetricKey::SerializeTo(OTPayload& theOutput) const
 // position, and let the CALLER reset first, if that's his
 // intention.
 //
-bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
+bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 {
     const char* szFunc = "OTSymmetricKey::SerializeFrom";
 
@@ -1109,10 +1109,10 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Salt itself.
     //
-    m_dataSalt.SetPayloadSize(lSaltSize);
+    m_dataSalt.SetSize(lSaltSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataSalt.GetPayloadPointer())),
+                                           m_dataSalt.GetPointer())),
                                        static_cast<uint32_t>(lSaltSize)))) {
         otErr << szFunc << ": Error reading salt for symmetric key.\n";
         return false;
@@ -1144,10 +1144,10 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the IV itself.
     //
-    m_dataIV.SetPayloadSize(lIVSize);
+    m_dataIV.SetSize(lIVSize);
 
     if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                           m_dataIV.GetPayloadPointer())),
+                                           m_dataIV.GetPointer())),
                                        static_cast<uint32_t>(lIVSize)))) {
         otErr << szFunc << ": Error reading IV for symmetric key.\n";
         return false;
@@ -1181,12 +1181,11 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Encrypted Key itself.
     //
-    m_dataEncryptedKey.SetPayloadSize(lEncKeySize);
+    m_dataEncryptedKey.SetSize(lEncKeySize);
 
-    if (0 ==
-        (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                      m_dataEncryptedKey.GetPayloadPointer())),
-                                  static_cast<uint32_t>(lEncKeySize)))) {
+    if (0 == (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
+                                           m_dataEncryptedKey.GetPointer())),
+                                       static_cast<uint32_t>(lEncKeySize)))) {
         otErr << szFunc << ": Error reading encrypted symmetric key.\n";
         return false;
     }
@@ -1221,11 +1220,11 @@ bool OTSymmetricKey::SerializeFrom(OTPayload& theInput)
 
     // Then read the Hashcheck itself.
     //
-    m_dataHashCheck.SetPayloadSize(lHashCheckSize);
+    m_dataHashCheck.SetSize(lHashCheckSize);
 
     if (0 ==
         (nRead = theInput.OTfread(static_cast<uint8_t*>(const_cast<void*>(
-                                      m_dataHashCheck.GetPayloadPointer())),
+                                      m_dataHashCheck.GetPointer())),
                                   static_cast<uint32_t>(lHashCheckSize)))) {
         otErr << szFunc << ": Error reading hash check data.\n";
         return false;

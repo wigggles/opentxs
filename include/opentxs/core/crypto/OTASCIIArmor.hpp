@@ -143,7 +143,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTData;
 class OTEnvelope;
-class OTPayload;
+class OTData;
 
 namespace OTDB
 {
@@ -175,7 +175,6 @@ public:
     EXPORT OTASCIIArmor();
     EXPORT OTASCIIArmor(const char* szValue);
     EXPORT OTASCIIArmor(const OTData& theValue);
-    EXPORT OTASCIIArmor(const OTPayload& theValue);
     EXPORT OTASCIIArmor(const OTString& strValue);
     EXPORT OTASCIIArmor(const OTASCIIArmor& strValue);
     EXPORT OTASCIIArmor(const OTEnvelope& theEnvelope);

@@ -589,7 +589,7 @@ OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(OTPassword& thePassword)
 {
 }
 
-OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(OTPayload& thePayload)
+OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(OTData& thePayload)
     : m_pPassword(nullptr)
     , m_pPayload(&thePayload)
 {

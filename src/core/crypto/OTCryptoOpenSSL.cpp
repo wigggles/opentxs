@@ -778,19 +778,18 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
 // Todo: return a smart pointer here.
 //
 OTPassword* OTCrypto_OpenSSL::DeriveKey(
-    const OTPassword& userPassword, const OTPayload& dataSalt,
-    uint32_t uIterations,
-    const OTPayload& dataCheckHash /*= OTPayload()*/) const
+    const OTPassword& userPassword, const OTData& dataSalt,
+    uint32_t uIterations, const OTData& dataCheckHash /*= OTData()*/) const
 {
-    OTPayload tempPayload = dataCheckHash;
+    OTData tempPayload = dataCheckHash;
     return OTCrypto_OpenSSL::DeriveNewKey(userPassword, dataSalt, uIterations,
                                           tempPayload);
 }
 
 OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
-                                           const OTPayload& dataSalt,
+                                           const OTData& dataSalt,
                                            uint32_t uIterations,
-                                           OTPayload& dataCheckHash) const
+                                           OTData& dataCheckHash) const
 {
     //  OT_ASSERT(userPassword.isPassword());
     OT_ASSERT(!dataSalt.IsEmpty());
@@ -816,10 +815,10 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
         static_cast<const int32_t>(
             userPassword.isPassword()
                 ? userPassword.getPasswordSize()
-                : userPassword.getMemorySize()), // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPayloadPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()), // Salt Length
-        static_cast<const int32_t>(uIterations),        // Number Of Iterations
+                : userPassword.getMemorySize()),            // Password Length
+        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
+        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
+        static_cast<const int32_t>(uIterations), // Number Of Iterations
         static_cast<const int32_t>(
             pDerivedKey->getMemorySize()), // Output Length
         static_cast<uint8_t*>(
@@ -829,8 +828,8 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     // For The HashCheck
     bool bHaveCheckHash = !dataCheckHash.IsEmpty();
 
-    OTPayload tmpHashCheck;
-    tmpHashCheck.SetPayloadSize(OTCryptoConfig::SymmetricKeySize());
+    OTData tmpHashCheck;
+    tmpHashCheck.SetSize(OTCryptoConfig::SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
     // Compare that with the supplied one, (if there is one).
@@ -839,23 +838,21 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>(pDerivedKey->getMemory()), // Derived Key
         static_cast<const int32_t>(
-            pDerivedKey->getMemorySize()), // Password Length
-        static_cast<const uint8_t*>(dataSalt.GetPayloadPointer()), // Salt Data
-        static_cast<const int32_t>(dataSalt.GetSize()), // Salt Length
-        static_cast<const int32_t>(uIterations),        // Number Of Iterations
+            pDerivedKey->getMemorySize()),                  // Password Length
+        static_cast<const uint8_t*>(dataSalt.GetPointer()), // Salt Data
+        static_cast<const int32_t>(dataSalt.GetSize()),     // Salt Length
+        static_cast<const int32_t>(uIterations), // Number Of Iterations
         static_cast<const int32_t>(tmpHashCheck.GetSize()), // Output Length
         const_cast<uint8_t*>(static_cast<const uint8_t*>(
-            tmpHashCheck.GetPayloadPointer()))) // Output Key (not const!)
+            tmpHashCheck.GetPointer()))) // Output Key (not const!)
         ;
 
     if (bHaveCheckHash) {
         OTString strDataCheck, strTestCheck;
-        strDataCheck.Set(
-            static_cast<const char*>(dataCheckHash.GetPayloadPointer()),
-            dataCheckHash.GetSize());
-        strTestCheck.Set(
-            static_cast<const char*>(tmpHashCheck.GetPayloadPointer()),
-            tmpHashCheck.GetSize());
+        strDataCheck.Set(static_cast<const char*>(dataCheckHash.GetPointer()),
+                         dataCheckHash.GetSize());
+        strTestCheck.Set(static_cast<const char*>(tmpHashCheck.GetPointer()),
+                         tmpHashCheck.GetSize());
 
         if (!strDataCheck.Compare(strTestCheck)) {
             dataCheckHash.reset();
@@ -1544,10 +1541,10 @@ void OTCrypto_OpenSSL::Cleanup_Override() const
 bool OTCrypto_OpenSSL::Encrypt(
     const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
     const char* szInput,                  // This is the Plaintext.
-    const uint32_t lInputLength, const OTPayload& theIV, // (We assume this IV
-                                                         // is already generated
-                                                         // and passed in.)
-    OTPayload& theEncryptedOutput) const // OUTPUT. (Ciphertext.)
+    const uint32_t lInputLength, const OTData& theIV, // (We assume this IV
+                                                      // is already generated
+                                                      // and passed in.)
+    OTData& theEncryptedOutput) const                 // OUTPUT. (Ciphertext.)
 {
     const char* szFunc = "OTCrypto_OpenSSL::Encrypt";
 
@@ -1607,8 +1604,7 @@ bool OTCrypto_OpenSSL::Encrypt(
     if (!EVP_EncryptInit(
             &ctx, cipher_type,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(
-                const_cast<void*>(theIV.GetPayloadPointer())))) {
+            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
         otErr << szFunc << ": EVP_EncryptInit: failed.\n";
         return false;
     }
@@ -1667,13 +1663,13 @@ bool OTCrypto_OpenSSL::Encrypt(
 bool OTCrypto_OpenSSL::Decrypt(
     const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
     const char* szInput,                  // This is the Ciphertext.
-    const uint32_t lInputLength, const OTPayload& theIV, // (We assume this IV
-                                                         // is already generated
-                                                         // and passed in.)
-    OTCrypto_Decrypt_Output theDecryptedOutput) const    // OUTPUT. (Recovered
-                                                         // plaintext.) You can
-                                                         // pass OTPassword& OR
-// OTPayload& here (either
+    const uint32_t lInputLength, const OTData& theIV, // (We assume this IV
+                                                      // is already generated
+                                                      // and passed in.)
+    OTCrypto_Decrypt_Output theDecryptedOutput) const // OUTPUT. (Recovered
+                                                      // plaintext.) You can
+                                                      // pass OTPassword& OR
+// OTData& here (either
 // will work.)
 {
     const char* szFunc = "OTCrypto_OpenSSL::Decrypt";
@@ -1732,8 +1728,7 @@ bool OTCrypto_OpenSSL::Decrypt(
     if (!EVP_DecryptInit(
             &ctx, cipher_type,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(
-                const_cast<void*>(theIV.GetPayloadPointer())))) {
+            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
         otErr << szFunc << ": EVP_DecryptInit: failed.\n";
         return false;
     }
@@ -2547,7 +2542,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     // IF we find the one we are looking for, then we set it onto this variable,
     // theRawEncryptedKey, so we have it available below this loop.
     //
-    OTPayload theRawEncryptedKey;
+    OTData theRawEncryptedKey;
     bool bFoundKeyAlready =
         false; // If we find it during the loop below, we'll set this to true.
 
@@ -2822,19 +2817,6 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
     //
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
-    //
-    //  OTPayload
-    //  void   SetPayloadSize   (uint32_t lNewSize);
-    //    const
-    //  void * GetPayloadPointer() const;
-
-    //  OTData
-    //  inline
-    //  uint32_t     GetSize    () const { return m_lSize; }
-    //    bool         IsEmpty    () const;
-    //  virtual void Release    ();
-    //    void         Assign     (const void* pNewData, uint32_t lNewSize);
-    //    void         Concatenate(const void* pNewData, uint32_t lNewSize);
 
     // int32_t EVP_OpenInit(
     //          EVP_CIPHER_CTX *ctx,
@@ -2845,11 +2827,10 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     //          EVP_PKEY *priv);
 
     //  if (!EVP_OpenInit(&ctx, cipher_type, ek, eklen, iv, private_key))
-    if (!EVP_OpenInit(
-            &ctx, cipher_type,
-            static_cast<const uint8_t*>(theRawEncryptedKey.GetPayloadPointer()),
-            static_cast<int32_t>(theRawEncryptedKey.GetSize()),
-            static_cast<const uint8_t*>(iv), private_key)) {
+    if (!EVP_OpenInit(&ctx, cipher_type, static_cast<const uint8_t*>(
+                                             theRawEncryptedKey.GetPointer()),
+                      static_cast<int32_t>(theRawEncryptedKey.GetSize()),
+                      static_cast<const uint8_t*>(iv), private_key)) {
 
         // EVP_OpenInit() initializes a cipher context ctx for decryption with
         // cipher type. It decrypts the encrypted
@@ -3354,7 +3335,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     // the signature that was passed in.
     //
 
-    OTPayload binSignature;
+    OTData binSignature;
 
     // This will cause binSignature to contain the base64 decoded binary of the
     // signature that we're verifying. Unless the call fails of course...
@@ -3401,7 +3382,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     int32_t status = RSA_public_decrypt(
         nSignatureSize, // length of signature, aka RSA_size(rsa)
         static_cast<const uint8_t*>(
-            binSignature.GetPayloadPointer()), // location of signature
+            binSignature.GetPointer()), // location of signature
         &vDecrypted.at(0), // Output--must be large enough to hold the md (which
                            // is smaller than RSA_size(rsa) - 11)
         pRsaKey,           // signer's public key
@@ -4103,7 +4084,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
         return false;
     }
 
-    OTPayload binSignature;
+    OTData binSignature;
 
     // now binSignature contains the base64 decoded binary of the signature.
     // Unless the call failed of course...
@@ -4138,7 +4119,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     // 0 for failure and -1 if some other error occurred.
     //
     int32_t nErr = EVP_VerifyFinal(
-        &ctx, static_cast<const uint8_t*>(binSignature.GetPayloadPointer()),
+        &ctx, static_cast<const uint8_t*>(binSignature.GetPointer()),
         static_cast<uint32_t>(binSignature.GetSize()),
         const_cast<EVP_PKEY*>(pkey));
 

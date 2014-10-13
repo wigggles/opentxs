@@ -156,7 +156,7 @@
 #include "../core/OTLog.hpp"
 #include "../core/OTMessage.hpp"
 #include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/OTPayload.hpp"
+#include "../core/OTData.hpp"
 #include "../core/OTPseudonym.hpp"
 #include "../core/OTServerContract.hpp"
 #include "../core/OTStorage.hpp"
@@ -8391,7 +8391,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8410,9 +8410,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::MarketList> pMarketList(
             dynamic_cast<OTDB::MarketList*>(
@@ -8470,7 +8469,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8489,9 +8488,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::OfferListMarket> pOfferList(
             dynamic_cast<OTDB::OfferListMarket*>(
@@ -8552,7 +8550,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8571,9 +8569,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::TradeListMarket> pTradeList(
             dynamic_cast<OTDB::TradeListMarket*>(
@@ -8629,7 +8626,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
             return true;
         }
 
-        OTPayload thePayload;
+        OTData thePayload;
 
         if ((theReply.m_ascPayload.GetLength() <= 2) ||
             (false == theReply.m_ascPayload.GetData(thePayload))) {
@@ -8648,9 +8645,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
         OT_ASSERT(nullptr != pBuffer);
 
-        pBuffer->SetData(
-            static_cast<const uint8_t*>(thePayload.GetPayloadPointer()),
-            thePayload.GetSize());
+        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                         thePayload.GetSize());
 
         std::unique_ptr<OTDB::OfferListNym> pOfferList(
             dynamic_cast<OTDB::OfferListNym*>(

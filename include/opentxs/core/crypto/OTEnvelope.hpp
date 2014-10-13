@@ -155,7 +155,7 @@ typedef std::set<OTPseudonym*> setOfNyms;
 
 class OTEnvelope
 {
-    friend class OTPayload;
+    friend class OTData;
 
     OTData m_dataContents; // Stores only encrypted contents.
 

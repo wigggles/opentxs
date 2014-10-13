@@ -48,7 +48,6 @@ set(cxx-sources
   crypto/OTNymOrSymmetricKey.cpp
   crypto/OTPassword.cpp
   crypto/OTPasswordData.cpp
-  OTPayload.cpp
   OTPseudonym.cpp
   OTServerContract.cpp
   OTSettings.cpp
