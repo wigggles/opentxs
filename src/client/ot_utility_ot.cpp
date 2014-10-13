@@ -141,11 +141,6 @@ namespace opentxs
 
 using namespace std;
 
-OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr)
-{
-    return VerifyExists(theObjectNameAsStr, true);
-}
-
 OT_UTILITY_OT bool VerifyExists(const string& theObjectNameAsStr,
                                 bool bDisplayError)
 {
