@@ -175,14 +175,6 @@ class OTString;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif // OT_KEY_TIMER
 
-// This is the only part of the API that actually accepts objects as parameters,
-// since the above objects have SWIG C++ wrappers.
-//
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller); // Caller must
-                                                              // have Callback
-                                                              // attached
-                                                              // already.
-
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
 class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
