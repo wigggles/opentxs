@@ -427,8 +427,8 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
 
     if (m_bIsBlocking) {
         try {
-            bSuccessSending =
-                m_pzmq->socket_zmq->send(zmq_message); // Blocking.
+            // Blocking.
+            bSuccessSending = m_pzmq->socket_zmq->send(zmq_message);
         }
         catch (std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -438,21 +438,17 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
     }
     else // not blocking
     {
-        int32_t nSendTries = m_nLatencySendNoTries;
-        int64_t lDoubling = lLatencySendMilliSec;
-        bool bKeepTrying = true;
+        int32_t sendTries = m_nLatencySendNoTries;
+        int64_t doubling = lLatencySendMilliSec;
 
-        while (bKeepTrying && (nSendTries > 0)) {
+        while (sendTries > 0) {
             zmq::pollitem_t items[] = {
                 {(*m_pzmq->socket_zmq), 0, ZMQ_POLLOUT, 0}};
 
             int nPoll = 0;
             try {
-                nPoll =
-                    zmq::poll(&items[0], 1,
-                              static_cast<long>(lDoubling)); // ZMQ_POLLOUT, 1
-                                                             // item, timeout
-                                                             // (milliseconds)
+                // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
+                nPoll = zmq::poll(&items[0], 1, static_cast<long>(doubling));
             }
             catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -460,7 +456,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
                 OT_FAIL;
             }
 
-            lDoubling *= 2;
+            doubling *= 2;
 
             if (items[0].revents & ZMQ_POLLOUT) {
                 try {
@@ -476,20 +472,21 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
 
                 OTLog::SleepMilliseconds(1);
 
-                if (!bSuccessSending) {
-                    if (!HandleSendingError()) bKeepTrying = false;
+                if (bSuccessSending || !HandleSendingError()) {
+                    // Success, or the error is such that we do not want to
+                    // retry.
+                    break;
                 }
-                else
-                    break;            // (Success -- we're done in this loop.)
             }
-            else if ((-1) == nPoll) // error.
+            else if (nPoll == -1) // error.
             {
-                if (!HandlePollingError()) bKeepTrying = false;
+                if (!HandlePollingError()) break;
             }
 
-            --nSendTries;
+            --sendTries;
         }
     }
+
     /*
     Normally, we try to send...
     If the send fails, we wait X ms and then try again (Y times).
@@ -550,11 +547,10 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
 
     // If failure receiving, re-tries 2 times, with 4000 ms max delay between
     // each (Doubling every time.)
-    //
     if (m_bIsBlocking) {
         try {
-            bSuccessReceiving =
-                m_pzmq->socket_zmq->recv(&zmq_message); // Blocking.
+            // Blocking.
+            bSuccessReceiving = m_pzmq->socket_zmq->recv(&zmq_message);
         }
         catch (std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -564,16 +560,16 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
     }
     else // not blocking
     {
-        int64_t lDoubling = lLatencyRecvMilliSec;
-        int32_t nReceiveTries = m_nLatencyReceiveNoTries;
-        bool expect_reply = true;
-        while (expect_reply) {
+        int64_t doubling = lLatencyRecvMilliSec;
+        int32_t receiveTries = m_nLatencyReceiveNoTries;
+        while (receiveTries > 0) {
             //  Poll socket for a reply, with timeout
             zmq::pollitem_t items[] = {{*m_pzmq->socket_zmq, 0, ZMQ_POLLIN, 0}};
 
             int nPoll = 0;
             try {
-                nPoll = zmq::poll(&items[0], 1, static_cast<long>(lDoubling));
+                // ZMQ_POLLIN, 1 item, timeout (milliseconds)
+                nPoll = zmq::poll(&items[0], 1, static_cast<long>(doubling));
             }
             catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -581,7 +577,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
                 OT_FAIL;
             }
 
-            lDoubling *= 2;
+            doubling *= 2;
 
             //  If we got a reply, process it
             if (items[0].revents & ZMQ_POLLIN) {
@@ -595,25 +591,21 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
                                   e.what());
                     OT_FAIL;
                 }
+
                 OTLog::SleepMilliseconds(1);
 
-                if (!bSuccessReceiving) {
-                    if (!HandleReceivingError()) expect_reply = false;
+                if (bSuccessReceiving || !HandleReceivingError()) {
+                    // Success, or the error is such that we do not want to
+                    // retry.
+                    break;
                 }
-                else
-                    break; // (Success -- we're done in this loop.)
             }
-            else if (nReceiveTries == 0) {
-                // OTLog::Error("OTSocket::Receive: no message.\n");
-                expect_reply = false;
-                break;
-            }
-            else if ((-1) == nPoll) // error.
+            else if (nPoll == -1) // error.
             {
-                if (!HandlePollingError()) expect_reply = false;
+                if (!HandlePollingError()) break;
             }
 
-            --nReceiveTries;
+            --receiveTries;
         }
     }
 
@@ -662,7 +654,7 @@ bool OTSocket_ZMQ_4::HandlePollingError()
 
 bool OTSocket_ZMQ_4::HandleSendingError()
 {
-    bool bRetVal = false;
+    bool keepTrying = false;
 
     switch (errno) {
     // Non-blocking mode was requested and the message cannot be sent at the
@@ -671,7 +663,7 @@ bool OTSocket_ZMQ_4::HandleSendingError()
         OTLog::vOutput(0, "OTSocket::HandleSendingError: Non-blocking mode was "
                           "requested and the message cannot be sent at the "
                           "moment. Re-trying...\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The zmq_send() operation is not supported by this socket type.
     case ENOTSUP:
@@ -690,7 +682,7 @@ bool OTSocket_ZMQ_4::HandleSendingError()
                           "appropriate state. Deleting socket and "
                           "re-trying...\n");
         RemakeSocket();
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The ØMQ context associated with the specified socket was terminated.
     case ETERM:
@@ -699,14 +691,14 @@ bool OTSocket_ZMQ_4::HandleSendingError()
                      "re-creating the context and the socket, and trying "
                      "again.)\n");
         RemakeSocket(true);
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         OTLog::Error("OTSocket::HandleSendingError: The provided socket was "
                      "invalid. (Deleting socket and re-trying...)\n");
         RemakeSocket();
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The operation was interrupted by delivery of a signal before the message
     // was sent. Re-trying...
@@ -714,7 +706,7 @@ bool OTSocket_ZMQ_4::HandleSendingError()
         OTLog::Error("OTSocket::HandleSendingError: The operation was "
                      "interrupted by delivery of a signal before the message "
                      "was sent. (Re-trying...)\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     // Invalid message.
     case EFAULT:
@@ -724,15 +716,16 @@ bool OTSocket_ZMQ_4::HandleSendingError()
     default:
         OTLog::Error(
             "OTSocket::HandleSendingError: Default case. Re-trying...\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     }
-    return bRetVal;
+    return keepTrying;
 }
 
 bool OTSocket_ZMQ_4::HandleReceivingError()
 {
-    bool bRetVal = false;
+
+    bool keepTrying = false;
 
     switch (errno) {
     // Non-blocking mode was requested and no messages are available at the
@@ -741,7 +734,7 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         OTLog::vOutput(0, "OTSocket::HandleReceivingError: Non-blocking mode "
                           "was requested and no messages are available at the "
                           "moment. Re-trying...\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The zmq_recv() operation is not supported by this socket type.
     case ENOTSUP:
@@ -762,7 +755,7 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = Send(ascTemp);
+            keepTrying = Send(ascTemp);
         }
         break;
     // The ØMQ context associated with the specified socket was terminated.
@@ -773,7 +766,7 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         RemakeSocket(true);
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = Send(ascTemp);
+            keepTrying = Send(ascTemp);
         }
         break;
     // The provided socket was invalid.
@@ -783,7 +776,7 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            bRetVal = Send(ascTemp);
+            keepTrying = Send(ascTemp);
         }
         break;
     // The operation was interrupted by delivery of a signal before a message
@@ -792,7 +785,7 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
         OTLog::Error("OTSocket::HandleSendingError: The operation was "
                      "interrupted by delivery of a signal before the message "
                      "was sent. (Re-trying...)\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     // The message passed to the function was invalid.
     case EFAULT:
@@ -802,10 +795,10 @@ bool OTSocket_ZMQ_4::HandleReceivingError()
     default:
         OTLog::Error(
             "OTSocket::HandleReceivingError: Default case. Re-trying...\n");
-        bRetVal = true;
+        keepTrying = true;
         break;
     }
-    return bRetVal;
+    return keepTrying;
 }
 
 } // namespace opentxs
