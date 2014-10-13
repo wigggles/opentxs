@@ -1693,15 +1693,6 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //      return nReturnVal;
 
     const OTString strNodeName(xml->getNodeName());
-
-    // Many blocks below use this string, and when they
-    // declared it individually,
-    // our stack frame got too big. So I'm moving it here, so they can all use
-    // it, instead of declaring
-    // so many different copies of it (nearly one for each block.)
-    // Same with these:
-    const char* pElementExpected;
-
     OTString strDepth;
     OTString strTransactionNum;
 
@@ -2012,7 +2003,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        pElementExpected = "publicAuthentKey";
+        const char* pElementExpected = "publicAuthentKey";
         OTASCIIArmor ascTextExpected;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2067,7 +2058,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        pElementExpected = "credentialList";
+        const char* pElementExpected = "credentialList";
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, m_ascPayload,
                                                     pElementExpected)) {
@@ -2101,7 +2092,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
 
         if (m_bSuccess) {
-            pElementExpected = "nymfile";
+            const char* pElementExpected = "nymfile";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2114,7 +2105,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             }
         }
 
-        pElementExpected = "inReferenceTo";
+        const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2151,7 +2142,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        pElementExpected = "inReferenceTo";
+        const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2211,7 +2202,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        pElementExpected = "messagePayload";
+        const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2236,7 +2227,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        pElementExpected = "messagePayload";
+        const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2282,7 +2273,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        pElementExpected = "messagePayload";
+        const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2458,7 +2449,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strAssetID = xml->getAttributeValue("assetType");
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        pElementExpected = "assetContract";
+        const char* pElementExpected = "assetContract";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2493,7 +2484,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2507,7 +2498,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (m_bSuccess) {
-            pElementExpected = "issuerAccount";
+            const char* pElementExpected = "issuerAccount";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2551,7 +2542,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strServerID = xml->getAttributeValue("serverID");
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        pElementExpected = "stringMap";
+        const char* pElementExpected = "stringMap";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2583,7 +2574,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2597,7 +2588,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (m_bSuccess) {
-            pElementExpected = "stringMap";
+            const char* pElementExpected = "stringMap";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2659,7 +2650,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2673,7 +2664,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (m_bSuccess) {
-            pElementExpected = "newAccount";
+            const char* pElementExpected = "newAccount";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2781,7 +2772,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2795,7 +2786,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         if (m_bSuccess) {
-            pElementExpected = "boxReceipt";
+            const char* pElementExpected = "boxReceipt";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2858,7 +2849,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2898,7 +2889,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
-            pElementExpected = "currencyBasket";
+            const char* pElementExpected = "currencyBasket";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2938,7 +2929,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strAcctID = xml->getAttributeValue("accountID");
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3011,7 +3002,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
-            pElementExpected = "accountLedger";
+            const char* pElementExpected = "accountLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3047,7 +3038,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3061,7 +3052,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         {
-            pElementExpected = "responseLedger";
+            const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3485,7 +3476,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_lTransactionNum = atol(strTransactionNum.Get());
 
         if (strHasParam.Compare("true")) {
-            pElementExpected = "parameter";
+            const char* pElementExpected = "parameter";
             OTASCIIArmor ascTextExpected;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3547,7 +3538,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
-            pElementExpected = "processLedger";
+            const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3577,7 +3568,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
-            pElementExpected = "processLedger";
+            const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3612,7 +3603,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3626,7 +3617,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         {
-            pElementExpected = "responseLedger";
+            const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3672,7 +3663,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
-            pElementExpected = "inReferenceTo";
+            const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3686,7 +3677,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         {
-            pElementExpected = "responseLedger";
+            const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m_ascPayload;
 
             if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
