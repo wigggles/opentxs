@@ -3398,9 +3398,4 @@ OTScriptable::~OTScriptable()
     Release_Scriptable();
 }
 
-bool OTScriptable::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

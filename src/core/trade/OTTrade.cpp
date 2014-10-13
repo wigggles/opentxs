@@ -1406,9 +1406,4 @@ void OTTrade::InitTrade()
                                 // as well, not just stop orders.
 }
 
-bool OTTrade::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

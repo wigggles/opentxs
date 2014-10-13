@@ -509,9 +509,4 @@ void Basket::Release()
     OTContract::Release();
 }
 
-bool Basket::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

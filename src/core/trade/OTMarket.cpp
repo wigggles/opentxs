@@ -2827,9 +2827,4 @@ void OTMarket::Release()
     InitMarket();
 }
 
-bool OTMarket::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

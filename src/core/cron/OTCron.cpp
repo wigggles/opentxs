@@ -1221,9 +1221,4 @@ void OTCron::Release_Cron()
     }
 }
 
-bool OTCron::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

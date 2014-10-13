@@ -966,9 +966,4 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     }
 }
 
-bool Mint::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

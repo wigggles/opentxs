@@ -218,11 +218,6 @@ void OTInstrument::Release()
     //    InitInstrument(); // unnecessary.
 }
 
-bool OTInstrument::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {

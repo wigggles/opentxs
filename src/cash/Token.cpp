@@ -335,15 +335,6 @@ void Token::ReleasePrototokens()
     m_nTokenCount = 0;
 }
 
-// TODO: save the private request tokens to the wallet here...
-bool Token::SaveContractWallet(std::ofstream&) const
-{
-    // mapOfPrototokens    m_mapPrivate;    // The elements are accessed [0..N].
-    // mapPublic[2] corresponds to map_Private[2], etc.
-
-    return true;
-}
-
 // static -- class factory.
 //
 Token* Token::LowLevelInstantiate(const OTString& strFirstLine,

@@ -146,8 +146,6 @@ class OTPseudonym;
 class OTMessage : public OTContract
 {
 protected:
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
-    //    virtual bool SaveContractWallet(FILE* fl);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
     virtual void UpdateContents();

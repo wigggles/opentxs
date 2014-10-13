@@ -147,7 +147,6 @@ public:
     EXPORT virtual ~OTInstrument();
 
     EXPORT virtual void Release();
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     void Release_Instrument();
     EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is

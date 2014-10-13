@@ -219,7 +219,6 @@ public:
     } // "USD""     (for example)
 
     EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
-    EXPORT virtual bool SaveContractWallet(std::ofstream& ofs) const;
     EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
 
 protected:

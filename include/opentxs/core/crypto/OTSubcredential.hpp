@@ -375,7 +375,6 @@ public:
     void Release_Subcredential();
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    virtual bool SaveContractWallet(std::ofstream&) const;
 };
 
 } // namespace opentxs

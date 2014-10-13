@@ -558,8 +558,6 @@ public:
     // pubkey from inside the contract.
     virtual bool VerifyAccount(const OTPseudonym& theNym);
 
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
-
     void InitTransaction();
 
     EXPORT bool IsCancelled()

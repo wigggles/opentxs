@@ -214,7 +214,6 @@ public:
     EXPORT virtual ~Basket();
 
     virtual void UpdateContents();
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 

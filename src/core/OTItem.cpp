@@ -2394,9 +2394,4 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
     m_xmlUnsigned.Concatenate("</item>\n");
 }
 
-bool OTItem::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

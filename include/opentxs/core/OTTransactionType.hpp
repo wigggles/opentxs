@@ -938,9 +938,6 @@ public:
 
     EXPORT void GetReferenceString(OTString& theStr) const;
     EXPORT void SetReferenceString(const OTString& theStr);
-
-    //    virtual bool SaveContractWallet(FILE* fl);
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

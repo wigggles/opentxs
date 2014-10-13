@@ -480,18 +480,6 @@ bool OTAssetContract::SaveContractWallet(OTString& strContents) const
     return true;
 }
 
-bool OTAssetContract::SaveContractWallet(std::ofstream& ofs) const
-{
-    OTString strOutput;
-
-    if (SaveContractWallet(strOutput)) {
-        ofs << strOutput;
-        return true;
-    }
-
-    return false;
-}
-
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.

@@ -453,7 +453,6 @@ public:
     EXPORT virtual bool SaveContents(std::ofstream& ofs) const;
 
     // Saves the entire contract to a file that's already open (like a wallet).
-    virtual bool SaveContractWallet(std::ofstream& ofs) const = 0;
     EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
 
     EXPORT virtual bool DisplayStatistics(OTString& strContents) const;

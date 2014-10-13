@@ -381,9 +381,4 @@ void OTSignedFile::Release()
     m_strContractType.Set("FILE");
 }
 
-bool OTSignedFile::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 } // namespace opentxs

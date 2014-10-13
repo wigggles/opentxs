@@ -320,8 +320,6 @@ public:
     EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
                                     OTString& theCleartextToken,
                                     int64_t lDenomination) = 0;
-
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

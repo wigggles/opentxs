@@ -202,7 +202,6 @@ public:
     virtual void Release();
     void Release_SignedFile();
     virtual void UpdateContents();
-    virtual bool SaveContractWallet(std::ofstream& ofs) const;
 };
 
 } // namespace opentxs

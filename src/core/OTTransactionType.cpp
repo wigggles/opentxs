@@ -388,11 +388,6 @@ void OTTransactionType::SetReferenceString(const OTString& theStr)
     m_ascInReferenceTo.SetString(theStr);
 }
 
-bool OTTransactionType::SaveContractWallet(std::ofstream&) const
-{
-    return true;
-}
-
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
 // I do NOT call VerifyOwner() here, because the server may
