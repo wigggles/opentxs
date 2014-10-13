@@ -155,20 +155,8 @@ public:
     using OTData::swap;
     using OTData::operator=;
 
-    EXPORT uint32_t ReadBytesFrom(OTData& theData, uint32_t lSize);
-
     EXPORT void SetPayloadSize(uint32_t lNewSize);
     EXPORT const void* GetPayloadPointer() const;
-
-    EXPORT bool GetMessagePayload(OTMessage& theMessage) const;
-
-    EXPORT bool GetEnvelope(OTEnvelope& theEnvelope) const; // Envelope
-                                                            // retrieved from
-                                                            // payload.
-    EXPORT bool SetEnvelope(const OTEnvelope& theEnvelope); // Envelope copied
-                                                            // into payload to
-                                                            // prepare for
-                                                            // sending.
 };
 
 } // namespace opentxs
