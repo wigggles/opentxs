@@ -173,16 +173,6 @@ MintLucre::~MintLucre()
 {
 }
 
-// Todo: need to be saving these BIOs somewhere, and freeing them at
-// the end of the run of the application.
-//
-void SetMonitor(const char* filepathexact)
-{
-    BIO* out = BIO_new_file(filepathexact, "w");
-    assert(out);
-    SetDumper(out);
-}
-
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
 bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
@@ -217,7 +207,9 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
     }
 
 #ifdef _WIN32
-    SetMonitor("openssl.dump");
+    BIO* out = BIO_new_file("openssl.dump", "w");
+    assert(out);
+    SetDumper(out);
 #else
     SetMonitor(stderr);
 #endif
