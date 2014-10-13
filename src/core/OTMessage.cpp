@@ -295,8 +295,6 @@ void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
 // just prior to the signing of the message, in OTContract::SignContract.
 void OTMessage::UpdateContents()
 {
-    bool bFoundMessage = false;
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
@@ -307,1325 +305,7 @@ void OTMessage::UpdateContents()
         "<OTmessage\n version=\"%s\"\n dateSigned=\"%lld\">\n\n",
         m_strVersion.Get(), m_lTime);
 
-    if (m_strCommand.Compare("getMarketList")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketList")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-
-        //        std::cerr << m_xmlUnsigned << std::endl;
-    }
-
-    if (m_strCommand.Compare("getMarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getMarketRecentTrades")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"" // stored in NymID2
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get() // Storing Market ID
-                                  );
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketRecentTrades")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getNym_MarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getNym_MarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("checkServerID")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate(
-            "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
-            m_strNymPublicKey.Get());
-        m_xmlUnsigned.Concatenate(
-            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
-            m_strNymID2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@checkServerID")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("createUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate(
-                "<credentialList>\n%s</credentialList>\n\n",
-                m_ascPayload.Get());
-        if (m_ascPayload2.Exists())
-            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                      m_ascPayload2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@createUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
-                                      m_ascPayload.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("deleteUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@deleteUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("checkUser")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@checkUser")) {
-        // This means new-style credentials are being sent, not just the public
-        // key as before.
-        const bool bCredentials =
-            (m_ascPayload.Exists() && m_ascPayload2.Exists());
-
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " hasCredentials=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  (bCredentials ? "true" : "false"),
-                                  m_strServerID.Get());
-
-        if (m_bSuccess) {
-            // Old style. (Deprecated.)
-            if (m_strNymPublicKey.Exists())
-                m_xmlUnsigned.Concatenate(
-                    "<nymPublicKey>\n%s</nymPublicKey>\n\n",
-                    m_strNymPublicKey.Get());
-
-            // New style:
-            if (bCredentials) {
-                m_xmlUnsigned.Concatenate(
-                    "<credentialList>\n%s</credentialList>\n\n",
-                    m_ascPayload.Get());
-                m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                          m_ascPayload2.Get());
-            }
-        }
-        else
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("usageCredits")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " adjustment=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_lDepth, m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@usageCredits")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " totalCredits=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // This one isn't part of the message protocol, but is used for outmail
-    // storage.
-    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
-    // itself
-    // will soon be encrypted, and there's no need to be redundant also as well
-    // in addition on top of that.
-    //
-    if (m_strCommand.Compare("outmailMessage") ||
-        m_strCommand.Compare("outpaymentsMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("sendUserMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@sendUserMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare(
-            "sendUserInstrument") || // sendUserInstrument is sent from one user
-                                     // to the server, which then attaches that
-                                     // message as a payment, onto a transaction
-                                     // on the Nymbox of the recipient.
-        m_strCommand.Compare("payDividend")) // payDividend is not a normal user
-                                             // message. Rather, the sender uses
-                                             // notarizeTransactions to do a
-                                             // payDividend transaction. On the
-                                             // server side, this creates a new
-                                             // message of type "payDividend"
-                                             // for each recipient, in order to
-                                             // attach a voucher to it (for each
-                                             // recipient) and then that
-                                             // (artificially created
-                                             // payDividend msg) is added to the
-                                             // Nymbox of each recipient.
-    {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@sendUserInstrument")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getRequest")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // This is the ONE command where you see a request number coming back from
-    // the server.
-    // In all the other commands, it should be SENT to the server, not received
-    // from the server.
-    if (m_strCommand.Compare("@getRequest")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n"             // command
-            " success=\"%s\"\n" // m_bSuccess
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " newRequestNum=\"%lld\"\n"
-            " requestNum=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
-            m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
-            m_lNewRequestNum, m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("issueAssetType")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAssetID.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@issueAssetType")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n" // the new issuer account ID
-            " nymID=\"%s\"\n"
-            " assetType=\"%s\"\n"
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<issuerAccount>\n%s</issuerAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("queryAssetTypes")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@queryAssetTypes")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("issueBasket")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<currencyBasket>\n%s</currencyBasket>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@issueBasket")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n" // the new basket issuer account ID
-            " nymID=\"%s\"\n"
-            " assetType=\"%s\"\n" // the new Asset Type
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("createAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAssetID.Get());
-
-        //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
-        // m_strAssetID.GetLength(),  m_strAssetID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@createAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascInReferenceTo.Exists())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate("<newAccount>\n%s</newAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getBoxReceipt")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " requestNum=\"%s\"\n"
-            " transactionNum=\"%lld\"\n"
-            " boxType=\"%s\"\n"
-            " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
-                                // will appear in this variable.
-            ">\n\n",
-            m_strCommand.Get(), m_strNymID.Get(), m_strServerID.Get(),
-            m_strRequestNum.Get(), m_lTransactionNum,
-            (m_lDepth == 0)
-                ? "nymbox"
-                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m_strAcctID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getBoxReceipt")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n"
-            " transactionNum=\"%lld\"\n"
-            " boxType=\"%s\"\n"
-            " nymID=\"%s\"\n"
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_lTransactionNum,
-            (m_lDepth == 0)
-                ? "nymbox"
-                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m_strNymID.Get(),
-            m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<boxReceipt>\n%s</boxReceipt>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("deleteAssetAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAcctID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@deleteAssetAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("notarizeTransactions")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get(), m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<accountLedger>\n%s</accountLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@notarizeTransactions")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getTransactionNum")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getTransactionNum")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymboxHash.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymboxHash.Get(),
-                                  m_strServerID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<nymboxLedger>\n%s</nymboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("getInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " inboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strInboxHash.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("getOutbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getOutbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " outboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strOutboxHash.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTAccount object.
-    if (m_strCommand.Compare("@getAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getAccountFiles")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains a STRING_MAP containing the OTAccount,
-    // plus the inbox and outbox for that acct..
-    //
-    if (m_strCommand.Compare("@getAccountFiles")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " inboxHash=\"%s\"\n"
-                                  " outboxHash=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strInboxHash.Get(), m_strOutboxHash.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // Famous last words.
-        //
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getContract")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAssetID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTAssetContract object.
-    if (m_strCommand.Compare("@getContract")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAssetID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getMint")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAssetID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTMint object.
-    if (m_strCommand.Compare("@getMint")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAssetID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("processInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get(), m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@processInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("processNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@processNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("triggerClause")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " smartContractID=\"%lld\"\n" // <===
-            " clauseName=\"%s\"\n"        // <===
-            " hasParam=\"%s\"\n"          // <===
-            " requestNum=\"%s\""
-            " >\n\n",
-            m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
-            m_strServerID.Get(), m_lTransactionNum,
-            m_strNymID2.Get(), // clause name is stored here for this message.
-            (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
-
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTMint object.
-    if (m_strCommand.Compare("@triggerClause")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (!bFoundMessage) {
+    if (!updateContentsByType()) {
         m_xmlUnsigned.Concatenate("<%s\n" // Command
                                   " requestNum=\"%s\"\n"
                                   " success=\"false\"\n"
@@ -1667,6 +347,1327 @@ void OTMessage::UpdateContents()
     }
 
     m_xmlUnsigned.Concatenate("</OTmessage>\n");
+}
+
+bool OTMessage::updateContentsByType()
+{
+    if (m_strCommand.Compare("getMarketList")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketList")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMarketRecentTrades")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"" // stored in NymID2
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get() // Storing Market ID
+                                  );
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketRecentTrades")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getNym_MarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getNym_MarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("checkServerID")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate(
+            "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
+            m_strNymPublicKey.Get());
+        m_xmlUnsigned.Concatenate(
+            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
+            m_strNymID2.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@checkServerID")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("createUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+        if (m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate(
+                "<credentialList>\n%s</credentialList>\n\n",
+                m_ascPayload.Get());
+        if (m_ascPayload2.Exists())
+            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                      m_ascPayload2.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@createUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
+                                      m_ascPayload.Get());
+
+        if (m_ascInReferenceTo.GetLength() > 2)
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("deleteUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@deleteUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength() > 2)
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("checkUser")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@checkUser")) {
+        // This means new-style credentials are being sent, not just the public
+        // key as before.
+        const bool bCredentials =
+            (m_ascPayload.Exists() && m_ascPayload2.Exists());
+
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " hasCredentials=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  (bCredentials ? "true" : "false"),
+                                  m_strServerID.Get());
+
+        if (m_bSuccess) {
+            // Old style. (Deprecated.)
+            if (m_strNymPublicKey.Exists())
+                m_xmlUnsigned.Concatenate(
+                    "<nymPublicKey>\n%s</nymPublicKey>\n\n",
+                    m_strNymPublicKey.Get());
+
+            // New style:
+            if (bCredentials) {
+                m_xmlUnsigned.Concatenate(
+                    "<credentialList>\n%s</credentialList>\n\n",
+                    m_ascPayload.Get());
+                m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                          m_ascPayload2.Get());
+            }
+        }
+        else
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+
+        return true;
+    }
+
+    if (m_strCommand.Compare("usageCredits")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " adjustment=\"%lld\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_lDepth, m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@usageCredits")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " totalCredits=\"%lld\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // This one isn't part of the message protocol, but is used for outmail
+    // storage.
+    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
+    // itself
+    // will soon be encrypted, and there's no need to be redundant also as well
+    // in addition on top of that.
+    //
+    if (m_strCommand.Compare("outmailMessage") ||
+        m_strCommand.Compare("outpaymentsMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("sendUserMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@sendUserMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare(
+            "sendUserInstrument") || // sendUserInstrument is sent from one user
+                                     // to the server, which then attaches that
+                                     // message as a payment, onto a transaction
+                                     // on the Nymbox of the recipient.
+        m_strCommand.Compare("payDividend")) // payDividend is not a normal user
+                                             // message. Rather, the sender uses
+                                             // notarizeTransactions to do a
+                                             // payDividend transaction. On the
+                                             // server side, this creates a new
+                                             // message of type "payDividend"
+                                             // for each recipient, in order to
+                                             // attach a voucher to it (for each
+                                             // recipient) and then that
+                                             // (artificially created
+                                             // payDividend msg) is added to the
+                                             // Nymbox of each recipient.
+    {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@sendUserInstrument")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getRequest")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // This is the ONE command where you see a request number coming back from
+    // the server.
+    // In all the other commands, it should be SENT to the server, not received
+    // from the server.
+    if (m_strCommand.Compare("@getRequest")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n"             // command
+            " success=\"%s\"\n" // m_bSuccess
+            " nymID=\"%s\"\n"
+            " nymboxHash=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " newRequestNum=\"%lld\"\n"
+            " requestNum=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
+            m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
+            m_lNewRequestNum, m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("issueAssetType")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAssetID.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@issueAssetType")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n" // the new issuer account ID
+            " nymID=\"%s\"\n"
+            " assetType=\"%s\"\n"
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<issuerAccount>\n%s</issuerAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("queryAssetTypes")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@queryAssetTypes")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("issueBasket")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<currencyBasket>\n%s</currencyBasket>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@issueBasket")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n" // the new basket issuer account ID
+            " nymID=\"%s\"\n"
+            " assetType=\"%s\"\n" // the new Asset Type
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("createAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAssetID.Get());
+
+        //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
+        // m_strAssetID.GetLength(),  m_strAssetID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@createAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strAcctID.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascInReferenceTo.Exists())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate("<newAccount>\n%s</newAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getBoxReceipt")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " nymID=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " requestNum=\"%s\"\n"
+            " transactionNum=\"%lld\"\n"
+            " boxType=\"%s\"\n"
+            " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
+                                // will appear in this variable.
+            ">\n\n",
+            m_strCommand.Get(), m_strNymID.Get(), m_strServerID.Get(),
+            m_strRequestNum.Get(), m_lTransactionNum,
+            (m_lDepth == 0)
+                ? "nymbox"
+                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
+            m_strAcctID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getBoxReceipt")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n"
+            " transactionNum=\"%lld\"\n"
+            " boxType=\"%s\"\n"
+            " nymID=\"%s\"\n"
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_lTransactionNum,
+            (m_lDepth == 0)
+                ? "nymbox"
+                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
+            m_strNymID.Get(),
+            m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<boxReceipt>\n%s</boxReceipt>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("deleteAssetAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAcctID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@deleteAssetAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strAcctID.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("notarizeTransactions")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get(), m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<accountLedger>\n%s</accountLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@notarizeTransactions")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getTransactionNum")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getTransactionNum")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymboxHash.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymboxHash.Get(),
+                                  m_strServerID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<nymboxLedger>\n%s</nymboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("getInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " inboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strInboxHash.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("getOutbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getOutbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " outboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strOutboxHash.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTAccount object.
+    if (m_strCommand.Compare("@getAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getAccountFiles")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains a STRING_MAP containing the OTAccount,
+    // plus the inbox and outbox for that acct..
+    //
+    if (m_strCommand.Compare("@getAccountFiles")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " inboxHash=\"%s\"\n"
+                                  " outboxHash=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strInboxHash.Get(), m_strOutboxHash.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // Famous last words.
+        //
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getContract")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAssetID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTAssetContract object.
+    if (m_strCommand.Compare("@getContract")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAssetID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMint")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAssetID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTMint object.
+    if (m_strCommand.Compare("@getMint")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAssetID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("processInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get(), m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@processInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("processNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@processNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("triggerClause")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " nymID=\"%s\"\n"
+            " nymboxHash=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " smartContractID=\"%lld\"\n" // <===
+            " clauseName=\"%s\"\n"        // <===
+            " hasParam=\"%s\"\n"          // <===
+            " requestNum=\"%s\""
+            " >\n\n",
+            m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
+            m_strServerID.Get(), m_lTransactionNum,
+            m_strNymID2.Get(), // clause name is stored here for this message.
+            (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
+
+        if (m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTMint object.
+    if (m_strCommand.Compare("@triggerClause")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+    return false;
 }
 
 void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)

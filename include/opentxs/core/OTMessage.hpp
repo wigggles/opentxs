@@ -155,6 +155,8 @@ protected:
     void processXmlSuccess(irr::io::IrrXMLReader*& xml);
 
 private:
+    bool updateContentsByType();
+
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeOTmessage(irr::io::IrrXMLReader*& xml);
