@@ -1669,6 +1669,11 @@ void OTMessage::UpdateContents()
     m_xmlUnsigned.Concatenate("</OTmessage>\n");
 }
 
+void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)
+{
+    m_bSuccess = OTString(xml->getAttributeValue("success")).Compare("true");
+}
+
 // Todo: consider leaving the request # inside all the server REPLIES, so they
 // are easier to match up to the requests. (Duh.)
 
@@ -1689,13 +1694,12 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     const OTString strNodeName(xml->getNodeName());
 
-    OTString strSuccess; // Many blocks below use this string, and when they
-                         // declared it individually,
+    // Many blocks below use this string, and when they
+    // declared it individually,
     // our stack frame got too big. So I'm moving it here, so they can all use
     // it, instead of declaring
     // so many different copies of it (nearly one for each block.)
     // Same with these:
-
     const char* pElementExpected;
 
     OTString strDepth;
@@ -1749,12 +1753,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("@getMarketList")) {
         //      std::cerr << m_xmlUnsigned << std::endl;
-
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1823,11 +1822,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getMarketOffers")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1895,11 +1890,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getMarketRecentTrades")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1965,11 +1956,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getNym_MarketOffers")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2059,18 +2046,15 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@checkServerID")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
         m_strNymID = xml->getAttributeValue("nymID");
         m_strServerID = xml->getAttributeValue("serverID");
 
-        otWarn << "\nCommand: " << m_strCommand << "\nSuccess: " << strSuccess
+        otWarn << "\nCommand: " << m_strCommand
+               << "\nSuccess: " << (m_bSuccess ? "true" : "false")
                << "\nNymID:    " << m_strNymID << "\n"
                                                   "ServerID: " << m_strServerID
                << "\n\n";
@@ -2109,11 +2093,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@createUserAccount")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2164,11 +2144,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@deleteUserAccount")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2205,11 +2181,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getRequest")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2283,11 +2255,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@sendUserMessage")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2333,11 +2301,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@sendUserInstrument")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2373,11 +2337,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@usageCredits")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2413,11 +2373,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@checkUser")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2522,11 +2478,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@issueAssetType")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strNymID = xml->getAttributeValue("nymID");
@@ -2618,11 +2570,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@queryAssetTypes")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strNymID = xml->getAttributeValue("nymID");
@@ -2697,11 +2645,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@createAccount")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2805,11 +2749,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getBoxReceipt")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2906,11 +2846,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@deleteAssetAccount")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -2992,11 +2928,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@issueBasket")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3054,11 +2986,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getTransactionNum")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3106,11 +3034,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@notarizeTransactions")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3200,11 +3124,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getInbox")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3244,11 +3164,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getNymbox")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3300,11 +3216,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getOutbox")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3358,11 +3270,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getAccount")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3415,11 +3323,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getAccountFiles")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3474,11 +3378,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@getContract")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3533,11 +3433,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     // the Payload contains an ascii-armored OTMint object.
     else if (strNodeName.Compare("@getMint")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3614,11 +3510,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@triggerClause")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3707,11 +3599,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@processInbox")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -3772,11 +3660,7 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("@processNymbox")) {
-        strSuccess = xml->getAttributeValue("success");
-        if (strSuccess.Compare("true"))
-            m_bSuccess = true;
-        else
-            m_bSuccess = false;
+        processXmlSuccess(xml);
 
         m_strCommand = xml->getNodeName(); // Command
         m_strRequestNum = xml->getAttributeValue("requestNum");
