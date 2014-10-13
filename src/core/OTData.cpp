@@ -177,7 +177,7 @@ OTData::OTData(const void* data, uint32_t size)
 
 OTData::~OTData()
 {
-    Release_Data();
+    Release();
 }
 
 bool OTData::operator==(const OTData& rhs) const
@@ -242,7 +242,7 @@ void OTData::zeroMemory() const
     }
 }
 
-void OTData::Release_Data()
+void OTData::Release()
 {
     if (data_ != nullptr) {
         // For security reasons, we clear the memory to 0 when deleting the
@@ -252,11 +252,6 @@ void OTData::Release_Data()
         // If data_ was already nullptr, no need to re-Initialize().
         Initialize();
     }
-}
-
-void OTData::Release()
-{
-    Release_Data();
 }
 
 OTData& OTData::operator=(OTData rhs)
