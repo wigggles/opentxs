@@ -235,8 +235,6 @@ public:
 
     EXPORT static bool ToReal(const OTString& strExactPath,
                               OTString& out_strCanonicalPath);
-    EXPORT static bool GetExecutable(OTString& strExecutablePath);
-    EXPORT static bool GetCurrentWorking(OTString& strCurrentWorkingPath);
     EXPORT static bool GetHomeFromSystem(OTString& out_strHomeFolder);
 
 #ifdef _WIN32
