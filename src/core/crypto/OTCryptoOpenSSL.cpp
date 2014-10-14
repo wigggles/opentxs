@@ -435,7 +435,7 @@ unsigned int64_t ot_openssl_thread_id(void);
 void ot_openssl_thread_id(CRYPTO_THREADID*);
 #endif
 
-void ot_openssl_locking_callback(int32_t mode, int32_t type, char* file,
+void ot_openssl_locking_callback(int32_t mode, int32_t type, const char* file,
                                  int32_t line);
 }
 
@@ -502,6 +502,7 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
  debugging.
  */
 
+extern "C" {
 void ot_openssl_locking_callback(int32_t mode, int32_t type, const char*,
                                  int32_t)
 {
@@ -512,6 +513,7 @@ void ot_openssl_locking_callback(int32_t mode, int32_t type, const char*,
         OTCrypto_OpenSSL::s_arrayMutex[type].unlock();
     }
 }
+} // extern "C"
 
 // Caller responsible to delete.
 char* OTCrypto_OpenSSL::Base64Encode(const uint8_t* input, int32_t in_len,
