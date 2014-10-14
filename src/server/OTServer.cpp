@@ -178,10 +178,6 @@
 #include <unistd.h>
 #endif
 
-#define SERVER_CONFIG_KEY "server"
-#define SERVER_DATA_DIR "server_data"
-#define SERVER_LOGFILE_FILENAME "log-server.log"
-#define SERVER_PASSWORD_FOLDER ""
 #define SERVER_PID_FILENAME "ot.pid"
 
 namespace opentxs

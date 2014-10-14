@@ -136,32 +136,6 @@
 #include "OTString.hpp"
 #include "util/Assert.hpp"
 
-// For SecureZeroMemory
-#ifdef _WIN32
-#else // not _WIN32
-
-// for mlock and munlock
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <limits.h>
-
-#ifndef PAGESIZE
-#include <unistd.h>
-#define PAGESIZE sysconf(_SC_PAGESIZE)
-#endif
-
-// FT: Credit to the Bitcoin team for the mlock / munlock defines.
-
-#define mlock(a, b)                                                            \
-    mlock(((void*)(((size_t)(a)) & (~((PAGESIZE)-1)))),                        \
-          (((((size_t)(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -                   \
-              (((size_t)(a)) & (~((PAGESIZE)-1))))
-#define munlock(a, b)                                                          \
-    munlock(((void*)(((size_t)(a)) & (~((PAGESIZE)-1)))),                      \
-            (((((size_t)(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -                 \
-                (((size_t)(a)) & (~((PAGESIZE)-1))))
-#endif
-
 // Instantiate one of these whenever you do an action that may
 // require a passphrase. When you call the OpenSSL private key
 // using function, just pass in the address to this instance along

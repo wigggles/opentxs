@@ -664,44 +664,6 @@ various sequence numbers. Hm.
 #define SMARTCONTRACT_HOOK_ON_ACTIVATE "cron_activate"
 #endif
 
-// Deprecated:
-//
-// (These hooks exist in the OT class library, and you CAN subclass
-// OT classes to take advantage of them. But I don't see how they can
-// be allowed from within the SCRIPT language itself, at least, not
-// without some kinds of config options to govern the permissions.)
-//
-
-// Called when a party removes the
-// contract from processing.
-//
-// Update NOTE: script may not execute. Script has been removed. Sorry.
-// (Notices are sent automatically.)
-//
-#ifndef SMARTCONTRACT_HOOK_ON_REMOVE
-#define SMARTCONTRACT_HOOK_ON_REMOVE "cron_remove"
-#endif
-
-// When it expires due to date range.
-//
-// Update NOTE: script may not execute. Script has expired. Sorry.
-// (Notices are sent automatically.)
-//
-#ifndef SMARTCONTRACT_HOOK_ON_EXPIRE
-#define SMARTCONTRACT_HOOK_ON_EXPIRE "cron_expire"
-#endif
-
-// Called in OnRemove and OnExpire,
-// at the bottom.
-//
-// Update NOTE: so far script may not execute. Script has been deactivated,
-// sorry.
-// Notices are sent automatically.
-//
-#ifndef SMARTCONTRACT_HOOK_ON_DEACTIVATE
-#define SMARTCONTRACT_HOOK_ON_DEACTIVATE "cron_deactivate"
-#endif
-
 namespace opentxs
 {
 

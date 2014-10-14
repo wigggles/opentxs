@@ -172,10 +172,6 @@
 namespace opentxs
 {
 
-#ifndef OT_BOOL
-#define OT_BOOL int32_t
-#endif
-
 #ifndef OT_FALSE
 const int32_t OT_FALSE = 0;
 #endif

@@ -279,11 +279,7 @@ extern "C" {
 //    };
 //#endif // !ANDROID
 
-#ifndef OPENSSL_THREAD_DEFINES
-#define OPENSSL_THREAD_DEFINES
 #include <openssl/opensslconf.h>
-#endif
-
 #include <openssl/opensslv.h>
 }
 
