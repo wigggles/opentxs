@@ -154,7 +154,7 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 #-----------------------------------------------------------------------------
 # Third party libraries
 
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 1.0.1 REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_library(ZMQ_LIB NAMES libzmq.so.3.1.0 libzmq.3.dylib libzmq-v120-mt-gd-4_0_4)
