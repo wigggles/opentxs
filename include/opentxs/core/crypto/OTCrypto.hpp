@@ -273,13 +273,6 @@ public:
     virtual void SetBase62StringFromID(const OTIdentifier& theInput,
                                        OTString& strOutput) const = 0;
     // BASE 64 ENCODING
-    //
-    virtual bool Base64Encode(const OTData& theInput, OTString& strOutput,
-                              bool bLineBreaks = true) const;
-    virtual bool Base64Decode(const OTString& strInput, OTData& theOutput,
-                              bool bLineBreaks = true) const;
-
-    // Lower-level version:
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
                                bool bLineBreaks) const = 0; // NOTE: the
