@@ -590,27 +590,27 @@ receipts directly in response to their server messages, they can still compare
 various sequence numbers. Hm.
  */
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTSmartContract.hpp"
-#include "OTAgent.hpp"
-#include "OTBylaw.hpp"
-#include "OTClause.hpp"
-#include "cron/OTCron.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLedger.hpp"
-#include "OTLog.hpp"
-#include "OTParty.hpp"
-#include "OTPartyAccount.hpp"
-#include "OTPseudonym.hpp"
-#include "OTStash.hpp"
-#include "OTStashItem.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/script/OTSmartContract.hpp>
+#include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/script/OTBylaw.hpp>
+#include <opentxs/core/script/OTClause.hpp>
+#include <opentxs/core/cron/OTCron.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/script/OTParty.hpp>
+#include <opentxs/core/script/OTPartyAccount.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/script/OTStash.hpp>
+#include <opentxs/core/script/OTStashItem.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
 
 #ifdef OT_USE_SCRIPT_CHAI
-#include "OTScriptChai.hpp"
+#include <opentxs/core/script/OTScriptChai.hpp>
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>

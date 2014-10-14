@@ -138,7 +138,7 @@
 
 #include "OTMarket.hpp"
 #include "OTOffer.hpp"
-#include "../cron/OTCronItem.hpp"
+#include <opentxs/core/cron/OTCronItem.hpp>
 
 namespace opentxs
 {

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include "../util/Timer.hpp"
+#include <opentxs/core/util/Timer.hpp>
 #include <list>
 
 namespace opentxs

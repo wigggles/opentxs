@@ -16,10 +16,6 @@ include_directories(SYSTEM
   ${dependency_include_dir}
 )
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/basket
-)
-
 set(MODULE_NAME opentxs-basket)
 if(WIN32)
   configure_file(

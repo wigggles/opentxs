@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTPassword.hpp"
+#include <opentxs/core/crypto/OTPassword.hpp>
 
-#include "crypto/OTCrypto.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 // For SecureZeroMemory
 #ifdef _WIN32

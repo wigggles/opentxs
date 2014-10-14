@@ -130,21 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "OTData.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTData.hpp>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include "crypto/OpenSSL_BIO.hpp"
+#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
 #endif
 
-#include "util/stacktrace.h"
+#include <opentxs/core/util/stacktrace.h>
 
 // BIO_get_mem_data() macro from OpenSSL uses old style cast
 #pragma GCC diagnostic ignored "-Wold-style-cast"

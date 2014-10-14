@@ -130,19 +130,19 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "Purse.hpp"
-#include "Token.hpp"
+#include <opentxs/cash/Purse.hpp>
+#include <opentxs/cash/Token.hpp>
 
-#include "../core/crypto/OTSymmetricKey.hpp"
-#include "../core/crypto/OTCachedKey.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/crypto/OTPassword.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTStorage.hpp"
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
 

@@ -136,7 +136,7 @@
 #ifndef OPENTXS_CORE_CRON_OTCRONITEM_HPP
 #define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
-#include "../OTTrackable.hpp"
+#include <opentxs/core/OTTrackable.hpp>
 
 #include <deque>
 

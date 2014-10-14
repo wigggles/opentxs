@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 #define OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 
-#include "../OTTransaction.hpp"
+#include <opentxs/core/OTTransaction.hpp>
 #include <cstdint>
 
 namespace opentxs

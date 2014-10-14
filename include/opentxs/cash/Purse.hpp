@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CASH_PURSE_HPP
 #define OPENTXS_CASH_PURSE_HPP
 
-#include "opentxs/core/OTContract.hpp"
+#include <opentxs/core/OTContract.hpp>
 
 #include <deque>
 

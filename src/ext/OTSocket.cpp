@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTSocket.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTSettings.hpp"
+#include <opentxs/ext/OTSocket.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTSettings.hpp>
 
 #define KEY_LATENCY_SEND_MS "latency_send_ms"
 #define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"

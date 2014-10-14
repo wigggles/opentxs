@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "PayDividendVisitor.hpp"
-#include "OTServer.hpp"
+#include <opentxs/server/PayDividendVisitor.hpp>
+#include <opentxs/server/OTServer.hpp>
 
 #include <opentxs/core/OTAccount.hpp>
 #include <opentxs/core/OTCheque.hpp>

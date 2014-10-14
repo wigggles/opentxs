@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTString.hpp"
-#include "OTContract.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "OTPseudonym.hpp"
-#include "crypto/OTSignature.hpp"
-#include "util/StringUtils.hpp"
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/crypto/OTSignature.hpp>
+#include <opentxs/core/util/StringUtils.hpp>
 
 #if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))
 #include <wordexp.h>

@@ -130,27 +130,27 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OT_ME.hpp"
-#include "opentxs/client/OTClient.hpp"
-#include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
-#include "opentxs/client/TransportCallback.hpp"
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OT_ME.hpp>
+#include <opentxs/client/OTClient.hpp>
+#include <opentxs/client/OTWallet.hpp>
+#include <opentxs/client/ot_otapi_ot.hpp>
+#include <opentxs/client/TransportCallback.hpp>
 
-#include "opentxs/cash/Purse.hpp"
+#include <opentxs/cash/Purse.hpp>
 
-#include "opentxs/core/OTAccount.hpp"
-#include "opentxs/core/OTAssetContract.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/OTLog.hpp"
-#include "opentxs/core/OTMessage.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/OTPseudonym.hpp"
-#include "opentxs/core/OTServerContract.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/script/OTVariable.hpp>
 
 #include <anyoption/anyoption.hpp>
 

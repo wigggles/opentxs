@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "BasketItem.hpp"
+#include <opentxs/basket/BasketItem.hpp>
 
 namespace opentxs
 {

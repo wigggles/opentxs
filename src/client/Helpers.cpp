@@ -132,13 +132,13 @@
 
 #include "Helpers.hpp"
 
-#include "../ext/OTPayment.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/OTLedger.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/OTString.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 namespace opentxs
 {

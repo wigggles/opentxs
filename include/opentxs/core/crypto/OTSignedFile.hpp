@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
-#include "../OTContract.hpp"
+#include <opentxs/core/OTContract.hpp>
 
 namespace opentxs
 {

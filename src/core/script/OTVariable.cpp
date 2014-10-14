@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTVariable.hpp"
+#include <opentxs/core/script/OTVariable.hpp>
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "OTLog.hpp"
-#include "OTScript.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/script/OTScript.hpp>
 
 namespace opentxs
 {

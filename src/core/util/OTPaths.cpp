@@ -130,14 +130,14 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "util/OTPaths.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTLog.hpp>
 #ifdef _WIN32
-#include "OTWindowsRegistryTools.hpp"
+#include <opentxs/core/OTWindowsRegistryTools.hpp>
 #endif
-#include "util/StringUtils.hpp"
+#include <opentxs/core/util/StringUtils.hpp>
 
 #include <cerrno>
 #include <vector>

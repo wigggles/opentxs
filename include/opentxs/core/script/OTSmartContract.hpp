@@ -133,8 +133,8 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
-#include "../AccountList.hpp"
-#include "../cron/OTCronItem.hpp"
+#include <opentxs/core/AccountList.hpp>
+#include <opentxs/core/cron/OTCronItem.hpp>
 
 namespace opentxs
 {

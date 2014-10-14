@@ -130,7 +130,7 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "ServerSettings.hpp"
+#include <opentxs/server/ServerSettings.hpp>
 
 namespace opentxs
 {

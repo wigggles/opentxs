@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "ConfigLoader.hpp"
-#include "ServerSettings.hpp"
+#include <opentxs/server/ConfigLoader.hpp>
+#include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/core/OTString.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>

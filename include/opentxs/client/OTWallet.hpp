@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OTWALLET_HPP
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
-#include "opentxs/core/OTString.hpp"
+#include <opentxs/core/OTString.hpp>
 
 #include <map>
 #include <memory>

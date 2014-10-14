@@ -133,8 +133,8 @@
 #ifndef OPENTXS_CORE_OTDATAFOLDER_HPP
 #define OPENTXS_CORE_OTDATAFOLDER_HPP
 
-#include "opentxs/core/OTString.hpp"
-#include "opentxs/core/util/Assert.hpp"
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/util/Assert.hpp>
 
 namespace opentxs
 {

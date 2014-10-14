@@ -130,17 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
-#include "Mint.hpp"
-#include "MintLucre.hpp"
-
-#include "../core/crypto/OTAsymmetricKey.hpp"
-#include "../core/OTAccount.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/OTStorage.hpp"
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/MintLucre.hpp>
 
 #include <irrxml/irrXML.hpp>
 

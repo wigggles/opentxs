@@ -136,9 +136,9 @@
 #ifndef OPENTXS_CORE_CRON_OTCRON_HPP
 #define OPENTXS_CORE_CRON_OTCRON_HPP
 
-#include "../OTContract.hpp"
-#include "../util/StringUtils.hpp"
-#include "../util/Assert.hpp"
+#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/util/StringUtils.hpp>
+#include <opentxs/core/util/Assert.hpp>
 
 namespace opentxs
 {

@@ -20,10 +20,6 @@ include_directories(SYSTEM
   ${dependency_include_dir}/lucre/include/
 )
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/cash
-)
-
 include_directories(SYSTEM
   ${OPENSSL_INCLUDE_DIR}
 )

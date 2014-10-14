@@ -130,10 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "TransportCallback.hpp"
-#include "OpenTransactions.hpp"
-#include "opentxs/core/OTServerContract.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include <opentxs/client/TransportCallback.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
 namespace opentxs
 {

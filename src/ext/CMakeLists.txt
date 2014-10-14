@@ -12,10 +12,6 @@ include_directories(SYSTEM
   ${ZMQ_INCLUDE_DIR}
 )
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext
-)
-
 set(MODULE_NAME opentxs-ext)
 if(WIN32)
   configure_file(

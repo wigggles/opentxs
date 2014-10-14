@@ -130,12 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
-
-#include "DigitalCash.hpp"
-
-#include "../core/util/OTDataFolder.hpp"
-#include "../core/util/OTPaths.hpp"
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/cash/DigitalCash.hpp>
 
 #include <fstream>
 

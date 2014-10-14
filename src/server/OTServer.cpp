@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "OTServer.hpp"
-#include "ClientConnection.hpp"
-#include "ConfigLoader.hpp"
-#include "Macros.hpp"
-#include "ServerSettings.hpp"
-#include "PayDividendVisitor.hpp"
-#include "Helpers.hpp"
+#include <opentxs/server/OTServer.hpp>
+#include <opentxs/server/ClientConnection.hpp>
+#include <opentxs/server/ConfigLoader.hpp>
+#include <opentxs/server/Macros.hpp>
+#include <opentxs/server/ServerSettings.hpp>
+#include <opentxs/server/PayDividendVisitor.hpp>
+#include <opentxs/server/Helpers.hpp>
 
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Purse.hpp>

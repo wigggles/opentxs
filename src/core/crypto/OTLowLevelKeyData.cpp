@@ -130,16 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTLowLevelKeyData.hpp"
+#include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
 
-#include "crypto/OTKeypair.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/crypto/OTKeypair.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
 
 namespace opentxs
 {

@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "cron/OTCron.hpp"
-#include "crypto/OTASCIIArmor.hpp"
-#include "cron/OTCronItem.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLog.hpp"
-#include "trade/OTMarket.hpp"
-#include "util/Timer.hpp"
+#include <opentxs/core/cron/OTCron.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/cron/OTCronItem.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/trade/OTMarket.hpp>
+#include <opentxs/core/util/Timer.hpp>
 
 #include <irrxml/irrXML.hpp>
 

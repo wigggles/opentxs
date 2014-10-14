@@ -15,10 +15,6 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server/*.hpp")
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/server
-)
-
 set(MODULE_NAME opentxs-server)
 if(WIN32)
   configure_file(

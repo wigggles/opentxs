@@ -134,20 +134,20 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTCrypto.hpp"
+#include <opentxs/core/crypto/OTCrypto.hpp>
 
 #ifdef OT_CRYPTO_USING_OPENSSL
-#include "crypto/OTCryptoOpenSSL.hpp"
+#include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif
 
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "util/OTPaths.hpp"
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
 
 extern "C" {
 #ifdef _WIN32

@@ -133,8 +133,8 @@
 #ifndef OPENTXS_CASH_TOKEN_HPP
 #define OPENTXS_CASH_TOKEN_HPP
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/OTInstrument.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTInstrument.hpp>
 
 namespace opentxs
 {

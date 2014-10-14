@@ -130,16 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "trade/OTMarket.hpp"
-#include "trade/OTOffer.hpp"
-#include "trade/OTTrade.hpp"
-#include "OTAccount.hpp"
-#include "OTLedger.hpp"
-#include "OTLog.hpp"
-#include "OTPseudonym.hpp"
-#include "util/OTFolders.hpp"
+#include <opentxs/core/trade/OTMarket.hpp>
+#include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/trade/OTTrade.hpp>
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 
 #include <irrxml/irrXML.hpp>
 

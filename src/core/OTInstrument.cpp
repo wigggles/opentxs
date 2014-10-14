@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTInstrument.hpp"
+#include <opentxs/core/OTInstrument.hpp>
 
 // Verify whether the CURRENT date is AFTER the the VALID TO date.
 // Notice, this will return false, if the instrument is NOT YET VALID.

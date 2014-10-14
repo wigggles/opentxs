@@ -136,7 +136,7 @@
 #ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
 #define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
-#include "../OTInstrument.hpp"
+#include <opentxs/core/OTInstrument.hpp>
 
 namespace opentxs
 {

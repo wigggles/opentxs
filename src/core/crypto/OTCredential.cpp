@@ -144,14 +144,14 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTCredential.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "OTStorage.hpp"
-#include "crypto/OTSubkey.hpp"
+#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTSubkey.hpp>
 
 #include <memory>
 #include <algorithm>

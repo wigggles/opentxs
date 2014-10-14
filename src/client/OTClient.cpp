@@ -130,39 +130,39 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTClient.hpp"
-#include "OTServerConnection.hpp"
+#include <opentxs/client/OTClient.hpp>
+#include <opentxs/client/OTServerConnection.hpp>
 #include "Helpers.hpp"
-#include "OTWallet.hpp"
+#include <opentxs/client/OTWallet.hpp>
 
-#include "../ext/OTPayment.hpp"
+#include <opentxs/ext/OTPayment.hpp>
 
-#include "../cash/Mint.hpp"
-#include "../cash/Purse.hpp"
-#include "../cash/Token.hpp"
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/Purse.hpp>
+#include <opentxs/cash/Token.hpp>
 
-#include "../basket/Basket.hpp"
+#include <opentxs/basket/Basket.hpp>
 
-#include "../core/recurring/OTPaymentPlan.hpp"
-#include "../core/OTAccount.hpp"
-#include "../core/OTAssetContract.hpp"
-#include "../core/crypto/OTAsymmetricKey.hpp"
-#include "../core/OTCheque.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLedger.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/OTData.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTServerContract.hpp"
-#include "../core/OTStorage.hpp"
-#include "../core/trade/OTOffer.hpp"
-#include "../core/trade/OTTrade.hpp"
-#include "../core/util/StringUtils.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/trade/OTTrade.hpp>
+#include <opentxs/core/util/StringUtils.hpp>
 
 #include <cstdio>
 #include <memory>

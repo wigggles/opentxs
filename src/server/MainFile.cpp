@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "MainFile.hpp"
-#include "OTServer.hpp"
-#include "Helpers.hpp"
+#include <opentxs/server/MainFile.hpp>
+#include <opentxs/server/OTServer.hpp>
+#include <opentxs/server/Helpers.hpp>
 #include <opentxs/core/OTString.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>

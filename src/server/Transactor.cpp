@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "Transactor.hpp"
-#include "OTServer.hpp"
+#include <opentxs/server/Transactor.hpp>
+#include <opentxs/server/OTServer.hpp>
 
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/core/util/OTFolders.hpp>

@@ -130,19 +130,19 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTRecord.hpp"
-#include "OpenTransactions.hpp"
-#include "OT_ME.hpp"
-#include "OTAPI.hpp"
-#include "OTAPI_Exec.hpp"
+#include <opentxs/client/OTRecord.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OT_ME.hpp>
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OTAPI_Exec.hpp>
 
-#include "../ext/OTPayment.hpp"
+#include <opentxs/ext/OTPayment.hpp>
 
-#include "../core/recurring/OTPaymentPlan.hpp"
-#include "../core/OTLedger.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #include <memory>
 #include <algorithm>

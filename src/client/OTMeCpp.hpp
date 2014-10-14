@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OTMECPP_HPP
 #define OPENTXS_CLIENT_OTMECPP_HPP
 
-#include "opentxs/core/util/Common.hpp"
+#include <opentxs/core/util/Common.hpp>
 
 namespace opentxs
 {

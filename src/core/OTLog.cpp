@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTLog.hpp"
-#include "util/OTPaths.hpp"
-#include "util/stacktrace.h"
-#include "opentxs/core/Version.hpp"
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/util/stacktrace.h>
+#include <opentxs/core/Version.hpp>
 
 #include <mutex>
 

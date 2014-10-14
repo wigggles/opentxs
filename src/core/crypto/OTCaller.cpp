@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTCaller.hpp"
-#include "crypto/OTCallback.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/crypto/OTCaller.hpp>
+#include <opentxs/core/crypto/OTCallback.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 namespace opentxs
 {

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
-#include "opentxs/core/util/Common.hpp"
+#include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/OTString.hpp>
 
 namespace opentxs

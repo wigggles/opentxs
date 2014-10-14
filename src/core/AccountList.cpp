@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "AccountList.hpp"
-#include "OTLog.hpp"
-#include "OTMessage.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/AccountList.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include "Helpers.hpp"
 

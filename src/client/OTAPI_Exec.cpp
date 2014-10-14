@@ -130,42 +130,42 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTAPI_Exec.hpp"
-#include "OpenTransactions.hpp"
-#include "OTWallet.hpp"
-#include "TransportCallback.hpp"
+#include <opentxs/client/OTAPI_Exec.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTWallet.hpp>
+#include <opentxs/client/TransportCallback.hpp>
 #include "Helpers.hpp"
 
-#include "../ext/OTPayment.hpp"
+#include <opentxs/ext/OTPayment.hpp>
 
-#include "../cash/Mint.hpp"
-#include "../cash/Purse.hpp"
-#include "../cash/Token.hpp"
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/Purse.hpp>
+#include <opentxs/cash/Token.hpp>
 
-#include "../basket/Basket.hpp"
+#include <opentxs/basket/Basket.hpp>
 
-#include "../core/recurring/OTPaymentPlan.hpp"
-#include "../core/OTAccount.hpp"
-#include "../core/script/OTAgent.hpp"
-#include "../core/OTAssetContract.hpp"
-#include "../core/crypto/OTAsymmetricKey.hpp"
-#include "../core/script/OTBylaw.hpp"
-#include "../core/OTCheque.hpp"
-#include "../core/script/OTClause.hpp"
-#include "../core/crypto/OTCredential.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/OTLedger.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/script/OTParty.hpp"
-#include "../core/script/OTPartyAccount.hpp"
-#include "../core/crypto/OTPasswordData.hpp"
-#include "../core/util/OTPaths.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTServerContract.hpp"
-#include "../core/crypto/OTSymmetricKey.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/script/OTBylaw.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/script/OTClause.hpp>
+#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/script/OTParty.hpp>
+#include <opentxs/core/script/OTPartyAccount.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 #include <memory>
 

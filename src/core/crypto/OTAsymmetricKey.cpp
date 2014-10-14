@@ -130,21 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTAsymmetricKey.hpp"
-#include "crypto/OTASCIIArmor.hpp"
-#include "crypto/OTCachedKey.hpp"
-#include "crypto/OTCaller.hpp"
-#include "crypto/OTCrypto.hpp"
-#include "OTIdentifier.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "crypto/OTSignatureMetadata.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/crypto/OTCaller.hpp>
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/crypto/OTSignatureMetadata.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include "crypto/OTAsymmetricKeyOpenSSL.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 #endif
 
 namespace opentxs

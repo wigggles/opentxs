@@ -26,11 +26,6 @@ include_directories(SYSTEM
   ${dependency_include_dir}/ChaiScript/include/
 )
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/script
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/
-)
-
 if (WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings 
   add_definitions(/wd4503)

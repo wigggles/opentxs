@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
-#include "crypto/OTAsymmetricKey.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 
 namespace opentxs
 {

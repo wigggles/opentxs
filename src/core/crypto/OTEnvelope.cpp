@@ -130,16 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTEnvelope.hpp"
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
-#include "crypto/OTCrypto.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "OTPseudonym.hpp"
-#include "OTStorage.hpp"
-#include "crypto/OTSymmetricKey.hpp"
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 extern "C" {
 #ifdef _WIN32
