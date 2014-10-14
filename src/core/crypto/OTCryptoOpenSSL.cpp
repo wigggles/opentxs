@@ -513,9 +513,9 @@ void ot_openssl_locking_callback(int32_t mode, int32_t type, const char*,
     }
 }
 
-extern "C" {
-char* ot_openssl_base64_encode(const uint8_t* input, int32_t in_len,
-                               int32_t bLineBreaks)
+// Caller responsible to delete.
+char* OTCrypto_OpenSSL::Base64Encode(const uint8_t* input, int32_t in_len,
+                                     bool bLineBreaks) const
 {
     char* buf = nullptr;
     BUF_MEM* bptr = nullptr;
@@ -538,7 +538,10 @@ char* ot_openssl_base64_encode(const uint8_t* input, int32_t in_len,
 
         if (BIO_write(b64join, input, in_len) == in_len) {
             (void)BIO_flush(b64join);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
             BIO_get_mem_ptr(b64join, &bptr);
+#pragma GCC diagnostic pop
             //            otLog5 << "DEBUG base64_encode size: %lld,  in_len:
             // %lld\n", bptr->length+1, in_len);
             buf = new char[bptr->length + 1];
@@ -554,8 +557,9 @@ char* ot_openssl_base64_encode(const uint8_t* input, int32_t in_len,
     return buf;
 }
 
-uint8_t* ot_openssl_base64_decode(const char* input, size_t* out_len,
-                                  int32_t bLineBreaks)
+// Caller responsible to delete.
+uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
+                                        bool bLineBreaks) const
 {
 
     OT_ASSERT(nullptr != input);
@@ -588,21 +592,6 @@ uint8_t* ot_openssl_base64_decode(const char* input, size_t* out_len,
     }
 
     return buf;
-}
-} // extern "C"
-
-// Caller responsible to delete.
-char* OTCrypto_OpenSSL::Base64Encode(const uint8_t* input, int32_t in_len,
-                                     bool bLineBreaks) const
-{
-    return ot_openssl_base64_encode(input, in_len, (bLineBreaks ? 1 : 0));
-}
-
-// Caller responsible to delete.
-uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
-                                        bool bLineBreaks) const
-{
-    return ot_openssl_base64_decode(input, out_len, (bLineBreaks ? 1 : 0));
 }
 
 // SET (binary id) FROM BASE62-ENCODED STRING
