@@ -267,18 +267,6 @@ public:
     EXPORT bool SetAndPackString(const OTString& theData,
                                  bool bLineBreaks = true);
 
-    EXPORT bool GetStringMap(std::map<std::string, std::string>& the_map,
-                             bool bLineBreaks = true) const;
-    EXPORT bool GetAndUnpackStringMap(
-        std::map<std::string, std::string>& the_map,
-        bool bLineBreaks = true) const;
-
-    EXPORT bool SetStringMap(const std::map<std::string, std::string>& the_map,
-                             bool bLineBreaks = true);
-    EXPORT bool SetAndPackStringMap(
-        const std::map<std::string, std::string>& the_map,
-        bool bLineBreaks = true);
-
 private:
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 };
