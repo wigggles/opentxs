@@ -1056,11 +1056,6 @@ bool OTRecordList::PerformAutoAccept()
     return true;
 }
 
-bool compare_records(shared_ptr_OTRecord i, shared_ptr_OTRecord j)
-{
-    return j->operator<(*i);
-}
-
 // POPULATE:
 
 // Populates m_contents from OT API. Calls ClearContents().
@@ -3658,8 +3653,10 @@ void OTRecordList::SortRecords()
     // here?
     // (Possibly not, but I'm not sure. Re-visit later.)
     //
+    // Todo optimize: any faster sorting algorithms?
     std::sort(m_contents.begin(), m_contents.end(),
-              compare_records); // Todo optimize: any faster sorting algorithms?
+              [](const shared_ptr_OTRecord& i,
+                 const shared_ptr_OTRecord& j) { return j->operator<(*i); });
 }
 
 // Let's say you also want to add some Bitmessages. (Or any other external
