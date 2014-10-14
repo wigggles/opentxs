@@ -1,6 +1,7 @@
 ## Open-Transactions Library Project
 
-[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)
+[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs) 
+[![License](http://img.shields.io/:License-LAGPL-yellow.svg)](docs/LICENSE-AND-CREDITS.txt)
 
 
 The Open-Transactions project is a collaborative effort to develop
