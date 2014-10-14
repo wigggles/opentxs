@@ -140,6 +140,7 @@
 #ifndef OT_USE_CXX11
 #include <cstdlib>
 #endif
+#include <string>
 
 #define OT_OTAPI_OT
 
@@ -335,6 +336,9 @@ public:
     OT_OTAPI_OT std::string SendTransaction(OTAPI_Func& theFunction,
                                             const std::string& IN_FUNCTION,
                                             int32_t nTotalRetries) const;
+
+private:
+    static std::string GetVariable(const char* name);
 };
 
 #endif // OPENTXS_CLIENT_OT_OTAPI_OT_HPP

@@ -133,6 +133,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 #define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
+#include <cstddef>
+
 namespace opentxs
 {
 
@@ -290,6 +292,9 @@ private:
     bool isBinary_;
     bool isPageLocked_;
     const BlockSize blockSize_;
+
+    bool ot_lockPage(void* addr, size_t len);
+    bool ot_unlockPage(void* addr, size_t len);
 };
 
 } // namespace opentxs

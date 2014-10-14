@@ -187,6 +187,13 @@ private:
     ///
     int64_t m_lMostRecentRequestNumber;
 
+    void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
+                                      const OTString& str_trans,
+                                      OTString str_box_type,
+                                      const int64_t& lTransNum,
+                                      OTPseudonym& the_nym,
+                                      OTLedger& ledger) const;
+
 public:
     int32_t CalcReturnVal(const int64_t& lRequestNumber);
     bool IsRunningAsScript() const

@@ -246,7 +246,7 @@ void OTScriptable::SetDisplayLabel(const std::string* pstrLabel)
 // Only alphanumerics are valid, or '_' (underscore)
 //
 
-bool is_ot_namechar_invalid(char c)
+bool OTScriptable::is_ot_namechar_invalid(char c)
 {
     return !(isalnum(c) || (c == '_'));
 }

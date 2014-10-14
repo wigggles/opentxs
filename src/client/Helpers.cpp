@@ -130,6 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
+#include "Helpers.hpp"
+
 #include "../ext/OTPayment.hpp"
 #include "../core/crypto/OTEnvelope.hpp"
 #include "../core/OTLedger.hpp"

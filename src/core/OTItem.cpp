@@ -1636,7 +1636,7 @@ void OTItem::ReleaseItems()
     }
 }
 
-OTItem::itemType GetItemTypeFromString(const OTString& strType)
+OTItem::itemType OTItem::GetItemTypeFromString(const OTString& strType)
 {
     OTItem::itemType theType = OTItem::error_state;
 

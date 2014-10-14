@@ -1921,11 +1921,12 @@ bool OTClient::AcceptEntireInbox(OTLedger& theInbox,
 // I'm doing this so I can declare a local function, INSIDE this function :-)
 // (To avoid duplicating code.)  Watch and learn...
 //
-void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
-                                  const OTString& str_trans,
-                                  OTString str_box_type,
-                                  const int64_t& lTransNum,
-                                  OTPseudonym& the_nym, OTLedger& ledger)
+void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
+                                            const OTString& str_trans,
+                                            OTString str_box_type,
+                                            const int64_t& lTransNum,
+                                            OTPseudonym& the_nym,
+                                            OTLedger& ledger) const
 {
     if (nullptr == ledger.GetTransaction(lTransNum)) // (Only add it if it's not
                                                      // already there.)

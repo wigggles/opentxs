@@ -9271,8 +9271,8 @@ OT_COMMANDS_OT int32_t OT_Command::mainPayInvoice()
     return -1;
 }
 
-vector<string> tokenize(const string& str, const string& delimiters,
-                        bool trimEmpty)
+vector<string> OT_Command::tokenize(const string& str, const string& delimiters,
+                                    bool trimEmpty)
 {
     int32_t lastPos = 0;
     vector<string> tokens;

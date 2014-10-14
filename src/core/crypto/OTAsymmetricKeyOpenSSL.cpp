@@ -149,6 +149,193 @@
 // use old style cast
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
+namespace
+{
+
+/*
+ * An implementation of convertion from PGP public key format to OpenSSL
+ *equivalent
+ * Support of RSA, DSA and Elgamal public keys
+ *
+ * Copyright (c) 2010 Mounir IDRASSI <mounir.idrassi@idrix.fr>. All rights
+ *reserved.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ */
+
+typedef struct
+{
+    BIGNUM* p;
+    BIGNUM* g;
+    BIGNUM* pub_key;
+    BIGNUM* priv_key;
+} ELGAMAL;
+
+typedef struct
+{
+    RSA* pRsa;
+    DSA* pDsa;
+    ELGAMAL* pElgamal;
+} PgpKeys;
+
+PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
+{
+    PgpKeys pgpKeys;
+    int32_t i;
+
+    OT_ASSERT(nullptr != pbData);
+
+    memset(&pgpKeys, 0, sizeof(pgpKeys));
+    for (i = 0; i < dataLength;) {
+        int32_t packetLength;
+        uint8_t packetTag = pbData[i++];
+        if ((packetTag & 0x80) == 0) break;
+        if ((packetTag & 0x40)) {
+            packetTag &= 0x3F;
+            packetLength = pbData[i++];
+            if ((packetLength > 191) && (packetLength < 224))
+                packetLength = ((packetLength - 192) << 8) + pbData[i++];
+            else if ((packetLength > 223) && (packetLength < 255))
+                packetLength = (1 << (packetLength & 0x1f));
+            else if (packetLength == 255) {
+                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
+                               (pbData[i + 2] << 8) + pbData[i + 3];
+                i += 4;
+            }
+        }
+        else {
+            packetLength = packetTag & 3;
+            packetTag = (packetTag >> 2) & 15;
+            if (packetLength == 0)
+                packetLength = pbData[i++];
+            else if (packetLength == 1) {
+                packetLength = (pbData[i] << 8) + pbData[i + 1];
+                i += 2;
+            }
+            else if (packetLength == 2) {
+                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
+                               (pbData[i + 2] << 8) + pbData[i + 3];
+                i += 4;
+            }
+            else
+                packetLength = dataLength - 1;
+        }
+
+        if ((packetTag == 6) || (packetTag == 14)) //  a public key
+        {
+            int32_t algorithm;
+            int32_t version = pbData[i++];
+
+            // skip time over 4 bytes
+            i += 4;
+
+            if ((version == 2) || (version == 3)) {
+                // skip validity over 2 bytes
+                i += 2;
+            }
+
+            algorithm = pbData[i++];
+
+            if ((algorithm == 1) || (algorithm == 2) ||
+                (algorithm == 3)) // an RSA key
+            {
+                int32_t modulusLength, exponentLength;
+                RSA* pKey = RSA_new();
+
+                // Get the modulus
+                modulusLength = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->n = BN_bin2bn(pbData + i + 2, modulusLength, nullptr);
+                i += modulusLength + 2;
+
+                // Get the exponent
+                exponentLength = (pbData[i] * 256 + pbData[i + 1] + 7) / 8;
+                pKey->e = BN_bin2bn(pbData + i + 2, exponentLength, nullptr);
+                i += exponentLength + 2;
+
+                pgpKeys.pRsa = pKey;
+
+                continue;
+            }
+            else if (algorithm == 17) // a DSA key
+            {
+                int32_t pLen, qLen, gLen, yLen;
+                DSA* pKey = DSA_new();
+
+                // Get Prime P
+                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
+                i += pLen + 2;
+
+                // Get Prime Q
+                qLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->q = BN_bin2bn(pbData + i + 2, qLen, nullptr);
+                i += qLen + 2;
+
+                // Get Prime G
+                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
+                i += gLen + 2;
+
+                // Get Prime Y
+                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
+                i += yLen + 2;
+
+                pgpKeys.pDsa = pKey;
+
+                continue;
+            }
+            else if ((algorithm == 16) || (algorithm == 20)) // Elgamal key
+                                                               // (not supported
+                                                               // by OpenSSL
+            {
+                int32_t pLen, gLen, yLen;
+                ELGAMAL* pKey = static_cast<ELGAMAL*>(malloc(sizeof(ELGAMAL)));
+                if (nullptr == pKey) {
+                    opentxs::otErr << __FUNCTION__
+                                   << ": Error: pKey is nullptr!";
+                    OT_FAIL;
+                }
+
+                // Get Prime P
+                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+
+                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
+
+                i += pLen + 2;
+
+                // Get Prime G
+                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
+                i += gLen + 2;
+
+                // Get Prime Y
+                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
+                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
+                i += yLen + 2;
+
+                pgpKeys.pElgamal = pKey;
+
+                continue;
+            }
+            else {
+                i -= 6;
+                if (version == 2 || version == 3) i -= 2;
+            }
+        }
+
+        i += packetLength;
+    }
+
+    return pgpKeys;
+}
+
+} // namespace
+
 namespace opentxs
 {
 
@@ -781,187 +968,6 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
         otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
 
     return bSuccess;
-}
-
-/*
- * An implementation of convertion from PGP public key format to OpenSSL
- *equivalent
- * Support of RSA, DSA and Elgamal public keys
- *
- * Copyright (c) 2010 Mounir IDRASSI <mounir.idrassi@idrix.fr>. All rights
- *reserved.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
-
-typedef struct
-{
-    BIGNUM* p;
-    BIGNUM* g;
-    BIGNUM* pub_key;
-    BIGNUM* priv_key;
-} ELGAMAL;
-
-typedef struct
-{
-    RSA* pRsa;
-    DSA* pDsa;
-    ELGAMAL* pElgamal;
-} PgpKeys;
-
-PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
-{
-    PgpKeys pgpKeys;
-    int32_t i;
-
-    OT_ASSERT(nullptr != pbData);
-
-    memset(&pgpKeys, 0, sizeof(pgpKeys));
-    for (i = 0; i < dataLength;) {
-        int32_t packetLength;
-        uint8_t packetTag = pbData[i++];
-        if ((packetTag & 0x80) == 0) break;
-        if ((packetTag & 0x40)) {
-            packetTag &= 0x3F;
-            packetLength = pbData[i++];
-            if ((packetLength > 191) && (packetLength < 224))
-                packetLength = ((packetLength - 192) << 8) + pbData[i++];
-            else if ((packetLength > 223) && (packetLength < 255))
-                packetLength = (1 << (packetLength & 0x1f));
-            else if (packetLength == 255) {
-                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
-                               (pbData[i + 2] << 8) + pbData[i + 3];
-                i += 4;
-            }
-        }
-        else {
-            packetLength = packetTag & 3;
-            packetTag = (packetTag >> 2) & 15;
-            if (packetLength == 0)
-                packetLength = pbData[i++];
-            else if (packetLength == 1) {
-                packetLength = (pbData[i] << 8) + pbData[i + 1];
-                i += 2;
-            }
-            else if (packetLength == 2) {
-                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
-                               (pbData[i + 2] << 8) + pbData[i + 3];
-                i += 4;
-            }
-            else
-                packetLength = dataLength - 1;
-        }
-
-        if ((packetTag == 6) || (packetTag == 14)) //  a public key
-        {
-            int32_t algorithm;
-            int32_t version = pbData[i++];
-
-            // skip time over 4 bytes
-            i += 4;
-
-            if ((version == 2) || (version == 3)) {
-                // skip validity over 2 bytes
-                i += 2;
-            }
-
-            algorithm = pbData[i++];
-
-            if ((algorithm == 1) || (algorithm == 2) ||
-                (algorithm == 3)) // an RSA key
-            {
-                int32_t modulusLength, exponentLength;
-                RSA* pKey = RSA_new();
-
-                // Get the modulus
-                modulusLength = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->n = BN_bin2bn(pbData + i + 2, modulusLength, nullptr);
-                i += modulusLength + 2;
-
-                // Get the exponent
-                exponentLength = (pbData[i] * 256 + pbData[i + 1] + 7) / 8;
-                pKey->e = BN_bin2bn(pbData + i + 2, exponentLength, nullptr);
-                i += exponentLength + 2;
-
-                pgpKeys.pRsa = pKey;
-
-                continue;
-            }
-            else if (algorithm == 17) // a DSA key
-            {
-                int32_t pLen, qLen, gLen, yLen;
-                DSA* pKey = DSA_new();
-
-                // Get Prime P
-                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
-                i += pLen + 2;
-
-                // Get Prime Q
-                qLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->q = BN_bin2bn(pbData + i + 2, qLen, nullptr);
-                i += qLen + 2;
-
-                // Get Prime G
-                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
-                i += gLen + 2;
-
-                // Get Prime Y
-                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
-                i += yLen + 2;
-
-                pgpKeys.pDsa = pKey;
-
-                continue;
-            }
-            else if ((algorithm == 16) || (algorithm == 20)) // Elgamal key
-                                                               // (not supported
-                                                               // by OpenSSL
-            {
-                int32_t pLen, gLen, yLen;
-                ELGAMAL* pKey = static_cast<ELGAMAL*>(malloc(sizeof(ELGAMAL)));
-                if (nullptr == pKey) {
-                    otErr << __FUNCTION__ << ": Error: pKey is nullptr!";
-                    OT_FAIL;
-                }
-
-                // Get Prime P
-                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
-
-                i += pLen + 2;
-
-                // Get Prime G
-                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
-                i += gLen + 2;
-
-                // Get Prime Y
-                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
-                i += yLen + 2;
-
-                pgpKeys.pElgamal = pKey;
-
-                continue;
-            }
-            else {
-                i -= 6;
-                if (version == 2 || version == 3) i -= 2;
-            }
-        }
-
-        i += packetLength;
-    }
-
-    return pgpKeys;
 }
 
 // Decodes a PGP public key from ASCII armor into an actual key pointer

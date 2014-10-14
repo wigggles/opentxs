@@ -157,6 +157,8 @@ class OTScriptable : public OTContract
 private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
 
+    static bool is_ot_namechar_invalid(char c);
+
 protected:
     mapOfParties m_mapParties; // The parties to the contract. Could be Nyms, or
                                // other entities. May be rep'd by an Agent.
