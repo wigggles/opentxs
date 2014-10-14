@@ -375,20 +375,11 @@ public:
     // supported, but soon contracts will also support x509 certs.
     EXPORT virtual bool VerifyContract();
 
-    // Only overriden in OTOffer so far.
-    //
-    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier) const; // You
-                                                                          // can
-    // get it
-    // in string or
-    // binary form.
-    EXPORT virtual void GetIdentifier(
-        OTString& theIdentifier) const; // The Contract
-                                        // ID is a hash
-                                        // of the
-                                        // contract raw
-                                        // file.
-
+    // Overriden for example in OTOffer, OTMarket.
+    // You can get it in string or binary form.
+    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
+    // The Contract ID is a hash of the contract raw file.
+    EXPORT void GetIdentifier(OTString& theIdentifier) const;
     EXPORT void GetFilename(OTString& strFilename) const;
     EXPORT void GetFoldername(OTString& strFoldername) const;
 

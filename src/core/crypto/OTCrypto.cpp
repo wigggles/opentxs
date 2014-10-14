@@ -492,64 +492,6 @@ void OTCrypto::Cleanup_Override() const
              "called (you should be overriding it...)\n";
 }
 
-bool OTCrypto::Base64Encode(const OTData& theInput, OTString& strOutput,
-                            bool bLineBreaks) const
-{
-
-    const uint8_t* pDataIn = static_cast<const uint8_t*>(theInput.GetPointer());
-    int32_t nLength = static_cast<int32_t>(theInput.GetSize());
-
-    OT_ASSERT_MSG(nLength >= 0, "ASSERT!!! nLength is an int32_t, matching the "
-                                "openssl interface, and a size was just "
-                                "attempted that wouldn't fit into an int32_t, "
-                                "after static casting.\n");
-
-    // Caller is responsible to delete.
-    char* pChar = Base64Encode(pDataIn, nLength, bLineBreaks);
-
-    if (nullptr == pChar) {
-        otErr << __FUNCTION__
-              << ": Base64Encode returned nullptr. (Failure.)\n";
-        return false;
-    }
-
-    // pChar not nullptr, and must be cleaned up.
-    //
-    strOutput.Set(pChar);
-    delete pChar;
-    pChar = nullptr;
-
-    return true; // <=== Success.
-}
-
-bool OTCrypto::Base64Decode(const OTString& strInput, OTData& theOutput,
-                            bool bLineBreaks) const
-{
-
-    const char* szInput = strInput.Get();
-    size_t theSize = 0;
-
-    // Caller is responsible to delete.
-    uint8_t* pOutput = Base64Decode(szInput, &theSize, bLineBreaks);
-
-    if (nullptr == pOutput) {
-        otErr << __FUNCTION__
-              << ": Base64Decode returned nullptr. (Failure.)\n";
-        return false;
-    }
-
-    // pOutput not nullptr, and must be cleaned up.
-    //
-    const void* pVoid = reinterpret_cast<void*>(pOutput);
-    uint32_t lNewSize = static_cast<uint32_t>(theSize);
-
-    theOutput.Assign(pVoid, lNewSize);
-    delete pOutput;
-    pOutput = nullptr;
-
-    return true; // <=== Success.
-}
-
 OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output()
     : m_pPassword(nullptr)
     , m_pPayload(nullptr)
