@@ -2201,37 +2201,12 @@ void OTContract::CreateInnerContents()
         }
     }
 
-    // KEYS (old) / CREDENTIALS (new)
+    // CREDENTIALS
     //
     if (!m_mapNyms.empty()) {
         OTString strTemp;
 
-        // KEYS  (Note: deprecated in favor of NymID source and credentials.)
-        for (auto& it : m_mapNyms) {
-            std::string str_name = it.first;
-            OTPseudonym* pNym = it.second;
-            OT_ASSERT_MSG(nullptr != pNym,
-                          "1: nullptr pseudonym pointer in "
-                          "OTContract::CreateInnerContents.\n");
-
-            if (("contract" == str_name) || ("certification" == str_name) ||
-                ("serverCertification" == str_name)) {
-                OTString strPubkey;
-                if (pNym->GetPublicSignKey().GetPublicKey(
-                        strPubkey) && // bEscaped=true by default.
-                    strPubkey.Exists()) {
-                    strTemp.Concatenate("<key name=\"%s\">\n%s</key>\n\n",
-                                        str_name.c_str(), strPubkey.Get());
-                }
-            }
-        }
-
-        if (strTemp.Exists()) {
-            m_xmlUnsigned.Concatenate("<!-- KEYS -->\n\n%s", strTemp.Get());
-            strTemp.Release();
-        }
-
-        // NEW CREDENTIALS, based on NymID and Source, and credential IDs.
+        // CREDENTIALS, based on NymID and Source, and credential IDs.
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
             OTPseudonym* pNym = it.second;
@@ -2586,49 +2561,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
             } // credential list exists, after base64-decoding.
 
         } // Has Credentials.
-
         return (-1);
     }
-    else if (strNodeName.Compare("key")) {
-        OTString strKeyName;
-        OTString strKeyValue;
-
-        strKeyName = xml->getAttributeValue("name");
-
-        if (!SkipToTextField(xml)) {
-            otOut << "OTContract::ProcessXMLNode: Failure: Unable to find "
-                     "expected text "
-                     "field for xml node named: " << xml->getNodeName() << "\n";
-            return (-1); // error condition
-        }
-
-        if (EXN_TEXT == xml->getNodeType()) {
-            strKeyValue = xml->getNodeData();
-        }
-        else {
-            otErr << "Error in OTContract::ProcessXMLNode: Key without value: "
-                  << strKeyName << "\n";
-            return (-1); // error condition
-        }
-        // Create a new nym for this public key (or x509 cert, it works either
-        // way)
-        // and add it to the contract's internal list of nyms.
-        //
-        // Later on, if someone needs to get the Public Key for this contract
-        // and
-        // use it to verify the signature on the contract, or to verify a
-        // message
-        // from the server, the contract can iterate the list of Nyms and get
-        // the public contract key based on a standard name such as the
-        // "contract" key.
-        // (Versus the "server" key or the "certification" key, etc.
-
-        if (!InsertNym(strKeyName, strKeyValue))
-            otErr << "Error performing OTContract::InsertNym.\n";
-
-        return 1;
-    }
-
     return 0;
 }
 

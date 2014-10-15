@@ -3511,9 +3511,6 @@ size_t OTPseudonym::GetRevokedCredentialCount() const
 bool OTPseudonym::VerifyPseudonym() const
 {
     // If there are credentials, then we verify the Nym via his credentials.
-    // Otherwise we do it the old way (using the Nym's "keypair")--which is
-    // being deprecated.
-    //
     if (!m_mapCredentials.empty()) {
         // Verify Nym by his own credentials.
         for (const auto& it : m_mapCredentials) {
@@ -3593,60 +3590,10 @@ bool OTPseudonym::VerifyPseudonym() const
                                          "pCredential->GetPublicSignKey()."
                                          "GetPublicKey()\n";
         }
-
         return true;
-
-    }    // If there are credentials
-    else // Deprecated. OTPseudonym::m_pkeypair was used for encryption,
-         // signing, and authentication.
-    { // (Replaced by the above block, which has a map of credentials for each
-        // Nym, with each
-        // credential having a master key and a set of subcredentials including
-        // subkeys.
-        //
-        OT_ASSERT(nullptr != m_pkeypair);
-
-        OTString strPublicKey;
-        bool bGotPublicKey = m_pkeypair->GetPublicKey(strPublicKey);
-
-        if (!bGotPublicKey) {
-            otErr << "Error getting public key in "
-                     "OTPseudonym::VerifyPseudonym.\n";
-            return false;
-        }
-
-        OTIdentifier newID;
-        bool bSuccessCalculateDigest = newID.CalculateDigest(strPublicKey);
-
-        if (!bSuccessCalculateDigest) {
-            otErr << "Error calculating pubkey digest.\n";
-            return false;
-        }
-
-        // newID now contains the Hash aka Message Digest aka Fingerprint aka
-        // "IDENTIFIER"
-        // of the public key (in its text form, with escaped bookends.)
-        //
-        // Now let's compare that identifier to the one already loaded by the
-        // wallet
-        // and make sure they MATCH.
-
-        if (m_nymID != newID) {
-            OTString str1(m_nymID), str2(newID);
-            otErr << "\nHashes do NOT match in OTPseudonym::VerifyPseudonym!\n"
-                  << str1 << "\n" << str2 << "\n";
-
-            return false;
-        }
-        else {
-            //        OTString str2(newID);
-            //        otWarn << "\nNymID from wallet *SUCCESSFUL* match to hash
-            // of Nym\'s public key:\n%s\n"
-            //                "---------------------------------------------------------------\n",
-            // str2.Get());
-            return true;
-        }
     }
+    otErr << "No credentials.\n";
+    return false;
 }
 
 bool OTPseudonym::CompareID(const OTPseudonym& RHS) const
@@ -3779,30 +3726,10 @@ bool OTPseudonym::LoadPublicKey()
 {
     OT_ASSERT(nullptr != m_pkeypair);
 
-    // Here we try to load credentials first (the new system) and if it's
-    // successful, we
+    // Here we try to load credentials first and if it's successful, we
     // use that to set the public key from the credential, and then return.
-    // Otherwise,
-    // we run the old code.
     //
-    if (LoadCredentials() && (GetMasterCredentialCount() > 0)) // New style!
-    {
-        //        auto it = m_mapCredentials.begin();
-        //        OT_ASSERT(m_mapCredentials.end() != it);
-        //        OTCredential * pCredential = it->second;
-        //        OT_ASSERT(nullptr != pCredential);
-
-        //        OTString strSigningKey;
-        //
-        //        if (const_cast<OTKeypair
-        // &>(pCredential->GetSignKeypair(&m_listRevokedIDs)).GetPublicKey(strSigningKey,
-        // false)) //bEscaped
-        //            return m_pkeypair->SetPublicKey(strSigningKey, false); //
-        // bEscaped
-        //        else
-        //            otErr << "%s: Failed in call to
-        // pCredential->GetPublicSignKey().GetPublicKey()\n", __FUNCTION__);
-
+    if (LoadCredentials() && (GetMasterCredentialCount() > 0)) {
         return true;
 
         // NOTE: LoadPublicKey (this function) calls LoadCredentials (above.) On
@@ -3845,56 +3772,6 @@ bool OTPseudonym::LoadPublicKey()
         // still expecting things to work the old way -- and these are precisely
         // the sorts of cases I probably want to
         // uncover, so I can convert things over...
-    }
-
-    // OLD STYLE (below.) Deprecated!
-
-    OTString strID;
-
-    if (!Server_PubKeyExists(&strID)) // strID will contain *this
-                                      // nymID after this call.
-    {
-        // Code will call this in order to see if there is a PublicKey to be
-        // loaded.
-        // Therefore I don't want to log a big error here since we expect that
-        // sometimes
-        // the key won't be there.
-        // Therefore I log at level 4, the same level as I log the successful
-        // outcome.
-        //
-        otLog4 << __FUNCTION__
-               << ": Failed load: "
-                  "Apparently this Nym doesn't exist. (Returning.)\n";
-        return false;
-    }
-
-    const char* szFoldername = OTFolders::Pubkey().Get();
-    const char* szFilename = strID.Get();
-
-    const OTString strFoldername(szFoldername), strFilename(szFilename);
-
-    // This loads up the ascii-armored Public Key.
-    // On the client side, the entire x509 is stored in the cert folder.
-    // (With other Nym's pubkeys stored in pubkey folder.)
-    // On the server side, it's just the public key and stored here in pubkey
-    // folder.
-    //
-    const bool bCanLoadKeyFile = OTDB::Exists(szFoldername, szFilename);
-
-    if (bCanLoadKeyFile) {
-        if (!m_pkeypair->LoadPublicKey(strFoldername, strFilename)) {
-            otErr << __FUNCTION__ << ": Although the ascii-armored file ("
-                  << szFoldername << OTLog::PathSeparator() << szFilename
-                  << ") was read, LoadPublicKey returned false.\n";
-            return false;
-        }
-        else {
-            otLog4 << __FUNCTION__
-                   << ": Successfully loaded public key from file: "
-                   << szFoldername << OTLog::PathSeparator() << szFilename
-                   << "\n";
-        }
-        return true;
     }
 
     otInfo << __FUNCTION__ << ": Failure.\n";
@@ -6044,15 +5921,12 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(bool bChecking,
     if (nullptr == pPWData) pPWData = &thePWData;
     OTString strReason(pPWData->GetDisplayString());
 
-    // Here we try to load credentials first (the new system) and if it's
-    // successful, we
+    // Here we try to load credentials first and if it's successful, we
     // use that to set the private/public keypair from the credential, and then
     // return.
-    // Otherwise, we run the old code.
     //
     if (LoadCredentials(true, pPWData, pImportPassword) &&
-        (GetMasterCredentialCount() > 0)) // New style!
-    {
+        (GetMasterCredentialCount() > 0)) {
         //      return true;
         auto it = m_mapCredentials.begin();
         OT_ASSERT(m_mapCredentials.end() != it);
@@ -6077,41 +5951,7 @@ bool OTPseudonym::Loadx509CertAndPrivateKey(bool bChecking,
         }
     }
 
-    // OLD STYLE (below) Deprecated.
-
-    OTString strID(m_nymID);
-
-    std::string strFoldername = OTFolders::Cert().Get();
-    std::string strFilename = strID.Get();
-
-    if (strFoldername.empty()) {
-        otErr << __FUNCTION__ << ": Error: strFoldername is empty!";
-        OT_FAIL;
-    }
-    if (strFilename.empty()) {
-        otErr << __FUNCTION__ << ": Error: strFilename is empty!";
-        OT_FAIL;
-    }
-
-    const bool bExists = OTDB::Exists(strFoldername, strFilename);
-
-    if (!bExists) {
-        OTLog::vOutput(bChecking ? 1 : 0,
-                       "%s: (%s: is %s).  File does not exist: %s in: %s\n",
-                       __FUNCTION__, "bChecking", bChecking ? "true" : "false",
-                       strFoldername.c_str(), strFilename.c_str());
-
-        return false;
-    }
-    else if (m_pkeypair->LoadBothKeysFromCertFile(
-                   OTFolders::Cert(), // foldername
-                   strID,             // filename
-                   &strReason, pImportPassword))
-        return true; // LoadBothKeysFromCertFile has plenty of logs, no need for
-                     // more at this time here.
-
-    otErr << __FUNCTION__ << ": Failure, filename: " << strFoldername
-          << OTLog::PathSeparator() << strFilename << "\n";
+    otErr << __FUNCTION__ << "LoadCredentials failed.\n";
     return false;
 }
 
