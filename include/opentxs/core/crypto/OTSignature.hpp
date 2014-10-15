@@ -138,7 +138,6 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-
 namespace opentxs
 {
 
