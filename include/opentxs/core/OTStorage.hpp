@@ -424,7 +424,15 @@ public:
     EXPORT static Storable* Create(StoredObjectType eType,
                                    PackType thePackType);
 
+#ifndef __clang__
+// -Wuseless-cast does not exist in clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
     DEFINE_OT_DYNAMIC_CAST(Storable)
+#pragma GCC diagnostic pop
+#else
+    DEFINE_OT_DYNAMIC_CAST(Storable)
+#endif
 };
 
 #ifndef SWIG

@@ -1343,7 +1343,7 @@ bool OTString::sgets(char* szBuffer, uint32_t nBufSize)
     if (position_ >= length_) return false;
 
     uint32_t lIndex = 0;
-    char* pChar = const_cast<char*>(data_ + position_);
+    char* pChar = data_ + position_;
 
     // while *pChar isn't at the end of the source string,
     // and lIndex hasn't reached the end of the destination buffer,
@@ -1404,7 +1404,7 @@ char OTString::sgetc(void)
     if (position_ >= length_) {
         return EOF;
     }
-    answer = static_cast<char>(*(data_ + position_));
+    answer = *(data_ + position_);
 
     ++position_;
 

@@ -286,8 +286,7 @@ void OTPassword::zeroMemory()
 {
     size_ = 0;
 
-    OTPassword::zeroMemory(static_cast<void*>(&(data_[0])),
-                           static_cast<uint32_t>(getBlockSize()));
+    OTPassword::zeroMemory(static_cast<void*>(&(data_[0])), getBlockSize());
 
 //
 #ifndef _WIN32
@@ -295,8 +294,7 @@ void OTPassword::zeroMemory()
     // the memory was safely ZERO'd out.
     //
     if (isPageLocked_) {
-        if (ot_unlockPage(static_cast<void*>(&(data_[0])),
-                          static_cast<uint32_t>(getBlockSize()))) {
+        if (ot_unlockPage(static_cast<void*>(&(data_[0])), getBlockSize())) {
             isPageLocked_ = false;
         }
         else
@@ -586,7 +584,7 @@ const void* OTPassword::getMemory() const
 const uint8_t* OTPassword::getMemory_uint8() const
 {
     OT_ASSERT(isBinary_);
-    return (size_ <= 0) ? nullptr : static_cast<const uint8_t*>(&(data_[0]));
+    return (size_ <= 0) ? nullptr : &(data_[0]);
 }
 
 // getMemoryWritable returns nullptr if empty, otherwise returns the password.
@@ -668,9 +666,8 @@ bool OTPassword::Compare(OTPassword& rhs) const
 //
 int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
 {
-    return static_cast<int32_t>(
-        setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput),
-                          static_cast<uint32_t>(nInputSize)));
+    return setPassword_uint8(reinterpret_cast<const uint8_t*>(szInput),
+                             static_cast<uint32_t>(nInputSize));
 }
 
 // This adds a null terminator.
@@ -984,19 +981,19 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
     // need to go
     // trying to lock it again.
 
-    OTPassword::safe_memcpy(
-        static_cast<void*>(&(data_[size_])),
-        static_cast<uint32_t>(nAppendSize), // dest size is based on the source
-                                            // size, but guaranteed to be >0 and
-                                            // <=getBlockSize
-        vAppend, static_cast<uint32_t>(nAppendSize)); // Since dest size is
-                                                      // known to be src size or
-                                                      // less (and >0) we use it
-                                                      // as src size. (We may
-                                                      // have truncated... and
-                                                      // we certainly don't want
-                                                      // to copy beyond our own
-                                                      // truncation.)
+    OTPassword::safe_memcpy(static_cast<void*>(&(data_[size_])),
+                            nAppendSize, // dest size is based on the source
+                                         // size, but guaranteed to be >0 and
+                                         // <=getBlockSize
+                            vAppend,
+                            nAppendSize); // Since dest size is
+                                          // known to be src size or
+                                          // less (and >0) we use it
+                                          // as src size. (We may
+                                          // have truncated... and
+                                          // we certainly don't want
+                                          // to copy beyond our own
+                                          // truncation.)
 
     size_ += nAppendSize;
 
@@ -1046,7 +1043,7 @@ int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
                             // dest size is based on the source
                             // size, but guaranteed to be >0 and
                             // <=getBlockSize
-                            static_cast<uint32_t>(nInputSize),
+                            nInputSize,
                             // Since dest size is known
                             // to be src size or less
                             // (and >0) we use it as src
@@ -1055,7 +1052,7 @@ int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
                             // certainly don't want to
                             // copy beyond our own
                             // truncation.)
-                            vInput, static_cast<uint32_t>(nInputSize));
+                            vInput, nInputSize);
 
     size_ = nInputSize;
     return size_;

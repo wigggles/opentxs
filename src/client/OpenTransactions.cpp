@@ -8254,7 +8254,7 @@ bool OT_API::ClearRecord(
         return true;
     }
     else {
-        const int32_t nTemp = static_cast<int32_t>(nIndex);
+        const int32_t nTemp = nIndex;
         otOut << __FUNCTION__
               << ": Failed trying to clear a record from the record "
                  "box at index: " << nTemp << "\n";

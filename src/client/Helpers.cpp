@@ -346,7 +346,7 @@ int32_t GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum)
                 if (thePayment.IsValid()) {
                     if (thePayment.SetTempValues()) {
                         if (thePayment.HasTransactionNum(lTransNum)) {
-                            return static_cast<int32_t>(lOutpaymentsIndex);
+                            return lOutpaymentsIndex;
                         }
                     }
                 }

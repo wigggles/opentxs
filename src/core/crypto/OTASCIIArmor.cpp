@@ -594,7 +594,7 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
         return false;
     }
 
-    const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
+    const uint8_t* pUint = pBuffer->GetData();
     const size_t theSize = pBuffer->GetSize();
 
     if (nullptr != pUint)

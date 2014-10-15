@@ -450,7 +450,7 @@ bool OTMarket::GetRecentTradeList(OTASCIIArmor& ascOutput, int32_t& nTradeCount)
 
         // Now we need to translate pBuffer into strOutput.
 
-        const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
+        const uint8_t* pUint = pBuffer->GetData();
         const size_t theSize = pBuffer->GetSize();
 
         if ((nullptr != pUint) || (theSize < 2)) {
@@ -586,7 +586,7 @@ bool OTMarket::GetOfferList(OTASCIIArmor& ascOutput, int64_t lDepth,
 
         // Now we need to translate pBuffer into strOutput.
 
-        const uint8_t* pUint = static_cast<const uint8_t*>(pBuffer->GetData());
+        const uint8_t* pUint = pBuffer->GetData();
         const size_t theSize = pBuffer->GetSize();
 
         if (nullptr != pUint) {

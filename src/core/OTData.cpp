@@ -225,9 +225,8 @@ uint32_t OTData::OTfread(uint8_t* data, uint32_t size)
         if (size < sizeToRead) {
             sizeToRead = size;
         }
-        OTPassword::safe_memcpy(data, size,
-                                static_cast<uint8_t*>(data_) + position_,
-                                static_cast<uint32_t>(sizeToRead));
+        OTPassword::safe_memcpy(
+            data, size, static_cast<uint8_t*>(data_) + position_, sizeToRead);
         position_ += sizeToRead;
     }
 
