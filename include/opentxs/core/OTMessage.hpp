@@ -152,6 +152,8 @@ protected:
 
     bool m_bIsSigned;
 
+    void processXmlSuccess(irr::io::IrrXMLReader*& xml);
+
 public:
     EXPORT OTMessage();
     EXPORT virtual ~OTMessage();

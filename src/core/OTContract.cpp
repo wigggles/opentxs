@@ -1951,14 +1951,11 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 
     // If we're not ALREADY on an element, maybe there is some whitespace, so
     // let's skip ahead...
-    //
-    if ((EXN_ELEMENT != xml->getNodeType()) || // If we're not already on a
-                                               // node, OR if the node's
-        !(strcmp(pElementExpected, xml->getNodeName()) ==
-          0)) // name doesn't match the one expected.
-    {
+    // If we're not already on a node, OR
+    if ((EXN_ELEMENT != xml->getNodeType()) ||
+        // if the node's name doesn't match the one expected.
+        strcmp(pElementExpected, xml->getNodeName()) != 0) {
         // move to the next node which SHOULD be the expected name.
-        //
         if (!SkipToElement(xml)) {
             otOut << __FUNCTION__
                   << ": Failure: Unable to find expected element: " << szName
@@ -1967,68 +1964,43 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
         }
     }
 
-    if (EXN_ELEMENT == xml->getNodeType()) // SHOULD always be true...
+    if (EXN_ELEMENT != xml->getNodeType()) // SHOULD always be ELEMENT...
     {
-        if (!strcmp(pElementExpected, xml->getNodeName())) {
-
-            if (nullptr !=
-                pmapExtraVars) // If the caller wants values for certain
-                               // names expected to be on this node.
-            {
-                OTString::Map& mapExtraVars = (*pmapExtraVars);
-
-                for (auto& it : mapExtraVars) {
-                    std::string first = it.first;
-                    OTString strTemp = xml->getAttributeValue(first.c_str());
-
-                    if (strTemp.Exists()) {
-                        mapExtraVars[first] = strTemp.Get();
-
-                        //                        mapExtraVars.erase(first);
-                        //                        mapExtraVars.insert(std::pair<std::string,
-                        // std::string>(first, strTemp.Get()));
-                    }
-                }
-            } // Any attribute names passed in, now have their corresponding
-              // values set on mapExtraVars (for caller.)
-
-            if (false ==
-                OTContract::LoadEncodedTextField(
-                    xml,
-                    ascOutput)) // <====================================================
-            {
-                otErr << __FUNCTION__ << ": Error loading " << pElementExpected
-                      << " field.\n";
-                return false; // error condition
-            }
-            else {
-
-                // SkipAfterLoadingField() only skips ahead if it's not ALREADY
-                // sitting on an element_end node.
-                //
-                // Update: Above, LoadEncodedTextField() already does this
-                // (below).
-                //
-                //                if (!SkipAfterLoadingField(xml))
-                //                { otOut << "*** %s: Bad data? Expected
-                // EXN_ELEMENT_END here, but "
-                //                                "didn't get it. Returning
-                // false.\n", __FUNCTION__); return false; }
-
-                return true; // <============ SUCCESS!!!!
-            }
-        }
-        else {
-            otErr << __FUNCTION__ << ": Error: missing " << pElementExpected
-                  << " element.\n";
-            return false; // error condition
-        }
-    }
-    else {
         otErr << __FUNCTION__ << ": Error: Expected " << pElementExpected
               << " element with text field.\n";
         return false; // error condition
     }
+
+    if (strcmp(pElementExpected, xml->getNodeName()) != 0) {
+        otErr << __FUNCTION__ << ": Error: missing " << pElementExpected
+              << " element.\n";
+        return false; // error condition
+    }
+
+    // If the caller wants values for certain
+    // names expected to be on this node.
+    if (nullptr != pmapExtraVars) {
+        OTString::Map& mapExtraVars = (*pmapExtraVars);
+
+        for (auto& it : mapExtraVars) {
+            std::string first = it.first;
+            OTString strTemp = xml->getAttributeValue(first.c_str());
+
+            if (strTemp.Exists()) {
+                mapExtraVars[first] = strTemp.Get();
+            }
+        }
+    }
+    // Any attribute names passed in, now have their corresponding
+    // values set on mapExtraVars (for caller.)
+
+    if (false == OTContract::LoadEncodedTextField(xml, ascOutput)) {
+        otErr << __FUNCTION__ << ": Error loading " << pElementExpected
+              << " field.\n";
+        return false;
+    }
+
+    return true;
 }
 
 // Make sure you escape any lines that begin with dashes using "- "
