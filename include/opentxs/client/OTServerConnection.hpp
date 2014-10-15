@@ -203,10 +203,6 @@ public:
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
     void ProcessMessageOut(const OTMessage& theMessage) const;
-
-    // Assuming we are connected, then we have the nym for signing and we
-    // have the connection for sending.
-    bool SignAndSend(OTMessage& theMessage) const;
 };
 
 } // namespace opentxs

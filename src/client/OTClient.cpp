@@ -1066,13 +1066,6 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             theMessage.ReleaseSignatures();
 
             return true;
-
-            // Sign it and send it out.
-            //            theConnection.SignAndSend(theMessage);
-            // I could have called SignContract() and then
-            // theConnection.ProcessMessageOut(message)
-            // but I used the above function instead.
-
         }
         else
             otErr << __FUNCTION__
