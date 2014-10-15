@@ -211,16 +211,6 @@ public:
                                                         // ('int32_t')
     virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
                                   bool bLineBreaks) const;
-    // KEY DERIVATION
-    // userPassword argument contains the user's password which is used to
-    // derive the key. Presumably you already obtained this passphrase...
-    // Then the derived key is returned, or nullptr if failure. CALLER
-    // IS RESPONSIBLE TO DELETE!
-    // Todo: return a smart pointer here.
-    //
-    virtual OTPassword* DeriveKey(const OTPassword& userPassword,
-                                  const OTData& dataSalt, uint32_t uIterations,
-                                  const OTData& dataCheckHash = OTData()) const;
 
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
                                      const OTData& dataSalt,

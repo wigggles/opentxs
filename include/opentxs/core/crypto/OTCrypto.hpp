@@ -287,7 +287,7 @@ public:
                                   bool bLineBreaks) const = 0;
     // KEY DERIVATION
     //
-    // DeriveKey derives a 128-bit symmetric key from a passphrase.
+    // DeriveNewKey derives a 128-bit symmetric key from a passphrase.
     //
     // The OTPassword* returned is the actual derived key. (The result.)
     //
@@ -308,10 +308,6 @@ public:
     // IS RESPONSIBLE TO DELETE!
     // Todo: return a smart pointer here.
     //
-    virtual OTPassword* DeriveKey(
-        const OTPassword& userPassword, const OTData& dataSalt,
-        uint32_t uIterations, const OTData& dataCheckHash = OTData()) const = 0;
-
     virtual OTPassword* DeriveNewKey(const OTPassword& userPassword,
                                      const OTData& dataSalt,
                                      uint32_t uIterations,
