@@ -379,12 +379,6 @@ public:
                                        OTPseudonym& theNym,
                                        TransportCallback* pCallback) const;
 
-    // For the test client in SSL / TCP mode.
-    bool ConnectToTheFirstServerOnList(const OTPseudonym& theNym,
-                                       const OTString& strCA_FILE,
-                                       const OTString& strKEY_FILE,
-                                       const OTString& strKEY_PASSWORD) const;
-
     // Eventually, the wallet will have a LIST of these server connections,
     // and any use of the connection will first require to look up the right one
     // on that list, based on ID. This will return a pointer, and then you do
