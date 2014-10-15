@@ -181,8 +181,6 @@ OTLOG_IMPORT extern OTLogStream otLog5; // logs using OTLog::vOutput(5)
 class OTLogStream : public std::ostream, std::streambuf
 {
 private:
-    int logLevel;
-    int next;
     char* pBuffer;
 
 public:
