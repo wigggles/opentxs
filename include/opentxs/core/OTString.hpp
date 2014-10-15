@@ -246,7 +246,6 @@ public:
     void Concatenate(const OTString& data);
     void Truncate(uint32_t index);
     EXPORT void Format(const char* fmt, ...);
-    void ConvertToLowerCase() const;
     void ConvertToUpperCase() const;
     EXPORT bool TokenizeIntoKeyValuePairs(Map& map) const;
     EXPORT void OTfgets(std::istream& ofs);
