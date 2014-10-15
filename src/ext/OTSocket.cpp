@@ -301,14 +301,4 @@ bool OTSocket::IsListening() const
     return m_bListening;
 }
 
-const OTString& OTSocket::GetConnectPath() const
-{
-    return m_strConnectPath;
-}
-
-const OTString& OTSocket::GetBindingPath() const
-{
-    return m_strBindingPath;
-}
-
 } // namespace opentxs

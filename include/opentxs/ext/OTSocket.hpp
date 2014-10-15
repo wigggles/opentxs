@@ -217,9 +217,6 @@ public:
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 
-    EXPORT const OTString& GetConnectPath() const;
-    EXPORT const OTString& GetBindingPath() const;
-
     EXPORT virtual bool NewContext() = 0;
     EXPORT virtual bool RemakeSocket(const bool bNewContext = false) = 0;
 
