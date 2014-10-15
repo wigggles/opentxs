@@ -368,7 +368,7 @@ public:
 
     // This function calls VerifyContractID, and if that checks out, then it
     // looks up the official
-    // "contract" key inside the contract by calling GetContractPublicKey, and
+    // "contract" key inside the contract by calling GetContractPublicNym, and
     // uses it to verify the
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
@@ -381,7 +381,6 @@ public:
     // The Contract ID is a hash of the contract raw file.
     EXPORT void GetIdentifier(OTString& theIdentifier) const;
     EXPORT void GetFilename(OTString& strFilename) const;
-    EXPORT void GetFoldername(OTString& strFoldername) const;
 
     // assumes m_strFilename is already set. Then it reads that file into a
     // string.
@@ -538,7 +537,6 @@ public:
     // If true, it proves that certain entities really did sign
     // it, and that the contract hasn't been tampered with since
     // it was signed.
-    EXPORT const OTAsymmetricKey* GetContractPublicKey() const;
     EXPORT const OTPseudonym* GetContractPublicNym() const;
 };
 

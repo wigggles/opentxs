@@ -309,11 +309,6 @@ void OTContract::GetFilename(OTString& strFilename) const
     strFilename = m_strFilename;
 }
 
-void OTContract::GetFoldername(OTString& strFoldername) const
-{
-    strFoldername = m_strFoldername;
-}
-
 void OTContract::GetIdentifier(OTIdentifier& theIdentifier) const
 {
     theIdentifier = m_ID;
@@ -433,24 +428,6 @@ const OTPseudonym* OTContract::GetContractPublicNym() const
             // where the official public key can be found for it and for any
             // contract.
             return pNym;
-        }
-    }
-
-    return nullptr;
-}
-
-// If there is a public key I can find for this contract, then
-// I will return it here -- or nullptr.
-const OTAsymmetricKey* OTContract::GetContractPublicKey() const
-{
-    for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
-        OT_ASSERT_MSG(
-            nullptr != pNym,
-            "nullptr pseudonym pointer in OTContract::GetContractPublicKey.\n");
-
-        if (it.first == "signer" || it.first == "contract") {
-            return &(pNym->GetPublicSignKey());
         }
     }
 
