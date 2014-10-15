@@ -1052,9 +1052,6 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                 // Store the derived key to the system keyring.
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
-                    const std::string str_display(
-                        nullptr != szDisplay ? szDisplay
-                                             : "(Display string was blank.)");
 
                     const OTIdentifier idCachedKey(*m_pSymmetricKey);
                     const OTString strCachedKeyHash(
