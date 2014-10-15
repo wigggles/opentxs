@@ -160,7 +160,7 @@ using namespace io;
 namespace opentxs
 {
 
-char const* const __TypeStrings[] = {
+char const* const __TypeStringsAccount[] = {
     "simple",    // used by users
     "issuer",    // used by issuers    (these can only go negative.)
     "basket",    // issuer acct used by basket currencies (these can only go
@@ -220,7 +220,7 @@ OTAccount::~OTAccount()
 char const* OTAccount::_GetTypeString(AccountType accountType)
 {
     int32_t index = static_cast<int32_t>(accountType);
-    return __TypeStrings[index];
+    return __TypeStringsAccount[index];
 }
 
 // Caller responsible to delete.

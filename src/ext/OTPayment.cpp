@@ -149,7 +149,7 @@
 namespace opentxs
 {
 
-char const* const __TypeStrings[] = {
+char const* const __TypeStringsPayment[] = {
 
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
     // which is
@@ -171,14 +171,14 @@ char const* const __TypeStrings[] = {
 const char* OTPayment::_GetTypeString(paymentType theType)
 {
     int32_t nType = static_cast<int32_t>(theType);
-    return __TypeStrings[nType];
+    return __TypeStringsPayment[nType];
 }
 
 OTPayment::paymentType OTPayment::GetTypeFromString(const OTString& strType)
 {
 #define OT_NUM_ELEM(blah) (sizeof(blah) / sizeof(*(blah)))
-    for (uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStrings) - 1); i++) {
-        if (strType.Compare(__TypeStrings[i]))
+    for (uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStringsPayment) - 1); i++) {
+        if (strType.Compare(__TypeStringsPayment[i]))
             return static_cast<OTPayment::paymentType>(i);
     }
 #undef OT_NUM_ELEM

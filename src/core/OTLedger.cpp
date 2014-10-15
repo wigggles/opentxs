@@ -150,7 +150,7 @@
 namespace opentxs
 {
 
-char const* const __TypeStrings[] = {
+char const* const __TypeStringsLedger[] = {
     "nymbox", // the nymbox is per user account (versus per asset account) and
               // is used to receive new transaction numbers (and messages.)
     "inbox",  // each asset account has an inbox, with pending transfers as well
@@ -171,7 +171,7 @@ char const* const __TypeStrings[] = {
 char const* OTLedger::_GetTypeString(ledgerType theType)
 {
     int32_t nType = static_cast<int32_t>(theType);
-    return __TypeStrings[nType];
+    return __TypeStringsLedger[nType];
 }
 
 // This calls OTTransactionType::VerifyAccount(), which calls
