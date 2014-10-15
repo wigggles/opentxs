@@ -261,10 +261,8 @@ OTLOG_IMPORT OTLogStream otLog3(3); // logs using OTLog::vOutput(3)
 OTLOG_IMPORT OTLogStream otLog4(4); // logs using OTLog::vOutput(4)
 OTLOG_IMPORT OTLogStream otLog5(5); // logs using OTLog::vOutput(5)
 
-OTLogStream::OTLogStream(int _logLevel)
+OTLogStream::OTLogStream(int)
     : std::ostream(this)
-    , logLevel(_logLevel)
-    , next(0)
     , pBuffer(new char[1024])
 {
 }
