@@ -208,12 +208,9 @@ extern "C" {
 #define CLIENT_DEFAULT_IS_BLOCKING false
 
 #define CLIENT_CONFIG_KEY "client"
-#define CLIENT_DATA_DIR "client_data"
-#define CLIENT_LOGFILE_FILENAME "log-client.log"
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 #define CLIENT_WALLET_FILENAME "wallet.xml"
 #define CLIENT_USE_SYSTEM_KEYRING false
-#define CLIENT_PASSWORD_FOLDER ""
 #define CLIENT_PID_FILENAME "ot.pid"
 
 namespace opentxs

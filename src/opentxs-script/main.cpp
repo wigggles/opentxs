@@ -166,10 +166,6 @@
 using namespace opentxs;
 
 #define OT_OPTIONS_FILE_DEFAULT "command-line-ot.opt"
-#define CLIENT_PATH_DEFAULT "client_data" // should get programmatically
-
-#define CA_FILE "certs/special/ca.crt"
-#define KEY_FILE "certs/special/client.pem"
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
 bool SetupPointersForWalletMyNymAndServerContract(
