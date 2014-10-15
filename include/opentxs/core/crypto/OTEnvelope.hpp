@@ -207,8 +207,6 @@ public:
     //
     EXPORT bool GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
                                     bool bLineBreaks = true) const;
-    EXPORT bool GetAsBookendedString(OTString& strArmorWithBookends,
-                                     bool bEscaped = false) const;
 
     // Should be called "Set This Envelope's binary ciphertext data, from an
     // ascii-armored input string."
@@ -223,8 +221,6 @@ public:
     //
     EXPORT bool SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
                                     bool bLineBreaks = true);
-    EXPORT bool SetFromBookendedString(const OTString& strArmorWithBookends,
-                                       bool bEscaped = false);
 };
 
 } // namespace opentxs
