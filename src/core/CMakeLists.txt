@@ -13,7 +13,6 @@ set(cxx-sources
   util/OTDataFolder.cpp
   util/OTFolders.cpp
   util/OTPaths.cpp
-  util/OTDataCheck.cpp
   transaction/Helpers.cpp
   mkcert.cpp
   OTAccount.cpp
