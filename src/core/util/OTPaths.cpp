@@ -171,9 +171,9 @@
 
 #ifdef _WIN32
 #define OT_APPDATA_DIR "OpenTransactions"
-#elif TARGET_OS_IPHONE
+#elif defined(TARGET_OS_IPHONE)
 #define OT_APPDATA_DIR "Documents"
-#elif ANDROID
+#elif defined(ANDROID)
 #define OT_APPDATA_DIR "ot"
 #else
 #define OT_APPDATA_DIR ".ot"
