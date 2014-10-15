@@ -254,13 +254,6 @@ OTIdentifier::~OTIdentifier()
 {
 }
 
-void OTIdentifier::CopyTo(uint8_t* szNewLocation) const
-{
-    if (GetSize()) {
-        memcpy(const_cast<void*>(GetPointer()), szNewLocation, GetSize());
-    }
-}
-
 // On the advice of SAMY, our default hash algorithm will be an XOR
 // of two reputable algorithms. This way, if one of them gets broken,
 // our signatures are still safe.
