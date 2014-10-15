@@ -411,21 +411,6 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
     return true;
 }
 
-bool OTSymmetricKey::ReGenerateHashCheck(const OTPassword& thePassphrase)
-{
-    if (!HasHashCheck()) {
-        otOut << __FUNCTION__ << ": Warning! We don't have a hash-check yet... "
-                                 "will create one anyway.";
-    }
-
-    if (!m_dataHashCheck.IsEmpty()) m_dataHashCheck.zeroMemory();
-    OT_ASSERT(m_dataHashCheck.IsEmpty());
-
-    m_bHasHashCheck = false;
-
-    return GenerateHashCheck(thePassphrase);
-}
-
 /*
  To generate a symmetric key:
 
