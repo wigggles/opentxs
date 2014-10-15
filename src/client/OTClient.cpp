@@ -1066,13 +1066,6 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             theMessage.ReleaseSignatures();
 
             return true;
-
-            // Sign it and send it out.
-            //            theConnection.SignAndSend(theMessage);
-            // I could have called SignContract() and then
-            // theConnection.ProcessMessageOut(message)
-            // but I used the above function instead.
-
         }
         else
             otErr << __FUNCTION__
@@ -13684,36 +13677,6 @@ int32_t OTClient::ProcessUserCommand(
     } // Get out og the big switch statement!
 
     return CalcReturnVal(lReturnValue);
-}
-
-/// used for testing.
-/// Once the wallet is loaded, we are assuming there is at least one server
-/// contract in the wallet, and we are asking the wallet to look it up,
-/// find the hostname and port inside that contract, and establish a connection
-/// to the server.
-///
-/// Whereas in a nice user interface, you would loop through all the servers in
-/// the wallet and display them in a nice list on the screen, and the user could
-/// just click on one, and you would just call Wallet.Connect(ServerID) and do
-/// your thing.
-bool OTClient::ConnectToTheFirstServerOnList(
-    const OTPseudonym& theNym, const OTString& strCA_FILE,
-    const OTString& strKEY_FILE, const OTString& strKEY_PASSWORD) const
-{
-    OTIdentifier SERVER_ID;
-    OTString SERVER_NAME;
-
-    if (m_pWallet && m_pWallet->GetServer(0, SERVER_ID, SERVER_NAME)) {
-        OTServerContract* pServer = m_pWallet->GetServerContract(SERVER_ID);
-
-        if (nullptr != pServer) {
-            OT_ASSERT(nullptr != m_pConnection);
-            return m_pConnection->Connect(theNym, *pServer, strCA_FILE,
-                                          strKEY_FILE, strKEY_PASSWORD);
-        }
-    }
-
-    return false;
 }
 
 /// Used in RPC mode (instead of Connect.)

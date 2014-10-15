@@ -382,8 +382,6 @@ public:
         int32_t nIndex) const;
     EXPORT const OTSubcredential* GetSubcredential(
         const OTString& strMasterID, const OTString& strSubCredID) const;
-    EXPORT const OTSubcredential* GetRevokedSubcred(
-        const OTString& strRevokedID, const OTString& strSubCredID) const;
     EXPORT bool GetNymboxHashServerSide(const OTIdentifier& theServerID,
                                         OTIdentifier& theOutput); // server-side
     EXPORT void SetNymboxHashServerSide(
@@ -591,7 +589,6 @@ public:
     // used as signer.
     EXPORT bool LoadSignedNymfile(OTPseudonym& SIGNER_NYM);
     EXPORT bool SaveSignedNymfile(OTPseudonym& SIGNER_NYM);
-    EXPORT bool LoadNymfile(const char* szFilename = nullptr);
     EXPORT bool LoadFromString(const OTString& strNym,
                                OTString::Map* pMapCredentials =
                                    nullptr, // pMapCredentials can be passed, if
@@ -611,8 +608,6 @@ public:
                                                                     // of the
                                                                     // next
                                                                     // function.
-    EXPORT bool CertfileExists(); // on the client side, this means it's a
-                                  // private Nym.
     EXPORT bool Loadx509CertAndPrivateKey(
         bool bChecking = false, const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
@@ -911,8 +906,6 @@ public:
     // balance agreements
     // will be wrong.
     //
-    EXPORT int32_t
-        GetTentativeNumCount(const OTIdentifier& theServerID) const; // count
     EXPORT int64_t GetTentativeNum(const OTIdentifier& theServerID,
                                    int32_t nIndex) const; // index
 

@@ -2396,13 +2396,6 @@ int64_t OTPseudonym::GetGenericNum(const mapOfTransNums& THE_MAP,
 }
 
 // by index.
-int64_t OTPseudonym::GetTentativeNum(const OTIdentifier& theServerID,
-                                     int32_t nIndex) const
-{
-    return GetGenericNum(m_mapTentativeNum, theServerID, nIndex);
-}
-
-// by index.
 int64_t OTPseudonym::GetIssuedNum(const OTIdentifier& theServerID,
                                   int32_t nIndex) const
 {
@@ -2529,13 +2522,6 @@ bool OTPseudonym::RemoveTentativeNum(const OTString& strServerID,
                                      const int64_t& lTransNum) // doesn't save
 {
     return RemoveGenericNum(m_mapTentativeNum, strServerID, lTransNum);
-}
-
-// Returns count of transaction numbers not yet cleared for a given server.
-//
-int32_t OTPseudonym::GetTentativeNumCount(const OTIdentifier& theServerID) const
-{
-    return GetGenericNumCount(m_mapTentativeNum, theServerID);
 }
 
 // No signer needed for this one, and save is false.
@@ -4886,28 +4872,6 @@ const OTSubcredential* OTPseudonym::GetSubcredential(
     return nullptr;
 }
 
-// Todo: if it's possible to have a revoked subcredential on a still-good
-// master,
-// this function doesn't account for that at all.
-//
-const OTSubcredential* OTPseudonym::GetRevokedSubcred(
-    const OTString& strRevokedID, const OTString& strSubCredID) const
-{
-    auto iter = m_mapRevoked.find(strRevokedID.Get());
-    const OTCredential* pMaster = nullptr;
-
-    if (iter != m_mapRevoked.end()) // found it
-        pMaster = iter->second;
-
-    if (nullptr != pMaster) {
-        const OTSubcredential* pSub = pMaster->GetSubcredential(strSubCredID);
-
-        if (nullptr != pSub) return pSub;
-    }
-
-    return nullptr;
-}
-
 // std::set<int64_t> m_setOpenCronItems; // Until these Cron Items are closed
 // out, the server-side Nym keeps a list of them handy.
 
@@ -6046,59 +6010,6 @@ bool OTPseudonym::VerifyTransactionStatementNumbersOnNym(
     return true;
 }
 
-// Each Nym has a public key file, as well as a nym file. Why two separate
-// files?
-// Because they are often used for different purposes and are being loaded/saved
-// for their own reasons. The Nymfile contains the user ID, which is a hash of
-// the
-// public key, so the it knows how to find the right pubkey file (filename is
-// the
-// hash) and it knows how to validate the contents (by hashing them.) The
-// Nymfile
-// also contains the transaction numbers that have been issued to that nym, so
-// the server might later load it up in order to verify that a specific
-// transaction
-// number is indeed on that list (and then remove it from the list.)
-bool OTPseudonym::LoadNymfile(const char* szFilename)
-{
-    OTString strID;
-    GetIdentifier(strID);
-
-    const char* szFoldername = OTFolders::Nym().Get();
-    const char* szTheFilename = strID.Get();
-
-    // If no filename was passed in (user might have designated one) then we
-    // create
-    // the filename by appending the Nym's ID to the path.
-    if (nullptr == szFilename) {
-        m_strNymfile = szTheFilename;
-    }
-    else {
-        m_strNymfile = szFilename;
-    }
-
-    if (!OTDB::Exists(szFoldername, m_strNymfile.Get())) {
-        otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << m_strNymfile << "\n";
-        return false;
-    }
-
-    std::string strFileContents(OTDB::QueryPlainString(
-        szFoldername, m_strNymfile.Get())); // <=== LOADING FROM DATA STORE.
-
-    if (strFileContents.length() < 2) {
-        otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << m_strNymfile << "\n";
-        return false;
-    }
-
-    OTString strRawFile = strFileContents.c_str();
-
-    if (strRawFile.GetLength()) return LoadFromString(strRawFile);
-
-    return false;
-}
-
 bool OTPseudonym::Loadx509CertAndPrivateKeyFromString(
     const OTString& strInput, const OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
@@ -6214,13 +6125,6 @@ bool OTPseudonym::DoesCertfileExist(const OTString& strNymID)
                         strNymID.Get()) || // Old-school.
            OTDB::Exists(OTFolders::Credential().Get(),
                         strCredListFile.Get()); // New-school.
-}
-
-// on the client side, this means it's a private Nym.
-bool OTPseudonym::CertfileExists()
-{
-    const OTString strID(m_nymID);
-    return OTPseudonym::DoesCertfileExist(strID);
 }
 
 bool OTPseudonym::HasPublicKey()

@@ -743,36 +743,6 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
     return true;
 }
 
-// DeriveKey derives a 128-bit symmetric key from a passphrase.
-//
-// The OTPassword* returned is the actual derived key. (The result.)
-//
-// However, you would not use it directly for symmetric-key crypto, but
-// instead you'd use the OTSymmetricKey class. This is because you still
-// need an object to manage everything about the symmetric key. It stores
-// the salt and the iteration count, as well as ONLY the ENCRYPTED version
-// of the symmetric key, which is a completely random number and is only
-// decrypted briefly for specific operations. The derived key (below) is
-// what we use for briefly decrypting that actual (random) symmetric key.
-//
-// Therefore this function is mainly used INSIDE OTSymmetricKey as part of
-// its internal operations.
-//
-// userPassword argument contains the user's password which is used to
-// derive the key. Presumably you already obtained this passphrase...
-// Then the derived key is returned, or nullptr if failure. CALLER
-// IS RESPONSIBLE TO DELETE!
-// Todo: return a smart pointer here.
-//
-OTPassword* OTCrypto_OpenSSL::DeriveKey(
-    const OTPassword& userPassword, const OTData& dataSalt,
-    uint32_t uIterations, const OTData& dataCheckHash /*= OTData()*/) const
-{
-    OTData tempPayload = dataCheckHash;
-    return OTCrypto_OpenSSL::DeriveNewKey(userPassword, dataSalt, uIterations,
-                                          tempPayload);
-}
-
 OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
                                            const OTData& dataSalt,
                                            uint32_t uIterations,

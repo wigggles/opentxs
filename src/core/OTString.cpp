@@ -1139,17 +1139,6 @@ void OTString::OTfgets(std::istream& ifs)
     }
 }
 
-void OTString::ConvertToLowerCase() const
-{
-    if (data_ == nullptr) {
-        return;
-    }
-
-    for (char* s1 = data_; *s1; s1++) {
-        *s1 = static_cast<char>(tolower(*s1));
-    }
-}
-
 void OTString::ConvertToUpperCase() const
 {
     if (data_ == nullptr) {

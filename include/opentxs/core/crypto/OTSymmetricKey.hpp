@@ -269,10 +269,6 @@ public:
     //
     EXPORT bool GenerateHashCheck(const OTPassword& thePassphrase);
 
-    // Re-generates a hash-check for some reason. (maybe it was wrong?)
-    //
-    EXPORT bool ReGenerateHashCheck(const OTPassword& thePassphrase);
-
     EXPORT OTSymmetricKey();
     EXPORT OTSymmetricKey(const OTPassword& thePassword);
 

@@ -360,12 +360,6 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTString& strIdentifier) const
     }
 }
 
-// From OTEnvelope:
-//    bool GetAsBookendedString  (OTString& strArmorWithBookends,
-// bool bEscaped    = false ) const;
-//    bool SetFromBookendedString(const OTString& strArmorWithBookends,
-// bool bEscaped    = false );
-
 bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
                                             OTString& strOutput,
                                             const OTString* pstrDisplay)

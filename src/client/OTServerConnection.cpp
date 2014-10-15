@@ -269,17 +269,6 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
     m_pClient = &theClient;
 }
 
-bool OTServerConnection::SignAndSend(OTMessage& theMessage) const
-{
-    if (m_pNym && m_pWallet && theMessage.SignContract(*m_pNym) &&
-        theMessage.SaveContract()) {
-        ProcessMessageOut(theMessage);
-        return true;
-    }
-
-    return false;
-}
-
 void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
 {
     // todo SetMessagePayload?
