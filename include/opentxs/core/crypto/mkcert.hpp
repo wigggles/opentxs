@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTAsymmetricKey_OpenSSLPrivdp.hpp
+ *  mkcert.hpp
  *
  */
 
@@ -130,87 +130,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
-#define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
-
-#include "OTAsymmetricKeyOpenSSL.hpp"
+#ifndef OPENTXS_CORE_CRYPTO_MKCERT
+#define OPENTXS_CORE_CRYPTO_MKCERT
 
 extern "C" {
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/x509v3.h>
+
+int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
+               int32_t days);
 }
 
-namespace opentxs
-{
-
-class OTPasswordData;
-
-class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp
-{
-private:
-    friend class OTAsymmetricKey;   // For the factory.
-    friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
-                                    // are otherwise private.
-    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
-                                    // access OpenSSL-specific methods.
-    friend class OTAsymmetricKey_OpenSSL;
-
-public:
-    OTAsymmetricKey_OpenSSL* backlink;
-    // cppcheck-suppress uninitMemberVar
-    explicit OTAsymmetricKey_OpenSSLPrivdp()
-        : backlink(0)
-    {
-    }
-
-    // STATIC METHODS
-    //
-    // Create base64-encoded version of an EVP_PKEY
-    // (Without bookends.)
-    //
-    static bool ArmorPrivateKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey,
-                                Timer& theTimer,
-                                const OTPasswordData* pPWData = nullptr,
-                                const OTPassword* pImportPassword = nullptr);
-    static bool ArmorPublicKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey);
-    static EVP_PKEY* CopyPublicKey(EVP_PKEY& theKey,
-                                   const OTPasswordData* pPWData = nullptr,
-                                   const OTPassword* pImportPassword =
-                                       nullptr); // CALLER must EVP_pkey_free!
-    static EVP_PKEY* CopyPrivateKey(EVP_PKEY& theKey,
-                                    const OTPasswordData* pPWData = nullptr,
-                                    const OTPassword* pImportPassword =
-                                        nullptr); // CALLER must EVP_pkey_free!
-private:
-    // INSTANCES...
-    // PRIVATE MEMBER DATA
-    X509* m_pX509;
-    EVP_PKEY* m_pKey; // Instantiated form of key. (For private keys especially,
-                      // we don't want it instantiated for any longer than
-                      // absolutely necessary, when we have to use it.)
-    // PRIVATE METHODS
-    EVP_PKEY* InstantiateKey(const OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePublicKey(const OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePrivateKey(const OTPasswordData* pPWData = nullptr);
-    // HIGH LEVEL (internal) METHODS
-    //
-    EXPORT const EVP_PKEY* GetKey(const OTPasswordData* pPWData = nullptr);
-
-    void SetKeyAsCopyOf(EVP_PKEY& theKey, bool bIsPrivateKey = false,
-                        const OTPasswordData* pPWData = nullptr,
-                        const OTPassword* pImportPassword = nullptr);
-    // LOW LEVEL (internal) METHODS
-    //
-    EVP_PKEY* GetKeyLowLevel() const;
-
-    X509* GetX509() const
-    {
-        return m_pX509;
-    }
-    void SetX509(X509* x509);
-};
-
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
+#endif // OPENTXS_CORE_CRYPTO_MKCERT

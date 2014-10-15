@@ -2,6 +2,7 @@
 * operations.
 */
 
+#include <opentxs/core/crypto/mkcert.hpp>
 #include <opentxs/core/OTString.hpp>
 
 #ifdef __cplusplus
@@ -34,8 +35,6 @@ extern "C" {
 extern "C" {
 #endif
 
-int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
-               int32_t days);
 int32_t add_ext(X509* cert, int32_t nid, char* value);
 
 static void callback(int32_t p, int32_t, void*)

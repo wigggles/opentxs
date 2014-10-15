@@ -132,6 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/crypto/mkcert.hpp>
 #include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
