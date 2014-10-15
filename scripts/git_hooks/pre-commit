@@ -22,5 +22,5 @@ files=$(git diff --cached --name-only --diff-filter=AM $against | \
 diffs=$(./scripts/build/clang-format-wrapper.sh "$files")
 [ "$diffs" ] || exit 0
 echo Found C++ code style formatting issues:
-printf "%s" "$diffs"
+printf "%s\n" "$diffs"
 exit 1
