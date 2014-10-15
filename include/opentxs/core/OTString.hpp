@@ -137,12 +137,13 @@
 #include "util/win32_utf8conv.hpp" // support for changing between std::string and std::wstring
 #endif
 
-#include <iostream>
+#include <stddef.h>
+#include <cstdint>
+#include <string>
+#include <iosfwd>
 #include <list>
 #include <map>
-#include <sstream>
 #include <cstdarg>
-#include <cstring>
 
 #define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
 

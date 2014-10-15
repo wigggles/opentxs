@@ -138,7 +138,7 @@
 #include <opentxs/core/OTLog.hpp>
 
 #include <fstream>
-
+#include <cstring>
 #include <irrxml/irrXML.hpp>
 
 namespace opentxs

@@ -131,11 +131,12 @@
  **************************************************************/
 
 #include <opentxs/core/stdafx.hpp>
-
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
+
+#include <cstring>
 
 // Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
 // offers and a list of ask offers.)

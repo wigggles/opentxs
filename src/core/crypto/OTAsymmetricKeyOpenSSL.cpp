@@ -140,6 +140,8 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTData.hpp>
 
+#include <cstring>
+
 #if defined(OT_CRYPTO_USING_OPENSSL)
 #include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
 #include <opentxs/core/crypto/OpenSSL_BIO.hpp>

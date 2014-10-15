@@ -138,8 +138,9 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <sstream>
 #include <fstream>
-
+#include <cstring>
 #include <zlib.h>
 
 namespace opentxs

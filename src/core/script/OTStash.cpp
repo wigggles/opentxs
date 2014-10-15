@@ -141,6 +141,8 @@
 
 #include <irrxml/irrXML.hpp>
 
+#include <cstring>
+
 namespace opentxs
 {
 

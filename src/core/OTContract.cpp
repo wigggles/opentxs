@@ -142,7 +142,7 @@
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
-
+#include <cstring>
 #include <irrxml/irrXML.hpp>
 
 #include <fstream>

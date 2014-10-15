@@ -143,6 +143,8 @@
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <cstring>
+
 #if defined(OT_CRYPTO_USING_OPENSSL)
 #include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 #endif

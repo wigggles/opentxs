@@ -138,6 +138,7 @@
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <cstring>
 
 namespace opentxs
 {

@@ -138,6 +138,7 @@
 #include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
+#include <cstring>
 
 using namespace irr;
 using namespace io;

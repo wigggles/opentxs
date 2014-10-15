@@ -141,6 +141,7 @@
 
 #include <irrxml/irrXML.hpp>
 
+#include <cstring>
 #include <string>
 #include <utility>
 
