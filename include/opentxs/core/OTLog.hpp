@@ -188,8 +188,6 @@ private:
 public:
     OTLogStream(int _logLevel);
     ~OTLogStream();
-
-    virtual int overflow(int c);
 };
 
 // cppcheck-suppress noConstructor
@@ -265,7 +263,6 @@ public:
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
     EXPORT static bool PushMemlogFront(const OTString& strLog);
-    EXPORT static bool PushMemlogBack(const OTString& strLog);
     EXPORT static bool SleepSeconds(int64_t lSeconds);
     EXPORT static bool SleepMilliseconds(int64_t lMilliseconds);
 

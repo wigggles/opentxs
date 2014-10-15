@@ -275,25 +275,6 @@ OTLogStream::~OTLogStream()
     pBuffer = nullptr;
 }
 
-int OTLogStream::overflow(int c)
-{
-    pBuffer[next++] = c;
-    if (c != '\n' && next < 1000) {
-        return 0;
-    }
-
-    pBuffer[next++] = '\0';
-    next = 0;
-
-    if (logLevel < 0) {
-        OTLog::Error(pBuffer);
-        return 0;
-    }
-
-    OTLog::Output(logLevel, pBuffer);
-    return 0;
-}
-
 //  OTLog Init, must run this before using any OTLog function.
 
 // static
@@ -619,19 +600,6 @@ bool OTLog::PushMemlogFront(const OTString& strLog)
         OTLog::PopMemlogBack(); // We start removing from the back when it
                                 // reaches this size.
     }
-
-    return true;
-}
-
-// static
-bool OTLog::PushMemlogBack(const OTString& strLog)
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
-
-    OT_ASSERT(strLog.Exists());
-
-    OTLog::pLogger->logDeque.push_back(new OTString(strLog));
 
     return true;
 }
