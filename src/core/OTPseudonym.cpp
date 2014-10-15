@@ -6216,13 +6216,6 @@ bool OTPseudonym::DoesCertfileExist(const OTString& strNymID)
                         strCredListFile.Get()); // New-school.
 }
 
-// on the client side, this means it's a private Nym.
-bool OTPseudonym::CertfileExists()
-{
-    const OTString strID(m_nymID);
-    return OTPseudonym::DoesCertfileExist(strID);
-}
-
 bool OTPseudonym::HasPublicKey()
 {
     OT_ASSERT(nullptr != m_pkeypair);

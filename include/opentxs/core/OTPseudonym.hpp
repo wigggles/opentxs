@@ -611,8 +611,6 @@ public:
                                                                     // of the
                                                                     // next
                                                                     // function.
-    EXPORT bool CertfileExists(); // on the client side, this means it's a
-                                  // private Nym.
     EXPORT bool Loadx509CertAndPrivateKey(
         bool bChecking = false, const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
