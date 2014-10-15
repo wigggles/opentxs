@@ -142,20 +142,20 @@
 //
 // CALLER IS RESPONSIBLE to cleanup!
 
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/cash/Token.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/OTLog.hpp"
-#include "opentxs/core/OTContract.hpp"
-#include "opentxs/core/OTAssetContract.hpp"
-#include "opentxs/core/OTCheque.hpp"
-#include "opentxs/core/OTMessage.hpp"
-#include "opentxs/core/OTServerContract.hpp"
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/Token.hpp>
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/crypto/OTSignedFile.hpp>
+#include <opentxs/core/script/OTSmartContract.hpp>
+#include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/trade/OTTrade.hpp>
+#include <opentxs/core/util/Assert.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTServerContract.hpp>
 
 namespace
 {

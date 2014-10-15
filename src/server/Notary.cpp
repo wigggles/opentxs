@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "Notary.hpp"
-#include "OTServer.hpp"
-#include "Macros.hpp"
-#include "ServerSettings.hpp"
-#include "PayDividendVisitor.hpp"
+#include <opentxs/server/Notary.hpp>
+#include <opentxs/server/OTServer.hpp>
+#include <opentxs/server/Macros.hpp>
+#include <opentxs/server/ServerSettings.hpp>
+#include <opentxs/server/PayDividendVisitor.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>

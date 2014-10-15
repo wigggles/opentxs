@@ -130,8 +130,8 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "util/StringUtils.hpp"
-#include "util/Assert.hpp"
+#include <opentxs/core/util/StringUtils.hpp>
+#include <opentxs/core/util/Assert.hpp>
 
 namespace opentxs
 {

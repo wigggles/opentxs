@@ -130,14 +130,14 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTIdentifier.hpp"
-#include "OTContract.hpp"
-#include "crypto/OTCachedKey.hpp"
-#include "crypto/OTCrypto.hpp"
-#include "OTPseudonym.hpp"
-#include "crypto/OTSymmetricKey.hpp"
+#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 namespace opentxs
 {

@@ -130,58 +130,58 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OpenTransactions.hpp"
-#include "OTAPI.hpp"
-#include "OTClient.hpp"
-#include "OTServerConnection.hpp"
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OTClient.hpp>
+#include <opentxs/client/OTServerConnection.hpp>
 #include "Helpers.hpp"
-#include "OTWallet.hpp"
-#include "TransportCallback.hpp"
+#include <opentxs/client/OTWallet.hpp>
+#include <opentxs/client/TransportCallback.hpp>
 
-#include "../ext/InstantiateContract.hpp"
-#include "../ext/OTPayment.hpp"
-#include "../ext/Socket_ZMQ4.hpp"
+#include <opentxs/ext/InstantiateContract.hpp>
+#include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/ext/Socket_ZMQ4.hpp>
 
-#include "../cash/Mint.hpp"
-#include "../cash/Purse.hpp"
-#include "../cash/Token.hpp"
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/Purse.hpp>
+#include <opentxs/cash/Token.hpp>
 
-#include "../basket/Basket.hpp"
+#include <opentxs/basket/Basket.hpp>
 
-#include "../core/recurring/OTPaymentPlan.hpp"
-#include "../core/script/OTAgent.hpp"
-#include "../core/script/OTBylaw.hpp"
-#include "../core/script/OTParty.hpp"
-#include "../core/script/OTPartyAccount.hpp"
-#include "../core/script/OTSmartContract.hpp"
-#include "../core/trade/OTTrade.hpp"
-#include "../core/trade/OTOffer.hpp"
-#include "../core/crypto/OTAsymmetricKey.hpp"
-#include "../core/crypto/OTCachedKey.hpp"
-#include "../core/crypto/OTCrypto.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/crypto/OTPassword.hpp"
-#include "../core/crypto/OTPasswordData.hpp"
-#include "../core/crypto/OTSymmetricKey.hpp"
-#include "../core/OTAssetContract.hpp"
-#include "../core/OTCheque.hpp"
-#include "../core/util/OTDataFolder.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLedger.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/util/OTPaths.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTIdentifier.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTServerContract.hpp"
-#include "../core/OTStorage.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/script/OTBylaw.hpp>
+#include <opentxs/core/script/OTParty.hpp>
+#include <opentxs/core/script/OTPartyAccount.hpp>
+#include <opentxs/core/script/OTSmartContract.hpp>
+#include <opentxs/core/trade/OTTrade.hpp>
+#include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #if defined(OT_KEYRING_FLATFILE)
-#include "../core/OTKeyring.hpp"
+#include <opentxs/core/OTKeyring.hpp>
 #endif
 
 #include <cassert>

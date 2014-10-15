@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTSettings.hpp"
-#include "OTLog.hpp"
-#include "util/OTPaths.hpp"
+#include <opentxs/core/OTSettings.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
 
 #include "simpleini/SimpleIni.h"
 

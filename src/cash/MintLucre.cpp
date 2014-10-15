@@ -130,21 +130,21 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "MintLucre.hpp"
-#include "DigitalCash.hpp"
-#include "Token.hpp"
+#include <opentxs/cash/MintLucre.hpp>
+#include <opentxs/cash/DigitalCash.hpp>
+#include <opentxs/cash/Token.hpp>
 
-#include "../core/crypto/OTAsymmetricKey.hpp"
-#include "../core/crypto/OTEnvelope.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
 #if defined(OT_CASH_USING_LUCRE)
-#include "../core/crypto/OpenSSL_BIO.hpp"
+#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
 #endif
 
-#include "../core/OTLog.hpp"
-#include "../core/OTPseudonym.hpp"
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
 
 namespace opentxs
 {

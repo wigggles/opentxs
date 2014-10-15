@@ -130,18 +130,18 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "recurring/OTPaymentPlan.hpp"
-#include "script/OTSmartContract.hpp"
-#include "OTTransaction.hpp"
-#include "OTCheque.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLedger.hpp"
-#include "OTLog.hpp"
-#include "OTMessage.hpp"
-#include "OTPseudonym.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/script/OTSmartContract.hpp>
+#include <opentxs/core/OTTransaction.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
 

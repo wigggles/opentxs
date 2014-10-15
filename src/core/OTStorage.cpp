@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTStorage.hpp"
-#include "crypto/OTASCIIArmor.hpp"
-#include "util/OTDataFolder.hpp"
-#include "OTLog.hpp"
-#include "util/OTPaths.hpp"
-#include "OTData.hpp"
-#include "OTStoragePB.hpp"
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/OTStoragePB.hpp>
 
 #include <fstream>
 #include <typeinfo>

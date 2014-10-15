@@ -131,12 +131,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTNumList.hpp"
+#include <opentxs/core/OTNumList.hpp>
 
-#include "OTLog.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <locale>
 

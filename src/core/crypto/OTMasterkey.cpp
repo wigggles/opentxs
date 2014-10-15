@@ -144,13 +144,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTMasterkey.hpp"
+#include <opentxs/core/crypto/OTMasterkey.hpp>
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "crypto/OTCredential.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
 

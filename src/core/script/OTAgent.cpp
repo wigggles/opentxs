@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "../recurring/OTAgreement.hpp"
-#include "OTAgent.hpp"
-#include "OTLog.hpp"
-#include "OTParty.hpp"
-#include "OTPartyAccount.hpp"
-#include "OTPseudonym.hpp"
-#include "OTSmartContract.hpp"
+#include <opentxs/core/recurring/OTAgreement.hpp>
+#include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/script/OTParty.hpp>
+#include <opentxs/core/script/OTPartyAccount.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/script/OTSmartContract.hpp>
 
 #include <memory>
 

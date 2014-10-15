@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTClause.hpp"
+#include <opentxs/core/script/OTClause.hpp>
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 // ------------- OPERATIONS -------------
 // Below this point, have all the actions that a party might do.

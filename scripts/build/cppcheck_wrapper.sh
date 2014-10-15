@@ -9,9 +9,7 @@ suppress="$sup_warn $sup_info $sup_perf"
 enabled="--enable=warning --enable=information --enable=performance \
          --enable=portability --enable=missingInclude --enable=style"
 define="-DEXPORT="
-includes="-I./include/opentxs/client/ -I./include/opentxs/core/ \
-          -I./include/opentxs/ext/ -I./include/opentxs/server/ \
-          -I./include/opentxs/cash/ -I./include/opentxs/basket/"
+includes="-I./include"
 # Exit code '1' is returned if arguments are not valid or if no input
 # files are provided. Compare 'cppcheck --help'.
 args="-f -q --inline-suppr --error-exitcode=2"

@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTAPI.hpp"
-#include "OpenTransactions.hpp"
-#include "OTAPI_Exec.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTAPI_Exec.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 namespace opentxs
 {

@@ -130,12 +130,12 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "Basket.hpp"
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTLog.hpp>
 
-#include "opentxs/core/OTPseudonym.hpp"
-#include "opentxs/core/OTLog.hpp"
+#include <opentxs/basket/Basket.hpp>
 
 #include <irrxml/irrXML.hpp>
 

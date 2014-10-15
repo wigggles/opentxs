@@ -130,19 +130,19 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTAsymmetricKeyOpenSSL.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 
-#include "crypto/OTASCIIArmor.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "OTData.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTData.hpp>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
-#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "crypto/OpenSSL_BIO.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
+#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
 #endif
 
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL

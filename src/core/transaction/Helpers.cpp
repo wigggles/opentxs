@@ -130,14 +130,14 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "OTTransaction.hpp"
-#include "OTLedger.hpp"
-#include "OTString.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLog.hpp"
-#include "OTStorage.hpp"
-#include "OTIdentifier.hpp"
-#include "OTNumList.hpp"
+#include <opentxs/core/OTTransaction.hpp>
+#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/OTNumList.hpp>
 #include <irrxml/irrXML.hpp>
 #include <string>
 

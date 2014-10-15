@@ -23,10 +23,6 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/*.hpp")
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client
-)
-
 set(MODULE_NAME opentxs-client)
 if(WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings 

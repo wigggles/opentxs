@@ -2,7 +2,7 @@
 * operations.
 */
 
-#include <OTString.hpp>
+#include <opentxs/core/OTString.hpp>
 
 #ifdef __cplusplus
 extern "C" {

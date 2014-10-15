@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
-#include "OTTrackable.hpp"
-#include "OTNumList.hpp"
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/OTTrackable.hpp>
+#include <opentxs/core/OTNumList.hpp>
 
 namespace opentxs
 {

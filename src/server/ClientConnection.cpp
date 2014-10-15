@@ -130,7 +130,7 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "ClientConnection.hpp"
+#include <opentxs/server/ClientConnection.hpp>
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>

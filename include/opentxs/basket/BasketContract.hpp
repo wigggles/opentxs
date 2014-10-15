@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
-#include "opentxs/core/OTAssetContract.hpp"
+#include <opentxs/core/OTAssetContract.hpp>
 
 namespace opentxs
 {

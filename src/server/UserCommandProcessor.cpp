@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#include "UserCommandProcessor.hpp"
-#include "OTServer.hpp"
-#include "ClientConnection.hpp"
-#include "Macros.hpp"
-#include "ServerSettings.hpp"
+#include <opentxs/server/UserCommandProcessor.hpp>
+#include <opentxs/server/OTServer.hpp>
+#include <opentxs/server/ClientConnection.hpp>
+#include <opentxs/server/Macros.hpp>
+#include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/basket/BasketContract.hpp>
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTParty.hpp>

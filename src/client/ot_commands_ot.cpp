@@ -23,13 +23,13 @@
 // reasons.)
 //
 
-#include "ot_commands_ot.hpp"
+#include <opentxs/client/ot_commands_ot.hpp>
 #include "ot_utility_ot.hpp"
-#include "ot_otapi_ot.hpp"
+#include <opentxs/client/ot_otapi_ot.hpp>
 #include "ot_made_easy_ot.hpp"
-#include "OTAPI.hpp"
-#include "OT_ME.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 namespace opentxs
 {

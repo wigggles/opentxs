@@ -130,17 +130,17 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTMessageBuffer.hpp"
-#include "../core/util/OTDataFolder.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/util/OTPaths.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTStorage.hpp"
-#include "../core/OTTransaction.hpp"
+#include <opentxs/client/OTMessageBuffer.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/OTTransaction.hpp>
 
 namespace opentxs
 {

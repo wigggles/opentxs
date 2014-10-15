@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTPATHS_HPP
 #define OPENTXS_CORE_OTPATHS_HPP
 
-#include "opentxs/core/OTSettings.hpp"
+#include <opentxs/core/OTSettings.hpp>
 
 // All directories have a trailing "/" while files do not. <== remember to
 // enforce this!!!

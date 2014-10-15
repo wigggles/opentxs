@@ -133,8 +133,8 @@
 #ifndef OPENTXS_EXT_OTSOCKET_HPP
 #define OPENTXS_EXT_OTSOCKET_HPP
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/OTString.hpp"
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/OTString.hpp>
 
 #include <mutex>
 

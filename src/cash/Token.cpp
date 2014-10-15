@@ -130,21 +130,20 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
-
-#include "Token.hpp"
-#include "Mint.hpp"
-#include "Purse.hpp"
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/cash/Token.hpp>
+#include <opentxs/cash/Mint.hpp>
+#include <opentxs/cash/Purse.hpp>
 
 #if defined(OT_CASH_USING_LUCRE)
-#include "TokenLucre.hpp"
+#include <opentxs/cash/TokenLucre.hpp>
 #endif
 
-#include "../core/crypto/OTEnvelope.hpp"
-#include "../core/crypto/OTNymOrSymmetricKey.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/OTStorage.hpp"
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
 

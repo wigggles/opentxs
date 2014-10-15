@@ -130,10 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "trade/OTOffer.hpp"
-#include "OTLog.hpp"
+#include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
 

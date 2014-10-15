@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "OTMessageOutbuffer.hpp"
-#include "../core/util/OTDataFolder.hpp"
-#include "../core/util/OTPaths.hpp"
-#include "../core/OTStorage.hpp"
-#include "../core/OTMessage.hpp"
-#include "../core/OTTransaction.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/util/OTFolders.hpp"
+#include <opentxs/client/OTMessageOutbuffer.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/OTTransaction.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 
 #include <memory>
 

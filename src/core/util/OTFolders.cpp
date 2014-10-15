@@ -130,10 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "util/OTFolders.hpp"
-#include "util/OTPaths.hpp"
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
 
 #ifdef _WIN32
 #include <direct.h>

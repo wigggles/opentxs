@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTPasswordData.hpp"
-#include "OTString.hpp"
-#include "util/Assert.hpp"
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/util/Assert.hpp>
 
 // Instantiate one of these whenever you do an action that may
 // require a passphrase. When you call the OpenSSL private key

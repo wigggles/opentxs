@@ -130,10 +130,10 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "ot_otapi_ot.hpp"
+#include <opentxs/client/ot_otapi_ot.hpp>
 #include "ot_utility_ot.hpp"
-#include "../core/script/OTVariable.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/core/script/OTVariable.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 using namespace opentxs;
 using namespace std;

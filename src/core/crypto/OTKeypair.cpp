@@ -144,17 +144,17 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTKeypair.hpp"
+#include <opentxs/core/crypto/OTKeypair.hpp>
 
-#include "crypto/OTAsymmetricKey.hpp"
-#include "OTContract.hpp"
-#include "util/OTFolders.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTLowLevelKeyData.hpp"
-#include "crypto/OTSignature.hpp"
-#include "OTStorage.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
+#include <opentxs/core/crypto/OTSignature.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 // DONE: Add OTKeypair member for m_pMetadata.
 // Add method to set the Metadata. Or instead of a member,

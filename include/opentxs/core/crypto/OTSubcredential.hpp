@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSUBCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_OTSUBCREDENTIAL_HPP
 
-#include "../OTContract.hpp"
+#include <opentxs/core/OTContract.hpp>
 
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
 #define OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
 
-#include "opentxs/core/OTString.hpp"
+#include <opentxs/core/OTString.hpp>
 #include <map>
 
 namespace opentxs

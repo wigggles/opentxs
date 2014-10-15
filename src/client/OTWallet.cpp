@@ -130,24 +130,24 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTWallet.hpp"
+#include <opentxs/client/OTWallet.hpp>
 
-#include "../cash/Purse.hpp"
+#include <opentxs/cash/Purse.hpp>
 
-#include "../core/OTAccount.hpp"
-#include "../core/OTAssetContract.hpp"
-#include "../core/crypto/OTCachedKey.hpp"
-#include "../core/util/OTDataFolder.hpp"
-#include "../core/util/OTFolders.hpp"
-#include "../core/OTLog.hpp"
-#include "../core/crypto/OTPassword.hpp"
-#include "../core/crypto/OTPasswordData.hpp"
-#include "../core/OTPseudonym.hpp"
-#include "../core/OTServerContract.hpp"
-#include "../core/OTStorage.hpp"
-#include "../core/crypto/OTSymmetricKey.hpp"
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/util/OTDataFolder.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 #include <irrxml/irrXML.hpp>
 

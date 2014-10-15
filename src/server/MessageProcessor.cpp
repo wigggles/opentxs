@@ -130,11 +130,11 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "ServerSettings.hpp"
-#include "ServerLoader.hpp"
-#include "MessageProcessor.hpp"
-#include "OTServer.hpp"
-#include "ClientConnection.hpp"
+#include <opentxs/server/ServerSettings.hpp>
+#include <opentxs/server/ServerLoader.hpp>
+#include <opentxs/server/MessageProcessor.hpp>
+#include <opentxs/server/OTServer.hpp>
+#include <opentxs/server/ClientConnection.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTString.hpp>

@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTStringXML.hpp"
+#include <opentxs/core/OTStringXML.hpp>
 
 #include <irrxml/irrXML.hpp>
 

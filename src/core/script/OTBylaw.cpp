@@ -130,13 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTBylaw.hpp"
+#include <opentxs/core/script/OTBylaw.hpp>
 
-#include "OTClause.hpp"
-#include "OTLog.hpp"
-#include "OTScriptable.hpp"
+#include <opentxs/core/script/OTClause.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/script/OTScriptable.hpp>
 
 #include <set>
 

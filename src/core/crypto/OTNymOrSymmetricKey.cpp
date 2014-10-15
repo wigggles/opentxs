@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTNymOrSymmetricKey.hpp"
+#include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 
-#include "crypto/OTEnvelope.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "OTPseudonym.hpp"
-#include "crypto/OTSymmetricKey.hpp"
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 extern "C" {
 #if defined(OPENTXS_HAVE_NETINET_IN_H)

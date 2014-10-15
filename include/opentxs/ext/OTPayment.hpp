@@ -133,7 +133,7 @@
 #ifndef OPENTXS_EXT_OTPAYMENT_HPP
 #define OPENTXS_EXT_OTPAYMENT_HPP
 
-#include "opentxs/core/OTContract.hpp"
+#include <opentxs/core/OTContract.hpp>
 
 namespace opentxs
 {

@@ -130,17 +130,17 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTPayment.hpp"
-#include "InstantiateContract.hpp"
+#include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/ext/InstantiateContract.hpp>
 
-#include "../cash/Purse.hpp"
+#include <opentxs/cash/Purse.hpp>
 
-#include "../core/recurring/OTPaymentPlan.hpp"
-#include "../core/script/OTSmartContract.hpp"
-#include "../core/OTCheque.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/core/recurring/OTPaymentPlan.hpp>
+#include <opentxs/core/script/OTSmartContract.hpp>
+#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
 

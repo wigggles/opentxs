@@ -132,16 +132,16 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "crypto/OTCryptoOpenSSL.hpp"
-#include "OTLog.hpp"
-#include "crypto/OTPassword.hpp"
-#include "crypto/OTPasswordData.hpp"
-#include "OTPseudonym.hpp"
-#include "crypto/OTSignature.hpp"
-#include "OTStorage.hpp"
-#include "util/stacktrace.h"
+#include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/crypto/OTSignature.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/stacktrace.h>
 
 #include <bigint/BigIntegerLibrary.hh>
 
@@ -177,8 +177,8 @@ extern "C" {
 #endif
 }
 
-#include "crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "crypto/OpenSSL_BIO.hpp"
+#include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
+#include <opentxs/core/crypto/OpenSSL_BIO.hpp>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

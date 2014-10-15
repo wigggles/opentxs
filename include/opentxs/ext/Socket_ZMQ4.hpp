@@ -133,7 +133,7 @@
 #ifndef OPENTXS_EXT_SOCKET_ZMQ4_HPP
 #define OPENTXS_EXT_SOCKET_ZMQ4_HPP
 
-#include "opentxs/ext/OTSocket.hpp"
+#include <opentxs/ext/OTSocket.hpp>
 
 namespace opentxs
 {

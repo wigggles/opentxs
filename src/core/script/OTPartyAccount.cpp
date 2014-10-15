@@ -130,15 +130,15 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "OTPartyAccount.hpp"
+#include <opentxs/core/script/OTPartyAccount.hpp>
 
-#include "OTAccount.hpp"
-#include "OTAgent.hpp"
-#include "OTLog.hpp"
-#include "OTParty.hpp"
-#include "OTScript.hpp"
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/script/OTParty.hpp>
+#include <opentxs/core/script/OTScript.hpp>
 
 // IDEA: Put a Nym in the Nyms folder for each entity. While it may
 // not have a public key in the pubkey folder, or embedded within it,

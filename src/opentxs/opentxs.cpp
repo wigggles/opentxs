@@ -130,24 +130,24 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "opentxs/core/stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
 #include "opentxs.hpp"
 
-#include "opentxs/client/OTAPI.hpp"
-#include "opentxs/client/OpenTransactions.hpp"
-#include "opentxs/client/OTClient.hpp"
-#include "opentxs/client/OTWallet.hpp"
-#include "opentxs/client/ot_commands_ot.hpp"
-#include "opentxs/client/ot_otapi_ot.hpp"
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTClient.hpp>
+#include <opentxs/client/OTWallet.hpp>
+#include <opentxs/client/ot_commands_ot.hpp>
+#include <opentxs/client/ot_otapi_ot.hpp>
 
-#include "opentxs/core/OTAccount.hpp"
-#include "opentxs/core/OTAssetContract.hpp"
-#include "opentxs/core/OTLog.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
-#include "opentxs/core/OTPseudonym.hpp"
-#include "opentxs/core/OTServerContract.hpp"
-#include "opentxs/core/Version.hpp"
+#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/util/OTPaths.hpp>
+#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/OTServerContract.hpp>
+#include <opentxs/core/Version.hpp>
 
 #include <anyoption/anyoption.hpp>
 

@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "stdafx.hpp"
+#include <opentxs/core/stdafx.hpp>
 
-#include "util/Assert.hpp"
+#include <opentxs/core/util/Assert.hpp>
 
 #include <iostream>
 #include <cstring>

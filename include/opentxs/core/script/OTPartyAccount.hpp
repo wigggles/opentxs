@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
-#include "../OTString.hpp"
+#include <opentxs/core/OTString.hpp>
 
 namespace opentxs
 {

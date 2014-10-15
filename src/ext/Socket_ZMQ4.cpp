@@ -130,9 +130,9 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include "../core/stdafx.hpp"
-#include "Socket_ZMQ4.hpp"
-#include "../core/OTLog.hpp"
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/ext/Socket_ZMQ4.hpp>
+#include <opentxs/core/OTLog.hpp>
 
 #include <cppzmq/zmq.hpp>
 
