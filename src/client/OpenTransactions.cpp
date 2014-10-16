@@ -1996,9 +1996,9 @@ bool OT_API::Wallet_ChangePassphrase() const
                         }
                     }
                     // Here we do the actual credentials.
-                    for (auto& it : mapCredFiles) {
-                        std::string str_cred_id = it.first;
-                        OTString strCredential(it.second);
+                    for (auto& itCred : mapCredFiles) {
+                        const std::string& str_cred_id = itCred.first;
+                        OTString strCredential(itCred.second);
                         strOutput.Release();
                         OTASCIIArmor ascLoopArmor(strCredential);
                         if (ascLoopArmor.Exists() &&

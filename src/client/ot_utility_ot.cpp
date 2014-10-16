@@ -2553,12 +2553,9 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
             return false;
         }
 
-        //
         bool bWasProcessSent = false;
-        bool bForceDownload = true;
-        int32_t nProcessNymbox = getAndProcessNymbox_4(
-            serverID, nymID, bWasProcessSent,
-            bForceDownload); // boolean bForceDownload=true;
+        int32_t nProcessNymbox =
+            getAndProcessNymbox_4(serverID, nymID, bWasProcessSent, true);
 
         //          if ( (!bWasProcessSent && ((nProcessNymbox  < 0) ||
         // (nProcessNymbox  > 1))) ||
@@ -2614,10 +2611,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
 
         if ((bWasSent && (nGetNumbers >= 1)) ||
             (!bWasSent && (nGetNumbers == 0))) {
-            bool bForceDownload = true;
             int32_t nProcess =
-                getAndProcessNymbox_4(serverID, nymID, bWasSent,
-                                      bForceDownload); // bForceDownload=true;
+                getAndProcessNymbox_4(serverID, nymID, bWasSent, true);
 
             //              if ( ( bWasSent && (1 == nProcess)) ||
             //                   (!bWasSent && (0 == nProcess)) )
@@ -2694,10 +2689,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
 
             if ((bWasSent && (nGetNumbers >= 1)) ||
                 ((!bWasSent && (nGetNumbers == 0)))) {
-                bool bForceDownload = true;
-                int32_t nProcess = getAndProcessNymbox_4(
-                    serverID, nymID, bWasSent,
-                    bForceDownload); // bForceDownload=true;
+                int32_t nProcess =
+                    getAndProcessNymbox_4(serverID, nymID, bWasSent, true);
 
                 //                  if ( ( bWasSent && (1 == nProcess)) ||
                 //                       (!bWasSent && (0 == nProcess)) )
@@ -2730,9 +2723,13 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     // it,
     // and and it's available anytime via getLastReplyReceived()
 
-    string strLastReplyReceived = getLastReplyReceived();
+    // todo: should the member variable strLastReplyReceived be set to this
+    // one?
+    // before, the member var was shadowed (string strLastReplyReceived =
+    // getLastReplyReceived();).
+    string lastReplyReceived = getLastReplyReceived();
 
-    if (!VerifyStringVal(strLastReplyReceived)) {
+    if (!VerifyStringVal(lastReplyReceived)) {
         otOut << strLocation << ": ERROR in getLastReplyReceived(): why was "
                                 "this string not set, when getRequestNumber "
                                 "was otherwise an apparent success?\n";
@@ -2746,8 +2743,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     // Grab the NymboxHash on the @getTransactionNum reply, and also the one I
     // already had on my client-side Nym... (So we can compare them.)
     //
-    string strServerHash =
-        OTAPI_Wrap::Message_GetNymboxHash(strLastReplyReceived);
+    string strServerHash = OTAPI_Wrap::Message_GetNymboxHash(lastReplyReceived);
     bool bServerhash = VerifyStringVal(strServerHash);
     if (!bServerhash) {
         otOut << strLocation
@@ -2777,10 +2773,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         //
 
         bool bWasProcessSent = false;
-        bool bForceDownload = true;
-        int32_t nGetNymbox = getAndProcessNymbox_4(
-            serverID, nymID, bWasProcessSent,
-            bForceDownload); // boolean bForceDownload=true;
+        int32_t nGetNymbox =
+            getAndProcessNymbox_4(serverID, nymID, bWasProcessSent, true);
 
         //          if ( ((!bWasProcessSent) && ((nGetNymbox  < 0) ||
         // (nGetNymbox  > 1))) ||

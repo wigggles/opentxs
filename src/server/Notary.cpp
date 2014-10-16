@@ -7526,8 +7526,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                         // blank transaction.
                         // (There's probably 20 of them.)
                         //
-                        for (auto& it : theNumbers) {
-                            const int64_t lTransactionNumber = it;
+                        for (const auto& lTransactionNumber : theNumbers) {
                             // (We don't add it if it's already there.)
                             //
                             if (false ==

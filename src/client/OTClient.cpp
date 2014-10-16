@@ -536,8 +536,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                           // the numlist object.
             // Iterate through those numbers...
             //
-            for (auto& it : theNumbers) {
-                const int64_t lValue = it;
+            for (const auto& lValue : theNumbers) {
 
                 if (!pNym->VerifyTentativeNum(strServerID, lValue))
                     otWarn << __FUNCTION__
