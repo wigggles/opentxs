@@ -795,8 +795,8 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
                                                        const string& NYM_ID,
                                                        const string& ASSET_ID)
 {
-    string strResponse = check_user(SERVER_ID, NYM_ID, NYM_ID);
-    if (1 != VerifyMessageSuccess(strResponse)) {
+    string response = check_user(SERVER_ID, NYM_ID, NYM_ID);
+    if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
         otOut << "  Server ID: " << SERVER_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
@@ -815,9 +815,9 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
                   "missing or expired. Downloading from "
                   "server...\n";
 
-        string strResponse = retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
+        response = retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 
-        if (1 != VerifyMessageSuccess(strResponse)) {
+        if (1 != VerifyMessageSuccess(response)) {
             otOut << "OT_ME_load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
             otOut << "  Server ID: " << SERVER_ID << "\n";
