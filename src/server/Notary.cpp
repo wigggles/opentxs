@@ -5916,15 +5916,15 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                         bool bFoundSameAcctTwice = false;
 
                         for (int32_t i = 0; i < theRequestBasket.Count(); i++) {
-                            BasketItem* pItem = theRequestBasket.At(i);
-                            OT_ASSERT(nullptr != pItem);
+                            BasketItem* item = theRequestBasket.At(i);
+                            OT_ASSERT(nullptr != item);
                             std::set<OTIdentifier>::iterator it_account =
-                                setOfAccounts.find(pItem->SUB_ACCOUNT_ID);
+                                setOfAccounts.find(item->SUB_ACCOUNT_ID);
 
                             if (setOfAccounts.end() !=
                                 it_account) // The account appears twice!!
                             {
-                                const OTString strSubID(pItem->SUB_ACCOUNT_ID);
+                                const OTString strSubID(item->SUB_ACCOUNT_ID);
                                 OTLog::vError("%s: Failed: Sub-account ID "
                                               "found TWICE on same basket "
                                               "exchange request: %s\n",
@@ -5932,7 +5932,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                                 bFoundSameAcctTwice = true;
                                 break;
                             }
-                            setOfAccounts.insert(pItem->SUB_ACCOUNT_ID);
+                            setOfAccounts.insert(item->SUB_ACCOUNT_ID);
                         }
                         if (!bFoundSameAcctTwice) // Let's do it!
                         {

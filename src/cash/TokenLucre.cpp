@@ -431,11 +431,11 @@ bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
 
             // ...to Envelope stored in m_ascSpendable (encrypted and
             // base64-encoded)
-            OTEnvelope theEnvelope;
-            theEnvelope.Seal(theNym, strCoin); // Todo check the return values
-                                               // on these two functions
-            theEnvelope.GetAsciiArmoredData(
-                m_ascSpendable); // Here's the final product.
+            OTEnvelope envelope;
+            // Todo check the return values on these two functions
+            envelope.Seal(theNym, strCoin);
+            // Here's the final product.
+            envelope.GetAsciiArmoredData(m_ascSpendable);
 
             //            otErr << "NEW SPENDABLE
             // token...\n--------->%s<----------------\n",

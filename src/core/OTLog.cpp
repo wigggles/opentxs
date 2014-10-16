@@ -911,11 +911,11 @@ void ot_terminate()
         try {
             std::rethrow_exception(e);
         }
-        catch (const std::exception& e) {
+        catch (const std::exception& e2) {
             std::cerr << "ot_terminate: " << __FUNCTION__
                       << " caught unhandled exception."
-                      << " type: " << typeid(e).name()
-                      << " what(): " << e.what() << std::endl;
+                      << " type: " << typeid(e2).name()
+                      << " what(): " << e2.what() << std::endl;
         }
         catch (...) {
             std::cerr << "ot_terminate: " << __FUNCTION__
