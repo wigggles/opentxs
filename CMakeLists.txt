@@ -157,7 +157,10 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 find_package(OpenSSL 1.0.1 REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
-find_library(ZMQ_LIB NAMES libzmq.so.3.1.0 libzmq.3.dylib libzmq-v120-mt-gd-4_0_4)
+find_library(ZMQ_LIB NAMES
+    libzmq.so.3.1.0 libzmq.3.dylib libzmq-v120-mt-gd-4_0_4  # zeromq 4.0.4
+    libzmq.so.4.0.0 libzmq.4.dylib libzmq-v120-mt-gd-4_0_5  # zeromq 4.0.5
+)
 if (ZMQ_LIB STREQUAL "ZMQ_LIB-NOTFOUND")
   set(ZMQ_LIB_FOUND 0)
   set(ZMQ_LIBRARY libzmq)
@@ -176,11 +179,9 @@ file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_MAJOR REGEX "^#define ZMQ_VE
 string(REGEX REPLACE "^#define ZMQ_VERSION_MAJOR ([0-9])$" "\\1" ZMQ_VERSION_MAJOR "${ZMQ_VERSION_MAJOR}")
 file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_MINOR REGEX "^#define ZMQ_VERSION_MINOR [0-9]$")
 string(REGEX REPLACE "^#define ZMQ_VERSION_MINOR ([0-9])$" "\\1" ZMQ_VERSION_MINOR "${ZMQ_VERSION_MINOR}")
-file(STRINGS "${ZMQ_INCLUDE_DIR}/zmq.h" ZMQ_VERSION_PATCH REGEX "^#define ZMQ_VERSION_PATCH [0-9]$")
-string(REGEX REPLACE "^#define ZMQ_VERSION_PATCH ([0-9])$" "\\1" ZMQ_VERSION_PATCH "${ZMQ_VERSION_PATCH}")
-set(ZMQ_VERSION "${ZMQ_VERSION_MAJOR}.${ZMQ_VERSION_MINOR}.${ZMQ_VERSION_PATCH}")
-if (NOT ZMQ_VERSION STREQUAL "4.0.4")
-  message(FATAL_ERROR "Wrong ZeroMQ version ${ZMQ_VERSION}. Required version is 4.0.4")
+set(ZMQ_VERSION "${ZMQ_VERSION_MAJOR}.${ZMQ_VERSION_MINOR}")
+if (NOT ZMQ_VERSION STREQUAL "4.0")
+  message(FATAL_ERROR "Wrong ZeroMQ version ${ZMQ_VERSION}. Required version is 4.0.x")
 endif()
 
 #-----------------------------------------------------------------------------
