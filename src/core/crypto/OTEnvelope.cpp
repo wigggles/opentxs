@@ -181,6 +181,62 @@ bool OTEnvelope::SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
     return theArmoredText.GetData(m_dataContents, bLineBreaks);
 }
 
+bool OTEnvelope::GetAsBookendedString(
+    OTString& strArmorWithBookends, // output (if successful.)
+    bool bEscaped) const
+{
+    OTASCIIArmor theArmoredText;
+    // This function will base64 ENCODE m_dataContents, and then
+    // Set() that as the string contents on theArmoredText.
+    const bool bSetData = theArmoredText.SetData(
+        m_dataContents, true); // bLineBreaks=true (by default anyway.)
+
+    if (bSetData) {
+        const bool bWritten = theArmoredText.WriteArmoredString(
+            strArmorWithBookends, "ENVELOPE", // todo hardcoded
+            bEscaped);
+        if (!bWritten)
+            otErr << __FUNCTION__ << ": Failed while calling: "
+                                     "theArmoredText.WriteArmoredString\n";
+        else
+            return true;
+    }
+    else
+        otErr << __FUNCTION__
+              << ": Failed while calling: "
+                 "theArmoredText.SetData(m_dataContents, true)\n";
+
+    return false;
+}
+
+bool OTEnvelope::SetFromBookendedString(
+    const OTString& strArmorWithBookends, // input
+    bool bEscaped)
+{
+    OTASCIIArmor theArmoredText;
+    const bool bLoaded = theArmoredText.LoadFromString(
+        const_cast<OTString&>(strArmorWithBookends),
+        bEscaped); // std::string str_override="-----BEGIN");
+
+    if (bLoaded) {
+        // This function will base64 DECODE theArmoredText's string contents
+        // and return them as binary in m_dataContents
+        const bool bGotData =
+            theArmoredText.GetData(m_dataContents, true); // bLineBreaks = true
+
+        if (!bGotData)
+            otErr << __FUNCTION__ << ": Failed while calling: "
+                                     "theArmoredText.GetData\n";
+        else
+            return true;
+    }
+    else
+        otErr << __FUNCTION__ << ": Failed while calling: "
+                                 "theArmoredText.LoadFromString\n";
+
+    return false;
+}
+
 // Encrypt theInput as envelope using symmetric crypto, using a random AES key
 // that's
 // kept encrypted in an OTSymmetricKey (encrypted using another key derived from
