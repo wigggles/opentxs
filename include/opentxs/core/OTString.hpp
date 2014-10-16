@@ -147,6 +147,12 @@
 
 #define MAX_STRING_LENGTH 0x800000 // this is about 8 megs.
 
+#ifdef __GNUC__
+#define ATTR_PRINTF(a, b) __attribute__((format(printf, a, b)))
+#else
+#define ATTR_PRINTF(a, b)
+#endif
+
 namespace opentxs
 {
 
@@ -184,7 +190,8 @@ public:
 
     EXPORT OTString& operator=(OTString rhs);
 
-    static bool vformat(const char* fmt, std::va_list* pvl, std::string& s);
+    static bool vformat(const char* fmt, std::va_list* pvl, std::string& s)
+        ATTR_PRINTF(1, 0);
 
     void swap(OTString& rhs);
     bool operator>(const OTString& rhs) const;
@@ -237,10 +244,10 @@ public:
     // For a straight-across, exact-size copy of bytes.
     // Source not expected to be null-terminated.
     EXPORT bool MemSet(const char* mem, uint32_t size);
-    EXPORT void Concatenate(const char* arg, ...);
+    EXPORT void Concatenate(const char* arg, ...) ATTR_PRINTF(2, 3);
     void Concatenate(const OTString& data);
     void Truncate(uint32_t index);
-    EXPORT void Format(const char* fmt, ...);
+    EXPORT void Format(const char* fmt, ...) ATTR_PRINTF(2, 3);
     void ConvertToUpperCase() const;
     EXPORT bool TokenizeIntoKeyValuePairs(Map& map) const;
     EXPORT void OTfgets(std::istream& ofs);
