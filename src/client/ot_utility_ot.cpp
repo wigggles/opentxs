@@ -664,10 +664,14 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
             return -1;
         }
 
-        string strLastReplyReceived = getLastReplyReceived();
+        // todo: should the member variable strLastReplyReceived be set to this
+        // one?
+        // before, the member var was shadowed (string strLastReplyReceived =
+        // getLastReplyReceived();).
+        string lastReplyReceived = getLastReplyReceived();
         // I had to do this bit because getRequestNumber doesn't return the
         // reply itself. But in this case, I needed it.
-        if (!VerifyStringVal(strLastReplyReceived)) // THIS SHOULD NEVER HAPPEN.
+        if (!VerifyStringVal(lastReplyReceived)) // THIS SHOULD NEVER HAPPEN.
         {
             otOut << strLocation << ": ERROR in getLastReplyReceived(): why "
                                     "was this string not set, when "
@@ -733,13 +737,13 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
 
         // Grabbing again in case it's changed.
         string strServerHash =
-            OTAPI_Wrap::Message_GetNymboxHash(strLastReplyReceived);
+            OTAPI_Wrap::Message_GetNymboxHash(lastReplyReceived);
         bool bServerHash = VerifyStringVal(strServerHash);
         if (!bServerHash) {
             otOut << strLocation
                   << ": Warning: Unable to retrieve server-side NymboxHash "
-                     "from server @getRequest reply:\n\n"
-                  << strLastReplyReceived << "\n";
+                     "from server @getRequest reply:\n\n" << lastReplyReceived
+                  << "\n";
         }
 
         strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(serverID, nymID);
@@ -2645,11 +2649,10 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
                                         "successfully. (Giving up.)\n";
             }
 
-            bool bForceDownload = true;
+            bool forceDownload = true;
 
             int32_t nLast = getAndProcessNymbox_4(
-                serverID, nymID, bWasProcessSent,
-                bForceDownload); // boolean bForceDownload=true;
+                serverID, nymID, bWasProcessSent, forceDownload);
             //              if (
             //                  ((!bWasProcessSent) && ((nLast  < 0) || (nLast
             // > 1))) ||

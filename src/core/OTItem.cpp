@@ -897,14 +897,14 @@ bool OTItem::VerifyBalanceStatement(
                         case OTTransaction::cancelCronItem:
                         case OTTransaction::exchangeBasket:
                             // Should only actually iterate once, in this case.
-                            for (int32_t i = 0;
-                                 i < theRemovedNym.GetIssuedNumCount(
+                            for (int32_t j = 0;
+                                 j < theRemovedNym.GetIssuedNumCount(
                                          GetPurportedServerID());
-                                 i++) {
+                                 j++) {
                                 int64_t lTemp = theRemovedNym.GetIssuedNum(
-                                    GetPurportedServerID(), i);
+                                    GetPurportedServerID(), j);
 
-                                if (i > 0)
+                                if (j > 0)
                                     otErr << "OTItem::" << __FUNCTION__
                                           << ": THIS SHOULD NOT HAPPEN.\n";
                                 else if (false ==
@@ -2366,12 +2366,12 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             OTItem* pItem = it;
             OT_ASSERT(nullptr != pItem);
 
-            OTString strAcctID(pItem->GetPurportedAccountID()),
-                strServerID(pItem->GetPurportedServerID()),
-                strUserID(pItem->GetUserID());
+            OTString acctID(pItem->GetPurportedAccountID()),
+                serverID(pItem->GetPurportedServerID()),
+                userID(pItem->GetUserID());
 
-            OTString strReceiptType;
-            GetStringFromType(pItem->GetType(), strReceiptType);
+            OTString receiptType;
+            GetStringFromType(pItem->GetType(), receiptType);
 
             m_xmlUnsigned.Concatenate(
                 "<transactionReport type=\"%s\"\n"
@@ -2383,11 +2383,10 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
                 " transactionNum=\"%lld\"\n"
                 " closingTransactionNum=\"%lld\"\n"
                 " inReferenceTo=\"%lld\" />\n\n",
-                strReceiptType.Exists() ? strReceiptType.Get() : "error_state",
-                pItem->GetAmount(), strAcctID.Get(), strUserID.Get(),
-                strServerID.Get(), pItem->GetRawNumberOfOrigin(),
-                pItem->GetTransactionNum(), pItem->GetClosingNum(),
-                pItem->GetReferenceToNum());
+                receiptType.Exists() ? receiptType.Get() : "error_state",
+                pItem->GetAmount(), acctID.Get(), userID.Get(), serverID.Get(),
+                pItem->GetRawNumberOfOrigin(), pItem->GetTransactionNum(),
+                pItem->GetClosingNum(), pItem->GetReferenceToNum());
         }
     }
 

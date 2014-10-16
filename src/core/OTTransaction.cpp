@@ -5611,9 +5611,6 @@ int64_t OTTransaction::GetReceiptAmount()
                   // the transaction type.
     }
 
-    OTString strAttachment;
-    OTCheque theCheque; // allocated on the stack :-)
-
     switch (GetType()) { // These are the types that have an amount (somehow)
     case OTTransaction::chequeReceipt:  // amount is stored on cheque (attached
                                         // to depositCheque item, attached.)
@@ -5628,6 +5625,9 @@ int64_t OTTransaction::GetReceiptAmount()
                       << ". (expected depositCheque)\n";
                 return 0;
             }
+
+            OTString strAttachment;
+            OTCheque theCheque;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6153,9 +6153,6 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                       // on the transaction type.
     }
 
-    OTCheque theCheque; // allocated on the stack :-)
-    OTString strAttachment;
-
     switch (GetType()) { // These are the types that have an amount (somehow)
     case OTTransaction::chequeReceipt:  // amount is stored on cheque (attached
                                         // to depositCheque item, attached.)
@@ -6170,6 +6167,9 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                       << " (expected depositCheque)\n";
                 return false;
             }
+
+            OTCheque theCheque;
+            OTString strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6338,9 +6338,6 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
         return false; // Should never happen, since we always expect one based
                       // on the transaction type.
 
-    OTCheque theCheque; // allocated on the stack :-)
-    OTString strAttachment;
-
     switch (GetType()) {
     case OTTransaction::transferReceipt: {
         if (pOriginalItem->GetType() != OTItem::acceptPending) {
@@ -6370,6 +6367,9 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                       << " (expected depositCheque)\n";
                 return false;
             }
+
+            OTCheque theCheque;
+            OTString strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6484,9 +6484,6 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                       // on the transaction type.
     }
 
-    OTCheque theCheque; // allocated on the stack :-)
-    OTString strAttachment;
-
     switch (GetType()) { // These are the types that have an amount (somehow)
     case OTTransaction::chequeReceipt:  // amount is stored on cheque (attached
                                         // to depositCheque item, attached.)
@@ -6501,6 +6498,9 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                       << " (expected depositCheque)\n";
                 return false;
             }
+
+            OTCheque theCheque;
+            OTString strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6746,9 +6746,6 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     if (nullptr == pOriginalItem)
         return false; // Should never happen, since we always expect one based
                       // on the transaction type.
-
-    OTCheque theCheque; // allocated on the stack :-)
-    OTString strAttachment;
 
     switch (GetType()) {
     case OTTransaction::transferReceipt: {

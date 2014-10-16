@@ -146,6 +146,9 @@
 #pragma warning(push)
 #pragma warning(disable : 4244)
 #pragma warning(disable : 4267)
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #endif
 
 #if defined(ANDROID) || defined(OT_KEYRING_IOS)
@@ -165,6 +168,8 @@
 
 #ifdef _WIN32
 #pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
 #endif
 
 // To make subclasses of the various data objects (for Protocol Buffers):
