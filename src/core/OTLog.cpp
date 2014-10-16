@@ -182,10 +182,6 @@ void LogStackFrames(void* FaultAdress, char*);
 #define _GNU_SOURCE
 #endif
 
-#ifndef __USE_GNU
-#define __USE_GNU
-#endif
-
 // This shitty apple section is for struct sigcontext for the signal handling.
 #if defined(__APPLE__)
 #ifndef _XOPEN_SOURCE
@@ -843,9 +839,11 @@ void OTLog::Errno(const char* szLocation) // stderr
 
 #if defined(_GNU_SOURCE) && defined(__linux__) && !defined(ANDROID)
     szErrString = strerror_r(errnum, buf, 127);
-#elif(_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
-    nstrerr = strerror_r(errnum, buf,
-                         127); // (strerror_r is threadsafe version of strerror)
+#elif defined(_POSIX_C_SOURCE)
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
+    // (strerror_r is threadsafe version of strerror)
+    nstrerr = strerror_r(errnum, buf, 127);
+#endif
 #endif
 
     const char* szFunc = "OTLog::Errno";
