@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_OTACCOUNT_HPP
 
 #include "OTTransactionType.hpp"
-#include <stdint.h>
+#include <cstdint>
 
 namespace opentxs
 {

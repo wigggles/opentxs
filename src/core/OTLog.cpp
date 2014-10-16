@@ -137,6 +137,7 @@
 #include <opentxs/core/util/stacktrace.h>
 #include <opentxs/core/Version.hpp>
 
+#include <cstring>
 #include <mutex>
 
 #ifndef _WIN32

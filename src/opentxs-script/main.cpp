@@ -154,6 +154,9 @@
 
 #include <anyoption/anyoption.hpp>
 
+#include <sstream>
+#include <cstring>
+
 #ifndef WIN32
 #include <iterator>
 #include <memory>

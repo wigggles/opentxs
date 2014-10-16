@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTDATA_HPP
 #define OPENTXS_CORE_OTDATA_HPP
 
-#include <cinttypes>
+#include <cstdint>
 
 namespace opentxs
 {

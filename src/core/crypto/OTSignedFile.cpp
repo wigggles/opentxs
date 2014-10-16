@@ -138,6 +138,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <cstring>
 #include <irrxml/irrXML.hpp>
 
 namespace opentxs

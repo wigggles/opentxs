@@ -138,7 +138,7 @@
 
 #include <deque>
 #include <ostream>
-#include <streambuf>
+#include <cstdint>
 
 #if defined(unix) || defined(__unix__) || defined(__unix) ||                   \
     defined(__APPLE__) || defined(linux) || defined(__linux) ||                \

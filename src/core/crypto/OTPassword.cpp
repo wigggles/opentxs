@@ -137,6 +137,8 @@
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/OTLog.hpp>
 
+#include <cstring>
+
 // For SecureZeroMemory
 #ifdef _WIN32
 #else // not _WIN32

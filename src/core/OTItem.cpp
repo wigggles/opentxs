@@ -141,6 +141,7 @@
 #include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
+#include <cstring>
 
 #include <memory>
 

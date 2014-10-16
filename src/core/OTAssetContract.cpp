@@ -141,6 +141,7 @@
 
 #include <irrxml/irrXML.hpp>
 
+#include <sstream>
 #include <fstream>
 #include <memory>
 #include <iomanip>

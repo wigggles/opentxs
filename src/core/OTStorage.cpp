@@ -140,6 +140,7 @@
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/OTStoragePB.hpp>
 
+#include <sstream>
 #include <fstream>
 #include <typeinfo>
 

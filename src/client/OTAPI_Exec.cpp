@@ -168,6 +168,7 @@
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 #include <memory>
+#include <sstream>
 
 namespace opentxs
 {
