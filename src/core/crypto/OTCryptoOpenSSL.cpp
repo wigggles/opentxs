@@ -540,8 +540,8 @@ char* OTCrypto_OpenSSL::Base64Encode(const uint8_t* input, int32_t in_len,
 #pragma GCC diagnostic ignored "-Wold-style-cast"
             BIO_get_mem_ptr(b64join, &bptr);
 #pragma GCC diagnostic pop
-            //            otLog5 << "DEBUG base64_encode size: %lld,  in_len:
-            // %lld\n", bptr->length+1, in_len);
+            //    otLog5 << "DEBUG base64_encode size: %" PRId64 ",  in_len:
+            // %" PRId64 "\n", bptr->length+1, in_len);
             buf = new char[bptr->length + 1];
             OT_ASSERT(nullptr != buf);
             memcpy(buf, bptr->data, bptr->length); // Safe.

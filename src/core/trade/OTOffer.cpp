@@ -212,8 +212,9 @@ void OTOffer::GetIdentifier(OTIdentifier& theIdentifier) const
 
     // In this way we generate a unique ID that will always be consistent
     // for the same asset ID, currency ID, and market scale.
-    strTemp.Format("ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%lld\n",
-                   strAsset.Get(), strCurrency.Get(), lScale);
+    strTemp.Format(
+        "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
+        strAsset.Get(), strCurrency.Get(), lScale);
 
     theIdentifier.CalculateDigest(strTemp);
 }
@@ -414,12 +415,12 @@ void OTOffer::UpdateContents()
         " serverID=\"%s\"\n"
         " assetTypeID=\"%s\"\n"
         " currencyTypeID=\"%s\"\n"
-        " priceLimit=\"%lld\"\n"
-        " totalAssetsOnOffer=\"%lld\"\n"
-        " finishedSoFar=\"%lld\"\n"
-        " marketScale=\"%lld\"\n"
-        " minimumIncrement=\"%lld\"\n"
-        " transactionNum=\"%lld\"\n"
+        " priceLimit=\"%" PRId64 "\"\n"
+        " totalAssetsOnOffer=\"%" PRId64 "\"\n"
+        " finishedSoFar=\"%" PRId64 "\"\n"
+        " marketScale=\"%" PRId64 "\"\n"
+        " minimumIncrement=\"%" PRId64 "\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " />\n\n", //  <=== the tag ends here.

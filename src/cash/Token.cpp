@@ -795,7 +795,8 @@ void Token::UpdateContents()
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
     m_xmlUnsigned.Concatenate(
-        "<token\n version=\"%s\"\n state=\"%s\"\n denomination=\"%lld\"\n"
+        "<token\n version=\"%s\"\n state=\"%s\"\n denomination=\"%" PRId64
+        "\"\n"
         " assetTypeID=\"%s\"\n"
         " serverID=\"%s\"\n"
         " series=\"%d\"\n"

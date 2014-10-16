@@ -148,7 +148,7 @@ namespace opentxs
 
 void OTStash::Serialize(OTString& strAppend) const
 {
-    strAppend.Concatenate("<stash name=\"%s\" count=\"%d\" >\n\n",
+    strAppend.Concatenate("<stash name=\"%s\" count=\"%zu\" >\n\n",
                           m_str_stash_name.c_str(), m_mapStashItems.size());
 
     for (auto& it : m_mapStashItems) {
@@ -157,7 +157,7 @@ void OTStash::Serialize(OTString& strAppend) const
         OT_ASSERT((str_asset_type_id.size() > 0) && (nullptr != pStashItem));
 
         strAppend.Concatenate(
-            "<stashItem assetTypeID=\"%s\" balance=\"%lld\" />\n\n",
+            "<stashItem assetTypeID=\"%s\" balance=\"%" PRId64 "\" />\n\n",
             pStashItem->GetAssetTypeID().Get(), pStashItem->GetAmount());
     }
 

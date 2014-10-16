@@ -245,9 +245,9 @@ void OTMarket::UpdateContents()
                               " serverID=\"%s\"\n"
                               " assetTypeID=\"%s\"\n"
                               " currencyTypeID=\"%s\"\n"
-                              " marketScale=\"%lld\"\n"
+                              " marketScale=\"%" PRId64 "\"\n"
                               " lastSaleDate=\"%s\"\n"
-                              " lastSalePrice=\"%lld\""
+                              " lastSalePrice=\"%" PRId64 "\""
                               " >\n\n",
                               m_strVersion.Get(), SERVER_ID.Get(),
                               ASSET_TYPE_ID.Get(), CURRENCY_TYPE_ID.Get(),
@@ -908,8 +908,9 @@ void OTMarket::GetIdentifier(OTIdentifier& theIdentifier) const
 
     // In this way we generate a unique ID that will always be consistent
     // for the same asset ID, currency ID, and market scale.
-    strTemp.Format("ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%lld\n",
-                   strAsset.Get(), strCurrency.Get(), lScale);
+    strTemp.Format(
+        "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
+        strAsset.Get(), strCurrency.Get(), lScale);
 
     theIdentifier.CalculateDigest(strTemp);
 }
@@ -2684,35 +2685,37 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason)
     }
     else if (GetScale() != theOffer.GetScale()) {
         bValidOffer = false;
-        strReason.Format(
-            "Wrong Market Scale on offer. Expected %lld, but found %lld",
-            GetScale(), theOffer.GetScale());
+        strReason.Format("Wrong Market Scale on offer. Expected %" PRId64
+                         ", but found %" PRId64,
+                         GetScale(), theOffer.GetScale());
     }
 
     // The above four items must match in order for it to even be the same
     // MARKET.
     else if (theOffer.GetMinimumIncrement() <= 0) {
         bValidOffer = false;
-        strReason.Format("Minimum Increment on offer is <= 0: %lld",
+        strReason.Format("Minimum Increment on offer is <= 0: %" PRId64,
                          theOffer.GetMinimumIncrement());
     }
     else if (theOffer.GetMinimumIncrement() < GetScale()) {
         bValidOffer = false;
-        strReason.Format("Minimum Increment on offer (%lld) is less than "
-                         "market scale (%lld).",
+        strReason.Format("Minimum Increment on offer (%" PRId64
+                         ") is less than market scale (%" PRId64 ").",
                          theOffer.GetMinimumIncrement(), GetScale());
     }
     else if ((theOffer.GetMinimumIncrement() % GetScale()) != 0) {
         bValidOffer = false;
-        strReason.Format("Minimum Increment on offer (%lld) Mod market scale "
-                         "(%lld) is not equal to zero.",
+        strReason.Format("Minimum Increment on offer (%" PRId64
+                         ") Mod market scale (%" PRId64
+                         ") is not equal to zero.",
                          theOffer.GetMinimumIncrement(), GetScale());
     }
     else if (theOffer.GetMinimumIncrement() > theOffer.GetAmountAvailable()) {
         bValidOffer = false;
         strReason.Format(
-            "Minimum Increment on offer (%lld) is more than the amount of "
-            "assets available for trade on that same offer (%lld).",
+            "Minimum Increment on offer (%" PRId64
+            ") is more than the amount of "
+            "assets available for trade on that same offer (%" PRId64 ").",
             theOffer.GetMinimumIncrement(), theOffer.GetAmountAvailable());
     }
 

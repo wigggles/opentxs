@@ -285,7 +285,7 @@ void OTPaymentPlan::UpdateContents()
         " recipientUserID=\"%s\"\n"
         " canceled=\"%s\"\n"
         " cancelerUserID=\"%s\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " creationDate=\"%" PRId64 "\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
@@ -309,8 +309,9 @@ void OTPaymentPlan::UpdateContents()
         int64_t lClosingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
-        m_xmlUnsigned.Concatenate(
-            "<closingTransactionNumber value=\"%lld\"/>\n\n", lClosingNumber);
+        m_xmlUnsigned.Concatenate("<closingTransactionNumber value=\"%" PRId64
+                                  "\"/>\n\n",
+                                  lClosingNumber);
     }
 
     // OTAgreement
@@ -321,8 +322,9 @@ void OTPaymentPlan::UpdateContents()
         int64_t lClosingNumber = GetRecipientClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
-        m_xmlUnsigned.Concatenate(
-            "<closingRecipientNumber value=\"%lld\"/>\n\n", lClosingNumber);
+        m_xmlUnsigned.Concatenate("<closingRecipientNumber value=\"%" PRId64
+                                  "\"/>\n\n",
+                                  lClosingNumber);
     }
 
     // OTPaymentPlan
@@ -339,7 +341,7 @@ void OTPaymentPlan::UpdateContents()
         m_xmlUnsigned.Concatenate(
             "<initialPayment\n"
             " date=\"%" PRId64 "\"\n"
-            " amount=\"%lld\"\n"
+            " amount=\"%" PRId64 "\"\n"
             " numberOfAttempts=\"%d\"\n"
             " dateOfLastAttempt=\"%" PRId64 "\"\n"
             " dateCompleted=\"%" PRId64 "\"\n"
@@ -372,7 +374,7 @@ void OTPaymentPlan::UpdateContents()
         const int32_t nNoFailedPayments = GetNoFailedPayments();
 
         m_xmlUnsigned.Concatenate("<paymentPlan\n"
-                                  " amountPerPayment=\"%lld\"\n"
+                                  " amountPerPayment=\"%" PRId64 "\"\n"
                                   " timeBetweenPayments=\"%" PRId64 "\"\n"
                                   " planStartDate=\"%" PRId64 "\"\n"
                                   " planLength=\"%" PRId64 "\"\n"

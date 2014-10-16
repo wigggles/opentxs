@@ -405,9 +405,9 @@ bool OTAccount::Debit(const int64_t& amount)
     // and it means that we now allow <0 debits on normal accounts,
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
-        balanceAmount_.Format("%lld", newBalance);
+        balanceAmount_.Format("%" PRId64, newBalance);
         time64_t t = OTTimeGetCurrentTime(); // Today, now.
-        balanceDate_.Format("%d", t);
+        balanceDate_.Format("%" PRId64, t);
         return true;
     }
 }
@@ -426,7 +426,7 @@ bool OTAccount::Credit(const int64_t& amount)
     // that. TODO.
     //    if (newBalance > 0 || (OTAccount::simple != acctType_))
     //    {
-    //        balanceAmount_.Format("%lld", newBalance);
+    //        balanceAmount_.Format("%" PRId64 "", newBalance);
     //        return true;
     //    }
 
@@ -441,9 +441,9 @@ bool OTAccount::Credit(const int64_t& amount)
     // and it means that we now allow <0 credits on normal accounts,
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
-        balanceAmount_.Format("%lld", newBalance);
+        balanceAmount_.Format("%" PRId64, newBalance);
         time64_t t = OTTimeGetCurrentTime(); // Today, now.
-        balanceDate_.Format("%d", t);
+        balanceDate_.Format("%" PRId64, t);
         return true;
     }
 }
@@ -630,7 +630,7 @@ bool OTAccount::GenerateNewAccount(const OTPseudonym& server,
     SetPurportedServerID(serverId);
 
     time64_t t = OTTimeGetCurrentTime(); // Today, now.
-    balanceDate_.Format("%d", t);
+    balanceDate_.Format("%" PRId64, t);
 
     balanceAmount_.Set("0");
 
@@ -759,8 +759,8 @@ void OTAccount::UpdateContents()
                               ACCOUNT_ID.Get(), USER_ID.Get(), SERVER_ID.Get(),
                               strAssetTYPEID.Get());
     if (IsStashAcct()) {
-        m_xmlUnsigned.Concatenate("<stashinfo cronItemNum=\"%lld\"/>\n\n",
-                                  stashTransNum_);
+        m_xmlUnsigned.Concatenate(
+            "<stashinfo cronItemNum=\"%" PRId64 "\"/>\n\n", stashTransNum_);
     }
     if (!inboxHash_.IsEmpty()) {
         OTString strHash(inboxHash_);
@@ -888,7 +888,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         int64_t amount = atol(balanceAmount_.Get());
 
         balanceDate_.Format("%d", date);
-        balanceAmount_.Format("%lld", amount);
+        balanceAmount_.Format("%" PRId64, amount);
 
         otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
                << balanceDate_ << "\n";

@@ -670,7 +670,7 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
         // Pass it to LogToFile, as this always logs.
         //
         OTString strTemp;
-        strTemp.Format("\nOT_ASSERT in %s at line %d\n", szFilename,
+        strTemp.Format("\nOT_ASSERT in %s at line %zu\n", szFilename,
                        nLinenumber);
         LogToFile(strTemp.Get());
 

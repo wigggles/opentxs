@@ -1898,8 +1898,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                               "Asset Name: " << AssetName
                            << "\n Contract ID: " << AssetID << "\n";
 
-                    OTString strContractPath;
-                    strContractPath.Format(OTFolders::Contract().Get());
+                    OTString strContractPath(OTFolders::Contract());
                     OTAssetContract* pContract = new OTAssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 

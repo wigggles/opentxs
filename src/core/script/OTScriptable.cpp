@@ -305,7 +305,7 @@ std::string OTScriptable::GetTime() // Returns a string, containing seconds as
     const int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
 
     OTString strTime;
-    strTime.Format("%lld", lTime);
+    strTime.Format("%" PRId64, lTime);
     return strTime.Get();
 }
 
@@ -2288,7 +2288,7 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend,
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
         strAppend.Concatenate("<scriptableContract\n specifyAssetID=\"%s\"\n "
                               "specifyParties=\"%s\"\n"
-                              " numParties=\"%d\"\n numBylaws=\"%d\" >\n\n",
+                              " numParties=\"%zu\"\n numBylaws=\"%zu\" >\n\n",
                               m_bSpecifyAssetID ? "true" : "false",
                               m_bSpecifyParties ? "true" : "false",
                               m_mapParties.size(), m_mapBylaws.size());

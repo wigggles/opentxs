@@ -137,6 +137,7 @@
 #include <opentxs/core/util/OTPaths.hpp>
 
 #include "simpleini/SimpleIni.h"
+#include <cinttypes>
 
 namespace opentxs
 {
@@ -567,7 +568,7 @@ bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
     }
 
     OTString strValue;
-    strValue.Format("%lld", lValue);
+    strValue.Format("%" PRId64, lValue);
 
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()

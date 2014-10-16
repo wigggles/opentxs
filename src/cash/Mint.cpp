@@ -679,7 +679,7 @@ void Mint::UpdateContents()
                                                  "Mint::UpdateContents.\n");
 
                 m_xmlUnsigned.Concatenate(
-                    "<mintPrivateInfo denomination=\"%lld\">\n"
+                    "<mintPrivateInfo denomination=\"%" PRId64 "\">\n"
                     "%s</mintPrivateInfo>\n\n",
                     it.first, pArmor->Get());
             }
@@ -690,7 +690,8 @@ void Mint::UpdateContents()
                 nullptr != pArmor,
                 "nullptr public mint pointer in Mint::UpdateContents.\n");
 
-            m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%lld\">\n"
+            m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%" PRId64
+                                      "\">\n"
                                       "%s</mintPublicInfo>\n\n",
                                       it.first, pArmor->Get());
         }

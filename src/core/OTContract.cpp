@@ -981,7 +981,7 @@ bool OTContract::SaveContents(std::ofstream& ofs) const
 // Saves the unsigned XML contents to a string
 bool OTContract::SaveContents(OTString& strContents) const
 {
-    strContents.Concatenate(m_xmlUnsigned.Get());
+    strContents.Concatenate(m_xmlUnsigned);
 
     return true;
 }

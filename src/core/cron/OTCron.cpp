@@ -610,7 +610,7 @@ void OTCron::UpdateContents()
         m_xmlUnsigned.Concatenate("<market\n marketID=\"%s\"\n"
                                   " assetID=\"%s\"\n"
                                   " currencyID=\"%s\"\n"
-                                  " marketScale=\"%lld\""
+                                  " marketScale=\"%" PRId64 "\""
                                   " />\n\n",
                                   str_MARKET_ID.Get(), str_ASSET_ID.Get(),
                                   str_CURRENCY_ID.Get(), pMarket->GetScale());
@@ -636,8 +636,8 @@ void OTCron::UpdateContents()
     // Save the transaction numbers.
     //
     for (auto& lTransactionNumber : m_listTransactionNumbers) {
-        m_xmlUnsigned.Concatenate("<transactionNum value=\"%lld\" />\n\n",
-                                  lTransactionNumber);
+        m_xmlUnsigned.Concatenate(
+            "<transactionNum value=\"%" PRId64 "\" />\n\n", lTransactionNumber);
     } // for
 
     m_xmlUnsigned.Concatenate("</cron>\n");

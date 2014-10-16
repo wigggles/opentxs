@@ -330,7 +330,7 @@ void OTTrade::UpdateContents()
         " currencyAcctID=\"%s\"\n"
         " userID=\"%s\"\n"
         " completedNoTrades=\"%d\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " creationDate=\"%" PRId64 "\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
@@ -353,15 +353,16 @@ void OTTrade::UpdateContents()
         int64_t closingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(closingNumber > 0);
 
-        m_xmlUnsigned.Concatenate(
-            "<closingTransactionNumber value=\"%lld\"/>\n\n", closingNumber);
+        m_xmlUnsigned.Concatenate("<closingTransactionNumber value=\"%" PRId64
+                                  "\"/>\n\n",
+                                  closingNumber);
     }
 
     if (('<' == stopSign_) || ('>' == stopSign_)) {
         m_xmlUnsigned.Concatenate("<stopOrder\n"
                                   " hasActivated=\"%s\"\n"
                                   " sign=\"%c\"\n"
-                                  " price=\"%lld\""
+                                  " price=\"%" PRId64 "\""
                                   " />\n\n",
                                   (stopActivated_ ? "true" : "false"),
                                   stopSign_, stopPrice_);

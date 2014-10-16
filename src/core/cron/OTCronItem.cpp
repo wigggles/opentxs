@@ -227,7 +227,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
 {
     OTString strFilename;
-    strFilename.Format("%lld.crn", lTransactionNum);
+    strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
@@ -264,7 +264,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const OTIdentifier& serverID) // Client-side only.
 {
     OTString strFilename, strServerID(serverID);
-    strFilename.Format("%lld.crn", lTransactionNum);
+    strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
@@ -346,7 +346,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                                         const OTIdentifier& serverID)
 {
     OTString strFilename, strServerID(serverID);
-    strFilename.Format("%lld.crn", lTransactionNum);
+    strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
@@ -456,7 +456,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     const int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
     OTString strFilename, strServerID(GetServerID());
-    strFilename.Format("%lld.crn", lOpeningNum);
+    strFilename.Format("%" PRId64 ".crn", lOpeningNum);
 
     const char* szFoldername = OTFolders::Cron().Get(); // cron
     const char* szFilename = strFilename.Get(); // cron/TRANSACTION_NUM.crn
@@ -577,7 +577,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 bool OTCronItem::SaveCronReceipt()
 {
     OTString strFilename;
-    strFilename.Format("%lld.crn", GetTransactionNum());
+    strFilename.Format("%" PRId64 ".crn", GetTransactionNum());
 
     const char* szFoldername = OTFolders::Cron().Get(); // cron
     const char* szFilename = strFilename.Get(); // cron/TRANSACTION_NUM.crn
@@ -1664,8 +1664,8 @@ void OTCronItem::HarvestClosingNumbers(OTPseudonym& theNym)
                      : false)); // bSave=true only on the last iteration.
             if (!bClawedBack) {
                 //                otErr << "OTCronItem::HarvestClosingNumbers:
-                // Number (%lld) failed as issued. (Thus didn't bother 'adding
-                // it back'.)\n",
+                // Number (%" PRId64 ") failed as issued. (Thus didn't bother
+                // 'adding it back'.)\n",
                 //                              GetClosingTransactionNoAt(i));
             }
         }

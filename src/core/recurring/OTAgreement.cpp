@@ -893,7 +893,7 @@ void OTAgreement::HarvestOpeningNumber(OTPseudonym& theNym)
 
         if (!bClawedBack) {
             //          otErr << "OTAgreement::HarvestOpeningNumber: Number
-            // (%lld) failed as issued. (Thus didn't bother 'adding it
+            // (%" PRId64 ") failed as issued. (Thus didn't bother 'adding it
             // back'.)\n", GetRecipientOpeningNum());
         }
     }
@@ -952,7 +952,7 @@ void OTAgreement::HarvestClosingNumbers(OTPseudonym& theNym)
 
         if (!bClawedBack) {
             //          otErr << "OTAgreement::HarvestClosingNumbers: Number
-            // (%lld) failed as issued. (Thus didn't bother 'adding it
+            // (%" PRId64 ") failed as issued. (Thus didn't bother 'adding it
             // back'.)\n", GetRecipientClosingTransactionNoAt(i));
         }
     }
@@ -1430,8 +1430,8 @@ anytime.)
 Valid-From date...
         {
             int64_t lValidTo = VALID_TO, lValidFrom = VALID_FROM;
-            otErr << "VALID_TO is earlier than VALID_FROM in SetAgreement: %lld,
-%lld\n", lValidTo, lValidFrom);
+            otErr << "VALID_TO is earlier than VALID_FROM in SetAgreement: %"
+                     PRId64 ", %" PRId64 "\n", lValidTo, lValidFrom);
             return false;
         }
 
@@ -1441,7 +1441,7 @@ validated as higher than Valid-From.
     else // VALID_TO is a NEGATIVE number... Error.
     {
         int64_t lValidTo = VALID_TO;
-        otErr << "Negative value for valid_to in SetAgreement: %lld\n",
+        otErr << "Negative value for valid_to in SetAgreement: %" PRId64 "\n",
 lValidTo);
         return false;
     }

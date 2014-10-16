@@ -392,7 +392,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
     xmlUnsigned.Release();
 
     xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n"
-                            " minimumTransfer=\"%lld\" >\n\n",
+                            " minimumTransfer=\"%" PRId64 "\" >\n\n",
                             m_nSubCount, m_lMinimumTransfer);
 
     // Only uesd in Request Basket (requesting an exchange in/out.)
@@ -404,7 +404,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
         xmlUnsigned.Concatenate("<requestExchange "
                                 "transferMultiple=\"%d\"\n "
                                 "transferAccountID=\"%s\"\n "
-                                "closingTransactionNo=\"%lld\"\n "
+                                "closingTransactionNo=\"%" PRId64 "\"\n "
                                 "direction=\"%s\" />\n\n",
                                 m_nTransferMultiple, strRequestAcctID.Get(),
                                 m_lClosingTransactionNo,
@@ -422,19 +422,19 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
 
         if (IsExchanging())
             xmlUnsigned.Concatenate(
-                "<basketItem minimumTransfer=\"%lld\"\n"
-                " closingTransactionNo=\"%lld\"\n"
+                "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
+                " closingTransactionNo=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
                 " assetID=\"%s\" />\n\n",
                 pItem->lMinimumTransferAmount, pItem->lClosingTransactionNo,
                 bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
         else
-            xmlUnsigned.Concatenate("<basketItem minimumTransfer=\"%lld\"\n"
-                                    " accountID=\"%s\"\n"
-                                    " assetID=\"%s\" />\n\n",
-                                    pItem->lMinimumTransferAmount,
-                                    bHideAccountID ? "" : strAcctID.Get(),
-                                    strContractID.Get());
+            xmlUnsigned.Concatenate(
+                "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
+                " accountID=\"%s\"\n"
+                " assetID=\"%s\" />\n\n",
+                pItem->lMinimumTransferAmount,
+                bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
     }
 
     xmlUnsigned.Concatenate("</currencyBasket>\n");

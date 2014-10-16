@@ -347,7 +347,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
         strServerID.Get(), OTLog::PathSeparator(), "sent",
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
-    strFile.Format("%lld.msg", lRequestNum);
+    strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     // Check the existing list, if it exists.
     //
@@ -599,7 +599,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                                  OTLog::PathSeparator(), "sent",
                                  /*todo hardcoding*/ OTLog::PathSeparator(),
                                  pstrNymID->Get());
-                strFile.Format("%lld.msg", lRequestNum);
+                strFile.Format("%" PRId64 ".msg", lRequestNum);
 
                 OTNumList theNumList;
                 std::string str_data_filename("sent.dat"); // todo hardcoding.
@@ -698,7 +698,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
         strServerID.Get(), OTLog::PathSeparator(), "sent",
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
-    strFile.Format("%lld.msg", lRequestNum);
+    strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     auto it = messagesMap_.begin();
 

@@ -2402,7 +2402,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
             else if (pAssetContract->GetBasketInfo().Exists()) {
                 OTLog::vOutput(0, "%s: Prevented attempt by user to issue a "
                                   "basket currency contract. (He needs to use "
-                                  "the issueBasket message for that.)\n");
+                                  "the issueBasket message for that.)\n",
+                               szFunc);
             }
             else // success loading contract from string.
             {

@@ -138,6 +138,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <cinttypes>
 #include <locale>
 
 // OTNumList (helper class.)
@@ -447,10 +448,10 @@ bool OTNumList::Output(OTString& strOutput) const // returns false if the
         nIterationCount++;
 
         strOutput.Concatenate(
-            "%s%lld",
+            "%s%" PRId64,
             // If first iteration, prepend a blank string (instead of a comma.)
-            // Like this:  "%lld"
-            // But for all subsequent iterations, concatenate: ",%lld"
+            // Like this:  "%" PRId64 ""
+            // But for all subsequent iterations, concatenate: ",%" PRId64 ""
             (1 == nIterationCount) ? "" : ",", it);
     }
 
