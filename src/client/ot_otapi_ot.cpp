@@ -1759,10 +1759,7 @@ OT_OTAPI_OT int32_t
         return -1;
     }
 
-    int32_t nMainIndex = -1;
     for (auto it = map_of_maps.begin(); it != map_of_maps.end(); ++it) {
-        ++nMainIndex; // so we can output a header on the FIRST one only.
-
         // var sub_map_pair = range_map_of_maps.front();
         if (nullptr == it->second) {
             otOut << strLocation << ": Looping through map_of_maps range, and "
@@ -1778,12 +1775,6 @@ OT_OTAPI_OT int32_t
                                     "even here?? Submaps are only added based "
                                     "on existing offers.)\n";
             return -1;
-        }
-
-        if (0 == nMainIndex) // this is the first iteration of the main output
-                             // loop...
-        {
-            //          otOut << "\n** MY OFFERS **\n\n")
         }
 
         int32_t nSubMap = iterate_nymoffers_sub_map(map_of_maps, sub_map,
