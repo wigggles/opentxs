@@ -4451,11 +4451,6 @@ public:
 RegisterStrategy StrategyAtTriggerClause::reg("@triggerClause",
                                               new StrategyAtTriggerClause());
 
-void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)
-{
-    m_bSuccess = OTString(xml->getAttributeValue("success")).Compare("true");
-}
-
 class StrategyGetMarketList : public OTMessageStrategy
 {
 public:
