@@ -155,6 +155,8 @@
 namespace opentxs
 {
 
+OTMessageStrategyManager OTMessage::messageStrategyManager;
+
 bool OTMessage::HarvestTransactionNumbers(
     OTPseudonym& theNym,
     bool bHarvestingForRetry,          // false until positively asserted.
@@ -351,6 +353,12 @@ void OTMessage::UpdateContents()
 
 bool OTMessage::updateContentsByType()
 {
+    OTMessageStrategy* strategy =
+        messageStrategyManager.findStrategy(m_strCommand.Get());
+    if (!strategy) return false;
+    m_xmlUnsigned.Concatenate(strategy->writeXml(*this));
+    return true;
+
     if (m_strCommand.Compare("getMarketList")) {
         return writeXmlGetMarketList();
     }
@@ -597,6 +605,21 @@ bool OTMessage::updateContentsByType()
         return writeXmlAtTriggerClause();
     }
     return false;
+}
+
+void OTMessageStrategy::processXmlSuccess(OTMessage& m,
+                                          irr::io::IrrXMLReader*& xml)
+{
+    m.m_bSuccess = OTString(xml->getAttributeValue("success")).Compare("true");
+}
+
+void OTMessage::registerStrategy(std::string name, OTMessageStrategy* strategy)
+{
+    messageStrategyManager.registerStrategy(name, strategy);
+}
+
+OTMessageStrategy::~OTMessageStrategy()
+{
 }
 
 bool OTMessage::writeXmlGetMarketOffers()
@@ -3926,7 +3949,13 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("OTmessage")) {
         return processXmlNodeOTmessage(xml);
     }
-    else if (strNodeName.Compare("getMarketList")) {
+
+    OTMessageStrategy* strategy =
+        messageStrategyManager.findStrategy(xml->getNodeName());
+    if (!strategy) return 0;
+    return strategy->processXml(*this, xml);
+
+    if (strNodeName.Compare("getMarketList")) {
         return processXmlNodeGetMarketList(xml);
     }
     else if (strNodeName.Compare("@getMarketList")) {

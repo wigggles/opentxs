@@ -137,11 +137,44 @@
 #include "OTContract.hpp"
 #include "OTNumList.hpp"
 
+#include <unordered_map>
+#include <memory>
+
 namespace opentxs
 {
 
 class OTPasswordData;
 class OTPseudonym;
+class OTMessage;
+
+class OTMessageStrategy
+{
+public:
+    virtual int32_t processXml(OTMessage& message,
+                               irr::io::IrrXMLReader*& xml) = 0;
+    virtual OTString writeXml(OTMessage& message) = 0;
+    virtual ~OTMessageStrategy();
+
+    void processXmlSuccess(OTMessage& m, irr::io::IrrXMLReader*& xml);
+};
+
+class OTMessageStrategyManager
+{
+public:
+    OTMessageStrategy* findStrategy(std::string name)
+    {
+        auto strategy = mapping.find(name);
+        if (strategy == mapping.end()) return nullptr;
+        return strategy->second.get();
+    }
+    void registerStrategy(std::string name, OTMessageStrategy* strategy)
+    {
+        mapping[name] = std::unique_ptr<OTMessageStrategy>(strategy);
+    }
+
+private:
+    std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
+};
 
 class OTMessage : public OTContract
 {
@@ -317,6 +350,9 @@ public:
     //
     EXPORT void SetAcknowledgments(OTPseudonym& theNym);
 
+    EXPORT static void registerStrategy(std::string name,
+                                        OTMessageStrategy* strategy);
+
     OTString m_strCommand;  // perhaps @register is the string for "reply to
                             // register" a-ha
     OTString m_strServerID; // This is sent with every message for security
@@ -375,6 +411,17 @@ public:
     bool m_bBool;    // Some commands need to send a bool. This variable is for
                      // those.
     int64_t m_lTime; // Timestamp when the message was signed.
+
+    static OTMessageStrategyManager messageStrategyManager;
+};
+
+class RegisterStrategy
+{
+public:
+    RegisterStrategy(std::string name, OTMessageStrategy* strategy)
+    {
+        OTMessage::registerStrategy(name, strategy);
+    }
 };
 
 } // namespace opentxs
