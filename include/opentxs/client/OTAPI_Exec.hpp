@@ -659,11 +659,7 @@ public:
     // If you have a server contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT int32_t
-        AddServerContract(const std::string& strContract) const; // returns
-                                                                 // OT_TRUE (1)
-                                                                 // or
-                                                                 // OT_FALSE(0)
+    EXPORT bool AddServerContract(const std::string& strContract) const;
 
     /** --------------------------------------------------
     // ADD ASSET CONTRACT (to wallet)
@@ -671,11 +667,7 @@ public:
     // If you have an asset contract that you'd like to add
     // to your wallet, call this function.
     */
-    EXPORT int32_t
-        AddAssetContract(const std::string& strContract) const; // returns
-                                                                // OT_TRUE (1)
-                                                                // or
-                                                                // OT_FALSE(0)
+    EXPORT bool AddAssetContract(const std::string& strContract) const;
 
     /** --------------------------------------------------
 

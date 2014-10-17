@@ -1410,7 +1410,7 @@ std::string OTAPI_Exec::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
 // If you have a server contract that you'd like to add
 // to your wallet, call this function.
 //
-int32_t OTAPI_Exec::AddServerContract(const std::string& strContract) const
+bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
 {
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
@@ -1456,7 +1456,7 @@ int32_t OTAPI_Exec::AddServerContract(const std::string& strContract) const
 // If you have an asset contract that you'd like to add
 // to your wallet, call this function.
 //
-int32_t OTAPI_Exec::AddAssetContract(const std::string& strContract) const
+bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
 {
     if (strContract.empty()) {
         otErr << __FUNCTION__ << ": Null: strContract passed in!\n";
