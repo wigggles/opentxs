@@ -360,6 +360,197 @@ bool OTMessage::updateContentsByType()
     return true;
 }
 
+// Todo: consider leaving the request # inside all the server REPLIES, so they
+// are easier to match up to the requests. (Duh.)
+
+// return -1 if error, 0 if nothing, and 1 if the node was processed.
+int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+{
+    // Here we call the parent class first.
+    // If the node is found there, or there is some error,
+    // then we just return either way.  But if it comes back
+    // as '0', then nothing happened, and we'll continue executing.
+    //
+    // -- Note you can choose not to call the parent if
+    // you don't want to use any of those xml tags.
+    // As I do below, in the case of OTAccount.
+    //
+    // if (nReturnVal = OTContract::ProcessXMLNode(xml))
+    //      return nReturnVal;
+
+    const OTString strNodeName(xml->getNodeName());
+    if (strNodeName.Compare("ackReplies")) {
+        return processXmlNodeAckReplies(*this, xml);
+    }
+    else if (strNodeName.Compare("acknowledgedReplies")) {
+        return processXmlNodeAcknowledgedReplies(*this, xml);
+    }
+    else if (strNodeName.Compare("OTmessage")) {
+        return processXmlNodeOTmessage(*this, xml);
+    }
+
+    OTMessageStrategy* strategy =
+        messageStrategyManager.findStrategy(xml->getNodeName());
+    if (!strategy) return 0;
+    return strategy->processXml(*this, xml);
+}
+
+int32_t OTMessage::processXmlNodeAckReplies(OTMessage& m,
+                                            irr::io::IrrXMLReader*& xml)
+{
+    OTString strDepth;
+    if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
+                 "without value.\n";
+        return (-1); // error condition
+    }
+
+    m_AcknowledgedReplies.Release();
+
+    if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAcknowledgedReplies(
+    OTMessage& m, irr::io::IrrXMLReader*& xml)
+{
+    otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
+             "acknowledgedReplies\n";
+
+    while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) {
+        xml->read();
+    }
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeOTmessage(OTMessage& m,
+                                           irr::io::IrrXMLReader*& xml)
+{
+    m_strVersion = xml->getAttributeValue("version");
+
+    OTString strDateSigned = xml->getAttributeValue("dateSigned");
+
+    if (strDateSigned.Exists()) m_lTime = atol(strDateSigned.Get());
+
+    otInfo << "\n===> Loading XML for Message into memory structures...\n";
+
+    return 1;
+}
+
+// OTString StrategyAtGetMarketList::writeXml(OTMessage &message)
+
+// int32_t StrategyAtGetMarketList::processXml(OTMessage &message,
+// irr::io::IrrXMLReader*& xml)
+
+// Most contracts do not override this function...
+// But OTMessage does, because every request sent to the server needs to be
+// signed.
+// And each new request is a new message, that requires a new signature, unlike
+// most
+// contracts, (that always stay the same after they are signed.)
+//
+// We need to update the m_xmlUnsigned member with the message members before
+// the
+// actual signing occurs. (Presumably this is the whole reason why the account
+// is being re-signed.)
+//
+// Normally, in other OTContract and derived classes, m_xmlUnsigned is read
+// from the file and then kept read-only, since contracts do not normally
+// change.
+// But as new messages are sent, they must be signed. This function insures that
+// the most up-to-date member contents are included in the request before it is
+// signed.
+//
+// Note: Above comment is slightly old. This override is now here only for the
+// purpose
+// of releasing the signatures.  The other functionality is now handled by the
+// UpdateContents member, which is called by the framework, and otherwise empty
+// in
+// default, but child classes such as OTMessage and OTAccount override it to
+// save
+// their contents just before signing.
+// See OTMessage::UpdateContents near the top of this file for an example.
+//
+bool OTMessage::SignContract(const OTPseudonym& theNym,
+                             const OTPasswordData* pPWData)
+{
+    // I release these, I assume, because a message only has one signer.
+    ReleaseSignatures(); // Note: this might change with credentials. We might
+                         // require multiple signatures.
+
+    // Use the authentication key instead of the signing key.
+    //
+    m_bIsSigned = OTContract::SignContractAuthent(theNym, pPWData);
+
+    if (m_bIsSigned) {
+        //        otErr <<
+        // "\n******************************************************\n"
+        //                "Contents of signed
+        // message:\n\n%s******************************************************\n\n",
+        // m_xmlUnsigned.Get());
+    }
+    else
+        otWarn << "Failure signing message:\n" << m_xmlUnsigned << "";
+
+    return m_bIsSigned;
+}
+
+// virtual (OTContract)
+bool OTMessage::VerifySignature(const OTPseudonym& theNym,
+                                const OTPasswordData* pPWData) const
+{
+    // Messages, unlike many contracts, use the authentication key instead of
+    // the signing key. This is because signing keys are meant for signing
+    // legally
+    // binding agreements, whereas authentication keys are used for message
+    // transport
+    // and for file storage. Since this is OTMessage specifically, used for
+    // transport,
+    // we have overridden sign and verify contract methods, to explicitly use
+    // the
+    // authentication key instead of the signing key. OTSignedFile should
+    // probably be
+    // the same way. (Maybe it already is, by the time you are reading this.)
+    //
+    return VerifySigAuthent(theNym, pPWData);
+}
+
+// Unlike other contracts, which do not change over time, and thus calculate
+// their ID
+// from a hash of the file itself, OTMessage objects are different every time.
+// Thus, we
+// cannot use a hash of the file to produce the Message ID.
+//
+// Message ID will probably become an important part of the protocol (to prevent
+// replay attacks..)
+// So I will end up using it. But for now, VerifyContractID will always return
+// true.
+//
+bool OTMessage::VerifyContractID() const
+{
+    return true;
+}
+
+OTMessage::OTMessage()
+    : OTContract()
+    , m_bIsSigned(false)
+    , m_lNewRequestNum(0)
+    , m_lDepth(0)
+    , m_lTransactionNum(0)
+    , m_bSuccess(false)
+    , m_bBool(false)
+    , m_lTime(0)
+
+{
+    OTContract::m_strContractType.Set("MESSAGE");
+}
+
+OTMessage::~OTMessage()
+{
+}
+
 void OTMessageStrategy::processXmlSuccess(OTMessage& m,
                                           irr::io::IrrXMLReader*& xml)
 {
@@ -4265,86 +4456,6 @@ void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)
     m_bSuccess = OTString(xml->getAttributeValue("success")).Compare("true");
 }
 
-// Todo: consider leaving the request # inside all the server REPLIES, so they
-// are easier to match up to the requests. (Duh.)
-
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    // As I do below, in the case of OTAccount.
-    //
-    // if (nReturnVal = OTContract::ProcessXMLNode(xml))
-    //      return nReturnVal;
-
-    const OTString strNodeName(xml->getNodeName());
-
-    if (strNodeName.Compare("ackReplies")) {
-        return processXmlNodeAckReplies(*this, xml);
-    }
-    else if (strNodeName.Compare("acknowledgedReplies")) {
-        return processXmlNodeAcknowledgedReplies(*this, xml);
-    }
-    else if (strNodeName.Compare("OTmessage")) {
-        return processXmlNodeOTmessage(*this, xml);
-    }
-
-    OTMessageStrategy* strategy =
-        messageStrategyManager.findStrategy(xml->getNodeName());
-    if (!strategy) return 0;
-    return strategy->processXml(*this, xml);
-}
-
-int32_t OTMessage::processXmlNodeAckReplies(OTMessage& m,
-                                            irr::io::IrrXMLReader*& xml)
-{
-    OTString strDepth;
-    if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
-        otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
-                 "without value.\n";
-        return (-1); // error condition
-    }
-
-    m_AcknowledgedReplies.Release();
-
-    if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
-
-    return 1;
-}
-
-int32_t OTMessage::processXmlNodeAcknowledgedReplies(
-    OTMessage& m, irr::io::IrrXMLReader*& xml)
-{
-    otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
-             "acknowledgedReplies\n";
-
-    while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) {
-        xml->read();
-    }
-
-    return 1;
-}
-
-int32_t OTMessage::processXmlNodeOTmessage(OTMessage& m,
-                                           irr::io::IrrXMLReader*& xml)
-{
-    m_strVersion = xml->getAttributeValue("version");
-
-    OTString strDateSigned = xml->getAttributeValue("dateSigned");
-
-    if (strDateSigned.Exists()) m_lTime = atol(strDateSigned.Get());
-
-    otInfo << "\n===> Loading XML for Message into memory structures...\n";
-
-    return 1;
-}
-
 class StrategyGetMarketList : public OTMessageStrategy
 {
 public:
@@ -4470,117 +4581,5 @@ public:
 };
 RegisterStrategy StrategyAtGetMarketList::reg("@getMarketList",
                                               new StrategyAtGetMarketList());
-
-// OTString StrategyAtGetMarketList::writeXml(OTMessage &message)
-
-// int32_t StrategyAtGetMarketList::processXml(OTMessage &message,
-// irr::io::IrrXMLReader*& xml)
-
-// Most contracts do not override this function...
-// But OTMessage does, because every request sent to the server needs to be
-// signed.
-// And each new request is a new message, that requires a new signature, unlike
-// most
-// contracts, (that always stay the same after they are signed.)
-//
-// We need to update the m_xmlUnsigned member with the message members before
-// the
-// actual signing occurs. (Presumably this is the whole reason why the account
-// is being re-signed.)
-//
-// Normally, in other OTContract and derived classes, m_xmlUnsigned is read
-// from the file and then kept read-only, since contracts do not normally
-// change.
-// But as new messages are sent, they must be signed. This function insures that
-// the most up-to-date member contents are included in the request before it is
-// signed.
-//
-// Note: Above comment is slightly old. This override is now here only for the
-// purpose
-// of releasing the signatures.  The other functionality is now handled by the
-// UpdateContents member, which is called by the framework, and otherwise empty
-// in
-// default, but child classes such as OTMessage and OTAccount override it to
-// save
-// their contents just before signing.
-// See OTMessage::UpdateContents near the top of this file for an example.
-//
-bool OTMessage::SignContract(const OTPseudonym& theNym,
-                             const OTPasswordData* pPWData)
-{
-    // I release these, I assume, because a message only has one signer.
-    ReleaseSignatures(); // Note: this might change with credentials. We might
-                         // require multiple signatures.
-
-    // Use the authentication key instead of the signing key.
-    //
-    m_bIsSigned = OTContract::SignContractAuthent(theNym, pPWData);
-
-    if (m_bIsSigned) {
-        //        otErr <<
-        // "\n******************************************************\n"
-        //                "Contents of signed
-        // message:\n\n%s******************************************************\n\n",
-        // m_xmlUnsigned.Get());
-    }
-    else
-        otWarn << "Failure signing message:\n" << m_xmlUnsigned << "";
-
-    return m_bIsSigned;
-}
-
-// virtual (OTContract)
-bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                const OTPasswordData* pPWData) const
-{
-    // Messages, unlike many contracts, use the authentication key instead of
-    // the signing key. This is because signing keys are meant for signing
-    // legally
-    // binding agreements, whereas authentication keys are used for message
-    // transport
-    // and for file storage. Since this is OTMessage specifically, used for
-    // transport,
-    // we have overridden sign and verify contract methods, to explicitly use
-    // the
-    // authentication key instead of the signing key. OTSignedFile should
-    // probably be
-    // the same way. (Maybe it already is, by the time you are reading this.)
-    //
-    return VerifySigAuthent(theNym, pPWData);
-}
-
-// Unlike other contracts, which do not change over time, and thus calculate
-// their ID
-// from a hash of the file itself, OTMessage objects are different every time.
-// Thus, we
-// cannot use a hash of the file to produce the Message ID.
-//
-// Message ID will probably become an important part of the protocol (to prevent
-// replay attacks..)
-// So I will end up using it. But for now, VerifyContractID will always return
-// true.
-//
-bool OTMessage::VerifyContractID() const
-{
-    return true;
-}
-
-OTMessage::OTMessage()
-    : OTContract()
-    , m_bIsSigned(false)
-    , m_lNewRequestNum(0)
-    , m_lDepth(0)
-    , m_lTransactionNum(0)
-    , m_bSuccess(false)
-    , m_bBool(false)
-    , m_lTime(0)
-
-{
-    OTContract::m_strContractType.Set("MESSAGE");
-}
-
-OTMessage::~OTMessage()
-{
-}
 
 } // namespace opentxs
