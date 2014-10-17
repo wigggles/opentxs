@@ -254,7 +254,7 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
         reinterpret_cast<const char*>(
             theActualKey.getMemory_uint8()), // This is the Plaintext that's
                                              // being encrypted.
-        static_cast<uint32_t>(theActualKey.getMemorySize()),
+        theActualKey.getMemorySize(),
         m_dataIV,            // generated above.
         m_dataEncryptedKey); // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
@@ -354,7 +354,7 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
         reinterpret_cast<const char*>(
             theActualKey.getMemory_uint8()), // This is the Plaintext that's
                                              // being encrypted.
-        static_cast<uint32_t>(theActualKey.getMemorySize()),
+        theActualKey.getMemorySize(),
         m_dataIV,            // generated above.
         m_dataEncryptedKey); // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
@@ -923,23 +923,16 @@ bool OTSymmetricKey::SerializeTo(OTData& theOutput) const
 {
 
     uint16_t from_bool_is_generated = (m_bIsGenerated ? 1 : 0);
-    uint16_t n_is_generated = static_cast<uint16_t>(
-        htons(static_cast<uint16_t>(from_bool_is_generated)));
-    uint16_t n_key_size_bits =
-        static_cast<uint16_t>(htons(static_cast<uint16_t>(m_nKeySize)));
+    uint16_t n_is_generated = htons(from_bool_is_generated);
+    uint16_t n_key_size_bits = htons(static_cast<uint16_t>(m_nKeySize));
 
     uint32_t n_iteration_count =
-        static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_uIterationCount)));
+        htonl(static_cast<uint32_t>(m_uIterationCount));
 
-    uint32_t n_salt_size = static_cast<uint32_t>(
-        htonl(static_cast<uint32_t>(m_dataSalt.GetSize())));
-    uint32_t n_iv_size =
-        static_cast<uint32_t>(htonl(static_cast<uint32_t>(m_dataIV.GetSize())));
-    uint32_t n_enc_key_size = static_cast<uint32_t>(
-        htonl(static_cast<uint32_t>(m_dataEncryptedKey.GetSize())));
-
-    uint32_t n_hash_check_size = static_cast<uint32_t>(
-        htonl(static_cast<uint32_t>(m_dataHashCheck.GetSize())));
+    uint32_t n_salt_size = htonl(m_dataSalt.GetSize());
+    uint32_t n_iv_size = htonl(m_dataIV.GetSize());
+    uint32_t n_enc_key_size = htonl(m_dataEncryptedKey.GetSize());
+    uint32_t n_hash_check_size = htonl(m_dataHashCheck.GetSize());
 
     otLog5 << __FUNCTION__
            << ": is_generated: " << static_cast<int32_t>(ntohs(n_is_generated))
@@ -1016,8 +1009,7 @@ bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 
     // convert from network to HOST endian.
     //
-    uint16_t host_is_generated =
-        static_cast<uint16_t>(ntohs(static_cast<uint16_t>(n_is_generated)));
+    uint16_t host_is_generated = ntohs(n_is_generated);
 
     if (1 == host_is_generated)
         m_bIsGenerated = true;
@@ -1047,7 +1039,7 @@ bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 
     // convert from network to HOST endian.
 
-    m_nKeySize = static_cast<uint16_t>(ntohs(n_key_size_bits));
+    m_nKeySize = ntohs(n_key_size_bits);
 
     otLog5 << __FUNCTION__
            << ": key_size_bits: " << static_cast<int32_t>(m_nKeySize) << " \n";
@@ -1066,7 +1058,7 @@ bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 
     // convert from network to HOST endian.
 
-    m_uIterationCount = static_cast<uint32_t>(ntohl(n_iteration_count));
+    m_uIterationCount = ntohl(n_iteration_count);
 
     otLog5 << __FUNCTION__
            << ": iteration_count: " << static_cast<int64_t>(m_uIterationCount)
@@ -1086,8 +1078,7 @@ bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 
     // convert from network to HOST endian.
 
-    const uint32_t lSaltSize =
-        static_cast<uint32_t>(ntohl(static_cast<uint32_t>(n_salt_size)));
+    const uint32_t lSaltSize = ntohl(n_salt_size);
 
     otLog5 << __FUNCTION__
            << ": salt_size value: " << static_cast<int64_t>(lSaltSize) << " \n";

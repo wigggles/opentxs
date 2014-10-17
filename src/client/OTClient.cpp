@@ -2056,8 +2056,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         theLedger.LoadLedgerFromString(strLedger); // This is a MESSAGE ledger.
 
     if (bSuccess) {
-        bSuccess =
-            theLedger.VerifyAccount(static_cast<OTPseudonym&>(*pServerNym));
+        bSuccess = theLedger.VerifyAccount(*pServerNym);
     }
     if (!bSuccess) {
         otErr << "ERROR loading ledger from message payload in "

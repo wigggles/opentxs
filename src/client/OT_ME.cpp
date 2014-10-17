@@ -955,9 +955,8 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
         break;
     default:
         otOut << __FUNCTION__
-              << ": Error. (This should never happen!) nStatus: "
-              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
-              << "\n";
+              << ": Error. (This should never happen!) nStatus: " << nStatus
+              << ", Input:\n" << str_Message << "\n";
         nStatus = (-1);
         break;
     }
@@ -994,9 +993,8 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
         break;
     default:
         otOut << __FUNCTION__
-              << ": Error. (This should never happen!) nStatus: "
-              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
-              << "\n";
+              << ": Error. (This should never happen!) nStatus: " << nStatus
+              << ", Input:\n" << str_Message << "\n";
         nStatus = (-1);
         break;
     }
@@ -1034,9 +1032,8 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
         break;
     default:
         otOut << __FUNCTION__
-              << ": Error. (This should never happen!) nStatus: "
-              << static_cast<int32_t>(nStatus) << ", Input:\n" << str_Message
-              << "\n";
+              << ": Error. (This should never happen!) nStatus: " << nStatus
+              << ", Input:\n" << str_Message << "\n";
         nStatus = (-1);
         break;
     }

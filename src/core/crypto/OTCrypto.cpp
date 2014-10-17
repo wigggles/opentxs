@@ -587,8 +587,7 @@ bool OTCrypto_Decrypt_Output::Concatenate(const void* pAppendData,
 
     if (nullptr != m_pPassword) {
         if (static_cast<int32_t>(lAppendSize) ==
-            static_cast<int32_t>(m_pPassword->addMemory(
-                pAppendData, static_cast<uint32_t>(lAppendSize))))
+            m_pPassword->addMemory(pAppendData, lAppendSize))
             return true;
         else
             return false;

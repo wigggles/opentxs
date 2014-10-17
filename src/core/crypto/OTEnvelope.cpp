@@ -321,8 +321,8 @@ bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
     // 2 == Symmetric Key   (this function -- Encrypt / Decrypt.)
     // Anything else: error.
 
-    uint16_t env_type_n = static_cast<uint16_t>(htons(static_cast<uint16_t>(
-        2))); // Calculate "network-order" version of envelope type 2.
+    // Calculate "network-order" version of envelope type 2.
+    uint16_t env_type_n = htons(static_cast<uint16_t>(2));
 
     m_dataContents.Concatenate(reinterpret_cast<void*>(&env_type_n),
                                // (uint32_t here is the 2nd parameter to
@@ -343,13 +343,12 @@ bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
 
     // Write the IV itself.
     //
-    m_dataContents.Concatenate(theIV.GetPointer(),
-                               static_cast<uint32_t>(theIV.GetSize()));
+    m_dataContents.Concatenate(theIV.GetPointer(), theIV.GetSize());
 
     // Write the Ciphertext.
     //
     m_dataContents.Concatenate(theCipherText.GetPointer(),
-                               static_cast<uint32_t>(theCipherText.GetSize()));
+                               theCipherText.GetSize());
 
     // We don't write the size of the ciphertext before the ciphertext itself,
     // since the decryption is able to deduce the size based on the total
@@ -408,8 +407,7 @@ bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
 
     // convert that envelope type from network to HOST endian.
     //
-    const uint16_t env_type =
-        static_cast<uint16_t>(ntohs(static_cast<uint16_t>(env_type_n)));
+    const uint16_t env_type = ntohs(env_type_n);
     //  nRunningTotal += env_type;    // NOPE! Just because envelope type is 1
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 

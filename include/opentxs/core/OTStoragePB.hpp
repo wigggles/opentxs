@@ -149,6 +149,10 @@
 #else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#ifndef __clang__
+// -Wuseless-cast does not exist in clang
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
 #endif
 
 #if defined(ANDROID) || defined(OT_KEYRING_IOS)

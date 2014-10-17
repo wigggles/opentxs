@@ -420,8 +420,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
     const int64_t lLatencySendMilliSec = m_lLatencySendMs;
 
     zmq::message_t zmq_message(ascEnvelope.GetLength());
-    memcpy(static_cast<void*>(zmq_message.data()), ascEnvelope.Get(),
-           ascEnvelope.GetLength());
+    memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
 
     bool bSuccessSending = false;
 
@@ -448,7 +447,7 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
             int nPoll = 0;
             try {
                 // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
-                nPoll = zmq::poll(&items[0], 1, static_cast<long>(doubling));
+                nPoll = zmq::poll(&items[0], 1, doubling);
             }
             catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -569,7 +568,7 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
             int nPoll = 0;
             try {
                 // ZMQ_POLLIN, 1 item, timeout (milliseconds)
-                nPoll = zmq::poll(&items[0], 1, static_cast<long>(doubling));
+                nPoll = zmq::poll(&items[0], 1, doubling);
             }
             catch (std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,

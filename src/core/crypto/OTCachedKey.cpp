@@ -269,9 +269,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
     //
     // Except... if theSourceKey isn't generated...
     //
-    if (!(const_cast<OTCachedKey&>(theSourceKey))
-             .IsGenerated()) // it's only not const due to the mutex inside
-    {
+    if (!theSourceKey.IsGenerated()) {
         otErr << "OTCachedKey::" << __FUNCTION__
               << ": theSourceKey.IsGenerated() returned false. "
                  "(Returning nullptr.)\n";
@@ -308,9 +306,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
     // Then we return a pointer to it.
     //
     OTASCIIArmor ascCachedKey;
-    if ((const_cast<OTCachedKey&>(theSourceKey)).SerializeTo(
-            ascCachedKey)) // it's only not const due to the mutex inside
-    {
+    if (theSourceKey.SerializeTo(ascCachedKey)) {
         std::shared_ptr<OTCachedKey> pMaster(
             new OTCachedKey); // int32_t nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT;
 

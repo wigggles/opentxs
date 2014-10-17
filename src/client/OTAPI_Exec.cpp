@@ -638,7 +638,7 @@ std::string OTAPI_Exec::GetActiveCronItem(const std::string& SERVER_ID,
     }
     const OTIdentifier serverId(SERVER_ID);
     std::string str_return;
-    const int64_t lTransactionNum = static_cast<int64_t>(lTransNum);
+    const int64_t lTransactionNum = lTransNum;
 
     std::unique_ptr<OTCronItem> pCronItem(
         OTCronItem::LoadActiveCronReceipt(lTransactionNum, serverId));
@@ -5241,8 +5241,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         // INITIAL_PAYMENT_AMOUNT
         if (theList.Count() > 0) {
             int64_t lVal = 0;
-            if (theList.Peek(lVal))
-                INITIAL_PAYMENT_AMOUNT = static_cast<int64_t>(lVal);
+            if (theList.Peek(lVal)) INITIAL_PAYMENT_AMOUNT = lVal;
             theList.Pop();
         }
         // INITIAL_PAYMENT_DELAY
@@ -5260,8 +5259,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         // PAYMENT_PLAN_AMOUNT
         if (theList.Count() > 0) {
             int64_t lVal = 0;
-            if (theList.Peek(lVal))
-                PAYMENT_PLAN_AMOUNT = static_cast<int64_t>(lVal);
+            if (theList.Peek(lVal)) PAYMENT_PLAN_AMOUNT = lVal;
             theList.Pop();
         }
         // PAYMENT_PLAN_DELAY
@@ -6114,9 +6112,7 @@ int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
               << strContract << "\n\n";
     }
     else {
-        const int32_t nReturnValue =
-            static_cast<int32_t>(pScriptable->GetPartyCount());
-        return nReturnValue;
+        return pScriptable->GetPartyCount();
     }
     return -1; // Error condition.
 }
@@ -6136,9 +6132,7 @@ int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
               << strContract << "\n\n";
     }
     else {
-        const int32_t nReturnValue =
-            static_cast<int32_t>(pScriptable->GetBylawCount());
-        return nReturnValue;
+        return pScriptable->GetBylawCount();
     }
     return -1; // Error condition.
 }
@@ -6273,11 +6267,8 @@ int32_t OTAPI_Exec::Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a bylaw "
                      "with the name: " << BYLAW_NAME << "\n";
         }
-        else // We found the bylaw...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pBylaw->GetClauseCount());
-            return nReturnValue;
+        else {
+            return pBylaw->GetClauseCount();
         }
     }
     return (-1);
@@ -6309,11 +6300,8 @@ int32_t OTAPI_Exec::Bylaw_GetVariableCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a bylaw "
                      "with the name: " << BYLAW_NAME << "\n";
         }
-        else // We found the bylaw...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pBylaw->GetVariableCount());
-            return nReturnValue;
+        else {
+            return pBylaw->GetVariableCount();
         }
     }
     return (-1);
@@ -6345,11 +6333,8 @@ int32_t OTAPI_Exec::Bylaw_GetHookCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a bylaw "
                      "with the name: " << BYLAW_NAME << "\n";
         }
-        else // We found the bylaw...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pBylaw->GetHookCount());
-            return nReturnValue;
+        else {
+            return pBylaw->GetHookCount();
         }
     }
     return (-1);
@@ -6381,11 +6366,8 @@ int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a bylaw "
                      "with the name: " << BYLAW_NAME << "\n";
         }
-        else // We found the bylaw...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pBylaw->GetCallbackCount());
-            return nReturnValue;
+        else {
+            return pBylaw->GetCallbackCount();
         }
     }
     return (-1);
@@ -6994,11 +6976,8 @@ int32_t OTAPI_Exec::Party_GetAcctCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a party "
                      "with the name: " << PARTY_NAME << "\n";
         }
-        else // We found the party...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pParty->GetAccountCount());
-            return nReturnValue;
+        else {
+            return pParty->GetAccountCount();
         }
     }
     return (-1);
@@ -7030,11 +7009,8 @@ int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
                   << ": Smart contract loaded up, but failed to find a party "
                      "with the name: " << PARTY_NAME << "\n";
         }
-        else // We found the party...
-        {
-            const int32_t nReturnValue =
-                static_cast<int32_t>(pParty->GetAgentCount());
-            return nReturnValue;
+        else {
+            return pParty->GetAgentCount();
         }
     }
     return (-1);
@@ -9871,9 +9847,9 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // (this item references and accepts another item by its transaction
     // number--
     //  one that is already there in my inbox)
-    pAcceptItem->SetReferenceToNum(static_cast<int64_t>(
-        lReferenceTransactionNum)); // This is critical. Server needs this to
-                                    // look up the original.
+
+    // This is critical. Server needs this to look up the original.
+    pAcceptItem->SetReferenceToNum(lReferenceTransactionNum);
     // Don't need to set transaction num on item since the constructor already
     // got it off the owner transaction.
     pAcceptItem->SetAmount(pTransaction->GetReceiptAmount()); // Server
@@ -10563,9 +10539,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
         int64_t lTemp = theListOfInboxReceiptsBeingRemoved.front();
         theListOfInboxReceiptsBeingRemoved.pop_front();
 
-        if (false ==
-            theInbox.RemoveTransaction(
-                static_cast<int64_t>(lTemp))) // <================
+        if (false == theInbox.RemoveTransaction(lTemp))
             otErr << __FUNCTION__
                   << ": Failed removing receipt from temporary Inbox: " << lTemp
                   << " \n";
@@ -10586,7 +10560,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
     //
     for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theServerID); i++) {
         int64_t lTemp = theTempNym.GetIssuedNum(theServerID, i);
-        pNym->RemoveIssuedNum(strServerID, static_cast<int64_t>(lTemp));
+        pNym->RemoveIssuedNum(strServerID, lTemp);
     }
     // BALANCE AGREEMENT
     //
@@ -10594,8 +10568,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
     // again.
     //
     OTItem* pBalanceItem = theInbox.GenerateBalanceStatement(
-        static_cast<int64_t>(lTotalBeingAccepted), *pTransaction, *pNym,
-        *pAccount, theOutbox);
+        lTotalBeingAccepted, *pTransaction, *pNym, *pAccount, theOutbox);
     // Here I am adding these numbers back again, since I removed them to
     // generate the balance agreement.
     // (They won't be removed for real until I receive the server's
@@ -10605,7 +10578,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
     //
     for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(theServerID); i++) {
         int64_t lTemp = theTempNym.GetIssuedNum(theServerID, i);
-        pNym->AddIssuedNum(strServerID, static_cast<int64_t>(lTemp));
+        pNym->AddIssuedNum(strServerID, lTemp);
     }
 
     if (nullptr == pBalanceItem) {
@@ -10825,8 +10798,7 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
                                      "transaction: unknown ledger type.\n";
             return "";
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "
@@ -10920,8 +10892,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt.";
@@ -11032,8 +11003,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
                                      "transaction: unknown ledger type.\n";
             return "";
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11128,8 +11098,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "
@@ -11229,8 +11198,7 @@ std::string OTAPI_Exec::Pending_GetNote(
                                      "transaction: unknown ledger type. \n";
             return "";
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11347,8 +11315,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
                                      "transaction: unknown ledger type. \n";
             return -1;
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11653,8 +11620,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11758,8 +11724,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box receipt. "
@@ -11850,8 +11815,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
                                      "transaction: unknown ledger type. \n";
             return OT_ERROR;
         }
-        pTransaction =
-            LoadBoxReceipt(theTransaction, static_cast<int64_t>(lBoxType));
+        pTransaction = LoadBoxReceipt(theTransaction, lBoxType);
         if (nullptr == pTransaction) {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: failed loading box "
@@ -13889,10 +13853,9 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
 
-    std::unique_ptr<Basket> pBasket(OTAPI()->GenerateBasketCreation(
-        theUserID, static_cast<int64_t>(lMinimumTransfer))); // Must be above
-                                                             // zero. If <= 0,
-                                                             // defaults to 10.
+    // Must be above zero. If <= 0, defaults to 10.
+    std::unique_ptr<Basket> pBasket(
+        OTAPI()->GenerateBasketCreation(theUserID, lMinimumTransfer));
     if (nullptr == pBasket) return "";
 
     // At this point, I know pBasket is good (and will be cleaned up
@@ -13952,12 +13915,11 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     // Can't never be too sure.
     if (theBasket.LoadContractFromString(strBasket)) {
         bAdded = OTAPI()->AddBasketCreationItem(
-            theUserID,      // for signature.
-            theBasket,      // created in above call.
-            theAssetTypeID, // Adding an asset type to the new basket.
-            static_cast<int64_t>(lMinimumTransfer)); // The amount of the asset
-                                                     // type that is in the
-                                                     // basket (per).
+            theUserID,         // for signature.
+            theBasket,         // created in above call.
+            theAssetTypeID,    // Adding an asset type to the new basket.
+            lMinimumTransfer); // The amount of the asset type that is in the
+                               // basket (per).
     }
 
     if (!bAdded) return "";
@@ -14343,8 +14305,7 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& SERVER_ID,
     int64_t lAmount = AMOUNT;
 
     return OTAPI()->notarizeTransfer(theServerID, theUserID, theFromAcct,
-                                     theToAcct, static_cast<int64_t>(lAmount),
-                                     strNote);
+                                     theToAcct, lAmount, strNote);
 }
 
 // Returns int32_t:
@@ -14561,8 +14522,7 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& SERVER_ID,
     int64_t lAmount = AMOUNT;
 
     return OTAPI()->withdrawVoucher(theServerID, theUserID, theAcctID,
-                                    theRecipientUserID, strMemo,
-                                    static_cast<int64_t>(lAmount));
+                                    theRecipientUserID, strMemo, lAmount);
 }
 
 // PAY DIVIDEND -- to shareholders
@@ -14616,7 +14576,7 @@ int32_t OTAPI_Exec::payDividend(
 
     return OTAPI()->payDividend(theServerID, theIssuerUserID,
                                 theDividendFromAcctID, theSharesAssetTypeID,
-                                strMemo, static_cast<int64_t>(lAmount));
+                                strMemo, lAmount);
 }
 
 // Returns int32_t:
@@ -14899,10 +14859,9 @@ int32_t OTAPI_Exec::issueMarketOffer(
     int64_t lPriceLimit = PRICE_LIMIT; // 0 is allowed now, for market orders.
     return OTAPI()->issueMarketOffer(
         theAssetServerID, theAssetUserID, theAssetAcctID, theCurrencyAcctID,
-        static_cast<int64_t>(lMarketScale), static_cast<int64_t>(lMinIncrement),
-        static_cast<int64_t>(lTotalAssetsOnOffer),
-        static_cast<int64_t>(lPriceLimit), bBuyingOrSelling,
-        LIFESPAN_IN_SECONDS, cStopSign, static_cast<int64_t>(ACTIVATION_PRICE));
+        lMarketScale, lMinIncrement, lTotalAssetsOnOffer, lPriceLimit,
+        bBuyingOrSelling, LIFESPAN_IN_SECONDS, cStopSign,
+        static_cast<int64_t>(ACTIVATION_PRICE));
 }
 
 // Returns int32_t:

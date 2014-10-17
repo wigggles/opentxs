@@ -722,8 +722,7 @@ bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
      method.
      */
     const int32_t nRAND_bytes =
-        RAND_bytes(reinterpret_cast<uint8_t*>(szDestination),
-                   static_cast<int32_t>(nNewSize));
+        RAND_bytes(szDestination, static_cast<int32_t>(nNewSize));
 
     if ((-1) == nRAND_bytes) {
         otErr
@@ -1580,10 +1579,10 @@ bool OTCrypto_OpenSSL::Encrypt(
         // Resulting value stored in len.
         //
 
-        uint32_t len = static_cast<uint32_t>(
+        uint32_t len =
             (lRemainingLength < OTCryptoConfig::SymmetricBufferSize())
                 ? lRemainingLength
-                : OTCryptoConfig::SymmetricBufferSize()); // 4096
+                : OTCryptoConfig::SymmetricBufferSize(); // 4096
 
         if (!EVP_EncryptUpdate(
                 &ctx, &vBuffer_out.at(0), &len_out,
@@ -2072,21 +2071,16 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
     // Anything else: error.
 
     uint16_t temp_env_type = 1; // todo hardcoding.
-    uint16_t env_type_n = static_cast<uint16_t>(
-        htons(static_cast<uint16_t>(temp_env_type))); // Calculate
-                                                      // "network-order" version
-                                                      // of envelope type 1.
+    // Calculate "network-order" version of envelope type 1.
+    uint16_t env_type_n = htons(temp_env_type);
 
     dataOutput.Concatenate(reinterpret_cast<void*>(&env_type_n),
                            static_cast<uint32_t>(sizeof(env_type_n)));
 
     // Write the ARRAY SIZE (network order version.)
 
-    uint32_t array_size_n = static_cast<uint32_t>(
-        htonl(static_cast<uint32_t>(RecipPubKeys.size()))); // Calculate
-                                                            // "network-order"
-                                                            // version of array
-                                                            // size.
+    // Calculate "network-order" version of array size.
+    uint32_t array_size_n = htonl(RecipPubKeys.size());
 
     dataOutput.Concatenate(reinterpret_cast<void*>(&array_size_n),
                            static_cast<uint32_t>(sizeof(array_size_n)));
@@ -2131,22 +2125,19 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
 
         const OTString strNymID(str_nym_id.c_str());
 
-        uint32_t nymid_len = static_cast<uint32_t>(
-            strNymID.GetLength() + 1); // +1 for null terminator.
-        uint32_t nymid_len_n = static_cast<uint32_t>(
-            htonl(nymid_len)); // Calculate "network-order" version of length
-                               // (+1 for null terminator)
+        // +1 for null terminator.
+        uint32_t nymid_len = strNymID.GetLength() + 1;
+        // Calculate "network-order" version of length (+1 for null terminator)
+        uint32_t nymid_len_n = htonl(nymid_len);
 
         // Write nymid_len_n and strNymID for EACH encrypted symmetric key.
         //
         dataOutput.Concatenate(reinterpret_cast<void*>(&nymid_len_n),
                                static_cast<uint32_t>(sizeof(nymid_len_n)));
 
-        dataOutput.Concatenate(
-            reinterpret_cast<const void*>(strNymID.Get()),
-            static_cast<uint32_t>(nymid_len)); // (+1 for null terminator is
-                                               // included here already, from
-                                               // above.)
+        // (+1 for null terminator is included here already, from above.)
+        dataOutput.Concatenate(reinterpret_cast<const void*>(strNymID.Get()),
+                               nymid_len);
 
         otLog5 << __FUNCTION__ << ": INDEX: " << static_cast<int64_t>(ii)
                << "  NymID length:  "
@@ -2168,8 +2159,8 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
         OT_ASSERT(nullptr != ek[ii]); // assert key pointer not null.
         OT_ASSERT(eklen[ii] > 0);     // assert key length larger than 0.
 
-        uint32_t eklen_n = static_cast<uint32_t>(htonl(static_cast<uint32_t>(
-            eklen[ii]))); // Calculate "network-order" version of length.
+        // Calculate "network-order" version of length.
+        uint32_t eklen_n = htonl(static_cast<uint32_t>(eklen[ii]));
 
         dataOutput.Concatenate(reinterpret_cast<void*>(&eklen_n),
                                static_cast<uint32_t>(sizeof(eklen_n)));
@@ -2192,14 +2183,13 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                                             // and use it for looking up cipher
                                             // upon Open.)
                                             //  OT_ASSERT(ivlen > 0);
-    uint32_t ivlen_n = static_cast<uint32_t>(htonl(static_cast<uint32_t>(
-        ivlen))); // Calculate "network-order" version of iv length.
+    // Calculate "network-order" version of iv length.
+    uint32_t ivlen_n = htonl(ivlen);
 
     dataOutput.Concatenate(reinterpret_cast<void*>(&ivlen_n),
                            static_cast<uint32_t>(sizeof(ivlen_n)));
 
-    dataOutput.Concatenate(reinterpret_cast<void*>(iv),
-                           static_cast<uint32_t>(ivlen));
+    dataOutput.Concatenate(reinterpret_cast<void*>(iv), ivlen);
 
     otLog5 << __FUNCTION__
            << ": iv_size: " << static_cast<int64_t>(ntohl(ivlen_n))
@@ -2453,8 +2443,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
     // convert that envelope type from network to HOST endian.
     //
-    const uint16_t env_type =
-        static_cast<uint16_t>(ntohs(static_cast<uint16_t>(env_type_n)));
+    const uint16_t env_type = ntohs(env_type_n);
     //  nRunningTotal += env_type;    // NOPE! Just because envelope type is 1
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
@@ -2532,8 +2521,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
         // convert that array size from network to HOST endian.
         //
-        uint32_t nymid_len = static_cast<uint32_t>(ntohl(static_cast<uint32_t>(
-            nymid_len_n))); // FYI: ntohl returns uint32_t !!!!!
+        uint32_t nymid_len = ntohl(nymid_len_n);
 
         otLog5 << __FUNCTION__
                << ": NymID length: " << static_cast<int64_t>(nymid_len) << "\n";
@@ -2548,7 +2536,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
         uint32_t nReadNymID = 0;
 
         if (0 == (nReadNymID = dataInput.OTfread(
-                      reinterpret_cast<uint8_t*>(nymid),
+                      nymid,
                       static_cast<uint32_t>(sizeof(uint8_t) *
                                             nymid_len)))) // this length
                                                           // includes the null
@@ -2607,7 +2595,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
         // convert that key size from network to host endian.
         //
-        eklen = static_cast<uint32_t>(ntohl(static_cast<uint32_t>(eklen_n)));
+        eklen = ntohl(eklen_n);
         //      eklen  = EVP_PKEY_size(private_key);  // We read this size from
         // file now...
 
@@ -2624,8 +2612,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
         // Next we read the encrypted key itself...
         //
-        if (0 == (nReadKey = dataInput.OTfread(reinterpret_cast<uint8_t*>(ek),
-                                               static_cast<uint32_t>(eklen)))) {
+        if (0 == (nReadKey = dataInput.OTfread(ek, eklen))) {
             otErr << szFunc << ": Error reading encrypted key.\n";
             free(ek);
             ek = nullptr;
@@ -2638,7 +2625,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
                << "     EK Last byte: " << static_cast<int32_t>(ek[eklen - 1])
                << "\n";
 
-        OT_ASSERT(nReadKey == static_cast<uint32_t>(eklen));
+        OT_ASSERT(nReadKey == eklen);
 
         // If we "found the key already" that means we already found the right
         // key on
@@ -2676,8 +2663,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
                 {
                     bFoundKeyAlready = true;
 
-                    theRawEncryptedKey.Assign(static_cast<void*>(ek),
-                                              static_cast<uint32_t>(eklen));
+                    theRawEncryptedKey.Assign(static_cast<void*>(ek), eklen);
                     //                  theRawEncryptedKey.Assign(const_cast<const
                     // void *>(static_cast<void *>(ek)), eklen);
                 }
@@ -2724,7 +2710,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
     // convert that iv size from network to HOST endian.
     //
-    const uint32_t iv_size_host_order = ntohl(static_cast<uint32_t>(iv_size_n));
+    const uint32_t iv_size_host_order = ntohl(iv_size_n);
 
     if (iv_size_host_order > max_iv_length) {
         const int64_t l1 = iv_size_host_order, l2 = max_iv_length;
@@ -4077,8 +4063,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     //
     int32_t nErr = EVP_VerifyFinal(
         &ctx, static_cast<const uint8_t*>(binSignature.GetPointer()),
-        static_cast<uint32_t>(binSignature.GetSize()),
-        const_cast<EVP_PKEY*>(pkey));
+        binSignature.GetSize(), const_cast<EVP_PKEY*>(pkey));
 
     EVP_MD_CTX_cleanup(&ctx);
 
