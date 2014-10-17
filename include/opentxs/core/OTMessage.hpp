@@ -154,6 +154,76 @@ protected:
 
     void processXmlSuccess(irr::io::IrrXMLReader*& xml);
 
+private:
+    bool updateContentsByType();
+
+    int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeOTmessage(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetMarketList(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetMarketList(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetMarketOffers(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetMarketOffers(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetMarketRecentTrades(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetMarketRecentTrades(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetNymMarketOffers(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetNymMarketOffers(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtCheckServerID(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeCreateUserAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtcreateUserAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeDeleteUserAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtDeleteUserAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetRequest(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetRequest(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeOutmailMessageOrOutpaymentsMessage(
+        irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeSendUserMessage(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtSendUserMessage(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeSendUserInstrumentOrPayDivident(
+        irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtSendUserInstrument(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeUsageCredits(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtUsageCredits(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeCheckUser(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtCheckUser(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeIssueAssetType(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtIssueAssetType(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeQueryAssetTypes(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtQueryAssetTypes(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeCreateAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtCreateAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetBoxReceipt(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetBoxReceipt(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeDeleteAssetAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtDeleteAssetAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeIssueBasket(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtIssueBasket(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetTransactionNum(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetTransactionNum(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeNotarizeTransactions(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtNotarizeTransactions(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetInbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetNymbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetInbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetNymbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetOutbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetOutbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetAccount(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetAccountFiles(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetAccountFiles(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetContract(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetContract(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeGetMint(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtGetMint(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeTriggerClause(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtTriggerClause(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeProcessInbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeProcessNymbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtProcessInbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAtProcessNymbox(irr::io::IrrXMLReader*& xml);
+
 public:
     EXPORT OTMessage();
     EXPORT virtual ~OTMessage();

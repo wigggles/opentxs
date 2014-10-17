@@ -295,8 +295,6 @@ void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
 // just prior to the signing of the message, in OTContract::SignContract.
 void OTMessage::UpdateContents()
 {
-    bool bFoundMessage = false;
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
@@ -307,1325 +305,7 @@ void OTMessage::UpdateContents()
         "<OTmessage\n version=\"%s\"\n dateSigned=\"%lld\">\n\n",
         m_strVersion.Get(), m_lTime);
 
-    if (m_strCommand.Compare("getMarketList")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketList")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-
-        //        std::cerr << m_xmlUnsigned << std::endl;
-    }
-
-    if (m_strCommand.Compare("getMarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getMarketRecentTrades")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"" // stored in NymID2
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get() // Storing Market ID
-                                  );
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getMarketRecentTrades")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getNym_MarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getNym_MarketOffers")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("checkServerID")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate(
-            "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
-            m_strNymPublicKey.Get());
-        m_xmlUnsigned.Concatenate(
-            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
-            m_strNymID2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@checkServerID")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("createUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate(
-                "<credentialList>\n%s</credentialList>\n\n",
-                m_ascPayload.Get());
-        if (m_ascPayload2.Exists())
-            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                      m_ascPayload2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@createUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
-                                      m_ascPayload.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("deleteUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@deleteUserAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("checkUser")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@checkUser")) {
-        // This means new-style credentials are being sent, not just the public
-        // key as before.
-        const bool bCredentials =
-            (m_ascPayload.Exists() && m_ascPayload2.Exists());
-
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " hasCredentials=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  (bCredentials ? "true" : "false"),
-                                  m_strServerID.Get());
-
-        if (m_bSuccess) {
-            // Old style. (Deprecated.)
-            if (m_strNymPublicKey.Exists())
-                m_xmlUnsigned.Concatenate(
-                    "<nymPublicKey>\n%s</nymPublicKey>\n\n",
-                    m_strNymPublicKey.Get());
-
-            // New style:
-            if (bCredentials) {
-                m_xmlUnsigned.Concatenate(
-                    "<credentialList>\n%s</credentialList>\n\n",
-                    m_ascPayload.Get());
-                m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                          m_ascPayload2.Get());
-            }
-        }
-        else
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("usageCredits")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " adjustment=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_lDepth, m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@usageCredits")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " totalCredits=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // This one isn't part of the message protocol, but is used for outmail
-    // storage.
-    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
-    // itself
-    // will soon be encrypted, and there's no need to be redundant also as well
-    // in addition on top of that.
-    //
-    if (m_strCommand.Compare("outmailMessage") ||
-        m_strCommand.Compare("outpaymentsMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("sendUserMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@sendUserMessage")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare(
-            "sendUserInstrument") || // sendUserInstrument is sent from one user
-                                     // to the server, which then attaches that
-                                     // message as a payment, onto a transaction
-                                     // on the Nymbox of the recipient.
-        m_strCommand.Compare("payDividend")) // payDividend is not a normal user
-                                             // message. Rather, the sender uses
-                                             // notarizeTransactions to do a
-                                             // payDividend transaction. On the
-                                             // server side, this creates a new
-                                             // message of type "payDividend"
-                                             // for each recipient, in order to
-                                             // attach a voucher to it (for each
-                                             // recipient) and then that
-                                             // (artificially created
-                                             // payDividend msg) is added to the
-                                             // Nymbox of each recipient.
-    {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@sendUserInstrument")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getRequest")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // This is the ONE command where you see a request number coming back from
-    // the server.
-    // In all the other commands, it should be SENT to the server, not received
-    // from the server.
-    if (m_strCommand.Compare("@getRequest")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n"             // command
-            " success=\"%s\"\n" // m_bSuccess
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " newRequestNum=\"%lld\"\n"
-            " requestNum=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
-            m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
-            m_lNewRequestNum, m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("issueAssetType")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAssetID.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@issueAssetType")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n" // the new issuer account ID
-            " nymID=\"%s\"\n"
-            " assetType=\"%s\"\n"
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<issuerAccount>\n%s</issuerAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("queryAssetTypes")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@queryAssetTypes")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("issueBasket")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<currencyBasket>\n%s</currencyBasket>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@issueBasket")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n" // the new basket issuer account ID
-            " nymID=\"%s\"\n"
-            " assetType=\"%s\"\n" // the new Asset Type
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("createAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAssetID.Get());
-
-        //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
-        // m_strAssetID.GetLength(),  m_strAssetID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@createAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascInReferenceTo.Exists())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate("<newAccount>\n%s</newAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getBoxReceipt")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " requestNum=\"%s\"\n"
-            " transactionNum=\"%lld\"\n"
-            " boxType=\"%s\"\n"
-            " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
-                                // will appear in this variable.
-            ">\n\n",
-            m_strCommand.Get(), m_strNymID.Get(), m_strServerID.Get(),
-            m_strRequestNum.Get(), m_lTransactionNum,
-            (m_lDepth == 0)
-                ? "nymbox"
-                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m_strAcctID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getBoxReceipt")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n"
-            " transactionNum=\"%lld\"\n"
-            " boxType=\"%s\"\n"
-            " nymID=\"%s\"\n"
-            " serverID=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), m_strRequestNum.Get(),
-            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
-            m_lTransactionNum,
-            (m_lDepth == 0)
-                ? "nymbox"
-                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m_strNymID.Get(),
-            m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<boxReceipt>\n%s</boxReceipt>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("deleteAssetAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get(),
-                                  m_strAcctID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@deleteAssetAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("notarizeTransactions")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get(), m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<accountLedger>\n%s</accountLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@notarizeTransactions")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getTransactionNum")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("@getTransactionNum")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymboxHash.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymboxHash.Get(),
-                                  m_strServerID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<nymboxLedger>\n%s</nymboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("getInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " inboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strInboxHash.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("getOutbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@getOutbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " outboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strOutboxHash.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTAccount object.
-    if (m_strCommand.Compare("@getAccount")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getAccountFiles")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAcctID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains a STRING_MAP containing the OTAccount,
-    // plus the inbox and outbox for that acct..
-    //
-    if (m_strCommand.Compare("@getAccountFiles")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " inboxHash=\"%s\"\n"
-                                  " outboxHash=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strInboxHash.Get(), m_strOutboxHash.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // Famous last words.
-        //
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getContract")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAssetID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTAssetContract object.
-    if (m_strCommand.Compare("@getContract")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAssetID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("getMint")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAssetID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTMint object.
-    if (m_strCommand.Compare("@getMint")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAssetID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("processInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get(), m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@processInbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("processNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTLedger object.
-    if (m_strCommand.Compare("@processNymbox")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (m_strCommand.Compare("triggerClause")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " smartContractID=\"%lld\"\n" // <===
-            " clauseName=\"%s\"\n"        // <===
-            " hasParam=\"%s\"\n"          // <===
-            " requestNum=\"%s\""
-            " >\n\n",
-            m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
-            m_strServerID.Get(), m_lTransactionNum,
-            m_strNymID2.Get(), // clause name is stored here for this message.
-            (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
-
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    // the Payload contains an ascii-armored OTMint object.
-    if (m_strCommand.Compare("@triggerClause")) {
-        bFoundMessage = true;
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    }
-
-    if (!bFoundMessage) {
+    if (!updateContentsByType()) {
         m_xmlUnsigned.Concatenate("<%s\n" // Command
                                   " requestNum=\"%s\"\n"
                                   " success=\"false\"\n"
@@ -1669,6 +349,1327 @@ void OTMessage::UpdateContents()
     m_xmlUnsigned.Concatenate("</OTmessage>\n");
 }
 
+bool OTMessage::updateContentsByType()
+{
+    if (m_strCommand.Compare("getMarketList")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketList")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMarketRecentTrades")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"" // stored in NymID2
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get() // Storing Market ID
+                                  );
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getMarketRecentTrades")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " marketID=\"%s\"\n" // stored in NymID2
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strNymID2.Get(), // Storing Market ID
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getNym_MarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getNym_MarketOffers")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " depth=\"%lld\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_lDepth);
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("checkServerID")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate(
+            "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
+            m_strNymPublicKey.Get());
+        m_xmlUnsigned.Concatenate(
+            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
+            m_strNymID2.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@checkServerID")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("createUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+        if (m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate(
+                "<credentialList>\n%s</credentialList>\n\n",
+                m_ascPayload.Get());
+        if (m_ascPayload2.Exists())
+            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                      m_ascPayload2.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@createUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_bSuccess && (m_ascPayload.GetLength() > 2))
+            m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
+                                      m_ascPayload.Get());
+
+        if (m_ascInReferenceTo.GetLength() > 2)
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("deleteUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@deleteUserAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength() > 2)
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("checkUser")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@checkUser")) {
+        // This means new-style credentials are being sent, not just the public
+        // key as before.
+        const bool bCredentials =
+            (m_ascPayload.Exists() && m_ascPayload2.Exists());
+
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " hasCredentials=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  (bCredentials ? "true" : "false"),
+                                  m_strServerID.Get());
+
+        if (m_bSuccess) {
+            // Old style. (Deprecated.)
+            if (m_strNymPublicKey.Exists())
+                m_xmlUnsigned.Concatenate(
+                    "<nymPublicKey>\n%s</nymPublicKey>\n\n",
+                    m_strNymPublicKey.Get());
+
+            // New style:
+            if (bCredentials) {
+                m_xmlUnsigned.Concatenate(
+                    "<credentialList>\n%s</credentialList>\n\n",
+                    m_ascPayload.Get());
+                m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                          m_ascPayload2.Get());
+            }
+        }
+        else
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+
+        return true;
+    }
+
+    if (m_strCommand.Compare("usageCredits")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " adjustment=\"%lld\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_lDepth, m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@usageCredits")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " totalCredits=\"%lld\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // This one isn't part of the message protocol, but is used for outmail
+    // storage.
+    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
+    // itself
+    // will soon be encrypted, and there's no need to be redundant also as well
+    // in addition on top of that.
+    //
+    if (m_strCommand.Compare("outmailMessage") ||
+        m_strCommand.Compare("outpaymentsMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("sendUserMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@sendUserMessage")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare(
+            "sendUserInstrument") || // sendUserInstrument is sent from one user
+                                     // to the server, which then attaches that
+                                     // message as a payment, onto a transaction
+                                     // on the Nymbox of the recipient.
+        m_strCommand.Compare("payDividend")) // payDividend is not a normal user
+                                             // message. Rather, the sender uses
+                                             // notarizeTransactions to do a
+                                             // payDividend transaction. On the
+                                             // server side, this creates a new
+                                             // message of type "payDividend"
+                                             // for each recipient, in order to
+                                             // attach a voucher to it (for each
+                                             // recipient) and then that
+                                             // (artificially created
+                                             // payDividend msg) is added to the
+                                             // Nymbox of each recipient.
+    {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymID2.Get(), m_strRequestNum.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascPayload.GetLength() > 2)
+            m_xmlUnsigned.Concatenate(
+                "<messagePayload>\n%s</messagePayload>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@sendUserInstrument")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymID2=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymID2.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getRequest")) {
+        m_xmlUnsigned.Concatenate("<%s\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // This is the ONE command where you see a request number coming back from
+    // the server.
+    // In all the other commands, it should be SENT to the server, not received
+    // from the server.
+    if (m_strCommand.Compare("@getRequest")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n"             // command
+            " success=\"%s\"\n" // m_bSuccess
+            " nymID=\"%s\"\n"
+            " nymboxHash=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " newRequestNum=\"%lld\"\n"
+            " requestNum=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
+            m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
+            m_lNewRequestNum, m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("issueAssetType")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAssetID.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@issueAssetType")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n" // the new issuer account ID
+            " nymID=\"%s\"\n"
+            " assetType=\"%s\"\n"
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<issuerAccount>\n%s</issuerAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("queryAssetTypes")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@queryAssetTypes")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<stringMap>\n%s</stringMap>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("issueBasket")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<currencyBasket>\n%s</currencyBasket>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@issueBasket")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n" // the new basket issuer account ID
+            " nymID=\"%s\"\n"
+            " assetType=\"%s\"\n" // the new Asset Type
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_strNymID.Get(), m_strAssetID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("createAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAssetID.Get());
+
+        //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
+        // m_strAssetID.GetLength(),  m_strAssetID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@createAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strAcctID.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascInReferenceTo.Exists())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate("<newAccount>\n%s</newAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getBoxReceipt")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " nymID=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " requestNum=\"%s\"\n"
+            " transactionNum=\"%lld\"\n"
+            " boxType=\"%s\"\n"
+            " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
+                                // will appear in this variable.
+            ">\n\n",
+            m_strCommand.Get(), m_strNymID.Get(), m_strServerID.Get(),
+            m_strRequestNum.Get(), m_lTransactionNum,
+            (m_lDepth == 0)
+                ? "nymbox"
+                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
+            m_strAcctID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getBoxReceipt")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " requestNum=\"%s\"\n"
+            " success=\"%s\"\n"
+            " accountID=\"%s\"\n"
+            " transactionNum=\"%lld\"\n"
+            " boxType=\"%s\"\n"
+            " nymID=\"%s\"\n"
+            " serverID=\"%s\""
+            ">\n\n",
+            m_strCommand.Get(), m_strRequestNum.Get(),
+            (m_bSuccess ? "true" : "false"), m_strAcctID.Get(),
+            m_lTransactionNum,
+            (m_lDepth == 0)
+                ? "nymbox"
+                : ((m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
+            m_strNymID.Get(),
+            m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<boxReceipt>\n%s</boxReceipt>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("deleteAssetAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get(),
+                                  m_strAcctID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@deleteAssetAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  ">\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strAcctID.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("notarizeTransactions")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get(), m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<accountLedger>\n%s</accountLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@notarizeTransactions")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getTransactionNum")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("@getTransactionNum")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymboxHash.Get(),
+                                  m_strServerID.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strNymboxHash.Get(),
+                                  m_strServerID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<nymboxLedger>\n%s</nymboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("getInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " inboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strInboxHash.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("getOutbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@getOutbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " outboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strOutboxHash.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTAccount object.
+    if (m_strCommand.Compare("@getAccount")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getAccountFiles")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAcctID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains a STRING_MAP containing the OTAccount,
+    // plus the inbox and outbox for that acct..
+    //
+    if (m_strCommand.Compare("@getAccountFiles")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " inboxHash=\"%s\"\n"
+                                  " outboxHash=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strInboxHash.Get(), m_strOutboxHash.Get(),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // Famous last words.
+        //
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getContract")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAssetID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTAssetContract object.
+    if (m_strCommand.Compare("@getContract")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAssetID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("getMint")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strServerID.Get(), m_strAssetID.Get(),
+                                  m_strRequestNum.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTMint object.
+    if (m_strCommand.Compare("@getMint")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " assetType=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAssetID.Get());
+
+        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_bSuccess && m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("processInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get(), m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@processInbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " accountID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get(),
+                                  m_strAcctID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("processNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " nymID=\"%s\"\n"
+                                  " nymboxHash=\"%s\"\n"
+                                  " serverID=\"%s\"\n"
+                                  " requestNum=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strNymID.Get(),
+                                  m_strNymboxHash.Get(), m_strServerID.Get(),
+                                  m_strRequestNum.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTLedger object.
+    if (m_strCommand.Compare("@processNymbox")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        // I would check if this was empty, but it should never be empty...
+        // famous last words.
+        if (m_ascPayload.GetLength())
+            m_xmlUnsigned.Concatenate(
+                "<responseLedger>\n%s</responseLedger>\n\n",
+                m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    if (m_strCommand.Compare("triggerClause")) {
+        m_xmlUnsigned.Concatenate(
+            "<%s\n" // Command
+            " nymID=\"%s\"\n"
+            " nymboxHash=\"%s\"\n"
+            " serverID=\"%s\"\n"
+            " smartContractID=\"%lld\"\n" // <===
+            " clauseName=\"%s\"\n"        // <===
+            " hasParam=\"%s\"\n"          // <===
+            " requestNum=\"%s\""
+            " >\n\n",
+            m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
+            m_strServerID.Get(), m_lTransactionNum,
+            m_strNymID2.Get(), // clause name is stored here for this message.
+            (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
+
+        if (m_ascPayload.Exists())
+            m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
+                                      m_ascPayload.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+
+    // the Payload contains an ascii-armored OTMint object.
+    if (m_strCommand.Compare("@triggerClause")) {
+        m_xmlUnsigned.Concatenate("<%s\n" // Command
+                                  " requestNum=\"%s\"\n"
+                                  " success=\"%s\"\n"
+                                  " nymID=\"%s\"\n"
+                                  " serverID=\"%s\""
+                                  " >\n\n",
+                                  m_strCommand.Get(), m_strRequestNum.Get(),
+                                  (m_bSuccess ? "true" : "false"),
+                                  m_strNymID.Get(), m_strServerID.Get());
+
+        if (m_ascInReferenceTo.GetLength())
+            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                      m_ascInReferenceTo.Get());
+
+        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+        return true;
+    }
+    return false;
+}
+
 void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)
 {
     m_bSuccess = OTString(xml->getAttributeValue("success")).Compare("true");
@@ -1693,317 +1694,286 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //      return nReturnVal;
 
     const OTString strNodeName(xml->getNodeName());
-    OTString strTransactionNum;
 
     if (strNodeName.Compare("ackReplies")) {
-        OTString strDepth;
-        if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
-                     "without value.\n";
-            return (-1); // error condition
-        }
-
-        m_AcknowledgedReplies.Release();
-
-        if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
-
-        return 1;
+        return processXmlNodeAckReplies(xml);
     }
     else if (strNodeName.Compare("acknowledgedReplies")) {
-        otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
-                 "acknowledgedReplies\n";
-
-        while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) {
-            xml->read();
-        }
-
-        return 1;
+        return processXmlNodeAcknowledgedReplies(xml);
     }
     else if (strNodeName.Compare("OTmessage")) {
-        m_strVersion = xml->getAttributeValue("version");
-
-        OTString strDateSigned = xml->getAttributeValue("dateSigned");
-
-        if (strDateSigned.Exists()) m_lTime = atol(strDateSigned.Get());
-
-        otInfo << "\n===> Loading XML for Message into memory structures...\n";
-
-        return 1;
+        return processXmlNodeOTmessage(xml);
     }
     else if (strNodeName.Compare("getMarketList")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
+        return processXmlNodeGetMarketList(xml);
     }
     else if (strNodeName.Compare("@getMarketList")) {
-        //      std::cerr << m_xmlUnsigned << std::endl;
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        OTString strDepth = xml->getAttributeValue("depth");
-
-        if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
-
-        const char* pElementExpected = nullptr;
-        if (m_bSuccess && (m_lDepth > 0))
-            pElementExpected = "messagePayload";
-        else if (!m_bSuccess)
-            pElementExpected = "inReferenceTo";
-
-        if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-
-            if (m_bSuccess)
-                m_ascPayload.Set(ascTextExpected);
-            else
-                m_ascInReferenceTo.Set(ascTextExpected);
-        }
-
-        if (m_bSuccess)
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n\n"; // m_ascPayload.Get()
-        else
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n\n"; // m_ascInReferenceTo.Get()
-
-        return 1;
+        return processXmlNodeAtGetMarketList(xml);
     }
     else if (strNodeName.Compare("getMarketOffers")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID2 = xml->getAttributeValue("marketID");
-
-        OTString strDepth = xml->getAttributeValue("depth");
-
-        if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\n Market ID: " << m_strNymID2
-               << "\n Request #: " << m_strRequestNum << "\n";
-
-        return 1;
+        return processXmlNodeGetMarketOffers(xml);
     }
     else if (strNodeName.Compare("@getMarketOffers")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strNymID2 = xml->getAttributeValue("marketID");
-
-        OTString strDepth = xml->getAttributeValue("depth");
-
-        if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
-
-        const char* pElementExpected = nullptr;
-        if (m_bSuccess && (m_lDepth > 0))
-            pElementExpected = "messagePayload";
-        else if (!m_bSuccess)
-            pElementExpected = "inReferenceTo";
-
-        if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-
-            if (m_bSuccess)
-                m_ascPayload.Set(ascTextExpected);
-            else
-                m_ascInReferenceTo = ascTextExpected;
-        }
-
-        if (m_bSuccess)
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n MarketID: " << m_strNymID2
-                   << "\n\n"; // m_ascPayload.Get()
-        else
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n MarketID: " << m_strNymID2
-                   << "\n\n"; // m_ascInReferenceTo.Get()
-
-        return 1;
+        return processXmlNodeAtGetMarketOffers(xml);
     }
     else if (strNodeName.Compare("getMarketRecentTrades")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID2 = xml->getAttributeValue("marketID");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\n Market ID: " << m_strNymID2
-               << "\n Request #: " << m_strRequestNum << "\n";
-
-        return 1;
+        return processXmlNodeGetMarketRecentTrades(xml);
     }
     else if (strNodeName.Compare("@getMarketRecentTrades")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strNymID2 = xml->getAttributeValue("marketID");
-
-        OTString strDepth = xml->getAttributeValue("depth");
-
-        if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
-
-        const char* pElementExpected = nullptr;
-        if (m_bSuccess && (m_lDepth > 0))
-            pElementExpected = "messagePayload";
-        else if (!m_bSuccess)
-            pElementExpected = "inReferenceTo";
-
-        if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-
-            if (m_bSuccess)
-                m_ascPayload.Set(ascTextExpected);
-            else
-                m_ascInReferenceTo = ascTextExpected;
-        }
-
-        if (m_bSuccess)
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n MarketID: " << m_strNymID2
-                   << "\n\n"; // m_ascPayload.Get()
-        else
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n MarketID: " << m_strNymID2
-                   << "\n\n"; // m_ascInReferenceTo.Get()
-
-        return 1;
+        return processXmlNodeAtGetMarketRecentTrades(xml);
     }
     else if (strNodeName.Compare("getNym_MarketOffers")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
+        return processXmlNodeGetNymMarketOffers(xml);
     }
     else if (strNodeName.Compare("@getNym_MarketOffers")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        OTString strDepth = xml->getAttributeValue("depth");
-
-        if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
-
-        const char* pElementExpected = nullptr;
-        if (m_bSuccess && (m_lDepth > 0))
-            pElementExpected = "messagePayload";
-        else if (!m_bSuccess)
-            pElementExpected = "inReferenceTo";
-
-        if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-
-            if (m_bSuccess)
-                m_ascPayload.Set(ascTextExpected);
-            else
-                m_ascInReferenceTo = ascTextExpected;
-        }
-
-        if (m_bSuccess)
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n\n"; // m_ascPayload.Get()
-        else
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\n ServerID: " << m_strServerID
-                   << "\n\n"; // m_ascInReferenceTo.Get()
-
-        return 1;
+        return processXmlNodeAtGetNymMarketOffers(xml);
     }
     else if (strNodeName.Compare("checkServerID")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
+        return processXmlNodeCheckServerID(xml);
+    }
+    else if (strNodeName.Compare("@checkServerID")) {
+        return processXmlNodeAtCheckServerID(xml);
+    }
+    else if (strNodeName.Compare("createUserAccount")) {
+        return processXmlNodeCreateUserAccount(xml);
+    }
+    else if (strNodeName.Compare("@createUserAccount")) {
+        return processXmlNodeAtcreateUserAccount(xml);
+    }
+    else if (strNodeName.Compare("deleteUserAccount")) {
+        return processXmlNodeDeleteUserAccount(xml);
+    }
+    else if (strNodeName.Compare("@deleteUserAccount")) {
+        return processXmlNodeAtDeleteUserAccount(xml);
+    }
+    else if (strNodeName.Compare("getRequest")) {
+        return processXmlNodeGetRequest(xml);
+    }
+    else if (strNodeName.Compare("@getRequest")) {
+        return processXmlNodeAtGetRequest(xml);
+    }
+    else if (strNodeName.Compare("outmailMessage") ||
+               strNodeName.Compare("outpaymentsMessage")) {
+        return processXmlNodeOutmailMessageOrOutpaymentsMessage(xml);
+    }
+    else if (strNodeName.Compare("sendUserMessage")) {
+        return processXmlNodeSendUserMessage(xml);
+    }
+    else if (strNodeName.Compare("@sendUserMessage")) {
+        return processXmlNodeAtSendUserMessage(xml);
+    }
+    else if (strNodeName.Compare("sendUserInstrument") ||
+               strNodeName.Compare("payDividend")) // not a real message. Used
+                                                   // by server when sending
+                                                   // vouchers to people.
+    {
+        return processXmlNodeSendUserInstrumentOrPayDivident(xml);
+    }
+    else if (strNodeName.Compare("@sendUserInstrument")) {
+        return processXmlNodeAtSendUserInstrument(xml);
+    }
+    else if (strNodeName.Compare("usageCredits")) {
+        return processXmlNodeUsageCredits(xml);
+    }
+    else if (strNodeName.Compare("@usageCredits")) {
+        return processXmlNodeAtUsageCredits(xml);
+    }
+    else if (strNodeName.Compare("checkUser")) {
+        return processXmlNodeCheckUser(xml);
+    }
+    else if (strNodeName.Compare("@checkUser")) {
+        return processXmlNodeAtCheckUser(xml);
+    }
+    else if (strNodeName.Compare("issueAssetType")) {
+        return processXmlNodeIssueAssetType(xml);
+    }
+    else if (strNodeName.Compare("@issueAssetType")) {
+        return processXmlNodeAtIssueAssetType(xml);
+    }
+    else if (strNodeName.Compare("queryAssetTypes")) {
+        return processXmlNodeQueryAssetTypes(xml);
+    }
+    else if (strNodeName.Compare("@queryAssetTypes")) {
+        return processXmlNodeAtQueryAssetTypes(xml);
+    }
+    else if (strNodeName.Compare("createAccount")) {
+        return processXmlNodeCreateAccount(xml);
+    }
+    else if (strNodeName.Compare("@createAccount")) {
+        return processXmlNodeAtCreateAccount(xml);
+    }
+    else if (strNodeName.Compare("getBoxReceipt")) {
+        return processXmlNodeGetBoxReceipt(xml);
+    }
+    else if (strNodeName.Compare("@getBoxReceipt")) {
+        return processXmlNodeAtGetBoxReceipt(xml);
+    }
+    else if (strNodeName.Compare("deleteAssetAccount")) {
+        return processXmlNodeDeleteAssetAccount(xml);
+    }
+    else if (strNodeName.Compare("@deleteAssetAccount")) {
+        return processXmlNodeAtDeleteAssetAccount(xml);
+    }
+    else if (strNodeName.Compare("issueBasket")) {
+        return processXmlNodeIssueBasket(xml);
+    }
+    else if (strNodeName.Compare("@issueBasket")) {
+        return processXmlNodeAtIssueBasket(xml);
+    }
+    else if (strNodeName.Compare("getTransactionNum")) {
+        return processXmlNodeGetTransactionNum(xml);
+    }
+    else if (strNodeName.Compare("@getTransactionNum")) {
+        return processXmlNodeAtGetTransactionNum(xml);
+    }
+    else if (strNodeName.Compare("notarizeTransactions")) {
+        return processXmlNodeNotarizeTransactions(xml);
+    }
+    else if (strNodeName.Compare("@notarizeTransactions")) {
+        return processXmlNodeAtNotarizeTransactions(xml);
+    }
+    else if (strNodeName.Compare("getInbox")) {
+        return processXmlNodeGetInbox(xml);
+    }
+    else if (strNodeName.Compare("getNymbox")) {
+        return processXmlNodeGetNymbox(xml);
+    }
+    else if (strNodeName.Compare("@getInbox")) {
+        return processXmlNodeAtGetInbox(xml);
+    }
+    else if (strNodeName.Compare("@getNymbox")) {
+        return processXmlNodeAtGetNymbox(xml);
+    }
+    else if (strNodeName.Compare("getOutbox")) {
+        return processXmlNodeGetOutbox(xml);
+    }
+    else if (strNodeName.Compare("@getOutbox")) {
+        return processXmlNodeAtGetOutbox(xml);
+    }
+    else if (strNodeName.Compare("getAccount")) {
+        return processXmlNodeGetAccount(xml);
+    }
+    else if (strNodeName.Compare("@getAccount")) {
+        return processXmlNodeAtGetAccount(xml);
+    }
+    else if (strNodeName.Compare("getAccountFiles")) {
+        return processXmlNodeGetAccountFiles(xml);
+    }
+    else if (strNodeName.Compare("@getAccountFiles")) {
+        return processXmlNodeAtGetAccountFiles(xml);
+    }
+    else if (strNodeName.Compare("getContract")) {
+        return processXmlNodeGetContract(xml);
+    }
+    else if (strNodeName.Compare("@getContract")) {
+        return processXmlNodeAtGetContract(xml);
+    }
+    else if (strNodeName.Compare("getMint")) {
+        return processXmlNodeGetMint(xml);
+    }
+    // the Payload contains an ascii-armored OTMint object.
+    else if (strNodeName.Compare("@getMint")) {
+        return processXmlNodeAtGetMint(xml);
+    }
+    else if (strNodeName.Compare("triggerClause")) {
+        return processXmlNodeTriggerClause(xml);
+    }
+    else if (strNodeName.Compare("@triggerClause")) {
+        return processXmlNodeAtTriggerClause(xml);
+    }
+    else if (strNodeName.Compare("processInbox")) {
+        return processXmlNodeProcessInbox(xml);
+    }
+    else if (strNodeName.Compare("processNymbox")) {
+        return processXmlNodeProcessNymbox(xml);
+    }
+    else if (strNodeName.Compare("@processInbox")) {
+        return processXmlNodeAtProcessInbox(xml);
+    }
+    else if (strNodeName.Compare("@processNymbox")) {
+        return processXmlNodeAtProcessNymbox(xml);
+    }
 
-        const char* pElementExpected = "publicAuthentKey";
+    return 0;
+}
+
+int32_t OTMessage::processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml)
+{
+    OTString strDepth;
+    if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
+                 "without value.\n";
+        return (-1); // error condition
+    }
+
+    m_AcknowledgedReplies.Release();
+
+    if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAcknowledgedReplies(
+    irr::io::IrrXMLReader*& xml)
+{
+    otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
+             "acknowledgedReplies\n";
+
+    while (xml->getNodeType() != irr::io::EXN_ELEMENT_END) {
+        xml->read();
+    }
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeOTmessage(irr::io::IrrXMLReader*& xml)
+{
+    m_strVersion = xml->getAttributeValue("version");
+
+    OTString strDateSigned = xml->getAttributeValue("dateSigned");
+
+    if (strDateSigned.Exists()) m_lTime = atol(strDateSigned.Get());
+
+    otInfo << "\n===> Loading XML for Message into memory structures...\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetMarketList(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetMarketList(irr::io::IrrXMLReader*& xml)
+{
+    //      std::cerr << m_xmlUnsigned << std::endl;
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    OTString strDepth = xml->getAttributeValue("depth");
+
+    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+
+    const char* pElementExpected = nullptr;
+    if (m_bSuccess && (m_lDepth > 0))
+        pElementExpected = "messagePayload";
+    else if (!m_bSuccess)
+        pElementExpected = "inReferenceTo";
+
+    if (nullptr != pElementExpected) {
         OTASCIIArmor ascTextExpected;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2014,9 +1984,665 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1); // error condition
         }
 
-        m_strNymPublicKey.Set(ascTextExpected);
+        if (m_bSuccess)
+            m_ascPayload.Set(ascTextExpected);
+        else
+            m_ascInReferenceTo.Set(ascTextExpected);
+    }
 
-        pElementExpected = "publicEncryptionKey";
+    if (m_bSuccess)
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n\n"; // m_ascPayload.Get()
+    else
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n\n"; // m_ascInReferenceTo.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetMarketOffers(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID2 = xml->getAttributeValue("marketID");
+
+    OTString strDepth = xml->getAttributeValue("depth");
+
+    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n Market ID: " << m_strNymID2
+           << "\n Request #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetMarketOffers(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strNymID2 = xml->getAttributeValue("marketID");
+
+    OTString strDepth = xml->getAttributeValue("depth");
+
+    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+
+    const char* pElementExpected = nullptr;
+    if (m_bSuccess && (m_lDepth > 0))
+        pElementExpected = "messagePayload";
+    else if (!m_bSuccess)
+        pElementExpected = "inReferenceTo";
+
+    if (nullptr != pElementExpected) {
+        OTASCIIArmor ascTextExpected;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+
+        if (m_bSuccess)
+            m_ascPayload.Set(ascTextExpected);
+        else
+            m_ascInReferenceTo = ascTextExpected;
+    }
+
+    if (m_bSuccess)
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n MarketID: " << m_strNymID2
+               << "\n\n"; // m_ascPayload.Get()
+    else
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n MarketID: " << m_strNymID2
+               << "\n\n"; // m_ascInReferenceTo.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetMarketRecentTrades(
+    irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID2 = xml->getAttributeValue("marketID");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n Market ID: " << m_strNymID2
+           << "\n Request #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetMarketRecentTrades(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strNymID2 = xml->getAttributeValue("marketID");
+
+    OTString strDepth = xml->getAttributeValue("depth");
+
+    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+
+    const char* pElementExpected = nullptr;
+    if (m_bSuccess && (m_lDepth > 0))
+        pElementExpected = "messagePayload";
+    else if (!m_bSuccess)
+        pElementExpected = "inReferenceTo";
+
+    if (nullptr != pElementExpected) {
+        OTASCIIArmor ascTextExpected;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+
+        if (m_bSuccess)
+            m_ascPayload.Set(ascTextExpected);
+        else
+            m_ascInReferenceTo = ascTextExpected;
+    }
+
+    if (m_bSuccess)
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n MarketID: " << m_strNymID2
+               << "\n\n"; // m_ascPayload.Get()
+    else
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n MarketID: " << m_strNymID2
+               << "\n\n"; // m_ascInReferenceTo.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetNymMarketOffers(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetNymMarketOffers(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    OTString strDepth = xml->getAttributeValue("depth");
+
+    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+
+    const char* pElementExpected = nullptr;
+    if (m_bSuccess && (m_lDepth > 0))
+        pElementExpected = "messagePayload";
+    else if (!m_bSuccess)
+        pElementExpected = "inReferenceTo";
+
+    if (nullptr != pElementExpected) {
+        OTASCIIArmor ascTextExpected;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+
+        if (m_bSuccess)
+            m_ascPayload.Set(ascTextExpected);
+        else
+            m_ascInReferenceTo = ascTextExpected;
+    }
+
+    if (m_bSuccess)
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n\n"; // m_ascPayload.Get()
+    else
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID
+               << "\n ServerID: " << m_strServerID
+               << "\n\n"; // m_ascInReferenceTo.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const char* pElementExpected = "publicAuthentKey";
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    m_strNymPublicKey.Set(ascTextExpected);
+
+    pElementExpected = "publicEncryptionKey";
+    ascTextExpected.Release();
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    m_strNymID2.Set(ascTextExpected);
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n\n Public signing key:\n"
+           << m_strNymPublicKey << "\nPublic encryption key:\n" << m_strNymID2
+           << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtCheckServerID(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    otWarn << "\nCommand: " << m_strCommand
+           << "\nSuccess: " << (m_bSuccess ? "true" : "false")
+           << "\nNymID:    " << m_strNymID << "\n"
+                                              "ServerID: " << m_strServerID
+           << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeCreateUserAccount(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const char* pElementExpected = "credentialList";
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, m_ascPayload,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    pElementExpected = "credentials";
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, m_ascPayload2,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtcreateUserAccount(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    if (m_bSuccess) {
+        const char* pElementExpected = "nymfile";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    const char* pElementExpected = "inReferenceTo";
+    OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "  "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nServerID: " << m_strServerID
+           << "\n\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeDeleteUserAccount(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtDeleteUserAccount(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const char* pElementExpected = "inReferenceTo";
+    OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "  "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nServerID: " << m_strServerID
+           << "\n\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetRequest(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetRequest(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const OTString strNewRequestNum = xml->getAttributeValue("newRequestNum");
+    m_lNewRequestNum =
+        strNewRequestNum.Exists() ? atol(strNewRequestNum.Get()) : 0;
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\n"
+                                              "ServerID: " << m_strServerID
+           << "\nRequest Number:    " << m_strRequestNum
+           << "  New Number: " << m_lNewRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeOutmailMessageOrOutpaymentsMessage(
+    irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    const char* pElementExpected = "messagePayload";
+    OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nNymID2:    " << m_strNymID2 << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeSendUserMessage(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    const char* pElementExpected = "messagePayload";
+    OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nNymID2:    " << m_strNymID2 << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtSendUserMessage(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeSendUserInstrumentOrPayDivident(
+    irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    const char* pElementExpected = "messagePayload";
+    OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nNymID2:    " << m_strNymID2 << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtSendUserInstrument(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeUsageCredits(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    OTString strAdjustment = xml->getAttributeValue("adjustment");
+
+    if (strAdjustment.GetLength() > 0) m_lDepth = atol(strAdjustment.Get());
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nNymID2:    " << m_strNymID2 << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\nAdjustment: " << m_lDepth
+           << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtUsageCredits(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    OTString strTotalCredits = xml->getAttributeValue("totalCredits");
+
+    if (strTotalCredits.GetLength() > 0) m_lDepth = atol(strTotalCredits.Get());
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
+           << "\n"
+              "ServerID: " << m_strServerID << "\nTotal Credits: " << m_lDepth
+           << " \n\n";
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeCheckUser(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nNymID2:    " << m_strNymID2 << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtCheckUser(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymID2 = xml->getAttributeValue("nymID2");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const OTString strHasCredentials(xml->getAttributeValue("hasCredentials"));
+    const bool bHasCredentials = strHasCredentials.Compare("true");
+
+    const char* pElementExpected = nullptr;
+    if (m_bSuccess)
+        pElementExpected = "nymPublicKey";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+    if (m_bSuccess)
+        m_strNymPublicKey.Set(ascTextExpected);
+    else
+        m_ascInReferenceTo = ascTextExpected;
+
+    if (bHasCredentials) {
+        pElementExpected = "credentialList";
         ascTextExpected.Release();
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2026,87 +2652,10 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        m_strNymID2.Set(ascTextExpected);
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\n\n Public signing key:\n" << m_strNymPublicKey
-               << "\nPublic encryption key:\n" << m_strNymID2 << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@checkServerID")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        otWarn << "\nCommand: " << m_strCommand
-               << "\nSuccess: " << (m_bSuccess ? "true" : "false")
-               << "\nNymID:    " << m_strNymID << "\n"
-                                                  "ServerID: " << m_strServerID
-               << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("createUserAccount")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        const char* pElementExpected = "credentialList";
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, m_ascPayload,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
+        m_ascPayload = ascTextExpected;
 
         pElementExpected = "credentials";
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, m_ascPayload2,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@createUserAccount")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        if (m_bSuccess) {
-            const char* pElementExpected = "nymfile";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+        ascTextExpected.Release();
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
                                                     pElementExpected)) {
@@ -2115,165 +2664,85 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\nCommand: " << m_strCommand << "  "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID << "\n\n\n";
-
-        return 1;
+        m_ascPayload2 = ascTextExpected;
     }
-    else if (strNodeName.Compare("deleteUserAccount")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@deleteUserAccount")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "  "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID << "\n\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getRequest")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getRequest")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        const OTString strNewRequestNum =
-            xml->getAttributeValue("newRequestNum");
-        m_lNewRequestNum =
-            strNewRequestNum.Exists() ? atol(strNewRequestNum.Get()) : 0;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\n"
-                                                  "ServerID: " << m_strServerID
-               << "\nRequest Number:    " << m_strRequestNum
-               << "  New Number: " << m_lNewRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("outmailMessage") ||
-               strNodeName.Compare("outpaymentsMessage")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        const char* pElementExpected = "messagePayload";
-        OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nNymID2:    " << m_strNymID2
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("sendUserMessage")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        const char* pElementExpected = "messagePayload";
-        OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nNymID2:    " << m_strNymID2
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@sendUserMessage")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-
+    if (m_bSuccess)
         otWarn << "\nCommand: " << m_strCommand << "   "
                << (m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
                << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
+                  "ServerID: " << m_strServerID << "\nNym2 Public Key:\n"
+               << m_strNymPublicKey << "\n\n";
+    else
+        otWarn << "\nCommand: " << m_strCommand << "   "
+               << (m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
+               << "\n"
+                  "ServerID: " << m_strServerID
+               << "\n\n"; // m_ascInReferenceTo.Get()
 
-        return 1;
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeIssueAssetType(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    const char* pElementExpected = "assetContract";
+    OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("sendUserInstrument") ||
-               strNodeName.Compare("payDividend")) // not a real message. Used
-                                                   // by server when sending
-                                                   // vouchers to people.
+
+    otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
+           << "\n"
+              "ServerID: " << m_strServerID << "\nRequest#: " << m_strRequestNum
+           << "\nAsset Type:\n" << m_strAssetID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtIssueAssetType(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    // If successful, we need to read 2 more things: inReferenceTo and
+    // issuerAccount payload.
+    // If failure, then we only need to read 1 thing: inReferenceTo
+    // At this point, we do not send the REASON WHY if it failed.
+
     {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
-        const char* pElementExpected = "messagePayload";
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    if (m_bSuccess) {
+        const char* pElementExpected = "issuerAccount";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -2283,174 +2752,77 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nNymID2:    " << m_strNymID2
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
     }
-    else if (strNodeName.Compare("@sendUserInstrument")) {
-        processXmlSuccess(xml);
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there,
+    // OR if it was successful but the Payload isn't there, then failure.
+    if (!m_ascInReferenceTo.GetLength() ||
+        (m_bSuccess && !m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected issuerAccount and/or inReferenceTo elements "
+                 "with text fields in "
+                 "@issueAssetType reply\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("usageCredits")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        OTString strAdjustment = xml->getAttributeValue("adjustment");
+    OTString acctContents(m_ascPayload);
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
+           << "\nAsset Type ID: " << m_strAssetID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+    //    m_ascInReferenceTo.Get(),
+    // acctContents.Get()
 
-        if (strAdjustment.GetLength() > 0) m_lDepth = atol(strAdjustment.Get());
+    return 1;
+}
 
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nNymID2:    " << m_strNymID2
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum
-               << "\nAdjustment: " << m_lDepth << "\n";
+int32_t OTMessage::processXmlNodeQueryAssetTypes(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        return 1;
+    const char* pElementExpected = "stringMap";
+    OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("@usageCredits")) {
-        processXmlSuccess(xml);
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
+    otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
+           << "\n"
+              "ServerID: " << m_strServerID << "\nRequest#: " << m_strRequestNum
+           << "\n\n";
 
-        OTString strTotalCredits = xml->getAttributeValue("totalCredits");
+    return 1;
+}
 
-        if (strTotalCredits.GetLength() > 0)
-            m_lDepth = atol(strTotalCredits.Get());
+int32_t OTMessage::processXmlNodeAtQueryAssetTypes(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
 
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nNymID2:    " << m_strNymID2
-               << "\n"
-                  "ServerID: " << m_strServerID
-               << "\nTotal Credits: " << m_lDepth << " \n\n";
-        return 1;
-    }
-    else if (strNodeName.Compare("checkUser")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strServerID = xml->getAttributeValue("serverID");
 
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nNymID2:    " << m_strNymID2
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
+    // If successful, we need to read 2 more things: inReferenceTo and
+    // issuerAccount payload.
+    // If failure, then we only need to read 1 thing: inReferenceTo
+    // At this point, we do not send the REASON WHY if it failed.
 
-        return 1;
-    }
-    else if (strNodeName.Compare("@checkUser")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymID2 = xml->getAttributeValue("nymID2");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        const OTString strHasCredentials(
-            xml->getAttributeValue("hasCredentials"));
-        const bool bHasCredentials = strHasCredentials.Compare("true");
-
-        const char* pElementExpected = nullptr;
-        if (m_bSuccess)
-            pElementExpected = "nymPublicKey";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-        if (m_bSuccess)
-            m_strNymPublicKey.Set(ascTextExpected);
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        if (bHasCredentials) {
-            pElementExpected = "credentialList";
-            ascTextExpected.Release();
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-            m_ascPayload = ascTextExpected;
-
-            pElementExpected = "credentials";
-            ascTextExpected.Release();
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-            m_ascPayload2 = ascTextExpected;
-        }
-
-        if (m_bSuccess)
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\nNymID2:    " << m_strNymID2
-                   << "\n"
-                      "ServerID: " << m_strServerID << "\nNym2 Public Key:\n"
-                   << m_strNymPublicKey << "\n\n";
-        else
-            otWarn << "\nCommand: " << m_strCommand << "   "
-                   << (m_bSuccess ? "SUCCESS" : "FAILED")
-                   << "\nNymID:    " << m_strNymID
-                   << "\nNymID2:    " << m_strNymID2
-                   << "\n"
-                      "ServerID: " << m_strServerID
-                   << "\n\n"; // m_ascInReferenceTo.Get()
-
-        return 1;
-    }
-    else if (strNodeName.Compare("issueAssetType")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        const char* pElementExpected = "assetContract";
-        OTASCIIArmor& ascTextExpected = m_ascPayload;
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
                                                     pElementExpected)) {
@@ -2459,89 +2831,9 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
-               << "\n"
-                  "ServerID: " << m_strServerID
-               << "\nRequest#: " << m_strRequestNum << "\nAsset Type:\n"
-               << m_strAssetID << "\n\n";
-
-        return 1;
     }
-    else if (strNodeName.Compare("@issueAssetType")) {
-        processXmlSuccess(xml);
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        // If successful, we need to read 2 more things: inReferenceTo and
-        // issuerAccount payload.
-        // If failure, then we only need to read 1 thing: inReferenceTo
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        if (m_bSuccess) {
-            const char* pElementExpected = "issuerAccount";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there,
-        // OR if it was successful but the Payload isn't there, then failure.
-        if (!m_ascInReferenceTo.GetLength() ||
-            (m_bSuccess && !m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected issuerAccount and/or inReferenceTo elements "
-                     "with text fields in "
-                     "@issueAssetType reply\n";
-            return (-1); // error condition
-        }
-
-        OTString acctContents(m_ascPayload);
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
-               << "\nAsset Type ID: " << m_strAssetID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-        //    m_ascInReferenceTo.Get(),
-        // acctContents.Get()
-
-        return 1;
-    }
-    else if (strNodeName.Compare("queryAssetTypes")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
+    if (m_bSuccess) {
         const char* pElementExpected = "stringMap";
         OTASCIIArmor& ascTextExpected = m_ascPayload;
 
@@ -2552,965 +2844,75 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
-               << "\n"
-                  "ServerID: " << m_strServerID
-               << "\nRequest#: " << m_strRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@queryAssetTypes")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        // If successful, we need to read 2 more things: inReferenceTo and
-        // issuerAccount payload.
-        // If failure, then we only need to read 1 thing: inReferenceTo
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        if (m_bSuccess) {
-            const char* pElementExpected = "stringMap";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there,
-        // OR if it was successful but the Payload isn't there, then failure.
-        if (!m_ascInReferenceTo.GetLength() ||
-            (m_bSuccess && !m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected stringMap and/or inReferenceTo elements with "
-                     "text fields in "
-                     "@queryAssetTypes reply\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\n Command: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("createAccount")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
-               << "\n"
-                  "ServerID: " << m_strServerID
-               << "\nRequest#: " << m_strRequestNum << "\nAsset Type:\n"
-               << m_strAssetID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@createAccount")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        // If successful, we need to read 2 more things: inReferenceTo and
-        // issuerAccount payload.
-        // If failure, then we only need to read 1 thing: inReferenceTo
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                //                return (-1); // error condition
-            }
-        }
-
-        if (m_bSuccess) {
-            const char* pElementExpected = "newAccount";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there,
-        // OR if it was successful but the Payload isn't there, then failure.
-        //
-        if (m_bSuccess && !m_ascPayload.GetLength()) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected newAccount element with text field, in "
-                     "@createAccount reply\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-        //    m_ascInReferenceTo.Get(),
-        // acctContents.Get()
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getBoxReceipt")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        strTransactionNum = xml->getAttributeValue("transactionNum");
-        m_lTransactionNum =
-            strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
-
-        const OTString strBoxType = xml->getAttributeValue("boxType");
-
-        if (strBoxType.Compare("nymbox"))
-            m_lDepth = 0;
-        else if (strBoxType.Compare("inbox"))
-            m_lDepth = 1;
-        else if (strBoxType.Compare("outbox"))
-            m_lDepth = 2;
-        else {
-            m_lDepth = 0;
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected boxType to be inbox, outbox, or nymbox, in "
-                     "getBoxReceipt\n";
-            return (-1);
-        }
-
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n AccountID:    " << m_strAcctID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum
-               << "  Transaction#: " << m_lTransactionNum << "   boxType: "
-               << ((m_lDepth == 0) ? "nymbox" : (m_lDepth == 1) ? "inbox"
-                                                                : "outbox")
-               << "\n\n"; // outbox is 2.);
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getBoxReceipt")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        strTransactionNum = xml->getAttributeValue("transactionNum");
-        m_lTransactionNum =
-            strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
-
-        const OTString strBoxType = xml->getAttributeValue("boxType");
-
-        if (strBoxType.Compare("nymbox"))
-            m_lDepth = 0;
-        else if (strBoxType.Compare("inbox"))
-            m_lDepth = 1;
-        else if (strBoxType.Compare("outbox"))
-            m_lDepth = 2;
-        else {
-            m_lDepth = 0;
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected boxType to be inbox, outbox, or nymbox, in "
-                     "@getBoxReceipt reply\n";
-            return (-1);
-        }
-
-        // inReferenceTo contains the getBoxReceipt (original request)
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        if (m_bSuccess) {
-            const char* pElementExpected = "boxReceipt";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there,
-        // OR if it was successful but the Payload isn't there, then failure.
-        if (!m_ascInReferenceTo.GetLength() ||
-            (m_bSuccess && !m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected boxReceipt and/or inReferenceTo elements with "
-                     "text fields in "
-                     "@getBoxReceipt reply\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-
-        return 1;
-    }
-    else if (strNodeName.Compare("deleteAssetAccount")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n AccountID:    " << m_strAcctID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@deleteAssetAccount")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        // inReferenceTo contains the deleteAssetAccount (original request)
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there, then failure.
-        if (!m_ascInReferenceTo.GetLength()) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected inReferenceTo element with text fields in "
-                     "@deleteAssetAccount reply\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-        //    m_ascInReferenceTo.Get(),
-        // acctContents.Get()
-
-        return 1;
-    }
-    else if (strNodeName.Compare("issueBasket")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        {
-            const char* pElementExpected = "currencyBasket";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the Payload isn't there, then failure.
-        if (!m_ascPayload.GetLength()) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected currencyBasket element with text fields in "
-                     "issueBasket message\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
-               << "\n"
-                  "ServerID: " << m_strServerID
-               << "\nRequest#: " << m_strRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@issueBasket")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there,
-        // OR if it was successful but the Payload isn't there, then failure.
-        if (!m_ascInReferenceTo.GetLength()) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected inReferenceTo element with text fields in "
-                     "@issueBasket reply\n";
-            return (-1); // error condition
-        }
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
-               << "\nAssetTypeID: " << m_strAssetID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getTransactionNum")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getTransactionNum")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        otWarn << "\n Command: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m_strNymID
-               << "\n"
-                  " ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("notarizeTransactions")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        {
-            const char* pElementExpected = "accountLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n AccountID:    " << m_strAcctID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@notarizeTransactions")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        // If successful or failure, we need to read 2 more things:
-        // inReferenceTo and the responseLedger payload.
-        // At this point, we do not send the REASON WHY if it failed.
-
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        {
-            const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
-
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
-
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there, or the Payload isn't
-        // there, then failure.
-        if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected responseLedger and/or inReferenceTo elements "
-                     "with text fields in "
-                     "@notarizeTransactions reply\n";
-            return (-1); // error condition
-        }
-
-        //        OTString acctContents(m_ascPayload);
-        otWarn << "\n Command: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m_strNymID
-               << "\n AccountID: " << m_strAcctID
-               << "\n ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-        //    m_ascInReferenceTo.Get(),
-        // acctContents.Get()
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getInbox")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAccountID:    " << m_strAcctID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getNymbox")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getInbox")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strInboxHash = xml->getAttributeValue("inboxHash");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "inboxLedger";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAccountID:    " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getNymbox")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "nymboxLedger";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID << "\n"
-                                                  "ServerID: " << m_strServerID
-               << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getOutbox")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAccountID:    " << m_strAcctID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getOutbox")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strOutboxHash = xml->getAttributeValue("outboxHash");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "outboxLedger";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAccountID:    " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getAccount")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAccountID:    " << m_strAcctID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getAccount")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "assetAccount";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAccountID:    " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getAccountFiles")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAccountID:    " << m_strAcctID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getAccountFiles")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strInboxHash = xml->getAttributeValue("inboxHash");
-        m_strOutboxHash = xml->getAttributeValue("outboxHash");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "acctFiles";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAccountID:    " << m_strAcctID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getContract")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAsset Type:    " << m_strAssetID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("@getContract")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "assetContract";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAsset Type ID:    " << m_strAssetID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
-    }
-    else if (strNodeName.Compare("getMint")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nAsset Type:    " << m_strAssetID
-               << "\nRequest #: " << m_strRequestNum << "\n";
-
-        return 1;
     }
 
-    // the Payload contains an ascii-armored OTMint object.
-    else if (strNodeName.Compare("@getMint")) {
-        processXmlSuccess(xml);
-
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAssetID = xml->getAttributeValue("assetType");
-
-        const char* pElementExpected;
-        if (m_bSuccess)
-            pElementExpected = "mint";
-        else
-            pElementExpected = "inReferenceTo";
-
-        OTASCIIArmor ascTextExpected;
-
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
-            return (-1); // error condition
-        }
-
-        if (m_bSuccess)
-            m_ascPayload = ascTextExpected;
-        else
-            m_ascInReferenceTo = ascTextExpected;
-
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\nAsset Type ID:    " << m_strAssetID
-               << "\n"
-                  "ServerID: " << m_strServerID << "\n\n";
-
-        return 1;
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there,
+    // OR if it was successful but the Payload isn't there, then failure.
+    if (!m_ascInReferenceTo.GetLength() ||
+        (m_bSuccess && !m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected stringMap and/or inReferenceTo elements with "
+                 "text fields in "
+                 "@queryAssetTypes reply\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("triggerClause")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strNymID2 = xml->getAttributeValue("clauseName");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        const OTString strHasParam = xml->getAttributeValue("hasParam");
 
-        strTransactionNum = xml->getAttributeValue("smartContractID");
-        if (strTransactionNum.Exists())
-            m_lTransactionNum = atol(strTransactionNum.Get());
+    otWarn << "\n Command: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\n NymID:    " << m_strNymID << "\n ServerID: " << m_strServerID
+           << "\n\n";
 
-        if (strHasParam.Compare("true")) {
-            const char* pElementExpected = "parameter";
-            OTASCIIArmor ascTextExpected;
+    return 1;
+}
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-            else
-                m_ascPayload = ascTextExpected;
-        }
+int32_t OTMessage::processXmlNodeCreateAccount(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-               << "\nServerID: " << m_strServerID
-               << "\nClause TransNum and Name:  " << m_lTransactionNum
-               << "  /  " << m_strNymID2 << " \n"
-                                            "Request #: " << m_strRequestNum
-               << "\n";
+    otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
+           << "\n"
+              "ServerID: " << m_strServerID << "\nRequest#: " << m_strRequestNum
+           << "\nAsset Type:\n" << m_strAssetID << "\n\n";
 
-        return 1;
-    }
-    else if (strNodeName.Compare("@triggerClause")) {
-        processXmlSuccess(xml);
+    return 1;
+}
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
+int32_t OTMessage::processXmlNodeAtCreateAccount(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
 
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    // If successful, we need to read 2 more things: inReferenceTo and
+    // issuerAccount payload.
+    // If failure, then we only need to read 1 thing: inReferenceTo
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
         const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
 
-        OTASCIIArmor ascTextExpected;
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            //                return (-1); // error condition
+        }
+    }
+
+    if (m_bSuccess) {
+        const char* pElementExpected = "newAccount";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
 
         if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
                                                     pElementExpected)) {
@@ -3519,199 +2921,1074 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
+    }
 
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there,
+    // OR if it was successful but the Payload isn't there, then failure.
+    //
+    if (m_bSuccess && !m_ascPayload.GetLength()) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected newAccount element with text field, in "
+                 "@createAccount reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+    //    m_ascInReferenceTo.Get(),
+    // acctContents.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetBoxReceipt(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    OTString strTransactionNum = xml->getAttributeValue("transactionNum");
+    m_lTransactionNum =
+        strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
+
+    const OTString strBoxType = xml->getAttributeValue("boxType");
+
+    if (strBoxType.Compare("nymbox"))
+        m_lDepth = 0;
+    else if (strBoxType.Compare("inbox"))
+        m_lDepth = 1;
+    else if (strBoxType.Compare("outbox"))
+        m_lDepth = 2;
+    else {
+        m_lDepth = 0;
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected boxType to be inbox, outbox, or nymbox, in "
+                 "getBoxReceipt\n";
+        return (-1);
+    }
+
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n AccountID:    " << m_strAcctID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum
+           << "  Transaction#: " << m_lTransactionNum << "   boxType: "
+           << ((m_lDepth == 0) ? "nymbox" : (m_lDepth == 1) ? "inbox"
+                                                            : "outbox")
+           << "\n\n"; // outbox is 2.);
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetBoxReceipt(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    OTString strTransactionNum = xml->getAttributeValue("transactionNum");
+    m_lTransactionNum =
+        strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
+
+    const OTString strBoxType = xml->getAttributeValue("boxType");
+
+    if (strBoxType.Compare("nymbox"))
+        m_lDepth = 0;
+    else if (strBoxType.Compare("inbox"))
+        m_lDepth = 1;
+    else if (strBoxType.Compare("outbox"))
+        m_lDepth = 2;
+    else {
+        m_lDepth = 0;
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected boxType to be inbox, outbox, or nymbox, in "
+                 "@getBoxReceipt reply\n";
+        return (-1);
+    }
+
+    // inReferenceTo contains the getBoxReceipt (original request)
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    if (m_bSuccess) {
+        const char* pElementExpected = "boxReceipt";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there,
+    // OR if it was successful but the Payload isn't there, then failure.
+    if (!m_ascInReferenceTo.GetLength() ||
+        (m_bSuccess && !m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected boxReceipt and/or inReferenceTo elements with "
+                 "text fields in "
+                 "@getBoxReceipt reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeDeleteAssetAccount(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n AccountID:    " << m_strAcctID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtDeleteAssetAccount(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    // inReferenceTo contains the deleteAssetAccount (original request)
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there, then failure.
+    if (!m_ascInReferenceTo.GetLength()) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected inReferenceTo element with text fields in "
+                 "@deleteAssetAccount reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+    //    m_ascInReferenceTo.Get(),
+    // acctContents.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeIssueBasket(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    {
+        const char* pElementExpected = "currencyBasket";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the Payload isn't there, then failure.
+    if (!m_ascPayload.GetLength()) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected currencyBasket element with text fields in "
+                 "issueBasket message\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << " \nNymID:    " << m_strNymID
+           << "\n"
+              "ServerID: " << m_strServerID << "\nRequest#: " << m_strRequestNum
+           << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtIssueBasket(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there,
+    // OR if it was successful but the Payload isn't there, then failure.
+    if (!m_ascInReferenceTo.GetLength()) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected inReferenceTo element with text fields in "
+                 "@issueBasket reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID: " << m_strAcctID
+           << "\nAssetTypeID: " << m_strAssetID << "\n"
+                                                   "ServerID: " << m_strServerID
+           << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetTransactionNum(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetTransactionNum(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    otWarn << "\n Command: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\n NymID:    " << m_strNymID << "\n"
+                                               " ServerID: " << m_strServerID
+           << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeNotarizeTransactions(
+    irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    {
+        const char* pElementExpected = "accountLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n AccountID:    " << m_strAcctID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtNotarizeTransactions(
+    irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    // If successful or failure, we need to read 2 more things:
+    // inReferenceTo and the responseLedger payload.
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    {
+        const char* pElementExpected = "responseLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there, or the Payload isn't
+    // there, then failure.
+    if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected responseLedger and/or inReferenceTo elements "
+                 "with text fields in "
+                 "@notarizeTransactions reply\n";
+        return (-1); // error condition
+    }
+
+    //        OTString acctContents(m_ascPayload);
+    otWarn << "\n Command: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\n NymID:    " << m_strNymID << "\n AccountID: " << m_strAcctID
+           << "\n ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+    //    m_ascInReferenceTo.Get(),
+    // acctContents.Get()
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetInbox(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAccountID:    " << m_strAcctID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetNymbox(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetInbox(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strInboxHash = xml->getAttributeValue("inboxHash");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "inboxLedger";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
         m_ascInReferenceTo = ascTextExpected;
 
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "   ServerID: " << m_strServerID << "\n\n";
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID:    " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
 
-        return 1;
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetNymbox(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "nymboxLedger";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("processInbox")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        {
-            const char* pElementExpected = "processLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\n"
+                                              "ServerID: " << m_strServerID
+           << "\n\n";
 
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n AccountID:    " << m_strAcctID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum << "\n\n";
+    return 1;
+}
 
-        return 1;
+int32_t OTMessage::processXmlNodeGetOutbox(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAccountID:    " << m_strAcctID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetOutbox(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strOutboxHash = xml->getAttributeValue("outboxHash");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "outboxLedger";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("processNymbox")) {
-        m_strCommand = xml->getNodeName(); // Command
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        {
-            const char* pElementExpected = "processLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID:    " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
 
-        otWarn << "\n Command: " << m_strCommand
-               << " \n NymID:    " << m_strNymID
-               << "\n"
-                  " ServerID: " << m_strServerID
-               << "\n Request#: " << m_strRequestNum << "\n\n";
+    return 1;
+}
 
-        return 1;
+int32_t OTMessage::processXmlNodeGetAccount(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAccountID:    " << m_strAcctID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetAccount(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "assetAccount";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
     }
-    else if (strNodeName.Compare("@processInbox")) {
-        processXmlSuccess(xml);
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
-        m_strAcctID = xml->getAttributeValue("accountID");
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
 
-        // If successful or failure, we need to read 2 more things:
-        // inReferenceTo and the responseLedger payload.
-        // At this point, we do not send the REASON WHY if it failed.
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID:    " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
 
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+    return 1;
+}
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+int32_t OTMessage::processXmlNodeGetAccountFiles(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        {
-            const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAccountID:    " << m_strAcctID
+           << "\nRequest #: " << m_strRequestNum << "\n";
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+    return 1;
+}
 
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there, or the Payload isn't
-        // there, then failure.
-        if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected responseLedger and/or inReferenceTo elements "
-                     "with text fields in "
-                     "@processInbox reply\n";
+int32_t OTMessage::processXmlNodeAtGetAccountFiles(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strInboxHash = xml->getAttributeValue("inboxHash");
+    m_strOutboxHash = xml->getAttributeValue("outboxHash");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "acctFiles";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "\nAccountID:    " << m_strAcctID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetContract(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAsset Type:    " << m_strAssetID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetContract(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "assetContract";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID
+           << "\nAsset Type ID:    " << m_strAssetID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeGetMint(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nAsset Type:    " << m_strAssetID
+           << "\nRequest #: " << m_strRequestNum << "\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtGetMint(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAssetID = xml->getAttributeValue("assetType");
+
+    const char* pElementExpected;
+    if (m_bSuccess)
+        pElementExpected = "mint";
+    else
+        pElementExpected = "inReferenceTo";
+
+    OTASCIIArmor ascTextExpected;
+
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    if (m_bSuccess)
+        m_ascPayload = ascTextExpected;
+    else
+        m_ascInReferenceTo = ascTextExpected;
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID
+           << "\nAsset Type ID:    " << m_strAssetID
+           << "\n"
+              "ServerID: " << m_strServerID << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeTriggerClause(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strNymID2 = xml->getAttributeValue("clauseName");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    const OTString strHasParam = xml->getAttributeValue("hasParam");
+
+    OTString strTransactionNum = xml->getAttributeValue("smartContractID");
+    if (strTransactionNum.Exists())
+        m_lTransactionNum = atol(strTransactionNum.Get());
+
+    if (strHasParam.Compare("true")) {
+        const char* pElementExpected = "parameter";
+        OTASCIIArmor ascTextExpected;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\n Command: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m_strNymID
-               << "\n AccountID: " << m_strAcctID
-               << "\n ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-
-        return 1;
+        else
+            m_ascPayload = ascTextExpected;
     }
-    else if (strNodeName.Compare("@processNymbox")) {
-        processXmlSuccess(xml);
 
-        m_strCommand = xml->getNodeName(); // Command
-        m_strRequestNum = xml->getAttributeValue("requestNum");
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strServerID = xml->getAttributeValue("serverID");
+    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
+           << "\nServerID: " << m_strServerID
+           << "\nClause TransNum and Name:  " << m_lTransactionNum << "  /  "
+           << m_strNymID2 << " \n"
+                             "Request #: " << m_strRequestNum << "\n";
 
-        // If successful or failure, we need to read 2 more things:
-        // inReferenceTo and the responseLedger payload.
-        // At this point, we do not send the REASON WHY if it failed.
+    return 1;
+}
 
-        {
-            const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+int32_t OTMessage::processXmlNodeAtTriggerClause(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
 
-        {
-            const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m_ascPayload;
+    const char* pElementExpected = "inReferenceTo";
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-        }
+    OTASCIIArmor ascTextExpected;
 
-        // Did we find everything we were looking for?
-        // If the "command responding to" isn't there, or the Payload isn't
-        // there, then failure.
-        if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
-            otErr << "Error in OTMessage::ProcessXMLNode:\n"
-                     "Expected responseLedger and/or inReferenceTo elements "
-                     "with text fields in "
-                     "@processNymbox reply\n";
+    if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                pElementExpected)) {
+        otErr << "Error in OTMessage::ProcessXMLNode: "
+                 "Expected " << pElementExpected
+              << " element with text field, for " << m_strCommand << ".\n";
+        return (-1); // error condition
+    }
+
+    m_ascInReferenceTo = ascTextExpected;
+
+    otWarn << "\nCommand: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\nNymID:    " << m_strNymID << "   ServerID: " << m_strServerID
+           << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeProcessInbox(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    {
+        const char* pElementExpected = "processLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
             return (-1); // error condition
         }
-
-        otWarn << "\n Command: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\n NymID:    " << m_strNymID
-               << "\n"
-                  " ServerID: " << m_strServerID << "\n\n";
-        //    "****New Account****:\n%s\n",
-
-        return 1;
     }
 
-    return 0;
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n AccountID:    " << m_strAcctID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeProcessNymbox(irr::io::IrrXMLReader*& xml)
+{
+    m_strCommand = xml->getNodeName(); // Command
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+
+    {
+        const char* pElementExpected = "processLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    otWarn << "\n Command: " << m_strCommand << " \n NymID:    " << m_strNymID
+           << "\n"
+              " ServerID: " << m_strServerID
+           << "\n Request#: " << m_strRequestNum << "\n\n";
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtProcessInbox(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+    m_strAcctID = xml->getAttributeValue("accountID");
+
+    // If successful or failure, we need to read 2 more things:
+    // inReferenceTo and the responseLedger payload.
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    {
+        const char* pElementExpected = "responseLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there, or the Payload isn't
+    // there, then failure.
+    if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected responseLedger and/or inReferenceTo elements "
+                 "with text fields in "
+                 "@processInbox reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\n Command: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\n NymID:    " << m_strNymID << "\n AccountID: " << m_strAcctID
+           << "\n ServerID: " << m_strServerID << "\n\n";
+    //    "****New Account****:\n%s\n",
+
+    return 1;
+}
+
+int32_t OTMessage::processXmlNodeAtProcessNymbox(irr::io::IrrXMLReader*& xml)
+{
+    processXmlSuccess(xml);
+
+    m_strCommand = xml->getNodeName(); // Command
+    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m_strNymID = xml->getAttributeValue("nymID");
+    m_strServerID = xml->getAttributeValue("serverID");
+
+    // If successful or failure, we need to read 2 more things:
+    // inReferenceTo and the responseLedger payload.
+    // At this point, we do not send the REASON WHY if it failed.
+
+    {
+        const char* pElementExpected = "inReferenceTo";
+        OTASCIIArmor& ascTextExpected = m_ascInReferenceTo;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    {
+        const char* pElementExpected = "responseLedger";
+        OTASCIIArmor& ascTextExpected = m_ascPayload;
+
+        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                    pElementExpected)) {
+            otErr << "Error in OTMessage::ProcessXMLNode: "
+                     "Expected " << pElementExpected
+                  << " element with text field, for " << m_strCommand << ".\n";
+            return (-1); // error condition
+        }
+    }
+
+    // Did we find everything we were looking for?
+    // If the "command responding to" isn't there, or the Payload isn't
+    // there, then failure.
+    if (!m_ascInReferenceTo.GetLength() || (!m_ascPayload.GetLength())) {
+        otErr << "Error in OTMessage::ProcessXMLNode:\n"
+                 "Expected responseLedger and/or inReferenceTo elements "
+                 "with text fields in "
+                 "@processNymbox reply\n";
+        return (-1); // error condition
+    }
+
+    otWarn << "\n Command: " << m_strCommand << "   "
+           << (m_bSuccess ? "SUCCESS" : "FAILED")
+           << "\n NymID:    " << m_strNymID << "\n"
+                                               " ServerID: " << m_strServerID
+           << "\n\n";
+    //    "****New Account****:\n%s\n",
+
+    return 1;
 }
 
 // Most contracts do not override this function...
