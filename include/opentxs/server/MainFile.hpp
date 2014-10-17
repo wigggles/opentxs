@@ -133,12 +133,11 @@
 #ifndef OPENTXS_SERVER_MAINFILE_HPP
 #define OPENTXS_SERVER_MAINFILE_HPP
 
-#include <opentxs/core/OTString.hpp>
 #include <string>
 
 namespace opentxs
 {
-
+class OTString;
 class OTServer;
 
 class MainFile
@@ -156,7 +155,7 @@ public:
     bool SaveMainFileToString(OTString& filename);
 
 private:
-    OTString m_strVersion;
+    std::string version_;
     OTServer* server_; // TODO: remove when feasible
 };
 
