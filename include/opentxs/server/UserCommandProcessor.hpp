@@ -133,11 +133,11 @@
 #ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 #define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <cstdint>
 
 namespace opentxs
 {
-
+class OTString;
 class OTMessage;
 class OTPseudonym;
 class OTServer;
