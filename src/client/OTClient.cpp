@@ -3932,6 +3932,48 @@ bool OTClient::ProcessServerReplyCheckUser(OTMessage& theReply,
     return true;
 }
 
+bool OTClient::ProcessServerReplyNotarizeTransactions(
+    OTMessage& theReply, ProcessServerReplyArgs& args)
+{
+    otOut << "Received server response to notarize Transactions message.\n";
+    //        otOut << "Received server response to notarize
+    // Transactions message:\n" << strReply << "\n";
+    OTIdentifier RECENT_HASH;
+    const std::string str_server(args.strServerID.Get());
+
+    // todo: this is same code as in ProcessServerReplyTriggerClause
+    if (theReply.m_strNymboxHash.Exists()) {
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
+
+        const bool bRecentHash =
+            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+
+        if (!bRecentHash)
+            otErr << theReply.m_strCommand
+                  << ": Failed getting NymboxHash (to store as 'recent "
+                     "hash') from Nym for server: " << str_server << "\n";
+        else {
+            OTPseudonym* pSignerNym = args.pNym;
+            args.pNym->SaveSignedNymfile(*pSignerNym);
+        }
+    }
+    ProcessIncomingTransactions(*m_pConnection, theReply);
+
+    // todo (gui):
+    // This block assumes that the above "@notarizeTransactions", being
+    // successful, probably changed
+    // the account balance. A nice GUI would probably interpret the reply
+    // and edit the local files
+    // to update them to match (since it was successful). In fact, the above
+    // call to ProcessIncomingTransactions
+    // does some of that sort of stuff already, at least for issued numbers
+    // on the nym.
+    //
+    // (For now we just re-download the files.)
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -4145,44 +4187,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@checkUser")) {
         return ProcessServerReplyCheckUser(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@notarizeTransactions")) {
-        otOut << "Received server response to notarize Transactions message.\n";
-        //        otOut << "Received server response to notarize
-        // Transactions message:\n" << strReply << "\n";
-        OTIdentifier RECENT_HASH;
-        const std::string str_server(strServerID.Get());
-
-        if (theReply.m_strNymboxHash.Exists()) {
-            RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-            const bool bRecentHash =
-                pNym->SetRecentHash(str_server, RECENT_HASH);
-
-            if (!bRecentHash)
-                otErr << theReply.m_strCommand
-                      << ": Failed getting NymboxHash (to store as 'recent "
-                         "hash') from Nym for server: " << str_server << "\n";
-            else {
-                OTPseudonym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-        }
-        ProcessIncomingTransactions(theConnection, theReply);
-
-        // todo (gui):
-        // This block assumes that the above "@notarizeTransactions", being
-        // successful, probably changed
-        // the account balance. A nice GUI would probably interpret the reply
-        // and edit the local files
-        // to update them to match (since it was successful). In fact, the above
-        // call to ProcessIncomingTransactions
-        // does some of that sort of stuff already, at least for issued numbers
-        // on the nym.
-        //
-        // (For now we just re-download the files.)
-
-        return true;
+    if (theReply.m_strCommand.Compare("@notarizeTransactions")) {
+        return ProcessServerReplyNotarizeTransactions(theReply, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getTransactionNum")) {

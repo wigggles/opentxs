@@ -413,6 +413,8 @@ public:
                                       ProcessServerReplyArgs& args);
     bool ProcessServerReplyCheckUser(OTMessage& theReply,
                                      ProcessServerReplyArgs& args);
+    bool ProcessServerReplyNotarizeTransactions(OTMessage& theReply,
+                                                ProcessServerReplyArgs& args);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
