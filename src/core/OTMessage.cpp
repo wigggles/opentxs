@@ -640,21 +640,21 @@ bool OTMessage::writeXmlGetMarketOffers()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeGetMarketOffers(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeGetMarketOffers(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID2 = xml->getAttributeValue("marketID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID2 = xml->getAttributeValue("marketID");
 
     OTString strDepth = xml->getAttributeValue("depth");
 
-    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+    if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID << "\n Market ID: " << m_strNymID2
-           << "\n Request #: " << m_strRequestNum << "\n";
+    otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+           << "\nServerID: " << m.m_strServerID << "\n Market ID: " << m.m_strNymID2
+           << "\n Request #: " << m.m_strRequestNum << "\n";
 
     return 1;
 }
@@ -685,24 +685,24 @@ bool OTMessage::writeXmlAtGetMarketOffers()
     m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
     return true;
 }
-int32_t OTMessage::processXmlNodeAtGetMarketOffers(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeAtGetMarketOffers(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    processXmlSuccess(xml);
+    processXmlSuccess(m, xml);
 
-    m_strCommand = xml->getNodeName(); // Command
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strNymID2 = xml->getAttributeValue("marketID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strNymID2 = xml->getAttributeValue("marketID");
 
     OTString strDepth = xml->getAttributeValue("depth");
 
-    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+    if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
 
     const char* pElementExpected = nullptr;
-    if (m_bSuccess && (m_lDepth > 0))
+    if (m.m_bSuccess && (m.m_lDepth > 0))
         pElementExpected = "messagePayload";
-    else if (!m_bSuccess)
+    else if (!m.m_bSuccess)
         pElementExpected = "inReferenceTo";
 
     if (nullptr != pElementExpected) {
@@ -712,29 +712,29 @@ int32_t OTMessage::processXmlNodeAtGetMarketOffers(irr::io::IrrXMLReader*& xml)
                                                     pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
+                  << " element with text field, for " << m.m_strCommand << ".\n";
             return (-1); // error condition
         }
 
-        if (m_bSuccess)
-            m_ascPayload.Set(ascTextExpected);
+        if (m.m_bSuccess)
+            m.m_ascPayload.Set(ascTextExpected);
         else
-            m_ascInReferenceTo = ascTextExpected;
+            m.m_ascInReferenceTo = ascTextExpected;
     }
 
-    if (m_bSuccess)
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
-               << "\n MarketID: " << m_strNymID2
+    if (m.m_bSuccess)
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
+               << "\n MarketID: " << m.m_strNymID2
                << "\n\n"; // m_ascPayload.Get()
     else
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
-               << "\n MarketID: " << m_strNymID2
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
+               << "\n MarketID: " << m.m_strNymID2
                << "\n\n"; // m_ascInReferenceTo.Get()
 
     return 1;
@@ -757,18 +757,18 @@ bool OTMessage::writeXmlGetMarketRecentTrades()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeGetMarketRecentTrades(
+int32_t OTMessage::processXmlNodeGetMarketRecentTrades(OTMessage &m,
     irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID2 = xml->getAttributeValue("marketID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID2 = xml->getAttributeValue("marketID");
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID << "\n Market ID: " << m_strNymID2
-           << "\n Request #: " << m_strRequestNum << "\n";
+    otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+           << "\nServerID: " << m.m_strServerID << "\n Market ID: " << m.m_strNymID2
+           << "\n Request #: " << m.m_strRequestNum << "\n";
 
     return 1;
 }
@@ -800,25 +800,25 @@ bool OTMessage::writeXmlAtGetMarketRecentTrades()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeAtGetMarketRecentTrades(
+int32_t OTMessage::processXmlNodeAtGetMarketRecentTrades(OTMessage &m, 
     irr::io::IrrXMLReader*& xml)
 {
-    processXmlSuccess(xml);
+    processXmlSuccess(m, xml);
 
-    m_strCommand = xml->getNodeName(); // Command
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strNymID2 = xml->getAttributeValue("marketID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strNymID2 = xml->getAttributeValue("marketID");
 
     OTString strDepth = xml->getAttributeValue("depth");
 
-    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+    if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
 
     const char* pElementExpected = nullptr;
-    if (m_bSuccess && (m_lDepth > 0))
+    if (m.m_bSuccess && (m.m_lDepth > 0))
         pElementExpected = "messagePayload";
-    else if (!m_bSuccess)
+    else if (!m.m_bSuccess)
         pElementExpected = "inReferenceTo";
 
     if (nullptr != pElementExpected) {
@@ -828,29 +828,29 @@ int32_t OTMessage::processXmlNodeAtGetMarketRecentTrades(
                                                     pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
+                  << " element with text field, for " << m.m_strCommand << ".\n";
             return (-1); // error condition
         }
 
-        if (m_bSuccess)
-            m_ascPayload.Set(ascTextExpected);
+        if (m.m_bSuccess)
+            m.m_ascPayload.Set(ascTextExpected);
         else
-            m_ascInReferenceTo = ascTextExpected;
+            m.m_ascInReferenceTo = ascTextExpected;
     }
 
-    if (m_bSuccess)
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
-               << "\n MarketID: " << m_strNymID2
+    if (m.m_bSuccess)
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
+               << "\n MarketID: " << m.m_strNymID2
                << "\n\n"; // m_ascPayload.Get()
     else
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
-               << "\n MarketID: " << m_strNymID2
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
+               << "\n MarketID: " << m.m_strNymID2
                << "\n\n"; // m_ascInReferenceTo.Get()
 
     return 1;
@@ -870,16 +870,16 @@ bool OTMessage::writeXmlGetNymMarketOffers()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeGetNymMarketOffers(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeGetNymMarketOffers(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID
-           << "\nRequest #: " << m_strRequestNum << "\n";
+    otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+           << "\nServerID: " << m.m_strServerID
+           << "\nRequest #: " << m.m_strRequestNum << "\n";
 
     return 1;
 }
@@ -908,24 +908,24 @@ bool OTMessage::writeXmlAtGetNymMarketOffers()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeAtGetNymMarketOffers(
+int32_t OTMessage::processXmlNodeAtGetNymMarketOffers(OTMessage &m,
     irr::io::IrrXMLReader*& xml)
 {
-    processXmlSuccess(xml);
+    processXmlSuccess(m, xml);
 
-    m_strCommand = xml->getNodeName(); // Command
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
 
     OTString strDepth = xml->getAttributeValue("depth");
 
-    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+    if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
 
     const char* pElementExpected = nullptr;
-    if (m_bSuccess && (m_lDepth > 0))
+    if (m.m_bSuccess && (m.m_lDepth > 0))
         pElementExpected = "messagePayload";
-    else if (!m_bSuccess)
+    else if (!m.m_bSuccess)
         pElementExpected = "inReferenceTo";
 
     if (nullptr != pElementExpected) {
@@ -935,27 +935,27 @@ int32_t OTMessage::processXmlNodeAtGetNymMarketOffers(
                                                     pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
+                  << " element with text field, for " << m.m_strCommand << ".\n";
             return (-1); // error condition
         }
 
-        if (m_bSuccess)
-            m_ascPayload.Set(ascTextExpected);
+        if (m.m_bSuccess)
+            m.m_ascPayload.Set(ascTextExpected);
         else
-            m_ascInReferenceTo = ascTextExpected;
+            m.m_ascInReferenceTo = ascTextExpected;
     }
 
-    if (m_bSuccess)
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
+    if (m.m_bSuccess)
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
                << "\n\n"; // m_ascPayload.Get()
     else
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
                << "\n\n"; // m_ascInReferenceTo.Get()
 
     return 1;
@@ -981,12 +981,12 @@ bool OTMessage::writeXmlCheckServerID()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml)
+    int32_t OTMessage::processXmlNodeCheckServerID(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
 
     const char* pElementExpected = "publicAuthentKey";
     OTASCIIArmor ascTextExpected;
@@ -995,11 +995,11 @@ int32_t OTMessage::processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml)
                                                 pElementExpected)) {
         otErr << "Error in OTMessage::ProcessXMLNode: "
                  "Expected " << pElementExpected
-              << " element with text field, for " << m_strCommand << ".\n";
+              << " element with text field, for " << m.m_strCommand << ".\n";
         return (-1); // error condition
     }
 
-    m_strNymPublicKey.Set(ascTextExpected);
+    m.m_strNymPublicKey.Set(ascTextExpected);
 
     pElementExpected = "publicEncryptionKey";
     ascTextExpected.Release();
@@ -1008,15 +1008,15 @@ int32_t OTMessage::processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml)
                                                 pElementExpected)) {
         otErr << "Error in OTMessage::ProcessXMLNode: "
                  "Expected " << pElementExpected
-              << " element with text field, for " << m_strCommand << ".\n";
+              << " element with text field, for " << m.m_strCommand << ".\n";
         return (-1); // error condition
     }
 
-    m_strNymID2.Set(ascTextExpected);
+    m.m_strNymID2.Set(ascTextExpected);
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID << "\n\n Public signing key:\n"
-           << m_strNymPublicKey << "\nPublic encryption key:\n" << m_strNymID2
+    otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+           << "\nServerID: " << m.m_strServerID << "\n\n Public signing key:\n"
+           << m.m_strNymPublicKey << "\nPublic encryption key:\n" << m.m_strNymID2
            << "\n";
 
     return 1;
@@ -3956,31 +3956,31 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return strategy->processXml(*this, xml);
 
     if (strNodeName.Compare("getMarketList")) {
-        return processXmlNodeGetMarketList(xml);
+        return processXmlNodeGetMarketList(*this, xml);
     }
     else if (strNodeName.Compare("@getMarketList")) {
-        return processXmlNodeAtGetMarketList(xml);
+        return processXmlNodeAtGetMarketList(*this, xml);
     }
     else if (strNodeName.Compare("getMarketOffers")) {
-        return processXmlNodeGetMarketOffers(xml);
+        return processXmlNodeGetMarketOffers(*this, xml);
     }
     else if (strNodeName.Compare("@getMarketOffers")) {
-        return processXmlNodeAtGetMarketOffers(xml);
+        return processXmlNodeAtGetMarketOffers(*this, xml);
     }
     else if (strNodeName.Compare("getMarketRecentTrades")) {
-        return processXmlNodeGetMarketRecentTrades(xml);
+        return processXmlNodeGetMarketRecentTrades(*this, xml);
     }
     else if (strNodeName.Compare("@getMarketRecentTrades")) {
-        return processXmlNodeAtGetMarketRecentTrades(xml);
+        return processXmlNodeAtGetMarketRecentTrades(*this, xml);
     }
     else if (strNodeName.Compare("getNym_MarketOffers")) {
-        return processXmlNodeGetNymMarketOffers(xml);
+        return processXmlNodeGetNymMarketOffers(*this, xml);
     }
     else if (strNodeName.Compare("@getNym_MarketOffers")) {
-        return processXmlNodeAtGetNymMarketOffers(xml);
+        return processXmlNodeAtGetNymMarketOffers(*this, xml);
     }
     else if (strNodeName.Compare("checkServerID")) {
-        return processXmlNodeCheckServerID(xml);
+        return processXmlNodeCheckServerID(*this, xml);
     }
     else if (strNodeName.Compare("@checkServerID")) {
         return processXmlNodeAtCheckServerID(xml);
@@ -4204,38 +4204,38 @@ bool OTMessage::writeXmlGetMarketList()
     return true;
 }
 
-int32_t OTMessage::processXmlNodeGetMarketList(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeGetMarketList(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = xml->getNodeName(); // Command
+        m.m_strNymID = xml->getAttributeValue("nymID");
+        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID
-           << "\nRequest #: " << m_strRequestNum << "\n";
+        otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+               << "\nServerID: " << m.m_strServerID
+               << "\nRequest #: " << m.m_strRequestNum << "\n";
 
     return 1;
 }
 
-int32_t OTMessage::processXmlNodeAtGetMarketList(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeAtGetMarketList(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
     //      std::cerr << m_xmlUnsigned << std::endl;
-    processXmlSuccess(xml);
+    processXmlSuccess(m, xml);
 
-    m_strCommand = xml->getNodeName(); // Command
-    m_strRequestNum = xml->getAttributeValue("requestNum");
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
 
     OTString strDepth = xml->getAttributeValue("depth");
 
-    if (strDepth.GetLength() > 0) m_lDepth = atol(strDepth.Get());
+    if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
 
     const char* pElementExpected = nullptr;
-    if (m_bSuccess && (m_lDepth > 0))
+    if (m.m_bSuccess && (m.m_lDepth > 0))
         pElementExpected = "messagePayload";
-    else if (!m_bSuccess)
+    else if (!m.m_bSuccess)
         pElementExpected = "inReferenceTo";
 
     if (nullptr != pElementExpected) {
@@ -4245,27 +4245,27 @@ int32_t OTMessage::processXmlNodeAtGetMarketList(irr::io::IrrXMLReader*& xml)
                                                     pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
-                  << " element with text field, for " << m_strCommand << ".\n";
+                  << " element with text field, for " << m.m_strCommand << ".\n";
             return (-1); // error condition
         }
 
-        if (m_bSuccess)
-            m_ascPayload.Set(ascTextExpected);
+        if (m.m_bSuccess)
+            m.m_ascPayload.Set(ascTextExpected);
         else
-            m_ascInReferenceTo.Set(ascTextExpected);
+            m.m_ascInReferenceTo.Set(ascTextExpected);
     }
 
-    if (m_bSuccess)
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
+    if (m.m_bSuccess)
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
                << "\n\n"; // m_ascPayload.Get()
     else
-        otWarn << "\nCommand: " << m_strCommand << "   "
-               << (m_bSuccess ? "SUCCESS" : "FAILED")
-               << "\nNymID:    " << m_strNymID
-               << "\n ServerID: " << m_strServerID
+        otWarn << "\nCommand: " << m.m_strCommand << "   "
+               << (m.m_bSuccess ? "SUCCESS" : "FAILED")
+               << "\nNymID:    " << m.m_strNymID
+               << "\n ServerID: " << m.m_strServerID
                << "\n\n"; // m_ascInReferenceTo.Get()
 
     return 1;
