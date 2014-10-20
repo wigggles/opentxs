@@ -164,6 +164,23 @@ private:
     bool writeXmlAtGetMarketRecentTrades();
     bool writeXmlGetNymMarketOffers();
     bool writeXmlAtGetNymMarketOffers();
+    bool writeXmlCheckServerID();
+    bool writeXmlAtCheckServerID();
+    bool writeXmlCreateUserAccount();
+    bool writeXmlAtCreateUserAccount();
+    bool writeXmlDeleteUserAccount();
+    bool writeXmlAtDeleteUserAccount();
+    bool writeXmlCheckUser();
+    bool writeXmlAtCheckUser();
+    bool writeXmlUsageCredits();
+    bool writeXmlAtUsageCredits();
+    bool writeXmlOutpaymentsMessage();
+    bool writeXmlSendUserMessage();
+    bool writeXmlAtSendUserMessage();
+    bool writeXmlSendUserInstrumentOrPayDivident();
+    bool writeXmlAtSendUserInstrument();
+    bool writeXmlGetRequest();
+    bool writeXmlAtGetRequest();
 
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);

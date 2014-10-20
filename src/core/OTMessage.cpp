@@ -384,361 +384,73 @@ bool OTMessage::updateContentsByType()
     }
 
     if (m_strCommand.Compare("checkServerID")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate(
-            "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
-            m_strNymPublicKey.Get());
-        m_xmlUnsigned.Concatenate(
-            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
-            m_strNymID2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlCheckServerID();
     }
 
     if (m_strCommand.Compare("@checkServerID")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtCheckServerID();
     }
 
     if (m_strCommand.Compare("createUserAccount")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate(
-                "<credentialList>\n%s</credentialList>\n\n",
-                m_ascPayload.Get());
-        if (m_ascPayload2.Exists())
-            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                      m_ascPayload2.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlCreateUserAccount();
     }
 
     if (m_strCommand.Compare("@createUserAccount")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
-                                      m_ascPayload.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtCreateUserAccount();
     }
 
     if (m_strCommand.Compare("deleteUserAccount")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlDeleteUserAccount();
     }
 
     if (m_strCommand.Compare("@deleteUserAccount")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength() > 2)
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtDeleteUserAccount();
     }
 
     if (m_strCommand.Compare("checkUser")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlCheckUser();
     }
 
     if (m_strCommand.Compare("@checkUser")) {
-        // This means new-style credentials are being sent, not just the public
-        // key as before.
-        const bool bCredentials =
-            (m_ascPayload.Exists() && m_ascPayload2.Exists());
-
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " hasCredentials=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  (bCredentials ? "true" : "false"),
-                                  m_strServerID.Get());
-
-        if (m_bSuccess) {
-            // Old style. (Deprecated.)
-            if (m_strNymPublicKey.Exists())
-                m_xmlUnsigned.Concatenate(
-                    "<nymPublicKey>\n%s</nymPublicKey>\n\n",
-                    m_strNymPublicKey.Get());
-
-            // New style:
-            if (bCredentials) {
-                m_xmlUnsigned.Concatenate(
-                    "<credentialList>\n%s</credentialList>\n\n",
-                    m_ascPayload.Get());
-                m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                          m_ascPayload2.Get());
-            }
-        }
-        else
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-
-        return true;
+        return writeXmlAtCheckUser();
     }
 
     if (m_strCommand.Compare("usageCredits")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " adjustment=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_lDepth, m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlUsageCredits();
     }
 
     if (m_strCommand.Compare("@usageCredits")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " totalCredits=\"%lld\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtUsageCredits();
     }
 
-    // This one isn't part of the message protocol, but is used for outmail
-    // storage.
-    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
-    // itself
-    // will soon be encrypted, and there's no need to be redundant also as well
-    // in addition on top of that.
-    //
     if (m_strCommand.Compare("outmailMessage") ||
         m_strCommand.Compare("outpaymentsMessage")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlOutpaymentsMessage();
     }
 
     if (m_strCommand.Compare("sendUserMessage")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlSendUserMessage();
     }
 
     if (m_strCommand.Compare("@sendUserMessage")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtSendUserMessage();
     }
 
-    if (m_strCommand.Compare(
-            "sendUserInstrument") || // sendUserInstrument is sent from one user
-                                     // to the server, which then attaches that
-                                     // message as a payment, onto a transaction
-                                     // on the Nymbox of the recipient.
-        m_strCommand.Compare("payDividend")) // payDividend is not a normal user
-                                             // message. Rather, the sender uses
-                                             // notarizeTransactions to do a
-                                             // payDividend transaction. On the
-                                             // server side, this creates a new
-                                             // message of type "payDividend"
-                                             // for each recipient, in order to
-                                             // attach a voucher to it (for each
-                                             // recipient) and then that
-                                             // (artificially created
-                                             // payDividend msg) is added to the
-                                             // Nymbox of each recipient.
-    {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " requestNum=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymID2.Get(), m_strRequestNum.Get(),
-                                  m_strServerID.Get());
-
-        if (m_ascPayload.GetLength() > 2)
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+    if (m_strCommand.Compare( "sendUserInstrument") ||
+        m_strCommand.Compare("payDividend")) {
+        return writeXmlSendUserInstrumentOrPayDivident();
     }
 
     if (m_strCommand.Compare("@sendUserInstrument")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " nymID2=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strNymID2.Get(),
-                                  m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtSendUserInstrument();
     }
 
     if (m_strCommand.Compare("getRequest")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetRequest();
     }
 
-    // This is the ONE command where you see a request number coming back from
-    // the server.
-    // In all the other commands, it should be SENT to the server, not received
-    // from the server.
     if (m_strCommand.Compare("@getRequest")) {
-        m_xmlUnsigned.Concatenate(
-            "<%s\n"             // command
-            " success=\"%s\"\n" // m_bSuccess
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " newRequestNum=\"%lld\"\n"
-            " requestNum=\"%s\""
-            ">\n\n",
-            m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
-            m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
-            m_lNewRequestNum, m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetRequest();
     }
 
     if (m_strCommand.Compare("issueAssetType")) {
@@ -1705,6 +1417,380 @@ bool OTMessage::writeXmlAtGetNymMarketOffers()
     else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
         m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlCheckServerID()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate(
+        "<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
+        m_strNymPublicKey.Get());
+    m_xmlUnsigned.Concatenate(
+        "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
+        m_strNymID2.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtCheckServerID()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlCreateUserAccount()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get());
+    if (m_ascPayload.Exists())
+        m_xmlUnsigned.Concatenate(
+            "<credentialList>\n%s</credentialList>\n\n",
+            m_ascPayload.Get());
+    if (m_ascPayload2.Exists())
+        m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                  m_ascPayload2.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtCreateUserAccount()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    if (m_bSuccess && (m_ascPayload.GetLength() > 2))
+        m_xmlUnsigned.Concatenate("<nymfile>\n%s</nymfile>\n\n",
+                                  m_ascPayload.Get());
+
+    if (m_ascInReferenceTo.GetLength() > 2)
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlDeleteUserAccount()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtDeleteUserAccount()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    if (m_ascInReferenceTo.GetLength() > 2)
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlCheckUser()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " requestNum=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymID2.Get(), m_strRequestNum.Get(),
+                              m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtCheckUser()
+{
+    // This means new-style credentials are being sent, not just the public
+    // key as before.
+    const bool bCredentials =
+        (m_ascPayload.Exists() && m_ascPayload2.Exists());
+
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " hasCredentials=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strNymID2.Get(),
+                              (bCredentials ? "true" : "false"),
+                              m_strServerID.Get());
+
+    if (m_bSuccess) {
+        // Old style. (Deprecated.)
+        if (m_strNymPublicKey.Exists())
+            m_xmlUnsigned.Concatenate(
+                "<nymPublicKey>\n%s</nymPublicKey>\n\n",
+                m_strNymPublicKey.Get());
+
+        // New style:
+        if (bCredentials) {
+            m_xmlUnsigned.Concatenate(
+                "<credentialList>\n%s</credentialList>\n\n",
+                m_ascPayload.Get());
+            m_xmlUnsigned.Concatenate("<credentials>\n%s</credentials>\n\n",
+                                      m_ascPayload2.Get());
+        }
+    }
+    else
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+
+    return true;
+}
+
+bool OTMessage::writeXmlUsageCredits()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " requestNum=\"%s\"\n"
+                              " adjustment=\"%lld\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymID2.Get(), m_strRequestNum.Get(),
+                              m_lDepth, m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtUsageCredits()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " totalCredits=\"%lld\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strNymID2.Get(), m_lDepth,
+                              m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlOutpaymentsMessage()
+{
+    // This one isn't part of the message protocol, but is used for outmail
+    // storage.
+    // (Because outmail isn't encrypted like the inmail is, since the Nymfile
+    // itself
+    // will soon be encrypted, and there's no need to be redundant also as well
+    // in addition on top of that.
+    //
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " requestNum=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymID2.Get(), m_strRequestNum.Get(),
+                              m_strServerID.Get());
+
+    if (m_ascPayload.GetLength() > 2)
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlSendUserMessage()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " requestNum=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymID2.Get(), m_strRequestNum.Get(),
+                              m_strServerID.Get());
+
+    if (m_ascPayload.GetLength() > 2)
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtSendUserMessage()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strNymID2.Get(),
+                              m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlSendUserInstrumentOrPayDivident()
+{
+    // sendUserInstrument is sent from one user
+    // to the server, which then attaches that
+    // message as a payment, onto a transaction
+    // on the Nymbox of the recipient.
+
+    // payDividend is not a normal user
+    // message. Rather, the sender uses
+    // notarizeTransactions to do a
+    // payDividend transaction. On the
+    // server side, this creates a new
+    // message of type "payDividend"
+    // for each recipient, in order to
+    // attach a voucher to it (for each
+    // recipient) and then that
+    // (artificially created
+    // payDividend msg) is added to the
+    // Nymbox of each recipient.
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " requestNum=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymID2.Get(), m_strRequestNum.Get(),
+                              m_strServerID.Get());
+
+    if (m_ascPayload.GetLength() > 2)
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtSendUserInstrument()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " nymID2=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strNymID2.Get(),
+                              m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlGetRequest()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " requestNum=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strServerID.Get(), m_strRequestNum.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetRequest()
+{
+    // This is the ONE command where you see a request number coming back from
+    // the server.
+    // In all the other commands, it should be SENT to the server, not received
+    // from the server.
+    m_xmlUnsigned.Concatenate(
+        "<%s\n"             // command
+        " success=\"%s\"\n" // m_bSuccess
+        " nymID=\"%s\"\n"
+        " nymboxHash=\"%s\"\n"
+        " serverID=\"%s\"\n"
+        " newRequestNum=\"%lld\"\n"
+        " requestNum=\"%s\""
+        ">\n\n",
+        m_strCommand.Get(), (m_bSuccess ? "true" : "false"),
+        m_strNymID.Get(), m_strNymboxHash.Get(), m_strServerID.Get(),
+        m_lNewRequestNum, m_strRequestNum.Get());
 
     m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
     return true;
