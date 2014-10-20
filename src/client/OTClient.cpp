@@ -8297,6 +8297,59 @@ bool OTClient::ProcessServerReplyDeleteUserAccount(OTMessage& theReply,
     return true;
 }
 
+bool OTClient::ProcessServerReplyDeleteAssetAccount(
+    OTMessage& theReply, ProcessServerReplyArgs& args)
+{
+    const auto& SERVER_ID = args.SERVER_ID;
+    const auto& pNym = args.pNym;
+
+    OTString strOriginalMessage;
+    if (theReply.m_ascInReferenceTo.Exists())
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+
+    OTMessage theOriginalMessage;
+
+    const OTString strServerID(SERVER_ID);
+
+    if (strOriginalMessage.Exists() &&
+        theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
+        theOriginalMessage.VerifySignature(*pNym) &&
+        theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
+        theOriginalMessage.m_strAcctID.Compare(theReply.m_strAcctID) &&
+        theOriginalMessage.m_strCommand.Compare("deleteAssetAccount")) {
+        // O-kayy!!
+
+        const OTIdentifier theAccountID(theReply.m_strAcctID);
+
+        OTAccount* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
+
+        if (nullptr != pDeletedAcct) {
+            pDeletedAcct->MarkForDeletion();
+            pDeletedAcct->ReleaseSignatures();
+            pDeletedAcct->SignContract(*pNym);
+            pDeletedAcct->SaveContract();
+            pDeletedAcct->SaveAccount();
+            // (The account still exists in storage, but has been MARKED FOR
+            // DELETION.)
+
+            // Remove the account from the wallet:
+            //
+            if (m_pWallet->RemoveAccount(theAccountID)) {
+                m_pWallet->SaveWallet();
+            }
+        }
+
+        otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
+              << " from Server: " << strServerID << ".\n";
+    }
+    else
+        otErr << "The server just for some reason tried to trick me into "
+                 "erasing my account " << theReply.m_strAcctID << " on Server "
+              << strServerID << ".\n";
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8796,53 +8849,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@deleteUserAccount")) {
         return ProcessServerReplyDeleteUserAccount(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@deleteAssetAccount")) {
-        OTString strOriginalMessage;
-        if (theReply.m_ascInReferenceTo.Exists())
-            theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
-
-        OTMessage theOriginalMessage;
-
-        const OTString strServerID(SERVER_ID);
-
-        if (strOriginalMessage.Exists() &&
-            theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
-            theOriginalMessage.VerifySignature(*pNym) &&
-            theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
-            theOriginalMessage.m_strAcctID.Compare(theReply.m_strAcctID) &&
-            theOriginalMessage.m_strCommand.Compare("deleteAssetAccount")) {
-            // O-kayy!!
-
-            const OTIdentifier theAccountID(theReply.m_strAcctID);
-
-            OTAccount* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
-
-            if (nullptr != pDeletedAcct) {
-                pDeletedAcct->MarkForDeletion();
-                pDeletedAcct->ReleaseSignatures();
-                pDeletedAcct->SignContract(*pNym);
-                pDeletedAcct->SaveContract();
-                pDeletedAcct->SaveAccount();
-                // (The account still exists in storage, but has been MARKED FOR
-                // DELETION.)
-
-                // Remove the account from the wallet:
-                //
-                if (m_pWallet->RemoveAccount(theAccountID)) {
-                    m_pWallet->SaveWallet();
-                }
-            }
-
-            otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
-                  << " from Server: " << strServerID << ".\n";
-        }
-        else
-            otErr << "The server just for some reason tried to trick me into "
-                     "erasing my account " << theReply.m_strAcctID
-                  << " on Server " << strServerID << ".\n";
-
-        return true;
+    if (theReply.m_strCommand.Compare("@deleteAssetAccount")) {
+        return ProcessServerReplyDeleteAssetAccount(theReply, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@issueAssetType")) {
