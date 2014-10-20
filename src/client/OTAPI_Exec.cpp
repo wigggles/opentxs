@@ -4776,10 +4776,7 @@ bool OTAPI_Exec::SetAccountWallet_Name(const std::string& ACCT_ID,
     OTIdentifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
     OTString strAcctNewName(ACCT_NEW_NAME);
 
-    bool bSuccess =
-        OTAPI()->SetAccount_Name(theAcctID, theSignerNymID, strAcctNewName);
-
-    return bSuccess ? true : false;
+    return OTAPI()->SetAccount_Name(theAcctID, theSignerNymID, strAcctNewName);
 }
 
 // returns the account balance, based on account ID.
@@ -5001,10 +4998,7 @@ bool OTAPI_Exec::DiscardCheque(const std::string& SERVER_ID,
     OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
     OTString strCheque(THE_CHEQUE);
 
-    const bool bDiscarded =
-        OTAPI()->DiscardCheque(theServerID, theUserID, theAcctID, strCheque);
-
-    return (bDiscarded ? true : false);
+    return OTAPI()->DiscardCheque(theServerID, theUserID, theAcctID, strCheque);
 }
 
 // PROPOSE PAYMENT PLAN
@@ -5355,9 +5349,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
 
     OTString strOutput(thePlan); // Extract the payment plan to string form.
 
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // RETURNS:  the Smart Contract itself. (Or "".)
@@ -5394,8 +5386,7 @@ std::string OTAPI_Exec::Create_SmartContract(
     if (!bCreated || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return strOutput.Get();
 }
 
 //
@@ -5441,9 +5432,7 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // returns: the updated smart contract (or "")
@@ -5499,9 +5488,7 @@ std::string OTAPI_Exec::SmartContract_AddClause(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // returns: the updated smart contract (or "")
@@ -5575,8 +5562,7 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return strOutput.Get();
 }
 
 // returns: the updated smart contract (or "")
@@ -5635,9 +5621,7 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // returns: the updated smart contract (or "")
@@ -5698,9 +5682,7 @@ std::string OTAPI_Exec::SmartContract_AddHook(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // RETURNS: Updated version of THE_CONTRACT. (Or "".)
@@ -5753,8 +5735,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return strOutput.Get();
 }
 
 // Used when creating a theoretical smart contract (that could be used over and
@@ -5810,9 +5791,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
     //
-    std::string pBuf = strOutput.Get();
-
-    return pBuf;
+    return strOutput.Get();
 }
 
 // This function returns the count of how many trans#s a Nym needs in order to
@@ -5845,11 +5824,7 @@ int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
         return 0;
     }
     const OTString strContract(THE_CONTRACT), strAgentName(AGENT_NAME);
-    //
-    const int32_t& nCount =
-        OTAPI()->SmartContract_CountNumsNeeded(strContract, strAgentName);
-
-    return nCount;
+    return OTAPI()->SmartContract_CountNumsNeeded(strContract, strAgentName);
 }
 
 // Used when taking a theoretical smart contract, and setting it up to use
@@ -5901,9 +5876,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
         strAccountID, strOutput);
     if (!bConfirmed || !strOutput.Exists()) return "";
     // Success!
-    //
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return strOutput.Get();
 }
 
 // Called by each Party. Pass in the smart contract obtained in the above call.
@@ -5946,9 +5919,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
         strOutput);
     if (!bConfirmed || !strOutput.Exists()) return "";
     // Success!
-    //
-    std::string pBuf = strOutput.Get();
-    return pBuf;
+    return strOutput.Get();
 }
 
 bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
@@ -6026,71 +5997,66 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return false;
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a party "
-                     "with the name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
-        {
-            //...is he confirmed?
-            //
-            if (!pParty->GetMySignedCopy().Exists()) {
-                otWarn << __FUNCTION__
-                       << ": Smart contract loaded up, and party " << PARTY_NAME
-                       << " was found, but didn't find a signed copy of the "
-                          "agreement for that party.\n";
-            }
-            else // FYI, this block comes from
-                   // OTScriptable::VerifyThisAgainstAllPartiesSignedCopies.
-            {
-                std::unique_ptr<OTScriptable> pPartySignedCopy(
-                    OTScriptable::InstantiateScriptable(
-                        pParty->GetMySignedCopy()));
 
-                if (nullptr == pPartySignedCopy) {
-                    const std::string current_party_name(
-                        pParty->GetPartyName());
-                    otErr << __FUNCTION__ << ": Error loading party's ("
-                          << current_party_name
-                          << ") signed copy of agreement. Has it been "
-                             "executed?\n";
-                }
-                else {
-                    if (!pScriptable->Compare(*pPartySignedCopy)) {
-                        const std::string current_party_name(
-                            pParty->GetPartyName());
-                        otErr << __FUNCTION__ << ": Suspicious: Party's ("
-                              << current_party_name
-                              << ") signed copy of agreement doesn't match the "
-                                 "contract.\n";
-                    }
-                    else {
-                        // TODO Security: This function doesn't actually verify
-                        // the party's SIGNATURE on his signed
-                        // version, only that it exists and it matches the main
-                        // contract.
-                        //
-                        // The actual signatures are all verified by the server
-                        // before activation, but I'd still like the client
-                        // to have the option to do so as well. I can imagine
-                        // getting someone's signature on something (without
-                        // signing it yourself) and then just retaining the
-                        // OPTION to sign it later -- but he might not have
-                        // actually signed it if he knew that you hadn't either.
-                        // He'd want his client to tell him, if this were
-                        // the case. Todo.
-
-                        return true;
-                    }
-                }
-            }
-        }
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a party "
+                 "with the name: " << PARTY_NAME << "\n";
+        return false;
     }
-    return false;
+
+    // We found the party...
+    //...is he confirmed?
+    //
+    if (!pParty->GetMySignedCopy().Exists()) {
+        otWarn << __FUNCTION__ << ": Smart contract loaded up, and party "
+               << PARTY_NAME
+               << " was found, but didn't find a signed copy of the "
+                  "agreement for that party.\n";
+        return false;
+    }
+
+    // FYI, this block comes from
+    // OTScriptable::VerifyThisAgainstAllPartiesSignedCopies.
+    std::unique_ptr<OTScriptable> pPartySignedCopy(
+        OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy()));
+
+    if (nullptr == pPartySignedCopy) {
+        const std::string current_party_name(pParty->GetPartyName());
+        otErr << __FUNCTION__ << ": Error loading party's ("
+              << current_party_name
+              << ") signed copy of agreement. Has it been "
+                 "executed?\n";
+        return false;
+    }
+
+    if (!pScriptable->Compare(*pPartySignedCopy)) {
+        const std::string current_party_name(pParty->GetPartyName());
+        otErr << __FUNCTION__ << ": Suspicious: Party's (" << current_party_name
+              << ") signed copy of agreement doesn't match the "
+                 "contract.\n";
+        return false;
+    }
+
+    // TODO Security: This function doesn't actually verify
+    // the party's SIGNATURE on his signed
+    // version, only that it exists and it matches the main
+    // contract.
+    //
+    // The actual signatures are all verified by the server
+    // before activation, but I'd still like the client
+    // to have the option to do so as well. I can imagine
+    // getting someone's signature on something (without
+    // signing it yourself) and then just retaining the
+    // OPTION to sign it later -- but he might not have
+    // actually signed it if he knew that you hadn't either.
+    // He'd want his client to tell him, if this were
+    // the case. Todo.
+
+    return true;
 }
 
 int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
@@ -6106,11 +6072,10 @@ int32_t OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
         otOut << __FUNCTION__
               << " Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return OT_ERROR; // Error condition.
     }
-    else {
-        return pScriptable->GetPartyCount();
-    }
-    return OT_ERROR; // Error condition.
+
+    return pScriptable->GetPartyCount();
 }
 
 int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
@@ -6126,11 +6091,10 @@ int32_t OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return OT_ERROR; // Error condition.
     }
-    else {
-        return pScriptable->GetBylawCount();
-    }
-    return OT_ERROR; // Error condition.
+
+    return pScriptable->GetBylawCount();
 }
 
 /// returns the name of the party.
@@ -6148,22 +6112,20 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
-        OTParty* pParty = pScriptable->GetPartyByIndex(
-            nTempIndex); // has range-checking built-in.
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party using index: " << nTempIndex << "\n";
-        }
-        else // We found the party...
-        {
-            return pParty->GetPartyName();
-        }
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    OTParty* pParty = pScriptable->GetPartyByIndex(
+        nTempIndex); // has range-checking built-in.
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "party using index: " << nTempIndex << "\n";
+        return "";
     }
-    return "";
+
+    return pParty->GetPartyName();
 }
 
 /// returns the name of the bylaw.
@@ -6181,23 +6143,21 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
-        OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
-            nTempIndex); // has range-checking built-in.
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw using index: " << nTempIndex << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const std::string str_name(pBylaw->GetName().Get()); // Success.
-            return str_name;
-        }
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
+        nTempIndex); // has range-checking built-in.
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw using index: " << nTempIndex << "\n";
+        return "";
     }
-    return "";
+
+    // We found the bylaw...
+    return pBylaw->GetName().Get();
 }
 
 std::string OTAPI_Exec::Bylaw_GetLanguage(const std::string& THE_CONTRACT,
@@ -6218,23 +6178,19 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a bylaw "
-                     "with the name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const std::string str_return(nullptr == pBylaw->GetLanguage()
-                                             ? "error_no_language"
-                                             : pBylaw->GetLanguage());
-            return str_return;
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a bylaw "
+                 "with the name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+    // We found the bylaw...
+    if (nullptr == pBylaw->GetLanguage()) return "error_no_language";
+    return pBylaw->GetLanguage();
 }
 
 int32_t OTAPI_Exec::Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
@@ -6255,19 +6211,18 @@ int32_t OTAPI_Exec::Bylaw_GetClauseCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a bylaw "
-                     "with the name: " << BYLAW_NAME << "\n";
-        }
-        else {
-            return pBylaw->GetClauseCount();
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a bylaw "
+                 "with the name: " << BYLAW_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pBylaw->GetClauseCount();
 }
 
 int32_t OTAPI_Exec::Bylaw_GetVariableCount(const std::string& THE_CONTRACT,
@@ -6288,19 +6243,18 @@ int32_t OTAPI_Exec::Bylaw_GetVariableCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a bylaw "
-                     "with the name: " << BYLAW_NAME << "\n";
-        }
-        else {
-            return pBylaw->GetVariableCount();
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a bylaw "
+                 "with the name: " << BYLAW_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pBylaw->GetVariableCount();
 }
 
 int32_t OTAPI_Exec::Bylaw_GetHookCount(const std::string& THE_CONTRACT,
@@ -6321,19 +6275,18 @@ int32_t OTAPI_Exec::Bylaw_GetHookCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a bylaw "
-                     "with the name: " << BYLAW_NAME << "\n";
-        }
-        else {
-            return pBylaw->GetHookCount();
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a bylaw "
+                 "with the name: " << BYLAW_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pBylaw->GetHookCount();
 }
 
 int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
@@ -6354,19 +6307,18 @@ int32_t OTAPI_Exec::Bylaw_GetCallbackCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a bylaw "
-                     "with the name: " << BYLAW_NAME << "\n";
-        }
-        else {
-            return pBylaw->GetCallbackCount();
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a bylaw "
+                 "with the name: " << BYLAW_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pBylaw->GetCallbackCount();
 }
 
 std::string OTAPI_Exec::Clause_GetNameByIndex(
@@ -6388,35 +6340,28 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
 
-            OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
-
-            if (nullptr == pClause) {
-                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
-                                         "bylaw found, but failed to retrieve "
-                                         "the clause at index: " << nTempIndex
-                      << "\n";
-            }
-            else // We found the clause...
-            {
-                const std::string str_name(
-                    pClause->GetName().Get()); // Success.
-                return str_name;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
+    if (nullptr == pClause) {
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the clause at index: " << nTempIndex << "\n";
+        return "";
+    }
+
+    // Success.
+    return pClause->GetName().Get();
 }
 
 std::string OTAPI_Exec::Clause_GetContents(
@@ -6442,32 +6387,28 @@ std::string OTAPI_Exec::Clause_GetContents(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            OTClause* pClause = pBylaw->GetClause(CLAUSE_NAME);
 
-            if (nullptr == pClause) {
-                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
-                                         "bylaw found, but failed to retrieve "
-                                         "the clause with name: " << CLAUSE_NAME
-                      << "\n";
-            }
-            else // We found the clause...
-            {
-                const std::string str_return(pClause->GetCode()); // Success.
-                return str_return;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    OTClause* pClause = pBylaw->GetClause(CLAUSE_NAME);
+
+    if (nullptr == pClause) {
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the clause with name: " << CLAUSE_NAME
+              << "\n";
+        return "";
+    }
+    // Success.
+    return pClause->GetCode();
 }
 
 std::string OTAPI_Exec::Variable_GetNameByIndex(
@@ -6489,34 +6430,28 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
 
-            OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
-
-            if (nullptr == pVar) {
-                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
-                                         "bylaw found, but failed to retrieve "
-                                         "the variable at index: " << nTempIndex
-                      << "\n";
-            }
-            else // We found the variable...
-            {
-                const std::string str_name(pVar->GetName().Get()); // Success.
-                return str_name;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
+    if (nullptr == pVar) {
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "bylaw found, but failed to retrieve "
+                                 "the variable at index: " << nTempIndex
+              << "\n";
+        return "";
+    }
+
+    return pVar->GetName().Get();
 }
 
 std::string OTAPI_Exec::Variable_GetType(
@@ -6542,38 +6477,30 @@ std::string OTAPI_Exec::Variable_GetType(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
 
-            if (nullptr == pVar) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and bylaw found, but "
-                         "failed to retrieve the variable with name: "
-                      << VARIABLE_NAME << "\n";
-            }
-            else // We found the variable...
-            {
-                const std::string str_return(
-                    pVar->IsInteger()
-                        ? "integer"
-                        : (pVar->IsBool() ? "boolean"
-                                          : (pVar->IsString()
-                                                 ? "string"
-                                                 : "error_type"))); // Success.
-                return str_return;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
+    if (nullptr == pVar) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, and bylaw found, but "
+                 "failed to retrieve the variable with name: " << VARIABLE_NAME
+              << "\n";
+        return "";
+    }
+
+    if (pVar->IsInteger()) return "integer";
+    if (pVar->IsBool()) return "boolean";
+    if (pVar->IsString()) return "string";
+    return "error_type";
 }
 
 std::string OTAPI_Exec::Variable_GetAccess(
@@ -6600,39 +6527,30 @@ std::string OTAPI_Exec::Variable_GetAccess(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
 
-            if (nullptr == pVar) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and bylaw found, but "
-                         "failed to retrieve the variable with name: "
-                      << VARIABLE_NAME << "\n";
-            }
-            else // We found the variable...
-            {
-                const std::string str_return(
-                    pVar->IsConstant()
-                        ? "constant"
-                        : (pVar->IsImportant()
-                               ? "important"
-                               : (pVar->IsPersistent()
-                                      ? "persistent"
-                                      : "error_access"))); // Success.
-                return str_return;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
+    if (nullptr == pVar) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, and bylaw found, but "
+                 "failed to retrieve the variable with name: " << VARIABLE_NAME
+              << "\n";
+        return "";
+    }
+
+    if (pVar->IsConstant()) return "constant";
+    if (pVar->IsImportant()) return "important";
+    if (pVar->IsPersistent()) return "persistent";
+    return "error_access";
 }
 
 std::string OTAPI_Exec::Variable_GetContents(const std::string& THE_CONTRACT,
@@ -6659,49 +6577,38 @@ std::string OTAPI_Exec::Variable_GetContents(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
 
-            if (nullptr == pVar) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and bylaw found, but "
-                         "failed to retrieve the variable with name: "
-                      << VARIABLE_NAME << "\n";
-            }
-            else // We found the variable...
-            {
-                std::string str_return;
-
-                switch (pVar->GetType()) {
-                case OTVariable::Var_String:
-                    str_return = pVar->GetValueString();
-                    break;
-                case OTVariable::Var_Integer:
-                    str_return = OTAPI_Exec::LongToString(
-                        static_cast<int64_t>(pVar->GetValueInteger()));
-                    break;
-                case OTVariable::Var_Bool:
-                    str_return = pVar->GetValueBool() ? "true" : "false";
-                    break;
-                default:
-                    otErr << __FUNCTION__
-                          << ": Error: Unknown variable type.\n";
-                    break;
-                }
-                return str_return;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
+    if (nullptr == pVar) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, and bylaw found, but "
+                 "failed to retrieve the variable with name: " << VARIABLE_NAME
+              << "\n";
+        return "";
+    }
+
+    switch (pVar->GetType()) {
+    case OTVariable::Var_String:
+        return pVar->GetValueString();
+    case OTVariable::Var_Integer:
+        return OTAPI_Exec::LongToString(
+            static_cast<int64_t>(pVar->GetValueInteger()));
+    case OTVariable::Var_Bool:
+        return pVar->GetValueBool() ? "true" : "false";
+    default:
+        otErr << __FUNCTION__ << ": Error: Unknown variable type.\n";
+        return "";
+    }
 }
 
 std::string OTAPI_Exec::Hook_GetNameByIndex(
@@ -6723,22 +6630,19 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
-            const std::string str_name(pBylaw->GetHookNameByIndex(nTempIndex));
-            return str_name;
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    return pBylaw->GetHookNameByIndex(nTempIndex);
 }
 
 /// Returns the number of clauses attached to a specific hook.
@@ -6765,27 +6669,22 @@ int32_t OTAPI_Exec::Hook_GetClauseCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            mapOfClauses theResults;
-            const bool bGotHooks = pBylaw->GetHooks(
-                HOOK_NAME,
-                theResults); // Look up all clauses matching a specific hook.
-            const int32_t nReturnValue =
-                bGotHooks ? static_cast<const int32_t>(theResults.size())
-                          : OT_ERROR;
-            return nReturnValue;
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    mapOfClauses theResults;
+    // Look up all clauses matching a specific hook.
+    if (!pBylaw->GetHooks(HOOK_NAME, theResults)) return OT_ERROR;
+
+    return static_cast<const int32_t>(theResults.size());
 }
 
 /// Multiple clauses can trigger from the same hook.
@@ -6817,40 +6716,32 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            mapOfClauses theResults;
 
-            if (pBylaw->GetHooks(HOOK_NAME, theResults)) // Look up all clauses
-                                                         // matching a specific
-                                                         // hook.
-            {
-                if ((nIndex >= 0) &&
-                    (nIndex < static_cast<int64_t>(theResults.size()))) {
-                    int32_t nLoopIndex = -1;
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
+    }
 
-                    for (auto& it : theResults) {
-                        OTClause* pClause = it.second;
-                        OT_ASSERT(nullptr != pClause);
-                        ++nLoopIndex; // on first iteration, this is now 0.
+    mapOfClauses theResults;
 
-                        if (nLoopIndex == nIndex) {
-                            const std::string str_return(
-                                pClause->GetName().Get());
-                            return str_return;
-                        }
-                    }
-                }
-            }
-        }
+    // Look up all clauses matching a specific hook.
+    if (!pBylaw->GetHooks(HOOK_NAME, theResults)) return "";
+
+    if ((nIndex < 0) || (nIndex >= static_cast<int64_t>(theResults.size())))
+        return "";
+
+    int32_t nLoopIndex = -1;
+    for (auto& it : theResults) {
+        OTClause* pClause = it.second;
+        OT_ASSERT(nullptr != pClause);
+        ++nLoopIndex; // on first iteration, this is now 0.
+
+        if (nLoopIndex == nIndex) return pClause->GetName().Get();
     }
     return "";
 }
@@ -6874,23 +6765,19 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
-            const std::string str_name(
-                pBylaw->GetCallbackNameByIndex(nTempIndex));
-            return str_name;
-        }
+
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
 std::string OTAPI_Exec::Callback_GetClause(const std::string& THE_CONTRACT,
@@ -6918,32 +6805,27 @@ std::string OTAPI_Exec::Callback_GetClause(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
-        if (nullptr == pBylaw) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "bylaw with name: " << BYLAW_NAME << "\n";
-        }
-        else // We found the bylaw...
-        {
-            OTClause* pClause = pBylaw->GetCallback(CALLBACK_NAME);
 
-            if (nullptr == pClause) {
-                otOut << __FUNCTION__
-                      << ": Smart contract loaded up, and bylaw found, but "
-                         "failed to retrieve the clause for callback: "
-                      << CALLBACK_NAME << "\n";
-            }
-            else // We found the clause...
-            {
-                const std::string str_return(pClause->GetName().Get());
-                return str_return;
-            }
-        }
+    OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
+    if (nullptr == pBylaw) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "bylaw with name: " << BYLAW_NAME << "\n";
+        return "";
     }
-    return "";
+
+    OTClause* pClause = pBylaw->GetCallback(CALLBACK_NAME);
+    if (nullptr == pClause) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, and bylaw found, but "
+                 "failed to retrieve the clause for callback: " << CALLBACK_NAME
+              << "\n";
+        return "";
+    }
+
+    return pClause->GetName().Get();
 }
 
 int32_t OTAPI_Exec::Party_GetAcctCount(const std::string& THE_CONTRACT,
@@ -6964,19 +6846,18 @@ int32_t OTAPI_Exec::Party_GetAcctCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a party "
-                     "with the name: " << PARTY_NAME << "\n";
-        }
-        else {
-            return pParty->GetAccountCount();
-        }
+
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a party "
+                 "with the name: " << PARTY_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pParty->GetAccountCount();
 }
 
 int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
@@ -6997,19 +6878,18 @@ int32_t OTAPI_Exec::Party_GetAgentCount(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return OT_ERROR;
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a party "
-                     "with the name: " << PARTY_NAME << "\n";
-        }
-        else {
-            return pParty->GetAgentCount();
-        }
+
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a party "
+                 "with the name: " << PARTY_NAME << "\n";
+        return OT_ERROR;
     }
-    return OT_ERROR;
+
+    return pParty->GetAgentCount();
 }
 
 std::string OTAPI_Exec::Party_GetID(
@@ -7037,20 +6917,18 @@ std::string OTAPI_Exec::Party_GetID(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to find a party "
-                     "with the name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
-        {
-            return pParty->GetPartyID();
-        }
+
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to find a party "
+                 "with the name: " << PARTY_NAME << "\n";
+        return "";
     }
-    return "";
+
+    return pParty->GetPartyID();
 }
 
 std::string OTAPI_Exec::Party_GetAcctNameByIndex(
@@ -7072,33 +6950,27 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
-        {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
-            OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
 
-            if (nullptr == pAcct) {
-                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
-                                         "party found, but failed to retrieve "
-                                         "the account at index: " << nTempIndex
-                      << "\n";
-            }
-            else // We found the account...
-            {
-                const std::string str_name(pAcct->GetName().Get()); // Success.
-                return str_name;
-            }
-        }
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "party with name: " << PARTY_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
+    if (nullptr == pAcct) {
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "party found, but failed to retrieve "
+                                 "the account at index: " << nTempIndex << "\n";
+        return "";
+    }
+
+    return pAcct->GetName().Get();
 }
 
 std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
@@ -7126,33 +6998,26 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
         otOut << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
               << strContract << "\n\n";
+        return "";
     }
-    else {
-        OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
-        if (nullptr == pParty) {
-            otOut << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: " << PARTY_NAME << "\n";
-        }
-        else // We found the party...
-        {
-            const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
-            if (nullptr == pAcct) {
-                otOut << __FUNCTION__ << ": Smart contract loaded up, and "
-                                         "party found, but failed to retrieve "
-                                         "party's account named: " << ACCT_NAME
-                      << "\n";
-            }
-            else // We found the account...
-            {
-                const std::string str_return(
-                    pAcct->GetAcctID().Get()); // Success.
-                return str_return;
-            }
-        }
+    OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
+    if (nullptr == pParty) {
+        otOut << __FUNCTION__
+              << ": Smart contract loaded up, but failed to retrieve the "
+                 "party with name: " << PARTY_NAME << "\n";
+        return "";
     }
-    return "";
+
+    const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
+    if (nullptr == pAcct) {
+        otOut << __FUNCTION__ << ": Smart contract loaded up, and "
+                                 "party found, but failed to retrieve "
+                                 "party's account named: " << ACCT_NAME << "\n";
+        return "";
+    }
+
+    return pAcct->GetAcctID().Get();
 }
 
 std::string OTAPI_Exec::Party_GetAcctAssetID(const std::string& THE_CONTRACT,
