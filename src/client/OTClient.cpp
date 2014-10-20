@@ -7940,6 +7940,78 @@ bool OTClient::ProcessServerReplyGetMint(OTMessage& theReply)
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetMarketList(OTMessage& theReply)
+{
+    OTString strMarketDatafile;
+    strMarketDatafile.Format("%s", "market_data.bin");
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            OTFolders::Market().Get(),    // "markets"
+            theReply.m_strServerID.Get(), // "markets/<serverID>"
+            strMarketDatafile.Get()); // "markets/<serverID>/market_data.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing market list from market folder: "
+                  << strMarketDatafile << " \n";
+
+        return true;
+    }
+
+    OTData thePayload;
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in @getMarketList reply.\n";
+        return true;
+    }
+
+    // Unpack the market list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker(); // No need to check for failure, since this
+                               // already ASSERTS. No need to cleanup
+                               // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(nullptr != pBuffer);
+
+    pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                     thePayload.GetSize());
+
+    std::unique_ptr<OTDB::MarketList> pMarketList(
+        dynamic_cast<OTDB::MarketList*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
+
+    if (!bUnpacked) {
+        otErr << "Process Server Reply: Failed unpacking data for "
+                 "@getMarketList.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pMarketList, OTFolders::Market().Get(), // "markets"
+        theReply.m_strServerID.Get(),            // "markets/<serverID>"
+        strMarketDatafile.Get()); // "markets/<serverID>/market_data.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing market list to market folder: "
+              << strMarketDatafile << " \n";
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8424,77 +8496,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@getMint")) {
         return ProcessServerReplyGetMint(theReply);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getMarketList")) {
-        OTString strMarketDatafile;
-        strMarketDatafile.Format("%s", "market_data.bin");
-
-        OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(nullptr != pStorage);
-
-        // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-        // Since it was a success, but the list was empty, then we need to erase
-        // the data file. (So when the file is loaded from storage, it will
-        // correctly
-        // display an empty list on the screen, instead of a list of outdated
-        // items.)
-        //
-        if (theReply.m_lDepth == 0) {
-            bool bSuccessErase = pStorage->EraseValueByKey(
-                OTFolders::Market().Get(),    // "markets"
-                theReply.m_strServerID.Get(), // "markets/<serverID>"
-                strMarketDatafile
-                    .Get()); // "markets/<serverID>/market_data.bin"
-            if (!bSuccessErase)
-                otErr << "Error erasing market list from market folder: "
-                      << strMarketDatafile << " \n";
-
-            return true;
-        }
-
-        OTData thePayload;
-
-        if ((theReply.m_ascPayload.GetLength() <= 2) ||
-            (false == theReply.m_ascPayload.GetData(thePayload))) {
-            otErr << "ProcessServerReply: unable to decode ascii-armored "
-                     "payload in @getMarketList reply.\n";
-            return true;
-        }
-
-        // Unpack the market list...
-
-        OTDB::OTPacker* pPacker =
-            pStorage->GetPacker(); // No need to check for failure, since this
-                                   // already ASSERTS. No need to cleanup
-                                   // either.
-
-        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-        OT_ASSERT(nullptr != pBuffer);
-
-        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
-                         thePayload.GetSize());
-
-        std::unique_ptr<OTDB::MarketList> pMarketList(
-            dynamic_cast<OTDB::MarketList*>(
-                OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
-
-        bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
-
-        if (!bUnpacked) {
-            otErr << "Process Server Reply: Failed unpacking data for "
-                     "@getMarketList.\n";
-            return true;
-        }
-
-        bool bSuccessStore = pStorage->StoreObject(
-            *pMarketList, OTFolders::Market().Get(), // "markets"
-            theReply.m_strServerID.Get(),            // "markets/<serverID>"
-            strMarketDatafile.Get()); // "markets/<serverID>/market_data.bin"
-        if (!bSuccessStore)
-            otErr << "Error storing market list to market folder: "
-                  << strMarketDatafile << " \n";
-
-        return true;
+    if (theReply.m_strCommand.Compare("@getMarketList")) {
+        return ProcessServerReplyGetMarketList(theReply);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getMarketOffers")) {
