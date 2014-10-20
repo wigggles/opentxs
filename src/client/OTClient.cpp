@@ -3777,7 +3777,8 @@ bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
     OTIdentifier RECENT_HASH;
     const std::string str_server(args.strServerID.Get());
 
-    // todo: this is same code as in ProcessServerReplyTriggerClause
+    // todo (DUPLICATION): this is the same code as in
+    // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
@@ -3941,7 +3942,8 @@ bool OTClient::ProcessServerReplyNotarizeTransactions(
     OTIdentifier RECENT_HASH;
     const std::string str_server(args.strServerID.Get());
 
-    // todo: this is same code as in ProcessServerReplyTriggerClause
+    // todo (DUPLICATION): this is the same code as in
+    // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
@@ -3984,7 +3986,8 @@ bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
     OTIdentifier RECENT_HASH;
     const std::string str_server(args.strServerID.Get());
 
-    // todo: this is same code as in ProcessServerReplyTriggerClause
+    // todo (DUPLICATION): this is the same code as in
+    // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
@@ -4000,6 +4003,110 @@ bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
             args.pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
+    return true;
+}
+
+bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
+                                           OTLedger* pNymbox,
+                                           ProcessServerReplyArgs& args)
+{
+    OTString strReply(theReply);
+
+    otOut << "Received @getNymbox server response ("
+          << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
+
+    // base64-Decode the server reply's payload into strInbox
+    OTString strNymbox(theReply.m_ascPayload);
+
+    // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
+    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // so we'll never end up here except in cases where it needs to be
+    // loaded. I can even ASSERT here, that the pointer is actually nullptr!
+    //
+    OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
+                                      "nullptr here, since @getNymbox "
+                                      "isn't dropped as a server "
+                                      "replyNotice into the nymbox.");
+
+    // Load the ledger object from that string.
+    OTLedger theNymbox(args.USER_ID, args.USER_ID, args.SERVER_ID);
+
+    OTIdentifier NYMBOX_HASH, RECENT_HASH;
+    const std::string str_server(args.strServerID.Get());
+
+    // todo DUPLICATION: this is (almost! )the same code as in
+    // ProcessServerReplyTriggerClause
+    if (theReply.m_strNymboxHash.Exists()) {
+        NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
+
+        const bool bNymboxHash =
+            args.pNym->SetNymboxHash(str_server, NYMBOX_HASH);
+        const bool bRecentHash =
+            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+
+        if (!bNymboxHash)
+            otErr << "Failed setting NymboxHash on Nym for server: "
+                  << str_server << "\n";
+        if (!bRecentHash)
+            otErr << theReply.m_strCommand
+                  << ": Failed setting NymboxHash (to store as 'recent "
+                     "hash') from Nym for server: " << str_server << "\n";
+        if (bNymboxHash || bRecentHash) {
+            OTPseudonym* pSignerNym = args.pNym;
+            args.pNym->SaveSignedNymfile(*pSignerNym);
+        }
+    }
+
+    // I receive the nymbox, verify the server's signature, then RE-SIGN IT
+    // WITH MY OWN
+    // SIGNATURE, then SAVE it to local storage.  So any FUTURE checks of
+    // this nymbox
+    // would require MY signature, not the server's, to verify. But in this
+    // one spot,
+    // just before saving, I need to verify the server's first.
+    // UPDATE: Keeping the server's signature, and just adding my own.
+    //
+    if (theNymbox.LoadNymboxFromString(
+            strNymbox)) // && theNymbox.VerifyAccount(*pServerNym)) No point
+                        // doing this, since the client hasn't even had a
+                        // chance to download the box receipts yet.
+                        // (VerifyAccount will fail before then...)
+    {
+
+        //
+        // UPDATE: We will have to rely on the Developer using the OT API to
+        // call
+        // OT_API_FlushSentMessages IMMEDIATELY after calling getNymbox and
+        // receiving
+        // a successful reply. Why? Because that's the only way to give him
+        // the chance
+        // to see if certain replies are there or not (before they get
+        // removed.) That way
+        // he can do his own harvesting, do a re-try, etc and then finally
+        // when he is done
+        // with that, do the flush.
+        //
+
+        theNymbox.ReleaseSignatures(); // Now I'm keeping the server
+                                       // signature, and just adding my own.
+        theNymbox.SignContract(*args.pNym); // UPDATE: Releasing the signature
+                                            // again, since Receipts are now
+                                            // fully functional.
+        theNymbox.SaveContract(); // Thus we can prove the Nymbox using the
+                                  // last signed transaction receipt. This
+                                  // means
+        theNymbox.SaveNymbox();   // the receipt is our proof, and the nymbox
+                                  // becomes just an intermediary file that is
+        // downloaded occasionally (like checking for new email) but no
+        // trust is risked since
+        // the downloaded file is always verified against the receipt!
+    }
+    else {
+        otErr << "OTClient::ProcessServerReply: Error loading or verifying "
+                 "nymbox during @getNymbox:\n\n" << strNymbox << "\n";
+    }
+
     return true;
 }
 
@@ -4222,104 +4329,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     else if (theReply.m_strCommand.Compare("@getTransactionNum")) {
         return ProcessServerReplyGetTransactionNum(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getNymbox")) {
-        OTString strReply(theReply);
-
-        otOut << "Received @getNymbox server response ("
-              << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
-
-        // base64-Decode the server reply's payload into strInbox
-        OTString strNymbox(theReply.m_ascPayload);
-
-        // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-        // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
-        // so we'll never end up here except in cases where it needs to be
-        // loaded. I can even ASSERT here, that the pointer is actually nullptr!
-        //
-        OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                          "nullptr here, since @getNymbox "
-                                          "isn't dropped as a server "
-                                          "replyNotice into the nymbox.");
-
-        // Load the ledger object from that string.
-        OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
-
-        OTIdentifier NYMBOX_HASH, RECENT_HASH;
-        const std::string str_server(strServerID.Get());
-
-        if (theReply.m_strNymboxHash.Exists()) {
-            NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
-            RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-            const bool bNymboxHash =
-                pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-            const bool bRecentHash =
-                pNym->SetRecentHash(str_server, RECENT_HASH);
-
-            if (!bNymboxHash)
-                otErr << "Failed setting NymboxHash on Nym for server: "
-                      << str_server << "\n";
-            if (!bRecentHash)
-                otErr << theReply.m_strCommand
-                      << ": Failed setting NymboxHash (to store as 'recent "
-                         "hash') from Nym for server: " << str_server << "\n";
-            if (bNymboxHash || bRecentHash) {
-                OTPseudonym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-        }
-
-        // I receive the nymbox, verify the server's signature, then RE-SIGN IT
-        // WITH MY OWN
-        // SIGNATURE, then SAVE it to local storage.  So any FUTURE checks of
-        // this nymbox
-        // would require MY signature, not the server's, to verify. But in this
-        // one spot,
-        // just before saving, I need to verify the server's first.
-        // UPDATE: Keeping the server's signature, and just adding my own.
-        //
-        if (theNymbox.LoadNymboxFromString(
-                strNymbox)) // && theNymbox.VerifyAccount(*pServerNym)) No point
-                            // doing this, since the client hasn't even had a
-                            // chance to download the box receipts yet.
-                            // (VerifyAccount will fail before then...)
-        {
-
-            //
-            // UPDATE: We will have to rely on the Developer using the OT API to
-            // call
-            // OT_API_FlushSentMessages IMMEDIATELY after calling getNymbox and
-            // receiving
-            // a successful reply. Why? Because that's the only way to give him
-            // the chance
-            // to see if certain replies are there or not (before they get
-            // removed.) That way
-            // he can do his own harvesting, do a re-try, etc and then finally
-            // when he is done
-            // with that, do the flush.
-            //
-
-            theNymbox.ReleaseSignatures(); // Now I'm keeping the server
-                                           // signature, and just adding my own.
-            theNymbox.SignContract(*pNym); // UPDATE: Releasing the signature
-                                           // again, since Receipts are now
-                                           // fully functional.
-            theNymbox.SaveContract(); // Thus we can prove the Nymbox using the
-                                      // last signed transaction receipt. This
-                                      // means
-            theNymbox.SaveNymbox(); // the receipt is our proof, and the nymbox
-                                    // becomes just an intermediary file that is
-            // downloaded occasionally (like checking for new email) but no
-            // trust is risked since
-            // the downloaded file is always verified against the receipt!
-        }
-        else {
-            otErr << "OTClient::ProcessServerReply: Error loading or verifying "
-                     "nymbox during @getNymbox:\n\n" << strNymbox << "\n";
-        }
-
-        return true;
+    else if (theReply.m_strCommand.Compare("@getNymbox")) {
+        return ProcessServerReplyGetNymBox(theReply, pNymbox, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getBoxReceipt")) {
