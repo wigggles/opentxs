@@ -187,6 +187,11 @@ protected:
 
     void processXmlSuccess(irr::io::IrrXMLReader*& xml);
 
+    //TODO: remove later
+    void processXmlSuccess(OTMessage &, irr::io::IrrXMLReader*& xml){
+        processXmlSuccess(xml);
+    }
+
 private:
     bool updateContentsByType();
     bool writeXmlGetMarketList();
