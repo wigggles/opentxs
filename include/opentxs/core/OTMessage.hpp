@@ -181,6 +181,24 @@ private:
     bool writeXmlAtSendUserInstrument();
     bool writeXmlGetRequest();
     bool writeXmlAtGetRequest();
+    bool writeXmlIssueAssetType();
+    bool writeXmlAtIssueAssetType();
+    bool writeXmlQueryAssetTypes();
+    bool writeXmlAtQueryAssetTypes();
+    bool writeXmlIssueBasket();
+    bool writeXmlAtIssueBasket();
+    bool writeXmlCreateAccount();
+    bool writeXmlAtCreateAccount();
+    bool writeXmlGetBoxReceipt();
+    bool writeXmlAtGetBoxReceipt();
+    bool writeXmlDeleteAssetAccount();
+    bool writeXmlAtDeleteAssetAccount();
+    bool writeXmlNotarizeTransactions();
+    bool writeXmlAtNotarizeTransactions();
+    bool writeXmlGetTransactionNum();
+    bool writeXmlAtGetTransactionNum();
+    bool writeXmlGetNymbox();
+    bool writeXmlAtGetNymbox();
 
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
