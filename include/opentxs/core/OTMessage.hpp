@@ -199,6 +199,16 @@ private:
     bool writeXmlAtGetTransactionNum();
     bool writeXmlGetNymbox();
     bool writeXmlAtGetNymbox();
+    bool writeXmlGetInbox();
+    bool writeXmlAtGetInbox();
+    bool writeXmlGetOutbox();
+    bool writeXmlAtGetOutbox();
+    bool writeXmlGetAccount();
+    bool writeXmlAtGetAccount();
+    bool writeXmlGetAccountFiles();
+    bool writeXmlAtGetAccountFiles();
+    bool writeXmlGetContract();
+    bool writeXmlAtGetContract();
 
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
