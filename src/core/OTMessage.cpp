@@ -352,166 +352,35 @@ void OTMessage::UpdateContents()
 bool OTMessage::updateContentsByType()
 {
     if (m_strCommand.Compare("getMarketList")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetMarketList();
     }
 
     if (m_strCommand.Compare("@getMarketList")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetMarketList();
     }
 
     if (m_strCommand.Compare("getMarketOffers")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetMarketOffers();
     }
 
     if (m_strCommand.Compare("@getMarketOffers")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetMarketOffers();
     }
 
     if (m_strCommand.Compare("getMarketRecentTrades")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"" // stored in NymID2
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get() // Storing Market ID
-                                  );
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetMarketRecentTrades();
     }
 
     if (m_strCommand.Compare("@getMarketRecentTrades")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " marketID=\"%s\"\n" // stored in NymID2
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strNymID2.Get(), // Storing Market ID
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetMarketRecentTrades();
     }
 
     if (m_strCommand.Compare("getNym_MarketOffers")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetNymMarketOffers();
     }
 
     if (m_strCommand.Compare("@getNym_MarketOffers")) {
-        m_xmlUnsigned.Concatenate("<%s\n"
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " depth=\"%lld\""
-                                  ">\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_lDepth);
-
-        if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
-            m_xmlUnsigned.Concatenate(
-                "<messagePayload>\n%s</messagePayload>\n\n",
-                m_ascPayload.Get());
-        else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetNymMarketOffers();
     }
 
     if (m_strCommand.Compare("checkServerID")) {
@@ -1668,6 +1537,177 @@ bool OTMessage::updateContentsByType()
         return true;
     }
     return false;
+}
+
+bool OTMessage::writeXmlGetMarketList()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetMarketList()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " depth=\"%lld\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_lDepth);
+
+    if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+    else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlGetMarketOffers()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " marketID=\"%s\"\n" // stored in NymID2
+                              " depth=\"%lld\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strNymID2.Get(), // Storing Market ID
+                              m_lDepth);
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetMarketOffers()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " marketID=\"%s\"\n" // stored in NymID2
+                              " depth=\"%lld\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strNymID2.Get(), // Storing Market ID
+                              m_lDepth);
+
+    if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+    else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlGetMarketRecentTrades()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " marketID=\"%s\"" // stored in NymID2
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strNymID2.Get() // Storing Market ID
+                              );
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetMarketRecentTrades()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " marketID=\"%s\"\n" // stored in NymID2
+                              " depth=\"%lld\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strNymID2.Get(), // Storing Market ID
+                              m_lDepth);
+
+    if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+    else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlGetNymMarketOffers()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetNymMarketOffers()
+{
+    m_xmlUnsigned.Concatenate("<%s\n"
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " depth=\"%lld\""
+                              ">\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_lDepth);
+
+    if (m_bSuccess && (m_ascPayload.GetLength() > 2) && (m_lDepth > 0))
+        m_xmlUnsigned.Concatenate(
+            "<messagePayload>\n%s</messagePayload>\n\n",
+            m_ascPayload.Get());
+    else if (!m_bSuccess && (m_ascInReferenceTo.GetLength() > 2))
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
 }
 
 void OTMessage::processXmlSuccess(irr::io::IrrXMLReader*& xml)

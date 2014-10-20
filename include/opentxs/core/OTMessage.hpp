@@ -156,6 +156,14 @@ protected:
 
 private:
     bool updateContentsByType();
+    bool writeXmlGetMarketList();
+    bool writeXmlAtGetMarketList();
+    bool writeXmlGetMarketOffers();
+    bool writeXmlAtGetMarketOffers();
+    bool writeXmlGetMarketRecentTrades();
+    bool writeXmlAtGetMarketRecentTrades();
+    bool writeXmlGetNymMarketOffers();
+    bool writeXmlAtGetNymMarketOffers();
 
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
