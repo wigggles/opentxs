@@ -8248,6 +8248,55 @@ bool OTClient::ProcessServerReplyGetNymMarketOffers(OTMessage& theReply)
     return true;
 }
 
+bool OTClient::ProcessServerReplyDeleteUserAccount(OTMessage& theReply,
+                                                   ProcessServerReplyArgs& args)
+{
+    const auto& pNym = args.pNym;
+    const auto& SERVER_ID = args.SERVER_ID;
+
+    OTString strOriginalMessage;
+    if (theReply.m_ascInReferenceTo.Exists())
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+
+    OTMessage theOriginalMessage;
+
+    const OTString strServerID(SERVER_ID);
+
+    if (strOriginalMessage.Exists() &&
+        theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
+        theOriginalMessage.VerifySignature(*pNym) &&
+        theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
+        theOriginalMessage.m_strCommand.Compare("deleteUserAccount")) {
+        // O-kayy!!
+
+        while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
+            int64_t lTemp = pNym->GetTransactionNum(SERVER_ID, 0); // index 0
+            pNym->RemoveTransactionNum(strServerID, lTemp); // doesn't save.
+        }
+        while (pNym->GetIssuedNumCount(SERVER_ID) > 0) {
+            int64_t lTemp = pNym->GetIssuedNum(SERVER_ID, 0); // index 0
+            pNym->RemoveIssuedNum(strServerID, lTemp);        // doesn't save.
+        }
+        pNym->UnRegisterAtServer(
+            strServerID); // Remove request number for that server.
+
+        // SAVE the updated Nym to local storage.
+        //
+        OTPseudonym& extraNym = *pNym;
+        pNym->SaveSignedNymfile(extraNym);
+
+        otOut << "Successfully DELETED Nym from Server: removed request "
+                 "number, plus all issued and transaction numbers for Nym "
+              << theReply.m_strNymID << " for Server " << strServerID << ".\n";
+    }
+    else
+        otErr << "The server just for some reason tried to trick me into "
+                 "erasing my issued and transaction numbers for Nym "
+              << theReply.m_strNymID << ", Server " << strServerID << ".\n";
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8744,51 +8793,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
         return ProcessServerReplyGetNymMarketOffers(theReply);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@deleteUserAccount")) {
-        OTString strOriginalMessage;
-        if (theReply.m_ascInReferenceTo.Exists())
-            theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
-
-        OTMessage theOriginalMessage;
-
-        const OTString strServerID(SERVER_ID);
-
-        if (strOriginalMessage.Exists() &&
-            theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
-            theOriginalMessage.VerifySignature(*pNym) &&
-            theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
-            theOriginalMessage.m_strCommand.Compare("deleteUserAccount")) {
-            // O-kayy!!
-
-            while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
-                int64_t lTemp =
-                    pNym->GetTransactionNum(SERVER_ID, 0);      // index 0
-                pNym->RemoveTransactionNum(strServerID, lTemp); // doesn't save.
-            }
-            while (pNym->GetIssuedNumCount(SERVER_ID) > 0) {
-                int64_t lTemp = pNym->GetIssuedNum(SERVER_ID, 0); // index 0
-                pNym->RemoveIssuedNum(strServerID, lTemp); // doesn't save.
-            }
-            pNym->UnRegisterAtServer(
-                strServerID); // Remove request number for that server.
-
-            // SAVE the updated Nym to local storage.
-            //
-            OTPseudonym& extraNym = *pNym;
-            pNym->SaveSignedNymfile(extraNym);
-
-            otOut << "Successfully DELETED Nym from Server: removed request "
-                     "number, plus all issued and transaction numbers for Nym "
-                  << theReply.m_strNymID << " for Server " << strServerID
-                  << ".\n";
-        }
-        else
-            otErr << "The server just for some reason tried to trick me into "
-                     "erasing my issued and transaction numbers for Nym "
-                  << theReply.m_strNymID << ", Server " << strServerID << ".\n";
-
-        return true;
+    if (theReply.m_strCommand.Compare("@deleteUserAccount")) {
+        return ProcessServerReplyDeleteUserAccount(theReply, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@deleteAssetAccount")) {
