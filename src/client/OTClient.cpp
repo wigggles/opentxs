@@ -8012,6 +8012,87 @@ bool OTClient::ProcessServerReplyGetMarketList(OTMessage& theReply)
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetMarketOffers(OTMessage& theReply)
+{
+
+    const OTString& strMarketID =
+        theReply.m_strNymID2; // market ID stored here.
+
+    OTString strOfferDatafile;
+    strOfferDatafile.Format("%s.bin", strMarketID.Get());
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            OTFolders::Market().Get(),    // "markets"
+            theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
+                                          // "markets/<serverID>/offers"
+                                          // // todo stop
+                                          // hardcoding.
+            strOfferDatafile
+                .Get()); // "markets/<serverID>/offers/<marketID>.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing offers list from market folder: "
+                  << strOfferDatafile << " \n";
+
+        return true;
+    }
+
+    OTData thePayload;
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in @getMarketOffers reply.\n";
+        return true;
+    }
+
+    // Unpack the market list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker(); // No need to check for failure, since this
+                               // already ASSERTS. No need to cleanup
+                               // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(nullptr != pBuffer);
+
+    pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                     thePayload.GetSize());
+
+    std::unique_ptr<OTDB::OfferListMarket> pOfferList(
+        dynamic_cast<OTDB::OfferListMarket*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
+
+    if (!bUnpacked) {
+        otErr << "Failed unpacking data for process server reply, "
+                 "@getMarketOffers.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pOfferList, OTFolders::Market().Get(), // "markets"
+        theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
+                                      // "markets/<serverID>/offers"   //
+                                      // todo stop hardcoding.
+        strOfferDatafile.Get()); // "markets/<serverID>/offers/<marketID>.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing " << strOfferDatafile << " to market folder.\n";
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8499,86 +8580,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@getMarketList")) {
         return ProcessServerReplyGetMarketList(theReply);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getMarketOffers")) {
-        const OTString& strMarketID =
-            theReply.m_strNymID2; // market ID stored here.
-
-        OTString strOfferDatafile;
-        strOfferDatafile.Format("%s.bin", strMarketID.Get());
-
-        OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(nullptr != pStorage);
-
-        // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-        // Since it was a success, but the list was empty, then we need to erase
-        // the data file. (So when the file is loaded from storage, it will
-        // correctly
-        // display an empty list on the screen, instead of a list of outdated
-        // items.)
-        //
-        if (theReply.m_lDepth == 0) {
-            bool bSuccessErase = pStorage->EraseValueByKey(
-                OTFolders::Market().Get(),    // "markets"
-                theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
-                                              // "markets/<serverID>/offers"
-                                              // // todo stop
-                                              // hardcoding.
-                strOfferDatafile
-                    .Get()); // "markets/<serverID>/offers/<marketID>.bin"
-            if (!bSuccessErase)
-                otErr << "Error erasing offers list from market folder: "
-                      << strOfferDatafile << " \n";
-
-            return true;
-        }
-
-        OTData thePayload;
-
-        if ((theReply.m_ascPayload.GetLength() <= 2) ||
-            (false == theReply.m_ascPayload.GetData(thePayload))) {
-            otErr << "ProcessServerReply: unable to decode ascii-armored "
-                     "payload in @getMarketOffers reply.\n";
-            return true;
-        }
-
-        // Unpack the market list...
-
-        OTDB::OTPacker* pPacker =
-            pStorage->GetPacker(); // No need to check for failure, since this
-                                   // already ASSERTS. No need to cleanup
-                                   // either.
-
-        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-        OT_ASSERT(nullptr != pBuffer);
-
-        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
-                         thePayload.GetSize());
-
-        std::unique_ptr<OTDB::OfferListMarket> pOfferList(
-            dynamic_cast<OTDB::OfferListMarket*>(
-                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
-
-        bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
-
-        if (!bUnpacked) {
-            otErr << "Failed unpacking data for process server reply, "
-                     "@getMarketOffers.\n";
-            return true;
-        }
-
-        bool bSuccessStore = pStorage->StoreObject(
-            *pOfferList, OTFolders::Market().Get(), // "markets"
-            theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
-                                          // "markets/<serverID>/offers"   //
-                                          // todo stop hardcoding.
-            strOfferDatafile
-                .Get()); // "markets/<serverID>/offers/<marketID>.bin"
-        if (!bSuccessStore)
-            otErr << "Error storing " << strOfferDatafile
-                  << " to market folder.\n";
-
-        return true;
+    if (theReply.m_strCommand.Compare("@getMarketOffers")) {
+        return ProcessServerReplyGetMarketOffers(theReply);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getMarketRecentTrades")) {
