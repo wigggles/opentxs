@@ -7924,6 +7924,22 @@ bool OTClient::ProcessServerReplyGetContract(OTMessage& theReply,
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetMint(OTMessage& theReply)
+{
+    // base64-Decode the server reply's payload into strMint
+    OTString strMint(theReply.m_ascPayload);
+    // Load the mint object from that string...
+    std::unique_ptr<Mint> pMint(
+        Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID));
+    OT_ASSERT(nullptr != pMint);
+    // TODO check the server signature on the mint here...
+    if (pMint->LoadContractFromString(strMint)) {
+        otOut << "Saving mint file to disk...\n";
+        pMint->SaveMint();
+    }
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8405,20 +8421,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@getContract")) {
         return ProcessServerReplyGetContract(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getMint")) {
-        // base64-Decode the server reply's payload into strMint
-        OTString strMint(theReply.m_ascPayload);
-        // Load the mint object from that string...
-        std::unique_ptr<Mint> pMint(
-            Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID));
-        OT_ASSERT(nullptr != pMint);
-        // TODO check the server signature on the mint here...
-        if (pMint->LoadContractFromString(strMint)) {
-            otOut << "Saving mint file to disk...\n";
-            pMint->SaveMint();
-        }
-        return true;
+    if (theReply.m_strCommand.Compare("@getMint")) {
+        return ProcessServerReplyGetMint(theReply);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getMarketList")) {

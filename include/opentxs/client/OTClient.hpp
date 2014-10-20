@@ -428,6 +428,7 @@ public:
                                            ProcessServerReplyArgs& args);
     bool ProcessServerReplyGetContract(OTMessage& theReply,
                                        ProcessServerReplyArgs& args);
+    bool ProcessServerReplyGetMint(OTMessage& theReply);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
