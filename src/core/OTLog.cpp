@@ -258,8 +258,10 @@ OTLOG_IMPORT OTLogStream otLog3(3); // logs using OTLog::vOutput(3)
 OTLOG_IMPORT OTLogStream otLog4(4); // logs using OTLog::vOutput(4)
 OTLOG_IMPORT OTLogStream otLog5(5); // logs using OTLog::vOutput(5)
 
-OTLogStream::OTLogStream(int)
+OTLogStream::OTLogStream(int _logLevel)
     : std::ostream(this)
+    , logLevel(_logLevel)
+    , next(0)
     , pBuffer(new char[1024])
 {
 }
@@ -268,6 +270,25 @@ OTLogStream::~OTLogStream()
 {
     delete[] pBuffer;
     pBuffer = nullptr;
+}
+
+int OTLogStream::overflow(int c)
+{
+    pBuffer[next++] = c;
+    if (c != '\n' && next < 1000) {
+        return 0;
+    }
+
+    pBuffer[next++] = '\0';
+    next = 0;
+
+    if (logLevel < 0) {
+        OTLog::Error(pBuffer);
+        return 0;
+    }
+
+    OTLog::Output(logLevel, pBuffer);
+    return 0;
 }
 
 //  OTLog Init, must run this before using any OTLog function.
