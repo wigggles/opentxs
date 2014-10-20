@@ -3974,6 +3974,35 @@ bool OTClient::ProcessServerReplyNotarizeTransactions(
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
+                                                   ProcessServerReplyArgs& args)
+{
+    otOut << "Received server response to Get Transaction Num message.\n";
+    //        otOut << "Received server response to Get Transaction
+    // Num message:\n" << strReply << "\n";
+
+    OTIdentifier RECENT_HASH;
+    const std::string str_server(args.strServerID.Get());
+
+    // todo: this is same code as in ProcessServerReplyTriggerClause
+    if (theReply.m_strNymboxHash.Exists()) {
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
+
+        const bool bRecentHash =
+            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+
+        if (!bRecentHash)
+            otErr << theReply.m_strCommand
+                  << ": Failed getting NymboxHash (to store as 'recent "
+                     "hash') from Nym for server: " << str_server << "\n";
+        else {
+            OTPseudonym* pSignerNym = args.pNym;
+            args.pNym->SaveSignedNymfile(*pSignerNym);
+        }
+    }
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -4190,31 +4219,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@notarizeTransactions")) {
         return ProcessServerReplyNotarizeTransactions(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getTransactionNum")) {
-        otOut << "Received server response to Get Transaction Num message.\n";
-        //        otOut << "Received server response to Get Transaction
-        // Num message:\n" << strReply << "\n";
-
-        OTIdentifier RECENT_HASH;
-        const std::string str_server(strServerID.Get());
-
-        if (theReply.m_strNymboxHash.Exists()) {
-            RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-            const bool bRecentHash =
-                pNym->SetRecentHash(str_server, RECENT_HASH);
-
-            if (!bRecentHash)
-                otErr << theReply.m_strCommand
-                      << ": Failed getting NymboxHash (to store as 'recent "
-                         "hash') from Nym for server: " << str_server << "\n";
-            else {
-                OTPseudonym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-        }
-        return true;
+    else if (theReply.m_strCommand.Compare("@getTransactionNum")) {
+        return ProcessServerReplyGetTransactionNum(theReply, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getNymbox")) {
